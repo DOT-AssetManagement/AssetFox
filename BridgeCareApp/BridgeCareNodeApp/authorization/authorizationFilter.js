@@ -33,7 +33,9 @@ function authorizationFilter(permittedRoles) {
         // return response.status(401).json({message: 'User is not authorized for this action.'});
 
         // this is to temporary disable PennDOT security
-        request.user = { username: "pdsystbamsusr02", role: "PD - BAMS - Administrator" };
+        username = "pdsystbamsusr02";
+        roles = "PD-BAMS-Administrator";
+        request.user = { username, roles };
         return next();
     };
 }
