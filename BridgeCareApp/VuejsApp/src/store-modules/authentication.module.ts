@@ -5,13 +5,20 @@ import {http2XX} from '@/shared/utils/http-utils';
 import {checkLDAP, parseLDAP, regexCheckLDAP} from '@/shared/utils/parse-ldap';
 
 const state = {
-    authenticated: false,
-    hasRole: false,
-    checkedForRole: false,
-    isAdmin: false,
+    //authenticated: false,
+    // it is temporary arrangement to bypass PennDOT security
+    authenticated: true,
+    hasRole: true,
+    checkedForRole: true,
+    isAdmin: true,
+    username: 'pdsystbamsusr02',
+    refreshing: false,
+    //hasRole: false,
+    //checkedForRole: false,
+    //isAdmin: false,
     isCWOPA: false,
-    username: '',
-    refreshing: false
+    // username: '',
+    // refreshing: false
 };
 
 const mutations = {
@@ -106,13 +113,20 @@ const actions = {
                         localStorage.setItem('UserInfo', response.data);
                         const userInfo: UserInfo = JSON.parse(response.data) as UserInfo;
                         const username: string = parseLDAP(userInfo.sub)[0];
-                        commit('hasRoleMutator', regexCheckLDAP(userInfo.roles, /PD-BAMS-(Administrator|CWOPA|PlanningPartner|DBEngineer)/));
-                        if (state.hasRole) {
-                            commit('isAdminMutator', checkLDAP(userInfo.roles, 'PD-BAMS-Administrator'));
-                            commit('isCWOPAMutator', checkLDAP(userInfo.roles, 'PD-BAMS-CWOPA'));
-                        }
-                        commit('checkedForRoleMutator', true);
-                        commit('usernameMutator', username);
+
+                        // it is temporary arrangement to bypass PennDOT security
+                        commit('isAdminMutator', 'PD-BAMS-Administrator');
+                        //commit('isCWOPAMutator', 'PD-BAMS-CWOPA');
+                        //commit('checkedForRoleMutator', true);
+                        //commit('usernameMutator', 'pdsystbamsusr02');
+
+                        // commit('hasRoleMutator', regexCheckLDAP(userInfo.roles, /PD-BAMS-(Administrator|CWOPA|PlanningPartner|DBEngineer)/));
+                        // if (state.hasRole) {
+                        //     commit('isAdminMutator', checkLDAP(userInfo.roles, 'PD-BAMS-Administrator'));
+                        //     commit('isCWOPAMutator', checkLDAP(userInfo.roles, 'PD-BAMS-CWOPA'));
+                        // }
+                        // commit('checkedForRoleMutator', true);
+                        // commit('usernameMutator', username);
                     } else {
                         dispatch('logOut');
                     }
@@ -123,7 +137,10 @@ const actions = {
     async logOut({commit}: any) {
         if (!localStorage.getItem('UserTokens')) {
             commit('usernameMutator', '');
-            commit('authenticatedMutator', false);
+            //commit('authenticatedMutator', false);
+
+            // it is temporary arrangement to bypass PennDOT security
+            commit('authenticatedMutator', true);
         } else {
             localStorage.removeItem('UserInfo');
             const userTokens: UserTokens = JSON.parse(localStorage.getItem('UserTokens') as string) as UserTokens;
@@ -132,7 +149,10 @@ const actions = {
             AuthenticationService.revokeToken(userTokens.access_token, 'Access');
             AuthenticationService.revokeToken(userTokens.refresh_token, 'Refresh');
             commit('usernameMutator', '');
-            commit('authenticatedMutator', false);
+            //commit('authenticatedMutator', false);
+
+            // it is temporary arrangement to bypass PennDOT security
+            commit('authenticatedMutator', true);
         }
     }
 };
