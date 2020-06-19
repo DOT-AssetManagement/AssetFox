@@ -33,29 +33,37 @@ namespace BridgeCare.Security
 
         protected override bool IsAuthorized(HttpActionContext httpContext)
         {
-            if (!TryGetAuthorization(httpContext.Request.Headers, out string accessToken))
-            {
-                return false;
-            }
+            //if (!TryGetAuthorization(httpContext.Request.Headers, out string accessToken))
+            //{
+            //    return false;
+            //}
 
-            var userInformationDictionary = AuthenticationController.GetUserInfoDictionary(accessToken);
+            //var userInformationDictionary = AuthenticationController.GetUserInfoDictionary(accessToken);
 
-            if (!userInformationDictionary.ContainsKey("roles"))
-            {
-                throw new UnauthorizedAccessException("User has no roles assigned.");
-            }
+            //if (!userInformationDictionary.ContainsKey("roles"))
+            //{
+            //    throw new UnauthorizedAccessException("User has no roles assigned.");
+            //}
 
-            var userInformation = ESECSecurity.GetUserInformation(userInformationDictionary);
+            //var userInformation = ESECSecurity.GetUserInformation(userInformationDictionary);
 
             // Some API endpoints need this user information, so it is inserted into
             // the request here before they process it
+
+            //httpContext.Request.Headers.Clear();
+
+            //httpContext.Request.Headers.Add("Role", userInformation.Role);
+            //httpContext.Request.Headers.Add("Name", userInformation.Name);
+            //httpContext.Request.Headers.Add("Email", userInformation.Email);
+
+            //return ValidateRole(userInformation.Role);
+
+            // this is to temporary disable PennDOT security
             httpContext.Request.Headers.Clear();
-
-            httpContext.Request.Headers.Add("Role", userInformation.Role);
-            httpContext.Request.Headers.Add("Name", userInformation.Name);
-            httpContext.Request.Headers.Add("Email", userInformation.Email);
-
-            return ValidateRole(userInformation.Role);
+            httpContext.Request.Headers.Add("Role", "PD - BAMS - Administrator");
+            httpContext.Request.Headers.Add("Name", "pdsystbamsusr02");
+            httpContext.Request.Headers.Add("Email", "dummy@ara.com");
+            return true; // this is to temporary disable the PennDOT security
         }
 
         /// <summary>
