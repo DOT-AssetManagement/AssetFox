@@ -6,9 +6,14 @@ export const getUserInfo = () => {
 };
 
 export const getUserName = () => {
-    return parseLDAP(getUserInfo().sub)[0];
+   // it is temporary arrangement to bypass PennDOT security
+    return 'pdsystbamsusr02';
+    //return parseLDAP(getUserInfo().sub)[0];
 };
 
 export const getUserRoles = () => {
-    return parseLDAP(getUserInfo().roles);
+    // it is temporary arrangement to bypass PennDOT security
+    return 'PD-BAMS-Administrator';
+    
+    //return parseLDAP(getUserInfo().roles);
 };

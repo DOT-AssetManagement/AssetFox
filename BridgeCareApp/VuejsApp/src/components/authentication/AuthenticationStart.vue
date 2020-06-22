@@ -35,17 +35,21 @@
 
         onRedirect() {
             if (!this.authenticated) {
-                var href: string = `${oidcConfig.authorizationEndpoint}?response_type=code&scope=openid&scope=BAMS`;
-                href += `&client_id=${oidcConfig.clientId}`;
-                href += `&redirect_uri=${oidcConfig.redirectUri}`;
+                this.$router.push('/Home/');
 
-                // The 'state' query parameter that is sent to ESEC will be sent back to
-                // the /Authentication page of the iam-deploy app.
-                if (process.env.VUE_APP_IS_PRODUCTION !== 'true') {
-                    href += '&state=localhost8080';
-                }
+                // var href: string = `${oidcConfig.authorizationEndpoint}?response_type=code&scope=openid&scope=BAMS`;
+                // href += `&client_id=${oidcConfig.clientId}`;
+                // href += `&redirect_uri=${oidcConfig.redirectUri}`;
 
-                window.location.href = href;
+                // // The 'state' query parameter that is sent to ESEC will be sent back to
+                // // the /Authentication page of the iam-deploy app.
+                // if (process.env.VUE_APP_IS_PRODUCTION !== 'true') {
+                //     href += '&state=localhost8080';
+                // }
+
+                // window.location.href = href;
+            } else{
+                this.$router.push('/Home/');
             }
         }
 
