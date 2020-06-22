@@ -60,7 +60,7 @@ namespace BridgeCare.Security
 
             // this is to temporary disable PennDOT security
             httpContext.Request.Headers.Clear();
-            httpContext.Request.Headers.Add("Role", "PD - BAMS - Administrator");
+            httpContext.Request.Headers.Add("Role", Role.ADMINISTRATOR);
             httpContext.Request.Headers.Add("Name", "pdsystbamsusr02");
             httpContext.Request.Headers.Add("Email", "dummy@ara.com");
             return true; // this is to temporary disable the PennDOT security
