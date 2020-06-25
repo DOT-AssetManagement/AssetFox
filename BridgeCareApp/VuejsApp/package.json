@@ -3,6 +3,7 @@
   "version": "v1.1.0",
   "private": true,
   "description": "BridgeCare",
+  "security": "iAM",
   "author": {
     "name": "Applied Research Associates"
   },
@@ -11,7 +12,8 @@
     "build-prod": "vue-cli-service build",
     "stage": "vue-cli-service build --mode staging",
     "lint": "wotan 'src/**'",
-    "lint-fix": "wotan --fix 'src/**'"
+    "lint-fix": "wotan --fix 'src/**'",
+    "check": "prettier --check 'VuejsApp/*.vue"
   },
   "dependencies": {
     "@progress/kendo-charts-vue-wrapper": "2020.1.115",
@@ -33,6 +35,7 @@
     "vue": "2.5.17",
     "vue-class-component": "6.0.0",
     "vue-currency-input": "1.18.3",
+    "vue-msal": "^3.0.3",
     "vue-property-decorator": "7.0.0",
     "vue-query-builder": "0.7.1",
     "vue-router": "^3.1.2",

@@ -15,29 +15,32 @@
 </template>
 
 <script lang="ts">
-    import Vue from 'vue';
-    import {Component} from 'vue-property-decorator';
-    import {Action, State} from 'vuex-class';
+import Vue from 'vue';
+import { Component } from 'vue-property-decorator';
+import { Action, State } from 'vuex-class';
 
-    @Component
-    export default class Authentication extends Vue {
-        @State(state => state.authentication.authenticated) authenticated: boolean;
-        @State(state => state.authentication.hasRole) hasRole: boolean;
+@Component
+export default class Authentication extends Vue {
+    @State(state => state.authentication.authenticated) authenticated: boolean;
+    @State(state => state.authentication.hasRole) hasRole: boolean;
 
-        @Action('setSuccessMessage') setSuccessMessageAction: any;
-        @Action('setErrorMessage') setErrorMessageAction: any;
-        @Action('getUserTokens') getUserTokensAction: any;
-        @Action('getUserInfo') getUserInfoAction: any;
-        @Action('getNetworks') getNetworksAction: any;
-        @Action('getAttributes') getAttributesAction: any;
+    @Action('setSuccessMessage') setSuccessMessageAction: any;
+    @Action('setErrorMessage') setErrorMessageAction: any;
+    @Action('getUserTokens') getUserTokensAction: any;
+    @Action('getUserInfo') getUserInfoAction: any;
+    @Action('getNetworks') getNetworksAction: any;
+    @Action('getAttributes') getAttributesAction: any;
+    @State(state => state.authentication.securityType) securityType: any;
 
-        mounted() {
-            const code: string = this.$route.query.code as string;
-            const state: string = this.$route.query.state as string;
+    mounted() {
+        const code: string = this.$route.query.code as string;
+        const state: string = this.$route.query.state as string;
 
-            // The ESEC login will always redirect the browser to the iam-deploy site.
-            // If the state is set, we know the authentication was started by a local client,
-            // and so we should send the browser back to that client.
+        // The ESEC login will always redirect the browser to the iam-deploy site.
+        // If the state is set, we know the authentication was started by a local client,
+        // and so we should send the browser back to that client.
+
+        if (this.securityType == 'pennDOT') {
             if (state === 'localhost8080') {
                 window.location.href = `http://localhost:8080/Authentication/?code=${code}`;
                 return;
@@ -57,19 +60,37 @@
                 }
             });
         }
+        if (this.securityType == 'iAM') {
+            var status: any = this.msal.isAuthenticated;
 
-        onAuthenticationSuccess() {
-            this.setSuccessMessageAction({message: 'Authentication successful.'});
-            this.$router.push('/Home/');
-        }
+            this.getAuthenticationAzureTestAction({ status: status });
 
-        onAuthenticationFailure() {
-            this.setErrorMessageAction({message: 'Authentication failed.'});
-            this.$router.push('/AuthenticationFailure/');
-        }
-
-        onRoleFailure() {
-            this.$router.push('/NoRole/');
+            if (this.msal.isAuthenticated) {
+                var userData: any = this.msal.user; // user data contains idToken Object idTokenClaims object
+                this.setAzureUserNameAction({ userName: userData.name });
+                this.onAuthenticationSuccess();
+            }
+            else{
+                this.onAuthenticationFailure();
+            }
+            if (this.msal.graph && this.msal.graph.profile) {
+                var profile = this.msal.graph.profile;
+            }
         }
     }
+
+    onAuthenticationSuccess() {
+        this.setSuccessMessageAction({ message: 'Authentication successful.' });
+        this.$router.push('/Home/');
+    }
+
+    onAuthenticationFailure() {
+        this.setErrorMessageAction({ message: 'Authentication failed.' });
+        this.$router.push('/AuthenticationFailure/');
+    }
+
+    onRoleFailure() {
+        this.$router.push('/NoRole/');
+    }
+}
 </script>

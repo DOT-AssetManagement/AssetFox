@@ -25,29 +25,35 @@
 <script lang="ts">
     import Vue from 'vue';
     import Component from 'vue-class-component';
+    import {Action, State} from 'vuex-class';
 
     @Component
     export default class Logout extends Vue {
-        mounted() {
-            /*
-             * The /iAM/ pages of the penndot deployments fail to set the cookie until they have been refreshed.
-             */
-            if (!window.location.hash) {
-                window.location.hash = 'refreshed';
-                window.location.reload(true);
-            }
+        @State(state => state.authentication.securityType) securityType: string;
 
-            if (this.$route.query.host === undefined) {
-                return;
-            }
-            /*
-             * In order to log out properly, the browser must visit the landing page of a penndot deployment, as iam-deploy.com cannot
-             * modify browser cookies for penndot.gov. So, if the browser was sent here from another host, redirect back to the landing
-             * page of that host without the 'host' query string.
-             */
-            const host: string = this.$route.query.host as string;
-            if (host !== window.location.host) {
-                window.location.href = 'http://' + host + '/iAM';
+        mounted() {
+            if(this.securityType == 'pennDOT'){
+
+                /*
+                * The /iAM/ pages of the penndot deployments fail to set the cookie until they have been refreshed.
+                */
+                if (!window.location.hash) {
+                    window.location.hash = 'refreshed';
+                    window.location.reload(true);
+                }
+
+                if (this.$route.query.host === undefined) {
+                    return;
+                }
+                /*
+                * In order to log out properly, the browser must visit the landing page of a penndot deployment, as iam-deploy.com cannot
+                * modify browser cookies for penndot.gov. So, if the browser was sent here from another host, redirect back to the landing
+                * page of that host without the 'host' query string.
+                */
+                const host: string = this.$route.query.host as string;
+                if (host !== window.location.host) {
+                    window.location.href = 'http://' + host + '/iAM';
+                }
             }
         }
     }
