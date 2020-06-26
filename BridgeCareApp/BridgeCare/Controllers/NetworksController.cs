@@ -4,6 +4,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Web;
 using System.Web.Http;
 
 namespace BridgeCare.Controllers
@@ -30,7 +31,7 @@ namespace BridgeCare.Controllers
         /// <returns>IHttpActionResult</returns>
         [HttpGet]
         [Route("api/GetNetworks")]
-        //[RestrictAccess]
+        [RestrictAccess]
         [Authorize]
         public IHttpActionResult GetNetworks() {
             HasRequiredScopes("read");
@@ -41,14 +42,15 @@ namespace BridgeCare.Controllers
         // Validate to ensure the necessary scopes are present.
         private void HasRequiredScopes(String permission)
         {
-            if (!ClaimsPrincipal.Current.FindFirst(scopeElement).Value.Contains(permission))
-            {
-                throw new HttpResponseException(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.Unauthorized,
-                    ReasonPhrase = $"The Scope claim does not contain the {permission} permission."
-                });
-            }
+            var userId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+            //if (!ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value.Contains(permission))
+            //{
+            //    throw new HttpResponseException(new HttpResponseMessage
+            //    {
+            //        StatusCode = HttpStatusCode.Unauthorized,
+            //        ReasonPhrase = $"The Scope claim does not contain the {permission} permission."
+            //    });
+            //}
         }
     }
 }
