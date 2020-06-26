@@ -27,7 +27,11 @@ Vue.use(msal, {
     auth: {
         clientId: config.clientId,
         tenantId: config.tenantId,
-        redirectUri: config.redirectUri
+        //tenantName: config.tenantName,
+        redirectUri: config.redirectUri,
+        postLogoutRedirectUri: config.postLogoutRedirectUri,
+        cacheLocation: 'localStorage',
+        signInPolicy: config.signInPolicy
     },
     router: router,
     requireAuthOnInitialize: true,
