@@ -17,10 +17,12 @@ using Unity;
 
 namespace BridgeCare
 {
-    public class Startup
+    public partial class Startup
     {
         public void Configuration(IAppBuilder app)
         {
+            ConfigureAuth(app);
+            // Configs to run hangfire dashboard. Right now, it has been configured only for localhost
             var container = UnityConfig.Container;
 
             Hangfire.GlobalConfiguration.Configuration.UseActivator(new ContainerJobActivator(container));

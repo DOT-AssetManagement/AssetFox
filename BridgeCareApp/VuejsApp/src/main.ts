@@ -17,9 +17,27 @@ import '@progress/kendo-ui';
 import '@progress/kendo-theme-default/dist/all.css';
 import {KendoChartInstaller} from '@progress/kendo-charts-vue-wrapper';
 import VueCurrencyInput from 'vue-currency-input';
+import msal from 'vue-msal';
+import config from '@/config/azure-b2c-config';
 
 Vue.use(Vuetify, {
     iconfont: 'fa'
+});
+Vue.use(msal, {
+    auth: {
+        clientId: config.clientId,
+        tenantId: config.tenantId,
+        //tenantName: config.tenantName,
+        redirectUri: config.redirectUri,
+        postLogoutRedirectUri: config.postLogoutRedirectUri,
+        cacheLocation: 'localStorage',
+        signInPolicy: config.signInPolicy
+    },
+    router: router,
+    requireAuthOnInitialize: true,
+    graph:{
+        callAfterInit: true
+    }
 });
 
 Vue.use(VueWorker);

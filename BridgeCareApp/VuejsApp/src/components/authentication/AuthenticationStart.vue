@@ -8,10 +8,14 @@
                             <h3>Beginning Authentication</h3>
                         </v-card-title>
                         <v-card-text>
-                            You should be redirected to the PennDOT login page shortly. If you are not redirected within
-                            5 seconds, press the button below.
+                            You should be redirected to the PennDOT login page
+                            shortly. If you are not redirected within 5 seconds,
+                            press the button below.
                         </v-card-text>
-                        <v-btn @click="onRedirect" class="v-btn theme--light ara-blue-bg white--text">
+                        <v-btn
+                            @click="onRedirect"
+                            class="v-btn theme--light ara-blue-bg white--text"
+                        >
                             Go to login page
                         </v-btn>
                     </v-card>
@@ -22,48 +26,60 @@
 </template>
 
 <script lang="ts">
-    import Vue from 'vue';
-    import {Component, Watch} from 'vue-property-decorator';
-    import {State} from 'vuex-class';
-    import oidcConfig from '@/oidc-config';
+import Vue from 'vue';
+import { Component, Watch } from 'vue-property-decorator';
+import { State } from 'vuex-class';
+import oidcConfig from '@/config/oidc-config';
 
-    @Component
-    export default class AuthenticationStart extends Vue {
-        @State(state => state.authentication.authenticated) authenticated: boolean;
-        @State(state => state.authentication.hasRole) hasRole: boolean;
-        @State(state => state.authentication.checkedForRole) checkedForRole: boolean;
+@Component
+export default class AuthenticationStart extends Vue {
+    @State(state => state.authentication.authenticated) authenticated: boolean;
+    @State(state => state.authentication.hasRole) hasRole: boolean;
+    @State(state => state.authentication.checkedForRole)
+    checkedForRole: boolean;
+    @State(state => state.authentication.securityType) securityType: any;
 
-        onRedirect() {
+    onRedirect() {
+        if (this.securityType == 'pennDOT') {
             if (!this.authenticated) {
-                this.$router.push('/Home/');
+                var href: string = `${oidcConfig.authorizationEndpoint}?response_type=code&scope=openid&scope=BAMS`;
+                href += `&client_id=${oidcConfig.clientId}`;
+                href += `&redirect_uri=${oidcConfig.redirectUri}`;
 
-                // var href: string = `${oidcConfig.authorizationEndpoint}?response_type=code&scope=openid&scope=BAMS`;
-                // href += `&client_id=${oidcConfig.clientId}`;
-                // href += `&redirect_uri=${oidcConfig.redirectUri}`;
+                // The 'state' query parameter that is sent to ESEC will be sent back to
+                // the /Authentication page of the iam-deploy app.
+                if (process.env.VUE_APP_IS_PRODUCTION !== 'true') {
+                    href += '&state=localhost8080';
+                }
 
-                // // The 'state' query parameter that is sent to ESEC will be sent back to
-                // // the /Authentication page of the iam-deploy app.
-                // if (process.env.VUE_APP_IS_PRODUCTION !== 'true') {
-                //     href += '&state=localhost8080';
-                // }
-
-                // window.location.href = href;
-            } else{
-                this.$router.push('/Home/');
+                window.location.href = href;
             }
         }
-
-        @Watch('checkedForRole')
-        onCheckedRole() {
-            if (this.hasRole) {
-                this.$router.push('/Home/');
+        if (this.securityType == 'iAM') {
+            if (!this.$msal.isAuthenticated()) {
+                this.$msal.signIn();
             } else {
-                this.$router.push('/NoRole/');
+                if (this.hasRole) {
+                    // For some reason @Watch('checkedForRole') is not working. So this if condition is a temporary fix
+                    this.$router.push('/Home/');
+                } else {
+                    this.$router.push('/NoRole/');
+                }
             }
-        }
-
-        mounted() {
-            this.onRedirect();
         }
     }
+
+    @Watch('checkedForRole')
+    onCheckedRole() {
+        if (this.hasRole) {
+            this.$router.push('/Home/');
+        } else {
+            this.$router.push('/NoRole/');
+        }
+    }
+
+    mounted() {
+        this.onRedirect();
+    }
+}
 </script>

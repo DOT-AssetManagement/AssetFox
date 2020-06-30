@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Web.Http;
@@ -14,6 +15,9 @@ namespace BridgeCare.Security
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class RestrictAccessAttribute : AuthorizeAttribute
     {
+        // This value is pulled from web.config
+        private static string AuthSystem = ConfigurationManager.AppSettings["AuthSystem"];
+
         private readonly Func<string, bool> ValidateRole;
 
         /// <summary>
@@ -33,37 +37,44 @@ namespace BridgeCare.Security
 
         protected override bool IsAuthorized(HttpActionContext httpContext)
         {
-            //if (!TryGetAuthorization(httpContext.Request.Headers, out string accessToken))
-            //{
-            //    return false;
-            //}
+            if(AuthSystem == "PennDOT")
+            {
+                if (!TryGetAuthorization(httpContext.Request.Headers, out string accessToken))
+                {
+                    return false;
+                }
 
-            //var userInformationDictionary = AuthenticationController.GetUserInfoDictionary(accessToken);
+                var userInformationDictionary = AuthenticationController.GetUserInfoDictionary(accessToken);
 
-            //if (!userInformationDictionary.ContainsKey("roles"))
-            //{
-            //    throw new UnauthorizedAccessException("User has no roles assigned.");
-            //}
+                if (!userInformationDictionary.ContainsKey("roles"))
+                {
+                    throw new UnauthorizedAccessException("User has no roles assigned.");
+                }
 
-            //var userInformation = ESECSecurity.GetUserInformation(userInformationDictionary);
+                var userInformation = ESECSecurity.GetUserInformation(userInformationDictionary);
 
-            // Some API endpoints need this user information, so it is inserted into
-            // the request here before they process it
+                //Some API endpoints need this user information, so it is inserted into
+                // the request here before they process it
 
-            //httpContext.Request.Headers.Clear();
+                httpContext.Request.Headers.Clear();
 
-            //httpContext.Request.Headers.Add("Role", userInformation.Role);
-            //httpContext.Request.Headers.Add("Name", userInformation.Name);
-            //httpContext.Request.Headers.Add("Email", userInformation.Email);
+                httpContext.Request.Headers.Add("Role", userInformation.Role);
+                httpContext.Request.Headers.Add("Name", userInformation.Name);
+                httpContext.Request.Headers.Add("Email", userInformation.Email);
 
-            //return ValidateRole(userInformation.Role);
+                return ValidateRole(userInformation.Role);
+            }
 
-            // this is to temporary disable PennDOT security
-            httpContext.Request.Headers.Clear();
-            httpContext.Request.Headers.Add("Role", Role.ADMINISTRATOR);
-            httpContext.Request.Headers.Add("Name", "pdsystbamsusr02");
-            httpContext.Request.Headers.Add("Email", "dummy@ara.com");
-            return true; // this is to temporary disable the PennDOT security
+            if(AuthSystem == "iAM")
+            {
+                // iAM security system hasn't been implemented yet
+                httpContext.Request.Headers.Clear();
+                httpContext.Request.Headers.Add("Role", Role.ADMINISTRATOR);
+                httpContext.Request.Headers.Add("Name", "pdsystbamsusr02");
+                httpContext.Request.Headers.Add("Email", "dummy@ara.com");
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
