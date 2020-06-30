@@ -15,13 +15,9 @@ namespace BridgeCare.Security
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class RestrictAccessAttribute : AuthorizeAttribute
     {
-        // These values are pulled from web.config
+        // This value is pulled from web.config
         private static string AuthSystem = ConfigurationManager.AppSettings["AuthSystem"];
-        //private string AuthSystem = "PennDOT";
-        //public RestrictAccessAttribute(string authSystem)
-        //{
-        //    AuthSystem = authSystem;
-        //}
+
         private readonly Func<string, bool> ValidateRole;
 
         /// <summary>

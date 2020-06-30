@@ -32,17 +32,18 @@ namespace BridgeCare.Controllers
         [HttpGet]
         [Route("api/GetNetworks")]
         [RestrictAccess]
-        //[Authorize]
         public IHttpActionResult GetNetworks() {
+            return Ok(repo.GetAllNetworks(db));
+
+            // This is an attempt to add Azure AD B2C auth. It will be resumed
             //HasRequiredScopes("read");
             //string name = ClaimsPrincipal.Current.FindFirst("name").Value;
-            return Ok(repo.GetAllNetworks(db));
         }
 
         // Validate to ensure the necessary scopes are present.
-        private void HasRequiredScopes(String permission)
-        {
-            var test = ClaimsPrincipal.Current.FindFirst(scopeElement);
+        //private void HasRequiredScopes(String permission)
+        //{
+            //var test = ClaimsPrincipal.Current.FindFirst(scopeElement);
             //if (!ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value.Contains(permission))
             //{
             //    throw new HttpResponseException(new HttpResponseMessage
@@ -51,6 +52,6 @@ namespace BridgeCare.Controllers
             //        ReasonPhrase = $"The Scope claim does not contain the {permission} permission."
             //    });
             //}
-        }
+        //}
     }
 }
