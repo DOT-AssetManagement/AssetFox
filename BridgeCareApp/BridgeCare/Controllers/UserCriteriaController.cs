@@ -26,6 +26,7 @@ namespace BridgeCare.Controllers
         [HttpGet]
         [Route("api/GetUserCriteria")]
         [RestrictAccess]
+        //[Authorize]
         public IHttpActionResult GetUserCriteria()
         {
             var userInformation = ESECSecurity.GetUserInformation(Request);

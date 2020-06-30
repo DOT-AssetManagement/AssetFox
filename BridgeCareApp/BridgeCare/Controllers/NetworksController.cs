@@ -32,17 +32,17 @@ namespace BridgeCare.Controllers
         [HttpGet]
         [Route("api/GetNetworks")]
         [RestrictAccess]
-        [Authorize]
+        //[Authorize]
         public IHttpActionResult GetNetworks() {
-            HasRequiredScopes("read");
-            string name = ClaimsPrincipal.Current.FindFirst("name").Value;
+            //HasRequiredScopes("read");
+            //string name = ClaimsPrincipal.Current.FindFirst("name").Value;
             return Ok(repo.GetAllNetworks(db));
         }
 
         // Validate to ensure the necessary scopes are present.
         private void HasRequiredScopes(String permission)
         {
-            var userId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var test = ClaimsPrincipal.Current.FindFirst(scopeElement);
             //if (!ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value.Contains(permission))
             //{
             //    throw new HttpResponseException(new HttpResponseMessage

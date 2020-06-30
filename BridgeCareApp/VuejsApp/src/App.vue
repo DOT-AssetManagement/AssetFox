@@ -181,6 +181,7 @@
                 <v-toolbar-title> </v-toolbar-title>
                 <v-toolbar-title class="white--text" v-if="!authenticated">
                     <v-btn
+                        v-if="securityType == 'iAM'"
                         @click="azureLoginTest"
                         class="ara-blue-bg white--text"
                         round
@@ -197,6 +198,7 @@
                 </v-toolbar-title>
                 <v-toolbar-title class="white--text" v-if="authenticated">
                     <v-btn
+                        v-if="securityType == 'iAM'"
                         @click="$msal.signOut()"
                         class="ara-blue-bg white--text"
                         round
