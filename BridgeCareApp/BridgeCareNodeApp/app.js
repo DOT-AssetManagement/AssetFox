@@ -3,7 +3,6 @@ const debug = require('debug')('app');
 var winston = require('./config/winston');
 const app = express();
 require('./config/express')(app, winston);
-//var securityType = require('./package.json').security;
 
 const passport = require("passport");
 

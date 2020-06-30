@@ -6,12 +6,9 @@ import {checkLDAP, parseLDAP, regexCheckLDAP} from '@/shared/utils/parse-ldap';
 
 const state = {
     authenticated: false,
-    // it is temporary arrangement to bypass PennDOT security
-    hasRole: true,
-    isAdmin: true,
-    //hasRole: false,
+    hasRole: false,
     checkedForRole: false,
-    //isAdmin: false,
+    isAdmin: false,
     isCWOPA: false,
     username: '',
     refreshing: false,
@@ -111,12 +108,6 @@ const actions = {
                         const userInfo: UserInfo = JSON.parse(response.data) as UserInfo;
                         const username: string = parseLDAP(userInfo.sub)[0];
 
-                        // it is temporary arrangement to bypass PennDOT security
-                        //commit('isAdminMutator', 'PD-BAMS-Administrator');
-                        //commit('isCWOPAMutator', 'PD-BAMS-CWOPA');
-                        //commit('checkedForRoleMutator', true);
-                        //commit('usernameMutator', 'pdsystbamsusr02');
-
                         commit('hasRoleMutator', regexCheckLDAP(userInfo.roles, /PD-BAMS-(Administrator|CWOPA|PlanningPartner|DBEngineer)/));
                         if (state.hasRole) {
                             commit('isAdminMutator', checkLDAP(userInfo.roles, 'PD-BAMS-Administrator'));
@@ -153,7 +144,9 @@ const actions = {
 
     async setAzureUserName({commit}: any, userName: any){
         commit('usernameMutator', userName.userName);
+        // temporarily setting admin and hasRole to true. It ll be removed once Azure AD B2C authorization is in place
         commit('checkedForRoleMutator', true);
+        commit('isAdminMutator', true);
 }
 };
 
