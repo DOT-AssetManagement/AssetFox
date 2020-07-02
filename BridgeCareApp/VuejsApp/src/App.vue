@@ -181,14 +181,15 @@
                 <v-toolbar-title> </v-toolbar-title>
                 <v-toolbar-title class="white--text" v-if="!authenticated">
                     <v-btn
-                        v-if="securityType == 'iAM'"
-                        @click="azureLoginTest"
+                        v-if="securityType == 'B2C'"
+                        @click="azureLogin"
                         class="ara-blue-bg white--text"
                         round
                     >
-                        Azure Login Test
+                        Azure Login
                     </v-btn>
                     <v-btn
+                        v-if="securityType == 'pennDOT'"
                         @click="onNavigate('/AuthenticationStart/')"
                         class="ara-blue-bg white--text"
                         round
@@ -198,14 +199,15 @@
                 </v-toolbar-title>
                 <v-toolbar-title class="white--text" v-if="authenticated">
                     <v-btn
-                        v-if="securityType == 'iAM'"
-                        @click="$msal.signOut()"
+                        v-if="securityType == 'B2C'"
+                        @click="azureOnLogout()"
                         class="ara-blue-bg white--text"
                         round
                     >
-                        Azure Logout Test
+                        Azure Logout
                     </v-btn>
                     <v-btn
+                        v-if="securityType == 'pennDOT'"
                         @click="onLogout()"
                         class="ara-blue-bg white--text"
                         round
@@ -280,6 +282,7 @@ export default class AppComponent extends Vue {
     @State(state => state.scenario.selectedScenario)
     stateSelectedScenario: Scenario;
     @State(state => state.announcement.packageVersion) packageVersion: string;
+    @State(state => state.authentication.securityType) securityType: any;
 
     @Action('refreshTokens') refreshTokensAction: any;
     @Action('checkBrowserTokens') checkBrowserTokensAction: any;
@@ -294,9 +297,12 @@ export default class AppComponent extends Vue {
     @Action('generatePollingSessionId') generatePollingSessionIdAction: any;
     @Action('getUserCriteria') getUserCriteriaAction: any;
 
-    @Action('getAuthenticationAzureTest') getAuthenticationAzureTestAction: any;
+    @Action('getAuthenticationAzure') getAuthenticationAzureAction: any;
     @Action('setAzureUserName') setAzureUserNameAction: any;
-    @State(state => state.authentication.securityType) securityType: any;
+    @Action('azureB2CLogin') azureB2CLoginAction: any;
+    @Action('azureB2CLogout') azureB2CLogoutAction: any;
+    @Action('azureB2CcheckBrowserTokens') azureB2CcheckBrowserTokensAction: any;
+    @Action('getAzureAccountDetails') getAzureAccountDetailsAction: any;
 
     drawer: boolean = false;
     alertDialogData: AlertData = clone(emptyAlertData);
@@ -397,6 +403,14 @@ export default class AppComponent extends Vue {
             this.onLogin();
         } else if (!this.authenticated && this.securityType == 'pennDOT') {
             this.onLogout();
+        } else if (
+            this.authenticated &&
+            this.hasRole &&
+            this.securityType == 'B2C'
+        ) {
+            this.onLogin();
+        } else if (!this.authenticated && this.securityType == 'B2C') {
+            this.azureOnLogout();
         }
     }
 
@@ -485,16 +499,8 @@ export default class AppComponent extends Vue {
         this.generatePollingSessionIdAction();
         window.setInterval(this.pollEventsAction, 5000);
 
-        if (this.msal.isAuthenticated && this.securityType == 'iAM') {
-            this.getAuthenticationAzureTestAction({
-                status: this.msal.isAuthenticated,
-            }).then(() => {
-                this.getNetworksAction();
-                this.getAttributesAction();
-                this.getUserCriteriaAction();
-            });
-            var userData: any = this.msal.user; // user data contains idToken Object idTokenClaims object
-            this.setAzureUserNameAction({ userName: userData.name });
+        if (this.securityType == 'B2C') {
+            this.getAzureAccountDetailsAction();
         }
     }
 
@@ -511,11 +517,13 @@ export default class AppComponent extends Vue {
      * Sets up a recurring attempt at refreshing user tokens, and fetches network and attribute data
      */
     onLogin() {
-        // Tokens expire after 30 minutes. They are refreshed after 29 minutes.
-        this.refreshIntervalID = window.setInterval(
-            this.refreshTokensAction,
-            29 * 60 * 1000,
-        );
+        if (this.securityType == 'pennDOT') {
+            // Tokens expire after 30 minutes. They are refreshed after 29 minutes.
+            this.refreshIntervalID = window.setInterval(
+                this.refreshTokensAction,
+                29 * 60 * 1000,
+            );
+        }
         this.$forceUpdate();
         this.getNetworksAction();
         this.getAttributesAction();
@@ -570,16 +578,17 @@ export default class AppComponent extends Vue {
         );
     }
 
-    azureLoginTest() {
-        this.$msal.signIn();
-        //this.$AuthService.login();
-        //this.$adal.login();
+    azureLogin() {
+        if (this.$router.currentRoute.name == 'AuthenticationStart') {
+            this.azureB2CLoginAction();
+        } else {
+            this.$router.push('/AuthenticationStart');
+        }
     }
 
     azureOnLogout() {
-        this.logOutAction().then(() => {
-            this.onNavigate('/iAM/');
-        });
+        this.azureB2CLogoutAction();
+        this.logOutAction();
     }
 }
 </script>

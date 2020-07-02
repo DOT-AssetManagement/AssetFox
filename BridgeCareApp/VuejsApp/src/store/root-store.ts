@@ -22,6 +22,7 @@ import cashFlowEditor from '@/store-modules/cash-flow.module';
 import userCriteria from '@/store-modules/user-criteria.module';
 import unsavedChangesFlag from '@/store-modules/unsaved-changes-flag.module';
 import criteriaEditor from '@/store-modules/criteria-editor.module';
+import azureB2C from '@/store-modules/azureB2C.module';
 
 Vue.use(Vuex);
 
@@ -47,6 +48,7 @@ export default new Vuex.Store({
         cashFlowEditor,
         userCriteria,
         unsavedChangesFlag,
-        criteriaEditor
+        criteriaEditor,
+        azureB2C
     }
 });

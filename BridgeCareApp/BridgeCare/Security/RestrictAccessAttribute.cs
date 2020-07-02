@@ -65,7 +65,7 @@ namespace BridgeCare.Security
                 return ValidateRole(userInformation.Role);
             }
 
-            if(AuthSystem == "iAM")
+            if(AuthSystem == "B2C")
             {
                 // iAM security system hasn't been implemented yet
                 httpContext.Request.Headers.Clear();
