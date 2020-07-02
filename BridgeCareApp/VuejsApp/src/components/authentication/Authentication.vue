@@ -46,7 +46,6 @@ export default class Authentication extends Vue {
                 window.location.href = `http://localhost:8080/Authentication/?code=${code}`;
                 return;
             }
-
             this.getUserTokensAction(code).then(() => {
                 if (!this.authenticated) {
                     this.onAuthenticationFailure();

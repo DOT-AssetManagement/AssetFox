@@ -28,6 +28,7 @@ const actions = {
                 };
                 dispatch('getAuthenticationAzure', { statusAndUser });
                 commit('authenticatedMutator', true);
+                localStorage.setItem('LoggedUser', token.account.name);
             },
             (error: any) => {
                 console.log('Login error ' + error);
@@ -53,6 +54,7 @@ const actions = {
 
     async azureB2CLogout({ commit }: any) {
         state.app.logout();
+        localStorage.removeItem('LoggedUser');
     },
 
     async azureB2CgetToken({ commit, dispatch }: any, payload: any) {
@@ -84,6 +86,7 @@ const actions = {
                 userName: accountDetails.name,
             };
             dispatch('getAuthenticationAzure', { statusAndUser });
+            localStorage.setItem('LoggedUser', accountDetails.name);
         } 
         else{
             var statusAndUser: any = {
@@ -91,6 +94,7 @@ const actions = {
                 userName: '',
             };
             dispatch('getAuthenticationAzure', { statusAndUser });
+            localStorage.removeItem('LoggedUser');
         }
     },
 };

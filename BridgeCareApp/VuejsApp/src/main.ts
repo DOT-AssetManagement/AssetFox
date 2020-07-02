@@ -24,33 +24,12 @@ import msal from 'vue-msal';
 Vue.use(Vuetify, {
     iconfont: 'fa',
 });
-// Vue.use(msal, {
-//     auth: {
-//         clientId: config.clientId,
-//         authority: config.authority,
-//         redirectUri: config.redirectUri,
-//         postLogoutRedirectUri: config.postLogoutRedirectUri,
-//         cacheLocation: 'localStorage',
-//         validateAuthority: config.validateAuthority,
-//         scopes: [config.clientId],
-//     },
-//     request: {
-//         scopes: ['https://graph.microsoft.com/.default']
-//     },
-//     router: router,
-//     requireAuthOnInitialize: true,
-//     graph: {
-//         callAfterInit: false,
-//     },
-// });
 
 Vue.use(VueWorker);
 
 Vue.use(KendoChartInstaller);
 
 Vue.use(VueCurrencyInput);
-
-//Vue.prototype.$AuthService = new AuthService()
 
 Vue.config.productionTip = false;
 

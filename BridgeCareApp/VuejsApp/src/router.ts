@@ -6,25 +6,76 @@ import UnderConstruction from '@/components/UnderConstruction.vue';
 import Logout from '@/components/Logout.vue';
 import Home from '@/components/Home.vue';
 import AuthenticationStart from '@/components/authentication/AuthenticationStart.vue';
+import AuthenticationModule from '@/store-modules/authentication.module';
+import {isEmpty, isNil} from 'ramda';
 
 // Lazily-loaded pages
-const Scenario = () => import(/* webpackChunkName: "scenario" */ '@/components/scenarios/Scenarios.vue');
-const EditScenario = () => import(/* webpackChunkName: "editScenario" */ '@/components/scenarios/EditScenario.vue');
-const InvestmentEditor = () => import(/* webpackChunkName: "investmentEditor" */ '@/components/investment-editor/InvestmentEditor.vue');
-const PerformanceEditor = () => import(/* webpackChunkName: "performanceEditor" */ '@/components/performance-editor/PerformanceEditor.vue');
-const TreatmentEditor = () => import(/* webpackChunkName: "treatmentEditor" */ '@/components/treatment-editor/TreatmentEditor.vue');
-const PriorityEditor = () => import (/* webpackChunkName: "priorityEditor" */ '@/components/priority-editor/PriorityEditor.vue');
-const TargetEditor = () => import (/* webpackChunkName: "targetEditor" */ '@/components/target-editor/TargetEditor.vue');
-const DeficientEditor = () => import (/* webpackChunkName: "deficientEditor" */ '@/components/deficient-editor/DeficientEditor.vue');
-const Authentication = () => import (/* webpackChunkName: "Authentication" */ '@/components/authentication/Authentication.vue');
-const AuthenticationFailure = () => import (/* webpackChunkName: "authenticationFailure" */ '@/components/authentication/AuthenticationFailure.vue');
-const NoRole = () => import (/*webpackChunkName: "noRole" */ '@/components/authentication/NoRole.vue');
-const Inventory = () => import (/*webpackChunkName: "inventory" */ '@/components/Inventory.vue');
-const UserCriteriaEditor = () => import (/*webpackChunkName: "userCriteria" */ '@/components/user-criteria/UserCriteria.vue');
-const CriteriaLibraryEditor = () => import(/*webpackChunkName: "criteriaEditor" */ '@/components/criteria-editor/CriteriaLibraryEditor.vue');
-const AnalysisEditor = () => import (/*webpackChunkName: editAnalysis*/ '@/components/scenarios/EditAnalysis.vue');
-const RemainingLifeLimitEditor = () => import (/*webpackChunkName: remainingLifeLimitEditor*/ '@/components/remaining-life-limit-editor/RemainingLifeLimitEditor.vue');
-const CashFlowEditor = () => import (/*webpackChunkName: cashFlowEditor*/ '@/components/cash-flow-editor/CashFlowEditor.vue');
+const Scenario = () =>
+    import(
+        /* webpackChunkName: "scenario" */ '@/components/scenarios/Scenarios.vue'
+    );
+const EditScenario = () =>
+    import(
+        /* webpackChunkName: "editScenario" */ '@/components/scenarios/EditScenario.vue'
+    );
+const InvestmentEditor = () =>
+    import(
+        /* webpackChunkName: "investmentEditor" */ '@/components/investment-editor/InvestmentEditor.vue'
+    );
+const PerformanceEditor = () =>
+    import(
+        /* webpackChunkName: "performanceEditor" */ '@/components/performance-editor/PerformanceEditor.vue'
+    );
+const TreatmentEditor = () =>
+    import(
+        /* webpackChunkName: "treatmentEditor" */ '@/components/treatment-editor/TreatmentEditor.vue'
+    );
+const PriorityEditor = () =>
+    import(
+        /* webpackChunkName: "priorityEditor" */ '@/components/priority-editor/PriorityEditor.vue'
+    );
+const TargetEditor = () =>
+    import(
+        /* webpackChunkName: "targetEditor" */ '@/components/target-editor/TargetEditor.vue'
+    );
+const DeficientEditor = () =>
+    import(
+        /* webpackChunkName: "deficientEditor" */ '@/components/deficient-editor/DeficientEditor.vue'
+    );
+const Authentication = () =>
+    import(
+        /* webpackChunkName: "Authentication" */ '@/components/authentication/Authentication.vue'
+    );
+const AuthenticationFailure = () =>
+    import(
+        /* webpackChunkName: "authenticationFailure" */ '@/components/authentication/AuthenticationFailure.vue'
+    );
+const NoRole = () =>
+    import(
+        /*webpackChunkName: "noRole" */ '@/components/authentication/NoRole.vue'
+    );
+const Inventory = () =>
+    import(/*webpackChunkName: "inventory" */ '@/components/Inventory.vue');
+const UserCriteriaEditor = () =>
+    import(
+        /*webpackChunkName: "userCriteria" */ '@/components/user-criteria/UserCriteria.vue'
+    );
+const CriteriaLibraryEditor = () =>
+    import(
+        /*webpackChunkName: "criteriaEditor" */ '@/components/criteria-editor/CriteriaLibraryEditor.vue'
+    );
+const AnalysisEditor = () =>
+    import(
+        /*webpackChunkName: editAnalysis*/ '@/components/scenarios/EditAnalysis.vue'
+    );
+const RemainingLifeLimitEditor = () =>
+    import(
+        /*webpackChunkName: remainingLifeLimitEditor*/ '@/components/remaining-life-limit-editor/RemainingLifeLimitEditor.vue'
+    );
+const CashFlowEditor = () =>
+    import(
+        /*webpackChunkName: cashFlowEditor*/ '@/components/cash-flow-editor/CashFlowEditor.vue'
+    );
 
 Vue.use(VueRouter);
 
@@ -34,7 +85,7 @@ const router = new VueRouter({
         {
             path: '/Inventory/',
             name: 'Inventory',
-            component: Inventory
+            component: Inventory,
         },
         {
             path: '/Scenarios/',
@@ -54,92 +105,92 @@ const router = new VueRouter({
                 {
                     path: '/InvestmentEditor/Scenario/',
                     component: InvestmentEditor,
-                    props: true
+                    props: true,
                 },
                 {
                     path: '/PerformanceEditor/Scenario/',
                     component: PerformanceEditor,
-                    props: true
+                    props: true,
                 },
                 {
                     path: '/TreatmentEditor/Scenario/',
                     component: TreatmentEditor,
-                    props: true
+                    props: true,
                 },
                 {
                     path: '/PriorityEditor/Scenario/',
                     component: PriorityEditor,
-                    props: true
+                    props: true,
                 },
                 {
                     path: '/TargetEditor/Scenario/',
                     component: TargetEditor,
-                    props: true
+                    props: true,
                 },
                 {
                     path: '/DeficientEditor/Scenario/',
                     component: DeficientEditor,
-                    props: true
+                    props: true,
                 },
                 {
                     path: '/RemainingLifeLimitEditor/Scenario/',
                     component: RemainingLifeLimitEditor,
-                    props: true
+                    props: true,
                 },
                 {
                     path: '/CashFlowEditor/Scenario',
                     component: CashFlowEditor,
-                    props: true
-                }
-            ]
+                    props: true,
+                },
+            ],
         },
         {
             path: '/InvestmentEditor/Library/',
             name: 'InvestmentEditor',
             component: InvestmentEditor,
-            props: true
+            props: true,
         },
         {
             path: '/PerformanceEditor/Library/',
             name: 'PerformanceEditor',
             component: PerformanceEditor,
-            props: true
+            props: true,
         },
         {
             path: '/TreatmentEditor/Library/',
             name: 'TreatmentEditor',
             component: TreatmentEditor,
-            props: true
+            props: true,
         },
         {
             path: '/PriorityEditor/Library/',
             name: 'PriorityEditor',
             component: PriorityEditor,
-            props: true
+            props: true,
         },
         {
             path: '/TargetEditor/Library/',
             name: 'TargetEditor',
             component: TargetEditor,
-            props: true
+            props: true,
         },
         {
             path: '/DeficientEditor/Library/',
             name: 'DeficientEditor',
             component: DeficientEditor,
-            props: true
+            props: true,
         },
         {
             path: '/RemainingLifeLimitEditor/Library/',
             name: 'RemainingLifeLimitEditor',
             component: RemainingLifeLimitEditor,
-            props: true
+            props: true,
         },
         {
             path: '/CashFlowEditor/Library/',
             name: 'CashFlowEditor',
             component: CashFlowEditor,
-            props: true
+            props: true,
         },
         {
             path: '/CriteriaLibraryEditor/Library/',
@@ -149,49 +200,65 @@ const router = new VueRouter({
         {
             path: '/Authentication/',
             name: 'Authentication',
-            component: Authentication
+            component: Authentication,
         },
         {
             path: '/AuthenticationStart/',
             name: 'AuthenticationStart',
-            component: AuthenticationStart
+            component: AuthenticationStart,
         },
         {
             path: '/AuthenticationFailure/',
             name: 'AuthenticationFailure',
-            component: AuthenticationFailure
+            component: AuthenticationFailure,
         },
         {
             path: '/NoRole/',
             name: 'NoRole',
-            component: NoRole
+            component: NoRole,
         },
         {
             path: '/UnderConstruction/',
             name: 'UnderConstruction',
-            component: UnderConstruction
+            component: UnderConstruction,
         },
         {
             path: '/iAM/',
             name: 'iAM',
-            component: Logout
+            component: Logout,
         },
         {
             path: '/Home/',
             name: 'Home',
-            component: Home
+            component: Home,
         },
         {
             path: '/UserCriteria/',
             name: 'UserCriteria',
-            component: UserCriteriaEditor
+            component: UserCriteriaEditor,
         },
         {
             path: '*',
-            redirect: '/AuthenticationStart/'
-        }
-    ]
+            redirect: '/AuthenticationStart/',
+        },
+    ],
 });
-
+router.beforeEach((to: any, from: any, next) => {
+    if(to.name == 'AuthenticationStart' || to.name == 'iAM' || to.name == 'Authentication'){
+        next();
+    } else{
+        if (
+            localStorage.getItem('LoggedUser') &&
+            AuthenticationModule.state.securityType == 'iAM'
+        ) {
+            next();
+        } else if (
+            isNil(localStorage.getItem('LoggedUser')) &&
+            AuthenticationModule.state.securityType == 'iAM'
+        ) {
+            next('/AuthenticationStart');
+        }
+    }
+});
 
 export default router;
