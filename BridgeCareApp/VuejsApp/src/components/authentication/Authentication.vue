@@ -60,7 +60,7 @@ export default class Authentication extends Vue {
                 }
             });
         }
-        if (this.securityType == 'iAM') {
+        if (this.securityType == 'B2C') {
             //var status: any = this.msal.isAuthenticated;
             this.getAzureAccountDetailsAction();
             if(!this.authenticated){

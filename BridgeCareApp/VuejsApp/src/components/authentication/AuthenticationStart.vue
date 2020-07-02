@@ -57,7 +57,7 @@ export default class AuthenticationStart extends Vue {
                 window.location.href = href;
             }
         }
-        if (this.securityType == 'iAM') {
+        if (this.securityType == 'B2C') {
             if (!this.authenticated) {
                 this.azureB2CLoginAction();
             } else{

@@ -181,7 +181,7 @@
                 <v-toolbar-title> </v-toolbar-title>
                 <v-toolbar-title class="white--text" v-if="!authenticated">
                     <v-btn
-                        v-if="securityType == 'iAM'"
+                        v-if="securityType == 'B2C'"
                         @click="azureLogin"
                         class="ara-blue-bg white--text"
                         round
@@ -199,7 +199,7 @@
                 </v-toolbar-title>
                 <v-toolbar-title class="white--text" v-if="authenticated">
                     <v-btn
-                        v-if="securityType == 'iAM'"
+                        v-if="securityType == 'B2C'"
                         @click="azureOnLogout()"
                         class="ara-blue-bg white--text"
                         round
@@ -406,10 +406,10 @@ export default class AppComponent extends Vue {
         } else if (
             this.authenticated &&
             this.hasRole &&
-            this.securityType == 'iAM'
+            this.securityType == 'B2C'
         ) {
             this.onLogin();
-        } else if (!this.authenticated && this.securityType == 'iAM') {
+        } else if (!this.authenticated && this.securityType == 'B2C') {
             this.azureOnLogout();
         }
     }
@@ -499,7 +499,7 @@ export default class AppComponent extends Vue {
         this.generatePollingSessionIdAction();
         window.setInterval(this.pollEventsAction, 5000);
 
-        if (this.securityType == 'iAM') {
+        if (this.securityType == 'B2C') {
             this.getAzureAccountDetailsAction();
         }
     }

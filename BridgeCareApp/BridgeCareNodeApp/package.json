@@ -2,7 +2,7 @@
   "name": "bridge-care-node-app",
   "version": "0.0.0",
   "description": "BridgeCareNodeApp",
-  "security": "iAM",
+  "security": "B2C",
   "main": "server.js",
   "author": {
     "name": ""

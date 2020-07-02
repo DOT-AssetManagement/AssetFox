@@ -51,7 +51,7 @@ function authorizationFilter(permittedRoles) {
             });
         }
 
-        if (auth.securityType == 'iAM') {
+        if (auth.securityType == 'B2C') {
             // this is to temporary code, Azure AD B2C hasn't been immplemented yet
             username = "pdsystbamsusr02";
             roles = "PD-BAMS-Administrator";

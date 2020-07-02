@@ -249,14 +249,16 @@ router.beforeEach((to: any, from: any, next) => {
     } else{
         if (
             localStorage.getItem('LoggedUser') &&
-            AuthenticationModule.state.securityType == 'iAM'
+            AuthenticationModule.state.securityType == 'B2C'
         ) {
             next();
         } else if (
             isNil(localStorage.getItem('LoggedUser')) &&
-            AuthenticationModule.state.securityType == 'iAM'
+            AuthenticationModule.state.securityType == 'B2C'
         ) {
             next('/AuthenticationStart');
+        } else{
+            next();
         }
     }
 });

@@ -7,7 +7,6 @@ import {
     parseLDAP,
     regexCheckLDAP,
 } from '@/shared/utils/parse-ldap';
-import AuthService from '@/msal/index';
 
 const state = {
     authenticated: false,
