@@ -23,6 +23,7 @@ import { Action, State } from 'vuex-class';
 export default class Authentication extends Vue {
     @State(state => state.authentication.authenticated) authenticated: boolean;
     @State(state => state.authentication.hasRole) hasRole: boolean;
+    @State(state => state.authentication.securityType) securityType: any;
 
     @Action('setSuccessMessage') setSuccessMessageAction: any;
     @Action('setErrorMessage') setErrorMessageAction: any;
@@ -30,7 +31,7 @@ export default class Authentication extends Vue {
     @Action('getUserInfo') getUserInfoAction: any;
     @Action('getNetworks') getNetworksAction: any;
     @Action('getAttributes') getAttributesAction: any;
-    @State(state => state.authentication.securityType) securityType: any;
+    @Action('getAzureAccountDetails') getAzureAccountDetailsAction: any;
 
     mounted() {
         const code: string = this.$route.query.code as string;
@@ -61,21 +62,38 @@ export default class Authentication extends Vue {
             });
         }
         if (this.securityType == 'iAM') {
-            var status: any = this.msal.isAuthenticated;
-
-            this.getAuthenticationAzureTestAction({ status: status });
-
-            if (this.msal.isAuthenticated) {
-                var userData: any = this.msal.user; // user data contains idToken Object idTokenClaims object
-                this.setAzureUserNameAction({ userName: userData.name });
-                this.onAuthenticationSuccess();
-            }
-            else{
+            //var status: any = this.msal.isAuthenticated;
+            this.getAzureAccountDetailsAction();
+            if(!this.authenticated){
                 this.onAuthenticationFailure();
             }
-            if (this.msal.graph && this.msal.graph.profile) {
-                var profile = this.msal.graph.profile;
+            else{
+                this.onAuthenticationSuccess();
+                this.$router.push('/Home');
             }
+            var status: any = true;
+            // this.getAuthenticationAzureAction({ status: status }).then(
+            //     () => {
+            //         if (status == true) {
+            //             var userData = this.$AuthService.getUser();
+            //             this.setAzureUserNameAction({
+            //                 userName: userData.name,
+            //             });
+            //             this.onAuthenticationSuccess();
+            //         }
+            //     },
+            // );
+
+            // if (this.msal.isAuthenticated) {
+            //     var userData: any = this.msal.user; // user data contains idToken Object idTokenClaims object
+            //     this.setAzureUserNameAction({ userName: userData.name });
+            //     this.onAuthenticationSuccess();
+            // } else {
+            //     this.onAuthenticationFailure();
+            // }
+            // if (this.msal.graph && this.msal.graph.profile) {
+            //     var profile = this.msal.graph.profile;
+            // }
         }
     }
 

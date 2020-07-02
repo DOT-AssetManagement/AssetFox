@@ -3,6 +3,7 @@ import {AxiosResponse} from 'axios';
 import {UserInfo, UserTokens} from '@/shared/models/iAM/authentication';
 import {http2XX} from '@/shared/utils/http-utils';
 import {checkLDAP, parseLDAP, regexCheckLDAP} from '@/shared/utils/parse-ldap';
+import AuthService from '@/msal/index';
 
 const state = {
     authenticated: false,
@@ -138,16 +139,37 @@ const actions = {
         }
     },
 
-    async getAuthenticationAzureTest({commit}: any, status: any){
-            commit('authenticatedMutator', status.status);
+    async getAuthenticationAzure({commit, dispatch}: any, payload: any){
+            commit('authenticatedMutator', payload.statusAndUser.status);
+            if(payload.statusAndUser.status){
+                commit('hasRoleMutator', true);
+                commit('checkedForRoleMutator', true);
+                commit('isAdminMutator', true);
+                commit('usernameMutator', payload.statusAndUser.userName);
+            } else{
+                commit('hasRoleMutator', false);
+                commit('checkedForRoleMutator', false);
+                commit('isAdminMutator', false);
+                commit('usernameMutator', '');
+                dispatch('azureB2CLogin');
+            }
     },
 
-    async setAzureUserName({commit}: any, userName: any){
-        commit('usernameMutator', userName.userName);
-        // temporarily setting admin and hasRole to true. It ll be removed once Azure AD B2C authorization is in place
-        commit('checkedForRoleMutator', true);
-        commit('isAdminMutator', true);
-}
+async azureB2CcheckBrowserTokens({commit, dispatch}: any, code: string) {
+    const storedTokenExpiration: number = Number(localStorage.getItem('TokenExpiration') as string);
+    if (isNaN(storedTokenExpiration)) {
+        return;
+    }
+    if (storedTokenExpiration > Date.now()) {
+        if (state.authenticated) {
+            return;
+        }
+        
+        commit('authenticatedMutator', true);
+    } else if (state.authenticated) {
+        dispatch('logOut');
+    }
+},
 };
 
 const getters = {};

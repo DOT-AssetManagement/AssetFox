@@ -28,7 +28,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
-import { State } from 'vuex-class';
+import { Action, State } from 'vuex-class';
 import oidcConfig from '@/config/oidc-config';
 
 @Component
@@ -38,6 +38,8 @@ export default class AuthenticationStart extends Vue {
     @State(state => state.authentication.checkedForRole)
     checkedForRole: boolean;
     @State(state => state.authentication.securityType) securityType: any;
+
+    @Action('azureB2CLogin') azureB2CLoginAction: any;
 
     onRedirect() {
         if (this.securityType == 'pennDOT') {
@@ -56,14 +58,11 @@ export default class AuthenticationStart extends Vue {
             }
         }
         if (this.securityType == 'iAM') {
-            if (!this.$msal.isAuthenticated()) {
-                this.$msal.signIn();
-            } else {
-                if (this.hasRole) {
-                    // For some reason @Watch('checkedForRole') is not working. So this if condition is a temporary fix
+            if (!this.authenticated) {
+                this.azureB2CLoginAction();
+            } else{
+                if(this.hasRole){
                     this.$router.push('/Home/');
-                } else {
-                    this.$router.push('/NoRole/');
                 }
             }
         }

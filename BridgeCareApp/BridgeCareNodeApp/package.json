@@ -2,7 +2,7 @@
   "name": "bridge-care-node-app",
   "version": "0.0.0",
   "description": "BridgeCareNodeApp",
-  "security": "pennDOT",
+  "security": "iAM",
   "main": "server.js",
   "author": {
     "name": ""
