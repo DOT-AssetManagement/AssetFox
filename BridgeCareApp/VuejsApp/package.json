@@ -13,7 +13,7 @@
     "stage": "vue-cli-service build --mode staging",
     "lint": "wotan 'src/**'",
     "lint-fix": "wotan --fix 'src/**'",
-    "check": "prettier --check 'VuejsApp/*.vue"
+    "prettier": "prettier --write **/*.{ts,js,css,html}"
   },
   "dependencies": {
     "@progress/kendo-charts-vue-wrapper": "2020.1.115",
