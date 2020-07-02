@@ -30,7 +30,7 @@ const msalConfigForPasswordReset: any = {
     cacheLocation: 'localStorage',
     validateAuthority: azureB2CConfig.validateAuthority
 }
-}
+};
 
 const acquireTokenConfig: any = {
   auth: {
@@ -42,6 +42,6 @@ const acquireTokenConfig: any = {
     validateAuthority: azureB2CConfig.validateAuthority,
     scopes: ['user.read'],
 }
-}
+};
 
   export {msalConfig, azureB2CConfig, msalConfigForPasswordReset, acquireTokenConfig};
