@@ -51,7 +51,7 @@ function authorizationFilter(permittedRoles) {
             });
         }
 
-        if (auth.securityType == 'B2C') {
+        else if (auth.securityType == 'B2C') {
             // this is to temporary code, Azure AD B2C hasn't been immplemented yet
             username = "pdsystbamsusr02";
             roles = "PD-BAMS-Administrator";
@@ -60,6 +60,13 @@ function authorizationFilter(permittedRoles) {
                 roles
             };
             return next();
+        } else{
+            return response.status(401).json({
+                message: `securityType ${auth.securityType} is either undefined or this securityType has not been implemented yet
+                          if the securityType is undefined then check the (key, value) pair in web.config it should have something like this
+                          <appSettings>
+                          <add key="npm_package_security" value="B2C" /> </appSettings>`
+            });
         }
     };
 }
