@@ -63,6 +63,7 @@ namespace BridgeCare.Services.ConditionResultReport
                 var commonBridgeDataModel = commonBridgeData.Get(simulationModel, simulationYears, dbContext);
 
                 var worksheet = excelPackage.Workbook.Worksheets.Add("Bridge Data");
+                worksheet.Hidden = eWorkSheetHidden.VeryHidden;
 
                 var conditionResultWorkSheet = excelPackage.Workbook.Worksheets.Add("Data for condition result");
                 var chartRowsModel = conditionResultDataTAB.Fill(conditionResultWorkSheet, commonBridgeDataModel.SimulationDataModels, simulationYears,
