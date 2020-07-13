@@ -1,6 +1,7 @@
 ﻿using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Models.SummaryReport.ParametersTAB;
+using BridgeCare.Services.CommonData;
 using BridgeCare.Services.SummaryReport;
 using BridgeCare.Services.SummaryReport.BridgeData;
 using OfficeOpenXml;
@@ -22,15 +23,17 @@ namespace BridgeCare.Services
         private Dictionary<MinCValue, Func<ExcelWorksheet, int, int, YearsData, int>> valueForMinC;
         private List<int> SpacerColumnNumbers;
         private readonly ParametersModel parametersModel;
+        private readonly CommonBridgeData commonBridgeData;
 
         public SummaryReportBridgeData(IBridgeData bridgeData, BridgeDataHelper bridgeDataHelper, ExcelHelper excelHelper,
-            HighlightWorkDoneCells highlightWorkDoneCells, ParametersModel parametersModel)
+            HighlightWorkDoneCells highlightWorkDoneCells, ParametersModel parametersModel, CommonBridgeData commonBridgeData)
         {
             this.bridgeData = bridgeData;
             this.bridgeDataHelper = bridgeDataHelper;
             this.excelHelper = excelHelper;
             this.highlightWorkDoneCells = highlightWorkDoneCells;
             this.parametersModel = parametersModel;
+            this.commonBridgeData = commonBridgeData ?? throw new ArgumentNullException(nameof(commonBridgeData));
         }
 
         /// <summary>
@@ -43,20 +46,16 @@ namespace BridgeCare.Services
         /// <returns>WorkSummaryModel with simulation and bridge data models</returns>
         internal WorkSummaryModel Fill(ExcelWorksheet worksheet, SimulationModel simulationModel, List<int> simulationYears, BridgeCareContext dbContext)
         {
-            var BRKeys = new List<int>();
+            var commonDataForReport = commonBridgeData.Get(simulationModel, simulationYears, dbContext);
+            var simulationDataModels = commonDataForReport.SimulationDataModels;
+            var sectionsForSummaryReport = commonDataForReport.SectionsForSummaryReport;
+            var budgetsPerBrKey = commonDataForReport.BudgetsPerBRKeys;
 
-            var sections = bridgeData.GetSectionData(simulationModel, dbContext);
             var treatments = bridgeData.GetTreatments(simulationModel.simulationId, dbContext);
-            var simulationDataTable = bridgeData.GetSimulationData(simulationModel, dbContext, simulationYears);
-            var projectCostModels = bridgeData.GetReportData(simulationModel, dbContext, simulationYears);
-            var sectionIdsFromSimulationTable = from dt in simulationDataTable.AsEnumerable()
-                                                select dt.Field<int>("SECTIONID");
-            var sectionsForSummaryReport = sections.Where(sm => sectionIdsFromSimulationTable.Contains(sm.SECTIONID)).ToList();
-            BRKeys = sectionsForSummaryReport.Select(sm => Convert.ToInt32(sm.FACILITY)).ToList();
-            var bridgeDataModels = bridgeData.GetBridgeData(BRKeys, simulationModel, dbContext, parametersModel);
-            var budgetsPerBrKey = bridgeData.GetBudgetsPerBRKey(simulationModel, dbContext);
 
-            var simulationDataModels = bridgeDataHelper.GetSimulationDataModels(simulationDataTable, simulationYears, projectCostModels, budgetsPerBrKey);
+            var BRKeys = sectionsForSummaryReport.Select(sm => Convert.ToInt32(sm.FACILITY)).ToList();
+            var bridgeDataModels = bridgeData.GetBridgeData(BRKeys, simulationModel, dbContext, parametersModel);
+
             var unfundedRecommendations = bridgeData.GetUnfundedRcommendations(simulationModel, dbContext);
             unfundedRecommendations.ForEach(_ => {
                 _.TotalProjectCost = Convert.ToDouble(_.Budget_Hash.Split('/')[1]);
@@ -279,18 +278,6 @@ namespace BridgeCare.Services
             worksheet.Column(column).Style.Fill.BackgroundColor.SetColor(Color.Gray);
 
             return column;
-        }
-
-        private string getPostedType(string project)
-        {
-            if (project == "Culvert Rehab(Other)" || project == "Culvert Replacement (Box/Frame/Arch)"
-                    || project == "Culvert Replacement (Other)" || project == "Culvert Replacement (Pipe)" || project == "Substructure Rehab"
-                    || project == "Superstructure Rep/Rehab" || project == "Deck Replacement" || project == "Rehabilitation"
-                    || project == "Repair" || project == "Bridge Replacement" || project == "Replacement" || project == "Removal")
-            {
-                return "N";
-            }
-            return "Y";
         }
 
         private CurrentCell AddHeadersCells(ExcelWorksheet worksheet, List<string> headers, List<int> simulationYears)

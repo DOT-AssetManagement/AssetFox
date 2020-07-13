@@ -1,4 +1,5 @@
 ﻿using BridgeCare.Interfaces;
+using BridgeCare.Interfaces.ConditionResults;
 using BridgeCare.Models;
 using BridgeCare.Security;
 using Hangfire;
@@ -17,14 +18,17 @@ namespace BridgeCare.Controllers
         private readonly IBridgeData repo;
         private readonly BridgeCareContext db;
         private readonly ISummaryReportGenerator summaryReportGenerator;
+        private readonly IConditionResultReportGenerator conditionResultReportGenerator;
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(SummaryReportController));
 
-        public SummaryReportController(IBridgeData repo, BridgeCareContext db, ISummaryReportGenerator summaryReportGenerator)
+        public SummaryReportController(IBridgeData repo, BridgeCareContext db, ISummaryReportGenerator summaryReportGenerator,
+            IConditionResultReportGenerator conditionResultReportGenerator)
         {
             this.repo = repo;
             this.db = db;
             this.summaryReportGenerator = summaryReportGenerator;
+            this.conditionResultReportGenerator = conditionResultReportGenerator;
         }
 
         /// <summary>
@@ -80,6 +84,22 @@ namespace BridgeCare.Controllers
             {
                 FileName = "SummaryReport.xlsx"
             };
+            return response;
+        }
+
+        /// <summary>
+        /// API endpoint for fetching data for Condition results report
+        /// </summary>
+        /// <param name="model">SimulationModel</param>
+        /// <returns>IHttpActionResult</returns>
+        [HttpPost]
+        [Route("api/GenerateConditionResultReport")]
+        //[ModelValidation("The scenario data is invalid.")]
+        [RestrictAccess]
+        public HttpResponseMessage GenerateConditionResultReport([FromBody] SimulationModel model)
+        {
+            BackgroundJob.Enqueue(() => conditionResultReportGenerator.GenerateConditionResultReport(model));
+            var response = Request.CreateResponse(HttpStatusCode.OK, "Report generation started");
             return response;
         }
 

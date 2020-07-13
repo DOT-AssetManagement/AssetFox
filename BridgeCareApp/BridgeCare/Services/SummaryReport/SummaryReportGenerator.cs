@@ -1,6 +1,7 @@
 ﻿using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Properties;
+using BridgeCare.Services.CommonData;
 using BridgeCare.Services.SummaryReport.Charts;
 using BridgeCare.Services.SummaryReport.Charts.PostedCountByBPN;
 using BridgeCare.Services.SummaryReport.PoorDeckAreaByBPN;
@@ -45,7 +46,7 @@ namespace BridgeCare.Services.SummaryReport
             PoorBridgeDeckArea poorBridgeDeckArea, NHSConditionChart nhsConditionBridgeCount, SummaryReportParameters summaryReportParameters,
             BridgeWorkSummaryByBudget workSummaryByBudget, BridgeWorkSummaryCharts bridgeWorkSummaryCharts,
             SummaryReportGlossary summaryReportGlossary, NonNHSConditionBridgeCount nonNHSconditionBridgeCount, NonNHSConditionDeckArea nonNHSConditionDeckArea,
-            UnfundedRecommendations unfundedRecommendations)
+            UnfundedRecommendations unfundedRecommendations, CommonBridgeData commonBridgeData)
         {
             this.summaryReportBridgeData = summaryReportBridgeData ?? throw new ArgumentNullException(nameof(summaryReportBridgeData));
             this.commonSummaryReportData = commonSummaryReportData ?? throw new ArgumentNullException(nameof(commonSummaryReportData));

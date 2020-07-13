@@ -298,10 +298,12 @@
     <Compile Include="EntityClasses\SplitTreatmentEntity.cs" />
     <Compile Include="EntityClasses\SplitTreatmentLimitEntity.cs" />
     <Compile Include="EntityClasses\UserCriteriaEntity.cs" />
+    <Compile Include="Interfaces\ConditionResults\IConditionResultReportGenerator.cs" />
     <Compile Include="Interfaces\ICashFlowLibrary.cs" />
     <Compile Include="Interfaces\IUserCriteria.cs" />
     <Compile Include="Models\AttributeSelectValuesResult.cs" />
     <Compile Include="Models\CashFlowLibraryModel.cs" />
+    <Compile Include="Models\CommonReportData\CommonReportDataModel.cs" />
     <Compile Include="Models\CriteriaValidationResult.cs" />
     <Compile Include="Models\EquationValidationResult.cs" />
     <Compile Include="Models\NetworkAttributes.cs" />
@@ -507,6 +509,10 @@
     <Compile Include="Security\Role.cs" />
     <Compile Include="Services\CheckEquations.cs" />
     <Compile Include="Services\CommittedProjects.cs" />
+    <Compile Include="Services\CommonData\CommonBridgeData.cs" />
+    <Compile Include="Services\ConditionResultReport\ConditionDistributionGraphTAB.cs" />
+    <Compile Include="Services\ConditionResultReport\ConditionResultDataTAB.cs" />
+    <Compile Include="Services\ConditionResultReport\ConditionResultReportGenerator.cs" />
     <Compile Include="Services\DetailedReport\Budget.cs" />
     <Compile Include="Services\DetailedReport\Deficient.cs" />
     <Compile Include="Services\DetailedReport\Detailed.cs" />

@@ -15,6 +15,9 @@ using Hangfire.Common;
 using Hangfire.Client;
 using Hangfire.States;
 using BridgeCare.Interfaces.SummaryReport;
+using BridgeCare.Interfaces.ConditionResults;
+using BridgeCare.Services.ConditionResultReport;
+using BridgeCare.Services.CommonData;
 
 namespace BridgeCare
 {
@@ -100,6 +103,10 @@ namespace BridgeCare
             container.RegisterType<ICommitted, CommittedDAL>();
             container.RegisterType<ICriteriaDrivenBudgets, CriteriaDrivenBudgetsDAL>();
             container.RegisterType<IWorkSummaryByBudget, WorkSummaryByBudgetDAL>();
+
+            // Condition Result report
+            container.RegisterType<IConditionResultReportGenerator, ConditionResultReportGenerator>();
+            container.RegisterType<CommonBridgeData>();
 
             //Hangfire IoC configuration
             container.RegisterType<JobStorage>(new InjectionFactory(c => JobStorage.Current));
