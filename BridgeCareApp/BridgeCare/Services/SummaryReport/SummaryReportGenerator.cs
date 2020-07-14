@@ -81,7 +81,7 @@ namespace BridgeCare.Services.SummaryReport
             simulationYears.Sort();
             var simulationYearsCount = simulationYears.Count;            
             var dbContext = new BridgeCareContext();
-            
+
             using (ExcelPackage excelPackage = new ExcelPackage(new System.IO.FileInfo("SummaryReport.xlsx")))
             {
 #if DEBUG
