@@ -215,6 +215,15 @@ namespace BridgeCare.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Condition Distribution.
+        /// </summary>
+        internal static string ConditionDistribution {
+            get {
+                return ResourceManager.GetString("ConditionDistribution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Construction.
         /// </summary>
         internal static string Construction {

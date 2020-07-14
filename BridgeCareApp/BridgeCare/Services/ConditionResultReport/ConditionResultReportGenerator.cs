@@ -8,6 +8,7 @@ using BridgeCare.Interfaces.ConditionResults;
 using BridgeCare.Models;
 using BridgeCare.Properties;
 using BridgeCare.Services.CommonData;
+using Hangfire;
 using MongoDB.Driver;
 using OfficeOpenXml;
 
@@ -35,6 +36,8 @@ namespace BridgeCare.Services.ConditionResultReport
             this.summaryReportBridgeData = summaryReportBridgeData ?? throw new ArgumentNullException(nameof(summaryReportBridgeData));
             this.conditionDistributionGraphTAB = conditionDistributionGraphTAB ?? throw new ArgumentNullException(nameof(conditionDistributionGraphTAB));
         }
+
+        [AutomaticRetry(Attempts = 0)]
         public void GenerateConditionResultReport(SimulationModel simulationModel)
         {
             // Get data

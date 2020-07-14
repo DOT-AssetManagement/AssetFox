@@ -21,18 +21,17 @@ namespace BridgeCare.Services.ConditionResultReport
             int totalBridgeCareBudgetPerYear, int simulationYearsCount)
         {
             stackedColumnChartCommon.SetWorksheetProperties(worksheet);
-            var title = Properties.Resources.CombineNHSNonNHSConditionByDeckArea;
+            var title = Properties.Resources.ConditionDistribution;
             var chart = worksheet.Drawings.AddChart(title, eChartType.ColumnStacked);
             stackedColumnChartCommon.SetChartProperties(chart, title, 950, 700, 6, 7);
 
             SetChartAxes(chart);
             AddSeries(deckAreaSheetData, totalDeckAreaRow, simulationYearsCount, chart);
 
-            var secondaryChart = chart.PlotArea.ChartTypes.Add(eChartType.Line);
+            var secondaryChart = chart.PlotArea.ChartTypes.Add(eChartType.LineMarkers);
             CreatFundingLevelPerYearLine(deckAreaSheetData, totalBridgeCareBudgetPerYear, simulationYearsCount,
                 secondaryChart, totalBridgeCareBudgetPerYear, "Funding", Color.Black);
             secondaryChart.UseSecondaryAxis = true;
-
             SetChartAxesForFunding(secondaryChart);
 
             chart.AdjustPositionAndSize();
