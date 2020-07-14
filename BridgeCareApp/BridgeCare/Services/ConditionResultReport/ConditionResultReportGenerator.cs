@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using BridgeCare.Interfaces;
 using BridgeCare.Interfaces.ConditionResults;
+using BridgeCare.Interfaces.ReportsDownload;
 using BridgeCare.Models;
 using BridgeCare.Properties;
 using BridgeCare.Services.CommonData;
@@ -14,18 +15,17 @@ using OfficeOpenXml;
 
 namespace BridgeCare.Services.ConditionResultReport
 {
-    public class ConditionResultReportGenerator : IConditionResultReportGenerator
+    public class ConditionResultReportGenerator : IConditionResultReportGenerator, IReportsDownload<ConditionResultReportGenerator>
     {
         private readonly ICommonSummaryReportData commonSummaryReportData;
         private readonly CommonBridgeData commonBridgeData;
         private readonly ConditionResultDataTAB conditionResultDataTAB;
-        private readonly SummaryReportBridgeData summaryReportBridgeData;
         private readonly ConditionDistributionGraphTAB conditionDistributionGraphTAB;
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(ConditionResultReportGenerator));
 
         public ConditionResultReportGenerator(ICommonSummaryReportData commonSummaryReportData, CommonBridgeData commonBridgeData,
-            ConditionResultDataTAB conditionResultDataTAB, SummaryReportBridgeData summaryReportBridgeData,
+            ConditionResultDataTAB conditionResultDataTAB,
             ConditionDistributionGraphTAB conditionDistributionGraphTAB)
         {
             this.commonSummaryReportData = commonSummaryReportData ??
@@ -33,7 +33,6 @@ namespace BridgeCare.Services.ConditionResultReport
             this.commonBridgeData = commonBridgeData ??
                 throw new ArgumentNullException(nameof(commonBridgeData));
             this.conditionResultDataTAB = conditionResultDataTAB ?? throw new ArgumentNullException(nameof(conditionResultDataTAB));
-            this.summaryReportBridgeData = summaryReportBridgeData ?? throw new ArgumentNullException(nameof(summaryReportBridgeData));
             this.conditionDistributionGraphTAB = conditionDistributionGraphTAB ?? throw new ArgumentNullException(nameof(conditionDistributionGraphTAB));
         }
 
@@ -89,6 +88,19 @@ namespace BridgeCare.Services.ConditionResultReport
                     .Set(s => s.status, "Condition result report has been generated");
                 simulations.UpdateOne(s => s.simulationId == simulationId, updateStatus);
             }
+        }
+
+        public byte[] DownloadExcelReport(SimulationModel simulationModel)
+        {
+            var folderPathForSimulation = $"DownloadedReports\\ConditionResult\\{simulationModel.simulationId}";
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, folderPathForSimulation, "ConditionResultReport.xlsx");
+            if (File.Exists(filePath))
+            {
+                byte[] summaryReportData = File.ReadAllBytes(filePath);
+                return summaryReportData;
+            }
+            log.Error($"Condition result report is not available in the path {filePath}");
+            throw new FileNotFoundException($"Condition result report is not available in the path {filePath}", "ConditionResultReport.xlsx");
         }
     }
 }

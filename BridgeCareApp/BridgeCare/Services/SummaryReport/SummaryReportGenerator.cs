@@ -1,4 +1,5 @@
 ﻿using BridgeCare.Interfaces;
+using BridgeCare.Interfaces.ReportsDownload;
 using BridgeCare.Models;
 using BridgeCare.Properties;
 using BridgeCare.Services.CommonData;
@@ -21,7 +22,7 @@ namespace BridgeCare.Services.SummaryReport
     /// <summary>
     /// This class utilizes services classes for each tab to fill report data.
     /// </summary>
-    public class SummaryReportGenerator : ISummaryReportGenerator
+    public class SummaryReportGenerator : ISummaryReportGenerator, IReportsDownload<SummaryReportGenerator>
     {
         private readonly ICommonSummaryReportData commonSummaryReportData;
         private readonly SummaryReportBridgeData summaryReportBridgeData;        
@@ -46,7 +47,7 @@ namespace BridgeCare.Services.SummaryReport
             PoorBridgeDeckArea poorBridgeDeckArea, NHSConditionChart nhsConditionBridgeCount, SummaryReportParameters summaryReportParameters,
             BridgeWorkSummaryByBudget workSummaryByBudget, BridgeWorkSummaryCharts bridgeWorkSummaryCharts,
             SummaryReportGlossary summaryReportGlossary, NonNHSConditionBridgeCount nonNHSconditionBridgeCount, NonNHSConditionDeckArea nonNHSConditionDeckArea,
-            UnfundedRecommendations unfundedRecommendations, CommonBridgeData commonBridgeData)
+            UnfundedRecommendations unfundedRecommendations)
         {
             this.summaryReportBridgeData = summaryReportBridgeData ?? throw new ArgumentNullException(nameof(summaryReportBridgeData));
             this.commonSummaryReportData = commonSummaryReportData ?? throw new ArgumentNullException(nameof(commonSummaryReportData));

@@ -301,6 +301,7 @@
     <Compile Include="Interfaces\ConditionResults\IConditionResultReportGenerator.cs" />
     <Compile Include="Interfaces\ICashFlowLibrary.cs" />
     <Compile Include="Interfaces\IUserCriteria.cs" />
+    <Compile Include="Interfaces\ReportsDownload\IReportsDownload.cs" />
     <Compile Include="Models\AttributeSelectValuesResult.cs" />
     <Compile Include="Models\CashFlowLibraryModel.cs" />
     <Compile Include="Models\CommonReportData\CommonReportDataModel.cs" />

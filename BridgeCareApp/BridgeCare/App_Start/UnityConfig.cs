@@ -18,6 +18,7 @@ using BridgeCare.Interfaces.SummaryReport;
 using BridgeCare.Interfaces.ConditionResults;
 using BridgeCare.Services.ConditionResultReport;
 using BridgeCare.Services.CommonData;
+using BridgeCare.Interfaces.ReportsDownload;
 
 namespace BridgeCare
 {
@@ -107,6 +108,10 @@ namespace BridgeCare
             // Condition Result report
             container.RegisterType<IConditionResultReportGenerator, ConditionResultReportGenerator>();
             container.RegisterType<CommonBridgeData>();
+
+            //Report Download
+            container.RegisterType<IReportsDownload<SummaryReportGenerator>, SummaryReportGenerator>();
+            container.RegisterType<IReportsDownload<ConditionResultReportGenerator>, ConditionResultReportGenerator>();
 
             //Hangfire IoC configuration
             container.RegisterType<JobStorage>(new InjectionFactory(c => JobStorage.Current));
