@@ -31,4 +31,12 @@ export default class ReportsService {
     static getJobList(): AxiosPromise {
         return axiosInstance.get('/api/GetJobList', {});
     }
+
+    static getConditionResultReport(selectedScenarioData: Scenario): AxiosPromise{
+        return axiosInstance.post('/api/GenerateConditionResultReport', selectedScenarioData, {});
+    }
+
+    static downloadConditionResultReport(selectedScenarioData: Scenario): AxiosPromise{
+        return axiosInstance.post('/api/DownloadConditionResultReport', selectedScenarioData, {responseType: 'blob'});
+    }
 }
