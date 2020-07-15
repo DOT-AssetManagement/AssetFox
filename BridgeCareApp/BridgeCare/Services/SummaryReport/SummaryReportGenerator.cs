@@ -1,6 +1,8 @@
 ﻿using BridgeCare.Interfaces;
+using BridgeCare.Interfaces.ReportsDownload;
 using BridgeCare.Models;
 using BridgeCare.Properties;
+using BridgeCare.Services.CommonData;
 using BridgeCare.Services.SummaryReport.Charts;
 using BridgeCare.Services.SummaryReport.Charts.PostedCountByBPN;
 using BridgeCare.Services.SummaryReport.PoorDeckAreaByBPN;
@@ -20,7 +22,7 @@ namespace BridgeCare.Services.SummaryReport
     /// <summary>
     /// This class utilizes services classes for each tab to fill report data.
     /// </summary>
-    public class SummaryReportGenerator : ISummaryReportGenerator
+    public class SummaryReportGenerator : ISummaryReportGenerator, IReportsDownload<SummaryReportGenerator>
     {
         private readonly ICommonSummaryReportData commonSummaryReportData;
         private readonly SummaryReportBridgeData summaryReportBridgeData;        
@@ -79,7 +81,7 @@ namespace BridgeCare.Services.SummaryReport
             simulationYears.Sort();
             var simulationYearsCount = simulationYears.Count;            
             var dbContext = new BridgeCareContext();
-            
+
             using (ExcelPackage excelPackage = new ExcelPackage(new System.IO.FileInfo("SummaryReport.xlsx")))
             {
 #if DEBUG

@@ -148,10 +148,15 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
 
             var simulationDataTable = new DataTable();
             var dynamicColumns = GetDynamicColumns(simulationYears);
+            var simulationTable = $"SIMULATION_{simulationModel.networkId}_{simulationModel.simulationId}_0";
+            var sectionTable = $"SECTION_{simulationModel.networkId}";
 
-            var selectSimulationStatement = $"SELECT SECTIONID, {Properties.Resources.DeckSeeded}0, {Properties.Resources.SupSeeded}0, {Properties.Resources.SubSeeded}0, {Properties.Resources.CulvSeeded}0, " +
+            var selectSimulationStatement = $"SELECT {simulationTable}.SECTIONID, PennDot_Report_A.Deck_Area, PennDot_Report_A.BRKEY, {Properties.Resources.DeckSeeded}0, " +
+                $"{Properties.Resources.SupSeeded}0, {Properties.Resources.SubSeeded}0, {Properties.Resources.CulvSeeded}0, " +
                                             $"{Properties.Resources.DeckDurationN}0, {Properties.Resources.SupDurationN}0, {Properties.Resources.SubDurationN}0, {Properties.Resources.CulvDurationN}0, {Properties.Resources.RiskScore}0, " +
-                                            dynamicColumns + $" FROM SIMULATION_{simulationModel.networkId}_{simulationModel.simulationId}_0 WITH (NOLOCK);";
+                                            dynamicColumns + $" FROM {simulationTable} " +
+                                            $"INNER JOIN {sectionTable} ON {simulationTable}.SECTIONID = {sectionTable}.SECTIONID " +
+                                            $"INNER JOIN PennDot_Report_A ON {sectionTable}.FACILITY = PennDot_Report_A.BRKEY";
 
             using (var connection = new SqlConnection(dbContext.Database.Connection.ConnectionString))
             {

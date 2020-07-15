@@ -48,5 +48,7 @@ namespace BridgeCare.Models
         public int TotalPostedAndClosedByBPNYearsRow { get; internal set; }
 
         public int TotalCashNeededByBPNYearsRow { get; internal set; }
+
+        public int TotalBridgeCareBudgetPerYear { get; internal set; }
     }
 }

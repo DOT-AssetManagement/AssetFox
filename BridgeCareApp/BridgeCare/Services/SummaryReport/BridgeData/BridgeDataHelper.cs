@@ -18,6 +18,8 @@ namespace BridgeCare.Services
                 var bridgeDataPerSection = budgetsPerBrKey.Where(b => b.SECTIONID == Convert.ToUInt32(simulationRow["SECTIONID"])).ToList();
                 var simulationDM = CreatePrevYearSimulationMdel(simulationRow);
                 simulationDM.RiskScore = Convert.ToDouble(simulationRow["RISK_SCORE_" + 0]);
+                simulationDM.DeckArea = Convert.ToDouble(simulationRow["Deck_Area"]);
+                simulationDM.BRKey = Convert.ToInt32(simulationRow["BRKEY"]);
                 var projectCostEntries = projectCostsList.Where(pc => pc.SECTIONID == Convert.ToUInt32(simulationRow["SECTIONID"])).ToList();
                 AddAllYearsData(simulationRow, simulationYears, projectCostEntries, simulationDM, bridgeDataPerSection);
                 simulationDataModels.Add(simulationDM);
