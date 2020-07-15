@@ -94,7 +94,7 @@ namespace BridgeCare.Services.ConditionResultReport
             int budgetTotalRow = 0;
             worksheet.Cells[row++, column].Value = Properties.Resources.TotalBridgeCareBudget;
             column++;
-            worksheet.Cells[startRow, column].Value = ""; // Adding dummy value to make graph
+            worksheet.Cells[startRow, column].Value = 0; // Adding dummy value to make graph
             var fromColumn = column + 1;
             foreach (var year in simulationYears)
             {
