@@ -298,6 +298,7 @@
     <Compile Include="EntityClasses\SplitTreatmentEntity.cs" />
     <Compile Include="EntityClasses\SplitTreatmentLimitEntity.cs" />
     <Compile Include="EntityClasses\UserCriteriaEntity.cs" />
+    <Compile Include="Interfaces\BudgetResults\IBudgetResultReportGenerator.cs" />
     <Compile Include="Interfaces\ConditionResults\IConditionResultReportGenerator.cs" />
     <Compile Include="Interfaces\ICashFlowLibrary.cs" />
     <Compile Include="Interfaces\IUserCriteria.cs" />
@@ -508,6 +509,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Security\Role.cs" />
+    <Compile Include="Services\BudgetResultsReport\BudgetResultsDataTAB.cs" />
+    <Compile Include="Services\BudgetResultsReport\BudgetResultsReportGenerator.cs" />
     <Compile Include="Services\CheckEquations.cs" />
     <Compile Include="Services\CommittedProjects.cs" />
     <Compile Include="Services\CommonData\CommonBridgeData.cs" />

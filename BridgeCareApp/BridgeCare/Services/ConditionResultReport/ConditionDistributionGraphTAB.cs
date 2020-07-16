@@ -36,6 +36,7 @@ namespace BridgeCare.Services.ConditionResultReport
 
             chart.AdjustPositionAndSize();
             chart.Locked = true;
+            worksheet.Cells.AutoFitColumns();
         }
         private void AddSeries(ExcelWorksheet worksheet, int totalDeckAreaRow, int count, ExcelChart chart)
         {

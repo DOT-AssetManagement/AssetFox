@@ -38,6 +38,7 @@ namespace BridgeCare.Services.ConditionResultReport
 
             var yearlyBudgetAmounts = bridgeWorkSummaryData.GetYearlyBudgetAmounts(simulationId, simulationYears, dbContext);
             var budgetTotalRow = FillTotalBudgetSection(worksheet, currentCell, simulationYears, yearlyBudgetAmounts);
+            worksheet.Cells.AutoFitColumns();
             chartRowsModel.TotalBridgeCareBudgetPerYear = budgetTotalRow;
             return chartRowsModel;
         }

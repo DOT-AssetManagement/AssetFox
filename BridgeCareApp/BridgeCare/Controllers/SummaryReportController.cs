@@ -1,4 +1,5 @@
 ﻿using BridgeCare.Interfaces;
+using BridgeCare.Interfaces.BudgetResults;
 using BridgeCare.Interfaces.ConditionResults;
 using BridgeCare.Interfaces.ReportsDownload;
 using BridgeCare.Models;
@@ -22,6 +23,7 @@ namespace BridgeCare.Controllers
         private readonly BridgeCareContext db;
         private readonly ISummaryReportGenerator summaryReportGenerator;
         private readonly IConditionResultReportGenerator conditionResultReportGenerator;
+        private readonly IBudgetResultReportGenerator budgetResultReportGenerator;
         private readonly IReportsDownload<SummaryReportGenerator> summaryReportDownload;
         private readonly IReportsDownload<ConditionResultReportGenerator> conditionReportDownload;
 
@@ -29,7 +31,7 @@ namespace BridgeCare.Controllers
 
         public SummaryReportController(IBridgeData repo, BridgeCareContext db, ISummaryReportGenerator summaryReportGenerator,
             IConditionResultReportGenerator conditionResultReportGenerator, IReportsDownload<SummaryReportGenerator> summaryReportDownload,
-            IReportsDownload<ConditionResultReportGenerator> conditionReportDownload)
+            IReportsDownload<ConditionResultReportGenerator> conditionReportDownload, IBudgetResultReportGenerator budgetResultReportGenerator)
         {
             this.repo = repo;
             this.db = db;
@@ -37,6 +39,7 @@ namespace BridgeCare.Controllers
             this.conditionResultReportGenerator = conditionResultReportGenerator;
             this.summaryReportDownload = summaryReportDownload;
             this.conditionReportDownload = conditionReportDownload;
+            this.budgetResultReportGenerator = budgetResultReportGenerator;
         }
 
         /// <summary>
@@ -136,6 +139,17 @@ namespace BridgeCare.Controllers
             {
                 FileName = "ConditionResultReport.xlsx"
             };
+            return response;
+        }
+
+        [HttpPost]
+        [Route("api/GenerateBudgetResultReport")]
+        [ModelValidation("The scenario data is invalid.")]
+        [RestrictAccess]
+        public HttpResponseMessage GenerateBudgetResultsReport([FromBody] SimulationModel model)
+        {
+            BackgroundJob.Enqueue(() => budgetResultReportGenerator.GenerateBudgetResultReport(model));
+            var response = Request.CreateResponse(HttpStatusCode.OK, "Report generation started");
             return response;
         }
 

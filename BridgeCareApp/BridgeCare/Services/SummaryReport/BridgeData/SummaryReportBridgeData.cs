@@ -17,7 +17,6 @@ namespace BridgeCare.Services
     public class SummaryReportBridgeData
     {
         private readonly IBridgeData bridgeData;
-        private readonly BridgeDataHelper bridgeDataHelper;
         private readonly ExcelHelper excelHelper;
         private readonly HighlightWorkDoneCells highlightWorkDoneCells;
         private Dictionary<MinCValue, Func<ExcelWorksheet, int, int, YearsData, int>> valueForMinC;
@@ -25,11 +24,10 @@ namespace BridgeCare.Services
         private readonly ParametersModel parametersModel;
         private readonly CommonBridgeData commonBridgeData;
 
-        public SummaryReportBridgeData(IBridgeData bridgeData, BridgeDataHelper bridgeDataHelper, ExcelHelper excelHelper,
+        public SummaryReportBridgeData(IBridgeData bridgeData, ExcelHelper excelHelper,
             HighlightWorkDoneCells highlightWorkDoneCells, ParametersModel parametersModel, CommonBridgeData commonBridgeData)
         {
             this.bridgeData = bridgeData;
-            this.bridgeDataHelper = bridgeDataHelper;
             this.excelHelper = excelHelper;
             this.highlightWorkDoneCells = highlightWorkDoneCells;
             this.parametersModel = parametersModel;

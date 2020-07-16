@@ -19,6 +19,8 @@ using BridgeCare.Interfaces.ConditionResults;
 using BridgeCare.Services.ConditionResultReport;
 using BridgeCare.Services.CommonData;
 using BridgeCare.Interfaces.ReportsDownload;
+using BridgeCare.Interfaces.BudgetResults;
+using BridgeCare.Services.BudgetResultsReport;
 
 namespace BridgeCare
 {
@@ -108,6 +110,9 @@ namespace BridgeCare
             // Condition Result report
             container.RegisterType<IConditionResultReportGenerator, ConditionResultReportGenerator>();
             container.RegisterType<CommonBridgeData>();
+
+            // Budget Result Report
+            container.RegisterType<IBudgetResultReportGenerator, BudgetResultsReportGenerator>();
 
             //Report Download
             container.RegisterType<IReportsDownload<SummaryReportGenerator>, SummaryReportGenerator>();
