@@ -2,10 +2,7 @@
 using BridgeCare.Interfaces.ReportsDownload;
 using BridgeCare.Models;
 using BridgeCare.Properties;
-using BridgeCare.Services.CommonData;
 using BridgeCare.Services.SummaryReport.Charts;
-using BridgeCare.Services.SummaryReport.Charts.PostedCountByBPN;
-using BridgeCare.Services.SummaryReport.PoorDeckAreaByBPN;
 using BridgeCare.Services.SummaryReport.ShortNameGlossary;
 using BridgeCare.Services.SummaryReport.UnfundedRecommendation;
 using BridgeCare.Services.SummaryReport.WorkSummaryByBudget;
@@ -15,7 +12,6 @@ using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace BridgeCare.Services.SummaryReport
 {
@@ -192,30 +188,6 @@ namespace BridgeCare.Services.SummaryReport
                 // Poor Bridge DA By BPN TAB
                 worksheet = excelPackage.Workbook.Worksheets.Add("Poor Bridge DA By BPN");
                 bridgeWorkSummaryCharts.FillPoorDeckAreaByBPN(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalPoorDeckAreaByBPNSectionYearsRow, simulationYearsCount);
-
-                // Posted By BPN Bridge Count TAB
-                //worksheet = excelPackage.Workbook.Worksheets.Add("Posted By BPN Bridge Count");
-                //bridgeWorkSummaryCharts.FillPostedBridgeCountByBPN(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalBridgePostedCountByBPNYearsRow, simulationYearsCount);
-
-                // Posted By BPN Bridge DA
-                //worksheet = excelPackage.Workbook.Worksheets.Add("Posted By BPN Bridge DA");
-                //bridgeWorkSummaryCharts.FillPostedBridgeDeckAreaByBPN(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalPostedBridgeDeckAreaByBPNYearsRow, simulationYearsCount);
-
-                // Closed By BPN Bridge count
-                //worksheet = excelPackage.Workbook.Worksheets.Add("Closed By BPN Bridge count");
-                //bridgeWorkSummaryCharts.FillClosedBridgeCountByBPN(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalClosedBridgeCountByBPNYearsRow, simulationYearsCount);
-
-                // Closed By BPN Bridge Deck Area
-                //worksheet = excelPackage.Workbook.Worksheets.Add("Closed By BPN Bridge DA");
-                //bridgeWorkSummaryCharts.FillClosedBridgeDeckAreaByBPN(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalClosedBridgeDeckAreaByBPNYearsRow, simulationYearsCount);
-
-                // Combiled posted and closed
-                //worksheet = excelPackage.Workbook.Worksheets.Add("Combined Posted and Closed");
-                //bridgeWorkSummaryCharts.FillCombinedPostedAndClosedByBPN(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalPostedAndClosedByBPNYearsRow, simulationYearsCount);
-
-                // Cash Needed DA By BPN
-                //worksheet = excelPackage.Workbook.Worksheets.Add("Cash Needed DA By BPN");
-                //bridgeWorkSummaryCharts.FillCashNeededDeckAreaByBPN(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalCashNeededByBPNYearsRow, simulationYearsCount);
 
                 var folderPathForSimulation = $"DownloadedReports\\{simulationModel.simulationId}";
                 string relativeFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, folderPathForSimulation);

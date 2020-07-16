@@ -21,6 +21,8 @@ namespace BridgeCare.Services.BudgetResultsReport
         private readonly ICommonSummaryReportData commonSummaryReportData;
         private readonly BudgetResultsDataTAB budgetResultsDataTAB;
 
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(SummaryReportGenerator));
+
         public BudgetResultsReportGenerator(ICommonSummaryReportData commonSummaryReportData, BudgetResultsDataTAB budgetResultsDataTAB)
         {
             this.commonSummaryReportData = commonSummaryReportData ??
@@ -73,7 +75,15 @@ namespace BridgeCare.Services.BudgetResultsReport
 
         public byte[] DownloadExcelReport(SimulationModel simulationModel)
         {
-            throw new NotImplementedException();
+            var folderPathForSimulation = $"DownloadedReports\\BudgetResult\\{simulationModel.simulationId}";
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, folderPathForSimulation, "BudgetResultsReport.xlsx");
+            if (File.Exists(filePath))
+            {
+                byte[] summaryReportData = File.ReadAllBytes(filePath);
+                return summaryReportData;
+            }
+            log.Error($"BudgetResults report is not available in the path {filePath}");
+            throw new FileNotFoundException($"BudgetResults report is not available in the path {filePath}", "BudgetResultsReport.xlsx");
         }
     }
 }

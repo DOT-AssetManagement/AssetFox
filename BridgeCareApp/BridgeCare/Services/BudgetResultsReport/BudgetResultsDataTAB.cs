@@ -42,7 +42,6 @@ namespace BridgeCare.Services.BudgetResultsReport
         {
             var commonDataForReport = commonBridgeData.Get(simulationModel, simulationYears, dbContext);
             var simulationDataModels = commonDataForReport.SimulationDataModels;
-            //var sectionsForSummaryReport = commonDataForReport.SectionsForSummaryReport;
             var budgetsPerBrKey = commonDataForReport.BudgetsPerBRKeys;
 
             var treatments = bridgeData.GetTreatments(simulationModel.simulationId, dbContext);
@@ -62,8 +61,7 @@ namespace BridgeCare.Services.BudgetResultsReport
 
             AddBridgeDataModelsCells(worksheet, bridgeDataModels, currentCell);
             AddDynamicDataCells(worksheet, simulationDataModels, bridgeDataModels, currentCell);
-            // TODO The line below currently hangs Postman in testing. It will be required for final production.
-            // ExcelHelper.ApplyBorder(worksheet.Cells[1, 1, currentCell.Row, currentCell.Column]);
+
             worksheet.Cells.AutoFitColumns();
             var spacerBeforeFirstYear = SpacerColumnNumbers[0] - 6; // to get to the first dark grey highlighted col
             worksheet.Column(spacerBeforeFirstYear).Width = 3;
@@ -85,23 +83,7 @@ namespace BridgeCare.Services.BudgetResultsReport
                 columnNo = 1;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BridgeID;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BRKey;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.District;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BridgeCulvert;
                 worksheet.Cells[rowNo, columnNo].Value = bridgeDataModel.DeckArea;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.StructureLength;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.PlanningPartner;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BridgeFamily;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.NHS;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BPN;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.StructureType;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.FunctionalClass;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.YearBuilt;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.Age;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.AdtTotal;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.ADTOverTenThousand;
-                //columnNo++;
-                //worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.RiskScore; // We fill this data in the next function call "AddDynamicDataCells"
-                //worksheet.Cells[rowNo, columnNo].Value = bridgeDataModel.P3 > 0 ? "Y" : "N";
 
                 // Get NHS record for Parameter TAB
                 if (parametersModel.nHSModel.NHS == null || parametersModel.nHSModel.NonNHS == null)
@@ -124,7 +106,6 @@ namespace BridgeCare.Services.BudgetResultsReport
             }
             currentCell.Row = rowNo;
             currentCell.Column = columnNo + 1; // + 2 to start from Deck Cond
-            //return columnNo - 1; // This is the column number for RiskScore. We do not have RiskScore information at this point.
         }
 
         private void AddDynamicDataCells(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels,
@@ -137,13 +118,6 @@ namespace BridgeCare.Services.BudgetResultsReport
             int totalColumnValue = 0;
             var abbreviatedTreatmentNames = ShortNamesForTreatments.GetShortNamesForTreatments();
 
-            // making dictionary to remove if else, which was used to enter value for MinC
-            //valueForMinC = new Dictionary<MinCValue, Func<ExcelWorksheet, int, int, YearsData, int>>();
-            //valueForMinC.Add(MinCValue.defaultValue, new Func<ExcelWorksheet, int, int, YearsData, int>(EnterDefaultMinCValue));
-            //valueForMinC.Add(MinCValue.valueEqualsCulv, new Func<ExcelWorksheet, int, int, YearsData, int>(EnterValueEqualsCulv));
-            //valueForMinC.Add(MinCValue.minOfDeckSubSuper, new Func<ExcelWorksheet, int, int, YearsData, int>(EnterMinDeckSuperSub));
-            //valueForMinC.Add(MinCValue.minOfCulvDeckSubSuper, new Func<ExcelWorksheet, int, int, YearsData, int>(EnterMinDeckSuperSubCulv));
-
             var collectedSet = bridgeDataModels.Zip(simulationDataModels, (x, y) => new { BridgeData = x, SimulationData = y });
 
             foreach (var entry in collectedSet)
@@ -153,59 +127,18 @@ namespace BridgeCare.Services.BudgetResultsReport
                     excelHelper.ApplyColor(worksheet.Cells[row, 1, row, worksheet.Dimension.Columns], Color.LightGray);
                 }
                 column = currentCell.Column;
-                //var brKey = entry.BridgeData.BRKey;
                 var familyId = entry.BridgeData.BridgeFamily;
-                //var workDoneMoreThanOnce = 0;
-                //var section = sectionsForSummaryReport.Where(s => Convert.ToInt32(s.FACILITY) == brKey).FirstOrDefault();
-                //var simulationDataModel = simulationDataModels.Where(s => s.SectionId == section.SECTIONID).FirstOrDefault();
-                // Save DeckArea for further use
-                //entry.SimulationData.DeckArea = entry.BridgeData.DeckArea;
-                //entry.SimulationData.BRKey = brKey;
-                //bridgeDataModel.RiskScore = simulationDataModel.RiskScore;
-                //worksheet.Cells[row, columnForRiskScore].Value = simulationDataModel.RiskScore;
                 var yearsData = entry.SimulationData.YearsData;
                 var projectPickByYear = new Dictionary<int, int>();
                 // Add work done cells
 
                 for (var index = 1; index < yearsData.Count(); index++)
                 {
-                    //var cost = yearsdata[index].cost;
-                    //var range = worksheet.cells[row, ++column];
                     projectPickByYear.Add(yearsData[index].Year, yearsData[index].ProjectPickType);
-                    //setcolor(bridgedatamodel.parallelbridge, yearsdata[index].treatment, projectpickbyyear,
-                    //    yearsdata[index].year, index, yearsdata[index].project, worksheet, row, column);
-                    //if (abbreviatedtreatmentnames.containskey(yearsdata[index].treatment))
-                    //{
-                    //    range.value = string.isnullorempty(abbreviatedtreatmentnames[yearsdata[index].treatment]) ? "--" : abbreviatedtreatmentnames[yearsdata[index].treatment];
-                    //}
-                    //else
-                    //{
-                    //    range.value = string.isnullorempty(yearsdata[index].treatment) ? "--" : yearsdata[index].treatment;
-                    //}
-                    //workdonemorethanonce = !range.value.equals("--") ? workdonemorethanonce + 1 : workdonemorethanonce;
                 }
-                //worksheet.Cells[row, ++column].Value = workDoneMoreThanOnce > 1 ? "Yes" : "--";
-                //totalColumnValue = workDoneMoreThanOnce > 1 ? totalColumnValue + 1 : totalColumnValue;
-
-                // Empty Total column
-
-                //column++;
 
                 // Add Total of count of Work done more than once column cells if "Yes"
                 totalColumn = column;
-
-                // Add Poor On/Off Rate column: Formula (prev yr MinC < 5 and  curr yr Minc >= 5 then "Off"), (prev yr MinC >= 5 and curr ye MinC < 5 then "On")   
-                //for (var index = 1; index < yearsData.Count(); index++)
-                //{
-                //    var prevYrMinc = yearsData[index - 1].MinC;
-                //    var thisYrMinc = yearsData[index].MinC;
-                //    worksheet.Cells[row, ++column].Value = prevYrMinc < 5 ? (thisYrMinc >= 5 ? "Off" : "--") : (thisYrMinc < 5 ? "On" : "--");
-                //    yearsData[index].PoorOnOffRate = worksheet.Cells[row, column].Value.ToString();
-                //}
-
-                // Empty column
-
-                //column++;
 
                 worksheet.Column(column).Style.Fill.PatternType = ExcelFillStyle.Solid;
                 worksheet.Column(column).Style.Fill.BackgroundColor.SetColor(Color.Gray);
@@ -233,7 +166,6 @@ namespace BridgeCare.Services.BudgetResultsReport
         private int AddSimulationYearData(ExcelWorksheet worksheet, int row, int column, YearsData yearData, int familyId,
             BridgeDataModel bridgeDataModel, Dictionary<int, int> projectPickByYear)
         {
-            //var minCActionCallDecider = MinCValue.minOfCulvDeckSubSuper;
             var familyIdLessThanEleven = familyId < 11;
             if (familyId > 10)
             {
@@ -241,63 +173,37 @@ namespace BridgeCare.Services.BudgetResultsReport
                 worksheet.Cells[row, ++column].Value = "N";
                 worksheet.Cells[row, ++column].Value = "N";
 
-                //worksheet.Cells[row, column + 2].Value = "N";
-                //worksheet.Cells[row, column + 3].Value = "N";
-                //worksheet.Cells[row, column + 4].Value = "N";
                 yearData.Deck = "N";
                 yearData.Super = "N";
                 yearData.Sub = "N";
-                //minCActionCallDecider = MinCValue.valueEqualsCulv;
             }
             else
             {
                 worksheet.Cells[row, ++column].Value = Convert.ToDouble(yearData.Deck);
                 worksheet.Cells[row, ++column].Value = Convert.ToDouble(yearData.Super);
                 worksheet.Cells[row, ++column].Value = Convert.ToDouble(yearData.Sub);
-
-                //worksheet.Cells[row, column + 2].Value = Convert.ToDouble(yearData.DeckD);
-                //worksheet.Cells[row, column + 3].Value = Convert.ToDouble(yearData.SuperD);
-                //worksheet.Cells[row, column + 4].Value = Convert.ToDouble(yearData.SubD);
             }
             if (familyIdLessThanEleven)
             {
                 worksheet.Cells[row, ++column].Value = "N";
-                //worksheet.Cells[row, column + 4].Value = "N";
                 yearData.Culv = "N";
                 yearData.CulvD = "N";
-                //if (minCActionCallDecider == MinCValue.valueEqualsCulv)
-                //{
-                //    minCActionCallDecider = MinCValue.defaultValue;
-                //}
-                //else
-                //{
-                //    minCActionCallDecider = MinCValue.minOfDeckSubSuper;
-                //}
             }
             else
             {
                 worksheet.Cells[row, ++column].Value = Convert.ToDouble(yearData.Culv);
-
-                //worksheet.Cells[row, column + 4].Value = Convert.ToDouble(yearData.CulvD);
             }
-            //column += 4;
-
-            //column = valueForMinC[minCActionCallDecider](worksheet, row, column, yearData); // It returns the column number where MinC value is written
 
             if (bridgeDataModel.P3 > 0 && yearData.MinC < 5)
             {
                 excelHelper.ApplyColor(worksheet.Cells[row, column], Color.Yellow);
                 excelHelper.SetTextColor(worksheet.Cells[row, column], Color.Black);
             }
-            //worksheet.Cells[row, ++column].Value = yearData.SD;
-            //worksheet.Cells[row, ++column].Value = Convert.ToDouble(yearData.MinC) < 5 ? "Y" : "N" ;
             worksheet.Cells[row, ++column].Value = yearData.MinC < 5 ? "Y" : "N"; //poor
 
             if (yearData.Year != 0)
             {
-                //worksheet.Cells[row, ++column].Value = bridgeDataModel.Posted == "Y" ? getPostedType(yearData.Project) : "N"; // Posted
                 worksheet.Cells[row, ++column].Value = yearData.ProjectPick; // Project Pick
-                //worksheet.Cells[row, ++column].Value = yearData.Budget; // Budget
                 worksheet.Cells[row, ++column].Value = yearData.Project;
                 if (projectPickByYear[yearData.Year] == 2)
                 {
@@ -306,7 +212,6 @@ namespace BridgeCare.Services.BudgetResultsReport
                 }
                 worksheet.Cells[row, ++column].Value = yearData.Cost;
                 excelHelper.SetCurrencyFormat(worksheet.Cells[row, column]);
-                //worksheet.Cells[row, ++column].Value = ""; // District Remarks
             }
             // Empty column
             column++;
@@ -355,11 +260,6 @@ namespace BridgeCare.Services.BudgetResultsReport
 
             // Empty column
             currentCell.Column = ++column;
-
-            //worksheet.Column(column - 6).Style.Fill.PatternType = ExcelFillStyle.Solid; // to fill the empty column before the first displayed year
-            //worksheet.Column(column - 6).Style.Fill.BackgroundColor.SetColor(Color.Gray);
-
-            //var yearHeaderColumn = currentCell.Column;
             SpacerColumnNumbers = new List<int>();
 
             foreach (var simulationYear in simulationYears)
@@ -408,19 +308,10 @@ namespace BridgeCare.Services.BudgetResultsReport
                 "Super Cond",
                 "Sub Cond",
                 "Culv Cond",
-                //"Deck Dur",
-                //"Super Dur",
-                //"Sub Dur",
-                //"Culv Dur",
-                //"Min Cond",
-                //"SD",
                 "Poor",
-                //"Posted",
                 "Project Pick",
-                //"Budget",
                 "Project",
-                "Cost",
-                //"District Remarks"
+                "Cost"
             };
         }
     }

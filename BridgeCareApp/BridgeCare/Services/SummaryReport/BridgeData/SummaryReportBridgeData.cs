@@ -115,17 +115,9 @@ namespace BridgeCare.Services
                     excelHelper.ApplyColor(worksheet.Cells[row, 1, row, worksheet.Dimension.Columns], Color.LightGray);
                 }
                 column = currentCell.Column;
-                //var brKey = entry.BridgeData.BRKey;
                 var familyId = entry.BridgeData.BridgeFamily;
                 var workDoneMoreThanOnce = 0;
-                //var section = sectionsForSummaryReport.Where(s => Convert.ToInt32(s.FACILITY) == brKey).FirstOrDefault();
-                //var simulationDataModel = simulationDataModels.Where(s => s.SectionId == section.SECTIONID).FirstOrDefault();
-                //var simulationDataModel = simulationDataModels.Where(s => s.BRKey == brKey).FirstOrDefault(); // using sorted set instead of list
-                // Save DeckArea for further use
-                //entry.SimulationData.DeckArea = entry.BridgeData.DeckArea;
-                //simulationDataModel.DeckArea = entry.BridgeData.DeckArea;
-                //entry.SimulationData.BRKey = brKey;
-                //simulationDataModel.BRKey = brKey;
+
                 entry.BridgeData.RiskScore = entry.SimulationData.RiskScore;
                 worksheet.Cells[row, columnForRiskScore].Value = entry.SimulationData.RiskScore;
                 var yearsData = entry.SimulationData.YearsData;
@@ -256,13 +248,10 @@ namespace BridgeCare.Services
                 excelHelper.ApplyColor(worksheet.Cells[row, column], Color.Yellow);
                 excelHelper.SetTextColor(worksheet.Cells[row, column], Color.Black);
             }
-            //worksheet.Cells[row, ++column].Value = yearData.SD;
-            //worksheet.Cells[row, ++column].Value = Convert.ToDouble(yearData.MinC) < 5 ? "Y" : "N" ;
             worksheet.Cells[row, ++column].Value = yearData.MinC < 5 ? "Y" : "N"; //poor
 
             if (yearData.Year != 0)
             {
-                //worksheet.Cells[row, ++column].Value = bridgeDataModel.Posted == "Y" ? getPostedType(yearData.Project) : "N"; // Posted
                 worksheet.Cells[row, ++column].Value = yearData.ProjectPick; // Project Pick
                 worksheet.Cells[row, ++column].Value = yearData.Budget; // Budget
                 worksheet.Cells[row, ++column].Value = yearData.Project;

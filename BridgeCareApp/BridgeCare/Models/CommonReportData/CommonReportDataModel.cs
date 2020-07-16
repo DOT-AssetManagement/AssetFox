@@ -14,6 +14,5 @@ namespace BridgeCare.Models.CommonReportData
         public List<BudgetsPerBRKey> BudgetsPerBRKeys { get; set; }
 
         public ParametersModel ParametersModel { get; set; }
-        //public List<Section> SectionsForSummaryReport { get; set; }
     }
 }
