@@ -22,9 +22,9 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
         /// <param name="brKeys">br keys list</param>
         /// <param name="db">BridgeCareContext</param>
         /// <returns>BridgeDataModel list</returns>        
-        public List<BridgeDataModel> GetBridgeData(List<int> brKeys, SimulationModel model, BridgeCareContext db, ParametersModel parametersModel)
+        public SortedSet<BridgeDataModel> GetBridgeData(List<int> brKeys, SimulationModel model, BridgeCareContext db, ParametersModel parametersModel)
         {
-            var bridgeDataModels = new List<BridgeDataModel>();
+            var bridgeDataModels = new SortedSet<BridgeDataModel>(new BrKeyComparer());
 
             var penndotBridgeData = db.PennDotBridgeData.Where(p => brKeys.Contains(p.BRKEY)).ToList();
 
@@ -65,29 +65,29 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
         /// <param name="simulationModel"></param>
         /// <param name="dbContext"></param>
         /// <returns>IQueryable<Section></returns>
-        public IQueryable<Section> GetSectionData(SimulationModel simulationModel, BridgeCareContext dbContext)
-        {
-            IQueryable<Section> rawQueryForSectionData = null;
+        //public IQueryable<Section> GetSectionData(SimulationModel simulationModel, BridgeCareContext dbContext)
+        //{
+        //    IQueryable<Section> rawQueryForSectionData = null;
 
-            // FACILITY is BRKEY, SECTION is BRIDGE_ID
-            var selectSectionStatement = "SELECT SECTIONID, FACILITY, SECTION " + " FROM SECTION_" + simulationModel.networkId + " Rpt WITH(NOLOCK) Order By FACILITY ASC";
-            try
-            {
-                rawQueryForSectionData = dbContext.Database.SqlQuery<Section>(selectSectionStatement).AsQueryable();
-            }
-            catch (SqlException ex)
-            {
-                log.Error(ex.Message);
-                HandleException.SqlError(ex, "Section_");
-            }
-            catch (OutOfMemoryException ex)
-            {
-                log.Error(ex.Message);
-                HandleException.OutOfMemoryError(ex);
-            }
+        //    // FACILITY is BRKEY, SECTION is BRIDGE_ID
+        //    var selectSectionStatement = "SELECT SECTIONID, FACILITY, SECTION " + " FROM SECTION_" + simulationModel.networkId + " Rpt WITH(NOLOCK) Order By FACILITY ASC";
+        //    try
+        //    {
+        //        rawQueryForSectionData = dbContext.Database.SqlQuery<Section>(selectSectionStatement).AsQueryable();
+        //    }
+        //    catch (SqlException ex)
+        //    {
+        //        log.Error(ex.Message);
+        //        HandleException.SqlError(ex, "Section_");
+        //    }
+        //    catch (OutOfMemoryException ex)
+        //    {
+        //        log.Error(ex.Message);
+        //        HandleException.OutOfMemoryError(ex);
+        //    }
 
-            return rawQueryForSectionData;
-        }
+        //    return rawQueryForSectionData;
+        //}
 
         public List<string> GetSummaryReportMissingAttributes(int simulationId, int networkId, BridgeCareContext db)
         {
@@ -151,7 +151,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             var simulationTable = $"SIMULATION_{simulationModel.networkId}_{simulationModel.simulationId}_0";
             var sectionTable = $"SECTION_{simulationModel.networkId}";
 
-            var selectSimulationStatement = $"SELECT {simulationTable}.SECTIONID, PennDot_Report_A.Deck_Area, PennDot_Report_A.BRKEY, {Properties.Resources.DeckSeeded}0, " +
+            var selectSimulationStatement = $"SELECT {simulationTable}.SECTIONID, {sectionTable}.SECTION, PennDot_Report_A.Deck_Area, PennDot_Report_A.BRKEY, {Properties.Resources.DeckSeeded}0, " +
                 $"{Properties.Resources.SupSeeded}0, {Properties.Resources.SubSeeded}0, {Properties.Resources.CulvSeeded}0, " +
                                             $"{Properties.Resources.DeckDurationN}0, {Properties.Resources.SupDurationN}0, {Properties.Resources.SubDurationN}0, {Properties.Resources.CulvDurationN}0, {Properties.Resources.RiskScore}0, " +
                                             dynamicColumns + $" FROM {simulationTable} " +
@@ -326,5 +326,13 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             };
         }
         #endregion
+
+        private class BrKeyComparer : IComparer<BridgeDataModel>
+        {
+            public int Compare(BridgeDataModel x, BridgeDataModel y)
+            {
+                return x.BRKey.CompareTo(y.BRKey);
+            }
+        }
     }
 }

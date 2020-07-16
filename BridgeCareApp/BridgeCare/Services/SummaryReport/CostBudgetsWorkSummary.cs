@@ -33,7 +33,7 @@ namespace BridgeCare.Services
         /// <param name="simulationYears"></param>
         /// <param name="simulationDataModels"></param>
         public void FillCostBudgetWorkSummarySections(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,
-            List<SimulationDataModel> simulationDataModels, Dictionary<int, List<double>> yearlyBudgetAmounts, List<string> treatments,
+            SortedSet<SimulationDataModel> simulationDataModels, Dictionary<int, List<double>> yearlyBudgetAmounts, List<string> treatments,
             List<WorkSummaryByBudgetModel> comittedProjectsData)
         {
             var committedTotalRow = FillCostOfCommittedWorkSection(worksheet, currentCell, simulationYears, comittedProjectsData);
@@ -51,14 +51,14 @@ namespace BridgeCare.Services
             return committedTotalRow;
         }
 
-        private int FillCostOfCulvertWorkSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<string> treatments)
+        private int FillCostOfCulvertWorkSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, List<string> treatments)
         {
             bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of BAMS Culvert Work", "BAMS Culvert Work Type");
             var culvertTotalRow = AddCostsOfCulvertWork(worksheet, simulationDataModels, simulationYears, currentCell, treatments);
             return culvertTotalRow;
         }
 
-        private int FillCostOfBridgeWorkSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<string> treatments)
+        private int FillCostOfBridgeWorkSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, List<string> treatments)
         {
             bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of BAMS Bridge Work", "BAMS Bridge Work Type");
             var bridgeTotalRow = AddCostsOfBridgeWork(worksheet, simulationDataModels, simulationYears, currentCell, treatments);
@@ -140,7 +140,7 @@ namespace BridgeCare.Services
             return committedTotalRow;
         }
 
-        private int AddCostsOfCulvertWork(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<int> simulationYears, CurrentCell currentCell, List<string> treatments)
+        private int AddCostsOfCulvertWork(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, List<int> simulationYears, CurrentCell currentCell, List<string> treatments)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);
@@ -254,7 +254,7 @@ namespace BridgeCare.Services
             excelHelper.ApplyColor(worksheet.Cells[row + 2, startColumn, row + 2, column], Color.DimGray);
         }
 
-        private int AddCostsOfBridgeWork(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<int> simulationYears, CurrentCell currentCell, List<string> treatments)
+        private int AddCostsOfBridgeWork(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, List<int> simulationYears, CurrentCell currentCell, List<string> treatments)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);

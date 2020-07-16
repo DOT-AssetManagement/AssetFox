@@ -9,7 +9,7 @@ namespace BridgeCare.Services
     {
         const string NoTreatment = "No Treatment";
 
-        public double CalculateCost(List<SimulationDataModel> simulationDataModels, int year, string project)
+        public double CalculateCost(SortedSet<SimulationDataModel> simulationDataModels, int year, string project)
         {
             double cost = 0;
             foreach (var simulationDataModel in simulationDataModels)
@@ -21,37 +21,37 @@ namespace BridgeCare.Services
             return cost;
         }
 
-        public int CalculateNoTreatmentCountForCulverts(List<SimulationDataModel> simulationDataModels, int year)
+        public int CalculateNoTreatmentCountForCulverts(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
-            return simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.Project == NoTreatment && !y.CulvD.Equals("N"))).Count;
+            return simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.Project == NoTreatment && !y.CulvD.Equals("N"))).Count();
         }
 
-        public int CalculatePreservationPoorFixCount(List<SimulationDataModel> simulationDataModels, int year)
+        public int CalculatePreservationPoorFixCount(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
-            return simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.Culv == "Y" && y.SD == "N")).Count;
+            return simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.Culv == "Y" && y.SD == "N")).Count();
         }
 
-        public int CalculateCountByProject(List<SimulationDataModel> simulationDataModels, int year, string project)
+        public int CalculateCountByProject(SortedSet<SimulationDataModel> simulationDataModels, int year, string project)
         {
-            return simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.Project == project)).Count;
+            return simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.Project == project)).Count();
         }
 
-        public int CalculateNoTreatmentCountForBridges(List<SimulationDataModel> simulationDataModels, int year)
+        public int CalculateNoTreatmentCountForBridges(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
-            return simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.Project == NoTreatment && y.CulvD.Equals("N"))).Count;
+            return simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.Project == NoTreatment && y.CulvD.Equals("N"))).Count();
         }
 
-        public int CalculatePoorBridgeCount(List<SimulationDataModel> simulationDataModels, int year, string type)
+        public int CalculatePoorBridgeCount(SortedSet<SimulationDataModel> simulationDataModels, int year, string type)
         {
-            return simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.PoorOnOffRate == type)).Count;
+            return simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.PoorOnOffRate == type)).Count();
         }
 
-        public int CalculateTotalPoorBridgesCount(List<SimulationDataModel> simulationDataModels, int year)
+        public int CalculateTotalPoorBridgesCount(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
-            return simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.SD == "Y")).Count;
+            return simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.SD == "Y")).Count();
         }
 
-        public double CalculateTotalPoorBridgesDeckArea(List<SimulationDataModel> simulationDataModels, int year)
+        public double CalculateTotalPoorBridgesDeckArea(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
             double sum = 0;
             foreach (var simulationDataModel in simulationDataModels)
@@ -63,17 +63,17 @@ namespace BridgeCare.Services
             return sum;
         }
 
-        public int CalculateTotalBridgeGoodCount(List<SimulationDataModel> simulationDataModels, int year)
+        public int CalculateTotalBridgeGoodCount(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
-            return simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC >= 7)).Count;
+            return simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC >= 7)).Count();
         }
 
-        public int CalculateTotalBridgePoorCount(List<SimulationDataModel> simulationDataModels, int year)
+        public int CalculateTotalBridgePoorCount(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
-            return simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC < 5)).Count;
+            return simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC < 5)).Count();
         }
 
-        public double CalculateTotalGoodDeckArea(List<SimulationDataModel> simulationDataModels, int year)
+        public double CalculateTotalGoodDeckArea(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
             double sum = 0;
             foreach (var simulationDataModel in simulationDataModels)
@@ -85,7 +85,7 @@ namespace BridgeCare.Services
             return sum;
         }
 
-        public double CalculateTotalPoorDeckArea(List<SimulationDataModel> simulationDataModels, int year)
+        public double CalculateTotalPoorDeckArea(SortedSet<SimulationDataModel> simulationDataModels, int year)
         {
             double sum = 0;
             foreach (var simulationDataModel in simulationDataModels)
@@ -97,7 +97,7 @@ namespace BridgeCare.Services
             return sum;
         }
 
-        public double CalculateTotalDeckArea(List<SimulationDataModel> simulationDataModels)
+        public double CalculateTotalDeckArea(SortedSet<SimulationDataModel> simulationDataModels)
         {
             double sum = 0;
             foreach (var simulationDataModel in simulationDataModels)
@@ -108,11 +108,11 @@ namespace BridgeCare.Services
             return sum;
         }
 
-        public double CalculateNHSBridgePoorDeckArea(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
+        public double CalculateNHSBridgePoorDeckArea(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year)
         {
             double sum = 0;
-            var filteredBridgeDataModels = bridgeDataModels.FindAll(b => b.NHS == "Y");
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => filteredBridgeDataModels.Exists(b => b.BRKey == s.BRKey));
+            var filteredBridgeDataModels = bridgeDataModels.Where(b => b.NHS == "Y");
+            var filteredSimulationDataModels = simulationDataModels.Where(s => filteredBridgeDataModels.Any(b => b.BRKey == s.BRKey));
             foreach (var simulationDataModel in filteredSimulationDataModels)
             {
                 var yearData = simulationDataModel.YearsData.Find(y => y.Year == year && y.MinC < 5);
@@ -121,11 +121,11 @@ namespace BridgeCare.Services
             return sum;
         }
 
-        public double CalculateNHSBridgeGoodDeckArea(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
+        public double CalculateNHSBridgeGoodDeckArea(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year)
         {
             double sum = 0;
-            var filteredBridgeDataModels = bridgeDataModels.FindAll(b => b.NHS == "Y");
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => filteredBridgeDataModels.Exists(b => b.BRKey == s.BRKey));
+            var filteredBridgeDataModels = bridgeDataModels.Where(b => b.NHS == "Y");
+            var filteredSimulationDataModels = simulationDataModels.Where(s => filteredBridgeDataModels.Any(b => b.BRKey == s.BRKey));
             foreach (var simulationDataModel in filteredSimulationDataModels)
             {
                 var yearData = simulationDataModel.YearsData.Find(y => y.Year == year && y.MinC >= 7);
@@ -134,71 +134,71 @@ namespace BridgeCare.Services
             return sum;
         }
 
-        public int CalculateNHSBridgeGoodCount(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
+        public int CalculateNHSBridgeGoodCount(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year)
         {
-            var filteredBridgeDataModels = bridgeDataModels.FindAll(b => b.NHS == "Y");
-            var goodCount = simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC >= 7) && filteredBridgeDataModels.Exists(b => b.BRKey == s.BRKey)).Count;
+            var filteredBridgeDataModels = bridgeDataModels.Where(b => b.NHS == "Y");
+            var goodCount = simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC >= 7) && filteredBridgeDataModels.Any(b => b.BRKey == s.BRKey)).Count();
             return goodCount;
         }
 
-        public int CalculateNHSBridgePoorCount(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
+        public int CalculateNHSBridgePoorCount(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year)
         {
-            var filteredBridgeDataModels = bridgeDataModels.FindAll(b => b.NHS == "Y");
-            var poorCount = simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC < 5) && filteredBridgeDataModels.Exists(b => b.BRKey == s.BRKey)).Count;
+            var filteredBridgeDataModels = bridgeDataModels.Where(b => b.NHS == "Y");
+            var poorCount = simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC < 5) && filteredBridgeDataModels.Any(b => b.BRKey == s.BRKey)).Count();
             return poorCount;
         }
 
         #region posted and closed bridge count functions
-        internal int CalculatePostedAndClosedBridgeCountForBPN13(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string bpn, string posted)
+        internal int CalculatePostedAndClosedBridgeCountForBPN13(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year, string bpn, string posted)
         {
             var postedCount = 0;
-            var postedBridges = bridgeDataModels.FindAll(b => b.BPN == bpn);
+            var postedBridges = bridgeDataModels.Where(b => b.BPN == bpn);
             if (posted == "Y")
             {
-                postedCount = simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 4.75 && y.MinC > 3.25) && postedBridges.Exists(b => b.BRKey == s.BRKey)).Count;
+                postedCount = simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 4.75 && y.MinC > 3.25) && postedBridges.Any(b => b.BRKey == s.BRKey)).Count();
             }
             else
             {
-                postedCount = simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 3.25) && postedBridges.Exists(b => b.BRKey == s.BRKey)).Count;
+                postedCount = simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 3.25) && postedBridges.Any(b => b.BRKey == s.BRKey)).Count();
             }
             return postedCount;
         }
-        internal int CalculatePostedAndClosedBridgeCountForBPN2H(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string posted)
+        internal int CalculatePostedAndClosedBridgeCountForBPN2H(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year, string posted)
         {
             var postedCount = 0;
-            var postedBridges = bridgeDataModels.FindAll(b => b.BPN == "2" || b.BPN == "H");
+            var postedBridges = bridgeDataModels.Where(b => b.BPN == "2" || b.BPN == "H");
             if (posted == "Y")
             {
-                postedCount = simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 4.75 && y.MinC > 3.25) && postedBridges.Exists(b => b.BRKey == s.BRKey)).Count;
+                postedCount = simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 4.75 && y.MinC > 3.25) && postedBridges.Any(b => b.BRKey == s.BRKey)).Count();
             }
             else
             {
-                postedCount = simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 3.25) && postedBridges.Exists(b => b.BRKey == s.BRKey)).Count;
+                postedCount = simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 3.25) && postedBridges.Any(b => b.BRKey == s.BRKey)).Count();
             }
             return postedCount;
         }
-        internal int CalculatePostedAndClosedBridgeCountForRemaining(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string posted)
+        internal int CalculatePostedAndClosedBridgeCountForRemaining(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year, string posted)
         {
             var postedCount = 0;
-            var postedBridges = bridgeDataModels.FindAll(b => b.BPN != "2" && b.BPN != "H" && b.BPN != "1" && b.BPN != "3");
+            var postedBridges = bridgeDataModels.Where(b => b.BPN != "2" && b.BPN != "H" && b.BPN != "1" && b.BPN != "3");
             if (posted == "Y")
             {
-                postedCount = simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 4.75 && y.MinC > 3.25) && postedBridges.Exists(b => b.BRKey == s.BRKey)).Count;
+                postedCount = simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 4.75 && y.MinC > 3.25) && postedBridges.Any(b => b.BRKey == s.BRKey)).Count();
             }
             else
             {
-                postedCount = simulationDataModels.FindAll(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 3.25) && postedBridges.Exists(b => b.BRKey == s.BRKey)).Count;
+                postedCount = simulationDataModels.Where(s => s.YearsData.Exists(y => y.Year == year && y.MinC <= 3.25) && postedBridges.Any(b => b.BRKey == s.BRKey)).Count();
             }
             return postedCount;
         }
         #endregion
 
         #region posted and closed deck area functions
-        internal double CalculatePostedAndClosedDeckAreaForBPN13(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string bpn, string postStatus)
+        internal double CalculatePostedAndClosedDeckAreaForBPN13(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year, string bpn, string postStatus)
         {
             var sum = 0.0;
-            var postedBridges = bridgeDataModels.FindAll(b => b.BPN == bpn);
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => postedBridges.Exists(b => b.BRKey == s.BRKey));
+            var postedBridges = bridgeDataModels.Where(b => b.BPN == bpn);
+            var filteredSimulationDataModels = simulationDataModels.Where(s => postedBridges.Any(b => b.BRKey == s.BRKey));
             if (postStatus == "Y")
             {
                 foreach (var simulationDataModel in filteredSimulationDataModels)
@@ -217,11 +217,11 @@ namespace BridgeCare.Services
             }
             return sum;
         }
-        internal double CalculatePostedAndClosedDeckAreaForBPN2H(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string postStatus)
+        internal double CalculatePostedAndClosedDeckAreaForBPN2H(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year, string postStatus)
         {
             var sum = 0.0;
-            var postedBridges = bridgeDataModels.FindAll(b => b.BPN == "2" || b.BPN == "H");
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => postedBridges.Exists(b => b.BRKey == s.BRKey));
+            var postedBridges = bridgeDataModels.Where(b => b.BPN == "2" || b.BPN == "H");
+            var filteredSimulationDataModels = simulationDataModels.Where(s => postedBridges.Any(b => b.BRKey == s.BRKey));
             if (postStatus == "Y")
             {
                 foreach (var simulationDataModel in filteredSimulationDataModels)
@@ -240,11 +240,11 @@ namespace BridgeCare.Services
             }
             return sum;
         }
-        internal double CalculatePostedAndClosedDeckAreaForRemainingBPN(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string postStatus)
+        internal double CalculatePostedAndClosedDeckAreaForRemainingBPN(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year, string postStatus)
         {
             var sum = 0.0;
-            var postedBridges = bridgeDataModels.FindAll(b => b.BPN != "2" && b.BPN != "H" && b.BPN != "1" && b.BPN != "3");
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => postedBridges.Exists(b => b.BRKey == s.BRKey));
+            var postedBridges = bridgeDataModels.Where(b => b.BPN != "2" && b.BPN != "H" && b.BPN != "1" && b.BPN != "3");
+            var filteredSimulationDataModels = simulationDataModels.Where(s => postedBridges.Any(b => b.BRKey == s.BRKey));
             if (postStatus == "Y")
             {
                 foreach (var simulationDataModel in filteredSimulationDataModels)
@@ -265,11 +265,11 @@ namespace BridgeCare.Services
         }
         #endregion
 
-        internal double CalculateMoneyNeededByBPN13(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string bpn)
+        internal double CalculateMoneyNeededByBPN13(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year, string bpn)
         {
             var sum = 0.0;
-            var filteredBPNBridges = bridgeDataModels.FindAll(b => b.BPN == bpn);
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => filteredBPNBridges.Exists(b => b.BRKey == s.BRKey));
+            var filteredBPNBridges = bridgeDataModels.Where(b => b.BPN == bpn);
+            var filteredSimulationDataModels = simulationDataModels.Where(s => filteredBPNBridges.Any(b => b.BRKey == s.BRKey));
             foreach (var simulationDataModel in filteredSimulationDataModels)
             {
                 var yearData = simulationDataModel.YearsData.Find(y => y.Year == year);
@@ -277,11 +277,11 @@ namespace BridgeCare.Services
             }
             return sum;
         }
-        internal double CalculateMoneyNeededByBPN2H(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
+        internal double CalculateMoneyNeededByBPN2H(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year)
         {
             var sum = 0.0;
-            var filteredBPNBridges = bridgeDataModels.FindAll(b => b.BPN == "2" || b.BPN == "H");
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => filteredBPNBridges.Exists(b => b.BRKey == s.BRKey));
+            var filteredBPNBridges = bridgeDataModels.Where(b => b.BPN == "2" || b.BPN == "H");
+            var filteredSimulationDataModels = simulationDataModels.Where(s => filteredBPNBridges.Any(b => b.BRKey == s.BRKey));
             foreach (var simulationDataModel in filteredSimulationDataModels)
             {
                 var yearData = simulationDataModel.YearsData.Find(y => y.Year == year);
@@ -289,11 +289,11 @@ namespace BridgeCare.Services
             }
             return sum;
         }
-        internal double CalculateMoneyNeededByRemainingBPN(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
+        internal double CalculateMoneyNeededByRemainingBPN(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year)
         {
             var sum = 0.0;
-            var filteredBPNBridges = bridgeDataModels.FindAll(b => b.BPN != "2" && b.BPN != "H" && b.BPN != "1" && b.BPN != "3");
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => filteredBPNBridges.Exists(b => b.BRKey == s.BRKey));
+            var filteredBPNBridges = bridgeDataModels.Where(b => b.BPN != "2" && b.BPN != "H" && b.BPN != "1" && b.BPN != "3");
+            var filteredSimulationDataModels = simulationDataModels.Where(s => filteredBPNBridges.Any(b => b.BRKey == s.BRKey));
             foreach (var simulationDataModel in filteredSimulationDataModels)
             {
                 var yearData = simulationDataModel.YearsData.Find(y => y.Year == year);
@@ -303,11 +303,11 @@ namespace BridgeCare.Services
         }
 
         #region poor deck area functions
-        internal double CalculatePoorDeckAreaForBPN13(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string bpn)
+        internal double CalculatePoorDeckAreaForBPN13(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year, string bpn)
         {
             var sum = 0.0;
-            var postedBridges = bridgeDataModels.FindAll(b =>  b.BPN == bpn);
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => postedBridges.Exists(b => b.BRKey == s.BRKey));
+            var postedBridges = bridgeDataModels.Where(b =>  b.BPN == bpn);
+            var filteredSimulationDataModels = simulationDataModels.Where(s => postedBridges.Any(b => b.BRKey == s.BRKey));
             foreach (var model in filteredSimulationDataModels)
             {
                 var yearData = model.YearsData.Find(y => y.Year == year && y.MinC < 5);
@@ -316,11 +316,11 @@ namespace BridgeCare.Services
             return sum;
         }
 
-        internal double CalculatePoorDeckAreaForBPN2H(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
+        internal double CalculatePoorDeckAreaForBPN2H(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year)
         {
             var sum = 0.0;
-            var postedBridges = bridgeDataModels.FindAll(b => b.BPN == "2" || b.BPN == "H");
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => postedBridges.Exists(b => b.BRKey == s.BRKey));
+            var postedBridges = bridgeDataModels.Where(b => b.BPN == "2" || b.BPN == "H");
+            var filteredSimulationDataModels = simulationDataModels.Where(s => postedBridges.Any(b => b.BRKey == s.BRKey));
             foreach (var model in filteredSimulationDataModels)
             {
                 var yearData = model.YearsData.Find(y => y.Year == year && y.MinC < 5);
@@ -329,11 +329,11 @@ namespace BridgeCare.Services
             return sum;
         }
 
-        internal double CalculatePoorDeckAreaForRemainingBPN(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
+        internal double CalculatePoorDeckAreaForRemainingBPN(SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int year)
         {
             var sum = 0.0;
-            var postedBridges = bridgeDataModels.FindAll(b => b.BPN != "2" && b.BPN != "H" && b.BPN != "1" && b.BPN != "3");
-            var filteredSimulationDataModels = simulationDataModels.FindAll(s => postedBridges.Exists(b => b.BRKey == s.BRKey));
+            var postedBridges = bridgeDataModels.Where(b => b.BPN != "2" && b.BPN != "H" && b.BPN != "1" && b.BPN != "3");
+            var filteredSimulationDataModels = simulationDataModels.Where(s => postedBridges.Any(b => b.BRKey == s.BRKey));
             foreach (var model in filteredSimulationDataModels)
             {
                 var yearData = model.YearsData.Find(y => y.Year == year && y.MinC < 5);

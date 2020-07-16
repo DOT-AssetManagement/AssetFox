@@ -105,7 +105,7 @@ namespace BridgeCare.Services.SummaryReport
                     .Set(s => s.status, "Begin Bridge Data TAB Generation");
                 simulations.UpdateOne(s => s.simulationId == simulationId, updateStatus);
 
-                var bridgeDataModels = new List<BridgeDataModel>();
+                var bridgeDataModels = new SortedSet<BridgeDataModel>();
                 var worksheet = excelPackage.Workbook.Worksheets.Add("Bridge Data");
                 var workSummaryModel = summaryReportBridgeData.Fill(worksheet, simulationModel, simulationYears, dbContext);
 

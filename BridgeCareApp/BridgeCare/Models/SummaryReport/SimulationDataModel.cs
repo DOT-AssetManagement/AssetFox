@@ -14,5 +14,7 @@ namespace BridgeCare.Models
         public int BRKey { get; set; }
 
         public double RiskScore { get; set; }
+
+        public double Section { get; set; }
     }
 }

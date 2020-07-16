@@ -28,11 +28,11 @@ namespace BridgeCare.Services.CommonData
         }
         public CommonReportDataModel Get(SimulationModel simulationModel, List<int> simulationYears, BridgeCareContext dbContext)
         {
-            var sections = bridgeData.GetSectionData(simulationModel, dbContext);
+            //var sections = bridgeData.GetSectionData(simulationModel, dbContext);
             var simulationDataTable = bridgeData.GetSimulationData(simulationModel, dbContext, simulationYears);
             var sectionIdsFromSimulationTable = from dt in simulationDataTable.AsEnumerable()
                                                 select dt.Field<int>("SECTIONID");
-            var sectionsForSummaryReport = sections.Where(sm => sectionIdsFromSimulationTable.Contains(sm.SECTIONID)).ToList();
+            //var sectionsForSummaryReport = sections.Where(sm => sectionIdsFromSimulationTable.Contains(sm.SECTIONID)).ToList();
 
             var projectCostModels = bridgeData.GetReportData(simulationModel, dbContext, simulationYears);
             var budgetsPerBrKey = bridgeData.GetBudgetsPerBRKey(simulationModel, dbContext);
@@ -44,7 +44,7 @@ namespace BridgeCare.Services.CommonData
                 SimulationDataModels = simulationDataModels,
                 BudgetsPerBRKeys = budgetsPerBrKey,
                 ParametersModel = parametersModel,
-                SectionsForSummaryReport = sectionsForSummaryReport
+                //SectionsForSummaryReport = sectionsForSummaryReport
             };
             return commonReportDataModel;
         }

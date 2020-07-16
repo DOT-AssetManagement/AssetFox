@@ -46,7 +46,8 @@ namespace BridgeCare.Services
         /// <param name="dbContext"></param>
         /// <param name="simulationId"></param>        
         /// <returns>ChartRowsModel object for usage in other tab reports.</returns>
-        public ChartRowsModel Fill(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, List<int> simulationYears, BridgeCareContext dbContext, SimulationModel simulationModel, List<string> treatments)
+        public ChartRowsModel Fill(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels,
+            List<int> simulationYears, BridgeCareContext dbContext, SimulationModel simulationModel, List<string> treatments)
         {
             var currentCell = new CurrentCell { Row = 1, Column = 1 };
             var yearlyBudgetAmounts = bridgeWorkSummaryData.GetYearlyBudgetAmounts(simulationModel.simulationId, simulationYears, dbContext);

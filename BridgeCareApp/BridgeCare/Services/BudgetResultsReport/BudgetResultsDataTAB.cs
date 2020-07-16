@@ -42,12 +42,12 @@ namespace BridgeCare.Services.BudgetResultsReport
         {
             var commonDataForReport = commonBridgeData.Get(simulationModel, simulationYears, dbContext);
             var simulationDataModels = commonDataForReport.SimulationDataModels;
-            var sectionsForSummaryReport = commonDataForReport.SectionsForSummaryReport;
+            //var sectionsForSummaryReport = commonDataForReport.SectionsForSummaryReport;
             var budgetsPerBrKey = commonDataForReport.BudgetsPerBRKeys;
 
             var treatments = bridgeData.GetTreatments(simulationModel.simulationId, dbContext);
 
-            var BRKeys = sectionsForSummaryReport.Select(sm => Convert.ToInt32(sm.FACILITY)).ToList();
+            var BRKeys = simulationDataModels.Select(sm => sm.BRKey).ToList();
             var bridgeDataModels = bridgeData.GetBridgeData(BRKeys, simulationModel, dbContext, parametersModel);
 
             // Add data to excel.
@@ -61,7 +61,7 @@ namespace BridgeCare.Services.BudgetResultsReport
             }
 
             AddBridgeDataModelsCells(worksheet, bridgeDataModels, currentCell);
-            AddDynamicDataCells(worksheet, sectionsForSummaryReport, simulationDataModels, bridgeDataModels, currentCell);
+            AddDynamicDataCells(worksheet, simulationDataModels, bridgeDataModels, currentCell);
             // TODO The line below currently hangs Postman in testing. It will be required for final production.
             // ExcelHelper.ApplyBorder(worksheet.Cells[1, 1, currentCell.Row, currentCell.Column]);
             worksheet.Cells.AutoFitColumns();
@@ -75,7 +75,7 @@ namespace BridgeCare.Services.BudgetResultsReport
             worksheet.Column(lastColumn).Width = 3;
         }
 
-        private void AddBridgeDataModelsCells(ExcelWorksheet worksheet, List<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
+        private void AddBridgeDataModelsCells(ExcelWorksheet worksheet, SortedSet<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
         {
             var rowNo = currentCell.Row;
             var columnNo = currentCell.Column;
@@ -127,8 +127,8 @@ namespace BridgeCare.Services.BudgetResultsReport
             //return columnNo - 1; // This is the column number for RiskScore. We do not have RiskScore information at this point.
         }
 
-        private void AddDynamicDataCells(ExcelWorksheet worksheet, List<Section> sectionsForSummaryReport, List<SimulationDataModel> simulationDataModels,
-            List<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
+        private void AddDynamicDataCells(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels,
+            SortedSet<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
         {
             var row = 4; // Data starts here
             var startingRow = row;
@@ -144,24 +144,26 @@ namespace BridgeCare.Services.BudgetResultsReport
             //valueForMinC.Add(MinCValue.minOfDeckSubSuper, new Func<ExcelWorksheet, int, int, YearsData, int>(EnterMinDeckSuperSub));
             //valueForMinC.Add(MinCValue.minOfCulvDeckSubSuper, new Func<ExcelWorksheet, int, int, YearsData, int>(EnterMinDeckSuperSubCulv));
 
-            foreach (var bridgeDataModel in bridgeDataModels)
+            var collectedSet = bridgeDataModels.Zip(simulationDataModels, (x, y) => new { BridgeData = x, SimulationData = y });
+
+            foreach (var entry in collectedSet)
             {
                 if (row % 2 == 0)
                 {
                     excelHelper.ApplyColor(worksheet.Cells[row, 1, row, worksheet.Dimension.Columns], Color.LightGray);
                 }
                 column = currentCell.Column;
-                var brKey = bridgeDataModel.BRKey;
-                var familyId = bridgeDataModel.BridgeFamily;
-                var workDoneMoreThanOnce = 0;
-                var section = sectionsForSummaryReport.Where(s => Convert.ToInt32(s.FACILITY) == brKey).FirstOrDefault();
-                var simulationDataModel = simulationDataModels.Where(s => s.SectionId == section.SECTIONID).FirstOrDefault();
+                //var brKey = entry.BridgeData.BRKey;
+                var familyId = entry.BridgeData.BridgeFamily;
+                //var workDoneMoreThanOnce = 0;
+                //var section = sectionsForSummaryReport.Where(s => Convert.ToInt32(s.FACILITY) == brKey).FirstOrDefault();
+                //var simulationDataModel = simulationDataModels.Where(s => s.SectionId == section.SECTIONID).FirstOrDefault();
                 // Save DeckArea for further use
-                simulationDataModel.DeckArea = bridgeDataModel.DeckArea;
-                simulationDataModel.BRKey = brKey;
+                //entry.SimulationData.DeckArea = entry.BridgeData.DeckArea;
+                //entry.SimulationData.BRKey = brKey;
                 //bridgeDataModel.RiskScore = simulationDataModel.RiskScore;
                 //worksheet.Cells[row, columnForRiskScore].Value = simulationDataModel.RiskScore;
-                var yearsData = simulationDataModel.YearsData;
+                var yearsData = entry.SimulationData.YearsData;
                 var projectPickByYear = new Dictionary<int, int>();
                 // Add work done cells
 
@@ -183,7 +185,7 @@ namespace BridgeCare.Services.BudgetResultsReport
                     //workdonemorethanonce = !range.value.equals("--") ? workdonemorethanonce + 1 : workdonemorethanonce;
                 }
                 //worksheet.Cells[row, ++column].Value = workDoneMoreThanOnce > 1 ? "Yes" : "--";
-                totalColumnValue = workDoneMoreThanOnce > 1 ? totalColumnValue + 1 : totalColumnValue;
+                //totalColumnValue = workDoneMoreThanOnce > 1 ? totalColumnValue + 1 : totalColumnValue;
 
                 // Empty Total column
 
@@ -211,12 +213,12 @@ namespace BridgeCare.Services.BudgetResultsReport
 
                 // Last Year simulation data
                 var lastYearData = yearsData.FirstOrDefault();
-                column = AddSimulationYearData(worksheet, row, column, lastYearData, familyId, bridgeDataModel, projectPickByYear);
+                column = AddSimulationYearData(worksheet, row, column, lastYearData, familyId, entry.BridgeData, projectPickByYear);
 
                 // Add all yrs from current year simulation data
                 for (var index = 1; index < yearsData.Count(); index++)
                 {
-                    column = AddSimulationYearData(worksheet, row, column, yearsData[index], familyId, bridgeDataModel, projectPickByYear);
+                    column = AddSimulationYearData(worksheet, row, column, yearsData[index], familyId, entry.BridgeData, projectPickByYear);
                 }
                 row++;
             }
