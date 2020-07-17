@@ -1,6 +1,6 @@
 ﻿<template>
     <v-dialog
-        max-width="500px"
+        max-width="650px"
         persistent
         scrollable
         v-model="dialogData.showModal"
@@ -28,7 +28,7 @@
             </v-card-title>
             <v-divider></v-divider>
             <v-card-text>
-                <v-flex>
+                <!-- <v-flex>
                     <v-btn
                         :disabled="showMissingAttributesMessage"
                         @click="generateSummaryReport()"
@@ -51,66 +51,82 @@
                         Generate budget result report
                         <v-icon right>star</v-icon>
                     </v-btn>
-                </v-flex>
-                <v-divider></v-divider>
+                </v-flex> -->
+                <!-- <v-divider></v-divider> -->
                 <v-list-tile
                     :disabled="isBusy"
-                    :key="item"
                     avatar
                     v-for="item in reports"
+                    :key="item.name"
                 >
-                    <v-layout align-start row v-if="item === 'Summary Report'">
-                        <v-flex xs4>
+                    <v-layout
+                        align-start
+                        row
+                        v-if="item.name === 'Summary Report'"
+                    >
+                        <v-flex xs5>
                             <v-checkbox
                                 :disabled="showMissingAttributesMessage"
-                                :label="item"
-                                :value="item"
+                                :label="item.name"
+                                :value="item.name"
                                 color="primary lighten-1"
                                 v-model="selectedReports"
                             >
                             </v-checkbox>
                         </v-flex>
-                        <v-flex xs1>
-                            <v-menu top v-if="showMissingAttributesMessage">
-                                <template slot="activator">
-                                    <v-btn class="ara-dark-gray" icon>
-                                        <v-icon>fas fa-info-circle</v-icon>
-                                    </v-btn>
-                                </template>
-                                <v-card>
-                                    <v-card-text
-                                        class="missing-attributes-card-text"
-                                    >
-                                        <v-list>
-                                            <v-subheader
-                                                >MISSING SCENARIO
-                                                ATTRIBUTES</v-subheader
-                                            >
-                                            <v-list-tile
-                                                :key="attribute"
-                                                v-for="attribute in missingSummaryReportAttributes"
-                                            >
-                                                <v-list-tile-content>
-                                                    <v-list-tile-title>{{
-                                                        attribute
-                                                    }}</v-list-tile-title>
-                                                </v-list-tile-content>
-                                            </v-list-tile>
-                                        </v-list>
-                                    </v-card-text>
-                                </v-card>
-                            </v-menu>
+                        <v-flex xs3>
+                            <v-card-text class="overline mb-4 grey--text">
+                                {{ item.timeStamp }}</v-card-text>
                         </v-flex>
+                        <v-flex xs1 class="text-right">
+                            <v-btn
+                                v-if="!showMissingAttributesMessage"
+                                @click="generateSummaryReport()"
+                                class="green darken-1 white--text"
+                            >
+                                {{ item.btnName }}
+                                <v-icon right>star</v-icon>
+                            </v-btn>
+                        </v-flex>
+                        <v-menu top v-if="showMissingAttributesMessage">
+                            <template slot="activator">
+                                <v-btn class="ara-dark-gray" icon>
+                                    <v-icon>fas fa-info-circle</v-icon>
+                                </v-btn>
+                            </template>
+                            <v-card>
+                                <v-card-text
+                                    class="missing-attributes-card-text"
+                                >
+                                    <v-list>
+                                        <v-subheader
+                                            >MISSING SCENARIO
+                                            ATTRIBUTES</v-subheader
+                                        >
+                                        <v-list-tile
+                                            :key="attribute"
+                                            v-for="attribute in missingSummaryReportAttributes"
+                                        >
+                                            <v-list-tile-content>
+                                                <v-list-tile-title>{{
+                                                    attribute
+                                                }}</v-list-tile-title>
+                                            </v-list-tile-content>
+                                        </v-list-tile>
+                                    </v-list>
+                                </v-card-text>
+                            </v-card>
+                        </v-menu>
                         <v-spacer></v-spacer>
                     </v-layout>
                     <v-layout
                         align-start
                         row
-                        v-else-if="item === 'Detailed Report'"
+                        v-else-if="item.name === 'Detailed Report'"
                     >
                         <v-checkbox
-                            :label="item"
-                            :value="item"
+                            :label="item.name"
+                            :value="item.name"
                             color="primary lighten-1"
                             v-model="selectedReports"
                         >
@@ -119,28 +135,60 @@
                     <v-layout
                         align-start
                         row
-                        v-else-if="item === 'Condition Result Report'"
+                        v-else-if="item.name === 'Condition Result Report'"
                     >
-                        <v-checkbox
-                            :label="item"
-                            :value="item"
-                            color="primary lighten-1"
-                            v-model="selectedReports"
-                        >
-                        </v-checkbox>
+                        <v-flex xs5>
+                            <v-checkbox
+                                :label="item.name"
+                                :value="item.name"
+                                color="primary lighten-1"
+                                v-model="selectedReports"
+                            >
+                            </v-checkbox>
+                        </v-flex>
+                        <v-flex xs3>
+                            <v-card-text class="overline mb-4 grey--text">{{
+                                item.timeStamp
+                            }}</v-card-text>
+                        </v-flex>
+                        <v-flex xs2 class="text-right">
+                            <v-btn
+                                @click="generateConditionResultReport()"
+                                class="green darken-1 white--text"
+                            >
+                                {{ item.btnName }}
+                                <v-icon right>star</v-icon>
+                            </v-btn>
+                        </v-flex>
                     </v-layout>
                     <v-layout
                         align-start
                         row
-                        v-else-if="item === 'Budget Result Report'"
+                        v-else-if="item.name === 'Budget Result Report'"
                     >
-                        <v-checkbox
-                            :label="item"
-                            :value="item"
-                            color="primary lighten-1"
-                            v-model="selectedReports"
-                        >
-                        </v-checkbox>
+                        <v-flex xs5>
+                            <v-checkbox
+                                :label="item.name"
+                                :value="item.name"
+                                color="primary lighten-1"
+                                v-model="selectedReports"
+                            >
+                            </v-checkbox>
+                        </v-flex>
+                        <v-flex xs3>
+                            <v-card-text class="overline mb-4 grey--text">{{
+                                item.timeStamp
+                            }}</v-card-text>
+                        </v-flex>
+                        <v-flex xs3>
+                            <v-btn
+                                @click="generateBudgetResultReport()"
+                                class="green darken-1 white--text"
+                            >
+                                {{ item.btnName }}
+                                <v-icon right>star</v-icon>
+                            </v-btn>
+                        </v-flex>
                     </v-layout>
                 </v-list-tile>
                 <v-alert
@@ -202,11 +250,27 @@ export default class ReportsDownloaderDialog extends Vue {
     @Action('setSuccessMessage') setSuccessMessageAction: any;
 
     selectedScenarioData: Scenario = clone(emptyScenario);
-    reports: string[] = [
-        'Detailed Report',
-        'Summary Report',
-        'Condition Result Report',
-        'Budget Result Report',
+    reports: any[] = [
+        {
+            name: 'Detailed Report',
+            timeStamp: 'last run time',
+            btnName: '',
+        },
+        {
+            name: 'Summary Report',
+            timeStamp: 'last run time',
+            btnName: 'Generate',
+        },
+        {
+            name: 'Condition Result Report',
+            timeStamp: 'last run time',
+            btnName: 'Generate',
+        },
+        {
+            name: 'Budget Result Report',
+            timeStamp: 'last run time',
+            btnName: 'Generate',
+        },
     ];
     selectedReports: string[] = [];
     errorMessage: string = '';

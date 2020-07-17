@@ -13,6 +13,7 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "strictFunctionTypes":false,
     "types": [
       "webpack-env",
       "vuetify"
