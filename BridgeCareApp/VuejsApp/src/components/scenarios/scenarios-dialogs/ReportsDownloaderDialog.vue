@@ -103,7 +103,11 @@
                         </v-flex>
                         <v-spacer></v-spacer>
                     </v-layout>
-                    <v-layout align-start row v-else-if="item === 'Detailed Report'">
+                    <v-layout
+                        align-start
+                        row
+                        v-else-if="item === 'Detailed Report'"
+                    >
                         <v-checkbox
                             :label="item"
                             :value="item"
@@ -112,7 +116,11 @@
                         >
                         </v-checkbox>
                     </v-layout>
-                    <v-layout align-start row v-else-if="item === 'Condition Result Report'">
+                    <v-layout
+                        align-start
+                        row
+                        v-else-if="item === 'Condition Result Report'"
+                    >
                         <v-checkbox
                             :label="item"
                             :value="item"
@@ -121,7 +129,11 @@
                         >
                         </v-checkbox>
                     </v-layout>
-                    <v-layout align-start row v-else-if="item === 'Budget Result Report'">
+                    <v-layout
+                        align-start
+                        row
+                        v-else-if="item === 'Budget Result Report'"
+                    >
                         <v-checkbox
                             :label="item"
                             :value="item"
@@ -190,7 +202,12 @@ export default class ReportsDownloaderDialog extends Vue {
     @Action('setSuccessMessage') setSuccessMessageAction: any;
 
     selectedScenarioData: Scenario = clone(emptyScenario);
-    reports: string[] = ['Detailed Report', 'Summary Report', 'Condition Result Report', 'Budget Result Report'];
+    reports: string[] = [
+        'Detailed Report',
+        'Summary Report',
+        'Condition Result Report',
+        'Budget Result Report',
+    ];
     selectedReports: string[] = [];
     errorMessage: string = '';
     showError: boolean = false;
@@ -258,7 +275,7 @@ export default class ReportsDownloaderDialog extends Vue {
                             });
                             break;
                         }
-                        case 'Condition Result Report':{
+                        case 'Condition Result Report': {
                             await ReportsService.downloadConditionResultReport(
                                 this.selectedScenarioData,
                             ).then((response: AxiosResponse<any>) => {
@@ -279,7 +296,7 @@ export default class ReportsDownloaderDialog extends Vue {
                             });
                             break;
                         }
-                        case 'Budget Result Report':{
+                        case 'Budget Result Report': {
                             await ReportsService.downloadBudgetResultReport(
                                 this.selectedScenarioData,
                             ).then((response: AxiosResponse<any>) => {
@@ -320,26 +337,26 @@ export default class ReportsDownloaderDialog extends Vue {
         );
     }
 
-    async generateConditionResultReport(){
-        await ReportsService.getConditionResultReport(this.selectedScenarioData).then(
-            (response: AxiosResponse<any>) => {
-                this.setSuccessMessageAction({
-                    message:
-                        'Report generation started, please check the dashboard for status update',
-                });
-            },
-        );
+    async generateConditionResultReport() {
+        await ReportsService.getConditionResultReport(
+            this.selectedScenarioData,
+        ).then((response: AxiosResponse<any>) => {
+            this.setSuccessMessageAction({
+                message:
+                    'Report generation started, please check the dashboard for status update',
+            });
+        });
     }
 
-    async generateBudgetResultReport(){
-        await ReportsService.getBudgetResultReport(this.selectedScenarioData).then(
-            (response: AxiosResponse<any>) => {
-                this.setSuccessMessageAction({
-                    message:
-                        'Report generation started, please check the dashboard for status update',
-                });
-            },
-        );
+    async generateBudgetResultReport() {
+        await ReportsService.getBudgetResultReport(
+            this.selectedScenarioData,
+        ).then((response: AxiosResponse<any>) => {
+            this.setSuccessMessageAction({
+                message:
+                    'Report generation started, please check the dashboard for status update',
+            });
+        });
     }
 }
 </script>
