@@ -21,7 +21,7 @@ namespace BridgeCare.Services.BudgetResultsReport
         private readonly ICommonSummaryReportData commonSummaryReportData;
         private readonly BudgetResultsDataTAB budgetResultsDataTAB;
 
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(SummaryReportGenerator));
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(BudgetResultsReportGenerator));
 
         public BudgetResultsReportGenerator(ICommonSummaryReportData commonSummaryReportData, BudgetResultsDataTAB budgetResultsDataTAB)
         {

@@ -39,4 +39,12 @@ export default class ReportsService {
     static downloadConditionResultReport(selectedScenarioData: Scenario): AxiosPromise{
         return axiosInstance.post('/api/DownloadConditionResultReport', selectedScenarioData, {responseType: 'blob'});
     }
+
+    static getBudgetResultReport(selectedScenarioData: Scenario): AxiosPromise{
+        return axiosInstance.post('/api/GenerateBudgetResultReport', selectedScenarioData, {});
+    }
+
+    static downloadBudgetResultReport(selectedScenarioData: Scenario): AxiosPromise{
+        return axiosInstance.post('/api/DownloadBudgetResultReport', selectedScenarioData, {responseType: 'blob'});
+    }
 }

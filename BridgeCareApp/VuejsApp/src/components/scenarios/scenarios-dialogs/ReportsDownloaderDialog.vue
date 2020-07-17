@@ -44,6 +44,13 @@
                         Generate condition result report
                         <v-icon right>star</v-icon>
                     </v-btn>
+                    <v-btn
+                        @click="generateBudgetResultReport()"
+                        class="green darken-1 white--text"
+                    >
+                        Generate budget result report
+                        <v-icon right>star</v-icon>
+                    </v-btn>
                 </v-flex>
                 <v-divider></v-divider>
                 <v-list-tile
@@ -114,6 +121,15 @@
                         >
                         </v-checkbox>
                     </v-layout>
+                    <v-layout align-start row v-else-if="item === 'Budget Result Report'">
+                        <v-checkbox
+                            :label="item"
+                            :value="item"
+                            color="primary lighten-1"
+                            v-model="selectedReports"
+                        >
+                        </v-checkbox>
+                    </v-layout>
                 </v-list-tile>
                 <v-alert
                     :value="showError"
@@ -174,7 +190,7 @@ export default class ReportsDownloaderDialog extends Vue {
     @Action('setSuccessMessage') setSuccessMessageAction: any;
 
     selectedScenarioData: Scenario = clone(emptyScenario);
-    reports: string[] = ['Detailed Report', 'Summary Report', 'Condition Result Report'];
+    reports: string[] = ['Detailed Report', 'Summary Report', 'Condition Result Report', 'Budget Result Report'];
     selectedReports: string[] = [];
     errorMessage: string = '';
     showError: boolean = false;
@@ -263,6 +279,27 @@ export default class ReportsDownloaderDialog extends Vue {
                             });
                             break;
                         }
+                        case 'Budget Result Report':{
+                            await ReportsService.downloadBudgetResultReport(
+                                this.selectedScenarioData,
+                            ).then((response: AxiosResponse<any>) => {
+                                if (response == undefined) {
+                                    this.setErrorMessageAction({
+                                        message:
+                                            'budget result report does not exists on the target path. Please generate the report before downloading',
+                                    });
+                                } else {
+                                    this.setSuccessMessageAction({
+                                        message: 'Report has been downloaded',
+                                    });
+                                }
+                                FileDownload(
+                                    response.data,
+                                    'BudgetResultsReport.xlsx',
+                                );
+                            });
+                            break;
+                        }
                     }
                 }
             }
@@ -285,6 +322,17 @@ export default class ReportsDownloaderDialog extends Vue {
 
     async generateConditionResultReport(){
         await ReportsService.getConditionResultReport(this.selectedScenarioData).then(
+            (response: AxiosResponse<any>) => {
+                this.setSuccessMessageAction({
+                    message:
+                        'Report generation started, please check the dashboard for status update',
+                });
+            },
+        );
+    }
+
+    async generateBudgetResultReport(){
+        await ReportsService.getBudgetResultReport(this.selectedScenarioData).then(
             (response: AxiosResponse<any>) => {
                 this.setSuccessMessageAction({
                     message:

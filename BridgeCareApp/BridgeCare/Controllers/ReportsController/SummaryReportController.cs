@@ -1,10 +1,7 @@
 ﻿using BridgeCare.Interfaces;
-using BridgeCare.Interfaces.BudgetResults;
-using BridgeCare.Interfaces.ConditionResults;
 using BridgeCare.Interfaces.ReportsDownload;
 using BridgeCare.Models;
 using BridgeCare.Security;
-using BridgeCare.Services.ConditionResultReport;
 using BridgeCare.Services.SummaryReport;
 using Hangfire;
 using System;
@@ -22,24 +19,17 @@ namespace BridgeCare.Controllers
         private readonly IBridgeData repo;
         private readonly BridgeCareContext db;
         private readonly ISummaryReportGenerator summaryReportGenerator;
-        private readonly IConditionResultReportGenerator conditionResultReportGenerator;
-        private readonly IBudgetResultReportGenerator budgetResultReportGenerator;
         private readonly IReportsDownload<SummaryReportGenerator> summaryReportDownload;
-        private readonly IReportsDownload<ConditionResultReportGenerator> conditionReportDownload;
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(SummaryReportController));
 
         public SummaryReportController(IBridgeData repo, BridgeCareContext db, ISummaryReportGenerator summaryReportGenerator,
-            IConditionResultReportGenerator conditionResultReportGenerator, IReportsDownload<SummaryReportGenerator> summaryReportDownload,
-            IReportsDownload<ConditionResultReportGenerator> conditionReportDownload, IBudgetResultReportGenerator budgetResultReportGenerator)
+            IReportsDownload<SummaryReportGenerator> summaryReportDownload)
         {
             this.repo = repo;
             this.db = db;
             this.summaryReportGenerator = summaryReportGenerator;
-            this.conditionResultReportGenerator = conditionResultReportGenerator;
             this.summaryReportDownload = summaryReportDownload;
-            this.conditionReportDownload = conditionReportDownload;
-            this.budgetResultReportGenerator = budgetResultReportGenerator;
         }
 
         /// <summary>
@@ -95,61 +85,6 @@ namespace BridgeCare.Controllers
             {
                 FileName = "SummaryReport.xlsx"
             };
-            return response;
-        }
-
-        /// <summary>
-        /// API endpoint for fetching data for Condition results report
-        /// </summary>
-        /// <param name="model">SimulationModel</param>
-        /// <returns>IHttpActionResult</returns>
-        [HttpPost]
-        [Route("api/GenerateConditionResultReport")]
-        [ModelValidation("The scenario data is invalid.")]
-        [RestrictAccess]
-        public HttpResponseMessage GenerateConditionResultReport([FromBody] SimulationModel model)
-        {
-            BackgroundJob.Enqueue(() => conditionResultReportGenerator.GenerateConditionResultReport(model));
-            var response = Request.CreateResponse(HttpStatusCode.OK, "Report generation started");
-            return response;
-        }
-
-        [HttpPost]
-        [Route("api/DownloadConditionResultReport")]
-        [ModelValidation("The scenario data is invalid.")]
-        [RestrictAccess]
-        public HttpResponseMessage DownloadConditionResultReport([FromBody] SimulationModel model)
-        {
-            var folderPath = $"DownloadedReports\\ConditionResult\\{model.simulationId}";
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, folderPath, "ConditionResultReport.xlsx");
-            var response = new HttpResponseMessage();
-            if (!File.Exists(filePath))
-            {
-                response = Request.CreateResponse(HttpStatusCode.InternalServerError, $"condition result report is not available in the path {filePath}");
-                log.Error($"condition result report is not available in the path {filePath}");
-                return response;
-            }
-            else
-            {
-                response = Request.CreateResponse(HttpStatusCode.OK);
-                response.Content = new ByteArrayContent(conditionReportDownload.DownloadExcelReport(model));
-            }
-            response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
-            {
-                FileName = "ConditionResultReport.xlsx"
-            };
-            return response;
-        }
-
-        [HttpPost]
-        [Route("api/GenerateBudgetResultReport")]
-        [ModelValidation("The scenario data is invalid.")]
-        [RestrictAccess]
-        public HttpResponseMessage GenerateBudgetResultsReport([FromBody] SimulationModel model)
-        {
-            BackgroundJob.Enqueue(() => budgetResultReportGenerator.GenerateBudgetResultReport(model));
-            var response = Request.CreateResponse(HttpStatusCode.OK, "Report generation started");
             return response;
         }
 

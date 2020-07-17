@@ -289,7 +289,9 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\UnityResolver.cs" />
     <Compile Include="App_Start\UnityWebApiActivator.cs" />
+    <Compile Include="Controllers\ReportsController\BudgetResultReportController.cs" />
     <Compile Include="Controllers\CashFlowLibraryController.cs" />
+    <Compile Include="Controllers\ReportsController\ConditionResultReportController.cs" />
     <Compile Include="Controllers\UserCriteriaController.cs" />
     <Compile Include="DataAccessLayer\CashFlowLibraryDAL.cs" />
     <Compile Include="DataAccessLayer\UserCriteriaDAL.cs" />
@@ -347,7 +349,7 @@
     <Compile Include="Controllers\ValidationController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="DataAccessLayer\AttributesDAL.cs" />
-    <Compile Include="Controllers\SummaryReportController.cs" />
+    <Compile Include="Controllers\ReportsController\SummaryReportController.cs" />
     <Compile Include="DataAccessLayer\BridgeWorkSummaryDataDAL.cs" />
     <Compile Include="DataAccessLayer\CommittedDAL.cs" />
     <Compile Include="DataAccessLayer\CriteriaDrivenBudgets\CriteriaDrivenBudgetsDAL.cs" />

@@ -117,6 +117,7 @@ namespace BridgeCare
             //Report Download
             container.RegisterType<IReportsDownload<SummaryReportGenerator>, SummaryReportGenerator>();
             container.RegisterType<IReportsDownload<ConditionResultReportGenerator>, ConditionResultReportGenerator>();
+            container.RegisterType<IReportsDownload<BudgetResultsReportGenerator>, BudgetResultsReportGenerator>();
 
             //Hangfire IoC configuration
             container.RegisterType<JobStorage>(new InjectionFactory(c => JobStorage.Current));
