@@ -28,31 +28,6 @@
             </v-card-title>
             <v-divider></v-divider>
             <v-card-text>
-                <!-- <v-flex>
-                    <v-btn
-                        :disabled="showMissingAttributesMessage"
-                        @click="generateSummaryReport()"
-                        class="green darken-2 white--text"
-                    >
-                        Generate summary report
-                        <v-icon right>star</v-icon>
-                    </v-btn>
-                    <v-btn
-                        @click="generateConditionResultReport()"
-                        class="green darken-1 white--text"
-                    >
-                        Generate condition result report
-                        <v-icon right>star</v-icon>
-                    </v-btn>
-                    <v-btn
-                        @click="generateBudgetResultReport()"
-                        class="green darken-1 white--text"
-                    >
-                        Generate budget result report
-                        <v-icon right>star</v-icon>
-                    </v-btn>
-                </v-flex> -->
-                <!-- <v-divider></v-divider> -->
                 <v-list-tile
                     :disabled="isBusy"
                     avatar
