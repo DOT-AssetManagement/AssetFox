@@ -211,8 +211,7 @@ namespace BridgeCare.Services.SummaryReport
                 byte[] summaryReportData = File.ReadAllBytes(filePath);
                 return summaryReportData;
             }
-            log.Error($"Summary report is not available in the path {filePath}");
-            //return Encoding.ASCII.GetBytes($"Summary report is not available in the path {filePath}");
+            log.Error($"Summary report is not available in the path {filePath}");;
             throw new FileNotFoundException($"Summary report is not available in the path {filePath}", "SummaryReport.xlsx");
         }
     }

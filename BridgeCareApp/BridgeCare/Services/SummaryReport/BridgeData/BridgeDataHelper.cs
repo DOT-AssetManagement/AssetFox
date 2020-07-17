@@ -9,6 +9,7 @@ namespace BridgeCare.Services
 {
     public class BridgeDataHelper
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "Suppressing waring for Convert.ToDouble")]
         public SortedSet<SimulationDataModel> GetSimulationDataModels(DataTable simulationDataTable, List<int> simulationYears, IQueryable<ReportProjectCost> projectCostModels, List<BudgetsPerBRKey> budgetsPerBrKey)
         {
             var simulationDataModels = new SortedSet<SimulationDataModel>(new BrKeyComparer());

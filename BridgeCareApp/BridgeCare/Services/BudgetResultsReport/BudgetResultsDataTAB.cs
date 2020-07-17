@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Drawing;
 using System.Linq;
-using System.Web;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Models.SummaryReport.ParametersTAB;
@@ -16,7 +14,6 @@ namespace BridgeCare.Services.BudgetResultsReport
 {
     public class BudgetResultsDataTAB
     {
-        private readonly ICommonSummaryReportData commonSummaryReportData;
         private readonly CommonBridgeData commonBridgeData;
         private readonly IBridgeData bridgeData;
         private readonly ParametersModel parametersModel;
@@ -25,12 +22,10 @@ namespace BridgeCare.Services.BudgetResultsReport
 
         private List<int> SpacerColumnNumbers;
 
-        public BudgetResultsDataTAB(ICommonSummaryReportData commonSummaryReportData, CommonBridgeData commonBridgeData,
+        public BudgetResultsDataTAB(CommonBridgeData commonBridgeData,
              IBridgeData bridgeData, ExcelHelper excelHelper, ParametersModel parametersModel,
             BridgeCareContext dbContext)
         {
-            this.commonSummaryReportData = commonSummaryReportData ??
-                throw new ArgumentNullException(nameof(commonSummaryReportData));
             this.commonBridgeData = commonBridgeData ??
                 throw new ArgumentNullException(nameof(commonBridgeData));
             this.bridgeData = bridgeData;

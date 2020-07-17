@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Web;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Models.CommonReportData;
 using BridgeCare.Models.SummaryReport.ParametersTAB;
-using BridgeCare.Services.SummaryReport.BridgeData;
-using OfficeOpenXml;
 
 namespace BridgeCare.Services.CommonData
 {
@@ -16,14 +13,12 @@ namespace BridgeCare.Services.CommonData
     {
         private readonly IBridgeData bridgeData;
         private readonly BridgeDataHelper bridgeDataHelper;
-        private readonly ExcelHelper excelHelper;
         private readonly ParametersModel parametersModel;
 
-        public CommonBridgeData(IBridgeData bridgeData, BridgeDataHelper bridgeDataHelper, ExcelHelper excelHelper, ParametersModel parametersModel)
+        public CommonBridgeData(IBridgeData bridgeData, BridgeDataHelper bridgeDataHelper, ParametersModel parametersModel)
         {
             this.bridgeData = bridgeData;
             this.bridgeDataHelper = bridgeDataHelper;
-            this.excelHelper = excelHelper;
             this.parametersModel = parametersModel;
         }
         public CommonReportDataModel Get(SimulationModel simulationModel, List<int> simulationYears, BridgeCareContext dbContext)

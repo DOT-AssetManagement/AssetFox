@@ -40,7 +40,6 @@ namespace BridgeCare.Services.BudgetResultsReport
             var simulationYears = simulationYearsModel.Years;
             simulationYears.Sort();
             var simulationYearsCount = simulationYears.Count;
-            //var dbContext = new BridgeCareContext();
 
             using (var excelPackage = new ExcelPackage(new System.IO.FileInfo("BudgetResultsReport.xlsx")))
             {
