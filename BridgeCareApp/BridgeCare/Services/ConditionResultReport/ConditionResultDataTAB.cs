@@ -26,7 +26,7 @@ namespace BridgeCare.Services.ConditionResultReport
             this.bridgeWorkSummaryComputationHelper = bridgeWorkSummaryComputationHelper;
             this.bridgeWorkSummaryData = bridgeWorkSummaryData ?? throw new ArgumentNullException(nameof(bridgeWorkSummaryData));
         }
-        public ChartRowsModel Fill(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<int> simulationYears, BridgeCareContext dbContext,
+        public ChartRowsModel Fill(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, List<int> simulationYears, BridgeCareContext dbContext,
             int simulationId)
         {
             var currentCell = new CurrentCell { Row = 1, Column = 1 };
@@ -38,11 +38,12 @@ namespace BridgeCare.Services.ConditionResultReport
 
             var yearlyBudgetAmounts = bridgeWorkSummaryData.GetYearlyBudgetAmounts(simulationId, simulationYears, dbContext);
             var budgetTotalRow = FillTotalBudgetSection(worksheet, currentCell, simulationYears, yearlyBudgetAmounts);
+            worksheet.Cells.AutoFitColumns();
             chartRowsModel.TotalBridgeCareBudgetPerYear = budgetTotalRow;
             return chartRowsModel;
         }
 
-        private int FillTotalDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
+        private int FillTotalDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
         {
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Total Deck Area", true);
             var totalDeckAreaSectionYearsRow = currentCell.Row;
@@ -50,7 +51,7 @@ namespace BridgeCare.Services.ConditionResultReport
             return totalDeckAreaSectionYearsRow;
         }
 
-        private void AddDetailsForTotalDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
+        private void AddDetailsForTotalDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeLabelCells(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -66,7 +67,7 @@ namespace BridgeCare.Services.ConditionResultReport
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 3, column);
         }
 
-        private void AddTotalDeckArea(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, int row, int column, int year)
+        private void AddTotalDeckArea(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, int row, int column, int year)
         {
             var goodCount = bridgeWorkSummaryComputationHelper.CalculateTotalGoodDeckArea(simulationDataModels, year);
             worksheet.Cells[row, column].Value = Convert.ToInt32(goodCount);

@@ -9,9 +9,10 @@ namespace BridgeCare.Services
 {
     public class BridgeDataHelper
     {
-        public List<SimulationDataModel> GetSimulationDataModels(DataTable simulationDataTable, List<int> simulationYears, IQueryable<ReportProjectCost> projectCostModels, List<BudgetsPerBRKey> budgetsPerBrKey)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "Suppressing waring for Convert.ToDouble")]
+        public SortedSet<SimulationDataModel> GetSimulationDataModels(DataTable simulationDataTable, List<int> simulationYears, IQueryable<ReportProjectCost> projectCostModels, List<BudgetsPerBRKey> budgetsPerBrKey)
         {
-            var simulationDataModels = new List<SimulationDataModel>();
+            var simulationDataModels = new SortedSet<SimulationDataModel>(new BrKeyComparer());
             var projectCostsList = projectCostModels.ToList();
             foreach (DataRow simulationRow in simulationDataTable.Rows)
             {
@@ -20,6 +21,8 @@ namespace BridgeCare.Services
                 simulationDM.RiskScore = Convert.ToDouble(simulationRow["RISK_SCORE_" + 0]);
                 simulationDM.DeckArea = Convert.ToDouble(simulationRow["Deck_Area"]);
                 simulationDM.BRKey = Convert.ToInt32(simulationRow["BRKEY"]);
+                simulationDM.Section = Convert.ToDouble(simulationRow["Section"]);
+                simulationDM.SectionId = Convert.ToInt32(simulationRow["SECTIONID"]);
                 var projectCostEntries = projectCostsList.Where(pc => pc.SECTIONID == Convert.ToUInt32(simulationRow["SECTIONID"])).ToList();
                 AddAllYearsData(simulationRow, simulationYears, projectCostEntries, simulationDM, bridgeDataPerSection);
                 simulationDataModels.Add(simulationDM);
@@ -107,6 +110,14 @@ namespace BridgeCare.Services
             yearsData.ProjectPickType = budgetPerBrKey != null ? budgetPerBrKey.ProjectType : 0;
             yearsData.Treatment = budgetPerBrKey != null ? budgetPerBrKey.Treatment : "";
             return yearsData;
-        }        
+        }
+
+        private class BrKeyComparer : IComparer<SimulationDataModel>
+        {
+            public int Compare(SimulationDataModel x, SimulationDataModel y)
+            {
+                return x.BRKey.CompareTo(y.BRKey);
+            }
+        }
     }
 }

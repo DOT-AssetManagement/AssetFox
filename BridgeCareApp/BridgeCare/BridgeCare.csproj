@@ -289,7 +289,9 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\UnityResolver.cs" />
     <Compile Include="App_Start\UnityWebApiActivator.cs" />
+    <Compile Include="Controllers\ReportsController\BudgetResultReportController.cs" />
     <Compile Include="Controllers\CashFlowLibraryController.cs" />
+    <Compile Include="Controllers\ReportsController\ConditionResultReportController.cs" />
     <Compile Include="Controllers\UserCriteriaController.cs" />
     <Compile Include="DataAccessLayer\CashFlowLibraryDAL.cs" />
     <Compile Include="DataAccessLayer\UserCriteriaDAL.cs" />
@@ -298,6 +300,7 @@
     <Compile Include="EntityClasses\SplitTreatmentEntity.cs" />
     <Compile Include="EntityClasses\SplitTreatmentLimitEntity.cs" />
     <Compile Include="EntityClasses\UserCriteriaEntity.cs" />
+    <Compile Include="Interfaces\BudgetResults\IBudgetResultReportGenerator.cs" />
     <Compile Include="Interfaces\ConditionResults\IConditionResultReportGenerator.cs" />
     <Compile Include="Interfaces\ICashFlowLibrary.cs" />
     <Compile Include="Interfaces\IUserCriteria.cs" />
@@ -346,7 +349,7 @@
     <Compile Include="Controllers\ValidationController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="DataAccessLayer\AttributesDAL.cs" />
-    <Compile Include="Controllers\SummaryReportController.cs" />
+    <Compile Include="Controllers\ReportsController\SummaryReportController.cs" />
     <Compile Include="DataAccessLayer\BridgeWorkSummaryDataDAL.cs" />
     <Compile Include="DataAccessLayer\CommittedDAL.cs" />
     <Compile Include="DataAccessLayer\CriteriaDrivenBudgets\CriteriaDrivenBudgetsDAL.cs" />
@@ -508,6 +511,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Security\Role.cs" />
+    <Compile Include="Services\BudgetResultsReport\BudgetResultsDataTAB.cs" />
+    <Compile Include="Services\BudgetResultsReport\BudgetResultsReportGenerator.cs" />
     <Compile Include="Services\CheckEquations.cs" />
     <Compile Include="Services\CommittedProjects.cs" />
     <Compile Include="Services\CommonData\CommonBridgeData.cs" />

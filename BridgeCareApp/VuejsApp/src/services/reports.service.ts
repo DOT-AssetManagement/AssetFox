@@ -1,6 +1,6 @@
-import {AxiosPromise} from 'axios';
-import {axiosInstance} from '@/shared/utils/axios-instance';
-import {Scenario} from '@/shared/models/iAM/scenario';
+import { AxiosPromise } from 'axios';
+import { axiosInstance } from '@/shared/utils/axios-instance';
+import { Scenario } from '@/shared/models/iAM/scenario';
 
 export default class ReportsService {
     /**
@@ -8,7 +8,11 @@ export default class ReportsService {
      * @param selectedScenarioData Scenario data to use in generating the report
      */
     static getDetailedReport(selectedScenarioData: Scenario): AxiosPromise {
-        return axiosInstance.post('/api/GetDetailedReport', selectedScenarioData, {responseType: 'blob'});
+        return axiosInstance.post(
+            '/api/GetDetailedReport',
+            selectedScenarioData,
+            { responseType: 'blob' },
+        );
     }
 
     /**
@@ -16,27 +20,69 @@ export default class ReportsService {
      * @param selectedScenarioData Scenario data to use in generating the report
      */
     static getSummaryReport(selectedScenarioData: Scenario): AxiosPromise {
-        return axiosInstance.post('/api/GenerateSummaryReport', selectedScenarioData, {});
+        return axiosInstance.post(
+            '/api/GenerateSummaryReport',
+            selectedScenarioData,
+            {},
+        );
     }
 
-    static getSummaryReportMissingAttributes(selectedScenarioId: number, selectedNetworkId: number) {
-        return axiosInstance
-            .get(`/api/GetSummaryReportMissingAttributes?simulationId=${selectedScenarioId}&networkId=${selectedNetworkId}`);
+    static getSummaryReportMissingAttributes(
+        selectedScenarioId: number,
+        selectedNetworkId: number,
+    ) {
+        return axiosInstance.get(
+            `/api/GetSummaryReportMissingAttributes?simulationId=${selectedScenarioId}&networkId=${selectedNetworkId}`,
+        );
     }
 
     static downloadSummaryReport(selectedScenarioData: Scenario): AxiosPromise {
-        return axiosInstance.post('/api/DownloadSummaryReport', selectedScenarioData, {responseType: 'blob'});
+        return axiosInstance.post(
+            '/api/DownloadSummaryReport',
+            selectedScenarioData,
+            { responseType: 'blob' },
+        );
     }
 
     static getJobList(): AxiosPromise {
         return axiosInstance.get('/api/GetJobList', {});
     }
 
-    static getConditionResultReport(selectedScenarioData: Scenario): AxiosPromise{
-        return axiosInstance.post('/api/GenerateConditionResultReport', selectedScenarioData, {});
+    static getConditionResultReport(
+        selectedScenarioData: Scenario,
+    ): AxiosPromise {
+        return axiosInstance.post(
+            '/api/GenerateConditionResultReport',
+            selectedScenarioData,
+            {},
+        );
     }
 
-    static downloadConditionResultReport(selectedScenarioData: Scenario): AxiosPromise{
-        return axiosInstance.post('/api/DownloadConditionResultReport', selectedScenarioData, {responseType: 'blob'});
+    static downloadConditionResultReport(
+        selectedScenarioData: Scenario,
+    ): AxiosPromise {
+        return axiosInstance.post(
+            '/api/DownloadConditionResultReport',
+            selectedScenarioData,
+            { responseType: 'blob' },
+        );
+    }
+
+    static getBudgetResultReport(selectedScenarioData: Scenario): AxiosPromise {
+        return axiosInstance.post(
+            '/api/GenerateBudgetResultReport',
+            selectedScenarioData,
+            {},
+        );
+    }
+
+    static downloadBudgetResultReport(
+        selectedScenarioData: Scenario,
+    ): AxiosPromise {
+        return axiosInstance.post(
+            '/api/DownloadBudgetResultReport',
+            selectedScenarioData,
+            { responseType: 'blob' },
+        );
     }
 }

@@ -9,8 +9,8 @@ namespace BridgeCare.Interfaces
 {
     public interface IBridgeData
     {
-        List<BridgeDataModel> GetBridgeData(List<int> brKeys, SimulationModel model, BridgeCareContext db, ParametersModel parametersModel);
-        IQueryable<Section> GetSectionData(SimulationModel model, BridgeCareContext db);
+        SortedSet<BridgeDataModel> GetBridgeData(List<int> brKeys, SimulationModel model, BridgeCareContext db, ParametersModel parametersModel);
+        //IQueryable<Section> GetSectionData(SimulationModel model, BridgeCareContext db);
         DataTable GetSimulationData(SimulationModel model, BridgeCareContext db, List<int> simulationYears);
 
         IQueryable<ReportProjectCost> GetReportData(SimulationModel model, BridgeCareContext db, List<int> simulationYears);
