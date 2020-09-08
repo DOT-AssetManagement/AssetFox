@@ -275,9 +275,9 @@ namespace BridgeCare.DataAccessLayer
             db.SaveChanges();
 
 #if DEBUG
-            var mongoConnection = Settings.Default.MongoDBDevConnectionString;
+            var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBDevConnectionString"].ConnectionString;
 #else
-            var mongoConnection = Settings.Default.MongoDBProdConnectionString;
+            var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBProdConnectionString"].ConnectionString;
 #endif
             var mongoClient = new MongoClient(mongoConnection);
             var mongoDB = mongoClient.GetDatabase("BridgeCare");

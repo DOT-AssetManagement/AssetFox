@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -44,9 +45,9 @@ namespace BridgeCare.Services.BudgetResultsReport
             using (var excelPackage = new ExcelPackage(new System.IO.FileInfo("BudgetResultsReport.xlsx")))
             {
 #if DEBUG
-                var mongoConnection = Settings.Default.MongoDBDevConnectionString;
+                var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBDevConnectionString"].ConnectionString;
 #else
-                var mongoConnection = Settings.Default.MongoDBProdConnectionString;
+                var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBProdConnectionString"].ConnectionString;
 #endif
                 var client = new MongoClient(mongoConnection);
                 var MongoDatabase = client.GetDatabase("BridgeCare");
