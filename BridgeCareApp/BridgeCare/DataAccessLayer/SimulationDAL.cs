@@ -203,9 +203,9 @@ namespace BridgeCare.DataAccessLayer
                 DBMgr.NativeConnectionParameters = new ConnectionParameters(connectionString, false, "MSSQL");
 
 #if DEBUG
-                var mongoConnection = Settings.Default.MongoDBDevConnectionString;
+                var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBDevConnectionString"].ConnectionString;
 #else
-                var mongoConnection = Settings.Default.MongoDBProdConnectionString;
+                var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBProdConnectionString"].ConnectionString;
 #endif
 
                 var simulation = db.Simulations
