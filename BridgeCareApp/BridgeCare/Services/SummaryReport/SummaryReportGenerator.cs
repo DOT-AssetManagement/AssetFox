@@ -11,6 +11,7 @@ using MongoDB.Driver;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 
 namespace BridgeCare.Services.SummaryReport
@@ -81,9 +82,9 @@ namespace BridgeCare.Services.SummaryReport
             using (ExcelPackage excelPackage = new ExcelPackage(new System.IO.FileInfo("SummaryReport.xlsx")))
             {
 #if DEBUG
-                var mongoConnection = Settings.Default.MongoDBDevConnectionString;
+                var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBDevConnectionString"].ConnectionString;
 #else
-                var mongoConnection = Settings.Default.MongoDBProdConnectionString;
+                var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBProdConnectionString"].ConnectionString;
 #endif
                 var client = new MongoClient(mongoConnection);
                 var MongoDatabase = client.GetDatabase("BridgeCare");
