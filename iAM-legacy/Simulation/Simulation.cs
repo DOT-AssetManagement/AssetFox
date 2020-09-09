@@ -256,7 +256,7 @@ namespace Simulation
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
                 MongoClient client = new MongoClient(mongoConnection);
-                MongoDatabase = client.GetDatabase("BridgeCare");
+                MongoDatabase = client.GetDatabase(ConfigurationManager.AppSettings.Get("MongoDatabase"));
                 Simulations = MongoDatabase.GetCollection<SimulationModel>("scenarios");
 
                 updateStatus = Builders<SimulationModel>.Update

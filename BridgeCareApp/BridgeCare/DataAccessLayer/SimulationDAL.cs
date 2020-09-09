@@ -219,7 +219,7 @@ namespace BridgeCare.DataAccessLayer
                     if (earliestCommittedProjectStartYear < simulation.COMMITTED_START)
                     {
                         var mongoClient = new MongoClient(mongoConnection);
-                        var mongoDB = mongoClient.GetDatabase("BridgeCare");
+                        var mongoDB = mongoClient.GetDatabase(ConfigurationManager.AppSettings.Get("MongoDatabase"));
                         var simulations = mongoDB.GetCollection<SimulationModel>("scenarios");
                         var updateStatus = Builders<SimulationModel>.Update.Set("status", "Error: Projects committed before analysis start");
                         simulations.UpdateOne(s => s.simulationId == model.simulationId, updateStatus);
@@ -280,7 +280,7 @@ namespace BridgeCare.DataAccessLayer
             var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBProdConnectionString"].ConnectionString;
 #endif
             var mongoClient = new MongoClient(mongoConnection);
-            var mongoDB = mongoClient.GetDatabase("BridgeCare");
+            var mongoDB = mongoClient.GetDatabase(ConfigurationManager.AppSettings.Get("MongoDatabase"));
             var simulations = mongoDB.GetCollection<SimulationModel>("scenarios");
             var updateLastRunDate = Builders<SimulationModel>.Update.Set("lastRun", lastRun);
             simulations.UpdateOne(s => s.simulationId == id, updateLastRunDate);
