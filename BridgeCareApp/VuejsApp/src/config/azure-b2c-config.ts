@@ -3,9 +3,8 @@ const azureB2CConfig: any = {
     //tenantId: '73e26d61-77cd-4798-9495-083fa8912f8d',
     tenantId: 'aratranstest.onmicrosoft.com/B2C_1_SU-SI-POL',
     tenantName: 'aratranstest.b2clogin.com/tfp',
-    validateAuthority: false,
-    redirectUri: 'http://localhost:8080/Authentication',
-    postLogoutRedirectUri: 'http://localhost:8080/iAM',
+    redirectUri: process.env.VUE_APP_B2C_REDIRECT_URI,
+    postLogoutRedirectUri: process.env.VUE_APP_B2C_POST_LOGOUT_REDIRECT_URI,
     authority: 'https://aratranstest.b2clogin.com/tfp/aratranstest.onmicrosoft.com/B2C_1_SU-SI-POL',
     forgetPasswordAuthority: 'https://aratranstest.b2clogin.com/tfp/aratranstest.onmicrosoft.com/B2C_1_PR-POL'
   };
