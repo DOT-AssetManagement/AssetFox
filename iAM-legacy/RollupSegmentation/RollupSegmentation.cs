@@ -21,6 +21,7 @@ using static Simulation.Simulation;
 using DataAccessLayer;
 using System.Threading;
 using System.Windows.Forms;
+using System.Configuration;
 
 namespace RollupSegmentation
 {
@@ -133,7 +134,7 @@ namespace RollupSegmentation
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
                 MongoClient client = new MongoClient(mongoConnection);
-                MongoDatabase = client.GetDatabase("BridgeCare");
+                MongoDatabase = client.GetDatabase(ConfigurationManager.AppSettings.Get("MongoDatabase"));
                 Rollup = MongoDatabase.GetCollection<RollupModel>("networks");
 
                 var updateStatus = Builders<RollupModel>.Update

@@ -377,7 +377,7 @@
       <Name>CalculateEvaluate</Name>
     </ProjectReference>
     <ProjectReference Include="..\DatabaseManager\DatabaseManager.csproj">
-      <Project>{0370C578-5D1E-41DC-B0FF-E40DCF942CFF}</Project>
+      <Project>{0370c578-5d1e-41dc-b0ff-e40dcf942cff}</Project>
       <Name>DatabaseManager</Name>
     </ProjectReference>
     <ProjectReference Include="..\DataObjects\DataObjects.csproj">

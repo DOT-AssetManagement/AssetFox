@@ -50,7 +50,7 @@ namespace BridgeCare.Services.BudgetResultsReport
                 var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBProdConnectionString"].ConnectionString;
 #endif
                 var client = new MongoClient(mongoConnection);
-                var MongoDatabase = client.GetDatabase("BridgeCare");
+                var MongoDatabase = client.GetDatabase(ConfigurationManager.AppSettings.Get("MongoDatabase"));
                 var simulations = MongoDatabase.GetCollection<SimulationModel>("scenarios");
 
                 var updateStatus = Builders<SimulationModel>.Update
