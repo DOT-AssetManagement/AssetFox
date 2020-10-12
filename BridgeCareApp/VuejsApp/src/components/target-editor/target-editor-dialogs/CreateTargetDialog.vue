@@ -8,16 +8,17 @@
             </v-card-title>
             <v-card-text>
                 <v-layout column>
-                    <v-text-field label="Name" outline v-model="newTarget.name"></v-text-field>
+                    <v-text-field label="Name" outline v-model="newTarget.name"
+                                  :rules="[rules['generalRules'].valueIsNotEmpty]"/>
 
                     <v-select :items="numericAttributes" label="Select Attribute"
-                              outline v-model="newTarget.attribute">
-                    </v-select>
+                              outline v-model="newTarget.attribute" :rules="[rules['generalRules'].valueIsNotEmpty]"/>
 
-                    <v-text-field :mask="'####'" label="Year" outline v-model="newTarget.year"></v-text-field>
+                    <v-text-field :mask="'####'" label="Year" outline v-model.number="newTarget.year"
+                                  :rules="[rules['generalRules'].valueIsNotEmpty]"/>
 
-                    <v-text-field label="Target" outline v-model="newTarget.targetMean">
-                    </v-text-field>
+                    <v-text-field label="Target" outline :mask="'##########'" v-model.number="newTarget.targetMean"
+                                  :rules="[rules['generalRules'].valueIsNotEmpty]"/>
                 </v-layout>
             </v-card-text>
             <v-card-actions>
@@ -42,8 +43,8 @@
     import {Attribute} from '@/shared/models/iAM/attribute';
     import {getPropertyValues} from '@/shared/utils/getter-utils';
     import {hasValue} from '@/shared/utils/has-value-util';
-    import {clone} from 'ramda';
     import moment from 'moment';
+    import {rules, InputValidationRules} from '@/shared/utils/input-validation-rules';
 
     const ObjectID = require('bson-objectid');
     @Component
@@ -52,10 +53,10 @@
 
         @State(state => state.attribute.numericAttributes) stateNumericAttributes: Attribute[];
 
-        newTarget: Target = clone({...emptyTarget, id: ObjectID.generate(), year: moment().year()});
+        newTarget: Target = {...emptyTarget, id: ObjectID.generate(), year: moment().year()};
         numericAttributes: string[] = [];
-        showDatePicker: boolean = false;
         year: string = moment().year().toString();
+        rules: InputValidationRules = {...rules};
 
         /**
          * Component mounted event handler
@@ -76,12 +77,30 @@
             }
         }
 
+        @Watch('showDialog')
+        onShowDialogChanged() {
+            this.setDefaultAttributeValue();
+        }
+
+        @Watch('numericAttributes')
+        onNumericAttributesChanged() {
+            this.setDefaultAttributeValue();
+        }
+
+        setDefaultAttributeValue() {
+            if (hasValue(this.numericAttributes)) {
+                this.newTarget.attribute = this.numericAttributes[0];
+            }
+        }
+
         /**
          * Whether or not to disable the 'Submit' button
          */
         disableSubmit() {
-            return !hasValue(this.newTarget.name) || !hasValue(this.newTarget.attribute) ||
-                !hasValue(this.newTarget.year) || !hasValue(this.newTarget.targetMean);
+            return !(this.rules['generalRules'].valueIsNotEmpty(this.newTarget.attribute) === true &&
+                this.rules['generalRules'].valueIsNotEmpty(this.newTarget.targetMean) &&
+                this.rules['generalRules'].valueIsNotEmpty(this.newTarget.name) &&
+                this.rules['generalRules'].valueIsNotEmpty(this.newTarget.year));
         }
 
         /**
@@ -95,7 +114,7 @@
                 this.$emit('submit', null);
             }
 
-            this.newTarget = clone({...emptyTarget, id: ObjectID.generate(), year: moment().year()});
+            this.newTarget = {...emptyTarget, id: ObjectID.generate(), year: moment().year()};
         }
     }
 </script>

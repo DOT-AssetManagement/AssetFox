@@ -1,10 +1,7 @@
 <template>
     <v-layout class="feasibility-tab-content">
         <v-flex xs12>
-            <v-layout justify-center v-if="feasibility.id === 0">
-                <v-btn @click="onCreateFeasibility" class="ara-blue-bg white--text">Create Feasibility</v-btn>
-            </v-layout>
-            <v-layout column justify-center v-if="feasibility.id !== 0">
+            <v-layout column justify-center v-if="feasibility.id !== '0'">
                 <v-textarea full-width no-resize outline prepend-outer-icon="fas fa-trash" readonly
                             v-model="feasibility.criteria">
                     <template slot="append-outer">
@@ -23,15 +20,11 @@
                     <v-layout justify-space-between row>
                         <v-flex xs5>
                             <v-text-field :mask="'####'" @change="onChangeYears" label="Years Before Any"
-                                          outline
-                                          v-model="feasibility.yearsBeforeAny">
-                            </v-text-field>
+                                          outline v-model="feasibility.yearsBeforeAny" :rules="[rules['generalRules'].valueIsNotEmpty]"/>
                         </v-flex>
                         <v-flex xs5>
                             <v-text-field :mask="'####'" @change="onChangeYears" label="Years Before Same"
-                                          outline
-                                          v-model="feasibility.yearsBeforeSame">
-                            </v-text-field>
+                                          outline v-model="feasibility.yearsBeforeSame" :rules="[rules['generalRules'].valueIsNotEmpty]"/>
                         </v-flex>
                     </v-layout>
                     <v-spacer></v-spacer>
@@ -39,7 +32,8 @@
             </v-layout>
         </v-flex>
 
-        <CriteriaEditorDialog :dialogData="criteriaEditorDialogData" @submit="onSubmitFeasibilityCriteria"/>
+        <CriteriaEditorDialog :dialogData="criteriaEditorDialogData"
+                              @submitCriteriaEditorDialogResult="onSubmitFeasibilityCriteria"/>
     </v-layout>
 </template>
 
@@ -62,6 +56,7 @@
     import {clone, findIndex, isNil, propEq, update} from 'ramda';
     import {TabData} from '@/shared/models/child-components/tab-data';
     import {hasValue} from '@/shared/utils/has-value-util';
+    import {InputValidationRules} from '@/shared/utils/input-validation-rules';
 
     const ObjectID = require('bson-objectid');
 
@@ -70,6 +65,7 @@
     })
     export default class FeasibilityTab extends Vue {
         @Prop() feasibilityTabData: TabData;
+        @Prop() rules: InputValidationRules;
 
         feasibilityTabTreatmentLibraries: TreatmentLibrary[] = [];
         feasibilityTabSelectedTreatmentLibrary: TreatmentLibrary = clone(emptyTreatmentLibrary);
@@ -95,7 +91,7 @@
         setFeasibility() {
             this.feasibility = hasValue(this.feasibilityTabSelectedTreatment.feasibility)
                 ? this.feasibility = clone(this.feasibilityTabSelectedTreatment.feasibility)
-                : {...clone(emptyFeasibility), id: ObjectID.generate()};
+                : {...emptyFeasibility, id: ObjectID.generate()};
         }
 
         /**

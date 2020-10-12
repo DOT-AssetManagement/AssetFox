@@ -34,7 +34,7 @@ namespace BridgeCare
         public virtual DbSet<CommittedEntity> CommittedProjects { get; set; }
         public virtual DbSet<CommitConsequencesEntity> CommitConsequences { get; set; }
         public virtual DbSet<RemainingLifeLimitsEntity> RemainingLifeLimits { get; set; }
-        public virtual DbSet<CriteriaDrivenBudgetsEntity> CriteriaDrivenBudgets { get; set; }
+        public virtual DbSet<CriteriaDrivenBudgetEntity> CriteriaDrivenBudgets { get; set; }
         public virtual DbSet<SplitTreatmentEntity> SplitTreatments { get; set; }
         public virtual DbSet<SplitTreatmentLimitEntity> SplitTreatmentLimits { get; set; }
         public virtual DbSet<UserCriteriaEntity> UserCriteria { get; set; }
@@ -90,6 +90,9 @@ namespace BridgeCare
             modelBuilder.Entity<PennDotReportAData>()
                 .Property(p => p.ParallelBridge)
                 .HasColumnName("Parallel_Struct");
+            modelBuilder.Entity<PennDotReportAData>()
+                .Property(p => p.OwnerCode)
+                .HasColumnName("OWNER_CODE");
 
             modelBuilder.Entity<SimulationEntity>()
                 .HasMany(e => e.USERS);

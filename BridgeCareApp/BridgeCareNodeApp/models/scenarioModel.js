@@ -12,6 +12,7 @@ const scenarioUserSchema = new Schema({
 const scenarioModel = new Schema({
     createdDate: { type: Date, default: Date.now },
     lastModifiedDate: {type: Date, default: Date.now },
+    lastRun: {type: Date},
     networkId: { type: Number },
     simulationId: { type: Number },
     networkName: { type: String },
@@ -21,7 +22,8 @@ const scenarioModel = new Schema({
     shared: {type: Boolean },
     owner: {type: String },
     creator: {type: String},
-    users: [scenarioUserSchema]
+    users: [scenarioUserSchema],
+    runTime: {type: String}
 });
 
 module.exports = mongoose.model('Scenario', scenarioModel, 'scenarios');

@@ -56,12 +56,28 @@ namespace BridgeCare.Services.SummaryReport.WorkSummaryByBudget
 
             committedProjectsCost.FillCommittedProjectsBudget(worksheet, currentCell, simulationYears, budgetsOnlyForMPMS, comittedProjectsData);
 
+            //if(budgetsPerYearPerTreatment.Count != 0)
+            //{
+            //    budgetsPerYearPerTreatment.ForEach(f => {
+            //        var amount = f.CostPerTreatmentPerYear;
+            //        if (f.CostPerTreatmentPerYear >= 500)
+            //        {
+            //            f.CostPerTreatmentPerYear = amount % 1000 >= 500 ? amount + 1000 - amount % 1000 : amount - amount % 1000;
+            //        }
+            //        else
+            //        {
+            //            f.CostPerTreatmentPerYear = 1000;
+            //        }
+            //    });
+            //}
+
             var startRow = currentCell.Row + 3;
             foreach (var budget in budgets)
             {
                 //Filtering treatments for the given budget
                 var costForCulvertBudget = budgetsPerYearPerTreatment
                                              .FindAll(_ => _.BUDGET.Equals(budget) && _.TREATMENT.ToLower().Contains("culvert"));
+                                             
                 var costForBridgeBudgets = budgetsPerYearPerTreatment
                                              .FindAll(_ => _.BUDGET.Equals(budget) && !_.TREATMENT.ToLower().Contains("culvert"));
 
@@ -71,7 +87,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummaryByBudget
                 {
                     continue;
                 }
-
+                
                 var totalBudgetPerYearForCulvert = new Dictionary<int, double>();
                 var totalBudgetPerYearForBridgeWork = new Dictionary<int, double>();
                 var totalBudgetPerYearForMPMS = new Dictionary<int, double>();
@@ -130,7 +146,8 @@ namespace BridgeCare.Services.SummaryReport.WorkSummaryByBudget
                     Color.FromArgb(84, 130, 53));
                 excelHelper.SetTextColor(worksheet.Cells[startOfTotalBudget, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.White);
 
-                var totalBridgeCareBudget = yearlyBudgetModels.FindAll(_ => _.BudgetName.Equals(budget.Replace("'", ""))).OrderBy(_ => _.Year).ToList();
+                var totalBridgeCareBudget = yearlyBudgetModels.FindAll(_ => _.BudgetName.Equals(budget.Replace("'", "")))
+                    .OrderBy(_ => _.Year).ToList();
                 currentCell.Row += 2;
                 currentCell.Column = 1;
                 worksheet.Cells[currentCell.Row, currentCell.Column].Value = Properties.Resources.TotalBridgeCareBudget;

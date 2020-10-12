@@ -44,7 +44,7 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = GetAnyLibrary,
                 [Role.DISTRICT_ENGINEER] = GetPermittedLibrary,
                 [Role.CWOPA] = GetAnyLibrary,
-                [Role.PLANNING_PARTNER] = GetPermittedLibrary
+                [Role.GENERAL_USERS] = GetPermittedLibrary
             };
         }
 
@@ -63,7 +63,7 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = SaveAnyLibrary,
                 [Role.DISTRICT_ENGINEER] = SavePermittedLibrary,
                 [Role.CWOPA] = SavePermittedLibrary,
-                [Role.PLANNING_PARTNER] = SavePermittedLibrary
+                [Role.GENERAL_USERS] = SavePermittedLibrary
             };
         }
 
@@ -78,7 +78,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public IHttpActionResult GetSimulationTargetLibrary(int id)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(TargetLibraryGetMethods[userInformation.Role](id, userInformation));
         }
 
@@ -93,7 +93,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public IHttpActionResult SaveSimulationTargetLibrary([FromBody]TargetLibraryModel model)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(TargetLibrarySaveMethods[userInformation.Role](model, userInformation));
         }
     }

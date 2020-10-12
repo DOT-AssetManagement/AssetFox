@@ -8,27 +8,27 @@ using BridgeCare.EntityClasses;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Models.SummaryReport;
+using BridgeCare.Models.SummaryReport.ParametersTAB;
 
 namespace BridgeCare.DataAccessLayer.SummaryReport
 {
     public class BridgeDataDAL : IBridgeData
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(BridgeDataDAL));
+
         /// <summary>
         /// Fetches bridge data using a list of br keys
         /// </summary>
         /// <param name="brKeys">br keys list</param>
         /// <param name="db">BridgeCareContext</param>
         /// <returns>BridgeDataModel list</returns>        
-        public List<BridgeDataModel> GetBridgeData(List<int> brKeys, SimulationModel model, BridgeCareContext db)
+        public List<BridgeDataModel> GetBridgeData(List<int> brKeys, SimulationModel model, BridgeCareContext db, ParametersModel parametersModel)
         {
             var bridgeDataModels = new List<BridgeDataModel>();
 
             var penndotBridgeData = db.PennDotBridgeData.Where(p => brKeys.Contains(p.BRKEY)).ToList();
 
             var pennDotReportAData = db.PennDotReportAData.Where(p => brKeys.Contains(p.BRKEY)).ToList();
-
-            //var sdRisk = db.SdRisks.Where(s => brKeys.Contains(s.BRKEY)).ToList();
 
             brKeys = brKeys.OrderBy(b => b).ToList();
 
@@ -38,8 +38,22 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
 
                 var pennDotReportADataRow = pennDotReportAData.Where(p => p.BRKEY == BRKey).FirstOrDefault();
 
-                //var sdRiskRow = sdRisk.Where(s => s.BRKEY == BRKey).FirstOrDefault();
-                bridgeDataModels.Add(CreateBridgeDataModel(penndotBridgeDataRow, pennDotReportADataRow));
+                // Track status for parameters TAB
+                if (!parametersModel.Status.Contains(pennDotReportADataRow.Posted.ToLower()))
+                {
+                    parametersModel.Status.Add(pennDotReportADataRow.Posted.ToLower());
+                }
+                // Track P3 for parameters TAB
+                if(pennDotReportADataRow.P3 > 0 && parametersModel.P3 != 1)
+                {
+                    parametersModel.P3 = pennDotReportADataRow.P3;
+                }
+                if (!parametersModel.OwnerCode.Contains(pennDotReportADataRow.OwnerCode))
+                {
+                    parametersModel.OwnerCode.Add(pennDotReportADataRow.OwnerCode);
+                }
+
+                bridgeDataModels.Add(CreateBridgeDataModel(penndotBridgeDataRow, pennDotReportADataRow, parametersModel));
             }
 
             return bridgeDataModels;
@@ -189,6 +203,54 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             return budgets;
         }
 
+        public List<BudgetsPerBRKey> GetBudgetsPerBRKey(SimulationModel simulationModel, BridgeCareContext dbContext)
+        {
+            var budgetsPerBrKey = new List<BudgetsPerBRKey>();
+            var selectBugetForBrKey = $"select SECTION_13.SECTIONID, SECTION_13.FACILITY as BRKey, SECTION_13.SECTION as BridgeId, BUDGET, YEARS, ISCOMMITTED, TREATMENT, PROJECT_TYPE as ProjectType " +
+                $"from SECTION_{simulationModel.networkId} " +
+                $"INNER JOIN Report_{simulationModel.networkId}_{simulationModel.simulationId} " +
+                $"on SECTION_{simulationModel.networkId}.SECTIONID = Report_{simulationModel.networkId}_{simulationModel.simulationId}.SECTIONID " +
+                $" WHERE BUDGET IS NOT NULL OR ISCOMMITTED != 0 Order By BRKey ASC";
+
+            try
+            {
+                budgetsPerBrKey = dbContext.Database.SqlQuery<BudgetsPerBRKey>(selectBugetForBrKey).ToList();
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.Message);
+            }
+
+            return budgetsPerBrKey;
+        }
+
+        public List<UnfundedRecommendationModel> GetUnfundedRcommendations(SimulationModel simulationModel, BridgeCareContext dbContext)
+        {
+            var reasonsTable = $"REASONS_{simulationModel.networkId}_{simulationModel.simulationId}";
+            var simulationTable = $"SIMULATION_{simulationModel.networkId}_{simulationModel.simulationId}_0";
+            var sectionTable = $"SECTION_{simulationModel.networkId}";
+
+            var selectUnfundedRecommendation = $"SELECT {reasonsTable}.SECTIONID, FACILITY as BRKey, YEARS, TREATMENT, REASON, BUDGET, BUDGET_HASH, " +
+                $" RISK_SCORE_0 as RiskScore FROM " +
+                $"{reasonsTable} " +
+                $"INNER JOIN {simulationTable} on {simulationTable}.SECTIONID = {reasonsTable}.SECTIONID " +
+                $"INNER JOIN {sectionTable} on {sectionTable}.SECTIONID = {simulationTable}.SECTIONID " +
+                $"WHERE BUDGET_HASH is Not Null AND " +
+                $"(REASON like 'Inadequate%' OR REASON = 'Selected') AND RISK_SCORE_0 > 15000 " +
+                $"ORDER BY {reasonsTable}.SECTIONID";
+            var unfundedRecommendation = new List<UnfundedRecommendationModel>();
+
+            try
+            {
+                unfundedRecommendation = dbContext.Database.SqlQuery<UnfundedRecommendationModel>(selectUnfundedRecommendation).ToList();
+            }
+            catch(Exception ex)
+            {
+                log.Error(ex.Message);
+            }
+            return unfundedRecommendation;
+        }
+
         #region private methods
         private string GetDynamicColumns(List<int> simulationYears)
         {
@@ -207,7 +269,8 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "<Pending>")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1806:Do not ignore method results", Justification = "<Pending>")]
-        private BridgeDataModel CreateBridgeDataModel(PennDotBridgeData penndotBridgeDataRow, PennDotReportAData pennDotReportADataRow)
+        private BridgeDataModel CreateBridgeDataModel(PennDotBridgeData penndotBridgeDataRow, PennDotReportAData pennDotReportADataRow,
+            ParametersModel parametersModel)
         {
             bool adtTotalHasValue = int.TryParse(pennDotReportADataRow.ADTTOTAL, out int adtTotal);
             bool isADTOverTenThousand = adtTotalHasValue ? adtTotal > 10000 : false;
@@ -217,8 +280,20 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             int.TryParse(pennDotReportADataRow.YEAR_BUILT, out var yearBuilt);
             int.TryParse(pennDotReportADataRow.StructureLength, out var structureLength);
             int.TryParse(pennDotReportADataRow.ADTTOTAL, out var ADTTotal);
-            //double.TryParse(sdRiskRow.SD_RISK, out var sdRisk);
             var age = DateTime.Today.Year - yearBuilt;
+
+            if(structureLength > 20 && parametersModel.LengthGreaterThan20 != "Y")
+            {
+                parametersModel.LengthGreaterThan20 = "Y";
+            }
+            if(structureLength >= 8 && structureLength <= 20 && parametersModel.LengthBetween8and20 != "Y")
+            {
+                parametersModel.LengthBetween8and20 = "Y";
+            }
+            if (!parametersModel.FunctionalClass.Contains(pennDotReportADataRow.FUNC_CLASS))
+            {
+                parametersModel.FunctionalClass.Add(pennDotReportADataRow.FUNC_CLASS);
+            }
 
             return new BridgeDataModel
             {
@@ -244,27 +319,6 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
 
                 ADTOverTenThousand = isADTOverTenThousand ? "Y" : "N"
             };
-        }
-
-        public List<BudgetsPerBRKey> GetBudgetsPerBRKey(SimulationModel simulationModel, BridgeCareContext dbContext)
-        {
-            var budgetsPerBrKey = new List<BudgetsPerBRKey>();
-            var selectBugetForBrKey = $"select SECTION_13.SECTIONID, SECTION_13.FACILITY as BRKey, SECTION_13.SECTION as BridgeId, BUDGET, YEARS, ISCOMMITTED, TREATMENT, PROJECT_TYPE as ProjectType " +
-                $"from SECTION_{simulationModel.networkId} " +
-                $"INNER JOIN Report_{simulationModel.networkId}_{simulationModel.simulationId} " +
-                $"on SECTION_{simulationModel.networkId}.SECTIONID = Report_{simulationModel.networkId}_{simulationModel.simulationId}.SECTIONID " +
-                $" WHERE BUDGET IS NOT NULL OR ISCOMMITTED != 0 Order By BRKey ASC";
-
-            try
-            {
-                budgetsPerBrKey = dbContext.Database.SqlQuery<BudgetsPerBRKey>(selectBugetForBrKey).ToList();
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex.Message);
-            }
-
-            return budgetsPerBrKey;
         }
         #endregion
     }

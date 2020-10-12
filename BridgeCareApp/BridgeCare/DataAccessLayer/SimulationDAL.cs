@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using BridgeCare.Properties;
 using DatabaseManager;
 using log4net;
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 using Simulation;
 
 namespace BridgeCare.DataAccessLayer
@@ -90,7 +92,14 @@ namespace BridgeCare.DataAccessLayer
         private void DeleteSimulation(int id, BridgeCareContext db)
         {
             var simulation = db.Simulations.Single(b => b.SIMULATIONID == id);
+            var splitTreatment = db.SplitTreatments.Where(s => s.SIMULATIONID == id);
             db.Entry(simulation).State = System.Data.Entity.EntityState.Deleted;
+            db.SplitTreatments.RemoveRange(db.SplitTreatments.Where(s => s.SIMULATIONID == id));
+
+            foreach (var item in splitTreatment)
+            {
+                db.SplitTreatmentLimits.RemoveRange(db.SplitTreatmentLimits.Where(r => r.SPLIT_TREATMENT_ID == item.SPLIT_TREATMENT_ID));
+            }
             db.SaveChanges();
 
             using (var connection = new SqlConnection(db.Database.Connection.ConnectionString))
@@ -178,7 +187,7 @@ namespace BridgeCare.DataAccessLayer
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>string Task</returns>
-        public Task<string> RunSimulation(SimulationModel model)
+        public Task<string> RunSimulation(SimulationModel model, BridgeCareContext db)
         {
             if (model is null)
             {
@@ -187,6 +196,9 @@ namespace BridgeCare.DataAccessLayer
 
             try
             {
+                if (!db.Simulations.Any(s => s.SIMULATIONID == model.simulationId))
+                    throw new RowNotInTableException($"No scenario was found with id {model.simulationId}");
+
                 var connectionString = ConfigurationManager.ConnectionStrings["BridgeCareContext"].ConnectionString;
                 DBMgr.NativeConnectionParameters = new ConnectionParameters(connectionString, false, "MSSQL");
 
@@ -195,6 +207,25 @@ namespace BridgeCare.DataAccessLayer
 #else
                 var mongoConnection = Settings.Default.MongoDBProdConnectionString;
 #endif
+
+                var simulation = db.Simulations
+                    .Include(s => s.COMMITTEDPROJECTS)
+                    .Single(s => s.SIMULATIONID == model.simulationId);
+
+                if (simulation.COMMITTEDPROJECTS.Any())
+                {
+                    var earliestCommittedProjectStartYear = simulation.COMMITTEDPROJECTS
+                        .OrderBy(cp => cp.YEARS).First().YEARS;
+                    if (earliestCommittedProjectStartYear < simulation.COMMITTED_START)
+                    {
+                        var mongoClient = new MongoClient(mongoConnection);
+                        var mongoDB = mongoClient.GetDatabase("BridgeCare");
+                        var simulations = mongoDB.GetCollection<SimulationModel>("scenarios");
+                        var updateStatus = Builders<SimulationModel>.Update.Set("status", "Error: Projects committed before analysis start");
+                        simulations.UpdateOne(s => s.simulationId == model.simulationId, updateStatus);
+                        throw new ConstraintException("Analysis error: Projects committed before analysis start");
+                    }
+                }
 
                 var simulationParameters = new SimulationParameters(
                     model.simulationName,
@@ -221,7 +252,7 @@ namespace BridgeCare.DataAccessLayer
                 throw new RowNotInTableException($"No scenario was found with id {model.simulationId}");
             if (!db.Simulations.Include(s => s.USERS).First(s => s.SIMULATIONID == model.simulationId).UserCanModify(username))
                 throw new UnauthorizedAccessException("You are not authorized to run this scenario.");
-            return RunSimulation(model);
+            return RunSimulation(model, db);
         }
 
         /// <summary>
@@ -237,9 +268,22 @@ namespace BridgeCare.DataAccessLayer
 
             var simulation = db.Simulations.Single(s => s.SIMULATIONID == id);
 
-            simulation.DATE_LAST_RUN = DateTime.Now;
+            var lastRun = DateTime.Now;
+
+            simulation.DATE_LAST_RUN = lastRun;
 
             db.SaveChanges();
+
+#if DEBUG
+            var mongoConnection = Settings.Default.MongoDBDevConnectionString;
+#else
+            var mongoConnection = Settings.Default.MongoDBProdConnectionString;
+#endif
+            var mongoClient = new MongoClient(mongoConnection);
+            var mongoDB = mongoClient.GetDatabase("BridgeCare");
+            var simulations = mongoDB.GetCollection<SimulationModel>("scenarios");
+            var updateLastRunDate = Builders<SimulationModel>.Update.Set("lastRun", lastRun);
+            simulations.UpdateOne(s => s.simulationId == id, updateLastRunDate);
         }
 
         public void SetPermittedSimulationUsers(int simulationId, List<SimulationUserModel> simulationUsers, BridgeCareContext db, string username)

@@ -1,7 +1,7 @@
 <template>
     <v-layout column>
         <v-flex xs12>
-            <v-card>
+            <v-card elevation=5>
                 <v-flex xs10>
                     <v-layout>
                         <div>
@@ -28,15 +28,18 @@
                                 </template>
                             </v-data-table>
                         </div>
-                        <div class="pad-button">
+                        <div class="pad-button" v-if="isAdmin">
                             <v-btn @click="onLoadNetworks()" color="green darken-2 white--text" round>Load networks
                             </v-btn>
                         </div>
                     </v-layout>
                 </v-flex>
-                <v-divider></v-divider>
+            </v-card>
+        </v-flex>
+            <v-flex x12>
+            <v-card elevation=5 color="blue lighten-5">
                 <v-card-title>
-                    <v-flex xs4>
+                    <v-flex xs2>
                         <v-chip color="ara-blue-bg" text-color="white">
                             My Scenarios
                             <v-icon right>star</v-icon>
@@ -47,23 +50,24 @@
                                       v-model="searchMine">
                         </v-text-field>
                     </v-flex>
-                    <v-flex xs2>
+                    <v-flex xs4 v-if="isAdmin">
                         <v-btn @click="onUpdateScenarioList()" class="ara-blue-bg white--text" round>
                             Load legacy scenarios
+                        </v-btn>
+                        <v-btn @click="onDeleteScenarioList()" class="ara-orange-bg white--text" round>
+                            Delete duplicate scenarios
                         </v-btn>
                     </v-flex>
                 </v-card-title>
                 <v-data-table :headers="scenarioGridHeaders" :items="userScenarios" :search="searchMine">
                     <template slot="items" slot-scope="props">
                         <td>
-                            <v-edit-dialog :return-value.sync="props.item.simulationName"
-                                           @save="onEditScenarioName(props.item.simulationName, props.item.id, props.item.simulationId)" large lazy
-                                           persistent>
+                            <v-edit-dialog large lazy persistent :return-value.sync="props.item.simulationName"
+                                            @save="onEditScenarioName(props.item)">
                                 {{props.item.simulationName}}
                                 <template slot="input">
-                                    <v-text-field label="Edit"
-                                                  single-line
-                                                  v-model="props.item.simulationName"></v-text-field>
+                                    <v-text-field label="Edit" single-line v-model="props.item.simulationName"
+                                                  :rules="[rules['generalRules'].valueIsNotEmpty]"/>
                                 </template>
                             </v-edit-dialog>
                         </td>
@@ -71,7 +75,9 @@
                         <td>{{props.item.owner ? props.item.owner : '[ No Owner ]'}}</td>
                         <td>{{formatDate(props.item.createdDate)}}</td>
                         <td>{{formatDate(props.item.lastModifiedDate)}}</td>
+                        <td>{{formatDate(props.item.lastRun)}}</td>
                         <td>{{props.item.status}}</td>
+                        <td>{{props.item.runTime}}</td>
                         <td>
                             <v-layout nowrap row>
                                 <v-flex>
@@ -88,8 +94,7 @@
                                 </v-flex>
                                 <v-flex>
                                     <v-btn @click="onEditScenario(props.item.simulationId, props.item.simulationName, props.item.id)" class="edit-icon"
-                                           icon
-                                           title="Settings">
+                                           icon title="Settings">
                                         <v-icon>fas fa-edit</v-icon>
                                     </v-btn>
                                 </v-flex>
@@ -121,19 +126,20 @@
                         Your search for "{{searchMine}}" found no results.
                     </v-alert>
                 </v-data-table>
-                <v-card-actions>
+                <v-card-actions color="white">
                     <div style="width:2em"/>
-                    <v-btn @click="onCreateScenario" color="ara-blue-bg white--text">Create new</v-btn>
+                    <v-btn @click="onCreateScenario" color="green darken-2 white--text">Create new scenario</v-btn>
                 </v-card-actions>
             </v-card>
         </v-flex>
 
         <v-flex xs12>
-            <v-card>
+            <v-card elevation=5 color="blue lighten-3">
                 <v-card-title>
                     <v-flex xs4>
                         <v-chip class="ara-blue-bg white--text">
                             Shared with Me
+                            <v-icon right>share</v-icon>
                         </v-chip>
                     </v-flex>
                     <v-spacer/>
@@ -146,14 +152,12 @@
                 <v-data-table :headers="scenarioGridHeaders" :items="sharedScenarios" :search="searchShared">
                     <template slot="items" slot-scope="props">
                         <td>
-                            <v-edit-dialog :return-value.sync="props.item.simulationName"
-                                           @save="onEditScenarioName(props.item.simulationName, props.item.id, props.item.simulationId)" large lazy
-                                           persistent>
+                            <v-edit-dialog large lazy persistent :return-value.sync="props.item.simulationName"
+                                           @save="onEditScenarioName(props.item)">
                                 {{props.item.simulationName}}
                                 <template slot="input">
-                                    <v-text-field label="Edit"
-                                                  single-line
-                                                  v-model="props.item.simulationName"></v-text-field>
+                                    <v-text-field label="Edit" single-line v-model="props.item.simulationName"
+                                                  :rules="[rules['generalRules'].valueIsNotEmpty]"/>
                                 </template>
                             </v-edit-dialog>
                         </td>
@@ -161,7 +165,9 @@
                         <td>{{props.item.owner ? props.item.owner : '[ No Owner ]'}}</td>
                         <td>{{formatDate(props.item.createdDate)}}</td>
                         <td>{{formatDate(props.item.lastModifiedDate)}}</td>
+                        <td>{{formatDate(props.item.lastRun)}}</td>
                         <td>{{props.item.status}}</td>
+                        <td>{{props.item.runTime}}</td>
                         <td>
                             <v-layout nowrap row>
                                 <v-flex>
@@ -223,7 +229,7 @@
         <ReportsDownloaderDialog :dialogData="reportsDownloaderDialogData"/>
 
         <ShareScenarioDialog :scenario="sharingScenario" :showDialog="showShareScenarioDialog"
-                             @submit="onSubmitShareScenario"/>
+                             @submit="onSubmitSharedScenario"/>
     </v-layout>
 </template>
 
@@ -249,12 +255,13 @@
     import {Simulation} from '@/shared/models/iAM/simulation';
     import {emptyRollup, Rollup} from '@/shared/models/iAM/rollup';
     import {getUserName} from '@/shared/utils/get-user-info';
+    import {rules, InputValidationRules} from '@/shared/utils/input-validation-rules';
 
     @Component({
         components: {Alert, ReportsDownloaderDialog, CreateScenarioDialog, ShareScenarioDialog}
     })
     export default class Scenarios extends Vue {
-        @State(state => state.scenario.scenarios) scenarios: Scenario[];
+        @State(state => state.scenario.scenarios) stateScenarios: Scenario[];
         @State(state => state.authentication.userId) userId: string;
         @State(state => state.breadcrumb.navigation) navigation: any[];
         @State(state => state.network.networks) networks: Network[];
@@ -275,6 +282,7 @@
         @Action('rollupNetwork') rollupNetworkAction: any;
         @Action('getLegacyNetworks') getLegacyNetworksAction: any;
         @Action('cloneScenario') cloneScenarioAction: any;
+        @Action('deleteDuplicateMongoScenario') deleteDuplicateMongoScenarioAction: any;
 
         alertData: AlertData = clone(emptyAlertData);
         alertBeforeDelete: AlertData = clone(emptyAlertData);
@@ -288,7 +296,9 @@
             {text: 'Owner', sortable: false, value: 'owner'},
             {text: 'Date Created', sortable: true, value: 'createdDate'},
             {text: 'Date Last Modified', sortable: true, value: 'lastModifiedDate'},
+            {text: 'Date Last Run', sortable: true, value: 'lastRun'},
             {text: 'Status', sortable: false, value: 'status'},
+            {text: 'Run Time', sortable: false, value: 'runTime'},
             {text: '', sortable: false, value: 'actions'}
         ];
         rollupGridHeader: object[] = [
@@ -298,6 +308,7 @@
             {text: 'Status', sortable: false, value: 'rollupStatus'},
             {text: '', sortable: false, value: 'actions'}
         ];
+        scenarios: Scenario[] = [];
         userScenarios: Scenario[] = [];
         adminRollup: any[] = [];
         sharedScenarios: Scenario[] = [];
@@ -311,6 +322,12 @@
         currentScenario: Scenario = clone(emptyScenario);
         currentRollup: Rollup = clone(emptyRollup);
         sharingScenario: Scenario = clone(emptyScenario);
+        rules: InputValidationRules = {...rules};
+
+        @Watch('stateScenarios')
+        onStateScenariosChanged() {
+            this.scenarios = clone(this.stateScenarios);
+        }
 
         @Watch('scenarios')
         onScenariosChanged() {
@@ -362,6 +379,10 @@
             this.getLegacyScenariosAction();
         }
 
+        onDeleteScenarioList(){
+            this.deleteDuplicateMongoScenarioAction({scenarios: this.scenarios});
+        }
+
         onLoadNetworks() {
             this.getLegacyNetworksAction({networks: this.adminRollup});
         }
@@ -371,7 +392,7 @@
          * @param unformattedDate Unformatted date
          */
         formatDate(unformattedDate: Date) {
-            return moment(unformattedDate).format('M/D/YYYY');
+            return hasValue(unformattedDate) ? moment(unformattedDate).format('M/D/YYYY') : null;
         }
 
         /**
@@ -380,7 +401,7 @@
          */
         onEditScenario(id: number, simulationName: string, objectIdMongodb: string) {
             this.$router.push({
-                path: '/EditScenario/',
+                path: '/EditAnalysis/',
                 query: {
                     selectedScenarioId: id.toString(),
                     simulationName: simulationName,
@@ -523,17 +544,23 @@
             this.sharingScenario = scenario;
         }
 
-        onEditScenarioName(scenarioName: string, id: string, simulationId: any) {
-            var scenarioData: Simulation = {
-                simulationId: simulationId,
-                simulationName: scenarioName,
-                networkId: this.networks[0].networkId,
-                networkName: this.networks[0].networkName
-            };
-            this.updateScenarioAction({
-                updateScenarioData: scenarioData,
-                scenarioId: id
-            });
+        onEditScenarioName(scenario: Scenario) {
+            if (hasValue(scenario.simulationName)) {
+                const scenarioData: Simulation = {
+                    simulationId: scenario.simulationId,
+                    simulationName: scenario.simulationName,
+                    networkId: this.networks[0].networkId,
+                    networkName: this.networks[0].networkName
+                };
+
+                this.updateScenarioAction({
+                    updateScenarioData: scenarioData,
+                    scenarioId: scenario.id
+                });
+            } else {
+                this.scenarios = [];
+                setTimeout(() => this.scenarios = clone(this.stateScenarios));
+            }
         }
 
         onSubmitNewScenario(createScenarioData: ScenarioCreationData) {
@@ -547,10 +574,12 @@
             }
         }
 
-        onSubmitShareScenario(scenarioUsers: ScenarioUser[]) {
+        onSubmitSharedScenario(scenarioUsers: ScenarioUser[]) {
             this.showShareScenarioDialog = false;
 
-            if (scenarioUsers !== null) {
+            // hasValue(scenarioUsers) will return false for an empty list,
+            // even though an empty list is a valid state
+            if (scenarioUsers !== null && scenarioUsers !== undefined) {
                 this.sharingScenario.users = scenarioUsers;
 
                 this.updateScenarioUsersAction({

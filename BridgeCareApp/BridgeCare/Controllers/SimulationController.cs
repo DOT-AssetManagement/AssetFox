@@ -60,7 +60,7 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = GetAllSimulations,
                 [Role.DISTRICT_ENGINEER] = GetAllSimulations,
                 [Role.CWOPA] = GetAllSimulations,
-                [Role.PLANNING_PARTNER] = GetAllSimulations
+                [Role.GENERAL_USERS] = GetAllSimulations
             };
         }
 
@@ -80,14 +80,14 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = UpdateAnySimulation,
                 [Role.DISTRICT_ENGINEER] = UpdatePermittedSimulation,
                 [Role.CWOPA] = UpdatePermittedSimulation,
-                [Role.PLANNING_PARTNER] = UpdatePermittedSimulation
+                [Role.GENERAL_USERS] = UpdatePermittedSimulation
             };
         }
 
         private Dictionary<string, SimulationRunMethod> CreateRunMethods()
         {
             Task<string> RunAnySimulation(SimulationModel model, UserInformationModel userInformation) =>
-                repo.RunSimulation(model);
+                repo.RunSimulation(model, db);
             Task<string> RunPermittedSimulation(SimulationModel model, UserInformationModel userInformation) =>
                 repo.RunPermittedSimulation(model, db, userInformation.Name);
 
@@ -96,7 +96,7 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = RunAnySimulation,
                 [Role.DISTRICT_ENGINEER] = RunPermittedSimulation,
                 [Role.CWOPA] = RunPermittedSimulation,
-                [Role.PLANNING_PARTNER] = RunPermittedSimulation
+                [Role.GENERAL_USERS] = RunPermittedSimulation
             };
         }
 
@@ -116,7 +116,7 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = DeleteAnySimulation,
                 [Role.DISTRICT_ENGINEER] = DeletePermittedSimulation,
                 [Role.CWOPA] = DeletePermittedSimulation,
-                [Role.PLANNING_PARTNER] = DeletePermittedSimulation
+                [Role.GENERAL_USERS] = DeletePermittedSimulation
             };
         }
 
@@ -132,7 +132,7 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = SetAnySimulationUsers,
                 [Role.DISTRICT_ENGINEER] = SetPermittedSimulationUsers,
                 [Role.CWOPA] = SetPermittedSimulationUsers,
-                [Role.PLANNING_PARTNER] = SetPermittedSimulationUsers
+                [Role.GENERAL_USERS] = SetPermittedSimulationUsers
             };
         }
 
@@ -146,7 +146,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public IHttpActionResult GetSimulations()
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(SimulationGetMethods[userInformation.Role](userInformation));
         }
 
@@ -167,7 +167,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public IHttpActionResult CloneSimulation(int id)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(repo.CloneSimulation(id, db, userInformation.Name));
         }
 
@@ -182,7 +182,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public IHttpActionResult UpdateSimulation([FromBody]SimulationModel model)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             SimulationUpdateMethods[userInformation.Role](model, userInformation);
             return Ok();
         }
@@ -198,7 +198,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public IHttpActionResult DeleteSimulation(int id)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             SimulationDeletionMethods[userInformation.Role](id, userInformation);
             return Ok();
         }
@@ -213,7 +213,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public async Task<IHttpActionResult> RunSimulation([FromBody]SimulationModel model)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             var result = await Task.Factory.StartNew(() => SimulationRunMethods[userInformation.Role](model, userInformation));
 
             if (result.IsCompleted)
@@ -226,9 +226,10 @@ namespace BridgeCare.Controllers
 
         [HttpPost]
         [Route("api/SetScenarioUsers/{id}")]
+        [RestrictAccess]
         public IHttpActionResult SetSimulationUsers(int id, [FromBody]SimulationUserModel[] simulationUsers)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             SimulationUserUpdateMethods[userInformation.Role](id, simulationUsers.ToList(), userInformation);
             return Ok(simulationUsers);
         }

@@ -8,10 +8,10 @@
             </v-card-title>
             <v-card-text>
                 <v-layout column>
-                    <v-text-field label="Name" outline v-model="newTargetLibrary.name"></v-text-field>
+                    <v-text-field label="Name" outline v-model="newTargetLibrary.name"
+                                  :rules="[rules['generalRules'].valueIsNotEmpty]"/>
                     <v-textarea label="Description" no-resize outline rows="3"
-                                v-model="newTargetLibrary.description">
-                    </v-textarea>
+                                v-model="newTargetLibrary.description"/>
                 </v-layout>
             </v-card-text>
             <v-card-actions>
@@ -32,8 +32,8 @@
     import {Component, Prop, Watch} from 'vue-property-decorator';
     import {CreateTargetLibraryDialogData} from '@/shared/models/modals/create-target-library-dialog-data';
     import {emptyTargetLibrary, Target, TargetLibrary} from '@/shared/models/iAM/target';
-    import {clone} from 'ramda';
     import {getUserName} from '@/shared/utils/get-user-info';
+    import {rules, InputValidationRules} from '@/shared/utils/input-validation-rules';
 
     const ObjectID = require('bson-objectid');
 
@@ -41,7 +41,8 @@
     export default class CreateTargetLibraryDialog extends Vue {
         @Prop() dialogData: CreateTargetLibraryDialogData;
 
-        newTargetLibrary: TargetLibrary = clone({...emptyTargetLibrary, id: ObjectID.generate()});
+        newTargetLibrary: TargetLibrary = {...emptyTargetLibrary, id: ObjectID.generate()};
+        rules: InputValidationRules = {...rules};
 
         /**
          * Sets the newTargetLibrary object's description & targets properties with the dialogData object's
@@ -70,7 +71,7 @@
                 this.$emit('submit', null);
             }
 
-            this.newTargetLibrary = clone({...emptyTargetLibrary, id: ObjectID.generate()});
+            this.newTargetLibrary = {...emptyTargetLibrary, id: ObjectID.generate()};
         }
 
         /**

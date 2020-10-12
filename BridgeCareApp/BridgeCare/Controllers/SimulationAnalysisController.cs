@@ -35,7 +35,7 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = GetAnySimulationAnalysis,
                 [Role.DISTRICT_ENGINEER] = GetPermittedSimulationAnalysis,
                 [Role.CWOPA] = GetPermittedSimulationAnalysis,
-                [Role.PLANNING_PARTNER] = GetPermittedSimulationAnalysis
+                [Role.GENERAL_USERS] = GetPermittedSimulationAnalysis
             };
         }
 
@@ -56,7 +56,7 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = UpdateSimulationAnalysis,
                 [Role.DISTRICT_ENGINEER] = PartialUpdatePermittedSimulationAnalysis,
                 [Role.CWOPA] = PartialUpdatePermittedSimulationAnalysisWithoutWeights,
-                [Role.PLANNING_PARTNER] = PartialUpdatePermittedSimulationAnalysis
+                [Role.GENERAL_USERS] = PartialUpdatePermittedSimulationAnalysis
             };
         }
 
@@ -79,7 +79,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public IHttpActionResult GetSimulationAnalysis(int id)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(SimulationAnalysisGetMethods[userInformation.Role](id, userInformation));
         }
 
@@ -93,7 +93,7 @@ namespace BridgeCare.Controllers
         [RestrictAccess]
         public IHttpActionResult UpdateSimulationAnalysis([FromBody]SimulationAnalysisModel model)
         {
-            UserInformationModel userInformation = JWTParse.GetUserInformation(Request.Headers.Authorization.Parameter);
+            UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             SimulationAnalysisUpdateMethods[userInformation.Role](model, userInformation);
             return Ok();
         }

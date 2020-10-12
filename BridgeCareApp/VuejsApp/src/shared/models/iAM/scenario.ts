@@ -37,12 +37,14 @@ export interface Scenario {
     simulationName: string;
     createdDate?: Date;
     lastModifiedDate?: Date;
+    lastRun?: Date;
     status?: string;
     shared?: boolean;
     owner?: string;
     creator?: string;
     id: number | string;
     users: ScenarioUser[];
+    runTime?: string;
 }
 
 export const emptyScenario: Scenario = {
@@ -55,5 +57,6 @@ export const emptyScenario: Scenario = {
     status: '',
     shared: false,
     id: 0,
-    users: []
+    users: [],
+    runTime: ''
 };

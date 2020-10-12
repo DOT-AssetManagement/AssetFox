@@ -8,11 +8,11 @@
             </v-card-title>
             <v-card-text>
                 <v-layout column>
-                    <v-text-field label="Name" outline v-model="createdCashFlowLibrary.name"></v-text-field>
+                    <v-text-field label="Name" outline v-model="createdCashFlowLibrary.name"
+                                  :rules="[rules['generalRules'].valueIsNotEmpty]"/>
 
                     <v-textarea label="Description" no-resize outline rows="3"
-                                v-model="createdCashFlowLibrary.description">
-                    </v-textarea>
+                                v-model="createdCashFlowLibrary.description"/>
                 </v-layout>
             </v-card-text>
             <v-card-actions>
@@ -41,9 +41,10 @@
         SplitTreatment,
         SplitTreatmentLimit
     } from '@/shared/models/iAM/cash-flow';
-    import {clone} from 'ramda';
     import {hasValue} from '@/shared/utils/has-value-util';
     import {getUserName} from '../../../shared/utils/get-user-info';
+    import {rules, InputValidationRules} from '@/shared/utils/input-validation-rules';
+    import {clone} from 'ramda';
 
     const ObjectID = require('bson-objectid');
 
@@ -51,17 +52,18 @@
     export default class CreateCashFlowLibraryDialog extends Vue {
         @Prop() dialogData: CreateCashFlowLibraryDialogData;
 
-        createdCashFlowLibrary: CashFlowLibrary = clone({...emptyCashFlowLibrary, id: ObjectID.generate()});
+        createdCashFlowLibrary: CashFlowLibrary = {...emptyCashFlowLibrary, id: ObjectID.generate()};
+        rules: InputValidationRules = clone(rules);
 
         /**
          * Sets createdCashFlowLibrary class property using dialogData class property
          */
         @Watch('dialogData')
         onDialogDataChanged() {
-            this.createdCashFlowLibrary = clone({
+            this.createdCashFlowLibrary = {
                 ...this.createdCashFlowLibrary,
                 splitTreatments: this.dialogData.splitTreatments
-            });
+            };
         }
 
         /**
@@ -81,7 +83,7 @@
                 this.$emit('submit', null);
             }
 
-            this.createdCashFlowLibrary = clone({...emptyCashFlowLibrary, id: ObjectID.generate()});
+            this.createdCashFlowLibrary = {...emptyCashFlowLibrary, id: ObjectID.generate()};
         }
 
         /**
@@ -90,7 +92,7 @@
         setIdsForNewLibrarySubData() {
             this.createdCashFlowLibrary.splitTreatments = this.createdCashFlowLibrary.splitTreatments
                 .map((splitTreatment: SplitTreatment) => {
-                    return clone({
+                    return {
                         ...splitTreatment,
                         id: ObjectID.generate(),
                         splitTreatmentLimits: splitTreatment.splitTreatmentLimits
@@ -98,7 +100,7 @@
                                 splitTreatmentLimit.id = ObjectID.generate();
                                 return splitTreatmentLimit;
                             })
-                    });
+                    };
                 });
         }
     }
