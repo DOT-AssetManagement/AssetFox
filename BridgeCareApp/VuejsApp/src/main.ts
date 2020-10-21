@@ -34,8 +34,8 @@ Vue.use(VueScreen, {
     md: 768,
     lg: 992,
     xl: 1200,
-    xxl: 1400,
-    xxxl: 1600,
+    xxl: 1350,
+    xxxl: 1730,
     breakpointsOrder: ['sm', 'md', 'lg', 'xl', 'xxl', 'xxxl']
 });
 

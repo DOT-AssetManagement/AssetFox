@@ -2,7 +2,7 @@
     <v-layout column>
         <v-flex xs12>
             <v-layout fixed justify-end>
-                <div v-if="!$screen.xl && !$screen.xxl && !$screen.xxxl" class="justify-end">
+                <div v-if="!$screen.xxl && !$screen.xxxl" class="justify-end">
                     <v-menu>
                         <template slot="activator">
                             <v-btn icon>
@@ -32,7 +32,7 @@
                     </v-menu>
                 </div>
             </v-layout>
-            <v-layout v-if="$screen.xl || $screen.xxl || $screen.xxxl" fixed justify-space-between>
+            <v-layout v-if="$screen.xxl || $screen.xxxl" fixed justify-space-between>
                 <div>
                     <v-tabs>
                         <v-tab :key="navigationTab.tabName"
