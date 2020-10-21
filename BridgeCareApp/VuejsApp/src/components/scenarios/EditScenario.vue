@@ -1,7 +1,38 @@
 ﻿<template>
     <v-layout column>
         <v-flex xs12>
-            <v-layout fixed justify-space-between>
+            <v-layout fixed justify-end>
+                <div v-if="!$screen.xl && !$screen.xxl && !$screen.xxxl" class="justify-end">
+                    <v-menu>
+                        <template slot="activator">
+                            <v-btn icon>
+                                <v-icon>fas fa-bars</v-icon>
+                            </v-btn>
+                        </template>
+                        <v-list>
+                            <v-list-tile v-for="navTab in visibleNavigationTabs()" @click="onNavigate(navTab.navigation)">
+                                <v-list-tile-action>
+                                    <v-icon>{{navTab.tabIcon}}</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>{{navTab.tabName}}</v-list-tile-title>
+                            </v-list-tile>
+                            <v-list-tile @click="onShowRunSimulationAlert">
+                                <v-list-tile-action>
+                                    <v-icon>fas fa-play</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Run Scenario</v-list-tile-title>
+                            </v-list-tile>
+                            <v-list-tile @click="onShowCommittedProjectsFileUploader">
+                                <v-list-tile-action>
+                                    <v-icon>fas fa-cloud-upload-alt</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Committed Projects</v-list-tile-title>
+                            </v-list-tile>
+                        </v-list>
+                    </v-menu>
+                </div>
+            </v-layout>
+            <v-layout v-if="$screen.xl || $screen.xxl || $screen.xxxl" fixed justify-space-between>
                 <div>
                     <v-tabs>
                         <v-tab :key="navigationTab.tabName"
@@ -12,46 +43,42 @@
                         </v-tab>
                     </v-tabs>
                 </div>
-                <div>
-                    <v-layout>
-                        <div v-if="$screen.xxl && !$screen.freeRealEstate">
-                            <v-menu>
-                                <template slot="activator">
-                                    <v-btn icon>
-                                        <v-icon>fas fa-bars</v-icon>
-                                    </v-btn>
-                                </template>
-                                <v-list>
-                                    <v-list-tile @click="onShowRunSimulationAlert">
-                                        <v-list-tile-action>
-                                            <v-icon>fas fa-play</v-icon>
-                                        </v-list-tile-action>
-                                        <v-list-tile-title>Run Scenario</v-list-tile-title>
-                                    </v-list-tile>
-                                    <v-list-tile @click="onShowCommittedProjectsFileUploader">
-                                        <v-list-tile-action>
-                                            <v-icon>fas fa-cloud-upload-alt</v-icon>
-                                        </v-list-tile-action>
-                                        <v-list-tile-title>Committed Projects</v-list-tile-title>
-                                    </v-list-tile>
-                                </v-list>
-                            </v-menu>
-                        </div>
-                        <div class="edit-scenario-btns-div" v-if="$screen.freeRealEstate">
-                            <div>
-                                <v-btn @click="onShowRunSimulationAlert" class="ara-blue-bg white--text">
-                                    Run Scenario
-                                    <v-icon class="white--text" right>fas fa-play</v-icon>
-                                </v-btn>
-                            </div>
-                            <div>
-                                <v-btn @click="onShowCommittedProjectsFileUploader" class="ara-blue-bg white--text">
-                                    Committed Projects
-                                    <v-icon class="white--text" right>fas fa-cloud-upload-alt</v-icon>
-                                </v-btn>
-                            </div>
-                        </div>
-                    </v-layout>
+                <div v-if="!$screen.xxxl">
+                    <v-menu>
+                        <template slot="activator">
+                            <v-btn icon>
+                                <v-icon>fas fa-bars</v-icon>
+                            </v-btn>
+                        </template>
+                        <v-list>
+                            <v-list-tile @click="onShowRunSimulationAlert">
+                                <v-list-tile-action>
+                                    <v-icon>fas fa-play</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Run Scenario</v-list-tile-title>
+                            </v-list-tile>
+                            <v-list-tile @click="onShowCommittedProjectsFileUploader">
+                                <v-list-tile-action>
+                                    <v-icon>fas fa-cloud-upload-alt</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Committed Projects</v-list-tile-title>
+                            </v-list-tile>
+                        </v-list>
+                    </v-menu>
+                </div>
+                <div class="edit-scenario-btns-div" v-if="$screen.xxxl">
+                    <div>
+                        <v-btn @click="onShowRunSimulationAlert" class="ara-blue-bg white--text">
+                            Run Scenario
+                            <v-icon class="white--text" right>fas fa-play</v-icon>
+                        </v-btn>
+                    </div>
+                    <div>
+                        <v-btn @click="onShowCommittedProjectsFileUploader" class="ara-blue-bg white--text">
+                            Committed Projects
+                            <v-icon class="white--text" right>fas fa-cloud-upload-alt</v-icon>
+                        </v-btn>
+                    </div>
                 </div>
             </v-layout>
         </v-flex>
@@ -313,6 +340,16 @@
                 });
             }
         }
+
+      /**
+       * Navigates a user to a page using the specified routeName
+       * @param route The route name to use when navigating a user
+       */
+      onNavigate(route: any) {
+        if (this.$router.currentRoute.path !== route.path) {
+          this.$router.push(route);
+        }
+      }
     }
 </script>
 

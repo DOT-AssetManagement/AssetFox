@@ -35,8 +35,8 @@ Vue.use(VueScreen, {
     lg: 992,
     xl: 1200,
     xxl: 1400,
-    freeRealEstate: 1700,
-    breakpointsOrder: ['sm', 'md', 'lg', 'xl', 'xxl', 'freeRealEstate']
+    xxxl: 1600,
+    breakpointsOrder: ['sm', 'md', 'lg', 'xl', 'xxl', 'xxxl']
 });
 
 Vue.config.productionTip = false;
