@@ -26,7 +26,7 @@
                         </td>
                         <td>
                             <v-layout align-start>
-                                <v-btn @click="onDeleteCost(props.item)" class="ara-orange" icon>
+                                <v-btn @click="onDeleteCost(props.item.id)" class="ara-orange" icon>
                                     <v-icon>fas fa-trash</v-icon>
                                 </v-btn>
                             </v-layout>
