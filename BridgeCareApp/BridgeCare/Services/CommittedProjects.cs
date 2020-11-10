@@ -19,7 +19,7 @@ using System.Collections.Specialized;
 namespace BridgeCare.Services
 {
     using CommittedProjectsGetMethod = Func<int, BridgeCareContext, UserInformationModel, List<CommittedEntity>>;
-    using CommittedProjectsSaveMethod = Action<List<CommittedProjectModel>, BridgeCareContext, UserInformationModel>;
+    using CommittedProjectsSaveMethod = Action<int, List<CommittedProjectModel>, BridgeCareContext, UserInformationModel>;
 
     public class CommittedProjects : ICommittedProjects
     {
@@ -42,10 +42,10 @@ namespace BridgeCare.Services
             List<CommittedEntity> GetPermittedProjects(int id, BridgeCareContext db, UserInformationModel userInformation) => 
                 committedRepo.GetPermittedCommittedProjects(id, db, userInformation.Name);
 
-            void SaveAnyProjects(List<CommittedProjectModel> models, BridgeCareContext db, UserInformationModel userInformation) => 
-                committedRepo.SaveCommittedProjects(models, db);
-            void SavePermittedProjects(List<CommittedProjectModel> models, BridgeCareContext db, UserInformationModel userInformation) => 
-                committedRepo.SavePermittedCommittedProjects(models, db, userInformation.Name);
+            void SaveAnyProjects(int simulationId, List<CommittedProjectModel> models, BridgeCareContext db, UserInformationModel userInformation) => 
+                committedRepo.SaveCommittedProjects(simulationId, models, db);
+            void SavePermittedProjects(int simulationId, List<CommittedProjectModel> models, BridgeCareContext db, UserInformationModel userInformation) => 
+                committedRepo.SavePermittedCommittedProjects(simulationId, models, db, userInformation.Name);
 
             CommittedProjectsGetMethods = new Dictionary<string, CommittedProjectsGetMethod>
             {
@@ -93,8 +93,9 @@ namespace BridgeCare.Services
                     foreach (var package in packages)
                     {
                         GetCommittedProjectModels(package, simulationId, networkId, applyNoTreatment, committedProjectModels, db);
-                        CommittedProjectsSaveMethods[userInformation.Role](committedProjectModels, db, userInformation);
                     }
+
+                    CommittedProjectsSaveMethods[userInformation.Role](simulationId, committedProjectModels, db, userInformation);
 
                     SetAlertMessage(mail, simulationId);
                 }
@@ -104,10 +105,10 @@ namespace BridgeCare.Services
                     log.Error(exception);
                     throw exception;
                 }
-                finally
+                /*finally
                 {
                     SendAlertEmail(mail, userInformation);
-                }
+                }*/
             };
 
             SimulationQueue.Enqueue(saveCommittedProjectsAction);

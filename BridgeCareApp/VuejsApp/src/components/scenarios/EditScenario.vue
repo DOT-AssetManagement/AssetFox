@@ -91,7 +91,10 @@
 
         <Alert :dialogData="alertData" @submit="onSubmitAlertResult"/>
 
-        <CommittedProjectsFileUploaderDialog :showDialog="showFileUploader" @submit="onUploadCommittedProjectFiles"/>
+        <Alert :dialogData="alertDataForDeletingCommittedProjects" @submit="onDeleteCommittedProjectsSubmit" />
+
+        <CommittedProjectsFileUploaderDialog :showDialog="showFileUploader" @submit="onUploadCommittedProjectFiles"
+            @delete="onDeleteCommittedProjects"/>
     </v-layout>
 </template>
 
@@ -111,6 +114,8 @@
     import {CommittedProjectsDialogResult} from '@/shared/models/modals/committed-projects-dialog-result';
     import {AlertData, emptyAlertData} from '@/shared/models/modals/alert-data';
     import Alert from '@/shared/modals/Alert.vue';
+    import {hasValue} from '@/shared/utils/has-value-util';
+    import {http2XX} from '@/shared/utils/http-utils';
 
     @Component({
         components: {CommittedProjectsFileUploaderDialog, Alert}
@@ -199,6 +204,7 @@
           }
         ];
         alertData: AlertData = clone(emptyAlertData);
+        alertDataForDeletingCommittedProjects: AlertData = {...emptyAlertData};
 
         beforeRouteEnter(to: any, from: any, next: any) {
             next((vm: any) => {
@@ -295,7 +301,7 @@
                     .saveCommittedProjectsFiles(result.files, result.applyNoTreatment, this.selectedScenarioId.toString(), this.networks[0].networkId.toString())
                     .then((response: AxiosResponse<any>) => {
                         if (!isNil(response)){
-                           this.setSuccessMessageAction({message: 'Successfully uploaded committed projects. You will receive an email when the projects have been fully processed.'});
+                           this.setSuccessMessageAction({message: 'Successfully uploaded committed projects.'});
                         }
                     });
             }
@@ -305,6 +311,28 @@
                 CommittedProjectsService.ExportCommittedProjects(this.selectedScenario)
                     .then((response: AxiosResponse<any>) => {
                         FileDownload(response.data, 'CommittedProjects.xlsx');
+                    });
+            }
+        }
+
+        onDeleteCommittedProjects() {
+            this.alertDataForDeletingCommittedProjects = {
+                showDialog: true,
+                heading: 'Are you sure?',
+                message: 'You are about to delete all of this scenario\'s committed projects.',
+                choice: true
+            };
+        }
+
+        onDeleteCommittedProjectsSubmit(doDelete: boolean) {
+            this.alertDataForDeletingCommittedProjects = {...emptyAlertData};
+
+            if (doDelete) {
+                CommittedProjectsService.DeleteCommittedProjects(this.selectedScenarioId)
+                    .then((response: AxiosResponse) => {
+                        if (hasValue(response) && http2XX.test(response.status.toString())) {
+                            this.setSuccessMessageAction({message: 'Committed projects have been deleted.'});
+                        }
                     });
             }
         }
