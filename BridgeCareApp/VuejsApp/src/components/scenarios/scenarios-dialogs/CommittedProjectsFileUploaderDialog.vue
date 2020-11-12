@@ -152,6 +152,7 @@
                 const oldFiles = this.files.filter((file: File) => !any(propEq('name', file.name), newFiles));
                 this.files = [...oldFiles, ...newFiles];
                 this.setIsBusyAction({isBusy: false});
+                document.getElementById('file-select').value = '';
             }
         }
 
