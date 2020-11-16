@@ -371,3 +371,4 @@ iAM-legacy/DatabaseManager.dll
 /BridgeCareApp/BridgeCareNodeApp/logs/nodeErrorLogs.log
 /BridgeCareApp/BridgeCareNodeApp/logs/nodeCombinedLogs.log
 /BridgeCareApp/BridgeCareCore
+/BridgeCareApp/AppliedResearchAssociates.iAM.DataPersistenceCore/Repositories/MSSQL/migrationConnection.json
