@@ -1,11 +1,10 @@
-﻿using BridgeCare.Models;
-using BridgeCare.Models.SummaryReport;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using BridgeCare.Models.SummaryReport;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport.BridgeData
 {
     public class BridgeDataHelper
     {
@@ -24,7 +23,7 @@ namespace BridgeCare.Services
             }
 
             return simulationDataModels;
-        }        
+        }
 
         private SimulationDataModel CreatePrevYearSimulationMdel(DataRow simulationRow)
         {
@@ -42,9 +41,9 @@ namespace BridgeCare.Services
             var yearsDataModels = new List<YearsData>();
             foreach (int year in simulationYears)
             {
-                var budgetPerBrKey = new BudgetsPerBRKey() { Budget = "", IsCommitted = false, Treatment = ""};
+                var budgetPerBrKey = new BudgetsPerBRKey() { Budget = "", IsCommitted = false, Treatment = "" };
                 var projectCostEntry = projectCostEntries.Where(p => p.YEARS == year).FirstOrDefault();
-                if(bridgeDataPerSection.Count > 0 && bridgeDataPerSection != null)
+                if (bridgeDataPerSection.Count > 0 && bridgeDataPerSection != null)
                 {
                     budgetPerBrKey = bridgeDataPerSection.Where(p => p.YEARS == year).FirstOrDefault();
                 }
@@ -71,7 +70,7 @@ namespace BridgeCare.Services
             var isCulvConverted = double.TryParse(yearsData.Culv, out var culv);
             var isSuperConverted = double.TryParse(yearsData.Super, out var super);
             var isSubConverted = double.TryParse(yearsData.Sub, out var sub);
-            if(isDeckConverted && isCulvConverted && isSuperConverted && isSubConverted)
+            if (isDeckConverted && isCulvConverted && isSuperConverted && isSubConverted)
             {
                 yearsData.MinC = Math.Min(deck, Math.Min(culv, Math.Min(super, sub)));
             }
@@ -85,7 +84,7 @@ namespace BridgeCare.Services
                 var amount = projectCostEntry.COST_;
                 roundedCost = amount % 1000 >= 500 ? amount + 1000 - amount % 1000 : amount - amount % 1000;
             }
-            
+
             yearsData.Cost = year != 0 ? roundedCost : 0;
             yearsData.Project = yearsData.Project == null ? "No Treatment" : yearsData.Project;
             yearsData.Budget = budgetPerBrKey != null ? budgetPerBrKey.Budget : "";
@@ -98,6 +97,6 @@ namespace BridgeCare.Services
             yearsData.ProjectPickType = budgetPerBrKey != null ? budgetPerBrKey.ProjectType : 0;
             yearsData.Treatment = budgetPerBrKey != null ? budgetPerBrKey.Treatment : "";
             return yearsData;
-        }        
+        }
     }
 }

@@ -1,10 +1,9 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
-using System.Web.Http.Filters;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -15,9 +14,15 @@ namespace BridgeCare.Controllers
     {
         private readonly ITreatmentLibrary repo;
         private readonly BridgeCareContext db;
-        /// <summary>Maps user roles to methods for getting treatment libraries.</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for getting treatment libraries.
+        /// </summary>
         private readonly IReadOnlyDictionary<string, TreatmentLibraryGetMethod> TreatmentLibraryGetMethods;
-        /// <summary>Maps user roles to methods for saving treatment libraries.</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for saving treatment libraries.
+        /// </summary>
         private readonly IReadOnlyDictionary<string, TreatmentLibrarySaveMethod> TreatmentLibrarySaveMethods;
 
         public TreatmentLibraryController(ITreatmentLibrary repo, BridgeCareContext db)
@@ -30,7 +35,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for getting treatment libraries
+        ///     Creates a mapping from user roles to the appropriate methods for getting treatment libraries
         /// </summary>
         private Dictionary<string, TreatmentLibraryGetMethod> CreateGetMethods()
         {
@@ -49,7 +54,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for saving treatment libraries
+        ///     Creates a mapping from user roles to the appropriate methods for saving treatment libraries
         /// </summary>
         private Dictionary<string, TreatmentLibrarySaveMethod> CreateSaveMethods()
         {
@@ -66,7 +71,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's treatment library data
+        ///     API endpoint for fetching a simulation's treatment library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns>IHttpActionResult</returns>
@@ -81,14 +86,14 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for upserting/deleting a simulation's treatment library data
+        ///     API endpoint for upserting/deleting a simulation's treatment library data
         /// </summary>
         /// <param name="model">TreatmentLibraryModel</param>
         /// <returns>IHttpActionResult</returns>
         [HttpPost]
         [Route("api/SaveScenarioTreatmentLibrary")]
         [RestrictAccess(Role.ADMINISTRATOR, Role.DISTRICT_ENGINEER)]
-        public IHttpActionResult SaveSimulationTreatmentLibrary([FromBody]TreatmentLibraryModel model)
+        public IHttpActionResult SaveSimulationTreatmentLibrary([FromBody] TreatmentLibraryModel model)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(TreatmentLibrarySaveMethods[userInformation.Role](model, userInformation));

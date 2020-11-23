@@ -1,24 +1,24 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Http;
-using System.Web.Http.Filters;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
     public class DetailedReportController : ApiController
     {
         private readonly IReportCreator reportCreator;
+
         public DetailedReportController(IReportCreator reportCreator)
         {
             this.reportCreator = reportCreator ?? throw new ArgumentNullException(nameof(reportCreator));
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's detailed report data
+        ///     API endpoint for fetching a simulation's detailed report data
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>IHttpActionResult</returns>

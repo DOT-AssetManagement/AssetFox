@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Web;
-using BridgeCare.Models;
 using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 
@@ -25,7 +23,8 @@ namespace BridgeCare.Services.SummaryReport.UnfundedRecommendation
             var headers = GetHeaders();
             var currentCell = AddHeadersCells(unfundedRecommendationWorksheet, headers, simulationYears);
 
-            // Add row next to headers for filters and year numbers for dynamic data. Cover from top, left to right, and bottom set of data.
+            // Add row next to headers for filters and year numbers for dynamic data. Cover from
+            // top, left to right, and bottom set of data.
             using (var autoFilterCells = unfundedRecommendationWorksheet.Cells[3, 1, currentCell.Row, currentCell.Column - 1])
             {
                 autoFilterCells.AutoFilter = true;
@@ -66,19 +65,19 @@ namespace BridgeCare.Services.SummaryReport.UnfundedRecommendation
                 else
                 {
                     var yearDataWithSelectedTreatment = perBRKeyData.Where(_ => _.Reason.Contains("Selected")).LastOrDefault();
-                    if(!perBRKeyData.Any(_ => _.YEARS > yearDataWithSelectedTreatment.YEARS))
+                    if (!perBRKeyData.Any(_ => _.YEARS > yearDataWithSelectedTreatment.YEARS))
                     {
                         continue;
                     }
                     FillDataInWorkSheet(worksheet, currentCell, bridgeData);
                     foreach (var year in simulationYears)
                     {
-                        if(year <= yearDataWithSelectedTreatment.YEARS)
+                        if (year <= yearDataWithSelectedTreatment.YEARS)
                         {
                             currentCell.Column++;
                             continue;
                         }
-                        if(!perBRKeyData.Where(y => y.YEARS == year).Any())
+                        if (!perBRKeyData.Where(y => y.YEARS == year).Any())
                         {
                             currentCell.Column++;
                             continue;
@@ -88,7 +87,6 @@ namespace BridgeCare.Services.SummaryReport.UnfundedRecommendation
                         var selectedData = yearlyData.Where(t => t.TotalProjectCost == minValue).FirstOrDefault();
 
                         worksheet.Cells[currentCell.Row, currentCell.Column++].Value = selectedData.Treatment;
-
                     }
                 }
                 currentCell.Row++;
@@ -100,7 +98,6 @@ namespace BridgeCare.Services.SummaryReport.UnfundedRecommendation
         {
             var row = currentCell.Row;
             var column = currentCell.Column;
-            
 
             worksheet.Cells[row, column++].Value = bridgeData.BridgeID;
             worksheet.Cells[row, column++].Value = bridgeData.BRKey;
@@ -120,7 +117,7 @@ namespace BridgeCare.Services.SummaryReport.UnfundedRecommendation
             worksheet.Cells[row, column++].Value = bridgeData.ADTOverTenThousand;
             worksheet.Cells[row, column++].Value = bridgeData.RiskScore;
             worksheet.Cells[row, column++].Value = bridgeData.P3 > 0 ? "Y" : "N";
-            
+
             currentCell.Column = column;
         }
 

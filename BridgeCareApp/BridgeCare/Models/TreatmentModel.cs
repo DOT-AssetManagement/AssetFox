@@ -1,20 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.ComponentModel.DataAnnotations;
 using BridgeCare.EntityClasses;
-using BridgeCare.Services;
-
 
 namespace BridgeCare.Models
 {
     public class TreatmentModel : CrudModel
     {
         public string Id { get; set; }
+
         public string Name { get; set; }
+
         public FeasibilityModel Feasibility { get; set; }
+
         public List<CostModel> Costs { get; set; }
+
         public List<ConsequenceModel> Consequences { get; set; }
+
         public List<string> Budgets { get; set; }
 
         public TreatmentModel()
@@ -40,7 +41,8 @@ namespace BridgeCare.Models
             Budgets = new List<string>();
             if (rawBudgets.Count > 0)
             {
-                rawBudgets.ForEach(item => {
+                rawBudgets.ForEach(item =>
+                {
                     Budgets.Add(item.Trim());
                 });
             }
@@ -50,7 +52,8 @@ namespace BridgeCare.Models
             {
                 var feasibilities = entity.FEASIBILITIES.ToList();
 
-                feasibilities.ForEach(feasibilityEntity => {
+                feasibilities.ForEach(feasibilityEntity =>
+                {
                     var feasibilityModel = new FeasibilityModel(feasibilityEntity, entity);
 
                     if (feasibilities.Count > 1)

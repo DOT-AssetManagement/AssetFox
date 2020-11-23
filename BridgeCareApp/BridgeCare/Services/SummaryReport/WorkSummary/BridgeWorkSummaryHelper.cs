@@ -1,13 +1,12 @@
-﻿using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using BridgeCare.Models.SummaryReport;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport.WorkSummary
 {
     public class BridgeWorkSummaryComputationHelper
     {
-        const string NoTreatment = "No Treatment";
+        private const string NoTreatment = "No Treatment";
 
         public double CalculateCost(List<SimulationDataModel> simulationDataModels, int year, string project)
         {
@@ -149,6 +148,7 @@ namespace BridgeCare.Services
         }
 
         #region posted and closed bridge count functions
+
         internal int CalculatePostedAndClosedBridgeCountForBPN13(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string bpn, string posted)
         {
             var postedCount = 0;
@@ -163,6 +163,7 @@ namespace BridgeCare.Services
             }
             return postedCount;
         }
+
         internal int CalculatePostedAndClosedBridgeCountForBPN2H(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string posted)
         {
             var postedCount = 0;
@@ -177,6 +178,7 @@ namespace BridgeCare.Services
             }
             return postedCount;
         }
+
         internal int CalculatePostedAndClosedBridgeCountForRemaining(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string posted)
         {
             var postedCount = 0;
@@ -191,9 +193,11 @@ namespace BridgeCare.Services
             }
             return postedCount;
         }
-        #endregion
+
+        #endregion posted and closed bridge count functions
 
         #region posted and closed deck area functions
+
         internal double CalculatePostedAndClosedDeckAreaForBPN13(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string bpn, string postStatus)
         {
             var sum = 0.0;
@@ -217,6 +221,7 @@ namespace BridgeCare.Services
             }
             return sum;
         }
+
         internal double CalculatePostedAndClosedDeckAreaForBPN2H(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string postStatus)
         {
             var sum = 0.0;
@@ -240,6 +245,7 @@ namespace BridgeCare.Services
             }
             return sum;
         }
+
         internal double CalculatePostedAndClosedDeckAreaForRemainingBPN(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string postStatus)
         {
             var sum = 0.0;
@@ -263,7 +269,8 @@ namespace BridgeCare.Services
             }
             return sum;
         }
-        #endregion
+
+        #endregion posted and closed deck area functions
 
         internal double CalculateMoneyNeededByBPN13(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string bpn)
         {
@@ -277,6 +284,7 @@ namespace BridgeCare.Services
             }
             return sum;
         }
+
         internal double CalculateMoneyNeededByBPN2H(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
         {
             var sum = 0.0;
@@ -289,6 +297,7 @@ namespace BridgeCare.Services
             }
             return sum;
         }
+
         internal double CalculateMoneyNeededByRemainingBPN(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year)
         {
             var sum = 0.0;
@@ -303,10 +312,11 @@ namespace BridgeCare.Services
         }
 
         #region poor deck area functions
+
         internal double CalculatePoorDeckAreaForBPN13(List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int year, string bpn)
         {
             var sum = 0.0;
-            var postedBridges = bridgeDataModels.FindAll(b =>  b.BPN == bpn);
+            var postedBridges = bridgeDataModels.FindAll(b => b.BPN == bpn);
             var filteredSimulationDataModels = simulationDataModels.FindAll(s => postedBridges.Exists(b => b.BRKey == s.BRKey));
             foreach (var model in filteredSimulationDataModels)
             {
@@ -341,6 +351,7 @@ namespace BridgeCare.Services
             }
             return sum;
         }
-        #endregion
+
+        #endregion poor deck area functions
     }
 }

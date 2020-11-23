@@ -11,9 +11,10 @@ namespace BridgeCare.DataAccessLayer
     public class DeficientDAL : IDeficient
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(DeficientDAL));
+
         /// <summary>
-        /// Fetches a simulation's deficient library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Fetches a simulation's deficient library data Throws a RowNotInTableException if no
+        ///     simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -26,8 +27,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's deficient library data if it is owned by the user
-        /// Throws a RowNotInTableException if no simulation is found for the user
+        ///     Fetches a simulation's deficient library data if it is owned by the user Throws a
+        ///     RowNotInTableException if no simulation is found for the user
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -43,8 +44,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's deficient library data regardless of ownership
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Fetches a simulation's deficient library data regardless of ownership Throws a
+        ///     RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -57,8 +58,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's deficient library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Executes an upsert/delete operation on a simulation's deficient library data Throws
+        ///     a RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="model">DeficientLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -96,8 +97,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's deficient library data if the user owns it
-        /// Throws a RowNotInTableException if no simulation is found for the user
+        ///     Executes an upsert/delete operation on a simulation's deficient library data if the
+        ///     user owns it Throws a RowNotInTableException if no simulation is found for the user
         /// </summary>
         /// <param name="model">DeficientLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -114,8 +115,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's deficient library data regardless of ownership
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Executes an upsert/delete operation on a simulation's deficient library data
+        ///     regardless of ownership Throws a RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="model">DeficientLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>

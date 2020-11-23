@@ -8,22 +8,23 @@ using System.Web.Http.Filters;
 namespace BridgeCare.ExceptionHandling
 {
     /// <summary>
-    /// Represents the an attribute that provides a filter for unhandled exceptions.
+    ///     Represents the an attribute that provides a filter for unhandled exceptions.
     /// </summary>
     public class UnhandledExceptionFilterAttribute : ExceptionFilterAttribute
     {
         #region UnhandledExceptionFilterAttribute()
 
-        #endregion
+        #endregion UnhandledExceptionFilterAttribute()
 
         #region DefaultHandler
+
         /// <summary>
-        /// Gets a delegate method that returns an <see cref="HttpResponseMessage"/> 
-        /// that describes the supplied exception.
+        ///     Gets a delegate method that returns an <see cref="HttpResponseMessage"/> that
+        ///     describes the supplied exception.
         /// </summary>
         /// <value>
-        /// A <see cref="Func{T1,T2,TResult}"/> delegate method that returns 
-        /// an <see cref="HttpResponseMessage"/> that describes the supplied exception.
+        ///     A <see cref="Func{T1,T2,TResult}"/> delegate method that returns an <see
+        ///     cref="HttpResponseMessage"/> that describes the supplied exception.
         /// </value>
         private static Func<Exception, HttpRequestMessage, HttpResponseMessage> DefaultHandler = (exception, request) =>
         {
@@ -39,15 +40,17 @@ namespace BridgeCare.ExceptionHandling
 
             return response;
         };
-        #endregion
+
+        #endregion DefaultHandler
 
         #region GetContentOf
+
         /// <summary>
-        /// Gets a delegate method that extracts information from the specified exception.
+        ///     Gets a delegate method that extracts information from the specified exception.
         /// </summary>
         /// <value>
-        /// A <see cref="Func{Exception, String}"/> delegate method that extracts information 
-        /// from the specified exception.
+        ///     A <see cref="Func{Exception, String}"/> delegate method that extracts information
+        ///     from the specified exception.
         /// </value>
         private static Func<Exception, string> GetContentOf = exception =>
         {
@@ -75,15 +78,17 @@ namespace BridgeCare.ExceptionHandling
 
             return result.ToString();
         };
-        #endregion
+
+        #endregion GetContentOf
 
         #region Handlers
+
         /// <summary>
-        /// Gets the exception handlers registered with this filter.
+        ///     Gets the exception handlers registered with this filter.
         /// </summary>
         /// <value>
-        /// A <see cref="ConcurrentDictionary{TKey,TValue}"/> collection that contains 
-        /// the exception handlers registered with this filter.
+        ///     A <see cref="ConcurrentDictionary{TKey,TValue}"/> collection that contains the
+        ///     exception handlers registered with this filter.
         /// </value>
         protected ConcurrentDictionary<Type, Tuple<HttpStatusCode?, Func<Exception, HttpRequestMessage, HttpResponseMessage>>> Handlers
         {
@@ -92,12 +97,15 @@ namespace BridgeCare.ExceptionHandling
                 return _filterHandlers;
             }
         }
+
         private readonly ConcurrentDictionary<Type, Tuple<HttpStatusCode?, Func<Exception, HttpRequestMessage, HttpResponseMessage>>> _filterHandlers = new ConcurrentDictionary<Type, Tuple<HttpStatusCode?, Func<Exception, HttpRequestMessage, HttpResponseMessage>>>();
-        #endregion
+
+        #endregion Handlers
 
         #region OnException(HttpActionExecutedContext actionExecutedContext)
+
         /// <summary>
-        /// Raises the exception event.
+        ///     Raises the exception event.
         /// </summary>
         /// <param name="actionExecutedContext">The context for the action.</param>
         public override void OnException(HttpActionExecutedContext actionExecutedContext)
@@ -137,21 +145,26 @@ namespace BridgeCare.ExceptionHandling
                 );
             }
         }
-        #endregion
+
+        #endregion OnException(HttpActionExecutedContext actionExecutedContext)
 
         #region Register<TException>(HttpStatusCode statusCode)
+
         /// <summary>
-        /// Registers an exception handler that returns the specified status code for exceptions of type <typeparamref name="TException"/>.
+        ///     Registers an exception handler that returns the specified status code for exceptions
+        ///     of type <typeparamref name="TException"/>.
         /// </summary>
         /// <typeparam name="TException">The type of exception to register a handler for.</typeparam>
-        /// <param name="statusCode">The HTTP status code to return for exceptions of type <typeparamref name="TException"/>.</param>
+        /// <param name="statusCode">
+        ///     The HTTP status code to return for exceptions of type <typeparamref name="TException"/>.
+        /// </param>
         /// <returns>
-        /// This <see cref="UnhandledExceptionFilterAttribute"/> after the exception handler has been added.
+        ///     This <see cref="UnhandledExceptionFilterAttribute"/> after the exception handler has
+        ///     been added.
         /// </returns>
         public UnhandledExceptionFilterAttribute Register<TException>(HttpStatusCode statusCode)
             where TException : Exception
         {
-
             var type = typeof(TException);
             var item = new Tuple<HttpStatusCode?, Func<Exception, HttpRequestMessage, HttpResponseMessage>>(
                 statusCode, DefaultHandler
@@ -169,19 +182,28 @@ namespace BridgeCare.ExceptionHandling
 
             return this;
         }
-        #endregion
+
+        #endregion Register<TException>(HttpStatusCode statusCode)
 
         #region Register<TException>(Func<Exception, HttpRequestMessage, HttpResponseMessage> handler)
+
         /// <summary>
-        /// Registers the specified exception <paramref name="handler"/> for exceptions of type <typeparamref name="TException"/>.
+        ///     Registers the specified exception <paramref name="handler"/> for exceptions of type
+        ///     <typeparamref name="TException"/>.
         /// </summary>
-        /// <typeparam name="TException">The type of exception to register the <paramref name="handler"/> for.</typeparam>
-        /// <param name="handler">The exception handler responsible for exceptions of type <typeparamref name="TException"/>.</param>
+        /// <typeparam name="TException">
+        ///     The type of exception to register the <paramref name="handler"/> for.
+        /// </typeparam>
+        /// <param name="handler">
+        ///     The exception handler responsible for exceptions of type <typeparamref name="TException"/>.
+        /// </param>
         /// <returns>
-        /// This <see cref="UnhandledExceptionFilterAttribute"/> after the exception <paramref name="handler"/> 
-        /// has been added.
+        ///     This <see cref="UnhandledExceptionFilterAttribute"/> after the exception <paramref
+        ///     name="handler"/> has been added.
         /// </returns>
-        /// <exception cref="ArgumentNullException">The <paramref name="handler"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException">
+        ///     The <paramref name="handler"/> is <see langword="null"/>.
+        /// </exception>
         public UnhandledExceptionFilterAttribute Register<TException>(Func<Exception, HttpRequestMessage, HttpResponseMessage> handler)
             where TException : Exception
         {
@@ -207,16 +229,18 @@ namespace BridgeCare.ExceptionHandling
 
             return this;
         }
-        #endregion
+
+        #endregion Register<TException>(Func<Exception, HttpRequestMessage, HttpResponseMessage> handler)
 
         #region Unregister<TException>()
+
         /// <summary>
-        /// Unregisters the exception handler for exceptions of type <typeparamref name="TException"/>.
+        ///     Unregisters the exception handler for exceptions of type <typeparamref name="TException"/>.
         /// </summary>
         /// <typeparam name="TException">The type of exception to unregister handlers for.</typeparam>
         /// <returns>
-        /// This <see cref="UnhandledExceptionFilterAttribute"/> after the exception handler 
-        /// for exceptions of type <typeparamref name="TException"/> has been removed.
+        ///     This <see cref="UnhandledExceptionFilterAttribute"/> after the exception handler for
+        ///     exceptions of type <typeparamref name="TException"/> has been removed.
         /// </returns>
         public UnhandledExceptionFilterAttribute Unregister<TException>()
             where TException : Exception
@@ -227,6 +251,7 @@ namespace BridgeCare.ExceptionHandling
 
             return this;
         }
-        #endregion
+
+        #endregion Unregister<TException>()
     }
 }

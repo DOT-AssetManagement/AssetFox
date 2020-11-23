@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
 using BridgeCare.Models;
 
 namespace BridgeCare.EntityClasses
@@ -14,9 +10,12 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int ID_ { get; set; }
+
         [ForeignKey("SIMULATION")]
         public int SIMULATIONID { get; set; }
+
         public string USERNAME { get; set; }
+
         public bool CAN_MODIFY { get; set; }
 
         public virtual SimulationEntity SIMULATION { get; set; }

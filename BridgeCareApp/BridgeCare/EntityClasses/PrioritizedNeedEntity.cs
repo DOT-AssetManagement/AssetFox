@@ -8,8 +8,11 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int ID_ { get; set; }
+
         public int SIMULATIONID { get; set; }
+
         public string ATTRIBUTE_ { get; set; }
+
         public int? PRIORITY { get; set; }
 
         [ForeignKey("SIMULATIONID")]

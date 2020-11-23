@@ -1,17 +1,16 @@
-﻿using BridgeCare.ApplicationLog;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BridgeCare.Interfaces;
+using BridgeCare.Models.Inventory;
 
 namespace BridgeCare.Services
 {
-    public class InventoryItemDetailModelGenerator: IInventoryItemDetailModelGenerator
+    public class InventoryItemDetailModelGenerator : IInventoryItemDetailModelGenerator
     {
         /// <summary>
-        /// Generate InventoryItemDetailModel
-        /// </summary>        
+        ///     Generate InventoryItemDetailModel
+        /// </summary>
         /// <param name="inventoryModel"></param>
         /// <returns></returns>
         public InventoryItemDetailModel MakeInventoryItemDetailModel(InventoryModel inventoryModel)
@@ -32,7 +31,7 @@ namespace BridgeCare.Services
                 AddRoadwayInfo(inventoryItemDetailModel, inventoryItems);
                 AddCurrentConditionDuration(inventoryItemDetailModel, inventoryItems);
                 AddRiskScores(inventoryItemDetailModel, inventoryItems);
-                AddOperatingInventoryRating(inventoryItemDetailModel, inventoryItems);                  
+                AddOperatingInventoryRating(inventoryItemDetailModel, inventoryItems);
             }
             catch (Exception ex)
             {
@@ -47,7 +46,7 @@ namespace BridgeCare.Services
         {
             var operatingRatingInventoryRatingGrouping = new OperatingRatingInventoryRatingGrouping();
             AddRatingRows(operatingRatingInventoryRatingGrouping, inventoryItems);
-            AddMinRatioLegalLoad(operatingRatingInventoryRatingGrouping, inventoryItems);         
+            AddMinRatioLegalLoad(operatingRatingInventoryRatingGrouping, inventoryItems);
             inventoryItemDetailModel.OperatingRatingInventoryRatingGrouping = operatingRatingInventoryRatingGrouping;
         }
 
@@ -83,7 +82,9 @@ namespace BridgeCare.Services
             //TODO Risk scores: currently const 0 assigned as per UI
             var inventoryItem = inventoryItems.FirstOrDefault(i => i.ColumnName == "Old_Risk_Score");
             var newRiskInventoryItem = inventoryItems.FirstOrDefault(i => i.ColumnName == "Risk_Score");
-            inventoryItemDetailModel.RiskScores = new RiskScores { Old = Convert.ToDouble(inventoryItem.DisplayValue),
+            inventoryItemDetailModel.RiskScores = new RiskScores
+            {
+                Old = Convert.ToDouble(inventoryItem.DisplayValue),
                 New = Convert.ToDouble(newRiskInventoryItem.DisplayValue),
                 OldName = inventoryItem.ViewName,
                 NewName = newRiskInventoryItem.ViewName,
@@ -93,7 +94,7 @@ namespace BridgeCare.Services
         private void AddCurrentConditionDuration(InventoryItemDetailModel inventoryItemDetailModel, List<InventoryItemModel> inventoryItems)
         {
             var currentConditionColumns = new List<string> { "DECK", "SUP", "SUB", "CULV" };
-            var currentDurationColumns = new List<string> { "DECK_DUR", "SUP_DUR", "SUB_DUR", "CULV_DUR" };            
+            var currentDurationColumns = new List<string> { "DECK_DUR", "SUP_DUR", "SUB_DUR", "CULV_DUR" };
             inventoryItemDetailModel.CurrentConditionDuration = CreateConditionDurationRows(inventoryItems, currentConditionColumns, currentDurationColumns);
             var priorConditionColumns = new List<string> { "PREV_DECK", "PREV_SUP", "PREV_SUB", "PREV_CULV" };
             var priorDurationColumns = new List<string> { "PREV_DECK_DUR", "PREV_SUP_DUR", "PREV_SUB_DUR", "PREV_CULV_DUR" };
@@ -160,7 +161,7 @@ namespace BridgeCare.Services
 
         private void AddAgeService(InventoryItemDetailModel inventoryItemDetailModel, List<InventoryItemModel> inventoryItems)
         {
-            var ageAndServiceColumns = new List<string> { "YEAR_BUILT", "YEAR_RECON", "SERVTYPON", "SERVTYPUND" }; 
+            var ageAndServiceColumns = new List<string> { "YEAR_BUILT", "YEAR_RECON", "SERVTYPON", "SERVTYPUND" };
             inventoryItemDetailModel.AgeAndService = CreateLabelValues(inventoryItems, ageAndServiceColumns);
         }
 

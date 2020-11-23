@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
-using System.Web.Http.Filters;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Security;
@@ -11,13 +10,19 @@ namespace BridgeCare.Controllers
     using TargetLibraryGetMethod = Func<int, UserInformationModel, TargetLibraryModel>;
     using TargetLibrarySaveMethod = Func<TargetLibraryModel, UserInformationModel, TargetLibraryModel>;
 
-    public class TargetController: ApiController
+    public class TargetController : ApiController
     {
         private readonly ITarget repo;
         private readonly BridgeCareContext db;
-        /// <summary>Maps user roles to methods for fetching a target library</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for fetching a target library
+        /// </summary>
         private readonly IReadOnlyDictionary<string, TargetLibraryGetMethod> TargetLibraryGetMethods;
-        /// <summary>Maps user roles to methods for saving a target library</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for saving a target library
+        /// </summary>
         private readonly IReadOnlyDictionary<string, TargetLibrarySaveMethod> TargetLibrarySaveMethods;
 
         public TargetController(ITarget repo, BridgeCareContext db)
@@ -30,7 +35,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for getting target libraries
+        ///     Creates a mapping from user roles to the appropriate methods for getting target libraries
         /// </summary>
         private Dictionary<string, TargetLibraryGetMethod> CreateGetMethods()
         {
@@ -49,7 +54,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for saving target libraries
+        ///     Creates a mapping from user roles to the appropriate methods for saving target libraries
         /// </summary>
         private Dictionary<string, TargetLibrarySaveMethod> CreateSaveMethods()
         {
@@ -68,7 +73,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's target library data
+        ///     API endpoint for fetching a simulation's target library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns>IHttpActionResult</returns>
@@ -83,7 +88,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for upserting/deleting a simulation's target library data
+        ///     API endpoint for upserting/deleting a simulation's target library data
         /// </summary>
         /// <param name="model">TargetLibraryModel</param>
         /// <returns>IHttpActionResult</returns>
@@ -91,7 +96,7 @@ namespace BridgeCare.Controllers
         [Route("api/SaveScenarioTargetLibrary")]
         [ModelValidation("The target data is invalid.")]
         [RestrictAccess]
-        public IHttpActionResult SaveSimulationTargetLibrary([FromBody]TargetLibraryModel model)
+        public IHttpActionResult SaveSimulationTargetLibrary([FromBody] TargetLibraryModel model)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(TargetLibrarySaveMethods[userInformation.Role](model, userInformation));

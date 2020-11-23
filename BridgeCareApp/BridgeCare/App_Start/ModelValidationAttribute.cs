@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http.Controllers;
+using System.Web.Http.Filters;
 
-namespace System.Web.Http.Filters
+namespace BridgeCare
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = true)]
     public class ModelValidationAttribute : ActionFilterAttribute
@@ -23,10 +25,12 @@ namespace System.Web.Http.Filters
         }
 
         private readonly Func<Dictionary<string, object>, bool> _validate;
+
         private string Message { get; set; }
 
         public ModelValidationAttribute() : this(arguments => arguments.ContainsValue(null))
         { }
+
         public ModelValidationAttribute(string message) : this(arguments => arguments.ContainsValue(null))
         {
             Message = message;

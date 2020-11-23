@@ -8,7 +8,9 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public string ATTRIBUTE_ { get; set; }
+
         public bool? ASCENDING { get; set; }
+
         public string Type_ { get; set; }
     }
 }

@@ -1,17 +1,23 @@
-﻿using System;
-using BridgeCare.EntityClasses;
+﻿using BridgeCare.EntityClasses;
 
 namespace BridgeCare.Models
 {
     public class PerformanceLibraryEquationModel : CrudModel
     {
         public string Id { get; set; }
+
         public string Attribute { get; set; }
+
         public string EquationName { get; set; }
+
         public string Criteria { get; set; }
+
         public string Equation { get; set; }
-        public bool? Shift { get; set; }  
+
+        public bool? Shift { get; set; }
+
         public bool? Piecewise { get; set; }
+
         public bool? IsFunction { get; set; }
 
         public PerformanceLibraryEquationModel() { }

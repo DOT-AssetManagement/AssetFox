@@ -1,6 +1,3 @@
-using BridgeCare.EntityClasses;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -9,10 +6,12 @@ using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BridgeCare.EntityClasses;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 using BridgeCare.Properties;
 using DatabaseManager;
 using log4net;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using Simulation;
 
@@ -22,8 +21,9 @@ namespace BridgeCare.DataAccessLayer
     {
         private static readonly log4net.ILog log = LogManager.GetLogger(typeof(SimulationDAL));
         private static readonly SimulationQueue SimulationQueue = SimulationQueue.MainSimulationQueue;
+
         /// <summary>
-        /// Fetches all simulations
+        ///     Fetches all simulations
         /// </summary>
         /// <param name="db">BridgeCareContext</param>
         /// <returns>SimulationModel list</returns>
@@ -33,7 +33,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches all simulations to which the user has any level of access
+        ///     Fetches all simulations to which the user has any level of access
         /// </summary>
         /// <param name="db">BridgeCareContext</param>
         /// <param name="userInformation">UserInformationModel</param>
@@ -46,7 +46,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Updates a simulation; Throws a RowNotInTableException if no simulation is found
+        ///     Updates a simulation; Throws a RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -58,7 +58,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Updates a simulation belonging to the user; Throws a RowNotInTableException if no such simulation is found
+        ///     Updates a simulation belonging to the user; Throws a RowNotInTableException if no
+        ///     such simulation is found
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -72,7 +73,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Updates a simulation regardless of ownership; Throws a RowNotInTableException if no simulation is found
+        ///     Updates a simulation regardless of ownership; Throws a RowNotInTableException if no
+        ///     simulation is found
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -84,8 +86,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Deletes a simulation and all records with a foreign key relation into the simulations table
-        /// Simply returns if no simulation is found
+        ///     Deletes a simulation and all records with a foreign key relation into the
+        ///     simulations table Simply returns if no simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -117,8 +119,9 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Deletes a simulation belonging to the user and all records with a foreign key relation into the simulations table
-        /// Throws RowNotInTableException if the user cannot access a scenario with the given id
+        ///     Deletes a simulation belonging to the user and all records with a foreign key
+        ///     relation into the simulations table Throws RowNotInTableException if the user cannot
+        ///     access a scenario with the given id
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -132,8 +135,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Deletes a simulation regardless of ownership
-        /// Simply returns if no simulation is found
+        ///     Deletes a simulation regardless of ownership Simply returns if no simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -183,7 +185,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Creates/starts a rollup/simulation
+        ///     Creates/starts a rollup/simulation
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>string Task</returns>
@@ -256,8 +258,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Updates the last run date of a simulation
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Updates the last run date of a simulation Throws a RowNotInTableException if no
+        ///     simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>

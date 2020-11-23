@@ -1,4 +1,4 @@
-﻿namespace BridgeCare.Models
+﻿namespace BridgeCare.Models.SummaryReport
 {
     public class ReportProjectCost
     {

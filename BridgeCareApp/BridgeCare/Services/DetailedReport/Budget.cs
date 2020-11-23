@@ -1,15 +1,15 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.DetailedReport
 {
     public class Budget
     {

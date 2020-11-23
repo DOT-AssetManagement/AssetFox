@@ -1,11 +1,7 @@
-﻿using BridgeCare.Models.CriteriaDrivenBudgets;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
+using BridgeCare.Models;
 
 namespace BridgeCare.EntityClasses.CriteriaDrivenBudgets
 {
@@ -14,8 +10,11 @@ namespace BridgeCare.EntityClasses.CriteriaDrivenBudgets
     {
         [Key]
         public int BUDGET_CRITERIA_ID { get; set; }
+
         public int SIMULATIONID { get; set; }
+
         public string BUDGET_NAME { get; set; }
+
         public string CRITERIA { get; set; }
 
         public CriteriaDrivenBudgetEntity() { }

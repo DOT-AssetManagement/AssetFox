@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
+using BridgeCare.Interfaces.SummaryReport;
+using BridgeCare.Models.SummaryReport;
 
 namespace BridgeCare.DataAccessLayer.SummaryReport
 {
@@ -15,7 +15,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
         }
 
         /// <summary>
-        /// Fetches a simulation's yearly investments data
+        ///     Fetches a simulation's yearly investments data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns>SimulationYearsModel</returns>

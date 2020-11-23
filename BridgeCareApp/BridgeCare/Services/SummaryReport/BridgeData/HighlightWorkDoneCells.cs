@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Web;
 using OfficeOpenXml;
 
 namespace BridgeCare.Services.SummaryReport.BridgeData
@@ -15,6 +12,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
         {
             this.excelHelper = excelHelper;
         }
+
         internal void CheckConditions(int parallelBridge, string treatment,
             Dictionary<int, int> projectPickByYear, int year, int index, string project, ExcelWorksheet worksheet, int row, int column)
         {
@@ -48,6 +46,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 excelHelper.SetTextColor(range, Color.Black);
             }
         }
+
         private void ParallelBridgeCashFlow(int isParallel, int projectPickType, ExcelRange range)
         {
             if (isParallel == 1 && projectPickType == 2)
@@ -57,6 +56,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 return;
             }
         }
+
         private void ParallelBridgeMPMS(int isParallel, int projectPickType, ExcelRange range)
         {
             if (isParallel == 1 && projectPickType == 1)
@@ -65,6 +65,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 excelHelper.SetTextColor(range, Color.White);
             }
         }
+
         private void CashFlowedBridge(int projectPickType, ExcelRange range)
         {
             if (projectPickType == 2)

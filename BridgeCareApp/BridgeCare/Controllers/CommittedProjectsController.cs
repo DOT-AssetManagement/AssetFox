@@ -1,14 +1,13 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web;
 using System.Web.Http;
-using System.Web.Http.Filters;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -47,7 +46,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for saving committed projects data
+        ///     API endpoint for saving committed projects data
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpPost]
@@ -64,7 +63,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for creating committed projects excel file
+        ///     API endpoint for creating committed projects excel file
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>IHttpActionResult</returns>
@@ -72,7 +71,7 @@ namespace BridgeCare.Controllers
         [Route("api/ExportCommittedProjects")]
         [ModelValidation("The scenario data is invalid.")]
         [RestrictAccess]
-        public HttpResponseMessage ExportCommittedProjects([FromBody]SimulationModel model)
+        public HttpResponseMessage ExportCommittedProjects([FromBody] SimulationModel model)
         {
             var response = Request.CreateResponse();
             var userInformation = ESECSecurity.GetUserInformation(Request);
@@ -89,7 +88,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for deleting committed projects
+        ///     API endpoint for deleting committed projects
         /// </summary>
         /// <param name="simulationId"></param>
         /// <returns></returns>

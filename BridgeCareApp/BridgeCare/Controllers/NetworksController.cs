@@ -1,7 +1,7 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Web.Http;
+using BridgeCare.Interfaces;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -17,7 +17,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching all networks
+        ///     API endpoint for fetching all networks
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpGet]

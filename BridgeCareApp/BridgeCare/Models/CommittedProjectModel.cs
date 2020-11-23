@@ -18,7 +18,7 @@ namespace BridgeCare.Models
 
         public string Budget { get; set; }
 
-        public double Cost { get; set; }        
+        public double Cost { get; set; }
 
         public List<CommitConsequenceModel> CommitConsequences { get; set; }
     }

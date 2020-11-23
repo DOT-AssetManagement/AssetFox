@@ -1,16 +1,19 @@
-﻿using BridgeCare.EntityClasses;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using BridgeCare.EntityClasses;
 
 namespace BridgeCare.Models
 {
     public class PriorityModel : CrudModel
     {
         public string Id { get; set; }
+
         public int PriorityLevel { get; set; }
+
         public int? Year { get; set; }
+
         public string Criteria { get; set; }
+
         public List<PriorityFundModel> PriorityFunds { get; set; }
 
         public PriorityModel() { }

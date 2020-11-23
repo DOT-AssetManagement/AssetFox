@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using BridgeCare.EntityClasses;
+﻿using BridgeCare.EntityClasses;
 
 namespace BridgeCare.Models
 {
     public class SplitTreatmentLimitModel : CrudModel
     {
         public string Id { get; set; }
+
         public int? Rank { get; set; }
+
         public double? Amount { get; set; }
+
         public string Percentage { get; set; }
+
         public SplitTreatmentLimitModel() { }
 
         public SplitTreatmentLimitModel(SplitTreatmentLimitEntity entity)

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Web;
+﻿using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 
@@ -30,6 +26,7 @@ namespace BridgeCare.Services.SummaryReport.Charts
             chart.AdjustPositionAndSize();
             chart.Locked = true;
         }
+
         private void AddSeries(ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalCashNeededByBPNYearsRow, int count, ExcelChart chart)
         {
             CreateSeries(bridgeWorkSummaryWorkSheet, totalCashNeededByBPNYearsRow, count, chart, totalCashNeededByBPNYearsRow + 1, Properties.Resources.BPN1, Color.Blue);
@@ -41,7 +38,6 @@ namespace BridgeCare.Services.SummaryReport.Charts
             CreateSeries(bridgeWorkSummaryWorkSheet, totalCashNeededByBPNYearsRow, count, chart, totalCashNeededByBPNYearsRow + 4, Properties.Resources.BPN4, Color.Yellow);
 
             CreatMeanSpendingLine(bridgeWorkSummaryWorkSheet, totalCashNeededByBPNYearsRow, count, chart, totalCashNeededByBPNYearsRow + 5, Properties.Resources.MeanAnnualSpending, Color.Red);
-
         }
 
         private void CreatMeanSpendingLine(ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalCashNeededByBPNYearsRow, int count, ExcelChart chart, int fromRow, string header, Color color)

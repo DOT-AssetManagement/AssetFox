@@ -10,12 +10,19 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int ID_ { get; set; }
+
         public int SIMULATIONID { get; set; }
+
         public string ATTRIBUTE_ { get; set; }
+
         public string DEFICIENTNAME { get; set; }
+
         public double? DEFICIENT { get; set; }
+
         public double? PERCENTDEFICIENT { get; set; }
+
         public string CRITERIA { get; set; }
+
         public byte?[] BINARY_CRITERIA { get; set; }
 
         [ForeignKey("SIMULATIONID")]

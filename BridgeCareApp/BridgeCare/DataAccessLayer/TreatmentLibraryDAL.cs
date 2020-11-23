@@ -1,18 +1,18 @@
-﻿using System.Collections.Generic;
-using BridgeCare.EntityClasses;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
-using System;
+using BridgeCare.EntityClasses;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class TreatmentLibraryDAL : ITreatmentLibrary
     {
         /// <summary>
-        /// Fetches a simulation's treatment library data
+        ///     Fetches a simulation's treatment library data
         /// </summary>
         /// <param name="id"></param>
         /// <param name="db"></param>
@@ -29,8 +29,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's treatment library data if it belongs to the user
-        /// Throws a RowNotInTableException if no such simulation is found
+        ///     Fetches a simulation's treatment library data if it belongs to the user Throws a
+        ///     RowNotInTableException if no such simulation is found
         /// </summary>
         /// <param name="id"></param>
         /// <param name="db"></param>
@@ -53,8 +53,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's treatment library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Executes an upsert/delete operation on a simulation's treatment library data Throws
+        ///     a RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="model">TreatmentLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>

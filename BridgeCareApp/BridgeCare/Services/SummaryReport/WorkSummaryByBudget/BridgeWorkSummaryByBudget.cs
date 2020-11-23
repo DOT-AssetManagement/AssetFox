@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using BridgeCare.Interfaces;
 using BridgeCare.Interfaces.SummaryReport;
 using BridgeCare.Models;
 using BridgeCare.Models.SummaryReport;
@@ -77,7 +76,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummaryByBudget
                 //Filtering treatments for the given budget
                 var costForCulvertBudget = budgetsPerYearPerTreatment
                                              .FindAll(_ => _.BUDGET.Equals(budget) && _.TREATMENT.ToLower().Contains("culvert"));
-                                             
+
                 var costForBridgeBudgets = budgetsPerYearPerTreatment
                                              .FindAll(_ => _.BUDGET.Equals(budget) && !_.TREATMENT.ToLower().Contains("culvert"));
 
@@ -87,7 +86,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummaryByBudget
                 {
                     continue;
                 }
-                
+
                 var totalBudgetPerYearForCulvert = new Dictionary<int, double>();
                 var totalBudgetPerYearForBridgeWork = new Dictionary<int, double>();
                 var totalBudgetPerYearForMPMS = new Dictionary<int, double>();
@@ -129,7 +128,6 @@ namespace BridgeCare.Services.SummaryReport.WorkSummaryByBudget
                 bridgeWorkCost.FillCostOfBridgeWork(worksheet, currentCell, simulationYears, costForBridgeBudgets, totalBudgetPerYearForBridgeWork);
 
                 committedProjectsCost.FillCostOfMPMSWork(worksheet, currentCell, simulationYears, filteredCommittedProject, totalBudgetPerYearForMPMS);
-                
 
                 currentCell.Row += 1;
                 bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Total Budget", "Totals");
@@ -179,7 +177,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummaryByBudget
                     worksheet.Cells[currentCell.Row, currentCell.Column + cellFortotalBudget + 2].Value = budgetSum.BudgetAmount - perYearTotalSpent.amount;
 
                     worksheet.Cells[currentCell.Row + 1, currentCell.Column + cellFortotalBudget + 2].Value =
-                        totalBudgetPerYearForMPMS[budgetSum.Year]/perYearTotalSpent.amount;
+                        totalBudgetPerYearForMPMS[budgetSum.Year] / perYearTotalSpent.amount;
 
                     worksheet.Cells[currentCell.Row + 2, currentCell.Column + cellFortotalBudget + 2].Value = 1 -
                         totalBudgetPerYearForMPMS[budgetSum.Year] / perYearTotalSpent.amount;

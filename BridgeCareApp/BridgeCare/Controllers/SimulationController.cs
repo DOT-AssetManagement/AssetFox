@@ -1,35 +1,48 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System.Web.Http.Filters;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
-    using SimulationGetMethod = Func<UserInformationModel, List<SimulationModel>>;
-    using SimulationUpdateMethod = Action<SimulationModel, UserInformationModel>;
-    using SimulationRunMethod = Func<SimulationModel, UserInformationModel, Task<string>>;
     using SimulationDeletionMethod = Action<int, UserInformationModel>;
+    using SimulationGetMethod = Func<UserInformationModel, List<SimulationModel>>;
+    using SimulationRunMethod = Func<SimulationModel, UserInformationModel, Task<string>>;
+    using SimulationUpdateMethod = Action<SimulationModel, UserInformationModel>;
     using SimulationUserUpdateMethod = Action<int, List<SimulationUserModel>, UserInformationModel>;
-    using SimulationCloneMethod = Action<int>;
 
     public class SimulationController : ApiController
     {
         private readonly ISimulation repo;
         private readonly BridgeCareContext db;
-        /// <summary>Maps user roles to methods for fetching simulations</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for fetching simulations
+        /// </summary>
         private readonly IReadOnlyDictionary<string, SimulationGetMethod> SimulationGetMethods;
-        /// <summary>Maps user roles to methods for updating simulations</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for updating simulations
+        /// </summary>
         private readonly IReadOnlyDictionary<string, SimulationUpdateMethod> SimulationUpdateMethods;
-        /// <summary>Maps user roles to methods for running simulations</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for running simulations
+        /// </summary>
         private readonly IReadOnlyDictionary<string, SimulationRunMethod> SimulationRunMethods;
-        /// <summary>Maps user roles to methods for deleting simulations</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for deleting simulations
+        /// </summary>
         private readonly IReadOnlyDictionary<string, SimulationDeletionMethod> SimulationDeletionMethods;
-        /// <summary>Maps user roles to methods for setting simulation users</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for setting simulation users
+        /// </summary>
         private readonly IReadOnlyDictionary<string, SimulationUserUpdateMethod> SimulationUserUpdateMethods;
 
         public SimulationController(ISimulation repo, BridgeCareContext db)
@@ -45,7 +58,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for getting scenarios
+        ///     Creates a mapping from user roles to the appropriate methods for getting scenarios
         /// </summary>
         /// <returns></returns>
         private Dictionary<string, SimulationGetMethod> CreateGetMethods()
@@ -65,7 +78,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for updating scenarios
+        ///     Creates a mapping from user roles to the appropriate methods for updating scenarios
         /// </summary>
         /// <returns></returns>
         private Dictionary<string, SimulationUpdateMethod> CreateUpdateMethods()
@@ -101,7 +114,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for deleting scenarios
+        ///     Creates a mapping from user roles to the appropriate methods for deleting scenarios
         /// </summary>
         /// <returns></returns>
         private Dictionary<string, SimulationDeletionMethod> CreateDeletionMethods()
@@ -136,9 +149,8 @@ namespace BridgeCare.Controllers
             };
         }
 
-
         /// <summary>
-        /// API endpoint for fetching all simulations
+        ///     API endpoint for fetching all simulations
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpGet]
@@ -151,7 +163,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for creating a simulation
+        ///     API endpoint for creating a simulation
         /// </summary>
         /// <param name="model">CreateSimulationDataModel</param>
         /// <returns>IHttpActionResult</returns>
@@ -159,7 +171,7 @@ namespace BridgeCare.Controllers
         [Route("api/CreateScenario")]
         [ModelValidation("The scenario data is invalid.")]
         [RestrictAccess]
-        public IHttpActionResult CreateSimulation([FromBody]CreateSimulationDataModel model) =>
+        public IHttpActionResult CreateSimulation([FromBody] CreateSimulationDataModel model) =>
             Ok(repo.CreateSimulation(model, db));
 
         [HttpPost]
@@ -172,7 +184,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for updating a simulation
+        ///     API endpoint for updating a simulation
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>IHttpActionResult</returns>
@@ -180,7 +192,7 @@ namespace BridgeCare.Controllers
         [Route("api/UpdateScenario")]
         [ModelValidation("The scenario data is invalid.")]
         [RestrictAccess]
-        public IHttpActionResult UpdateSimulation([FromBody]SimulationModel model)
+        public IHttpActionResult UpdateSimulation([FromBody] SimulationModel model)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             SimulationUpdateMethods[userInformation.Role](model, userInformation);
@@ -188,7 +200,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for deleting a simulation
+        ///     API endpoint for deleting a simulation
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns>IHttpActionResult</returns>
@@ -204,14 +216,14 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for running a simulation
+        ///     API endpoint for running a simulation
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>IHttpActionResult</returns>
         [HttpPost]
         [Route("api/RunSimulation")]
         [RestrictAccess]
-        public async Task<IHttpActionResult> RunSimulation([FromBody]SimulationModel model)
+        public async Task<IHttpActionResult> RunSimulation([FromBody] SimulationModel model)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             var result = await Task.Factory.StartNew(() => SimulationRunMethods[userInformation.Role](model, userInformation));
@@ -227,7 +239,7 @@ namespace BridgeCare.Controllers
         [HttpPost]
         [Route("api/SetScenarioUsers/{id}")]
         [RestrictAccess]
-        public IHttpActionResult SetSimulationUsers(int id, [FromBody]SimulationUserModel[] simulationUsers)
+        public IHttpActionResult SetSimulationUsers(int id, [FromBody] SimulationUserModel[] simulationUsers)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             SimulationUserUpdateMethods[userInformation.Role](id, simulationUsers.ToList(), userInformation);

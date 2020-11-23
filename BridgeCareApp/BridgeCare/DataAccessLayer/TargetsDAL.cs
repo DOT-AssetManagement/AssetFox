@@ -1,14 +1,12 @@
-﻿using BridgeCare.ApplicationLog;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using BridgeCare.EntityClasses;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
@@ -24,8 +22,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a specific target from a dynamic table 'Target_{NETWORKID}_{SIMULATIONID}'
-        /// and transforms the data into a TargetReportModel
+        ///     Fetches a specific target from a dynamic table 'Target_{NETWORKID}_{SIMULATIONID}'
+        ///     and transforms the data into a TargetReportModel
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <param name="totalYears">int[]</param>
@@ -44,7 +42,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Transforms dynamic table 'Target_{NETWORKID}_{SIMULATIONID}' data into a TargetReportModel
+        ///     Transforms dynamic table 'Target_{NETWORKID}_{SIMULATIONID}' data into a TargetReportModel
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <param name="yearsIdValues">Hashtable</param>
@@ -79,7 +77,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's target library data
+        ///     Fetches a simulation's target library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -91,8 +89,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's target library data if it is owned by the user
-        /// Throws a RowNotInTableException if no simulation is found for the user
+        ///     Fetches a simulation's target library data if it is owned by the user Throws a
+        ///     RowNotInTableException if no simulation is found for the user
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -108,8 +106,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's target library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Fetches a simulation's target library data Throws a RowNotInTableException if no
+        ///     simulation is found
         /// </summary>
         /// <param name="id"></param>
         /// <param name="db"></param>
@@ -122,7 +120,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's target library data
+        ///     Executes an upsert/delete operation on a simulation's target library data
         /// </summary>
         /// <param name="model">TargetLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -163,8 +161,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's target library data if the user owns it
-        /// Throws a RowNotInTableException if no simulation is found for the user
+        ///     Executes an upsert/delete operation on a simulation's target library data if the
+        ///     user owns it Throws a RowNotInTableException if no simulation is found for the user
         /// </summary>
         /// <param name="model">TargetLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -181,8 +179,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's target library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Executes an upsert/delete operation on a simulation's target library data Throws a
+        ///     RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="model"></param>
         /// <param name="db"></param>

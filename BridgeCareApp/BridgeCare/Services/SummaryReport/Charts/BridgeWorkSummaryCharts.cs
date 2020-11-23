@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using BridgeCare.Services.SummaryReport.Charts.PoorDeckAreaByBPN;
 using BridgeCare.Services.SummaryReport.Charts.PostedCountByBPN;
-using BridgeCare.Services.SummaryReport.PoorDeckAreaByBPN;
 using OfficeOpenXml;
 
 namespace BridgeCare.Services.SummaryReport.Charts
@@ -30,6 +27,7 @@ namespace BridgeCare.Services.SummaryReport.Charts
             this.combinedPostedClosedByBPN = combinedPostedClosedByBPN ?? throw new ArgumentNullException(nameof(combinedPostedClosedByBPN));
             this.cashNeededByBPN = cashNeededByBPN ?? throw new ArgumentNullException(nameof(cashNeededByBPN));
         }
+
         internal void FillPoorDeckAreaByBPN(ExcelWorksheet worksheet, ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalPoorDeckAreaByBPNSectionYearsRow, int simulationYearsCount)
         {
             poorBridgeDeckAreaByBPN.Fill(worksheet, bridgeWorkSummaryWorkSheet, totalPoorDeckAreaByBPNSectionYearsRow, simulationYearsCount);

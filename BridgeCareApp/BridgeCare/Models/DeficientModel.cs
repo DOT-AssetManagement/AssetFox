@@ -2,13 +2,18 @@
 
 namespace BridgeCare.Models
 {
-    public class DeficientModel: CrudModel
+    public class DeficientModel : CrudModel
     {
         public string Id { get; set; }
+
         public string Attribute { get; set; }
+
         public string Name { get; set; }
+
         public double? Deficient { get; set; }
+
         public double? PercentDeficient { get; set; }
+
         public string Criteria { get; set; }
 
         public DeficientModel() { }

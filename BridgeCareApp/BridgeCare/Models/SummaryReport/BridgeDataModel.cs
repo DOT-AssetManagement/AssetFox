@@ -1,4 +1,4 @@
-﻿namespace BridgeCare.Models
+﻿namespace BridgeCare.Models.SummaryReport
 {
     public class BridgeDataModel
     {
@@ -22,11 +22,17 @@
         public int StructureLength { get; set; }
 
         public string StructureType { get; set; }
+
         public string PlanningPartner { get; set; }
+
         public string Posted { get; set; }
+
         public int AdtTotal { get; set; }
+
         public int P3 { get; set; }
+
         public int ParallelBridge { get; set; }
+
         public double RiskScore { get; set; }
 
         //Below data fetched from table PENNDOT_BRIDGE_DATA

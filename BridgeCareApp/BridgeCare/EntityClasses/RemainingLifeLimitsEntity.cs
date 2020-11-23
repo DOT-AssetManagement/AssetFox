@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
-using System.Dynamic;
-using System.Linq;
-using System.Web;
 using BridgeCare.Models;
 
 namespace BridgeCare.EntityClasses
@@ -15,10 +10,15 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int REMAINING_LIFE_ID { get; set; }
+
         public int SIMULATION_ID { get; set; }
+
         public string ATTRIBUTE_ { get; set; }
+
         public double REMAINING_LIFE_LIMIT { get; set; }
+
         public string CRITERIA { get; set; }
+
         [ForeignKey("SIMULATION_ID")]
         public virtual SimulationEntity SIMULATION { get; set; }
 

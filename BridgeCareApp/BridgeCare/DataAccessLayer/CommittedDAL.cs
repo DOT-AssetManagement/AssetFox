@@ -1,22 +1,19 @@
-﻿using BridgeCare.EntityClasses;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using EntityFramework.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Runtime.Remoting.Contexts;
-using Microsoft.SqlServer.Management.Dmf;
+using BridgeCare.EntityClasses;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class CommittedDAL : ICommitted
     {
         /// <summary>
-        /// Save committed projects in the database
+        ///     Save committed projects in the database
         /// </summary>
         /// <param name="committedProjectModels"></param>
         /// <param name="db"></param>
@@ -28,7 +25,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Runs a parameterized query string to delete the committed projects from the database with the given simulation id
+        ///     Runs a parameterized query string to delete the committed projects from the database
+        ///     with the given simulation id
         /// </summary>
         /// <param name="simulationId">Simulation id to use in the query 'where' clause</param>
         /// <param name="db">Database context used to execute the query</param>
@@ -51,7 +49,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Save committed projects in the database, if the user owns the scenario
+        ///     Save committed projects in the database, if the user owns the scenario
         /// </summary>
         /// <param name="committedProjectModels"></param>
         /// <param name="db"></param>
@@ -73,7 +71,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Get all the committed projects for a given simulation id
+        ///     Get all the committed projects for a given simulation id
         /// </summary>
         /// <param name="simulationId"></param>
         /// <param name="db"></param>
@@ -84,7 +82,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Get all the committed projects for a given simulation id, if owned by the current user
+        ///     Get all the committed projects for a given simulation id, if owned by the current user
         /// </summary>
         /// <param name="simulationId"></param>
         /// <param name="db"></param>

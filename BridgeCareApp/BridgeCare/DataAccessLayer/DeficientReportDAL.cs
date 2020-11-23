@@ -1,13 +1,12 @@
-﻿using BridgeCare.ApplicationLog;
+﻿using System;
+using System.Collections;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using BridgeCare.ApplicationLog;
 using BridgeCare.EntityClasses;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
-using System;
-using System.Collections;
-using System.Data;
-using System.Data.Entity;
-using System.Data.SqlClient;
-using System.Linq;
 
 namespace BridgeCare.DataAccessLayer
 {
@@ -27,8 +26,8 @@ namespace BridgeCare.DataAccessLayer
 
         public DeficientResult GetData(SimulationModel data, int[] totalYears)
         {
-            // Deficient and DeficientResults are models. Deficient gets data
-            // from the database. DeficientResult gets the processed data
+            // Deficient and DeficientResults are models. Deficient gets data from the database.
+            // DeficientResult gets the processed data
             IQueryable<DeficientReportModel> deficients = null;
             DeficientResult result = null;
 

@@ -1,10 +1,13 @@
-﻿namespace BridgeCare.Models
+﻿namespace BridgeCare.Models.Inventory
 {
     public class InventoryItemModel
     {
         public string ColumnName { get; set; }
+
         public string Id { get; set; }
+
         public string ViewName { get; set; }
+
         public string DisplayValue { get; set; }
 
         public InventoryItemModel() { }

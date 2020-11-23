@@ -13,14 +13,20 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int PRIORITYID { get; set; }
+
         public int SIMULATIONID { get; set; }
+
         public int? PRIORITYLEVEL { get; set; }
+
         public string CRITERIA { get; set; }
+
         public byte?[] BINARY_CRITERIA { get; set; }
+
         public int? YEARS { get; set; }
 
         [ForeignKey("SIMULATIONID")]
         public virtual SimulationEntity SIMULATION { get; set; }
+
         public ICollection<PriorityFundEntity> PRIORITYFUNDS { get; set; } = new List<PriorityFundEntity>();
 
         public PriorityEntity() { }

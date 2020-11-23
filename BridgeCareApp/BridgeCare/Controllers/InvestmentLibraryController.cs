@@ -1,10 +1,9 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
-using System.Web.Http.Filters;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -12,16 +11,22 @@ namespace BridgeCare.Controllers
     using InvestmentLibrarySaveMethod = Func<InvestmentLibraryModel, UserInformationModel, InvestmentLibraryModel>;
 
     /// <summary>
-    /// Http interface to get a list of investment strategies which are text descriptions and a
-    /// corresponding index for each one
+    ///     Http interface to get a list of investment strategies which are text descriptions and a
+    ///     corresponding index for each one
     /// </summary>
     public class InvestmentLibraryController : ApiController
     {
         private readonly IInvestmentLibrary repo;
         private readonly BridgeCareContext db;
-        /// <summary>Maps user roles to methods for fetching an investment library</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for fetching an investment library
+        /// </summary>
         private readonly IReadOnlyDictionary<string, InvestmentLibraryGetMethod> InvestmentLibraryGetMethods;
-        /// <summary>Maps user roles to methods for saving an investment library</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for saving an investment library
+        /// </summary>
         private readonly IReadOnlyDictionary<string, InvestmentLibrarySaveMethod> InvestmentLibrarySaveMethods;
 
         public InvestmentLibraryController(IInvestmentLibrary repo, BridgeCareContext db)
@@ -34,7 +39,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for getting investment libraries
+        ///     Creates a mapping from user roles to the appropriate methods for getting investment libraries
         /// </summary>
         private Dictionary<string, InvestmentLibraryGetMethod> CreateGetMethods()
         {
@@ -53,7 +58,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for saving investment libraries
+        ///     Creates a mapping from user roles to the appropriate methods for saving investment libraries
         /// </summary>
         private Dictionary<string, InvestmentLibrarySaveMethod> CreateSaveMethods()
         {
@@ -72,7 +77,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's investment library data
+        ///     API endpoint for fetching a simulation's investment library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns>IHttpActionResult</returns>
@@ -87,7 +92,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for upserting/deleting a simulation's investment library data
+        ///     API endpoint for upserting/deleting a simulation's investment library data
         /// </summary>
         /// <param name="model"></param>
         /// <returns>IHttpActionResult</returns>
@@ -95,7 +100,7 @@ namespace BridgeCare.Controllers
         [Route("api/SaveScenarioInvestmentLibrary")]
         [ModelValidation("Given investment data is not valid")]
         [RestrictAccess]
-        public IHttpActionResult SaveSimulationInvestmentLibrary([FromBody]InvestmentLibraryModel model)
+        public IHttpActionResult SaveSimulationInvestmentLibrary([FromBody] InvestmentLibraryModel model)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(InvestmentLibrarySaveMethods[userInformation.Role](model, userInformation));

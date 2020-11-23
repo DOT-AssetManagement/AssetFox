@@ -1,15 +1,15 @@
-﻿using BridgeCare.ApplicationLog;
+﻿using System;
+using System.Data.SqlClient;
+using BridgeCare.ApplicationLog;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
-using System;
-using System.Data.SqlClient;
-using System.Linq;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class SectionLocatorDAL : ISectionLocator
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(SectionLocatorDAL));
+
         public SectionLocatorDAL()
         {
         }
@@ -19,9 +19,8 @@ namespace BridgeCare.DataAccessLayer
             try
             {
                 var sectionLocationModel = new SectionLocationModel();
-                // Including isnull statments to change these to '0' to avoid an
-                // exception as mapping a null to a non nullable data type
-                // crashes the entity framwork
+                // Including isnull statments to change these to '0' to avoid an exception as
+                // mapping a null to a non nullable data type crashes the entity framwork
                 var query =
                     $"SELECT Sectionid, isnull(Lat,0) as Latitude, isnull(Long,0) as Longitude FROM Segment_{section.NetworkId}_NS0 WHERE SectionId = @sectionId";
                 // create and open db connection

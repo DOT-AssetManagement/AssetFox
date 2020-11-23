@@ -1,11 +1,11 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using BridgeCare.Properties;
-using DatabaseManager;
-using System;
+﻿using System;
 using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using BridgeCare.Properties;
+using DatabaseManager;
 
 namespace BridgeCare.DataAccessLayer
 {
@@ -17,7 +17,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Creates/starts a rollup segmentation
+        ///     Creates/starts a rollup segmentation
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>string task</returns>
@@ -35,7 +35,8 @@ namespace BridgeCare.DataAccessLayer
                 mongoConnection = Settings.Default.MongoDBProdConnectionString;
 #endif
                 var rollupSegmentation = new RollupSegmentation.RollupSegmentation(model.networkName,
-                    model.networkId.ToString(), true, mongoConnection) {strNetwork = model.networkName};
+                    model.networkId.ToString(), true, mongoConnection)
+                { strNetwork = model.networkName };
 
                 var rollupAndSimulation = new Thread(rollupSegmentation.DoRollup);
                 rollupAndSimulation.Start();

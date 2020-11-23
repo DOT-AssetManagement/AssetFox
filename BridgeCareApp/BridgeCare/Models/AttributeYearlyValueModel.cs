@@ -13,6 +13,7 @@
         }
 
         public int Year { get; set; }
+
         public string Value { get; set; }
     }
 }

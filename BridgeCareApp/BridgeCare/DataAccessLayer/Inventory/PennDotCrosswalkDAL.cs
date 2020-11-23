@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using BridgeCare.Models;
+using BridgeCare.Models.Inventory;
 
 namespace BridgeCare.DataAccessLayer.Inventory
 {
-    static class PennDotCrosswalkDAL
+    internal static class PennDotCrosswalkDAL
     {
         public static List<InventoryItemModel> InventoryItems { get; private set; }
 
@@ -89,16 +89,16 @@ namespace BridgeCare.DataAccessLayer.Inventory
             Add("MPO_Name", "5A23", "MPO");
             Add("MaxSpan", "5B17", "Maxium Span Length");
 
-            Add("DECK", "", "DECK");            
-            Add("SUP", "", "SUP");            
-            Add("SUB", "", "SUB");            
+            Add("DECK", "", "DECK");
+            Add("SUP", "", "SUP");
+            Add("SUB", "", "SUB");
             Add("CULV", "", "CULV");
-            
+
             // New columns
-            Add("SERVTYPON", "5A17", "Type of Service On"); 
+            Add("SERVTYPON", "5A17", "Type of Service On");
             Add("SERVTYPUND", "5A18", "Type of Service Under");
 
-            Add("CUSTODIAN", "5A20", "Maint Resp");            
+            Add("CUSTODIAN", "5A20", "Maint Resp");
             //Add("REPORT_GROUP", "5A24", "Reporting Group");
             Add("HISTSIGN", "5E04", "Hist Significance");
             Add("CRGIS_SHPOKEY_NUM", "5E05", "SHP Key Number");
@@ -108,21 +108,21 @@ namespace BridgeCare.DataAccessLayer.Inventory
             Add("DKSURFTYPE", "5B02", "Deck Surface Type");
             Add("DKMEMBTYPE", "5B03", "Deck Membrane Type");
             Add("DKPROTECT", "5B04", "Deck Protection");
-            Add("SKEW", "5B09", "Skew"); 
+            Add("SKEW", "5B09", "Skew");
 
             Add("MATERIALMAIN", "5B12", "Main Span Material");
             Add("DESIGNMAIN", "5B13", "Main Span Design");
             Add("MATERIALAPPR", "5B15", "Approach Span Material");
             Add("DESIGNAPPR", "5B16", "Approach Span Design");
-            //Add("MAXIMUM_SPAN_LENGTH", "5B17", "Maximum Span Length"); 
-            Add("TOT_LENGTH", "5B20", "Total Length"); 
+            //Add("MAXIMUM_SPAN_LENGTH", "5B17", "Maximum Span Length");
+            Add("TOT_LENGTH", "5B20", "Total Length");
             Add("MAIN_FC_GROUP_NUM", "6A44", "FC Group Number (Main)");
             Add("APPR_FC_GROUP_NUM", "6A44", "FC Group Number (Approach)");
 
-            Add("VCLROVER", "4A15", "Over Street Clearance"); 
-            Add("VCLROVER", "4A17", "Under Clearance"); 
-                        
-            Add("DECK_DUR", "", "DECK");            
+            Add("VCLROVER", "4A15", "Over Street Clearance");
+            Add("VCLROVER", "4A17", "Under Clearance");
+
+            Add("DECK_DUR", "", "DECK");
             Add("SUP_DUR", "", "SUP");
             Add("SUB_DUR", "", "SUB");
             Add("CULV_DUR", "", "CULV");
@@ -152,7 +152,7 @@ namespace BridgeCare.DataAccessLayer.Inventory
             Add("TK527_IR", "4B13", "TK527 (IR)");
             Add("TK527_RATIO", "", "Ratio OR / Max Legal Load");
             Add("MIN_RATIO", "", "Min Ratio OR / Max Legal Load");
-                        
+
             AddNbiLoadRatingItem("LOAD_TYPE", "IR04", "Load Type");
             AddNbiLoadRatingItem("NBI", "IR05", "NBI");
             AddNbiLoadRatingItem("INV_RATING_TON", "IR010", "Inv Rating Ton");

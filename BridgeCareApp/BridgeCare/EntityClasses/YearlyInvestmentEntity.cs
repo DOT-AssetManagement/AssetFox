@@ -1,7 +1,7 @@
-using BridgeCare.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using BridgeCare.Models;
 
 namespace BridgeCare.EntityClasses
 {
@@ -10,11 +10,15 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int YEARID { get; set; }
+
         public int SIMULATIONID { get; set; }
+
         public int YEAR_ { get; set; }
+
         [Required]
         [StringLength(50)]
         public string BUDGETNAME { get; set; }
+
         public double? AMOUNT { get; set; }
 
         [ForeignKey("SIMULATIONID")]
