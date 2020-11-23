@@ -1,18 +1,18 @@
-﻿using BridgeCare.EntityClasses;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
+using BridgeCare.EntityClasses;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class PriorityDAL : IPriority
     {
         /// <summary>
-        /// Fetches a simulation's priority library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Fetches a simulation's priority library data Throws a RowNotInTableException if no
+        ///     simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -27,8 +27,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's priority library data if it belongs to the user
-        /// Throws a RowNotInTableException if no such simulation is found
+        ///     Fetches a simulation's priority library data if it belongs to the user Throws a
+        ///     RowNotInTableException if no such simulation is found
         /// </summary>
         /// <param name="id"></param>
         /// <param name="db"></param>
@@ -44,8 +44,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's priority library data regardless of ownership
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Fetches a simulation's priority library data regardless of ownership Throws a
+        ///     RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="id"></param>
         /// <param name="db"></param>
@@ -58,8 +58,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's priority library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Executes an upsert/delete operation on a simulation's priority library data Throws a
+        ///     RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="model">PriorityLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>

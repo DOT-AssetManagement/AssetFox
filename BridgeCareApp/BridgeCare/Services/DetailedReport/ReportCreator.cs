@@ -1,11 +1,11 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using OfficeOpenXml;
-using System;
+﻿using System;
 using System.Data;
 using System.Linq;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using OfficeOpenXml;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.DetailedReport
 {
     public class ReportCreator : IReportCreator
     {
@@ -31,9 +31,8 @@ namespace BridgeCare.Services
         {
             // Getting data from the database
             var yearlyInvestment = investment.GetYearsData(data);
-            // Using BridgeCareContext because manual control is needed for the
-            // creation of the object. This object is going through data heavy
-            // operation. That is why it is not shared.
+            // Using BridgeCareContext because manual control is needed for the creation of the
+            // object. This object is going through data heavy operation. That is why it is not shared.
             var dbContext = new BridgeCareContext();
             var totalYears = yearlyInvestment.Select(_ => _.Year).Distinct().ToArray();
 

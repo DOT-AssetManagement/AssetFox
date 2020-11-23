@@ -2,7 +2,7 @@
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport
 {
     public class NHSConditionChart
     {
@@ -14,7 +14,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Fill NHS Condition Bridge Cnt and DA tab reports.
+        ///     Fill NHS Condition Bridge Cnt and DA tab reports.
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="bridgeWorkSummaryWorkSheet"></param>
@@ -22,7 +22,7 @@ namespace BridgeCare.Services
         /// <param name="count"></param>
         public void Fill(ExcelWorksheet worksheet, ExcelWorksheet bridgeWorkSummaryWorkSheet, int nhsPercentSectionYearsRow, string title, int count)
         {
-            stackedColumnChartCommon.SetWorksheetProperties(worksheet);            
+            stackedColumnChartCommon.SetWorksheetProperties(worksheet);
             var chart = worksheet.Drawings.AddChart(title, eChartType.ColumnStacked);
             stackedColumnChartCommon.SetChartProperties(chart, title, 1050, 700, 6, 6);
 

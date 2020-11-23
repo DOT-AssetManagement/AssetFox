@@ -1,9 +1,8 @@
-﻿using BridgeCare.Interfaces;
+﻿using System;
+using System.Web.Http;
+using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Security;
-using System;
-using System.Linq;
-using System.Web.Http;
 
 namespace BridgeCare.Controllers
 {
@@ -19,8 +18,8 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching the current user's criteria settings.
-        /// Uses the authorization token to determine user identity
+        ///     API endpoint for fetching the current user's criteria settings. Uses the
+        ///     authorization token to determine user identity
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpGet]
@@ -33,7 +32,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching all users' criteria settings.
+        ///     API endpoint for fetching all users' criteria settings.
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpGet]
@@ -42,7 +41,7 @@ namespace BridgeCare.Controllers
         public IHttpActionResult GetAllUserCriteria() => Ok(repo.GetAllUserCriteria(db));
 
         /// <summary>
-        /// API endpoint for modifying a user's criteria settings
+        ///     API endpoint for modifying a user's criteria settings
         /// </summary>
         /// <param name="userCriteria">UserCriteriaModel</param>
         /// <returns>IHttpActionResult</returns>

@@ -10,8 +10,11 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int PRIORITYFUNDID { get; set; }
+
         public string BUDGET { get; set; }
+
         public double? FUNDING { get; set; }
+
         public int PRIORITYID { get; set; }
 
         [ForeignKey("PRIORITYID")]

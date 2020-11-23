@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Linq;
-using System.Web;
 using BridgeCare.Models;
 
 namespace BridgeCare.EntityClasses
@@ -14,10 +12,15 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int SPLIT_TREATMENT_ID { get; set; }
+
         public int SIMULATIONID { get; set; }
+
         public string DESCRIPTION { get; set; }
+
         public string CRITERIA { get; set; }
+
         public ICollection<SplitTreatmentLimitEntity> SPLIT_TREATMENT_LIMITS { get; set; } = new List<SplitTreatmentLimitEntity>();
+
         [ForeignKey("SIMULATIONID")]
         public virtual SimulationEntity SIMULATION { get; set; }
 

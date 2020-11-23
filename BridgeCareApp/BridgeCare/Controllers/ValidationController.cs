@@ -1,9 +1,8 @@
-﻿using BridgeCare.Interfaces;
+﻿using System;
+using System.Web.Http;
+using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Security;
-using System;
-using System.Web.Http;
-using System.Web.Http.Filters;
 
 namespace BridgeCare.Controllers
 {
@@ -19,7 +18,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for validating an equation
+        ///     API endpoint for validating an equation
         /// </summary>
         /// <param name="model">ValidateEquationModel</param>
         /// <returns>IHttpActionResult</returns>
@@ -33,7 +32,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for validating a criteria
+        ///     API endpoint for validating a criteria
         /// </summary>
         /// <param name="model">ValidateCriteriaModel</param>
         /// <returns>IHttpActionResult</returns>
@@ -41,7 +40,7 @@ namespace BridgeCare.Controllers
         [Route("api/ValidateCriteria")]
         [ModelValidation("The criteria data is invalid.")]
         [RestrictAccess]
-        public IHttpActionResult ValidateCriteria([FromBody]ValidateCriteriaModel model) =>
+        public IHttpActionResult ValidateCriteria([FromBody] ValidateCriteriaModel model) =>
             Ok(repo.ValidateCriteria(model.Criteria, db));
     }
 }

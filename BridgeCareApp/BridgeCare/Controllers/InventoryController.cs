@@ -1,9 +1,8 @@
-﻿using BridgeCare.Interfaces;
+﻿using System;
+using System.Web.Http;
+using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Security;
-using System;
-using System.Web.Http;
-using System.Web.Http.Filters;
 
 namespace BridgeCare.Controllers
 {
@@ -21,7 +20,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching inventory data
+        ///     API endpoint for fetching inventory data
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpGet]
@@ -34,7 +33,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching inventory item detail data by bms id
+        ///     API endpoint for fetching inventory item detail data by bms id
         /// </summary>
         /// <param name="bmsId">BMS identifier</param>
         /// <returns>IHttpActionResult</returns>
@@ -52,7 +51,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching inventory item detail data by BR key
+        ///     API endpoint for fetching inventory item detail data by BR key
         /// </summary>
         /// <param name="brKey">BR key identifier</param>
         /// <returns>IHttpActionResult</returns>

@@ -47,8 +47,8 @@ namespace BridgeCare.Security
 
             var userInformation = ESECSecurity.GetUserInformation(userInformationDictionary);
 
-            // Some API endpoints need this user information, so it is inserted into
-            // the request here before they process it
+            // Some API endpoints need this user information, so it is inserted into the request
+            // here before they process it
             httpContext.Request.Headers.Clear();
 
             httpContext.Request.Headers.Add("Role", userInformation.Role);

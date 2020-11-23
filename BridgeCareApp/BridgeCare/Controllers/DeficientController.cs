@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
-using System.Web.Http.Filters;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Security;
@@ -11,13 +10,19 @@ namespace BridgeCare.Controllers
     using DeficientLibraryGetMethod = Func<int, UserInformationModel, DeficientLibraryModel>;
     using DeficientLibrarySaveMethod = Func<DeficientLibraryModel, UserInformationModel, DeficientLibraryModel>;
 
-    public class DeficientController: ApiController
+    public class DeficientController : ApiController
     {
         private readonly IDeficient repo;
         private readonly BridgeCareContext db;
-        /// <summary>Maps user roles to methods for fetching a target library</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for fetching a target library
+        /// </summary>
         private readonly IReadOnlyDictionary<string, DeficientLibraryGetMethod> DeficientLibraryGetMethods;
-        /// <summary>Maps user roles to methods for saving a target library</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for saving a target library
+        /// </summary>
         private readonly IReadOnlyDictionary<string, DeficientLibrarySaveMethod> DeficientLibrarySaveMethods;
 
         public DeficientController() { }
@@ -32,7 +37,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for getting deficient libraries
+        ///     Creates a mapping from user roles to the appropriate methods for getting deficient libraries
         /// </summary>
         private Dictionary<string, DeficientLibraryGetMethod> CreateGetMethods()
         {
@@ -51,7 +56,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for saving deficient libraries
+        ///     Creates a mapping from user roles to the appropriate methods for saving deficient libraries
         /// </summary>
         private Dictionary<string, DeficientLibrarySaveMethod> CreateSaveMethods()
         {
@@ -70,7 +75,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's deficient library data
+        ///     API endpoint for fetching a simulation's deficient library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns>IHttpActionResult</returns>
@@ -85,7 +90,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for upserting/deleting a simulation's deficient library data
+        ///     API endpoint for upserting/deleting a simulation's deficient library data
         /// </summary>
         /// <param name="model">DeficientLibraryModel</param>
         /// <returns>IHttpActionResult</returns>

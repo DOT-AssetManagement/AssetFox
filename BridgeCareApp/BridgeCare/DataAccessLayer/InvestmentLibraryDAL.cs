@@ -1,20 +1,20 @@
-﻿using BridgeCare.EntityClasses;
-using BridgeCare.EntityClasses.CriteriaDrivenBudgets;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
+using BridgeCare.EntityClasses;
+using BridgeCare.EntityClasses.CriteriaDrivenBudgets;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class InvestmentLibraryDAL : IInvestmentLibrary
     {
         /// <summary>
-        /// Fetches a simulation's investment library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Fetches a simulation's investment library data Throws a RowNotInTableException if no
+        ///     simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -30,8 +30,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's investment library data if it is available to the given user
-        /// Throws a RowNotInTableException if no simulation is found for that user
+        ///     Fetches a simulation's investment library data if it is available to the given user
+        ///     Throws a RowNotInTableException if no simulation is found for that user
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -47,8 +47,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Fetches a simulation's investment library data regardless of ownership
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Fetches a simulation's investment library data regardless of ownership Throws a
+        ///     RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -61,8 +61,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's investment library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Executes an upsert/delete operation on a simulation's investment library data Throws
+        ///     a RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="model">InvestmentLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -114,7 +114,6 @@ namespace BridgeCare.DataAccessLayer
                         yearlyInvestmentModel.UpdateYearlyInvestment(yearlyInvestment);
                     }
                 });
-                
             }
 
             simulation.PRIORITIES.ToList().ForEach(priorityEntity =>
@@ -124,7 +123,7 @@ namespace BridgeCare.DataAccessLayer
                 if (priorityEntity.PRIORITYFUNDS.Any())
                     model.BudgetOrder.ForEach(budget =>
                     {
-                      budgetsForNewFunds.Add(budget);
+                        budgetsForNewFunds.Add(budget);
                     });
 
                 if (budgetsForNewFunds.Any())
@@ -165,8 +164,9 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's investment library data if it is owned by the provided user
-        /// Throws a RowNotInTableException if no simulation is found for that user
+        ///     Executes an upsert/delete operation on a simulation's investment library data if it
+        ///     is owned by the provided user Throws a RowNotInTableException if no simulation is
+        ///     found for that user
         /// </summary>
         /// <param name="model">InvestmentLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -183,8 +183,9 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's investment library data regardless of ownership
-        /// Throws a RowNotInTableException if no simulation is found for that user
+        ///     Executes an upsert/delete operation on a simulation's investment library data
+        ///     regardless of ownership Throws a RowNotInTableException if no simulation is found
+        ///     for that user
         /// </summary>
         /// <param name="model">InvestmentLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>

@@ -13,7 +13,7 @@ namespace BridgeCare.DataAccessLayer
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(UserCriteriaDAL));
 
         /// <summary>
-        /// Gets the UserCriteria for all users.
+        ///     Gets the UserCriteria for all users.
         /// </summary>
         /// <param name="db">BridgeCareContext</param>
         /// <returns>UserCriteriaModel List</returns>
@@ -21,9 +21,8 @@ namespace BridgeCare.DataAccessLayer
             db.UserCriteria.ToList().Select(criteria => new UserCriteriaModel(criteria)).ToList();
 
         /// <summary>
-        /// Gets the UserCriteria of the specified user.
-        /// If a user does not have any criteria,
-        /// a default setting will be created for them based on their role.
+        ///     Gets the UserCriteria of the specified user. If a user does not have any criteria, a
+        ///     default setting will be created for them based on their role.
         /// </summary>
         /// <param name="db">BridgeCareContext</param>
         /// <param name="userInformation">UserInformationModel</param>
@@ -43,7 +42,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Updates a user's criteria settings
+        ///     Updates a user's criteria settings
         /// </summary>
         /// <param name="model">UserCriteriaModel</param>
         /// <param name="db">BridgeCareContext</param>
@@ -60,9 +59,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Creates a default UserCriteriaModel for a new user, based on their role.
-        /// Administrators have full access by default.
-        /// All other users have no access by default.
+        ///     Creates a default UserCriteriaModel for a new user, based on their role.
+        ///     Administrators have full access by default. All other users have no access by default.
         /// </summary>
         /// <param name="userInformation">UserInformationModel</param>
         /// <returns>UserCriteriaModel</returns>

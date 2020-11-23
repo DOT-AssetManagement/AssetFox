@@ -1,5 +1,4 @@
-﻿using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
@@ -10,6 +9,7 @@ using System.Security.Authentication;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Script.Serialization;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -17,8 +17,9 @@ namespace BridgeCare.Controllers
     public class AuthenticationController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(AuthenticationController));
+
         /// <summary>
-        /// API endpoint for fetching user info from ESEC using the OpenID Connect protocol
+        ///     API endpoint for fetching user info from ESEC using the OpenID Connect protocol
         /// </summary>
         /// <param name="token">The user's access token</param>
         /// <returns></returns>
@@ -32,7 +33,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Fetches user info as a JSON-formatted string from ESEC
+        ///     Fetches user info as a JSON-formatted string from ESEC
         /// </summary>
         /// <param name="token">Access token</param>
         /// <returns>JSON-formatted user info</returns>
@@ -61,17 +62,17 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Fetches user info as a dictionary
+        ///     Fetches user info as a dictionary
         /// </summary>
         /// <param name="token">Access token</param>
         /// <returns>User info dictionary</returns>
-        public static Dictionary<string,string> GetUserInfoDictionary(string token)
+        public static Dictionary<string, string> GetUserInfoDictionary(string token)
         {
             return DictionaryFromJSON(GetUserInfoString(token));
         }
 
         /// <summary>
-        /// API endpoint for fetching ID and Access tokens from ESEC using the OpenID Connect protocol
+        ///     API endpoint for fetching ID and Access tokens from ESEC using the OpenID Connect protocol
         /// </summary>
         /// <param name="code">The authentication or error code</param>
         /// <returns></returns>
@@ -110,7 +111,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Sends a refresh token to ESEC, returning a new Access Token
+        ///     Sends a refresh token to ESEC, returning a new Access Token
         /// </summary>
         /// <param name="refreshToken">Refresh token</param>
         /// <returns></returns>
@@ -148,7 +149,8 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Sends an access or refresh token to the revocation endpoint, preventing the token from ever being used again.
+        ///     Sends an access or refresh token to the revocation endpoint, preventing the token
+        ///     from ever being used again.
         /// </summary>
         /// <param name="token">Access or Refresh Token</param>
         /// <returns></returns>
@@ -190,9 +192,9 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Prevents an id token from being accepted by the application again.
-        /// ID tokens are not validated by the ESEC server, so they cannot be invalidated in the
-        /// same way as refresh or access tokens. Instead, we must locally keep track of them.
+        ///     Prevents an id token from being accepted by the application again. ID tokens are not
+        ///     validated by the ESEC server, so they cannot be invalidated in the same way as
+        ///     refresh or access tokens. Instead, we must locally keep track of them.
         /// </summary>
         [HttpPost]
         [Route("RevokeToken/Id")]
@@ -205,17 +207,17 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Converts a JSON-formatted string into a Dictionary
+        ///     Converts a JSON-formatted string into a Dictionary
         /// </summary>
         /// <param name="jsonString">JSON-formatted string</param>
         /// <returns>The JSON object as a dictionary</returns>
-        private static Dictionary<string,string> DictionaryFromJSON(string jsonString)
+        private static Dictionary<string, string> DictionaryFromJSON(string jsonString)
         {
             return (new JavaScriptSerializer()).Deserialize<Dictionary<string, string>>(jsonString);
         }
 
         /// <summary>
-        /// Checks to ensure that a response from the ESEC OIDC endpoint is not an error.
+        ///     Checks to ensure that a response from the ESEC OIDC endpoint is not an error.
         /// </summary>
         /// <param name="response">The JSON-formatted response string</param>
         private static void ValidateResponse(string response)

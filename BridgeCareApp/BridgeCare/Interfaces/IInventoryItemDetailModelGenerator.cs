@@ -1,4 +1,4 @@
-﻿using BridgeCare.Models;
+﻿using BridgeCare.Models.Inventory;
 
 namespace BridgeCare.Interfaces
 {

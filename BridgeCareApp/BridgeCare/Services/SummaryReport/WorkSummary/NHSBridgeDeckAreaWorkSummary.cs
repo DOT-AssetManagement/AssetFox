@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Web;
-using BridgeCare.Models;
+using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport.WorkSummary
 {
     public class NHSBridgeDeckAreaWorkSummary
     {
@@ -22,7 +20,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Fill NHS sections.
+        ///     Fill NHS sections.
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="currentCell"></param>
@@ -120,7 +118,7 @@ namespace BridgeCare.Services
             AddDetailsForNonNHSPercentSection(worksheet, currentCell, simulationYears, dataStartRow);
         }
 
-        private void AddDetailsForNonNHSPercentSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,int dataStartRow)
+        private void AddDetailsForNonNHSPercentSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, int dataStartRow)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeLabelCells(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -142,7 +140,7 @@ namespace BridgeCare.Services
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "NHS Bridge Deck Area Percentage", true);
             chartRowsModel.NHSBridgeDeckAreaPercentSectionYearsRow = currentCell.Row;
             AddDetailsForNHSPercentSection(worksheet, currentCell, simulationYears, dataStartRow);
-        }       
+        }
 
         private int FillNHSBridgeDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
@@ -214,7 +212,7 @@ namespace BridgeCare.Services
         }
 
         private void AddDetailsForNHSBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
-        {          
+        {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeLabelCells(worksheet, currentCell, out startRow, out startColumn, out row, out column);
             AddNHSBridgeCount(worksheet, simulationDataModels, bridgeDataModels, startRow, column, 0);

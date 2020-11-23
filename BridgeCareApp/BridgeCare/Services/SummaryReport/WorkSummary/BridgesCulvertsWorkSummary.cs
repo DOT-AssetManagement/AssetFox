@@ -1,10 +1,10 @@
-﻿using BridgeCare.Models;
-using OfficeOpenXml;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using BridgeCare.Models.SummaryReport;
+using OfficeOpenXml;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport.WorkSummary
 {
     public class BridgesCulvertsWorkSummary
     {
@@ -20,7 +20,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Fill sections with bridges and culverts details
+        ///     Fill sections with bridges and culverts details
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="currentCell"></param>
@@ -135,7 +135,7 @@ namespace BridgeCare.Services
             bridgeWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);
             foreach (var item in treatments)
             {
-                if(!item.ToLower().Contains("no treatment"))
+                if (!item.ToLower().Contains("no treatment"))
                 {
                     worksheet.Cells[row++, column].Value = item;
                 }

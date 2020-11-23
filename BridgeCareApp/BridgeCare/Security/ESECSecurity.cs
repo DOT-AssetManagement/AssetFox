@@ -5,12 +5,10 @@ using System.Collections.Specialized;
 using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Script.Serialization;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,13 +17,15 @@ namespace BridgeCare.Security
     public static class ESECSecurity
     {
         private static readonly RsaSecurityKey ESECPublicKey = GetPublicKey();
+
         /// <summary>
-        /// Each key is a token that has been revoked. Its value is the unix timestamp of the time at which it expires.
+        ///     Each key is a token that has been revoked. Its value is the unix timestamp of the
+        ///     time at which it expires.
         /// </summary>
         private static ConcurrentDictionary<string, long> revokedTokens = new ConcurrentDictionary<string, long>();
 
         /// <summary>
-        /// Checks if the provided token has been revoked.
+        ///     Checks if the provided token has been revoked.
         /// </summary>
         /// <param name="idToken">JWT ID Token</param>
         /// <returns>bool</returns>
@@ -35,7 +35,7 @@ namespace BridgeCare.Security
         }
 
         /// <summary>
-        /// Prevents the parser from accepting the provided token in the future.
+        ///     Prevents the parser from accepting the provided token in the future.
         /// </summary>
         /// <param name="idToken">The JWT ID Token</param>
         public static void RevokeToken(string idToken)
@@ -48,8 +48,8 @@ namespace BridgeCare.Security
         }
 
         /// <summary>
-        /// Removes all expired tokens from the revokedTokens dictionary, as they no longer need to be tracked.
-        /// This keeps the dictionary from endlessly growing as the application runs
+        ///     Removes all expired tokens from the revokedTokens dictionary, as they no longer need
+        ///     to be tracked. This keeps the dictionary from endlessly growing as the application runs
         /// </summary>
         private static void RemoveExpiredTokens()
         {
@@ -58,7 +58,7 @@ namespace BridgeCare.Security
         }
 
         /// <summary>
-        /// Given an id_token from ESEC, validates it and extracts the User's Information
+        ///     Given an id_token from ESEC, validates it and extracts the User's Information
         /// </summary>
         /// <param name="idToken">JWT id_token from Authorization Header</param>
         /// <returns></returns>
@@ -77,8 +77,8 @@ namespace BridgeCare.Security
         }
 
         /// <summary>
-        /// Given a dictionary version of the LDAP-formatted JSON from ESEC, produces a UserInformationModel object
-        /// containing only the user's name, email, and relevant role
+        ///     Given a dictionary version of the LDAP-formatted JSON from ESEC, produces a
+        ///     UserInformationModel object containing only the user's name, email, and relevant role
         /// </summary>
         /// <param name="idToken">JWT id_token from Authorization Header</param>
         /// <returns></returns>
@@ -97,7 +97,7 @@ namespace BridgeCare.Security
         }
 
         /// <summary>
-        /// Retrieves the value of the claim of the given type from the JWT payload claims.
+        ///     Retrieves the value of the claim of the given type from the JWT payload claims.
         /// </summary>
         /// <returns></returns>
         private static string GetClaimValue(this JwtSecurityToken jwt, string type)
@@ -106,7 +106,7 @@ namespace BridgeCare.Security
         }
 
         /// <summary>
-        /// Creates a JwtSecurityToken object from a JWT string.
+        ///     Creates a JwtSecurityToken object from a JWT string.
         /// </summary>
         /// <param name="idToken">JWT string</param>
         private static JwtSecurityToken DecodeToken(string idToken)
@@ -127,7 +127,8 @@ namespace BridgeCare.Security
         }
 
         /// <summary>
-        /// Fetches the public key information from the ESEC jwks endpoint, and generates an RsaSecurityKey from it
+        ///     Fetches the public key information from the ESEC jwks endpoint, and generates an
+        ///     RsaSecurityKey from it
         /// </summary>
         private static RsaSecurityKey GetPublicKey()
         {
@@ -147,7 +148,8 @@ namespace BridgeCare.Security
 
                 string resultJSON = responseTask.Result.Content.ReadAsStringAsync().Result;
 
-                // This dictionary and list structure matches the structure of the JSON response from the ESEC JWKS endpoint
+                // This dictionary and list structure matches the structure of the JSON response
+                // from the ESEC JWKS endpoint
                 var resultDictionary = (new JavaScriptSerializer()).Deserialize<Dictionary<string, List<Dictionary<string, string>>>>(resultJSON);
 
                 RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
@@ -161,7 +163,7 @@ namespace BridgeCare.Security
         }
 
         /// <summary>
-        /// Given an LDAP-formatted string from ESEC, extracts the Common Name (CN) fields.
+        ///     Given an LDAP-formatted string from ESEC, extracts the Common Name (CN) fields.
         /// </summary>
         /// <param name="roleResponse">LDAP-formatted response</param>
         /// <returns>Role</returns>

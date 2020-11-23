@@ -1,12 +1,12 @@
-﻿using BridgeCare.Interfaces;
+﻿using System;
+using System.Drawing;
+using System.Linq;
+using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using System;
-using System.Drawing;
-using System.Linq;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.DetailedReport
 {
     public class Deficient
     {

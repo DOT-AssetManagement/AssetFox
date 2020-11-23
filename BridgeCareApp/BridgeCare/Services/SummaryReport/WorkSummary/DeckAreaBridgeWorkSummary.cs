@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Web;
-using BridgeCare.Models;
+using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 
 namespace BridgeCare.Services.SummaryReport.WorkSummary
@@ -50,6 +47,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             AddDetailsForPoorDeckArea(worksheet, currentCell, simulationYears, simulationDataModels, bridgeDataModels);
             return chartRowsModel;
         }
+
         private void AddDetailsForPostedDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             int startRow, startColumn, row, column;
@@ -64,6 +62,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             excelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + 3, column]);
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 4, column);
         }
+
         private void AddDetailsForClosedDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             int startRow, startColumn, row, column;
@@ -78,6 +77,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             excelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + 3, column]);
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 4, column);
         }
+
         private void AddDetailsForPoorDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             int startRow, startColumn, row, column;
@@ -104,6 +104,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             deckArea = bridgeWorkSummaryComputationHelper.CalculatePostedAndClosedDeckAreaForRemainingBPN(simulationDataModels, bridgeDataModels, year, "Y");
             worksheet.Cells[row, column].Value = deckArea;
         }
+
         private void AddClosedBridgeDeckArea(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int row, int column, int year)
         {
             var deckArea = bridgeWorkSummaryComputationHelper.CalculatePostedAndClosedDeckAreaForBPN13(simulationDataModels, bridgeDataModels, year, "1", "N");
@@ -115,6 +116,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             deckArea = bridgeWorkSummaryComputationHelper.CalculatePostedAndClosedDeckAreaForRemainingBPN(simulationDataModels, bridgeDataModels, year, "N");
             worksheet.Cells[row, column].Value = deckArea;
         }
+
         private void AddPoorDeckArea(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int row, int column, int year)
         {
             var poorDeckArea = bridgeWorkSummaryComputationHelper.CalculatePoorDeckAreaForBPN13(simulationDataModels, bridgeDataModels, year, "1");

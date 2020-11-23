@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Data.Entity;
 using System.Linq;
-using System.Web;
 using BridgeCare.EntityClasses;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
@@ -13,8 +10,8 @@ namespace BridgeCare.DataAccessLayer
     public class CashFlowLibraryDAL : ICashFlowLibrary
     {
         /// <summary>
-        /// Fetches a simulation's cash flow library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Fetches a simulation's cash flow library data Throws a RowNotInTableException if no
+        ///     simulation is found
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -33,8 +30,8 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's cash flow library data
-        /// Throws a RowNotInTableException if no simulation is found
+        ///     Executes an upsert/delete operation on a simulation's cash flow library data Throws
+        ///     a RowNotInTableException if no simulation is found
         /// </summary>
         /// <param name="model">CashFlowLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>

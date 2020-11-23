@@ -1,13 +1,15 @@
-﻿using System.Runtime.Serialization;
-using BridgeCare.EntityClasses;
+﻿using BridgeCare.EntityClasses;
 
 namespace BridgeCare.Models
 {
     public class FeasibilityModel : CrudModel
     {
         public string Id { get; set; }
+
         public string Criteria { get; set; }
+
         public int YearsBeforeAny { get; set; }
+
         public int YearsBeforeSame { get; set; }
 
         public FeasibilityModel()

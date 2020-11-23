@@ -1,5 +1,4 @@
-﻿using System;
-using BridgeCare.EntityClasses;
+﻿using BridgeCare.EntityClasses;
 
 namespace BridgeCare.Models
 {

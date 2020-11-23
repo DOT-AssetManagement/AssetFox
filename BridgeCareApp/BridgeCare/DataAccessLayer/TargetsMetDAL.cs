@@ -1,13 +1,13 @@
-﻿using BridgeCare.Models;
-using System.Collections;
+﻿using System.Collections;
 using System.Linq;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class TargetsMetDAL
     {
         /// <summary>
-        /// Gets the deficient report results data and transforms it into a hash table
+        ///     Gets the deficient report results data and transforms it into a hash table
         /// </summary>
         /// <param name="deficientResults">DeficientReportModel IQueryable</param>
         /// <returns>Hashtable</returns>
@@ -16,7 +16,7 @@ namespace BridgeCare.DataAccessLayer
             var targetAndYear = new Hashtable();
             Hashtable metTarget;
 
-            foreach(var deficientResult in deficientResults)
+            foreach (var deficientResult in deficientResults)
             {
                 if (targetAndYear.ContainsKey(deficientResult.TargetID))
                     metTarget = (Hashtable)targetAndYear[deficientResult.TargetID];

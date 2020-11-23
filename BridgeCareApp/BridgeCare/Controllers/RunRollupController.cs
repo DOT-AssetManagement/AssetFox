@@ -1,9 +1,9 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Web.Http;
+using BridgeCare.Interfaces;
 using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -19,14 +19,14 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for running a rollup
+        ///     API endpoint for running a rollup
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>IHttpActionResult task</returns>
         [HttpPost]
         [Route("api/RunRollup")]
         [RestrictAccess]
-        public async Task<IHttpActionResult> Post([FromBody]SimulationModel model)
+        public async Task<IHttpActionResult> Post([FromBody] SimulationModel model)
         {
             var result = await Task.Factory.StartNew(() => repo.RunRollup(model));
 

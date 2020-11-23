@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
 using BridgeCare.Models;
 
 namespace BridgeCare.EntityClasses
@@ -14,10 +10,15 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public int SPLIT_TREATMENT_LIMIT_ID { get; set; }
+
         public int SPLIT_TREATMENT_ID { get; set; }
+
         public int? RANK { get; set; }
+
         public double? AMOUNT { get; set; }
+
         public string PERCENTAGE { get; set; }
+
         [ForeignKey("SPLIT_TREATMENT_ID")]
         public virtual SplitTreatmentEntity SPLIT_TREATMENT { get; set; }
 

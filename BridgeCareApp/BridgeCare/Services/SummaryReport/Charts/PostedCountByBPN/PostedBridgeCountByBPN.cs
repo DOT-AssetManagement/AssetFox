@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Web;
+﻿using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 
@@ -40,7 +36,6 @@ namespace BridgeCare.Services.SummaryReport.Charts.PostedCountByBPN
             CreateSeries(bridgeWorkSummaryWorkSheet, totalBridgePostedCountByBPNYearsRow, count, chart, totalBridgePostedCountByBPNYearsRow + 3, Properties.Resources.BPN3, Color.Purple);
 
             CreateSeries(bridgeWorkSummaryWorkSheet, totalBridgePostedCountByBPNYearsRow, count, chart, totalBridgePostedCountByBPNYearsRow + 4, Properties.Resources.BPN4, Color.Violet);
-
         }
 
         private void CreateSeries(ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalPoorDeckAreaByBPNYearsRow, int count, ExcelChart chart, int fromRow, string header, Color color)

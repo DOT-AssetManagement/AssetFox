@@ -91,7 +91,7 @@ namespace BridgeCare.Controllers
         [HttpPost]
         [Route("api/SaveScenarioAnalysisData")]
         [RestrictAccess]
-        public IHttpActionResult UpdateSimulationAnalysis([FromBody]SimulationAnalysisModel model)
+        public IHttpActionResult UpdateSimulationAnalysis([FromBody] SimulationAnalysisModel model)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             SimulationAnalysisUpdateMethods[userInformation.Role](model, userInformation);

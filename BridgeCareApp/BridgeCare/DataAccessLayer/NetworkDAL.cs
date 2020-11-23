@@ -1,19 +1,15 @@
-﻿using BridgeCare.ApplicationLog;
+﻿using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
 
-namespace BridgeCare.Services
+namespace BridgeCare.DataAccessLayer
 {
     public class NetworkDAL : INetwork
     {
         /// <summary>
-        /// Fetches all networks data
-        /// Throws a RowNotInTableException if no networks are found
+        ///     Fetches all networks data Throws a RowNotInTableException if no networks are found
         /// </summary>
         /// <param name="db">BridgeCareContext</param>
         /// <returns>NetworkModel list</returns>

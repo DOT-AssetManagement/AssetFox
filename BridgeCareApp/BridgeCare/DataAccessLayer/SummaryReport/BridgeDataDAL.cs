@@ -4,8 +4,8 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using BridgeCare.ApplicationLog;
-using BridgeCare.EntityClasses;
-using BridgeCare.Interfaces;
+using BridgeCare.EntityClasses.SummaryReport;
+using BridgeCare.Interfaces.SummaryReport;
 using BridgeCare.Models;
 using BridgeCare.Models.SummaryReport;
 using BridgeCare.Models.SummaryReport.ParametersTAB;
@@ -17,11 +17,11 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(BridgeDataDAL));
 
         /// <summary>
-        /// Fetches bridge data using a list of br keys
+        ///     Fetches bridge data using a list of br keys
         /// </summary>
         /// <param name="brKeys">br keys list</param>
         /// <param name="db">BridgeCareContext</param>
-        /// <returns>BridgeDataModel list</returns>        
+        /// <returns>BridgeDataModel list</returns>
         public List<BridgeDataModel> GetBridgeData(List<int> brKeys, SimulationModel model, BridgeCareContext db, ParametersModel parametersModel)
         {
             var bridgeDataModels = new List<BridgeDataModel>();
@@ -44,7 +44,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
                     parametersModel.Status.Add(pennDotReportADataRow.Posted.ToLower());
                 }
                 // Track P3 for parameters TAB
-                if(pennDotReportADataRow.P3 > 0 && parametersModel.P3 != 1)
+                if (pennDotReportADataRow.P3 > 0 && parametersModel.P3 != 1)
                 {
                     parametersModel.P3 = pennDotReportADataRow.P3;
                 }
@@ -59,12 +59,8 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             return bridgeDataModels;
         }
 
-        /// <summary>
-        /// Get Section_x dynamic table data, x = Network Id
-        /// </summary>
-        /// <param name="simulationModel"></param>
-        /// <param name="dbContext"></param>
-        /// <returns>IQueryable<Section></returns>
+        /// <summary> Get Section_x dynamic table data, x = Network Id </summary> <param
+        /// name="simulationModel"></param> <param name="dbContext"></param> <returns>IQueryable<Section></returns>
         public IQueryable<Section> GetSectionData(SimulationModel simulationModel, BridgeCareContext dbContext)
         {
             IQueryable<Section> rawQueryForSectionData = null;
@@ -137,7 +133,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
         }
 
         /// <summary>
-        /// Get Simulation_x_y dynamic table data, x = Newtwork Id, y = Simulation Id
+        ///     Get Simulation_x_y dynamic table data, x = Newtwork Id, y = Simulation Id
         /// </summary>
         /// <param name="simulationModel"></param>
         /// <param name="dbContext"></param>
@@ -145,7 +141,6 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
         /// <returns>Datatable for run time selected columns</returns>
         public DataTable GetSimulationData(SimulationModel simulationModel, BridgeCareContext dbContext, List<int> simulationYears)
         {
-
             var simulationDataTable = new DataTable();
             var dynamicColumns = GetDynamicColumns(simulationYears);
 
@@ -170,14 +165,15 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
         }
 
         /// <summary>
-        /// Get Project, Cost related data from dynamic table Report_x_y, x = Network Id, y = Simulation Id
+        ///     Get Project, Cost related data from dynamic table Report_x_y, x = Network Id, y =
+        ///     Simulation Id
         /// </summary>
         /// <param name="simulationModel"></param>
         /// <param name="dbContext"></param>
         /// <param name="simulationYears"></param>
         /// <returns></returns>
         public IQueryable<ReportProjectCost> GetReportData(SimulationModel simulationModel, BridgeCareContext dbContext, List<int> simulationYears)
-        {            
+        {
             IQueryable<ReportProjectCost> rawQueryForReportData = null;
             var years = string.Join(",", simulationYears);
             var listOfBudgets = dbContext.CriteriaDrivenBudgets.Where(y => y.SIMULATIONID == simulationModel.simulationId)
@@ -197,6 +193,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             var treatments = db.Treatments.Where(t => t.SIMULATIONID == simulationId).Select(t => t.TREATMENT).ToList();
             return treatments;
         }
+
         public List<string> GetBudgets(int simulationId, BridgeCareContext db)
         {
             var budgets = db.CriteriaDrivenBudgets.Where(t => t.SIMULATIONID == simulationId).Select(cri => cri.BUDGET_NAME).ToList();
@@ -244,7 +241,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             {
                 unfundedRecommendation = dbContext.Database.SqlQuery<UnfundedRecommendationModel>(selectUnfundedRecommendation).ToList();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.Error(ex.Message);
             }
@@ -252,6 +249,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
         }
 
         #region private methods
+
         private string GetDynamicColumns(List<int> simulationYears)
         {
             var dynamicColumns = "";
@@ -282,11 +280,11 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             int.TryParse(pennDotReportADataRow.ADTTOTAL, out var ADTTotal);
             var age = DateTime.Today.Year - yearBuilt;
 
-            if(structureLength > 20 && parametersModel.LengthGreaterThan20 != "Y")
+            if (structureLength > 20 && parametersModel.LengthGreaterThan20 != "Y")
             {
                 parametersModel.LengthGreaterThan20 = "Y";
             }
-            if(structureLength >= 8 && structureLength <= 20 && parametersModel.LengthBetween8and20 != "Y")
+            if (structureLength >= 8 && structureLength <= 20 && parametersModel.LengthBetween8and20 != "Y")
             {
                 parametersModel.LengthBetween8and20 = "Y";
             }
@@ -320,6 +318,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
                 ADTOverTenThousand = isADTOverTenThousand ? "Y" : "N"
             };
         }
-        #endregion
+
+        #endregion private methods
     }
 }

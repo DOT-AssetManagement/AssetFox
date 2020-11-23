@@ -9,12 +9,14 @@ namespace BridgeCare.EntityClasses
     {
         [Key]
         public string USERNAME { get; set; }
+
         public string CRITERIA { get; set; }
+
         public bool HAS_ACCESS { get; set; }
 
         public UserCriteriaEntity() { }
 
-        public UserCriteriaEntity (UserCriteriaModel userCriteriaModel)
+        public UserCriteriaEntity(UserCriteriaModel userCriteriaModel)
         {
             USERNAME = userCriteriaModel.Username;
             CRITERIA = userCriteriaModel.Criteria;

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using BridgeCare.EntityClasses;
 
 namespace BridgeCare.Models
@@ -9,8 +7,11 @@ namespace BridgeCare.Models
     public class SplitTreatmentModel : CrudModel
     {
         public string Id { get; set; }
+
         public string Description { get; set; }
+
         public string Criteria { get; set; }
+
         public List<SplitTreatmentLimitModel> SplitTreatmentLimits { get; set; }
 
         public SplitTreatmentModel() { }

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Http.Dependencies;
 using Unity;
-using Unity.Exceptions;
 
-namespace BridgeCare.App_Start
+namespace BridgeCare
 {
     public class UnityResolver : IDependencyResolver
     {

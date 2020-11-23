@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Web;
-using BridgeCare.Models;
 using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 
@@ -19,6 +16,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummaryByBudget
             this.excelHelper = excelHelper;
             this.bridgeWorkSummaryCommon = bridgeWorkSummaryCommon ?? throw new ArgumentNullException(nameof(bridgeWorkSummaryCommon));
         }
+
         internal void FillCostOfCulvert(ExcelWorksheet worksheet, CurrentCell currentCell, List<WorkSummaryByBudgetModel> costForCulvertBudget, Dictionary<int, double> totalBudgetPerYearForCulvert, List<int> simulationYears)
         {
             var startYear = simulationYears[0];

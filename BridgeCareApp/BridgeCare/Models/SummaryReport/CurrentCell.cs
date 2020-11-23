@@ -1,8 +1,9 @@
-﻿namespace BridgeCare.Models
+﻿namespace BridgeCare.Models.SummaryReport
 {
     public class CurrentCell
     {
         public int Row { get; set; }
+
         public int Column { get; set; }
     }
 }

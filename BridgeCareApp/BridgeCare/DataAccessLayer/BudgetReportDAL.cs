@@ -1,9 +1,9 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
@@ -21,7 +21,7 @@ namespace BridgeCare.DataAccessLayer
 
         public YearlyBudgetAndCost GetData(SimulationModel data, string[] budgetTypes)
         {
-            if(data == null)
+            if (data == null)
             {
                 throw new ArgumentNullException(nameof(data));
             }
@@ -29,7 +29,7 @@ namespace BridgeCare.DataAccessLayer
 
             var query = "SELECT Years, Budget, Cost_ " +
                          $"FROM Report_{data.networkId}_{data.simulationId} " +
-                         $"WHERE BUDGET is not null AND BUDGET IN ('{string.Join("','",budgetTypes)}')";
+                         $"WHERE BUDGET is not null AND BUDGET IN ('{string.Join("','", budgetTypes)}')";
             var rawQueryForData = db.Database.SqlQuery<BudgetModel>(query).AsQueryable();
 
             foreach (var row in rawQueryForData)

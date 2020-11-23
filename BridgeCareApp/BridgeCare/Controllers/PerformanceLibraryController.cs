@@ -1,10 +1,9 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
-using System.Web.Http.Filters;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -15,9 +14,15 @@ namespace BridgeCare.Controllers
     {
         private readonly IPerformanceLibrary repo;
         private readonly BridgeCareContext db;
-        /// <summary>Maps user roles to methods for getting performance libraries.</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for getting performance libraries.
+        /// </summary>
         private readonly IReadOnlyDictionary<string, PerformanceLibraryGetMethod> PerformanceLibraryGetMethods;
-        /// <summary>Maps user roles to methods for saving performance libraries.</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for saving performance libraries.
+        /// </summary>
         private readonly IReadOnlyDictionary<string, PerformanceLibrarySaveMethod> PerformanceLibrarySaveMethods;
 
         public PerformanceLibraryController(IPerformanceLibrary repo, BridgeCareContext db)
@@ -30,7 +35,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for getting performance libraries
+        ///     Creates a mapping from user roles to the appropriate methods for getting performance libraries
         /// </summary>
         private Dictionary<string, PerformanceLibraryGetMethod> CreateGetMethods()
         {
@@ -49,7 +54,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for saving performance libraries
+        ///     Creates a mapping from user roles to the appropriate methods for saving performance libraries
         /// </summary>
         private Dictionary<string, PerformanceLibrarySaveMethod> CreateSaveMethods()
         {
@@ -66,7 +71,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's performance library data
+        ///     API endpoint for fetching a simulation's performance library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns>IHttpActionResult</returns>
@@ -81,7 +86,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for upserting/deleting a simulation's performance library data
+        ///     API endpoint for upserting/deleting a simulation's performance library data
         /// </summary>
         /// <param name="model">PerformanceLibraryModel</param>
         /// <returns>IHttpActionResult</returns>
@@ -89,7 +94,7 @@ namespace BridgeCare.Controllers
         [Route("api/SaveScenarioPerformanceLibrary")]
         [ModelValidation("The performance data is invalid.")]
         [RestrictAccess(Role.ADMINISTRATOR, Role.DISTRICT_ENGINEER)]
-        public IHttpActionResult SaveSimulationPerformanceLibrary([FromBody]PerformanceLibraryModel model)
+        public IHttpActionResult SaveSimulationPerformanceLibrary([FromBody] PerformanceLibraryModel model)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(PerformanceLibrarySaveMethods[userInformation.Role](model, userInformation));

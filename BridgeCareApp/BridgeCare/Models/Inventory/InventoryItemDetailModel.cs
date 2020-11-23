@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BridgeCare.Models
+namespace BridgeCare.Models.Inventory
 {
     public class InventoryItemDetailModel
     {
@@ -13,15 +13,23 @@ namespace BridgeCare.Models
         public string Name { get; set; } // Currently not used in UI: mock data location?
 
         public List<LabelValue> Location { get; set; }
+
         public List<LabelValue> AgeAndService { get; set; }
+
         public List<LabelValue> Management { get; set; }
+
         public List<LabelValue> DeckInformation { get; set; }
+
         public List<LabelValue> SpanInformation { get; set; }
+
         public List<NbiLoadRating> NbiLoadRatings { get; set; }
+
         public List<LabelValue> Posting { get; set; }
+
         public List<LabelValue> RoadwayInfo { get; set; }
 
         public List<ConditionDuration> CurrentConditionDuration { get; set; }
+
         public List<ConditionDuration> PreviousConditionDuration { get; set; }
 
         public RiskScores RiskScores { get; set; }

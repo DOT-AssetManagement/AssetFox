@@ -1,19 +1,17 @@
-﻿using System;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class AttributesDAL : IAttributeRepo
     {
         /// <summary>
-        /// Fetches all attributes data
-        /// Throws a RowNotInTableException if no attributes are found
+        ///     Fetches all attributes data Throws a RowNotInTableException if no attributes are found
         /// </summary>
         /// <param name="db">BridgeCareContext</param>
         /// <returns>AttributeModel list</returns>

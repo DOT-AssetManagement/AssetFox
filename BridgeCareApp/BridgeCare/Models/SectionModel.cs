@@ -8,6 +8,7 @@ namespace BridgeCare.Models
         public int SectionId { get; set; }
 
         public string ReferenceId { get; set; }
+
         public string ReferenceKey { get; set; }
 
         [Range(1, int.MaxValue)]

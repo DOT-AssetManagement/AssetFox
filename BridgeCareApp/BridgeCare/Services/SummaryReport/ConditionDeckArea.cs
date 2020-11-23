@@ -2,9 +2,8 @@
 using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
-using OfficeOpenXml.Style;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport
 {
     public class ConditionDeckArea
     {
@@ -16,7 +15,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Fill Condition DA tab report
+        ///     Fill Condition DA tab report
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="bridgeWorkSummaryWorkSheet"></param>
@@ -34,7 +33,7 @@ namespace BridgeCare.Services
 
             chart.AdjustPositionAndSize();
             chart.Locked = true;
-        }       
+        }
 
         private void AddSeries(ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalDeckAreaSectionYearsRow, int count, ExcelChart chart)
         {
@@ -71,5 +70,5 @@ namespace BridgeCare.Services
         //    yAxis.Title.Font.Size = 10;
         //    yAxis.Title.Text = "Millions sqft";
         //}
-    }    
+    }
 }

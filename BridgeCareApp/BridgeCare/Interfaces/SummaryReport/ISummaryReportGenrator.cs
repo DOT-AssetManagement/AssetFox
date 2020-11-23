@@ -1,6 +1,6 @@
 ﻿using BridgeCare.Models;
 
-namespace BridgeCare.Interfaces
+namespace BridgeCare.Interfaces.SummaryReport
 {
     public interface ISummaryReportGenerator
     {

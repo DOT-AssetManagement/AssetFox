@@ -1,15 +1,15 @@
-﻿using BridgeCare.Models;
+﻿using System.Collections.Generic;
+using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport.WorkSummary
 {
     public class BridgeRateDeckAreaWorkSummary
-    {       
-        enum HeaderLabel { Good, Fair, Poor };
+    {
+        private enum HeaderLabel
+        { Good, Fair, Poor };
+
         private readonly BridgeWorkSummaryCommon bridgeWorkSummaryCommon;
         private readonly ExcelHelper excelHelper;
         private readonly BridgeWorkSummaryComputationHelper bridgeWorkSummaryComputationHelper;
@@ -22,7 +22,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Fill work summary bridge poor on off rate and deck area sections
+        ///     Fill work summary bridge poor on off rate and deck area sections
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="currentCell"></param>
@@ -100,7 +100,7 @@ namespace BridgeCare.Services
             excelHelper.SetCustomFormat(worksheet.Cells[startRow, startColumn + 1, row + 2, column], "Number");
             //excelHelper.ApplyColor(worksheet.Cells[row + 2, startColumn + 1, row + 2, column], Color.Khaki);
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 3, column);
-        }        
+        }
 
         private void AddTotalDeckArea(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, int row, int column, int year)
         {

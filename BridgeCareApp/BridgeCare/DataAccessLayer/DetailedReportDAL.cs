@@ -1,11 +1,11 @@
-﻿using BridgeCare.ApplicationLog;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.SqlClient;
 using System.Linq;
+using BridgeCare.ApplicationLog;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
@@ -21,7 +21,9 @@ namespace BridgeCare.DataAccessLayer
         public string Treatment { get; set; }
 
         public int NumberTreatment { get; set; }
+
         public bool IsCommitted { get; set; }
+
         public int Years { get; set; }
 
         private readonly BridgeCareContext db;
