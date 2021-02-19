@@ -278,6 +278,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 worksheet.Cells[row, ++column].Value = yearData.Cost;
                 excelHelper.SetCurrencyFormat(worksheet.Cells[row, column]);
                 worksheet.Cells[row, ++column].Value = ""; // District Remarks
+                worksheet.Cells[row, ++column].Value = yearData.County; // County
             }
             // Empty column
             column++;
@@ -351,7 +352,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
             var simulationHeaderTexts = GetSimulationHeaderTexts();
             worksheet.Cells[row, ++column].Value = simulationYears[0] - 1;
             column = currentCell.Column;
-            column = AddSimulationHeaderTexts(worksheet, column, row, simulationHeaderTexts, simulationHeaderTexts.Count - 5);
+            column = AddSimulationHeaderTexts(worksheet, column, row, simulationHeaderTexts, simulationHeaderTexts.Count - 6);
             excelHelper.MergeCells(worksheet, row, currentCell.Column + 1, row, column);
 
             // Empty column
@@ -420,7 +421,8 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 "Budget",
                 "Project",
                 "Cost",
-                "District Remarks"
+                "District Remarks",
+                "County"
             };
         }
 

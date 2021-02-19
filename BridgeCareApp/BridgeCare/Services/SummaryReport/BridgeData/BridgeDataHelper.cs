@@ -64,6 +64,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 SuperD = simulationRow["SUP_DURATION_N_" + year].ToString(),
                 SubD = simulationRow["SUB_DURATION_N_" + year].ToString(),
                 CulvD = simulationRow["CULV_DURATION_N_" + year].ToString(),
+                County = simulationRow["COUNTY_" + year].ToString(),
                 Year = year
             };
             var isDeckConverted = double.TryParse(yearsData.Deck, out var deck);

@@ -224,6 +224,15 @@ namespace BridgeCare.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to COUNTY_.
+        /// </summary>
+        internal static string County {
+            get {
+                return ResourceManager.GetString("County", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CULV_DURATION_N_.
         /// </summary>
         internal static string CulvDurationN {
