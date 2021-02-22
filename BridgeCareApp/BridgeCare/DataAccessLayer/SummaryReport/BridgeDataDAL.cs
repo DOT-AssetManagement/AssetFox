@@ -316,7 +316,9 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
                 P3 = pennDotReportADataRow.P3,
                 ParallelBridge = pennDotReportADataRow.ParallelBridge,
 
-                ADTOverTenThousand = isADTOverTenThousand ? "Y" : "N"
+                ADTOverTenThousand = isADTOverTenThousand ? "Y" : "N",
+
+                County = pennDotReportADataRow.COUNTY
             };
         }
 

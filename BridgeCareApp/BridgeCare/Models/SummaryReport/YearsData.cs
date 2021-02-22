@@ -24,8 +24,6 @@
 
         public string SD { get; set; }
 
-        public string County { get; set; }
-
         public string PoorOnOffRate { get; set; }
 
         // Below will be fetched from REPORT_x_y table

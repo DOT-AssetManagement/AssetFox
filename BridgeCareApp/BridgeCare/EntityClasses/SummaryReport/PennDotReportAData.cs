@@ -47,5 +47,7 @@ namespace BridgeCare.EntityClasses.SummaryReport
         public int ParallelBridge { get; private set; }
 
         public string OwnerCode { get; private set; }
+
+        public string COUNTY { get; set; }
     }
 }

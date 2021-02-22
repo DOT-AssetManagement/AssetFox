@@ -278,7 +278,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 worksheet.Cells[row, ++column].Value = yearData.Cost;
                 excelHelper.SetCurrencyFormat(worksheet.Cells[row, column]);
                 worksheet.Cells[row, ++column].Value = ""; // District Remarks
-                worksheet.Cells[row, ++column].Value = yearData.County; // County
+                //worksheet.Cells[row, ++column].Value = yearData.County; // County
             }
             // Empty column
             column++;
@@ -352,7 +352,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
             var simulationHeaderTexts = GetSimulationHeaderTexts();
             worksheet.Cells[row, ++column].Value = simulationYears[0] - 1;
             column = currentCell.Column;
-            column = AddSimulationHeaderTexts(worksheet, column, row, simulationHeaderTexts, simulationHeaderTexts.Count - 6);
+            column = AddSimulationHeaderTexts(worksheet, column, row, simulationHeaderTexts, simulationHeaderTexts.Count - 5);
             excelHelper.MergeCells(worksheet, row, currentCell.Column + 1, row, column);
 
             // Empty column
@@ -421,8 +421,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 "Budget",
                 "Project",
                 "Cost",
-                "District Remarks",
-                "County"
+                "District Remarks"
             };
         }
 
@@ -437,6 +436,9 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BridgeID;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BRKey;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.District;
+
+                worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.County;
+
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BridgeCulvert;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.DeckArea;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.StructureLength;
@@ -486,6 +488,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 "BridgeID",
                 "BRKey",
                 "District",
+                "County",
                 "Bridge (B/C)",
                 "Deck Area",
                 "Structure Length",
