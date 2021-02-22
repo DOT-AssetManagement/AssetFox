@@ -66,6 +66,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 CulvD = simulationRow["CULV_DURATION_N_" + year].ToString(),
                 Year = year
             };
+
             var isDeckConverted = double.TryParse(yearsData.Deck, out var deck);
             var isCulvConverted = double.TryParse(yearsData.Culv, out var culv);
             var isSuperConverted = double.TryParse(yearsData.Super, out var super);

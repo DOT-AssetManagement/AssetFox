@@ -35,6 +35,8 @@
 
         public double RiskScore { get; set; }
 
+        public string County { get; set; }
+
         //Below data fetched from table PENNDOT_BRIDGE_DATA
         public int BridgeFamily { get; set; }
 

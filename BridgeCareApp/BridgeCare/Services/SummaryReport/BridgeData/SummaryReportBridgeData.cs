@@ -278,6 +278,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 worksheet.Cells[row, ++column].Value = yearData.Cost;
                 excelHelper.SetCurrencyFormat(worksheet.Cells[row, column]);
                 worksheet.Cells[row, ++column].Value = ""; // District Remarks
+                //worksheet.Cells[row, ++column].Value = yearData.County; // County
             }
             // Empty column
             column++;
@@ -435,6 +436,9 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BridgeID;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BRKey;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.District;
+
+                worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.County;
+
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.BridgeCulvert;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.DeckArea;
                 worksheet.Cells[rowNo, columnNo++].Value = bridgeDataModel.StructureLength;
@@ -484,6 +488,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 "BridgeID",
                 "BRKey",
                 "District",
+                "County",
                 "Bridge (B/C)",
                 "Deck Area",
                 "Structure Length",
