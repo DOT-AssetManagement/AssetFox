@@ -145,7 +145,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
             var dynamicColumns = GetDynamicColumns(simulationYears);
 
             var selectSimulationStatement = $"SELECT SECTIONID, {Properties.Resources.DeckSeeded}0, {Properties.Resources.SupSeeded}0, {Properties.Resources.SubSeeded}0, {Properties.Resources.CulvSeeded}0, " +
-                                            $"{Properties.Resources.DeckDurationN}0, {Properties.Resources.SupDurationN}0, {Properties.Resources.SubDurationN}0, {Properties.Resources.CulvDurationN}0, {Properties.Resources.RiskScore}0, {Properties.Resources.County}0, " +
+                                            $"{Properties.Resources.DeckDurationN}0, {Properties.Resources.SupDurationN}0, {Properties.Resources.SubDurationN}0, {Properties.Resources.CulvDurationN}0, {Properties.Resources.RiskScore}0, " +
                                             dynamicColumns + $" FROM SIMULATION_{simulationModel.networkId}_{simulationModel.simulationId}_0 WITH (NOLOCK);";
 
             using (var connection = new SqlConnection(dbContext.Database.Connection.ConnectionString))
@@ -259,8 +259,7 @@ namespace BridgeCare.DataAccessLayer.SummaryReport
                     dynamicColumns += ", ";
 
                 dynamicColumns += $"{Properties.Resources.DeckSeeded}{year}, {Properties.Resources.SupSeeded}{year}, {Properties.Resources.SubSeeded}{year}, {Properties.Resources.CulvSeeded}{year}, " +
-                                 $"{Properties.Resources.DeckDurationN}{year}, {Properties.Resources.SupDurationN}{year}, {Properties.Resources.SubDurationN}{year}, {Properties.Resources.CulvDurationN}{year}, " +
-                                 $"{Properties.Resources.County}{year}";
+                                 $"{Properties.Resources.DeckDurationN}{year}, {Properties.Resources.SupDurationN}{year}, {Properties.Resources.SubDurationN}{year}, {Properties.Resources.CulvDurationN}{year}";
             }
 
             return dynamicColumns;
