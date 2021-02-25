@@ -144,11 +144,13 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                         yearsData[index].Year, index, yearsData[index].Project, worksheet, row, column);
                     if (abbreviatedTreatmentNames.ContainsKey(yearsData[index].Treatment))
                     {
-                        range.Value = string.IsNullOrEmpty(abbreviatedTreatmentNames[yearsData[index].Treatment]) ? "--" : abbreviatedTreatmentNames[yearsData[index].Treatment];
+                        range.Value = string.IsNullOrEmpty(abbreviatedTreatmentNames[yearsData[index].Treatment])
+                            || yearsData[index].Treatment == "No Treatment" ? "--" : abbreviatedTreatmentNames[yearsData[index].Treatment];
                     }
                     else
                     {
-                        range.Value = string.IsNullOrEmpty(yearsData[index].Treatment) ? "--" : yearsData[index].Treatment;
+                        range.Value = string.IsNullOrEmpty(yearsData[index].Treatment)
+                            || yearsData[index].Treatment == "No Treatment" ? "--" : yearsData[index].Treatment;
                     }
                     workDoneMoreThanOnce = !range.Value.Equals("--") ? workDoneMoreThanOnce + 1 : workDoneMoreThanOnce;
                 }
