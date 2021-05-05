@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace BridgeCare.Models
+﻿namespace BridgeCare.Models.SummaryReport
 {
     public class ChartRowsModel
     {

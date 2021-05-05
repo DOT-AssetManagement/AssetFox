@@ -1,10 +1,9 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
-using System.Web.Http.Filters;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -15,9 +14,15 @@ namespace BridgeCare.Controllers
     {
         private readonly IPriority repo;
         private readonly BridgeCareContext db;
-        /// <summary>Maps user roles to methods for getting performance libraries.</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for getting performance libraries.
+        /// </summary>
         private readonly IReadOnlyDictionary<string, PriorityLibraryGetMethod> PriorityLibraryGetMethods;
-        /// <summary>Maps user roles to methods for saving performance libraries.</summary>
+
+        /// <summary>
+        ///     Maps user roles to methods for saving performance libraries.
+        /// </summary>
         private readonly IReadOnlyDictionary<string, PriorityLibrarySaveMethod> PriorityLibrarySaveMethods;
 
         public PriorityController() { }
@@ -32,7 +37,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for getting priority libraries
+        ///     Creates a mapping from user roles to the appropriate methods for getting priority libraries
         /// </summary>
         private Dictionary<string, PriorityLibraryGetMethod> CreateGetMethods()
         {
@@ -46,12 +51,12 @@ namespace BridgeCare.Controllers
                 [Role.ADMINISTRATOR] = GetAnyLibrary,
                 [Role.DISTRICT_ENGINEER] = GetPermittedLibrary,
                 [Role.CWOPA] = GetAnyLibrary,
-                [Role.PLANNING_PARTNER] = GetPermittedLibrary
+                [Role.GENERAL_USERS] = GetPermittedLibrary
             };
         }
 
         /// <summary>
-        /// Creates a mapping from user roles to the appropriate methods for saving priority libraries
+        ///     Creates a mapping from user roles to the appropriate methods for saving priority libraries
         /// </summary>
         private Dictionary<string, PriorityLibrarySaveMethod> CreateSaveMethods()
         {
@@ -68,7 +73,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's priority library data
+        ///     API endpoint for fetching a simulation's priority library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns>IHttpActionResult</returns>
@@ -83,7 +88,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for upserting/deleting a simulation's priority library data
+        ///     API endpoint for upserting/deleting a simulation's priority library data
         /// </summary>
         /// <param name="model">PriorityLibraryModel</param>
         /// <returns>IHttpActionResult</returns>
@@ -91,7 +96,7 @@ namespace BridgeCare.Controllers
         [Route("api/SaveScenarioPriorityLibrary")]
         [ModelValidation("The priority data is invalid.")]
         [RestrictAccess(Role.ADMINISTRATOR, Role.DISTRICT_ENGINEER)]
-        public IHttpActionResult SaveSimulationPriorityLibrary([FromBody]PriorityLibraryModel model)
+        public IHttpActionResult SaveSimulationPriorityLibrary([FromBody] PriorityLibraryModel model)
         {
             UserInformationModel userInformation = ESECSecurity.GetUserInformation(Request);
             return Ok(PriorityLibrarySaveMethods[userInformation.Role](model, userInformation));

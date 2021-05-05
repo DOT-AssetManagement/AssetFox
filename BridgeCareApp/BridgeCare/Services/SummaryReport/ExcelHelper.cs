@@ -1,14 +1,13 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport
 {
     public class ExcelHelper
     {
         /// <summary>
-        /// Merge given cells
+        ///     Merge given cells
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="fromRow"></param>
@@ -20,7 +19,7 @@ namespace BridgeCare.Services
             using (var cells = worksheet.Cells[fromRow, fromColumn, toRow, toColumn])
             {
                 cells.Merge = true;
-                if(makeTextBold == true)
+                if (makeTextBold == true)
                 {
                     ApplyStyle(cells);
                 }
@@ -33,7 +32,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Apply style to given cells
+        ///     Apply style to given cells
         /// </summary>
         /// <param name="cells"></param>
         public void ApplyStyle(ExcelRange cells)
@@ -45,7 +44,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Apply border to given cells
+        ///     Apply border to given cells
         /// </summary>
         /// <param name="cells"></param>
         public void ApplyBorder(ExcelRange cells)
@@ -57,28 +56,30 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Set currency format for given cells
+        ///     Set currency format for given cells
         /// </summary>
         /// <param name="cells"></param>
         public void SetCurrencyFormat(ExcelRange cells)
         {
             cells.Style.Numberformat.Format = "_-$* #,##0.00_-;_-$* #,##0.00_-;_-$* \"-\"??_-;_-@_-";
         }
-                
+
         /// <summary>
-        /// Set custom format for given cells
+        ///     Set custom format for given cells
         /// </summary>
         /// <param name="cells"></param>
         public void SetCustomFormat(ExcelRange cells, string type)
         {
             switch (type)
-            {                
+            {
                 case "NegativeCurrency":
                     cells.Style.Numberformat.Format = "_-$* #,##0_-;$* (#,##0)_-;_-$* \"-\"??_-;_-@_-";
                     break;
+
                 case "Number":
                     cells.Style.Numberformat.Format = "_-* #,##0_-;* (#,##0)_-;_-* \"-\"??_-;_-@_-";
                     break;
+
                 case "Percentage":
                     cells.Style.Numberformat.Format = "#0%";
                     break;

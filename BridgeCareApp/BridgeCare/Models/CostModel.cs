@@ -5,8 +5,11 @@ namespace BridgeCare.Models
     public class CostModel : CrudModel
     {
         public string Id { get; set; }
+
         public string Equation { get; set; }
+
         public string Criteria { get; set; }
+
         public bool? IsFunction { get; set; }
 
         public CostModel() { }

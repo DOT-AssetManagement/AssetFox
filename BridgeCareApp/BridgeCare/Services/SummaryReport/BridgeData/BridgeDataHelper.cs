@@ -1,35 +1,29 @@
-﻿using BridgeCare.Models;
-using BridgeCare.Models.SummaryReport;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using BridgeCare.Models.SummaryReport;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport.BridgeData
 {
     public class BridgeDataHelper
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "Suppressing waring for Convert.ToDouble")]
-        public SortedSet<SimulationDataModel> GetSimulationDataModels(DataTable simulationDataTable, List<int> simulationYears, IQueryable<ReportProjectCost> projectCostModels, List<BudgetsPerBRKey> budgetsPerBrKey)
+        public List<SimulationDataModel> GetSimulationDataModels(DataTable simulationDataTable, List<int> simulationYears, IQueryable<ReportProjectCost> projectCostModels, List<BudgetsPerBRKey> budgetsPerBrKey)
         {
-            var simulationDataModels = new SortedSet<SimulationDataModel>(new BrKeyComparer());
+            var simulationDataModels = new List<SimulationDataModel>();
             var projectCostsList = projectCostModels.ToList();
             foreach (DataRow simulationRow in simulationDataTable.Rows)
             {
                 var bridgeDataPerSection = budgetsPerBrKey.Where(b => b.SECTIONID == Convert.ToUInt32(simulationRow["SECTIONID"])).ToList();
                 var simulationDM = CreatePrevYearSimulationMdel(simulationRow);
                 simulationDM.RiskScore = Convert.ToDouble(simulationRow["RISK_SCORE_" + 0]);
-                simulationDM.DeckArea = Convert.ToDouble(simulationRow["Deck_Area"]);
-                simulationDM.BRKey = Convert.ToInt32(simulationRow["BRKEY"]);
-                simulationDM.Section = Convert.ToDouble(simulationRow["Section"]);
-                simulationDM.SectionId = Convert.ToInt32(simulationRow["SECTIONID"]);
                 var projectCostEntries = projectCostsList.Where(pc => pc.SECTIONID == Convert.ToUInt32(simulationRow["SECTIONID"])).ToList();
                 AddAllYearsData(simulationRow, simulationYears, projectCostEntries, simulationDM, bridgeDataPerSection);
                 simulationDataModels.Add(simulationDM);
             }
 
             return simulationDataModels;
-        }        
+        }
 
         private SimulationDataModel CreatePrevYearSimulationMdel(DataRow simulationRow)
         {
@@ -47,9 +41,9 @@ namespace BridgeCare.Services
             var yearsDataModels = new List<YearsData>();
             foreach (int year in simulationYears)
             {
-                var budgetPerBrKey = new BudgetsPerBRKey() { Budget = "", IsCommitted = false, Treatment = ""};
+                var budgetPerBrKey = new BudgetsPerBRKey() { Budget = "", IsCommitted = false, Treatment = "" };
                 var projectCostEntry = projectCostEntries.Where(p => p.YEARS == year).FirstOrDefault();
-                if(bridgeDataPerSection.Count > 0 && bridgeDataPerSection != null)
+                if (bridgeDataPerSection.Count > 0 && bridgeDataPerSection != null)
                 {
                     budgetPerBrKey = bridgeDataPerSection.Where(p => p.YEARS == year).FirstOrDefault();
                 }
@@ -72,11 +66,12 @@ namespace BridgeCare.Services
                 CulvD = simulationRow["CULV_DURATION_N_" + year].ToString(),
                 Year = year
             };
+
             var isDeckConverted = double.TryParse(yearsData.Deck, out var deck);
             var isCulvConverted = double.TryParse(yearsData.Culv, out var culv);
             var isSuperConverted = double.TryParse(yearsData.Super, out var super);
             var isSubConverted = double.TryParse(yearsData.Sub, out var sub);
-            if(isDeckConverted && isCulvConverted && isSuperConverted && isSubConverted)
+            if (isDeckConverted && isCulvConverted && isSuperConverted && isSubConverted)
             {
                 yearsData.MinC = Math.Min(deck, Math.Min(culv, Math.Min(super, sub)));
             }
@@ -88,16 +83,9 @@ namespace BridgeCare.Services
             if (projectCostEntry != null)
             {
                 var amount = projectCostEntry.COST_;
-                if (amount >= 500)
-                {
-                    roundedCost = amount % 1000 >= 500 ? amount + 1000 - amount % 1000 : amount - amount % 1000;
-                }
-                else
-                {
-                    roundedCost = 1000;
-                }
+                roundedCost = amount % 1000 >= 500 ? amount + 1000 - amount % 1000 : amount - amount % 1000;
             }
-            
+
             yearsData.Cost = year != 0 ? roundedCost : 0;
             yearsData.Project = yearsData.Project == null ? "No Treatment" : yearsData.Project;
             yearsData.Budget = budgetPerBrKey != null ? budgetPerBrKey.Budget : "";
@@ -110,14 +98,6 @@ namespace BridgeCare.Services
             yearsData.ProjectPickType = budgetPerBrKey != null ? budgetPerBrKey.ProjectType : 0;
             yearsData.Treatment = budgetPerBrKey != null ? budgetPerBrKey.Treatment : "";
             return yearsData;
-        }
-
-        private class BrKeyComparer : IComparer<SimulationDataModel>
-        {
-            public int Compare(SimulationDataModel x, SimulationDataModel y)
-            {
-                return x.BRKey.CompareTo(y.BRKey);
-            }
         }
     }
 }

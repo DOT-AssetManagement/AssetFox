@@ -1,9 +1,9 @@
-﻿using BridgeCare.Models;
+﻿using System.Collections.Generic;
+using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using System.Collections.Generic;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport
 {
     public class BridgeWorkSummaryCommon
     {
@@ -15,7 +15,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Add headers for sections
+        ///     Add headers for sections
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="currentCell"></param>
@@ -29,7 +29,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Update current cell object
+        ///     Update current cell object
         /// </summary>
         /// <param name="currentCell"></param>
         /// <param name="row"></param>
@@ -41,7 +41,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Common piece of code for work summary tab
+        ///     Common piece of code for work summary tab
         /// </summary>
         /// <param name="currentCell"></param>
         /// <param name="startRow"></param>
@@ -57,7 +57,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Add bridge headers for sections
+        ///     Add bridge headers for sections
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="currentCell"></param>
@@ -114,7 +114,7 @@ namespace BridgeCare.Services
             column++;
             UpdateCurrentCell(currentCell, row, column);
         }
-        
+
         private void AddMergeBridgeSectionHeader(ExcelWorksheet worksheet, string headerText, int mergeColumns, CurrentCell currentCell)
         {
             var row = currentCell.Row + 1;
@@ -151,7 +151,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Initialize Good, Fair, Poor label cells (common to some sections.)
+        ///     Initialize Good, Fair, Poor label cells (common to some sections.)
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="currentCell"></param>

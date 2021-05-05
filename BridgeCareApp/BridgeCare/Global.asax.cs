@@ -5,7 +5,6 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
 using BridgeCare.ExceptionHandling;
@@ -34,13 +33,13 @@ namespace BridgeCare
                     )
                     .Register<OutOfMemoryException>((exception, request) =>
                         request.CreateErrorResponse(
-                            HttpStatusCode.ServiceUnavailable, 
+                            HttpStatusCode.ServiceUnavailable,
                             $"Services are temporarily unavailable::{exception.Message}"
                         )
                     )
                     .Register<Exception>((exception, request) =>
                         request.CreateErrorResponse(
-                            HttpStatusCode.InternalServerError, 
+                            HttpStatusCode.InternalServerError,
                             $"Server error::{exception.Message}"
                         )
                     )

@@ -1,4 +1,6 @@
-﻿using BridgeCare.Interfaces;
+﻿using System;
+using System.Web.Http;
+using BridgeCare.Interfaces;
 using BridgeCare.Security;
 using System;
 using System.Net;
@@ -26,7 +28,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching all networks
+        ///     API endpoint for fetching all networks
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpGet]

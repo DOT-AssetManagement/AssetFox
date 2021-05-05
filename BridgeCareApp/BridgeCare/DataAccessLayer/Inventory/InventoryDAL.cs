@@ -6,14 +6,15 @@ using System.Data.SqlClient;
 using System.Linq;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
+using BridgeCare.Models.Inventory;
 using BridgeCare.Utility;
 
 namespace BridgeCare.DataAccessLayer.Inventory
 {
     public class InventoryDAL : IInventory
-    {   
+    {
         /// <summary>
-        /// Get Inventory details based on bmsId
+        ///     Get Inventory details based on bmsId
         /// </summary>
         /// <param name="bmsId"></param>
         /// <param name="db"></param>
@@ -21,12 +22,12 @@ namespace BridgeCare.DataAccessLayer.Inventory
         public InventoryModel GetInventoryByBMSId(string bmsId, BridgeCareContext db)
         {
             var selectStatement = $"{GetSelectColumnsForPennDotCrosswalk(PennDotCrosswalkDAL.InventoryItems)} FROM PennDot_Report_A WHERE BRIDGE_ID = @value";
-            
+
             return GetInventoryModelData(db, selectStatement, bmsId);
         }
 
         /// <summary>
-        /// /// Get Inventory details based on brKey
+        ///     /// Get Inventory details based on brKey
         /// </summary>
         /// <param name="brKey"></param>
         /// <param name="db"></param>
@@ -34,13 +35,13 @@ namespace BridgeCare.DataAccessLayer.Inventory
         public InventoryModel GetInventoryByBRKey(string brKey, BridgeCareContext db)
         {
             var selectStatement = $"{GetSelectColumnsForPennDotCrosswalk(PennDotCrosswalkDAL.InventoryItems)} FROM PennDot_Report_A WHERE BRKEY = @value";
-           
+
             return GetInventoryModelData(db, selectStatement, Convert.ToInt32(brKey));
         }
 
-
         /// <summary>
-        /// Get BRKey and BMSId pairs in form of InventorySelectionModels, if they match the provided user's criteria.
+        ///     Get BRKey and BMSId pairs in form of InventorySelectionModels, if they match the
+        ///     provided user's criteria.
         /// </summary>
         /// <param name="db"></param>
         /// <returns></returns>
@@ -69,7 +70,8 @@ namespace BridgeCare.DataAccessLayer.Inventory
         }
 
         /// <summary>
-        /// Constructs a SQL query for fetching keys and IDs of bridges matching the provided criteria string.
+        ///     Constructs a SQL query for fetching keys and IDs of bridges matching the provided
+        ///     criteria string.
         /// </summary>
         /// <param name="userCriteriaString">User Criteria String</param>
         /// <param name="networkIDString">Network ID as String</param>
@@ -93,7 +95,7 @@ namespace BridgeCare.DataAccessLayer.Inventory
         }
 
         /// <summary>
-        /// Creates a select statement for the PennDot crosswalk table
+        ///     Creates a select statement for the PennDot crosswalk table
         /// </summary>
         /// <param name="inventoryItems"></param>
         /// <returns>string</returns>
@@ -112,7 +114,7 @@ namespace BridgeCare.DataAccessLayer.Inventory
         }
 
         /// <summary>
-        /// Fetches inventory data
+        ///     Fetches inventory data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="db">BridgeCareContext</param>
@@ -163,7 +165,7 @@ namespace BridgeCare.DataAccessLayer.Inventory
         }
 
         /// <summary>
-        /// Fetches nbi loading rating for an inventory item and adds it to the inventory model
+        ///     Fetches nbi loading rating for an inventory item and adds it to the inventory model
         /// </summary>
         /// <param name="model">InventoryModel</param>
         /// <param name="brKey">BR key identifier</param>

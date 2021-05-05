@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using BridgeCare.Interfaces;
 using BridgeCare.Interfaces.SummaryReport;
 using BridgeCare.Models;
-using BridgeCare.Services.SummaryReport.WorkSummary;
+using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport.WorkSummary
 {
     public class BridgeWorkSummary
     {
@@ -37,14 +36,14 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Fill Work Summary report
+        ///     Fill Work Summary report
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="simulationDataModels"></param>
         /// <param name="bridgeDataModels"></param>
         /// <param name="simulationYears"></param>
         /// <param name="dbContext"></param>
-        /// <param name="simulationId"></param>        
+        /// <param name="simulationId"></param>
         /// <returns>ChartRowsModel object for usage in other tab reports.</returns>
         public ChartRowsModel Fill(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels,
             List<int> simulationYears, BridgeCareContext dbContext, SimulationModel simulationModel, List<string> treatments)
@@ -79,6 +78,6 @@ namespace BridgeCare.Services
             worksheet.Calculate();
             worksheet.Cells.AutoFitColumns();
             return chartRowsModel;
-        }        
+        }
     }
 }

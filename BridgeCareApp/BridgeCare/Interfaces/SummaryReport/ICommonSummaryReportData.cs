@@ -1,9 +1,9 @@
-﻿using BridgeCare.Models;
+﻿using BridgeCare.Models.SummaryReport;
 
-namespace BridgeCare.Interfaces
+namespace BridgeCare.Interfaces.SummaryReport
 {
     public interface ICommonSummaryReportData
     {
-        SimulationYearsModel GetSimulationYearsData(int simulationId);        
+        SimulationYearsModel GetSimulationYearsData(int simulationId);
     }
 }

@@ -1,19 +1,17 @@
-﻿using System;
-using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class AttributesDAL : IAttributeRepo
     {
         /// <summary>
-        /// Fetches all attributes data
-        /// Throws a RowNotInTableException if no attributes are found
+        ///     Fetches all attributes data Throws a RowNotInTableException if no attributes are found
         /// </summary>
         /// <param name="db">BridgeCareContext</param>
         /// <returns>AttributeModel list</returns>
@@ -66,7 +64,8 @@ namespace BridgeCare.DataAccessLayer
                             {
                                 Attribute = validAttributes[i],
                                 Values = new List<string>(),
-                                ResultMessage = $"Number of values for attribute {validAttributes[i]} exceeds 100; use text input"
+                                ResultMessage = $"Number of values for attribute {validAttributes[i]} exceeds 100; use text input",
+                                ResultType = "warning"
                             });
                         }
                         else if (reader.GetInt32(i) == 0)
@@ -75,7 +74,8 @@ namespace BridgeCare.DataAccessLayer
                             {
                                 Attribute = validAttributes[i],
                                 Values = new List<string>(),
-                                ResultMessage = $"No values found for attribute {validAttributes[i]}; use text input"
+                                ResultMessage = $"No values found for attribute {validAttributes[i]}; use text input",
+                                ResultType = "warning"
                             });
                         }
                         else
@@ -105,14 +105,16 @@ namespace BridgeCare.DataAccessLayer
 
                     while (reader.Read())
                     {
-                        values.Add(reader.GetString(0));
+                        if (reader[reader.GetName(0)] != null)
+                            values.Add(reader[reader.GetName(0)].ToString());
                     }
 
                     attributeSelectValuesResults.Add(new AttributeSelectValuesResult
                     {
                         Attribute = attributesWithValues[index],
                         Values = values,
-                        ResultMessage = "Success"
+                        ResultMessage = "Success",
+                        ResultType = "success"
                     });
 
                     index++;

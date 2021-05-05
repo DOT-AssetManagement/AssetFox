@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using BridgeCare.EntityClasses;
-using BridgeCare.Models.CriteriaDrivenBudgets;
-using BridgeCare.EntityClasses.CriteriaDrivenBudgets;
 
 namespace BridgeCare.Models
 {
@@ -13,13 +10,19 @@ namespace BridgeCare.Models
     {
         [Required]
         public string Id { get; set; }
+
         [Required]
         public string Name { get; set; }
+
         [Required]
         public double? InflationRate { get; set; }
+
         public string Description { get; set; }
+
         public List<string> BudgetOrder { get; set; }
+
         public List<InvestmentLibraryBudgetYearModel> BudgetYears { get; set; }
+
         public List<CriteriaDrivenBudgetModel> CriteriaDrivenBudgets { get; set; }
 
         public InvestmentLibraryModel()

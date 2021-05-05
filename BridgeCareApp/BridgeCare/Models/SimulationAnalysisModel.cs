@@ -5,14 +5,23 @@ namespace BridgeCare.Models
     public class SimulationAnalysisModel
     {
         public int Id { get; set; }
+
         public int StartYear { get; set; }
+
         public int AnalysisPeriod { get; set; }
+
         public string OptimizationType { get; set; }
+
         public string BudgetType { get; set; }
+
         public double BenefitLimit { get; set; }
+
         public string Description { get; set; }
+
         public string Criteria { get; set; }
+
         public string BenefitAttribute { get; set; }
+
         public string WeightingAttribute { get; set; }
 
         public SimulationAnalysisModel() { }
@@ -52,5 +61,5 @@ namespace BridgeCare.Models
             entity.COMMITTED_START = StartYear;
             entity.WEIGHTING = updateWeighting ? WeightingAttribute : entity.WEIGHTING;
         }
-  }
+    }
 }

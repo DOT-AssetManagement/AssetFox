@@ -1,5 +1,5 @@
-﻿using BridgeCare.Models;
-using System.Linq;
+﻿using System.Linq;
+using BridgeCare.Models;
 
 namespace BridgeCare.Interfaces
 {

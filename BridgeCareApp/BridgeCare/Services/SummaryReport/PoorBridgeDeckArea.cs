@@ -1,10 +1,8 @@
-﻿using OfficeOpenXml;
+﻿using System.Drawing;
+using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
-using System.Drawing;
-using OfficeOpenXml.Style;
-using System;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport
 {
     public class PoorBridgeDeckArea
     {
@@ -46,8 +44,8 @@ namespace BridgeCare.Services
         private void SetChartAxes(ExcelChart chart)
         {
             stackedColumnChartCommon.SetChartAxes(chart);
-            var yAxis = chart.YAxis;            
-            yAxis.Format = "_(* #,##0.00_);_(* (#,##0.00);_(* -??_);_(@_)";            
+            var yAxis = chart.YAxis;
+            yAxis.Format = "_(* #,##0.00_);_(* (#,##0.00);_(* -??_);_(@_)";
         }
     }
 }

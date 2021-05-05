@@ -1,13 +1,12 @@
-﻿using BridgeCare.Interfaces.SummaryReport;
-using BridgeCare.Models;
-using BridgeCare.Models.SummaryReport;
-using OfficeOpenXml;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using BridgeCare.Models.SummaryReport;
+using BridgeCare.Services.SummaryReport.WorkSummary;
+using OfficeOpenXml;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport
 {
     public class CostBudgetsWorkSummary
     {
@@ -26,7 +25,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        ///  Fill sections with cost and budget details
+        ///     Fill sections with cost and budget details
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="currentCell"></param>
@@ -38,7 +37,7 @@ namespace BridgeCare.Services
         {
             var committedTotalRow = FillCostOfCommittedWorkSection(worksheet, currentCell, simulationYears, comittedProjectsData);
             var culvertTotalRow = FillCostOfCulvertWorkSection(worksheet, currentCell, simulationYears, simulationDataModels, treatments);
-            var bridgeTotalRow = FillCostOfBridgeWorkSection(worksheet, currentCell, simulationYears, simulationDataModels, treatments);            
+            var bridgeTotalRow = FillCostOfBridgeWorkSection(worksheet, currentCell, simulationYears, simulationDataModels, treatments);
             var budgetTotalRow = FillTotalBudgetSection(worksheet, currentCell, simulationYears, yearlyBudgetAmounts);
             FillRemainingBudgetSection(worksheet, simulationYears, currentCell, committedTotalRow, culvertTotalRow, bridgeTotalRow, budgetTotalRow);
         }
@@ -182,7 +181,7 @@ namespace BridgeCare.Services
             excelHelper.SetTextColor(worksheet.Cells[culvertTotalRow, fromColumn, culvertTotalRow, column], Color.White);
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, column);
             return culvertTotalRow;
-        }              
+        }
 
         private int AddDetailsForTotalBudget(ExcelWorksheet worksheet, List<int> simulationYears, CurrentCell currentCell, Dictionary<int, List<double>> yearlyBudgetAmounts)
         {

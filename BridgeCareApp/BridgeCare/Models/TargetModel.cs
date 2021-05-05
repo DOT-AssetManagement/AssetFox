@@ -6,10 +6,15 @@ namespace BridgeCare.Models
     public class TargetModel : CrudModel
     {
         public string Id { get; set; }
+
         public string Attribute { get; set; }
+
         public string Name { get; set; }
+
         public int? Year { get; set; }
+
         public double? TargetMean { get; set; }
+
         public string Criteria { get; set; }
 
         public TargetModel() { }

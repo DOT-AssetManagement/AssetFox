@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using BridgeCare.EntityClasses;
 
 namespace BridgeCare.Models
@@ -10,8 +7,11 @@ namespace BridgeCare.Models
     public class CashFlowLibraryModel
     {
         public string Id { get; set; }
+
         public string Name { get; set; }
+
         public string Description { get; set; }
+
         public List<SplitTreatmentModel> SplitTreatments { get; set; }
 
         public CashFlowLibraryModel()

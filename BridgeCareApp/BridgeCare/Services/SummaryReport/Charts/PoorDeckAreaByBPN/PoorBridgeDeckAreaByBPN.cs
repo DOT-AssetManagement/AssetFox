@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Web;
+﻿using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 
-namespace BridgeCare.Services.SummaryReport.PoorDeckAreaByBPN
+namespace BridgeCare.Services.SummaryReport.Charts.PoorDeckAreaByBPN
 {
     public class PoorBridgeDeckAreaByBPN
     {
@@ -40,7 +36,6 @@ namespace BridgeCare.Services.SummaryReport.PoorDeckAreaByBPN
             CreateSeries(bridgeWorkSummaryWorkSheet, totalPoorDeckAreaByBPNYearsRow, count, chart, totalPoorDeckAreaByBPNYearsRow + 3, Properties.Resources.BPN3, Color.FromArgb(0, 32, 96));
 
             CreateSeries(bridgeWorkSummaryWorkSheet, totalPoorDeckAreaByBPNYearsRow, count, chart, totalPoorDeckAreaByBPNYearsRow + 4, Properties.Resources.BPN4, Color.FromArgb(143, 170, 220));
-
         }
 
         private void CreateSeries(ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalPoorDeckAreaByBPNYearsRow, int count, ExcelChart chart, int fromRow, string header, Color color)

@@ -5,10 +5,15 @@ namespace BridgeCare.Models
     public class ConsequenceModel : CrudModel
     {
         public string Id { get; set; }
+
         public string Attribute { get; set; }
+
         public string Change { get; set; }
+
         public string Criteria { get; set; }
+
         public string Equation { get; set; }
+
         public bool? IsFunction { get; set; }
 
         public ConsequenceModel() { }

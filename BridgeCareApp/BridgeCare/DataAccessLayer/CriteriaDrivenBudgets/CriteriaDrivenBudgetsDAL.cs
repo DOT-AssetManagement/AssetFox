@@ -1,21 +1,21 @@
-﻿using BridgeCare.ApplicationLog;
-using BridgeCare.EntityClasses.CriteriaDrivenBudgets;
-using BridgeCare.Interfaces.CriteriaDrivenBudgets;
-using BridgeCare.Models.CriteriaDrivenBudgets;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using BridgeCare.EntityClasses.CriteriaDrivenBudgets;
+using BridgeCare.Interfaces.CriteriaDrivenBudgets;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer.CriteriaDrivenBudgets
 {
     public class CriteriaDrivenBudgetsDAL : ICriteriaDrivenBudgets
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(CriteriaDrivenBudgetsDAL));
+
         /// <summary>
-        /// Fetches a simulation's criteria driven budgets
+        ///     Fetches a simulation's criteria driven budgets
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -33,8 +33,8 @@ namespace BridgeCare.DataAccessLayer.CriteriaDrivenBudgets
         }
 
         /// <summary>
-        /// Fetches a simulation's criteria driven budgets if the scenario belongs to the user
-        /// Throws RowNotInTableException if no such simulation is found
+        ///     Fetches a simulation's criteria driven budgets if the scenario belongs to the user
+        ///     Throws RowNotInTableException if no such simulation is found
         /// </summary>
         /// <param name="id">Simulation id</param>
         /// <param name="db">BridgeCareContext</param>
@@ -50,8 +50,8 @@ namespace BridgeCare.DataAccessLayer.CriteriaDrivenBudgets
         }
 
         /// <summary>
-        /// Fetches a simulation's criteria driven budgets
-        /// Throws RowNotInTableException if no such simulation is found
+        ///     Fetches a simulation's criteria driven budgets Throws RowNotInTableException if no
+        ///     such simulation is found
         /// </summary>
         /// <param name="id">Simulation id</param>
         /// <param name="db">BridgeCareContext</param>
@@ -64,7 +64,7 @@ namespace BridgeCare.DataAccessLayer.CriteriaDrivenBudgets
         }
 
         /// <summary>
-        /// Executes an insert/delete operation on the criteria driven budgets table
+        ///     Executes an insert/delete operation on the criteria driven budgets table
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="models">CriteriaDrivenBudgetModel list</param>

@@ -1,7 +1,38 @@
 ﻿<template>
     <v-layout column>
         <v-flex xs12>
-            <v-layout fixed justify-space-between>
+            <v-layout fixed justify-end>
+                <div v-if="!$screen.xxl && !$screen.xxxl" class="justify-end">
+                    <v-menu>
+                        <template slot="activator">
+                            <v-btn icon>
+                                <v-icon>fas fa-bars</v-icon>
+                            </v-btn>
+                        </template>
+                        <v-list>
+                            <v-list-tile v-for="navTab in visibleNavigationTabs()" @click="onNavigate(navTab.navigation)">
+                                <v-list-tile-action>
+                                    <v-icon>{{navTab.tabIcon}}</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>{{navTab.tabName}}</v-list-tile-title>
+                            </v-list-tile>
+                            <v-list-tile @click="onShowRunSimulationAlert">
+                                <v-list-tile-action>
+                                    <v-icon>fas fa-play</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Run Scenario</v-list-tile-title>
+                            </v-list-tile>
+                            <v-list-tile @click="onShowCommittedProjectsFileUploader">
+                                <v-list-tile-action>
+                                    <v-icon>fas fa-cloud-upload-alt</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Committed Projects</v-list-tile-title>
+                            </v-list-tile>
+                        </v-list>
+                    </v-menu>
+                </div>
+            </v-layout>
+            <v-layout v-if="$screen.xxl || $screen.xxxl" fixed justify-space-between>
                 <div>
                     <v-tabs>
                         <v-tab :key="navigationTab.tabName"
@@ -12,21 +43,42 @@
                         </v-tab>
                     </v-tabs>
                 </div>
-                <div>
-                    <v-layout>
-                        <div>
-                            <v-btn @click="onShowRunSimulationAlert" class="ara-blue-bg white--text">
-                                Run Scenario
-                                <v-icon class="white--text" right>fas fa-play</v-icon>
+                <div v-if="!$screen.xxxl">
+                    <v-menu>
+                        <template slot="activator">
+                            <v-btn icon>
+                                <v-icon>fas fa-bars</v-icon>
                             </v-btn>
-                        </div>
-                        <div>
-                            <v-btn @click="onShowCommittedProjectsFileUploader" class="ara-blue-bg white--text">
-                                Committed Projects
-                                <v-icon class="white--text" right>fas fa-cloud-upload-alt</v-icon>
-                            </v-btn>
-                        </div>
-                    </v-layout>
+                        </template>
+                        <v-list>
+                            <v-list-tile @click="onShowRunSimulationAlert">
+                                <v-list-tile-action>
+                                    <v-icon>fas fa-play</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Run Scenario</v-list-tile-title>
+                            </v-list-tile>
+                            <v-list-tile @click="onShowCommittedProjectsFileUploader">
+                                <v-list-tile-action>
+                                    <v-icon>fas fa-cloud-upload-alt</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-title>Committed Projects</v-list-tile-title>
+                            </v-list-tile>
+                        </v-list>
+                    </v-menu>
+                </div>
+                <div class="edit-scenario-btns-div" v-if="$screen.xxxl">
+                    <div>
+                        <v-btn @click="onShowRunSimulationAlert" class="ara-blue-bg white--text">
+                            Run Scenario
+                            <v-icon class="white--text" right>fas fa-play</v-icon>
+                        </v-btn>
+                    </div>
+                    <div>
+                        <v-btn @click="onShowCommittedProjectsFileUploader" class="ara-blue-bg white--text">
+                            Committed Projects
+                            <v-icon class="white--text" right>fas fa-cloud-upload-alt</v-icon>
+                        </v-btn>
+                    </div>
                 </div>
             </v-layout>
         </v-flex>
@@ -39,7 +91,10 @@
 
         <Alert :dialogData="alertData" @submit="onSubmitAlertResult"/>
 
-        <CommittedProjectsFileUploaderDialog :showDialog="showFileUploader" @submit="onUploadCommittedProjectFiles"/>
+        <Alert :dialogData="alertDataForDeletingCommittedProjects" @submit="onDeleteCommittedProjectsSubmit" />
+
+        <CommittedProjectsFileUploaderDialog :showDialog="showFileUploader" @submit="onUploadCommittedProjectFiles"
+            @delete="onDeleteCommittedProjects"/>
     </v-layout>
 </template>
 
@@ -59,6 +114,8 @@
     import {CommittedProjectsDialogResult} from '@/shared/models/modals/committed-projects-dialog-result';
     import {AlertData, emptyAlertData} from '@/shared/models/modals/alert-data';
     import Alert from '@/shared/modals/Alert.vue';
+    import {hasValue} from '@/shared/utils/has-value-util';
+    import {http2XX} from '@/shared/utils/http-utils';
 
     @Component({
         components: {CommittedProjectsFileUploaderDialog, Alert}
@@ -81,8 +138,73 @@
         showFileUploader: boolean = false;
         networkId: number = 0;
         selectedScenario: Scenario = clone(emptyScenario);
-        navigationTabs: NavigationTab[] = [];
+        navigationTabs: NavigationTab[] = [
+          {
+            tabName: 'Analysis',
+            tabIcon: 'fas fa-chart-bar',
+            navigation: {
+              path: '/EditAnalysis/'
+            }
+          },
+          {
+            tabName: 'Investment',
+            tabIcon: 'fas fa-dollar-sign',
+            navigation: {
+              path: '/InvestmentEditor/Scenario/'
+            }
+          },
+          {
+            tabName: 'Performance',
+            tabIcon: 'fas fa-chart-line',
+            navigation: {
+              path: '/PerformanceEditor/Scenario/'
+            }
+          },
+          {
+            tabName: 'Treatment',
+            tabIcon: 'fas fa-tools',
+            navigation: {
+              path: '/TreatmentEditor/Scenario/'
+            }
+          },
+          {
+            tabName: 'Priority',
+            tabIcon: 'fas fa-copy',
+            navigation: {
+              path: '/PriorityEditor/Scenario/'
+            }
+          },
+          {
+            tabName: 'Target',
+            tabIcon: 'fas fa-bullseye',
+            navigation: {
+              path: '/TargetEditor/Scenario/'
+            }
+          },
+          {
+            tabName: 'Deficient',
+            tabIcon: 'fas fa-level-down-alt',
+            navigation: {
+              path: '/DeficientEditor/Scenario/'
+            }
+          },
+          {
+            tabName: 'Remaining Life Limit',
+            tabIcon: 'fas fa-business-time',
+            navigation: {
+              path: '/RemainingLifeLimitEditor/Scenario/'
+            }
+          },
+          {
+            tabName: 'Cash Flow',
+            tabIcon: 'fas fa-money-bill-wave',
+            navigation: {
+              path: '/CashFlowEditor/Scenario/'
+            }
+          }
+        ];
         alertData: AlertData = clone(emptyAlertData);
+        alertDataForDeletingCommittedProjects: AlertData = {...emptyAlertData};
 
         beforeRouteEnter(to: any, from: any, next: any) {
             next((vm: any) => {
@@ -98,117 +220,27 @@
                 } else {
                     vm.getMongoScenariosAction({userId: vm.userId})
                         .then(() => vm.selectScenarioAction({simulationId: parseInt(to.query.selectedScenarioId)}));
-                    vm.navigationTabs = [
-                        {
-                            tabName: 'Analysis',
-                            tabIcon: 'fas fa-chart-bar',
+                    vm.navigationTabs = vm.navigationTabs
+                      .map((navTab: NavigationTab) => {
+                          const navigationTab = {
+                            ...navTab,
                             navigation: {
-                                path: '/EditAnalysis/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
+                              ...navTab.navigation,
+                              query: {
+                                selectedScenarioId: to.query.selectedScenarioId,
+                                simulationName: to.query.simulationName,
+                                objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
+                              }
                             }
-                        },
-                        {
-                            tabName: 'Investment',
-                            tabIcon: 'fas fa-dollar-sign',
-                            navigation: {
-                                path: '/InvestmentEditor/Scenario/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
-                            }
-                        },
-                        {
-                            tabName: 'Performance',
-                            tabIcon: 'fas fa-chart-line',
-                            navigation: {
-                                path: '/PerformanceEditor/Scenario/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
-                            }
-                        },
-                        {
-                            tabName: 'Treatment',
-                            tabIcon: 'fas fa-tools',
-                            navigation: {
-                                path: '/TreatmentEditor/Scenario/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
-                            }
-                        },
-                        {
-                            tabName: 'Priority',
-                            tabIcon: 'fas fa-copy',
-                            navigation: {
-                                path: '/PriorityEditor/Scenario/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
-                            }
-                        },
-                        {
-                            tabName: 'Target',
-                            tabIcon: 'fas fa-bullseye',
-                            navigation: {
-                                path: '/TargetEditor/Scenario/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
-                            }
-                        },
-                        {
-                            tabName: 'Deficient',
-                            tabIcon: 'fas fa-level-down-alt',
-                            navigation: {
-                                path: '/DeficientEditor/Scenario/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
-                            }
-                        },
-                        {
-                            tabName: 'Remaining Life Limit',
-                            tabIcon: 'fas fa-business-time',
-                            visible: vm.isAdmin,
-                            navigation: {
-                                path: '/RemainingLifeLimitEditor/Scenario/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
-                            }
-                        },
-                        {
-                            tabName: 'Cash Flow',
-                            tabIcon: 'fas fa-money-bill-wave',
-                            navigation: {
-                                path: '/CashFlowEditor/Scenario/',
-                                query: {
-                                    selectedScenarioId: to.query.selectedScenarioId,
-                                    simulationName: to.query.simulationName,
-                                    objectIdMOngoDBForScenario: to.query.objectIdMOngoDBForScenario
-                                }
-                            }
+                          };
+
+                          if (navigationTab.tabName === 'Remaining Life Limit') {
+                            navigationTab['visible'] = vm.isAdmin;
+                          }
+
+                          return navigationTab;
                         }
-                    ];
+                      );
 
                     // get the window href
                     const href = window.location.href;
@@ -241,6 +273,8 @@
             if (this.selectedScenarioId !== 0) {
                 this.selectScenarioAction({simulationId: this.selectedScenarioId});
             }
+            console.log(`screen width: ${this.$screen.width}`);
+            console.log(`lg breakpoint: ${this.$screen.lg}`)
         }
 
         beforeDestroy() {
@@ -267,7 +301,7 @@
                     .saveCommittedProjectsFiles(result.files, result.applyNoTreatment, this.selectedScenarioId.toString(), this.networks[0].networkId.toString())
                     .then((response: AxiosResponse<any>) => {
                         if (!isNil(response)){
-                           this.setSuccessMessageAction({message: 'Successfully uploaded committed projects. You will receive an email when the projects have been fully processed.'});
+                           this.setSuccessMessageAction({message: 'Successfully uploaded committed projects.'});
                         }
                     });
             }
@@ -277,6 +311,28 @@
                 CommittedProjectsService.ExportCommittedProjects(this.selectedScenario)
                     .then((response: AxiosResponse<any>) => {
                         FileDownload(response.data, 'CommittedProjects.xlsx');
+                    });
+            }
+        }
+
+        onDeleteCommittedProjects() {
+            this.alertDataForDeletingCommittedProjects = {
+                showDialog: true,
+                heading: 'Are you sure?',
+                message: 'You are about to delete all of this scenario\'s committed projects.',
+                choice: true
+            };
+        }
+
+        onDeleteCommittedProjectsSubmit(doDelete: boolean) {
+            this.alertDataForDeletingCommittedProjects = {...emptyAlertData};
+
+            if (doDelete) {
+                CommittedProjectsService.DeleteCommittedProjects(this.selectedScenarioId)
+                    .then((response: AxiosResponse) => {
+                        if (hasValue(response) && http2XX.test(response.status.toString())) {
+                            this.setSuccessMessageAction({message: 'Committed projects have been deleted.'});
+                        }
                     });
             }
         }
@@ -312,6 +368,16 @@
                 });
             }
         }
+
+      /**
+       * Navigates a user to a page using the specified routeName
+       * @param route The route name to use when navigating a user
+       */
+      onNavigate(route: any) {
+        if (this.$router.currentRoute.path !== route.path) {
+          this.$router.push(route);
+        }
+      }
     }
 </script>
 
@@ -319,5 +385,9 @@
     .child-router-div {
         height: 100%;
         overflow: auto;
+    }
+
+    .edit-scenario-btns-div {
+        display: flex;
     }
 </style>

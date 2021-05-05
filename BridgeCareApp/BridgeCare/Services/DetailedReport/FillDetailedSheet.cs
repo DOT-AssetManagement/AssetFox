@@ -1,10 +1,10 @@
-﻿using BridgeCare.Models;
+﻿using System;
+using System.Drawing;
+using BridgeCare.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using System;
-using System.Drawing;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.DetailedReport
 {
     public class FillDetailedSheet
     {

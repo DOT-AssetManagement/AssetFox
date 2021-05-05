@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Web.UI.WebControls;
 
-namespace BridgeCare.EntityClasses
+namespace BridgeCare.EntityClasses.SummaryReport
 {
     [Table("PennDot_Report_A")]
     public class PennDotReportAData
@@ -47,5 +47,7 @@ namespace BridgeCare.EntityClasses
         public int ParallelBridge { get; private set; }
 
         public string OwnerCode { get; private set; }
+
+        public string COUNTY { get; set; }
     }
 }

@@ -10,7 +10,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Http;
-using System.Web.Http.Filters;
+using BridgeCare.Interfaces.SummaryReport;
+using BridgeCare.Models;
+using BridgeCare.Security;
+using Hangfire;
 
 namespace BridgeCare.Controllers
 {
@@ -33,7 +36,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's missing attributes for a summary report
+        ///     API endpoint for fetching a simulation's missing attributes for a summary report
         /// </summary>
         /// <param name="simulationId">Simulation identifier</param>
         /// <param name="networkId">Network identifier</param>
@@ -45,7 +48,7 @@ namespace BridgeCare.Controllers
             Ok(repo.GetSummaryReportMissingAttributes(simulationId, networkId, db));
 
         /// <summary>
-        /// API endpoint for fetching simulation data for a summary report
+        ///     API endpoint for fetching simulation data for a summary report
         /// </summary>
         /// <param name="model">SimulationModel</param>
         /// <returns>IHttpActionResult</returns>

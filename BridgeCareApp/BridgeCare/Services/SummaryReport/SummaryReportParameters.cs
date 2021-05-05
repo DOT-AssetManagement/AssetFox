@@ -4,11 +4,9 @@ using System.Drawing;
 using BridgeCare.Interfaces;
 using BridgeCare.Interfaces.CriteriaDrivenBudgets;
 using BridgeCare.Models;
-using BridgeCare.Models.CriteriaDrivenBudgets;
 using BridgeCare.Models.SummaryReport.ParametersTAB;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using OfficeOpenXml.Table;
 
 namespace BridgeCare.Services.SummaryReport
 {
@@ -22,7 +20,7 @@ namespace BridgeCare.Services.SummaryReport
         private readonly ICriteriaDrivenBudgets budgetCriteria;
 
         public SummaryReportParameters(ISimulationAnalysis simulationAnalysis, IInvestmentLibrary inflationRate,
-            ExcelHelper excelHelper, IPriority priorities, ICriteriaDrivenBudgets budget,  BridgeCareContext db)
+            ExcelHelper excelHelper, IPriority priorities, ICriteriaDrivenBudgets budget, BridgeCareContext db)
         {
             analysisData = simulationAnalysis ?? throw new ArgumentNullException(nameof(simulationAnalysis));
             getInflationRate = inflationRate ?? throw new ArgumentNullException(nameof(inflationRate));
@@ -102,7 +100,7 @@ namespace BridgeCare.Services.SummaryReport
             worksheet.Cells["A18"].Value = "D";
             worksheet.Cells["A19"].Value = "N";
             worksheet.Cells["A20"].Value = "Blank";
-            
+
             foreach (var item in bpnValueCellTracker)
             {
                 if (parametersModel.BPNValues.Contains(item.Key))
@@ -389,7 +387,7 @@ namespace BridgeCare.Services.SummaryReport
             worksheet.Cells["N16:Z16"].Value = criteria;
         }
 
-        private void FillInvestmentAndBudgetCriteria(ExcelWorksheet worksheet, InvestmentLibraryModel inflationAndInvestments, List<Models.CriteriaDrivenBudgets.CriteriaDrivenBudgetModel> criteriaDrivenBudgets)
+        private void FillInvestmentAndBudgetCriteria(ExcelWorksheet worksheet, InvestmentLibraryModel inflationAndInvestments, List<CriteriaDrivenBudgetModel> criteriaDrivenBudgets)
         {
             var currencyFormat = "_-$* #,##0.00_-;-$* #,##0.00_-;_-$* \"-\"??_-;_-@_-";
             worksheet.Cells[38, 1].Value = "Years";
@@ -400,7 +398,7 @@ namespace BridgeCare.Services.SummaryReport
             var startingRowInvestment = 40;
             var startingBudgetHeaderColumn = 2;
             var nextBudget = 0;
-            var investmentGrid = new Dictionary<int, List<(string BudgetName, double? BudgetAmount)>>();
+            var investmentGrid = new SortedDictionary<int, List<(string BudgetName, double? BudgetAmount)>>();
             foreach (var item in inflationAndInvestments.BudgetYears)
             {
                 if (!investmentGrid.ContainsKey(item.Year))

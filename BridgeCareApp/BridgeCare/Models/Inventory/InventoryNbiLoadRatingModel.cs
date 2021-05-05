@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BridgeCare.Models
+namespace BridgeCare.Models.Inventory
 {
     public class InventoryNbiLoadRatingModel
     {
@@ -9,6 +9,6 @@ namespace BridgeCare.Models
             NbiLoadRatingItems = new List<InventoryItemModel>();
         }
 
-        public List<InventoryItemModel> NbiLoadRatingItems { get; set; }      
+        public List<InventoryItemModel> NbiLoadRatingItems { get; set; }
     }
 }

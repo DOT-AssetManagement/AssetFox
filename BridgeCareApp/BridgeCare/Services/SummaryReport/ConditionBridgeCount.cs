@@ -1,10 +1,9 @@
-﻿using OfficeOpenXml;
-using OfficeOpenXml.Drawing.Chart;
+﻿using System;
 using System.Drawing;
-using OfficeOpenXml.Style;
-using System;
+using OfficeOpenXml;
+using OfficeOpenXml.Drawing.Chart;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport
 {
     public class ConditionBridgeCount
     {
@@ -16,7 +15,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Fill Condition Bridge Cnt tab report.
+        ///     Fill Condition Bridge Cnt tab report.
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="bridgeWorkSummaryWorkSheet"></param>
@@ -34,7 +33,7 @@ namespace BridgeCare.Services
 
             chart.AdjustPositionAndSize();
             chart.Locked = true;
-        }        
+        }
 
         private void AddSeries(ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalBridgeCountSectionYearsRow, int count, ExcelChart chart)
         {

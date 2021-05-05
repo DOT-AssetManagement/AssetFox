@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BridgeCare.Models
 {
@@ -10,9 +6,12 @@ namespace BridgeCare.Models
     {
         [Required]
         public int NetworkId { get; set; }
+
         [Required]
         public string Name { get; set; }
+
         public string Owner { get; set; }
+
         [Required]
         public string Creator { get; set; }
     }

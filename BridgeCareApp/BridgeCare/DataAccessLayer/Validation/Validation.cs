@@ -1,18 +1,19 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text.RegularExpressions;
 using BridgeCare.EntityClasses;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
-namespace BridgeCare.DataAccessLayer
+namespace BridgeCare.DataAccessLayer.Validation
 {
     public class Validation : IValidation
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(Validation));
+
         public EquationValidationResult ValidateEquation(ValidateEquationModel model, BridgeCareContext db)
         {
             CalculateEvaluate calcEval = new CalculateEvaluate();
@@ -203,7 +204,7 @@ namespace BridgeCare.DataAccessLayer
         {
             var parameterizedCriteriaPredicates = new List<string>();
             var sqlParameters = new List<SqlParameter>();
-            var operators = new List<string>(){"<=", ">=", "<>", "=", "<", ">"};
+            var operators = new List<string>() { "<=", ">=", "<>", "=", "<", ">" };
             var operatorsRegex = new Regex(@"<=|>=|<>|=|<|>");
             var parameterCount = 0;
             var startingIndex = 0;
@@ -288,7 +289,8 @@ namespace BridgeCare.DataAccessLayer
                                 // create a parameterized predicate string
                                 parameterizedPredicate = $"{splitPredicate[0]} {@operator} {value}";
                             }
-                            // add a number of closed parentheses equal to closedParenthesesCount to end of parameterizedPredicate
+                            // add a number of closed parentheses equal to closedParenthesesCount to
+                            // end of parameterizedPredicate
                             if (closedParenthesesCount > 0)
                             {
                                 for (int i = 0; i < closedParenthesesCount; i++)

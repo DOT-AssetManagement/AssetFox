@@ -1,4 +1,4 @@
-﻿namespace BridgeCare.Models
+﻿namespace BridgeCare.Models.Inventory
 {
     public class OperatingRatingInventoryRatingRow
     {
@@ -6,6 +6,6 @@
 
         public LabelValue InventoryRating { get; set; }
 
-        public LabelValue RatioLegalLoad { get; set; }      
+        public LabelValue RatioLegalLoad { get; set; }
     }
 }

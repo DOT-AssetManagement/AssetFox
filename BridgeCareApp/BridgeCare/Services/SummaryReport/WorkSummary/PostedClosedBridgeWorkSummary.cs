@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Web;
-using BridgeCare.Models;
+using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -26,7 +24,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
         }
 
         internal ChartRowsModel FillPostedBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,
-            SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
+            List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
         {
             //excelHelper.ApplyColor(worksheet.Cells[currentCell.Row, 1, currentCell.Row, worksheet.Dimension.Columns], Color.LightGray);
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Posted Bridges - Count", true);
@@ -35,7 +33,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             return chartRowsModel;
         }
 
-        internal ChartRowsModel FillClosedBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
+        internal ChartRowsModel FillClosedBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
         {
             //excelHelper.ApplyColor(worksheet.Cells[currentCell.Row, 1, currentCell.Row, worksheet.Dimension.Columns], Color.LightGray);
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Closed Bridges - Count", true);
@@ -45,7 +43,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
         }
 
         internal ChartRowsModel FillBridgeCountTotal(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,
-            SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
+            List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
         {
             //excelHelper.ApplyColor(worksheet.Cells[currentCell.Row, 1, currentCell.Row, worksheet.Dimension.Columns], Color.LightGray);
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Posted Bridges - Count", true);
@@ -53,8 +51,9 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             AddDetailsForTotalBridgeCount(worksheet, currentCell, simulationYears, simulationDataModels, bridgeDataModels);
             return chartRowsModel;
         }
+
         internal ChartRowsModel FillMoneyNeededByBPN(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,
-            SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
+            List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
         {
             //excelHelper.ApplyColor(worksheet.Cells[currentCell.Row, 1, currentCell.Row, worksheet.Dimension.Columns], Color.LightGray);
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Dollar Needs By BPN", false);
@@ -63,7 +62,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             return chartRowsModel;
         }
 
-        private void AddDetailsForMoneyNeededByBPN(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels)
+        private void AddDetailsForMoneyNeededByBPN(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeBPNLabels(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -86,7 +85,8 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             excelHelper.ApplyColor(worksheet.Cells[startRow, startColumn + 2, row + 4, column], Color.FromArgb(198, 224, 180));
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 4, column);
         }
-        private void AddDetailsForTotalBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels)
+
+        private void AddDetailsForTotalBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeTotalBridgeCountLabels(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -103,7 +103,8 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             excelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, column]);
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 3, column);
         }
-        private void AddDetailsForPostedBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels)
+
+        private void AddDetailsForPostedBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeBPNLabels(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -119,7 +120,8 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             excelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + 3, column]);
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 4, column);
         }
-        private void AddDetailsForClosedBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels)
+
+        private void AddDetailsForClosedBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeBPNLabels(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -135,7 +137,8 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             excelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + 3, column]);
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 4, column);
         }
-        private double AddMoneyNeededByBPN(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int row, int column, int year)
+
+        private double AddMoneyNeededByBPN(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int row, int column, int year)
         {
             var totalMoney = 0.0;
             var moneyForBPN = bridgeWorkSummaryComputationHelper.CalculateMoneyNeededByBPN13(simulationDataModels, bridgeDataModels, year, "1");
@@ -152,7 +155,8 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             totalMoney += moneyForBPN;
             return totalMoney;
         }
-        private int AddClosedBridgeCount(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int row, int column, int year)
+
+        private int AddClosedBridgeCount(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int row, int column, int year)
         {
             var totalCount = 0;
             var closedCount = bridgeWorkSummaryComputationHelper.CalculatePostedAndClosedBridgeCountForBPN13(simulationDataModels, bridgeDataModels, year, "1", "N");
@@ -170,7 +174,8 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
 
             return totalCount;
         }
-        private int AddPostedBridgeCount(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int row, int column, int year)
+
+        private int AddPostedBridgeCount(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int row, int column, int year)
         {
             var totalCount = 0;
             var postedCount = bridgeWorkSummaryComputationHelper.CalculatePostedAndClosedBridgeCountForBPN13(simulationDataModels, bridgeDataModels, year, "1", "Y");

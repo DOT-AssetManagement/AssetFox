@@ -1,10 +1,8 @@
-﻿using OfficeOpenXml;
+﻿using System.Drawing;
+using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
-using System.Drawing;
-using OfficeOpenXml.Style;
-using System;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport
 {
     public class PoorBridgeCount
     {
@@ -27,11 +25,11 @@ namespace BridgeCare.Services
 
             //chart.AdjustPositionAndSize();
             chart.Locked = true;
-        }        
+        }
 
         private void AddSeries(ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalPoorBridgesCountSectionYearsRow, int count, ExcelChart chart)
         {
-            CreateSeries(bridgeWorkSummaryWorkSheet, totalPoorBridgesCountSectionYearsRow, count, chart, totalPoorBridgesCountSectionYearsRow + 1, Properties.Resources.BridgeCare, Color.Blue);           
+            CreateSeries(bridgeWorkSummaryWorkSheet, totalPoorBridgesCountSectionYearsRow, count, chart, totalPoorBridgesCountSectionYearsRow + 1, Properties.Resources.BridgeCare, Color.Blue);
         }
 
         private void CreateSeries(ExcelWorksheet bridgeWorkSummaryWorkSheet, int totalPoorBridgesCountSectionYearsRow, int count, ExcelChart chart, int fromRow, string header, Color color)

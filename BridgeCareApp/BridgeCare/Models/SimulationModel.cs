@@ -10,14 +10,22 @@ namespace BridgeCare.Models
     {
         [Required]
         public int simulationId { get; set; }
+
         public string simulationName { get; set; }
+
         public string networkName { get; set; }
+
         public string Owner { get; set; }
+
         public string Creator { get; set; }
+
         [Required]
         public int networkId { get; set; }
+
         public DateTime? Created { get; set; }
+
         public DateTime? LastRun { get; set; }
+
         public List<SimulationUserModel> Users { get; set; }
 
         public string status { get; set; }

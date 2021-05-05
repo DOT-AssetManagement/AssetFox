@@ -1,7 +1,7 @@
-﻿using BridgeCare.DataAccessLayer;
-using BridgeCare.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using BridgeCare.DataAccessLayer;
+using BridgeCare.Models;
 
 namespace BridgeCare.Interfaces
 {

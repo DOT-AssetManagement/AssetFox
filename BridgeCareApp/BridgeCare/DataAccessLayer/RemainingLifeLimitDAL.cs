@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using BridgeCare.EntityClasses;
@@ -11,7 +10,7 @@ namespace BridgeCare.DataAccessLayer
     public class RemainingLifeLimitDAL : IRemainingLifeLimit
     {
         /// <summary>
-        /// Fetches a simulation's remaining life limit library data
+        ///     Fetches a simulation's remaining life limit library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -20,14 +19,14 @@ namespace BridgeCare.DataAccessLayer
         {
             if (!db.Simulations.Any(s => s.SIMULATIONID == id))
                 throw new RowNotInTableException($"No scenario was found with id {id}");
-                
+
             var simulation = db.Simulations.Include(s => s.REMAINING_LIFE_LIMITS).Single(s => s.SIMULATIONID == id);
 
             return new RemainingLifeLimitLibraryModel(simulation);
         }
 
         /// <summary>
-        /// Executes an upsert/delete operation on a simulation's remaining life limit library data
+        ///     Executes an upsert/delete operation on a simulation's remaining life limit library data
         /// </summary>
         /// <param name="model">RemainingLifeLimitLibraryModel</param>
         /// <param name="db">BridgeCareContext</param>

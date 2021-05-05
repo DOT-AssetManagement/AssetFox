@@ -1,28 +1,24 @@
 ﻿using System;
-using System.Text;
-using System.Collections;
-using System.ComponentModel;
-using System.Data;
 using System.CodeDom;
-using Microsoft.CSharp;
 using System.CodeDom.Compiler;
-using System.Reflection;
-using System.IO;
-using System.Text.RegularExpressions;
+using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
+using Microsoft.CSharp;
 
-namespace BridgeCare.DataAccessLayer
+namespace BridgeCare.DataAccessLayer.Validation
 {
     [Serializable]
     public class CalculateEvaluate
     {
-
-        ArrayList _mathMembers = new ArrayList();
-        Hashtable _mathMembersMap = new Hashtable();
+        private ArrayList _mathMembers = new ArrayList();
+        private Hashtable _mathMembersMap = new Hashtable();
 
         //DEBUGGING
-        StringBuilder _source = new StringBuilder();
+        private StringBuilder _source = new StringBuilder();
 
         public String m_strResult = "";
         public bool m_bCalculate;
@@ -35,7 +31,7 @@ namespace BridgeCare.DataAccessLayer
         public List<String> m_listParameters = new List<String>();
         private string _dllName;
         private string _originalInput;
-        bool _isTemporaryClass = false;
+        private bool _isTemporaryClass = false;
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(CalculateEvaluate));
 
@@ -45,12 +41,10 @@ namespace BridgeCare.DataAccessLayer
             set { _originalInput = value; }
         }
 
-
         public List<String> Parameters
         {
             get { return m_listParameters; }
         }
-
 
         public MethodInfo methodInfo
         {
@@ -90,27 +84,21 @@ namespace BridgeCare.DataAccessLayer
             GetMathMemberNames();  // track all members of the math namespace
         }
 
-
-
         /// <summary>
-        /// Main driving routine for building a class
+        ///     Main driving routine for building a class
         /// </summary>
         public void BuildTemporaryClass(string expression, bool bCalculate)
         {
             _isTemporaryClass = true;
             BuildClass(expression, bCalculate, null);
-
         }
 
-
         /// <summary>
-        /// Main driving routine for building a class
+        ///     Main driving routine for building a class
         /// </summary>
         public void BuildClass(string expression, bool bCalculate)
         {
-
             BuildClass(expression, bCalculate, null);
-
         }
 
         public void BuildClass(string expression, bool bCalculate, string dllName)
@@ -142,7 +130,6 @@ namespace BridgeCare.DataAccessLayer
                 expression = expression.Replace(" AND ", " && ");
                 expression = expression.Replace(" OR ", " || ");
 
-
                 expression = expression.Replace("=", "==");
                 expression = expression.Replace("<>", "!=");
                 expression = expression.Replace("<<", "<=");
@@ -173,13 +160,11 @@ namespace BridgeCare.DataAccessLayer
                         }
                     }
 
-
                     if (expression.Substring(i, 1) == "'" && nOpen < 0)
                     {
                         nOpen = i;
                         continue;
                     }
-
 
                     if (expression.Substring(i, 1) == "'" && nOpen > -1)
                     {
@@ -206,7 +191,6 @@ namespace BridgeCare.DataAccessLayer
                             catch
                             {
                                 strValue = strValueWithQuotes.Replace("'", "\"");
-
                             }
                         }
                         expression = expression.Remove(nOpen, i - nOpen + 1).Insert(nOpen, strValue);
@@ -216,7 +200,6 @@ namespace BridgeCare.DataAccessLayer
                     }
                 }
             }
-
 
             // need a string to put the code into
             _source = new StringBuilder();
@@ -231,7 +214,7 @@ namespace BridgeCare.DataAccessLayer
             myNamespace.Imports.Add(new CodeNamespaceImport("System"));
             myNamespace.Imports.Add(new CodeNamespaceImport("System.Windows.Forms"));
 
-            //Build the class declaration and member variables			
+            //Build the class declaration and member variables
             CodeTypeDeclaration classDeclaration = new CodeTypeDeclaration();
             classDeclaration.IsClass = true;
             if (bCalculate)
@@ -245,8 +228,6 @@ namespace BridgeCare.DataAccessLayer
                 classDeclaration.Members.Add(FieldVariable("answer", typeof(double), MemberAttributes.Private));
             else
                 classDeclaration.Members.Add(FieldVariable("answer", typeof(bool), MemberAttributes.Private));
-
-
 
             //default constructor
             CodeConstructor defaultConstructor = new CodeConstructor();
@@ -273,12 +254,11 @@ namespace BridgeCare.DataAccessLayer
                 myMethod.Parameters.AddRange(GetParametersFromBracketedItems(expression));
 
                 myMethod.Statements.Add(new CodeAssignStatement(new CodeSnippetExpression("Answer"), new CodeSnippetExpression(System.Text.RegularExpressions.Regex.Replace(expression, "[[\\]]", ""))));
-                //            myMethod.Statements.Add(new CodeSnippetExpression("MessageBox.Show(String.Format(\"Answer = {0}\", Answer))"));
+                // myMethod.Statements.Add(new
+                // CodeSnippetExpression("MessageBox.Show(String.Format(\"Answer = {0}\", Answer))"));
                 myMethod.Statements.Add(
                     new CodeMethodReturnStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "Answer")));
                 classDeclaration.Members.Add(myMethod);
-
-
             }
             else
             {
@@ -295,9 +275,6 @@ namespace BridgeCare.DataAccessLayer
 
                 classDeclaration.Members.Add(myMethod);
             }
-
-
-
 
             //write code
             myNamespace.Types.Add(classDeclaration);
@@ -318,13 +295,10 @@ namespace BridgeCare.DataAccessLayer
             CompilerResults results = CompileCode(parms, _source.ToString());
             m_cr = results;
             return results;
-
         }
 
-
-
         /// <summary>
-        /// Compiles the code from the code string
+        ///     Compiles the code from the code string
         /// </summary>
         /// <param name="compiler"></param>
         /// <param name="parms"></param>
@@ -340,7 +314,6 @@ namespace BridgeCare.DataAccessLayer
 
             CodeDomProvider codeProvider = new CSharpCodeProvider();
 
-
             CompilerResults results = null;
             bool isNameCollision = true;
             while (isNameCollision)
@@ -349,7 +322,7 @@ namespace BridgeCare.DataAccessLayer
                 results = codeProvider.CompileAssemblyFromSource(parms, source);
                 foreach (CompilerError error in results.Errors)
                 {
-                    if (error.ErrorNumber == "CS0016")//The process cannot access the file because it is being used by another process. 
+                    if (error.ErrorNumber == "CS0016")//The process cannot access the file because it is being used by another process.
                     {
                         isNameCollision = true;
                         parms.OutputAssembly = IncrementCompiledAssemblyNameOnCollision(parms.OutputAssembly);
@@ -392,10 +365,10 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Create parameters for compiling
+        ///     Create parameters for compiling
         /// </summary>
         /// <returns></returns>
-        CompilerParameters CreateCompilerParameters()
+        private CompilerParameters CreateCompilerParameters()
         {
             //add compiler parameters and assembly references
             CompilerParameters compilerParams = new CompilerParameters();
@@ -412,13 +385,12 @@ namespace BridgeCare.DataAccessLayer
             }
             else if (_isTemporaryClass)
             {
-
                 compilerParams.GenerateInMemory = true;
             }
             return compilerParams;
         }
 
-        void GetMathMemberNames()
+        private void GetMathMemberNames()
         {
             // get a reflected assembly of the System assembly
             Assembly systemAssembly = Assembly.GetAssembly(typeof(System.Math));
@@ -436,8 +408,8 @@ namespace BridgeCare.DataAccessLayer
                     {
                         if (type.Name == "Math")
                         {
-                            // get all of the members of the math class and map them to the same member
-                            // name in uppercase
+                            // get all of the members of the math class and map them to the same
+                            // member name in uppercase
                             MemberInfo[] mis = type.GetMembers();
                             foreach (MemberInfo mi in mis)
                             {
@@ -447,7 +419,6 @@ namespace BridgeCare.DataAccessLayer
                         }
                         //if the entry point method does return in Int32, then capture it and return it
                     }
-
 
                     //if it got here, then there was no entry point method defined.  Tell user about it
                 }
@@ -460,20 +431,17 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Need to change eval string to use .NET Math library
+        ///     Need to change eval string to use .NET Math library
         /// </summary>
         /// <param name="eval">evaluation expression</param>
         /// <returns></returns>
-        string RefineEvaluationString(string eval)
+        private string RefineEvaluationString(string eval)
         {
             // look for regular expressions with only letters
             //Regex regularExpression = new Regex("[a-zA-Z_]+");
             Regex regularExpression = new Regex(@"(?<!(@|\||\[)[a-zA-Z_]*)[a-zA-Z_]+");
             //string[] originalValues = eval.Split('\'');
             eval = eval.Replace("'", "Z_B_X");
-
-
-
 
             // track all functions and constants in the evaluation expression we already replaced
             ArrayList replacelist = new ArrayList();
@@ -499,13 +467,13 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Very simplistic getter/setter properties
+        ///     Very simplistic getter/setter properties
         /// </summary>
         /// <param name="propName"></param>
         /// <param name="internalName"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        CodeMemberProperty MakeProperty(string propertyName, string internalName, Type type)
+        private CodeMemberProperty MakeProperty(string propertyName, string internalName, Type type)
         {
             CodeMemberProperty myProperty = new CodeMemberProperty();
             myProperty.Name = propertyName;
@@ -526,13 +494,14 @@ namespace BridgeCare.DataAccessLayer
             return myProperty;
         }
 
-        CodeMemberField FieldVariable(string fieldName, string typeName, MemberAttributes accessLevel)
+        private CodeMemberField FieldVariable(string fieldName, string typeName, MemberAttributes accessLevel)
         {
             CodeMemberField field = new CodeMemberField(typeName, fieldName);
             field.Attributes = accessLevel;
             return field;
         }
-        CodeMemberField FieldVariable(string fieldName, Type type, MemberAttributes accessLevel)
+
+        private CodeMemberField FieldVariable(string fieldName, Type type, MemberAttributes accessLevel)
         {
             CodeMemberField field = new CodeMemberField(type, fieldName);
             field.Attributes = accessLevel;
@@ -569,12 +538,10 @@ namespace BridgeCare.DataAccessLayer
                         sVariableName = sVariableName.Substring(1);
                     }
 
-
                     if (!m_listParameters.Contains(sVariableName))
                     {
                         m_listParameters.Add(sVariableName);
                     }
-
 
                     uniqueParameters.Add(rem.Value);
                     if (bIsString)
@@ -603,7 +570,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Runs the Calculate method in our on-the-fly assembly
+        ///     Runs the Calculate method in our on-the-fly assembly
         /// </summary>
         /// <param name="results"></param>
         public void RunCode(CompilerResults results, object[] obj)
@@ -665,7 +632,6 @@ namespace BridgeCare.DataAccessLayer
                             }
                         }
                     }
-
                 }
             }
             catch (Exception ex)
@@ -684,7 +650,7 @@ namespace BridgeCare.DataAccessLayer
             if (m_methodInfo == null)
             {
                 //The performance hit is too big.
-                //if (_array == null || !File.Exists(m_cr.PathToAssembly))	
+                //if (_array == null || !File.Exists(m_cr.PathToAssembly))
                 if (!_isTemporaryClass && !File.Exists(m_cr.PathToAssembly))
                 {
                     CompileAssembly();
@@ -702,9 +668,8 @@ namespace BridgeCare.DataAccessLayer
             }
         }
 
-
         /// <summary>
-        /// Main driving routine for building a class
+        ///     Main driving routine for building a class
         /// </summary>
         public void BuildFunctionClass(string expression, string strReturnType, string dllName)
         {
@@ -715,9 +680,7 @@ namespace BridgeCare.DataAccessLayer
             bool bCalculate = true;
             m_bCalculate = bCalculate;
             m_expression = expression;
-            // expression = RefineEvaluationString(expression);
-            //  expression = expression.ToUpper();
-
+            // expression = RefineEvaluationString(expression); expression = expression.ToUpper();
 
             // need a string to put the code into
             _source = new StringBuilder();
@@ -732,7 +695,7 @@ namespace BridgeCare.DataAccessLayer
             myNamespace.Imports.Add(new CodeNamespaceImport("System"));
             myNamespace.Imports.Add(new CodeNamespaceImport("System.Windows.Forms"));
 
-            //Build the class declaration and member variables			
+            //Build the class declaration and member variables
             CodeTypeDeclaration classDeclaration = new CodeTypeDeclaration();
             classDeclaration.IsClass = true;
             classDeclaration.Name = "Calculator";
@@ -743,12 +706,15 @@ namespace BridgeCare.DataAccessLayer
                 case "String":
                     classDeclaration.Members.Add(FieldVariable("answer", typeof(String), MemberAttributes.Private));
                     break;
+
                 case "double":
                     classDeclaration.Members.Add(FieldVariable("answer", typeof(double), MemberAttributes.Private));
                     break;
+
                 case "Boolean":
                     classDeclaration.Members.Add(FieldVariable("answer", typeof(Boolean), MemberAttributes.Private));
                     break;
+
                 default:
                     return;
                     //break;
@@ -757,7 +723,7 @@ namespace BridgeCare.DataAccessLayer
             CodeConstructor defaultConstructor = new CodeConstructor();
             defaultConstructor.Attributes = MemberAttributes.Public;
             defaultConstructor.Comments.Add(new CodeCommentStatement("Default Constructor for class", true));
-            //   defaultConstructor.Statements.Add(new CodeSnippetStatement("//TODO: implement default constructor"));
+            // defaultConstructor.Statements.Add(new CodeSnippetStatement("//TODO: implement default constructor"));
             classDeclaration.Members.Add(defaultConstructor);
 
             switch (strReturnType)
@@ -765,19 +731,19 @@ namespace BridgeCare.DataAccessLayer
                 case "String":
                     classDeclaration.Members.Add(this.MakeProperty("Answer", "answer", typeof(String)));
                     break;
+
                 case "double":
                     classDeclaration.Members.Add(this.MakeProperty("Answer", "answer", typeof(double)));
                     break;
+
                 case "Boolean":
                     classDeclaration.Members.Add(this.MakeProperty("Answer", "answer", typeof(Boolean)));
                     break;
+
                 default:
                     return;
                     //break;
             }
-
-
-
 
             //Our Calculate Method
             CodeMemberMethod myMethod = new CodeMemberMethod();
@@ -788,12 +754,15 @@ namespace BridgeCare.DataAccessLayer
                 case "String":
                     myMethod.ReturnType = new CodeTypeReference(typeof(String));
                     break;
+
                 case "double":
                     myMethod.ReturnType = new CodeTypeReference(typeof(double));
                     break;
+
                 case "Boolean":
                     myMethod.ReturnType = new CodeTypeReference(typeof(Boolean));
                     break;
+
                 default:
                     return;
                     //break;
@@ -820,9 +789,8 @@ namespace BridgeCare.DataAccessLayer
             sw.Close();
         }
 
-
         /// <summary>
-        /// Implements the assembly name if collision with locked dll.
+        ///     Implements the assembly name if collision with locked dll.
         /// </summary>
         /// <param name="dllPath"></param>
         /// <returns></returns>

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BridgeCare.Models
+namespace BridgeCare.Models.Inventory
 {
     public class NbiLoadRating
     {

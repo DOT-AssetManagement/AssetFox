@@ -15,6 +15,7 @@ namespace BridgeCare.EntityClasses
 
         [Key]
         public int NETWORKID { get; set; }
+
         [Required]
         [StringLength(50)]
         public string NETWORK_NAME { get; set; }

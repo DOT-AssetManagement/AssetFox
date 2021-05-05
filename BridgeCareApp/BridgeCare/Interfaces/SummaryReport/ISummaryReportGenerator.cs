@@ -1,9 +1,11 @@
 ﻿using BridgeCare.Models;
 
-namespace BridgeCare.Interfaces
+namespace BridgeCare.Interfaces.SummaryReport
 {
     public interface ISummaryReportGenerator
     {
-        byte[] GenerateExcelReport(SimulationModel simulationModel);
+        void GenerateExcelReport(SimulationModel simulationModel);
+
+        byte[] DownloadExcelReport(SimulationModel simulationModel);
     }
 }

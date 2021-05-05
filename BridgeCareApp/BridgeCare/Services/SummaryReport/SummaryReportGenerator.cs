@@ -1,10 +1,17 @@
-﻿using BridgeCare.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using BridgeCare.Interfaces.SummaryReport;
+using BridgeCare.Interfaces;
 using BridgeCare.Interfaces.ReportsDownload;
 using BridgeCare.Models;
+using BridgeCare.Models.SummaryReport;
 using BridgeCare.Properties;
+using BridgeCare.Services.SummaryReport.BridgeData;
 using BridgeCare.Services.SummaryReport.Charts;
 using BridgeCare.Services.SummaryReport.ShortNameGlossary;
 using BridgeCare.Services.SummaryReport.UnfundedRecommendation;
+using BridgeCare.Services.SummaryReport.WorkSummary;
 using BridgeCare.Services.SummaryReport.WorkSummaryByBudget;
 using Hangfire;
 using MongoDB.Driver;
@@ -17,12 +24,12 @@ using System.IO;
 namespace BridgeCare.Services.SummaryReport
 {
     /// <summary>
-    /// This class utilizes services classes for each tab to fill report data.
+    ///     This class utilizes services classes for each tab to fill report data.
     /// </summary>
     public class SummaryReportGenerator : ISummaryReportGenerator, IReportsDownload<SummaryReportGenerator>
     {
         private readonly ICommonSummaryReportData commonSummaryReportData;
-        private readonly SummaryReportBridgeData summaryReportBridgeData;        
+        private readonly SummaryReportBridgeData summaryReportBridgeData;
         private readonly BridgeWorkSummary bridgeWorkSummary;
         private readonly ConditionBridgeCount conditionBridgeCount;
         private readonly ConditionDeckArea conditionDeckArea;
@@ -64,7 +71,7 @@ namespace BridgeCare.Services.SummaryReport
         }
 
         /// <summary>
-        /// Generate Bridge Summary Report for given simulation details.
+        ///     Generate Bridge Summary Report for given simulation details.
         /// </summary>
         /// <param name="simulationModel"></param>
         /// <returns></returns>
@@ -76,18 +83,18 @@ namespace BridgeCare.Services.SummaryReport
             var simulationYearsModel = commonSummaryReportData.GetSimulationYearsData(simulationId);
             var simulationYears = simulationYearsModel.Years;
             simulationYears.Sort();
-            var simulationYearsCount = simulationYears.Count;            
+            var simulationYearsCount = simulationYears.Count;
             var dbContext = new BridgeCareContext();
 
             using (ExcelPackage excelPackage = new ExcelPackage(new System.IO.FileInfo("SummaryReport.xlsx")))
             {
 #if DEBUG
-                var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBDevConnectionString"].ConnectionString;
+                var mongoConnection = Settings.Default.MongoDBDevConnectionString;
 #else
-                var mongoConnection = ConfigurationManager.ConnectionStrings["MongoDBProdConnectionString"].ConnectionString;
+                var mongoConnection = Settings.Default.MongoDBProdConnectionString;
 #endif
                 var client = new MongoClient(mongoConnection);
-                var MongoDatabase = client.GetDatabase(ConfigurationManager.AppSettings.Get("MongoDatabase"));
+                var MongoDatabase = client.GetDatabase("BridgeCare");
                 var simulations = MongoDatabase.GetCollection<SimulationModel>("scenarios");
 
                 var updateStatus = Builders<SimulationModel>.Update
@@ -102,7 +109,7 @@ namespace BridgeCare.Services.SummaryReport
                     .Set(s => s.status, "Begin Bridge Data TAB Generation");
                 simulations.UpdateOne(s => s.simulationId == simulationId, updateStatus);
 
-                var bridgeDataModels = new SortedSet<BridgeDataModel>();
+                var bridgeDataModels = new List<BridgeDataModel>();
                 var worksheet = excelPackage.Workbook.Worksheets.Add("Bridge Data");
                 var workSummaryModel = summaryReportBridgeData.Fill(worksheet, simulationModel, simulationYears, dbContext);
 
@@ -170,7 +177,7 @@ namespace BridgeCare.Services.SummaryReport
                 worksheet = excelPackage.Workbook.Worksheets.Add("Combined Condition DA");
                 conditionDeckArea.Fill(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalDeckAreaPercentYearsRow, simulationYearsCount);
 
-                // Poor Bridge Cnt tab 
+                // Poor Bridge Cnt tab
                 worksheet = excelPackage.Workbook.Worksheets.Add("Poor Bridge Cnt");
                 poorBridgeCount.Fill(worksheet, bridgeWorkSummaryWorkSheet, chartRowsModel.TotalPoorBridgesCountSectionYearsRow, simulationYearsCount);
 

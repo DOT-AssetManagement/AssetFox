@@ -1,16 +1,16 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using System;
+﻿using System;
 using System.Data;
-using System.Linq;
 using System.Data.Entity;
+using System.Linq;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
 
 namespace BridgeCare.DataAccessLayer
 {
     public class SimulationAnalysisDAL : ISimulationAnalysis
     {
         /// <summary>
-        /// Gets a simulation's analysis data
+        ///     Gets a simulation's analysis data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -22,7 +22,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Gets a simulation's analysis data, regardless of ownership
+        ///     Gets a simulation's analysis data, regardless of ownership
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -35,7 +35,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Gets a simulation's analysis data if it is available to the user
+        ///     Gets a simulation's analysis data if it is available to the user
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <param name="db">BridgeCareContext</param>
@@ -51,7 +51,7 @@ namespace BridgeCare.DataAccessLayer
         }
 
         /// <summary>
-        /// Updates a simulation's analysis data
+        ///     Updates a simulation's analysis data
         /// </summary>
         /// <param name="model">SimulationAnalysisModel</param>
         /// <param name="db">BridgeCareContext</param>

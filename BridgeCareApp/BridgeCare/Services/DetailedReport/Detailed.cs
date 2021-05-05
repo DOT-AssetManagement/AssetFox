@@ -1,12 +1,11 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Models;
-using OfficeOpenXml;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BridgeCare.ApplicationLog;
+using BridgeCare.Interfaces;
+using BridgeCare.Models;
+using OfficeOpenXml;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.DetailedReport
 {
     public class Detailed
     {

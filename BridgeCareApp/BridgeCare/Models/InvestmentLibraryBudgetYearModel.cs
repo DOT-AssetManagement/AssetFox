@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
-using BridgeCare.EntityClasses;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
+﻿using BridgeCare.EntityClasses;
 
 namespace BridgeCare.Models
 {
     public class InvestmentLibraryBudgetYearModel : CrudModel
     {
         public string Id { get; set; }
+
         public int Year { get; set; }
+
         public string BudgetName { get; set; }
+
         public double? BudgetAmount { get; set; }
+
         public string CriteriaDrivenBudgetId { get; set; }
 
         public InvestmentLibraryBudgetYearModel() { }

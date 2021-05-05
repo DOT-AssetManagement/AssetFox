@@ -221,12 +221,12 @@
             </v-container>
             <v-footer app class="ara-blue-pantone-289-bg white--text" fixed>
                 <v-spacer></v-spacer>
-                <v-flex xs1>
-                    <span class="font-weight-light">iAM </span>
-                    <span>BridgeCare &copy; 2019</span>
-                </v-flex>
-                <v-flex xs1>
-                    <span>{{ packageVersion }}</span>
+                <v-flex xs2>
+                    <div class="dev-and-ver-div">
+                        <div class="font-weight-light">iAM </div>
+                        <div>BridgeCare &copy; 2021</div>
+                        <div>{{packageVersion}}</div>
+                    </div>
                 </v-flex>
                 <v-spacer></v-spacer>
             </v-footer>
@@ -275,6 +275,7 @@ export default class AppComponent extends Vue {
     @State(state => state.authentication.refreshing) refreshing: boolean;
     @State(state => state.breadcrumb.navigation) navigation: any[];
     @State(state => state.toastr.successMessage) successMessage: string;
+    @State(state => state.toastr.warningMessage) warningMessage: string;
     @State(state => state.toastr.errorMessage) errorMessage: string;
     @State(state => state.toastr.infoMessage) infoMessage: string;
     @State(state => state.unsavedChangesFlag.hasUnsavedChanges)
@@ -291,6 +292,7 @@ export default class AppComponent extends Vue {
     @Action('getNetworks') getNetworksAction: any;
     @Action('getAttributes') getAttributesAction: any;
     @Action('setSuccessMessage') setSuccessMessageAction: any;
+    @Action('setWarningMessage') setWarningMessageAction: any;
     @Action('setErrorMessage') setErrorMessageAction: any;
     @Action('setInfoMessage') setInfoMessageAction: any;
     @Action('pollEvents') pollEventsAction: any;
@@ -356,19 +358,33 @@ export default class AppComponent extends Vue {
         }
     }
 
-    @Watch('errorMessage')
-    onErrorMessageChanged() {
-        if (hasValue(this.errorMessage)) {
-            iziToast.error({
-                title: 'Error',
-                message: this.errorMessage,
-                position: 'topRight',
-                closeOnClick: true,
-                timeout: 3000,
+        @Watch('warningMessage')
+        onWarningMessageChanged() {
+          if (hasValue(this.warningMessage)) {
+            iziToast.warning({
+              title: 'Warning',
+              message: this.warningMessage,
+              position: 'topRight',
+              closeOnClick: true,
+              timeout: 3000
             });
-            this.setErrorMessageAction({ message: '' });
+            this.setWarningMessageAction({message: ''});
+          }
         }
-    }
+
+        @Watch('errorMessage')
+        onErrorMessageChanged() {
+            if (hasValue(this.errorMessage)) {
+                iziToast.error({
+                    title: 'Error',
+                    message: this.errorMessage,
+                    position: 'topRight',
+                    closeOnClick: true,
+                    timeout: 3000
+                });
+                this.setErrorMessageAction({message: ''});
+            }
+        }
 
     @Watch('infoMessage')
     onInfoMessageChanged() {
@@ -603,7 +619,12 @@ html {
     color: #798899 !important;
 }
 
-.v-list__group__header__prepend-icon .primary--text .v-icon {
-    color: #008fca;
-}
+    .v-list__group__header__prepend-icon .primary--text .v-icon {
+        color: #008FCA;
+    }
+
+    .dev-and-ver-div {
+        display: flex;
+        justify-content: space-evenly;
+    }
 </style>

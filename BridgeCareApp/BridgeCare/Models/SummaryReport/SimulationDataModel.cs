@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BridgeCare.Models
+namespace BridgeCare.Models.SummaryReport
 {
     public class SimulationDataModel
     {
@@ -10,7 +10,7 @@ namespace BridgeCare.Models
 
         // Used in some tab reports
         public double DeckArea { get; set; }
-                
+
         public int BRKey { get; set; }
 
         public double RiskScore { get; set; }

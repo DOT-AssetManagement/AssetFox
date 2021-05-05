@@ -1,8 +1,8 @@
-﻿using BridgeCare.Interfaces;
-using BridgeCare.Security;
-using System;
+﻿using System;
 using System.Web.Http;
+using BridgeCare.Interfaces;
 using BridgeCare.Models;
+using BridgeCare.Security;
 
 namespace BridgeCare.Controllers
 {
@@ -18,7 +18,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching all attributes
+        ///     API endpoint for fetching all attributes
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpGet]

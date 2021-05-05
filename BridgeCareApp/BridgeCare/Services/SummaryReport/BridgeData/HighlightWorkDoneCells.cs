@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Web;
 using OfficeOpenXml;
 
 namespace BridgeCare.Services.SummaryReport.BridgeData
@@ -10,20 +7,22 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
     public class HighlightWorkDoneCells
     {
         private readonly ExcelHelper excelHelper;
+        private string PrevYearTreatment = "No Treatment";
 
         public HighlightWorkDoneCells(ExcelHelper excelHelper)
         {
             this.excelHelper = excelHelper;
         }
+
         internal void CheckConditions(int parallelBridge, string treatment,
             Dictionary<int, int> projectPickByYear, int year, int index, string project, ExcelWorksheet worksheet, int row, int column)
         {
-            if (treatment.Length > 0 && project.ToLower() != "no treatment")
+            if (treatment.Length > 0 && project.ToLower() != "no treatment" && treatment != "No Treatment")
             {
                 var range = worksheet.Cells[row, column];
                 ParallelBridgeBAMs(parallelBridge, projectPickByYear[year], range);
                 CashFlowedBridge(projectPickByYear[year], range);
-                if (index != 1 && (projectPickByYear[year] == 1 && projectPickByYear[year - 1] == 1))
+                if (index != 1 && projectPickByYear[year] == 1 && projectPickByYear[year - 1] == 1 && PrevYearTreatment != "No Treatment")
                 {
                     var rangeWithPreviousColumn = worksheet.Cells[row, column - 1];
                     CommittedForConsecutiveYears(rangeWithPreviousColumn);
@@ -32,6 +31,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 ParallelBridgeMPMS(parallelBridge, projectPickByYear[year], range);
                 ParallelBridgeCashFlow(parallelBridge, projectPickByYear[year], range);
             }
+            PrevYearTreatment = treatment;
         }
 
         private void CommittedForConsecutiveYears(ExcelRange range)
@@ -48,6 +48,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 excelHelper.SetTextColor(range, Color.Black);
             }
         }
+
         private void ParallelBridgeCashFlow(int isParallel, int projectPickType, ExcelRange range)
         {
             if (isParallel == 1 && projectPickType == 2)
@@ -57,6 +58,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 return;
             }
         }
+
         private void ParallelBridgeMPMS(int isParallel, int projectPickType, ExcelRange range)
         {
             if (isParallel == 1 && projectPickType == 1)
@@ -65,6 +67,7 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
                 excelHelper.SetTextColor(range, Color.White);
             }
         }
+
         private void CashFlowedBridge(int projectPickType, ExcelRange range)
         {
             if (projectPickType == 2)

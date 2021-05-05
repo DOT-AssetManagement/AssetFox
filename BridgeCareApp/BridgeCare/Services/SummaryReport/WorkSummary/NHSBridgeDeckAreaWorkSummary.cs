@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Web;
-using BridgeCare.Models;
+using BridgeCare.Models.SummaryReport;
 using OfficeOpenXml;
 
-namespace BridgeCare.Services
+namespace BridgeCare.Services.SummaryReport.WorkSummary
 {
     public class NHSBridgeDeckAreaWorkSummary
     {
@@ -22,7 +20,7 @@ namespace BridgeCare.Services
         }
 
         /// <summary>
-        /// Fill NHS sections.
+        ///     Fill NHS sections.
         /// </summary>
         /// <param name="worksheet"></param>
         /// <param name="currentCell"></param>
@@ -30,8 +28,7 @@ namespace BridgeCare.Services
         /// <param name="simulationDataModels"></param>
         /// <param name="bridgeDataModels"></param>
         /// <param name="chartRowsModel"></param>
-        public void FillNHSBridgeDeckAreaWorkSummarySections(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,
-            SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
+        public void FillNHSBridgeDeckAreaWorkSummarySections(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, ChartRowsModel chartRowsModel)
         {
             var dataStartRow = FillNHSBridgeCountSection(worksheet, currentCell, simulationYears, simulationDataModels, bridgeDataModels);
             chartRowsModel.NHSBridgeCountSectionYearsRow = dataStartRow - 1;
@@ -121,7 +118,7 @@ namespace BridgeCare.Services
             AddDetailsForNonNHSPercentSection(worksheet, currentCell, simulationYears, dataStartRow);
         }
 
-        private void AddDetailsForNonNHSPercentSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,int dataStartRow)
+        private void AddDetailsForNonNHSPercentSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, int dataStartRow)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeLabelCells(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -143,9 +140,9 @@ namespace BridgeCare.Services
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "NHS Bridge Deck Area Percentage", true);
             chartRowsModel.NHSBridgeDeckAreaPercentSectionYearsRow = currentCell.Row;
             AddDetailsForNHSPercentSection(worksheet, currentCell, simulationYears, dataStartRow);
-        }       
+        }
 
-        private int FillNHSBridgeDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels)
+        private int FillNHSBridgeDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "NHS Bridge Deck Area", true);
             var dataStartRow = currentCell.Row + 1;
@@ -153,7 +150,7 @@ namespace BridgeCare.Services
             return dataStartRow;
         }
 
-        private void AddDetailsForNHSBridgeDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels)
+        private void AddDetailsForNHSBridgeDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeLabelCells(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -170,7 +167,7 @@ namespace BridgeCare.Services
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 3, column);
         }
 
-        private void AddNHSBridgeDeckArea(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int row, int column, int year)
+        private void AddNHSBridgeDeckArea(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int row, int column, int year)
         {
             var goodDeckArea = bridgeWorkSummaryComputationHelper.CalculateNHSBridgeGoodDeckArea(simulationDataModels, bridgeDataModels, year);
             worksheet.Cells[row, column].Value = goodDeckArea;
@@ -178,7 +175,7 @@ namespace BridgeCare.Services
             var poorDeckArea = bridgeWorkSummaryComputationHelper.CalculateNHSBridgePoorDeckArea(simulationDataModels, bridgeDataModels, year);
             worksheet.Cells[row + 2, column].Value = poorDeckArea;
 
-            var filteredModels = bridgeDataModels.Where(b => b.NHS == "Y");
+            var filteredModels = bridgeDataModels.FindAll(b => b.NHS == "Y");
             worksheet.Cells[row + 1, column].Value = filteredModels.Sum(f => Convert.ToDouble(f.DeckArea)) - (goodDeckArea + poorDeckArea);
         }
 
@@ -206,7 +203,7 @@ namespace BridgeCare.Services
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row, column - 1);
         }
 
-        private int FillNHSBridgeCountSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels)
+        private int FillNHSBridgeCountSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
         {
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "NHS Bridge Count", true);
             var dataStartRow = currentCell.Row + 1;
@@ -214,8 +211,8 @@ namespace BridgeCare.Services
             return dataStartRow;
         }
 
-        private void AddDetailsForNHSBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels)
-        {          
+        private void AddDetailsForNHSBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels)
+        {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeLabelCells(worksheet, currentCell, out startRow, out startColumn, out row, out column);
             AddNHSBridgeCount(worksheet, simulationDataModels, bridgeDataModels, startRow, column, 0);
@@ -229,7 +226,7 @@ namespace BridgeCare.Services
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 3, column);
         }
 
-        private void AddNHSBridgeCount(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, SortedSet<BridgeDataModel> bridgeDataModels, int row, int column, int year)
+        private void AddNHSBridgeCount(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, List<BridgeDataModel> bridgeDataModels, int row, int column, int year)
         {
             var goodCount = bridgeWorkSummaryComputationHelper.CalculateNHSBridgeGoodCount(simulationDataModels, bridgeDataModels, year);
             worksheet.Cells[row, column].Value = goodCount;
@@ -237,7 +234,7 @@ namespace BridgeCare.Services
             var poorCount = bridgeWorkSummaryComputationHelper.CalculateNHSBridgePoorCount(simulationDataModels, bridgeDataModels, year);
             worksheet.Cells[row + 2, column].Value = poorCount;
 
-            var yNHSCount = bridgeDataModels.Where(b => b.NHS == "Y").Count();
+            var yNHSCount = bridgeDataModels.FindAll(b => b.NHS == "Y").Count;
             worksheet.Cells[row + 1, column].Value = yNHSCount - (goodCount + poorCount);
         }
     }

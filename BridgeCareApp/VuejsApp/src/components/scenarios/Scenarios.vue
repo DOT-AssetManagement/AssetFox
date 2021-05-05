@@ -828,8 +828,10 @@ export default class Scenarios extends Vue {
     onSubmitSharedScenario(scenarioUsers: ScenarioUser[]) {
         this.showShareScenarioDialog = false;
 
-        if (hasValue(scenarioUsers)) {
-            this.sharingScenario.users = scenarioUsers;
+            // hasValue(scenarioUsers) will return false for an empty list,
+            // even though an empty list is a valid state
+            if (scenarioUsers !== null && scenarioUsers !== undefined) {
+                this.sharingScenario.users = scenarioUsers;
 
             this.updateScenarioUsersAction({
                 scenario: this.sharingScenario,
@@ -842,7 +844,7 @@ export default class Scenarios extends Vue {
 </script>
 
 <style>
-.pad-button {
-    padding-top: 33px;
-}
+    .pad-button {
+        padding-top: 33px;
+    }
 </style>

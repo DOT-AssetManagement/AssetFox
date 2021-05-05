@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Web.Http;
-using System.Web.Http.Filters;
 using BridgeCare.Interfaces;
 using BridgeCare.Models;
 using BridgeCare.Security;
@@ -19,7 +18,7 @@ namespace BridgeCare.Controllers
         }
 
         /// <summary>
-        /// API endpoint for fetching a simulation's cash flow library data
+        ///     API endpoint for fetching a simulation's cash flow library data
         /// </summary>
         /// <param name="id">Simulation identifier</param>
         /// <returns></returns>
@@ -31,7 +30,7 @@ namespace BridgeCare.Controllers
             => Ok(repo.GetSimulationCashFlowLibrary(id, db));
 
         /// <summary>
-        /// API endpoint for upserting/deleting a simulation's cash flow library data
+        ///     API endpoint for upserting/deleting a simulation's cash flow library data
         /// </summary>
         /// <param name="model">CashFlowLibraryModel</param>
         /// <returns></returns>

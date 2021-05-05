@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
-using System.Web;
-using System.Web.Http;
-using System.Web.Http.Controllers;
-using BridgeCare.Models;
-using BridgeCare.Security;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.SqlServer;
@@ -48,6 +42,7 @@ namespace BridgeCare
 
             yield return new BackgroundJobServer();
         }
+
         protected class ContainerJobActivator : JobActivator
         {
             private IUnityContainer _container;

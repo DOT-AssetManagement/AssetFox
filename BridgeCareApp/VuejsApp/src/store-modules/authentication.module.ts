@@ -123,42 +123,24 @@ const actions = {
         if (!localStorage.getItem('UserTokens')) {
             dispatch('logOut');
         } else {
-            const userTokens: UserTokens = JSON.parse(
-                localStorage.getItem('UserTokens') as string,
-            ) as UserTokens;
-            await AuthenticationService.getUserInfo(
-                userTokens.access_token,
-            ).then((response: AxiosResponse<string>) => {
-                if (http2XX.test(response.status.toString())) {
-                    localStorage.setItem('UserInfo', response.data);
-                    const userInfo: UserInfo = JSON.parse(
-                        response.data,
-                    ) as UserInfo;
-                    const username: string = parseLDAP(userInfo.sub)[0];
-
-                    commit(
-                        'hasRoleMutator',
-                        regexCheckLDAP(
-                            userInfo.roles,
-                            /PD-BAMS-(Administrator|CWOPA|PlanningPartner|DBEngineer)/,
-                        ),
-                    );
-                    if (state.hasRole) {
-                        commit(
-                            'isAdminMutator',
-                            checkLDAP(userInfo.roles, 'PD-BAMS-Administrator'),
-                        );
-                        commit(
-                            'isCWOPAMutator',
-                            checkLDAP(userInfo.roles, 'PD-BAMS-CWOPA'),
-                        );
+            const userTokens: UserTokens = JSON.parse(localStorage.getItem('UserTokens') as string) as UserTokens;
+            await AuthenticationService.getUserInfo(userTokens.access_token)
+                .then((response: AxiosResponse<string>) => {
+                    if (http2XX.test(response.status.toString())) {
+                        localStorage.setItem('UserInfo', response.data);
+                        const userInfo: UserInfo = JSON.parse(response.data) as UserInfo;
+                        const username: string = parseLDAP(userInfo.sub)[0];
+                        commit('hasRoleMutator', regexCheckLDAP(userInfo.roles, /PD-BAMS(-(Administrator|CWOPA|DBEngineer)|USERS)/));
+                        if (state.hasRole) {
+                            commit('isAdminMutator', checkLDAP(userInfo.roles, 'PD-BAMS-Administrator'));
+                            commit('isCWOPAMutator', checkLDAP(userInfo.roles, 'PD-BAMS-CWOPA'));
+                        }
+                        commit('checkedForRoleMutator', true);
+                        commit('usernameMutator', username);
+                    } else {
+                        dispatch('logOut');
                     }
-                    commit('checkedForRoleMutator', true);
-                    commit('usernameMutator', username);
-                } else {
-                    dispatch('logOut');
-                }
-            });
+                });
         }
     },
 
