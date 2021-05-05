@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using BridgeCare.Interfaces;
+using BridgeCare.Interfaces.SummaryReport;
 using BridgeCare.Models;
+using BridgeCare.Models.SummaryReport;
 using BridgeCare.Models.SummaryReport.ParametersTAB;
 using BridgeCare.Services.CommonData;
 using BridgeCare.Services.SummaryReport;
@@ -68,7 +70,7 @@ namespace BridgeCare.Services.BudgetResultsReport
             worksheet.Column(lastColumn).Width = 3;
         }
 
-        private void AddBridgeDataModelsCells(ExcelWorksheet worksheet, SortedSet<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
+        private void AddBridgeDataModelsCells(ExcelWorksheet worksheet, List<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
         {
             var rowNo = currentCell.Row;
             var columnNo = currentCell.Column;
@@ -103,8 +105,8 @@ namespace BridgeCare.Services.BudgetResultsReport
             currentCell.Column = columnNo + 1; // + 2 to start from Deck Cond
         }
 
-        private void AddDynamicDataCells(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels,
-            SortedSet<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
+        private void AddDynamicDataCells(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels,
+            List<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
         {
             var row = 4; // Data starts here
             var startingRow = row;

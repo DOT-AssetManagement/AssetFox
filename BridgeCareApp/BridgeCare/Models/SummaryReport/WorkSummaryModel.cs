@@ -5,9 +5,9 @@ namespace BridgeCare.Models.SummaryReport
 {
     public class WorkSummaryModel
     {
-        public SortedSet<SimulationDataModel> SimulationDataModels { get; set; }
+        public List<SimulationDataModel> SimulationDataModels { get; set; }
 
-        public SortedSet<BridgeDataModel> BridgeDataModels { get; set; }
+        public List<BridgeDataModel> BridgeDataModels { get; set; }
 
         public List<string> Treatments { get; set; }
 

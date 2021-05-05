@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using BridgeCare.Interfaces;
+using BridgeCare.Interfaces.SummaryReport;
 using BridgeCare.Models;
 using BridgeCare.Models.CommonReportData;
 using BridgeCare.Models.SummaryReport.ParametersTAB;
+using BridgeCare.Services.SummaryReport.BridgeData;
 
 namespace BridgeCare.Services.CommonData
 {

@@ -134,7 +134,7 @@ namespace RollupSegmentation
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
                 MongoClient client = new MongoClient(mongoConnection);
-                MongoDatabase = client.GetDatabase(ConfigurationManager.AppSettings.Get("MongoDatabase"));
+                MongoDatabase = client.GetDatabase("BridgeCare");
                 Rollup = MongoDatabase.GetCollection<RollupModel>("networks");
 
                 var updateStatus = Builders<RollupModel>.Update

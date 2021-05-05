@@ -9,7 +9,7 @@ namespace BridgeCare.Models.CommonReportData
 {
     public class CommonReportDataModel
     {
-        public SortedSet<SimulationDataModel> SimulationDataModels { get; set; }
+        public List<SimulationDataModel> SimulationDataModels { get; set; }
 
         public List<BudgetsPerBRKey> BudgetsPerBRKeys { get; set; }
 

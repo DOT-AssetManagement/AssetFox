@@ -7,6 +7,7 @@ using System.Web;
 using BridgeCare.Interfaces;
 using BridgeCare.Interfaces.ConditionResults;
 using BridgeCare.Interfaces.ReportsDownload;
+using BridgeCare.Interfaces.SummaryReport;
 using BridgeCare.Models;
 using BridgeCare.Properties;
 using BridgeCare.Services.CommonData;

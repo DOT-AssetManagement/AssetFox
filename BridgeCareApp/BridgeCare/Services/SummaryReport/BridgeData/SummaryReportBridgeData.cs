@@ -50,16 +50,30 @@ namespace BridgeCare.Services.SummaryReport.BridgeData
         /// <returns>WorkSummaryModel with simulation and bridge data models</returns>
         internal WorkSummaryModel Fill(ExcelWorksheet worksheet, SimulationModel simulationModel, List<int> simulationYears, BridgeCareContext dbContext)
         {
+            ////var sectionsForSummaryReport = commonDataForReport.SectionsForSummaryReport;
+            //var budgetsPerBrKey = commonDataForReport.BudgetsPerBRKeys;
+
+            //var treatments = bridgeData.GetTreatments(simulationModel.simulationId, dbContext);
+
+            ////var BRKeys = sectionsForSummaryReport.Select(sm => Convert.ToInt32(sm.FACILITY)).ToList();
+            //var BRKeys = simulationDataModels.Select(sm => sm.BRKey).ToList();
+            //var bridgeDataModels = bridgeData.GetBridgeData(BRKeys, simulationModel, dbContext, parametersModel);
+
+            var BRKeys = new List<int>();
+
+            var sections = bridgeData.GetSectionData(simulationModel, dbContext);
+            var treatments = bridgeData.GetTreatments(simulationModel.simulationId, dbContext);
+            var simulationDataTable = bridgeData.GetSimulationData(simulationModel, dbContext, simulationYears);
+            //var projectCostModels = bridgeData.GetReportData(simulationModel, dbContext, simulationYears);
+            var sectionIdsFromSimulationTable = from dt in simulationDataTable.AsEnumerable()
+                                                select dt.Field<int>("SECTIONID");
+            var sectionsForSummaryReport = sections.Where(sm => sectionIdsFromSimulationTable.Contains(sm.SECTIONID)).ToList();
+            BRKeys = sectionsForSummaryReport.Select(sm => Convert.ToInt32(sm.FACILITY)).ToList();
+            var bridgeDataModels = bridgeData.GetBridgeData(BRKeys, simulationModel, dbContext, parametersModel);
+            var budgetsPerBrKey = bridgeData.GetBudgetsPerBRKey(simulationModel, dbContext);
+
             var commonDataForReport = commonBridgeData.Get(simulationModel, simulationYears, dbContext);
             var simulationDataModels = commonDataForReport.SimulationDataModels;
-            //var sectionsForSummaryReport = commonDataForReport.SectionsForSummaryReport;
-            var budgetsPerBrKey = commonDataForReport.BudgetsPerBRKeys;
-
-            var treatments = bridgeData.GetTreatments(simulationModel.simulationId, dbContext);
-
-            //var BRKeys = sectionsForSummaryReport.Select(sm => Convert.ToInt32(sm.FACILITY)).ToList();
-            var BRKeys = simulationDataModels.Select(sm => sm.BRKey).ToList();
-            var bridgeDataModels = bridgeData.GetBridgeData(BRKeys, simulationModel, dbContext, parametersModel);
 
             var unfundedRecommendations = bridgeData.GetUnfundedRcommendations(simulationModel, dbContext);
             unfundedRecommendations.ForEach(_ =>

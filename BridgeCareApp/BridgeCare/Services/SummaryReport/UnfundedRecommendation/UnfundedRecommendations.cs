@@ -17,7 +17,7 @@ namespace BridgeCare.Services.SummaryReport.UnfundedRecommendation
         }
 
         internal void Fill(ExcelWorksheet unfundedRecommendationWorksheet, List<UnfundedRecommendationModel> unfundedRecommendations,
-            SortedSet<BridgeDataModel> bridgeDataModels, List<int> simulationYears)
+            List<BridgeDataModel> bridgeDataModels, List<int> simulationYears)
         {
             // Add excel headers to excel.
             var headers = GetHeaders();
@@ -35,7 +35,7 @@ namespace BridgeCare.Services.SummaryReport.UnfundedRecommendation
         }
 
         private void AddDynamicDataCells(ExcelWorksheet worksheet, List<int> simulationYears, List<UnfundedRecommendationModel> unfundedRecommendations,
-            SortedSet<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
+            List<BridgeDataModel> bridgeDataModels, CurrentCell currentCell)
         {
             currentCell.Row = 4; // Data starts here
             currentCell.Column = 1;

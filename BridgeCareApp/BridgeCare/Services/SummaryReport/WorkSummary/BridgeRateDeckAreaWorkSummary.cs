@@ -29,7 +29,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
         /// <param name="simulationYears"></param>
         /// <param name="simulationDataModels"></param>
         /// <returns>ChartRowsModel object for usage in other tab reports.</returns>
-        public ChartRowsModel FillBridgeRateDeckAreaWorkSummarySections(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        public ChartRowsModel FillBridgeRateDeckAreaWorkSummarySections(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             var chartRowsModel = new ChartRowsModel();
             FillPoorBridgeOnOffRateSection(worksheet, currentCell, simulationYears, simulationDataModels);
@@ -77,7 +77,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row, column - 1);
         }
 
-        private int FillTotalDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private int FillTotalDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Total Deck Area", true);
             var totalDeckAreaSectionYearsRow = currentCell.Row;
@@ -85,7 +85,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             return totalDeckAreaSectionYearsRow;
         }
 
-        private void AddDetailsForTotalDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private void AddDetailsForTotalDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.InitializeLabelCells(worksheet, currentCell, out startRow, out startColumn, out row, out column);
@@ -102,7 +102,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 3, column);
         }
 
-        private void AddTotalDeckArea(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, int row, int column, int year)
+        private void AddTotalDeckArea(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, int row, int column, int year)
         {
             var goodCount = bridgeWorkSummaryComputationHelper.CalculateTotalGoodDeckArea(simulationDataModels, year);
             worksheet.Cells[row, column].Value = goodCount;
@@ -113,7 +113,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             worksheet.Cells[row + 1, column].Value = bridgeWorkSummaryComputationHelper.CalculateTotalDeckArea(simulationDataModels) - (goodCount + poorCount);
         }
 
-        private int FillTotalBridgeCountSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private int FillTotalBridgeCountSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Total Bridge Count", true);
             var totalBridgeCountSectionYearsRow = currentCell.Row;
@@ -121,7 +121,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             return totalBridgeCountSectionYearsRow;
         }
 
-        private void AddDetailsForTotalBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private void AddDetailsForTotalBridgeCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             var totalSimulationDataModelCount = simulationDataModels.Count;
             int startRow, startColumn, row, column;
@@ -137,7 +137,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 3, column);
         }
 
-        private void AddTotalBridgeCount(ExcelWorksheet worksheet, SortedSet<SimulationDataModel> simulationDataModels, int totalSimulationDataModelCount, int row, int column, int year)
+        private void AddTotalBridgeCount(ExcelWorksheet worksheet, List<SimulationDataModel> simulationDataModels, int totalSimulationDataModelCount, int row, int column, int year)
         {
             var goodCount = bridgeWorkSummaryComputationHelper.CalculateTotalBridgeGoodCount(simulationDataModels, year);
             worksheet.Cells[row, column].Value = goodCount;
@@ -148,7 +148,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             worksheet.Cells[row + 1, column].Value = totalSimulationDataModelCount - (goodCount + poorCount);
         }
 
-        private int FillTotalPoorBridgesDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private int FillTotalPoorBridgesDeckAreaSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Total Poor Bridges Deck Area", true);
             var totalPoorBridgesDeckAreaSectionYearsRow = currentCell.Row;
@@ -156,7 +156,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             return totalPoorBridgesDeckAreaSectionYearsRow;
         }
 
-        private void AddDetailsForTotalPoorBridgesDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private void AddDetailsForTotalPoorBridgesDeckArea(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);
@@ -173,7 +173,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, column);
         }
 
-        private int FillTotalPoorBridgesCountSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private int FillTotalPoorBridgesCountSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Total Poor Bridges Count", true);
             var totalPoorBridgesCountSectionYearsRow = currentCell.Row;
@@ -181,7 +181,7 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             return totalPoorBridgesCountSectionYearsRow;
         }
 
-        private void AddDetailsForTotalPoorBridgesCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private void AddDetailsForTotalPoorBridgesCount(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);
@@ -197,14 +197,14 @@ namespace BridgeCare.Services.SummaryReport.WorkSummary
             bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, column);
         }
 
-        private void FillPoorBridgeOnOffRateSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private void FillPoorBridgeOnOffRateSection(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             currentCell.Row = currentCell.Row + 2;
             bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Poor Bridge On and Off Rate", false);
             AddDetailsForPoorBridgeOnOfRate(worksheet, currentCell, simulationYears, simulationDataModels);
         }
 
-        private void AddDetailsForPoorBridgeOnOfRate(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, SortedSet<SimulationDataModel> simulationDataModels)
+        private void AddDetailsForPoorBridgeOnOfRate(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, List<SimulationDataModel> simulationDataModels)
         {
             int startRow, startColumn, row, column;
             bridgeWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);
