@@ -370,3 +370,12 @@ iAM-legacy/DatabaseManager.dll
 # Node error log files
 /BridgeCareApp/BridgeCareNodeApp/logs/nodeErrorLogs.log
 /BridgeCareApp/BridgeCareNodeApp/logs/nodeCombinedLogs.log
+/BridgeCareApp/AppliedResearchAssociates.iAM.DataPersistenceCore/Repositories/MSSQL/migrationConnection.json
+/BridgeCareApp/AppliedResearchAssociates.iAM.UnitTestsCore/MetaData/AttributeMetaData/metaData.json
+/BridgeCareApp/AppliedResearchAssociates.iAM.UnitTestsCore/testConnections.json
+/BridgeCareApp/BridgeCareCore/DownloadedNewReports
+/BridgeCareApp/BridgeCareCore/Logs
+/BridgeCareApp/BridgeCareCore/MetaData/AttributeMetaData
+/BridgeCareApp/BridgeCareCore/metaData.json
+/BridgeCareApp/BridgeCareCore/coreConnection.Development.json
+/BridgeCareApp/BridgeCareCore/esec.json
