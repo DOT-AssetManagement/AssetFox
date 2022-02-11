@@ -1,7 +1,7 @@
 <template>
     <v-layout column>
         <v-flex xs12>
-            <v-card elevation='5'>
+            <v-card elevation='5' v-if="isAdmin">
                 <v-flex xs10>
                     <v-layout>
                         <div class='network-min-width'>
