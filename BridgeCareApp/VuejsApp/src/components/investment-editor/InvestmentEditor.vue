@@ -1,6 +1,6 @@
 <template>
     <v-layout column>
-        <v-layout justify-center v-if='hasScenario'>
+        <v-layout justify-center v-if='hasInvestmentPlanForScenario'>
             <v-flex xs12>
                 <v-layout justify-space-between row>
                     <v-spacer></v-spacer>
@@ -304,7 +304,9 @@ export default class InvestmentEditor extends Vue {
     rules: InputValidationRules = clone(rules);
     showImportExportInvestmentBudgetsDialog: boolean = false;
     hasScenario: boolean = false;
+    hasInvestmentPlanForScenario: boolean = false;
     budgets: Budget[] = [];
+
     
     get addYearLabel() {
         return 'Add Year (' + this.getNextYear() + ')';
@@ -384,6 +386,7 @@ export default class InvestmentEditor extends Vue {
     @Watch('stateInvestmentPlan')
     onStateInvestmentPlanChanged() {
         this.cloneStateInvestmentPlan();
+        this.hasInvestmentPlanForScenario = true;
     }
 
     @Watch('stateScenarioBudgets')
