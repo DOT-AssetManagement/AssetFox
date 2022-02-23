@@ -37,6 +37,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.APITestClasses
         private BudgetEntity _testBudget;
         private InvestmentPlanEntity _testInvestmentPlan;
         private ScenarioBudgetEntity _testScenarioBudget;
+
         private readonly Mock<IInvestmentDefaultDataService> _mockInvestmentDefaultDataService = new Mock<IInvestmentDefaultDataService>();
 
         public InvestmentTests()
@@ -46,7 +47,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.APITestClasses
             _testHelper.CreateNetwork();
             _testHelper.CreateSimulation();
             _testHelper.SetupDefaultHttpContext();
-            _service = new InvestmentBudgetsService(_testHelper.UnitOfWork, new ExpressionValidationService(_testHelper.UnitOfWork, _testHelper.Logger));
+            _service = new InvestmentBudgetsService(_testHelper.UnitOfWork, new ExpressionValidationService(_testHelper.UnitOfWork, _testHelper.Logger), _testHelper.MockHubService.Object);
         }
 
         private void CreateAuthorizedController()
