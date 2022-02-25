@@ -13,8 +13,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Services
         [Fact]
         public void items_execute_in_the_order_they_were_added()
         {
-            SequentialWorkQueue queue = new();
-            List<int> taskEffects = new();
+            var queue = new SequentialWorkQueue();
+            var taskEffects = new List<int>();
 
             queue.Enqueue(new TestWorkItem(1, 0, taskEffects), out _).Wait();
             queue.Enqueue(new TestWorkItem(2, 1000, taskEffects), out _).Wait();
@@ -22,7 +22,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Services
             queue.Enqueue(new TestWorkItem(4, 1000, taskEffects), out _).Wait();
             queue.Enqueue(new TestWorkItem(5, 0, taskEffects), out _).Wait();
 
-            CancellationTokenSource cts = new();
+            var cts = new CancellationTokenSource();
             cts.CancelAfter(TimeSpan.FromSeconds(3));
 
             try
@@ -40,9 +40,24 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Services
             Assert.Equal(Enumerable.Range(1, 5), taskEffects);
         }
 
-        private record TestWorkItem(int Id, int MsDelay, List<int> WorkTarget) : IWorkItem
+        private class TestWorkItem : IWorkItem
         {
-            public string WorkId { get; } = Id.ToString();
+            public TestWorkItem(int Id, int MsDelay, List<int> WorkTarget)
+            {
+                this.Id = Id;
+                this.MsDelay = MsDelay;
+                this.WorkTarget = WorkTarget;
+
+                WorkId = Id.ToString();
+            }
+
+            public int Id { get; }
+
+            public int MsDelay { get; }
+
+            public string WorkId { get; }
+
+            public List<int> WorkTarget { get; }
 
             public void DoWork(IServiceProvider serviceProvider)
             {

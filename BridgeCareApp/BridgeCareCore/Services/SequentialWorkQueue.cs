@@ -22,7 +22,7 @@ namespace BridgeCareCore.Services
             return Elements.Writer.WriteAsync(queueElement).AsTask();
         }
 
-        private readonly ConcurrentDictionary<string, DateTime> EntryTimestampPerId = new();
+        private readonly ConcurrentDictionary<string, DateTime> EntryTimestampPerId = new ConcurrentDictionary<string, DateTime>();
 
         private readonly Channel<QueueElement> Elements = Channel.CreateUnbounded<QueueElement>();
 
@@ -68,7 +68,7 @@ namespace BridgeCareCore.Services
 
                     if (!WorkCompletion.IsFaulted)
                     {
-                        WorkCompletionSource.SetResult();
+                        WorkCompletionSource.SetResult(null);
                     }
 
                     RemoveFromQueue();
@@ -81,7 +81,7 @@ namespace BridgeCareCore.Services
 
             public void RemoveFromQueue() => _ = WorkQueue.EntryTimestampPerId.TryRemove(WorkId, out _);
 
-            private readonly TaskCompletionSource WorkCompletionSource = new();
+            private readonly TaskCompletionSource<object> WorkCompletionSource = new TaskCompletionSource<object>();
 
             private readonly IWorkItem WorkItem;
 

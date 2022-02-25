@@ -13,13 +13,22 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BridgeCareCore.Services
 {
-    public record AnalysisWorkItem(Guid networkId, Guid simulationId) : IWorkItem
+    public class AnalysisWorkItem : IWorkItem
     {
+        private readonly Guid networkId;
+        private readonly Guid simulationId;
+
+        public AnalysisWorkItem(Guid networkId, Guid simulationId)
+        {
+            this.networkId = networkId;
+            this.simulationId = simulationId;
+        }
+
         public string WorkId => simulationId.ToString();
 
         public void DoWork(IServiceProvider serviceProvider)
         {
-            HashSet<string> LoggedMessages = new();
+            var LoggedMessages = new HashSet<string>();
 
             using var scope = serviceProvider.CreateScope();
 

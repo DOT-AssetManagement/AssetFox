@@ -50,7 +50,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.APITestClasses
             _testHelper.CreateSimulation();
             _testHelper.SetupDefaultHttpContext();
             _simulationAnalysisService =
-                new SimulationAnalysisService(_testHelper.UnitOfWork, new());
+                new SimulationAnalysisService(_testHelper.UnitOfWork, new SequentialWorkQueue());
             /*_controller = new SimulationController(_simulationAnalysisSerivce,
                 _testHelper.MockEsecSecurityAuthorized.Object,
                 _testHelper.UnitOfWork,
