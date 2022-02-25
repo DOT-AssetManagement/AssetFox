@@ -386,7 +386,7 @@ namespace BridgeCareCore.Services.SummaryReport.Parameters
             ExcelHelper.ApplyColor(worksheet.Cells[rowNum, colNum, rowNum, colNum + 2], Color.Gray);
             ExcelHelper.SetTextColor(worksheet.Cells[rowNum, colNum, rowNum, worksheet.Dimension.End.Column], Color.White);
 
-            worksheet.Cells[rowNum, colNum].Value = "Budget Split Criteria";
+            worksheet.Cells[rowNum, colNum].Value = "Cash Flow Split Criteria";
             worksheet.Cells[++rowNum, colNum].Value = "Rank";
             worksheet.Cells[rowNum, colNum + 1].Value = "Amount";
             worksheet.Cells[rowNum, colNum + 2].Value = "Percentage";
