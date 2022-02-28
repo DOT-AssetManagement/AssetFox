@@ -22,9 +22,9 @@ namespace BridgeCareCore.Services
             return Elements.Writer.WriteAsync(queueElement).AsTask();
         }
 
-        private readonly ConcurrentDictionary<string, DateTime> EntryTimestampPerId = new ConcurrentDictionary<string, DateTime>();
-
         private readonly Channel<QueueElement> Elements = Channel.CreateUnbounded<QueueElement>();
+
+        private readonly ConcurrentDictionary<string, DateTime> EntryTimestampPerId = new ConcurrentDictionary<string, DateTime>();
 
         private class QueueElement : IWorkItem, IQueuedWorkHandle
         {
@@ -51,12 +51,15 @@ namespace BridgeCareCore.Services
 
             public Task WorkCompletion => WorkCompletionSource.Task;
 
+            public bool WorkHasStarted { get; private set; }
+
             public string WorkId => WorkItem.WorkId;
 
             public void DoWork(IServiceProvider serviceProvider)
             {
                 if (WorkQueue.EntryTimestampPerId.ContainsKey(WorkId))
                 {
+                    WorkHasStarted = true;
                     try
                     {
                         WorkItem.DoWork(serviceProvider);
