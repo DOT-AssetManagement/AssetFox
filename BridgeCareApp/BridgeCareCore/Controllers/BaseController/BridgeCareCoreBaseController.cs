@@ -77,7 +77,7 @@ namespace BridgeCareCore.Controllers.BaseController
         protected UserInfo UserInfo
         {
             get => _userInfo ?? new UserInfo();
-            set
+            private set
             {
                 if (_userInfo != value)
                 {
