@@ -49,7 +49,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetCashFlowRuleLibraries")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetCashFlowRuleLibraries()
         {
             try
@@ -68,7 +68,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetScenarioCashFlowRules/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetScenarioCashFlowRules(Guid simulationId)
         {
             try
@@ -87,7 +87,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertCashFlowRuleLibrary")]
-        [Authorize(Policy = SecurityConstants.Policy.AdminOrDistrictEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
         public async Task<IActionResult> UpsertCashFlowRuleLibrary(CashFlowRuleLibraryDTO dto)
         {
             try
@@ -117,7 +117,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertScenarioCashFlowRules/{simulationId}")]
-        [Authorize(Policy = SecurityConstants.Policy.AdminOrDistrictEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
         public async Task<IActionResult> UpsertScenarioCashFlowRules(Guid simulationId, List<CashFlowRuleDTO> dtos)
         {
             try
@@ -146,7 +146,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteCashFlowRuleLibrary/{libraryId}")]
-        [Authorize(Policy = SecurityConstants.Policy.AdminOrDistrictEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
         public async Task<IActionResult> DeleteCashFlowRuleLibrary(Guid libraryId)
         {
             try

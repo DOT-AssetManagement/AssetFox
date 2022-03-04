@@ -9,6 +9,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -110,7 +111,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("ImportCommittedProjects")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> ImportCommittedProjects()
         {
             try
@@ -162,7 +163,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("ExportCommittedProjects/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> ExportCommittedProjects(Guid simulationId)
         {
             try
@@ -185,7 +186,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteCommittedProjects/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> DeleteCommittedProjects(Guid simulationId)
         {
             try

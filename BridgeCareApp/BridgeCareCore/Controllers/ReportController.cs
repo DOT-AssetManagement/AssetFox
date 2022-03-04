@@ -15,6 +15,7 @@ using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Http;
+using BridgeCareCore.Security;
 
 namespace BridgeCareCore.Controllers
 {
@@ -30,7 +31,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("GetHTML/{reportName}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetHtml(string reportName)
         {
             // NOTE:  This might be useful:  https://weblog.west-wind.com/posts/2013/dec/13/accepting-raw-request-body-content-with-aspnet-web-api
@@ -61,7 +62,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("GetFile/{reportName}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetFile(string reportName)
         {
             var report = await GenerateReport(reportName, ReportType.File);

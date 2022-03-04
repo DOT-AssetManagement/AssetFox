@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
+using BridgeCareCore.Security;
 
 namespace BridgeCareCore.Controllers
 {
@@ -31,7 +32,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("GetSimulationLog/{networkId}/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<FileResult> GetSimulationLog(Guid networkId, Guid simulationId)
         {
 

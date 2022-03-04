@@ -7,6 +7,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -18,21 +19,19 @@ namespace BridgeCareCore.Controllers
     [ApiController]
     public class InventoryController : BridgeCareCoreBaseController
     {
-        private readonly IMaintainableAssetRepository _maintainableAssetRepository;
         private readonly IAssetData _assetData;
 
-        public InventoryController(IMaintainableAssetRepository maintainableAssetRepository, IEsecSecurity esecSecurity,
+        public InventoryController(IEsecSecurity esecSecurity,
             UnitOfDataPersistenceWork unitOfWork, IHubService hubService, IHttpContextAccessor httpContextAccessor) :
             base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
-            _maintainableAssetRepository = maintainableAssetRepository;
             _assetData = unitOfWork.AssetDataRepository;
         }
             
 
         [HttpGet]
         [Route("GetInventory")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetInventory()
         {
             var data = new List<BMSIDAndBRKeyDTO>();

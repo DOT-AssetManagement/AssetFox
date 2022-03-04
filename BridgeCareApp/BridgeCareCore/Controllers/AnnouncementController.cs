@@ -24,11 +24,12 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetAnnouncements")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> Announcements()
         {
             try
             {
+                //await SetUserInfo(ContextAccessor?.HttpContext?.Request);
                 var result = await Task.Factory.StartNew(() => UnitOfWork.AnnouncementRepo.Announcements());
                 return Ok(result);
             }
@@ -41,7 +42,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertAnnouncement")]
-        [Authorize(Policy = SecurityConstants.Policy.Admin)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin)]
         public async Task<IActionResult> UpsertAnnouncement(AnnouncementDTO dto)
         {
             try
@@ -66,7 +67,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteAnnouncement/{announcementId}")]
-        [Authorize(Policy = SecurityConstants.Policy.Admin)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin)]
         public async Task<IActionResult> DeleteAnnouncement(Guid announcementId)
         {
             try

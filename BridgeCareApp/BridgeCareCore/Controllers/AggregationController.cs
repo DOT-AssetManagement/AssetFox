@@ -38,7 +38,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("AggregateNetworkData/{networkId}")]
-        [Authorize(Policy = SecurityConstants.Policy.Admin)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin)]
         public async Task<IActionResult> AggregateNetworkData(Guid networkId)
         {
             try
