@@ -189,7 +189,7 @@ const actions = {
         localStorage.removeItem('UserInfo');
         localStorage.removeItem('TokenExpiration');
         if (hasValue(localStorage.getItem('UserTokens'))) {
-            await AuthenticationService.revokeIdToken();
+            //await AuthenticationService.revokeIdToken();
 
             const userTokens: UserTokens = JSON.parse(
                 localStorage.getItem('UserTokens') as string,

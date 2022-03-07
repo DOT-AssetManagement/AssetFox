@@ -8,6 +8,7 @@ using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Interfaces.DefaultData;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -93,7 +94,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetAnalysisMethod/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> AnalysisMethod(Guid simulationId)
         {
             try
@@ -112,7 +113,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertAnalysisMethod/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertAnalysisMethod(Guid simulationId, AnalysisMethodDTO dto)
         {
             try

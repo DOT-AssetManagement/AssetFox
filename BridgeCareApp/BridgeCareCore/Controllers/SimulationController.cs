@@ -10,6 +10,7 @@ using AppliedResearchAssociates.iAM.DTOs.Static;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using BridgeCareCore.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -101,7 +102,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetScenarios/{networkId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetSimulations(Guid networkId)
         {
             try
@@ -118,7 +119,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("CreateScenario/{networkId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> CreateSimulation(Guid networkId, [FromBody] SimulationDTO dto)
         {
             try
@@ -143,7 +144,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("CloneScenario/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> CloneSimulation(Guid simulationId)
         {
             try
@@ -172,7 +173,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPut]
         [Route("UpdateScenario")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> UpdateSimulation([FromBody] SimulationDTO dto)
         {
             try
@@ -202,7 +203,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteScenario/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> DeleteSimulation(Guid simulationId)
         {
             try
@@ -231,7 +232,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("RunSimulation/{networkId}/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> RunSimulation(Guid networkId, Guid simulationId)
         {
             try

@@ -11,5 +11,7 @@ namespace BridgeCareCore.Security.Interfaces
         UserInfo GetUserInformation(HttpRequest request);
 
         UserInfo GetUserInformation(Dictionary<string, string> userInformationDictionary);
+
+        Dictionary<string, string> GetUserInfoDictionary(string token);
     }
 }

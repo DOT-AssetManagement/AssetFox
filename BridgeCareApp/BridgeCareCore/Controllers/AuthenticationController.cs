@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Logging;
+using BridgeCareCore.Models;
 using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -41,11 +44,11 @@ namespace BridgeCareCore.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("UserInfo/{token}")]
-        public IActionResult GetUserInfo(string token)
+        public async Task<IActionResult> GetUserInfo(string token)
         {
             try
             {
-                var response = GetUserInfoString(token);
+                var response = await GetUserInfoString(token);
                 ValidateResponse(response);
                 var userInfo = JsonConvert.DeserializeObject<UserInfoDTO>(response);
                 return Ok(userInfo);
@@ -62,7 +65,7 @@ namespace BridgeCareCore.Controllers
         /// </summary>
         /// <param name="token">Access token</param>
         /// <returns>JSON-formatted user info</returns>
-        private static string GetUserInfoString(string token)
+        private async static Task<string> GetUserInfoString(string token)
         {
             // These two lines should be removed as soon as the ESEC site's certificates start working
             var handler = new HttpClientHandler
@@ -80,10 +83,10 @@ namespace BridgeCareCore.Controllers
             };
             HttpContent content = new FormUrlEncodedContent(formData);
 
-            var responseTask = client.PostAsync("userinfo", content);
-            responseTask.Wait();
+            var responseTask = await client.PostAsync("userinfo", content);
+            //responseTask.Wait();
 
-            return responseTask.Result.Content.ReadAsStringAsync().Result;
+            return responseTask.Content.ReadAsStringAsync().Result;
         }
 
         /// <summary>
@@ -242,6 +245,7 @@ namespace BridgeCareCore.Controllers
         [Route("RevokeToken/Id")]
         public IActionResult RevokeIdToken()
         {
+            // We are not using this API call for now. The application does not use id token.
             try
             {
                 // A JWT is too large to store in the URL, so it is passed in the authorization header.

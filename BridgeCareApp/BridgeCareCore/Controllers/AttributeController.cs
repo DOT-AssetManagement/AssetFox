@@ -5,6 +5,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using BridgeCareCore.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetAttributes")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> Attributes()
         {
             try
@@ -44,7 +45,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("GetAttributesSelectValues")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetAttributeSelectValues([FromBody] List<string> attributeNames)
         {
             try
@@ -62,7 +63,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("CreateAttributes")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> CreateAttributes()
         {
             try

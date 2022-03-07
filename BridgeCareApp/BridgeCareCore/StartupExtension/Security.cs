@@ -19,23 +19,6 @@ namespace BridgeCareCore.StartupExtension
         {
             var securityType = Configuration.GetSection("SecurityType").Value;
 
-            if (securityType == SecurityConstants.SecurityTypes.Esec)
-            {
-                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                    {
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            RequireExpirationTime = true,
-                            RequireSignedTokens = true,
-                            ValidateAudience = false,
-                            ValidateIssuer = false,
-                            ValidateLifetime = true,
-                            IssuerSigningKey = SecurityFunctions.GetPublicKey(Configuration.GetSection("EsecConfig"))
-                        };
-                    });
-            }
-
             if (securityType == SecurityConstants.SecurityTypes.B2C)
             {
                 services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme)

@@ -17,6 +17,9 @@
         public static class Role
         {
             public const string BAMSAdmin = "PD-BAMS-Administrator";
+            public const string BAMSCWOPA = "PD-BAMS-CWOPA";
+            public const string BAMSPlanningPartner = "PD-BAMS-PlanningPartner";
+            public const string BAMSDBEngineer = "PD-BAMS-DBEngineer";
         }
     }
 }

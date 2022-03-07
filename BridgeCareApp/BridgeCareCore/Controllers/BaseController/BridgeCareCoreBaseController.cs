@@ -34,7 +34,25 @@ namespace BridgeCareCore.Controllers.BaseController
             ContextAccessor = contextAccessor ?? throw new ArgumentNullException(nameof(contextAccessor));
             if (RequestHasBearer())
             {
-                SetUserInfo(ContextAccessor?.HttpContext?.Request);
+                var isPath = !ContextAccessor?.HttpContext?.Request.Path.Value.Contains("UserInfo");
+                if (isPath.Value)
+                {
+                    var data = ContextAccessor?.HttpContext?.Request.HttpContext.Items;
+                    if (!data.ContainsKey("name"))
+                    {
+                        SetUserInfo(ContextAccessor?.HttpContext?.Request);
+                    }
+                    else
+                    {
+                        var localInfo = new UserInfo
+                        {
+                            Name = (string)data["name"],
+                            Role = (string)data["role"],
+                            Email = (string)data["email"]
+                        };
+                        UserInfo = localInfo;
+                    }
+                }
             }
         }
 
@@ -49,7 +67,11 @@ namespace BridgeCareCore.Controllers.BaseController
             return false;
         }
 
-        public void SetUserInfo(HttpRequest request) => UserInfo = EsecSecurity.GetUserInformation(request);
+        public void SetUserInfo(HttpRequest request)
+        {
+            var userInfo = EsecSecurity.GetUserInformation(request);
+            UserInfo = userInfo;
+        }
 
         private UserInfo _userInfo;
         protected UserInfo UserInfo

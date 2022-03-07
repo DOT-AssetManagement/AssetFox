@@ -5,6 +5,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +22,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetBenefitQuantifier/{networkId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetBenefitQuantifier(Guid networkId)
         {
             try
@@ -40,7 +41,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertBenefitQuantifier")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertBenefitQuantifier([FromBody] BenefitQuantifierDTO dto)
         {
             try
@@ -64,7 +65,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteBenefitQuantifier/{networkId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> DeleteBenefitQuantifier(Guid networkId)
         {
             try

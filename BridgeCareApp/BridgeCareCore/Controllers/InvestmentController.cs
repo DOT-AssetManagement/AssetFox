@@ -94,7 +94,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetInvestment/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetInvestment(Guid simulationId)
         {
             try
@@ -135,7 +135,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertInvestment/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertInvestment(Guid simulationId, [FromBody] InvestmentDTO data)
         {
             try
@@ -164,7 +164,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetBudgetLibraries")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetBudgetLibraries()
         {
             try
@@ -182,7 +182,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertBudgetLibrary")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertBudgetLibrary([FromBody] BudgetLibraryDTO data)
         {
             try
@@ -207,7 +207,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteBudgetLibrary/{libraryId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> DeleteBudgetLibrary(Guid libraryId)
         {
             try
@@ -231,7 +231,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetScenarioSimpleBudgetDetails/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetScenarioSimpleBudgetDetails(Guid simulationId)
         {
             try
@@ -249,7 +249,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("ImportLibraryInvestmentBudgetsExcelFile")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> ImportLibraryInvestmentBudgetsExcelFile()
         {
             try
@@ -310,7 +310,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("ImportScenarioInvestmentBudgetsExcelFile")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> ImportScenarioInvestmentBudgetsExcelFile()
         {
             try
@@ -373,7 +373,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("ExportScenarioInvestmentBudgetsExcelFile/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> ExportScenarioInvestmentBudgetsExcelFile(Guid simulationId)
         {
             try
@@ -396,7 +396,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("ExportLibraryInvestmentBudgetsExcelFile/{budgetLibraryId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> ExportLibraryInvestmentBudgetsExcelFile(Guid budgetLibraryId)
         {
             try

@@ -49,7 +49,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetTreatmentLibraries")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetTreatmentLibraries()
         {
             try
@@ -67,7 +67,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetScenarioSelectedTreatments/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetScenarioSelectedTreatments(Guid simulationId)
         {
             try
@@ -85,7 +85,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertTreatmentLibrary")]
-        [Authorize(Policy = SecurityConstants.Policy.AdminOrDistrictEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
         public async Task<IActionResult> UpsertTreatmentLibrary(TreatmentLibraryDTO dto)
         {
             try
@@ -115,7 +115,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertScenarioSelectedTreatments/{simulationId}")]
-        [Authorize(Policy = SecurityConstants.Policy.AdminOrDistrictEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
         public async Task<IActionResult> UpsertScenarioSelectedTreatments(Guid SimulationId, List<TreatmentDTO> dtos)
         {
             try
@@ -143,7 +143,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteTreatmentLibrary/{libraryId}")]
-        [Authorize(Policy = SecurityConstants.Policy.AdminOrDistrictEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
         public async Task<IActionResult> DeleteTreatmentLibrary(Guid libraryId)
         {
             try

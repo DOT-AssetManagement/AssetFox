@@ -8,6 +8,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -24,7 +25,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetAllNetworks")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> AllNetworks()
         {
             try
@@ -41,7 +42,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("CreateNetwork/{networkName}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> CreateNetwork(string networkName)
         {
             try
@@ -81,7 +82,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertBenefitQuantifier")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertBenefitQuantifier([FromBody] BenefitQuantifierDTO dto)
         {
             try

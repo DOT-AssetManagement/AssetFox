@@ -52,7 +52,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetDeficientConditionGoalLibraries")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> DeficientConditionGoalLibraries()
         {
             try
@@ -70,7 +70,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetScenarioDeficientConditionGoals/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetScenarioDeficientConditionGoals(Guid simulationId)
         {
             try
@@ -88,7 +88,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertDeficientConditionGoalLibrary/")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertDeficientConditionGoalLibrary(DeficientConditionGoalLibraryDTO dto)
         {
             try
@@ -118,7 +118,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertScenarioDeficientConditionGoals/{simulationId}")]
-        [Authorize(Policy = SecurityConstants.Policy.AdminOrDistrictEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
         public async Task<IActionResult> UpsertScenarioDeficientConditionGoals(Guid simulationId, List<DeficientConditionGoalDTO> dtos)
         {
             try
@@ -148,7 +148,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteDeficientConditionGoalLibrary/{libraryId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> DeleteDeficientConditionGoalLibrary(Guid libraryId)
         {
             try
