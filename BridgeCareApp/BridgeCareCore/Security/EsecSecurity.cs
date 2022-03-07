@@ -27,8 +27,7 @@ namespace BridgeCareCore.Security
         ///     Each key is a token that has been revoked. Its value is the unix timestamp of the
         ///     time at which it expires.
         /// </summary>
-        private ConcurrentDictionary<string, long> _revokedTokens;
-        private Dictionary<string, string> userInformationDictionary;
+        private ConcurrentDictionary<string, long> _revokedTokens;        
 
         public EsecSecurity(IConfiguration config)
         {
@@ -36,8 +35,6 @@ namespace BridgeCareCore.Security
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _securityType = _config.GetSection("SecurityType").Value;
             _esecPublicKey = SecurityFunctions.GetPublicKey(_config.GetSection("EsecConfig"));
-
-            userInformationDictionary = new Dictionary<string, string>();
         }
 
         /// <summary>
@@ -72,6 +69,7 @@ namespace BridgeCareCore.Security
         /// <returns></returns>
         public UserInfo GetUserInformation(HttpRequest request)
         {
+            var userInformationDictionary = new Dictionary<string, string>();
             var accessToken = request.Headers["Authorization"].ToString().Split(" ")[1];
 
             if (userInformationDictionary.Count == 0)
