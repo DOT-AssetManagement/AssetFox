@@ -127,6 +127,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Id = entity.Id,
                 Name = entity.Name,
                 Description = entity.Description,
+                Owner = entity.CreatedBy,
                 Treatments = entity.Treatments.Any()
                     ? entity.Treatments.Select(_ => _.ToDto()).OrderBy(t => t.Name).ToList()
                     : new List<TreatmentDTO>()

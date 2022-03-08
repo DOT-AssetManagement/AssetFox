@@ -209,7 +209,16 @@ const actions = {
     },
 };
 
-const getters = {};
+const getters = {
+    getUserNameById: (state: any) => (id: string) => {
+        var userIndex = findIndex(
+            propEq('id', id),
+            state.users,
+        );
+
+        return state.users[userIndex].username;
+    },
+};
 
 export default {
     state,

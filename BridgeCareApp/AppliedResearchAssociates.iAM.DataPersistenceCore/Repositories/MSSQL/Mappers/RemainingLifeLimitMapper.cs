@@ -99,6 +99,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Id = entity.Id,
                 Name = entity.Name,
                 Description = entity.Description,
+                Owner = entity.CreatedBy,
                 RemainingLifeLimits = entity.RemainingLifeLimits.Any()
                     ? entity.RemainingLifeLimits.Select(_ => _.ToDto()).ToList()
                     : new List<RemainingLifeLimitDTO>()

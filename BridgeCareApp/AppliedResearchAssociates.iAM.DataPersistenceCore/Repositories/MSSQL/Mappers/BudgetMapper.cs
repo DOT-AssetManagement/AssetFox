@@ -63,6 +63,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Id = entity.Id,
                 Name = entity.Name,
                 Description = entity.Description,
+                Owner = entity.CreatedBy,
                 Budgets = entity.Budgets.Any()
                     ? entity.Budgets.Select(_ => _.ToDto()).ToList()
                     : new List<BudgetDTO>()

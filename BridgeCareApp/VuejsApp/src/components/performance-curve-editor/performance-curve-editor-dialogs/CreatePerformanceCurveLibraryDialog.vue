@@ -67,7 +67,7 @@ export default class CreatePerformanceCurveLibraryDialog extends Vue {
         }
         return performanceCurve;
       }),
-      owner: getUserName()
+      //owner: getUserName()
     };
   }
 

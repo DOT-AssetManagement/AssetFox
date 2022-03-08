@@ -46,7 +46,7 @@ export default class CreateCriterionLibraryDialog extends Vue {
     this.newCriterionLibrary = {
       ...this.newCriterionLibrary,
       mergedCriteriaExpression: this.dialogData.mergedCriteriaExpression,
-      owner: getUserName()
+      //owner: getUserName()
     };
   }
 
