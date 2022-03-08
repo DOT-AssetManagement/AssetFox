@@ -6,6 +6,7 @@ using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Interfaces.SummaryReport;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("GenerateSummaryReport/{networkId}/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public IActionResult GenerateSummaryReport(Guid networkId, Guid simulationId)
         {
             var reportDetailDto = new SimulationReportDetailDTO { SimulationId = simulationId, Status = "Generating" };
@@ -56,7 +57,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("DownloadSummaryReport/{networkId}/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<FileResult> DownloadSummaryReport(Guid networkId, Guid simulationId)
         {
             var reportDetailDto = new SimulationReportDetailDTO { SimulationId = simulationId, Status = "Downloading from the server" };

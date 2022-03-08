@@ -4,6 +4,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using BridgeCareCore.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +27,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("SynchronizeLegacySimulation/{simulationId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> SynchronizeLegacySimulation(int simulationId)
         {
             try

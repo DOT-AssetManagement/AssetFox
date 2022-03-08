@@ -56,7 +56,7 @@ export const setAuthHeader = (headers: any) => {
         const userTokens: UserTokens = JSON.parse(
             localStorage.getItem('UserTokens') as string,
         ) as UserTokens;
-        headers['Authorization'] = `Bearer ${userTokens.id_token}`;
+        headers['Authorization'] = `Bearer ${userTokens.access_token}`;
     }
 
     if (

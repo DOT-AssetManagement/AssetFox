@@ -5,6 +5,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +22,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetCriterionLibraries")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> CriterionLibraries()
         {
             try
@@ -38,7 +39,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertCriterionLibrary")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertCriterionLibrary([FromBody] CriterionLibraryDTO dto)
         {
             try
@@ -63,7 +64,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteCriterionLibrary/{libraryId}")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> DeleteCriterionLibrary(Guid libraryId)
         {
             try

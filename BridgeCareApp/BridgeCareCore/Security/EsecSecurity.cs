@@ -3,12 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Authentication;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using BridgeCareCore.Models;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace BridgeCareCore.Security
 {
@@ -22,7 +27,7 @@ namespace BridgeCareCore.Security
         ///     Each key is a token that has been revoked. Its value is the unix timestamp of the
         ///     time at which it expires.
         /// </summary>
-        private ConcurrentDictionary<string, long> _revokedTokens;
+        private ConcurrentDictionary<string, long> _revokedTokens;        
 
         public EsecSecurity(IConfiguration config)
         {
@@ -36,6 +41,7 @@ namespace BridgeCareCore.Security
         ///     Prevents the parser from accepting the provided token in the future.
         /// </summary>
         /// <param name="idToken">The JWT ID Token</param>
+        /// For now, client app is not passing id token. So, this function is not in use
         public void RevokeToken(string idToken)
         {
             RemoveExpiredTokens();
@@ -63,47 +69,79 @@ namespace BridgeCareCore.Security
         /// <returns></returns>
         public UserInfo GetUserInformation(HttpRequest request)
         {
-            var idToken = request.Headers["Authorization"].ToString().Split(" ")[1];
+            var userInformationDictionary = new Dictionary<string, string>();
+            var accessToken = request.Headers["Authorization"].ToString().Split(" ")[1];
 
-            if (string.IsNullOrEmpty(idToken))
+            if (userInformationDictionary.Count == 0)
             {
-                throw new UnauthorizedAccessException("No authorization bearer present on request.");
+                userInformationDictionary = GetUserInfoDictionary(accessToken);
             }
 
-            if (_revokedTokens.ContainsKey(idToken))
+            if (!userInformationDictionary.ContainsKey("roles"))
             {
-                throw new UnauthorizedAccessException("Your ID Token has been revoked.");
+                throw new UnauthorizedAccessException("User has no roles assigned.");
             }
 
-            var decodedToken = DecodeToken(idToken);
+            var userInformation = GetUserInformation(userInformationDictionary);
 
             if (_securityType == SecurityConstants.SecurityTypes.Esec)
             {
-                var roleStrings = SecurityFunctions.ParseLdap(decodedToken.GetClaimValue("roles"));
-                if (roleStrings.Count == 0)
-                {
-                    throw new UnauthorizedAccessException("User has no security roles assigned.");
-                }
 
-                return new UserInfo
-                {
-                    Name = SecurityFunctions.ParseLdap(decodedToken.GetClaimValue("sub"))[0],
-                    Role = roleStrings.First(roleString => Role.AllValidRoles.Contains(roleString)),
-                    Email = decodedToken.GetClaimValue("email")
-                };
+                return userInformation;
             }
 
             if (_securityType == SecurityConstants.SecurityTypes.B2C)
             {
-                return new UserInfo
-                {
-                    Name = decodedToken.GetClaimValue("name"),
-                    Email = decodedToken.GetClaimValue("email"),
-                    Role = SecurityConstants.Role.BAMSAdmin
-                };
+                userInformation.Role = SecurityConstants.Role.BAMSAdmin;
+                return userInformation;
             }
 
             return new UserInfo { Name = "", Role = "", Email = "" };
+        }
+
+        private static string GetUserInfoString(string token)
+        {
+            // These two lines should be removed as soon as the ESEC site's certificates start working
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+            };
+
+            var esecConfig = Startup.StaticConfig.GetSection("ESECConfig");
+            using var client = new HttpClient(handler) { BaseAddress = new Uri(esecConfig["ESECBaseAddress"]) };
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var formData = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("access_token", WebUtility.UrlDecode(token))
+            };
+            HttpContent content = new FormUrlEncodedContent(formData);
+
+            var responseTask = client.PostAsync("userinfo", content);
+            responseTask.Wait();
+
+            return responseTask.Result.Content.ReadAsStringAsync().Result;
+        }
+
+        public Dictionary<string, string> GetUserInfoDictionary(string token)
+        {
+            var response = GetUserInfoString(token);
+            ValidateResponse(response);
+            return DictionaryFromJSON(response);
+        }
+        private static Dictionary<string, string> DictionaryFromJSON(string jsonString)
+        {
+            return JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonString);
+        }
+        private void ValidateResponse(string response)
+        {
+            var responseJson = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            if (!responseJson.ContainsKey("error"))
+            {
+                return;
+            }
+            throw new AuthenticationException(responseJson["error_description"]);
         }
 
         /// <summary>

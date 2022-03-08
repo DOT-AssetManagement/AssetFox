@@ -5,6 +5,7 @@ using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Models.Validation;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using BridgeCareCore.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("GetEquationValidationResult")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetEquationValidationResult([FromBody] EquationValidationParameters model)
         {
             try
@@ -44,7 +45,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("GetCriterionValidationResult")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetCriterionValidationResult([FromBody] ValidationParameter model)
         {
             try

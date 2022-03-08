@@ -5,6 +5,7 @@ using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Hubs;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Interfaces.DefaultData;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -25,7 +26,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetInvestmentDefaultData")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetInvestmentDefaultData()
         {
             try

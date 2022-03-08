@@ -20,9 +20,11 @@ namespace BridgeCareCore
 {
     public class Startup
     {
+        public static IConfiguration StaticConfig { get; private set; }
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            StaticConfig = configuration;
         }
 
         public IConfiguration Configuration { get; }

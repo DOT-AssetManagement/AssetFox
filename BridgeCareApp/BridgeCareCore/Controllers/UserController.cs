@@ -22,7 +22,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetAllUsers")]
-        [Authorize]
+        [RestrictAccess]
         public async Task<IActionResult> GetAllUsers()
         {
             try
@@ -39,7 +39,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPut]
         [Route("UpdateUser")]
-        [Authorize(Policy = SecurityConstants.Policy.Admin)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin)]
         public async Task<IActionResult> UpdateUser([FromBody] UserDTO dto)
         {
             try
@@ -55,7 +55,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteUser/{username}")]
-        [Authorize(Policy = SecurityConstants.Policy.Admin)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin)]
         public async Task<IActionResult> DeleteUser(string username)
         {
             try
