@@ -45,29 +45,42 @@ namespace BridgeCareCore.Security
             }
             authorization = data[1];
 
-            var userInformationDictionary = UserInfoViaAccessToken.GetUserInfoDictionary(authorization);
-            if (userInformationDictionary.ContainsKey("error"))
+            try
             {
-                return (false, new UserInfo());
+                var userInformationDictionary = UserInfoViaAccessToken.GetUserInfoDictionary(authorization);
+                if (userInformationDictionary.ContainsKey("error"))
+                {
+                    return (false, new UserInfo());
+                }
+                var userInformation = UserInfoViaAccessToken.GetUserInformation(userInformationDictionary);
+                return (ValidateRole(userInformation.Role), userInformation);
             }
-            var userInformation = UserInfoViaAccessToken.GetUserInformation(userInformationDictionary);
-
-            return (ValidateRole(userInformation.Role), userInformation);
+            catch (Exception ex)
+            {
+                throw new AuthenticationException(ex.Message);
+            }
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             var request = context.HttpContext.Request;
-            var data = TryGetAuthorization(request, out string accessToken);
-            if (!data.Item1)
+            try
+            {
+                var data = TryGetAuthorization(request, out string accessToken);
+                if (!data.Item1)
+                {
+                    context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+                }
+                else
+                {
+                    context.HttpContext.Items.Add("name", data.Item2.Name);
+                    context.HttpContext.Items.Add("role", data.Item2.Role);
+                    context.HttpContext.Items.Add("email", data.Item2.Email);
+                }
+            }
+            catch
             {
                 context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
-            }
-            else
-            {
-                context.HttpContext.Items.Add("name", data.Item2.Name);
-                context.HttpContext.Items.Add("role", data.Item2.Role);
-                context.HttpContext.Items.Add("email", data.Item2.Email);
             }
 
             // Some API endpoints need this user information, so it is inserted into
