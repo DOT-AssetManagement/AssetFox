@@ -70,7 +70,7 @@ export default class CreateCashFlowRuleLibraryDialog extends Vue {
                 : []
           }))
           : [],
-      owner: getUserName()
+      //owner: getUserName()
     };
   }
 

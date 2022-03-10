@@ -36,13 +36,8 @@
                             </v-btn>
                         </template>
                     </v-text-field>
-                    <div v-if="hasSelectedLibrary && !hasScenario">
-                        Owner:
-                        {{
-                            selectedTargetConditionGoalLibrary.owner
-                                ? selectedTargetConditionGoalLibrary.owner
-                                : '[ No Owner ]'
-                        }}
+                    <div v-if='hasSelectedLibrary && !hasScenario'>
+                        Owner: {{ getOwnerUserName() || '[ No Owner ]' }}
                     </div>
                     <v-checkbox
                         class="sharing"
@@ -355,6 +350,7 @@ import {
     CriterionLibrary,
 } from '@/shared/models/iAM/criteria';
 import { ScenarioRoutePaths } from '@/shared/utils/route-paths';
+import { getUserName } from '@/shared/utils/get-user-info';
 
 @Component({
     components: {
@@ -395,6 +391,7 @@ export default class TargetConditionGoalEditor extends Vue {
     @Action('upsertScenarioTargetConditionGoals') upsertScenarioTargetConditionGoalsAction: any;
 
     @Getter('getNumericAttributes') getNumericAttributesGetter: any;
+    @Getter('getUserNameById') getUserNameByIdGetter: any;
 
     selectedScenarioId: string = getBlankGuid();
     librarySelectItems: SelectItem[] = [];
@@ -464,6 +461,7 @@ export default class TargetConditionGoalEditor extends Vue {
     uuidNIL: string = getBlankGuid();
     hasScenario: boolean = false;
     currentUrl: string = window.location.href;
+    hasCreatedLibrary: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -563,6 +561,15 @@ export default class TargetConditionGoalEditor extends Vue {
         this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
     }
 
+    getOwnerUserName(): string {
+
+        if (!this.hasCreatedLibrary) {
+        return this.getUserNameByIdGetter(this.selectedTargetConditionGoalLibrary.owner);
+        }
+        
+        return getUserName();
+    }
+
     onShowCreateTargetConditionGoalLibraryDialog(createAsNewLibrary: boolean) {
         this.createTargetConditionGoalLibraryDialogData = {
             showDialog: true,
@@ -577,6 +584,7 @@ export default class TargetConditionGoalEditor extends Vue {
 
         if (!isNil(library)) {
             this.upsertTargetConditionGoalLibraryAction({ library: library });
+            this.hasCreatedLibrary = true;
         }
     }
 
