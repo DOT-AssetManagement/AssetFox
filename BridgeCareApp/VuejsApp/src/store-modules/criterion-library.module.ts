@@ -19,11 +19,6 @@ const mutations = {
     },
     selectedCriterionLibraryMutator(state: any, criterionLibrary: CriterionLibrary) {
         state.selectedCriterionLibrary = clone(criterionLibrary);
-        // if (any(propEq('id', libraryId), state.criterionLibraries)) {
-        //     state.selectedCriterionLibrary = find(propEq('id', libraryId), state.criterionLibraries);
-        // } else {
-        //     state.selectedCriterionLibrary = clone(emptyCriterionLibrary);
-        // }
     },
     addedOrUpdatedCriterionLibraryMutator(state: any, library: CriterionLibrary) {
         state.criterionLibraries = any(propEq('id', library.id), state.criterionLibraries)
@@ -39,11 +34,6 @@ const mutations = {
     },
     scenarioRelatedCriterionMutator(state: any, library: CriterionLibrary){
         state.scenarioRelatedCriteria = clone(library);
-        // if (any(propEq('id', libraryId), state.criterionLibraries)) {
-        //     state.scenarioRelatedCriteria = find(propEq('id', libraryId), state.criterionLibraries);
-        // } else {
-        //     state.scenarioRelatedCriteria = clone(emptyCriterionLibrary);
-        // }
     },
     upsertScenarioRelatedCriteriaMutator(state: any, library: CriterionLibrary){
         state.scenarioRelatedCriteria = clone(library);
@@ -81,7 +71,6 @@ const actions = {
             var emptyData = clone(emptyCriterionLibrary) as CriterionLibrary;
             commit('scenarioRelatedCriterionMutator', emptyData);
         }
-        //commit('scenarioRelatedCriterionMutator', payload.libraryId);
     },
     setSelectedCriterionIsValid({commit}: any, payload: any) {
         commit('selectedCriterionIsValidMutator', payload.isValid);
@@ -110,10 +99,7 @@ const actions = {
                         commit('selectedCriterionLibraryMutator', library);
                     }
                     else{
-
-                        //if(isExistingCriteria){
-                            commit('scenarioRelatedCriterionMutator', library);
-                        //}
+                        commit('scenarioRelatedCriterionMutator', library);
                     }
                     dispatch('setSuccessMessage', {message: message});
                     returningId = response.data;
