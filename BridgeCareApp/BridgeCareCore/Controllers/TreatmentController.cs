@@ -44,6 +44,8 @@ namespace BridgeCareCore.Controllers
             {
                 [Role.Administrator] = UpsertAny,
                 [Role.DistrictEngineer] = UpsertPermitted,
+                [Role.Cwopa] = UpsertPermitted,
+                [Role.PlanningPartner] = UpsertPermitted
             };
         }
 

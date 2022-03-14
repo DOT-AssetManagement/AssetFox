@@ -43,7 +43,9 @@ namespace BridgeCareCore.Controllers
             return new Dictionary<string, BudgetPriorityUpsertMethod>
             {
                 [Role.Administrator] = UpsertAny,
-                [Role.DistrictEngineer] = UpsertPermitted
+                [Role.DistrictEngineer] = UpsertPermitted,
+                [Role.Cwopa] = UpsertPermitted,
+                [Role.PlanningPartner] = UpsertPermitted
             };
         }
 
