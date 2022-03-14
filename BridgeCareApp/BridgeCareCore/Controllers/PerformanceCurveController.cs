@@ -86,7 +86,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertPerformanceCurveLibrary")]
-        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer, SecurityConstants.Role.BAMSPlanningPartner)]
         public async Task<IActionResult> UpsertPerformanceCurveLibrary(PerformanceCurveLibraryDTO dto)
         {
             try
@@ -117,7 +117,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertScenarioPerformanceCurves/{simulationId}")]
-        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer, SecurityConstants.Role.BAMSPlanningPartner)]
         public async Task<IActionResult> UpsertScenarioPerformanceCurves(Guid simulationId, List<PerformanceCurveDTO> dtos)
         {
             try
@@ -147,7 +147,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeletePerformanceCurveLibrary/{libraryId}")]
-        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer, SecurityConstants.Role.BAMSPlanningPartner)]
         public async Task<IActionResult> DeletePerformanceCurveLibrary(Guid libraryId)
         {
             try
