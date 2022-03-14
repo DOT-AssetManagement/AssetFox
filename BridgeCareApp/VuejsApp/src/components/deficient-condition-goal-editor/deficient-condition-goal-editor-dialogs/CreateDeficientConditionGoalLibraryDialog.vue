@@ -60,7 +60,7 @@ export default class CreateDeficientConditionGoalLibraryDialog extends Vue {
             id: getNewGuid()
           }))
           : [],
-      owner: getUserName()
+      //owner: getUserName()
     };
   }
 

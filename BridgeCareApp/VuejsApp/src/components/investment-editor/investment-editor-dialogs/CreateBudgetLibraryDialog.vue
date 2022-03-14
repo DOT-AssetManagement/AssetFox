@@ -34,7 +34,6 @@ import Vue from 'vue';
 import {Component, Prop, Watch} from 'vue-property-decorator';
 import {CreateBudgetLibraryDialogData} from '@/shared/models/modals/create-budget-library-dialog-data';
 import {Budget, BudgetAmount, BudgetLibrary, emptyBudgetLibrary} from '@/shared/models/iAM/investment';
-import {getUserName} from '@/shared/utils/get-user-info';
 import {InputValidationRules, rules} from '@/shared/utils/input-validation-rules';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 
@@ -57,7 +56,7 @@ export default class CreateBudgetLibraryDialog extends Vue {
           id: getNewGuid()
         }))
       })),
-      owner: getUserName()
+      //owner: getUserName()
     };
   }
 

@@ -58,7 +58,7 @@ export default class CreateTargetConditionGoalLibraryDialog extends Vue {
             id: getNewGuid()
           }))
           : [],
-      owner: getUserName()
+      //owner: getUserName()
     };
   }
 

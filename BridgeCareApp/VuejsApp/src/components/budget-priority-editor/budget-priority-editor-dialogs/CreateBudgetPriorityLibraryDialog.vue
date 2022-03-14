@@ -58,7 +58,7 @@ export default class CreatePriorityLibraryDialog extends Vue {
           ...budgetPercentagePair, id: getNewGuid()
         }))
       })),
-      owner: getUserName()
+      //owner: getUserName()
     };
   }
 

@@ -86,7 +86,7 @@ export default class CreateTreatmentLibraryDialog extends Vue {
                     ),
                 }),
             ),
-            owner: getUserName(),
+            //owner: getUserName(),
         };
     }
 

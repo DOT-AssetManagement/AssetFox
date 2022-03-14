@@ -34,13 +34,8 @@
                             </v-btn>
                         </template>
                     </v-text-field>
-                    <div v-if="hasSelectedLibrary && !hasScenario">
-                        Owner:
-                        {{
-                            selectedCashFlowRuleLibrary.owner
-                                ? selectedCashFlowRuleLibrary.owner
-                                : '[ No Owner ]'
-                        }}
+                    <div v-if='hasSelectedLibrary && !hasScenario'>
+                        Owner: {{ getOwnerUserName() || '[ No Owner ]' }}
                     </div>
                     <v-checkbox
                         class="sharing"
@@ -501,7 +496,7 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
-import { Action, State } from 'vuex-class';
+import { Action, State, Getter } from 'vuex-class';
 import { SelectItem } from '@/shared/models/vue/select-item';
 import {
     append,
@@ -546,6 +541,7 @@ import {
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { CriterionLibrary } from '@/shared/models/iAM/criteria';
 import { ScenarioRoutePaths } from '@/shared/utils/route-paths';
+import { getUserName } from '@/shared/utils/get-user-info';
 
 @Component({
     components: {
@@ -573,8 +569,10 @@ export default class CashFlowEditor extends Vue {
     @Action('setHasUnsavedChanges') setHasUnsavedChangesAction: any;
     @Action('getScenarioCashFlowRules') getScenarioCashFlowRulesAction: any;
     @Action('upsertScenarioCashFlowRules')
-    upsertScenarioCashFlowRulesAction: any;
 
+    @Getter('getUserNameById') getUserNameByIdGetter: any;
+
+    upsertScenarioCashFlowRulesAction: any;
     hasSelectedLibrary: boolean = false;
     selectedScenarioId: string = getBlankGuid();
     librarySelectItems: SelectItem[] = [];
@@ -667,6 +665,7 @@ export default class CashFlowEditor extends Vue {
     rules: InputValidationRules = clone(rules);
     uuidNIL: string = getBlankGuid();
     hasScenario: boolean = false;
+    hasCreatedLibrary: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -811,6 +810,7 @@ export default class CashFlowEditor extends Vue {
 
         if (!isNil(cashFlowRuleLibrary)) {
             this.upsertCashFlowRuleLibraryAction(cashFlowRuleLibrary);
+            this.hasCreatedLibrary = true;
         }
     }
 
@@ -885,6 +885,15 @@ export default class CashFlowEditor extends Vue {
                 yearlyPercentages: yearlyPercentages,
             };
         }
+    }
+
+    getOwnerUserName(): string {
+
+        if (!this.hasCreatedLibrary) {
+        return this.getUserNameByIdGetter(this.selectedCashFlowRuleLibrary.owner);
+        }
+        
+        return getUserName();
     }
 
     getNewCashFlowDistributionRuleYearlyPercentages(durationInYears: number) {
