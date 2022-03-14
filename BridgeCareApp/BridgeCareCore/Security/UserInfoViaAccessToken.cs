@@ -18,8 +18,15 @@ namespace BridgeCareCore.Security
         public static Dictionary<string, string> GetUserInfoDictionary(string token)
         {
             var response = GetUserInfoString(token);
-            ValidateResponse(response);
-            return DictionaryFromJSON(response);
+            try
+            {
+                ValidateResponse(response);
+                return DictionaryFromJSON(response);
+            }
+            catch (Exception ex)
+            {
+                throw new AuthenticationException(ex.Message);
+            }
         }
         public static UserInfo GetUserInformation(Dictionary<string, string> userInformationDictionary)
         {
