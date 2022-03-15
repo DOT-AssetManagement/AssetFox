@@ -29,7 +29,7 @@ namespace BridgeCareCore.StartupExtension
             {
                 options.AddPolicy(SecurityConstants.Policy.AdminOrDistrictEngineer,
                     policy => policy.Requirements.Add(
-                        new UserHasAllowedRoleRequirement(Role.Administrator, Role.DistrictEngineer)));
+                        new UserHasAllowedRoleRequirement(Role.Administrator, Role.DistrictEngineer, Role.PlanningPartner)));
                 options.AddPolicy(SecurityConstants.Policy.Admin,
                     policy => policy.Requirements.Add(
                         new UserHasAllowedRoleRequirement(Role.Administrator)));
