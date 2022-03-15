@@ -137,35 +137,27 @@ namespace BridgeCareCore.Controllers
                             maintainableAsset.AssignAttributeData(attributeData);
 
                             //maintainableAsset.AssignSpatialWeighting(benefitQuantifierEquation.Equation.Expression);
-                            try
-                            {
-                                // aggregate numeric data
-                                if (maintainableAsset.AssignedData.Any(_ => _.Attribute.DataType == "NUMBER"))
-                                {
-                                    aggregatedResults.AddRange(maintainableAsset.AssignedData
-                                        .Where(_ => _.Attribute.DataType == "NUMBER")
-                                        .Select(_ => _.Attribute).Distinct()
-                                        .Select(_ =>
-                                            maintainableAsset.GetAggregatedValuesByYear(_,
-                                                AggregationRuleFactory.CreateNumericRule(_)))
-                                        .ToList());
-                                }
 
-                                //aggregate text data
-                                if (maintainableAsset.AssignedData.Any(_ => _.Attribute.DataType == "STRING"))
-                                {
-                                    aggregatedResults.AddRange(maintainableAsset.AssignedData
-                                        .Where(_ => _.Attribute.DataType == "STRING")
-                                        .Select(_ => _.Attribute).Distinct()
-                                        .Select(_ => maintainableAsset.GetAggregatedValuesByYear(_,
-                                            AggregationRuleFactory.CreateTextRule(_))).ToList());
-                                }
-                            }
-                            catch (Exception e)
+                            // aggregate numeric data
+                            if (maintainableAsset.AssignedData.Any(_ => _.Attribute.DataType == "NUMBER"))
                             {
-                                _log.Error($"While creating aggregation rule(s) for the attributes (attributes coming from metaData.json file) - {e.Message}");
-                                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Error: Creating aggregation rule(s) for the attributes :: {e.Message}");
-                                throw;
+                                aggregatedResults.AddRange(maintainableAsset.AssignedData
+                                    .Where(_ => _.Attribute.DataType == "NUMBER")
+                                    .Select(_ => _.Attribute).Distinct()
+                                    .Select(_ =>
+                                        maintainableAsset.GetAggregatedValuesByYear(_,
+                                            AggregationRuleFactory.CreateNumericRule(_)))
+                                    .ToList());
+                            }
+
+                            //aggregate text data
+                            if (maintainableAsset.AssignedData.Any(_ => _.Attribute.DataType == "STRING"))
+                            {
+                                aggregatedResults.AddRange(maintainableAsset.AssignedData
+                                    .Where(_ => _.Attribute.DataType == "STRING")
+                                    .Select(_ => _.Attribute).Distinct()
+                                    .Select(_ => maintainableAsset.GetAggregatedValuesByYear(_,
+                                        AggregationRuleFactory.CreateTextRule(_))).ToList());
                             }
                         }
                     });
