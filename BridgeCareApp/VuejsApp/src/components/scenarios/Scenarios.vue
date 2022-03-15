@@ -509,6 +509,12 @@ export default class Scenarios extends Vue {
         this.sharedScenarios = this.scenarios.filter(sharedScenarioFilter);
     }
 
+    beforeRouteEnter(to: any, from: any, next: any) {
+        next((vm: any) => {
+            vm.$statusHub.$on(Hub.BroadcastEventType.BroadcastSimulationAnalysisDetailEvent, vm.getScenarioAnalysisDetailUpdate);
+        });
+    }
+
     mounted() {
         this.networks = clone(this.stateNetworks);
         if (hasValue(this.networks) && !hasValue(this.stateScenarios)) {
@@ -520,7 +526,7 @@ export default class Scenarios extends Vue {
 
         this.$statusHub.$on(Hub.BroadcastEventType.BroadcastAssignDataStatusEvent, this.getDataAggregationStatus);
         this.$statusHub.$on(Hub.BroadcastEventType.BroadcastDataMigrationEvent, this.getDataMigrationStatus);
-        this.$statusHub.$on(Hub.BroadcastEventType.BroadcastSimulationAnalysisDetailEvent, this.getScenarioAnalysisDetailUpdate);
+        //this.$statusHub.$on(Hub.BroadcastEventType.BroadcastSimulationAnalysisDetailEvent, this.getScenarioAnalysisDetailUpdate);
         this.$statusHub.$on(Hub.BroadcastEventType.BroadcastSummaryReportGenerationStatusEvent, this.getSummaryReportStatus);
     }
 

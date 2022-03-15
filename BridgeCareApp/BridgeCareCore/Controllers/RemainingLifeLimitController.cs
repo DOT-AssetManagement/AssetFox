@@ -85,7 +85,7 @@ namespace BridgeCareCore.Controllers
         }
         [HttpPost]
         [Route("UpsertScenarioRemainingLifeLimits/{simulationId}")]
-        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer)]
+        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer, SecurityConstants.Role.BAMSPlanningPartner)]
         public async Task<IActionResult> UpsertScenarioRemainingLifeLimits(Guid simulationId, List<RemainingLifeLimitDTO> dtos)
         {
             try
