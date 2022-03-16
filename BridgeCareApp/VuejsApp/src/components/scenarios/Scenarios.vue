@@ -507,11 +507,13 @@ export default class Scenarios extends Vue {
         const sharedScenarioFilter = (scenario: Scenario) =>
             scenario.owner !== username && (this.isAdmin || this.isCWOPA || any(scenarioUserCanModify, scenario.users));
         this.sharedScenarios = this.scenarios.filter(sharedScenarioFilter);
+        this.$forceUpdate();
     }
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
             vm.$statusHub.$on(Hub.BroadcastEventType.BroadcastSimulationAnalysisDetailEvent, vm.getScenarioAnalysisDetailUpdate);
+            vm.$statusHub.$on(Hub.BroadcastEventType.BroadcastSummaryReportGenerationStatusEvent, vm.getSummaryReportStatus);
         });
     }
 
@@ -526,7 +528,7 @@ export default class Scenarios extends Vue {
 
         this.$statusHub.$on(Hub.BroadcastEventType.BroadcastAssignDataStatusEvent, this.getDataAggregationStatus);
         this.$statusHub.$on(Hub.BroadcastEventType.BroadcastDataMigrationEvent, this.getDataMigrationStatus);
-        //this.$statusHub.$on(Hub.BroadcastEventType.BroadcastSimulationAnalysisDetailEvent, this.getScenarioAnalysisDetailUpdate);
+        this.$statusHub.$on(Hub.BroadcastEventType.BroadcastSimulationAnalysisDetailEvent, this.getScenarioAnalysisDetailUpdate);
         this.$statusHub.$on(Hub.BroadcastEventType.BroadcastSummaryReportGenerationStatusEvent, this.getSummaryReportStatus);
     }
 
