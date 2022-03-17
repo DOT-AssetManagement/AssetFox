@@ -44,7 +44,7 @@
                               v-model='selectedBudgetPriorityGridRows' :must-sort='true'>
                     <template slot='items' slot-scope='props'>
                         <td>
-                            <v-checkbox hide-details primary v-model='props.selected' @change="checkboxUpdated"></v-checkbox>
+                            <v-checkbox hide-details primary v-model='props.selected'></v-checkbox>
                         </td>
                         <td v-for='header in budgetPriorityGridHeaders'>
                             <div v-if="header.value === 'priorityLevel' || header.value === 'year'">
@@ -629,10 +629,6 @@ export default class BudgetPriorityEditor extends Vue {
         }
         this.disableCrudButtonsResult = !allDataIsValid;
         return !allDataIsValid;
-    }
-
-    checkboxUpdated(){
-        this.checkBoxChanged = true;
     }
 }
 </script>
