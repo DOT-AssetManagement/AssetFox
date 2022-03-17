@@ -129,12 +129,12 @@
             <v-layout justify-end row v-show='hasSelectedLibrary || hasScenario'>
                 <v-btn @click='onUpsertScenarioBudgetPriorities'
                        class='ara-blue-bg white--text'
-                       v-show='hasScenario' :disabled='disableCrudButtons() || !hasUnsavedChanges'>
+                       v-show='hasScenario' :disabled='disableCrudButtonsResult || !hasUnsavedChanges'>
                     Save
                 </v-btn>
                 <v-btn @click='onUpsertBudgetPriorityLibrary'
                        class='ara-blue-bg white--text'
-                       v-show='!hasScenario' :disabled='disableCrudButtons() || !hasUnsavedChanges'>
+                       v-show='!hasScenario' :disabled='disableCrudButtonsResult || !hasUnsavedChanges'>
                     Update Library
                 </v-btn>
                 <v-btn @click='onShowCreateBudgetPriorityLibraryDialog(true)' class='ara-blue-bg white--text'
@@ -257,6 +257,8 @@ export default class BudgetPriorityEditor extends Vue {
     hasScenario: boolean = false;
     budgetPriorities: BudgetPriority[] = [];
     hasCreatedLibrary: boolean = false;
+    disableCrudButtonsResult: boolean = false;
+    checkBoxChanged: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -609,9 +611,10 @@ export default class BudgetPriorityEditor extends Vue {
 
     disableCrudButtons() {
         const allDataIsValid: boolean = this.budgetPriorities.every((budgetPriority: BudgetPriority) => {
+            const priorityIsValid = this.hasBudgetPercentagePairsThatMatchBudgets(budgetPriority);
             const allSubDataIsValid: boolean = this.hasScenario
                 ? budgetPriority.budgetPercentagePairs.every((budgetPercentagePair: BudgetPercentagePair) => {
-                    return this.hasBudgetPercentagePairsThatMatchBudgets(budgetPriority) &&
+                    return priorityIsValid &&
                         this.rules['generalRules'].valueIsNotEmpty(budgetPercentagePair.percentage) &&
                         this.rules['generalRules'].valueIsWithinRange(budgetPercentagePair.percentage, [0, 100]);
                 })
@@ -623,7 +626,7 @@ export default class BudgetPriorityEditor extends Vue {
         if (this.hasSelectedLibrary) {
             return !(this.rules['generalRules'].valueIsNotEmpty(this.selectedBudgetPriorityLibrary.name) === true && allDataIsValid);
         }
-
+        this.disableCrudButtonsResult = !allDataIsValid;
         return !allDataIsValid;
     }
 }
