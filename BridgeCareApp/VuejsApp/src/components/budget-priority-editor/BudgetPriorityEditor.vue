@@ -258,7 +258,6 @@ export default class BudgetPriorityEditor extends Vue {
     budgetPriorities: BudgetPriority[] = [];
     hasCreatedLibrary: boolean = false;
     disableCrudButtonsResult: boolean = false;
-    checkBoxChanged: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -274,6 +273,7 @@ export default class BudgetPriorityEditor extends Vue {
                 }
 
                 vm.hasScenario = true;
+                vm.getScenarioSimpleBudgetDetailsAction({ scenarioId: vm.selectedScenarioId });
                 vm.getScenarioBudgetPrioritiesAction(vm.selectedScenarioId);
             }
         });
