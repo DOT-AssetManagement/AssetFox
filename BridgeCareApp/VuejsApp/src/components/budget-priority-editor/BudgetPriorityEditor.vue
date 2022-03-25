@@ -142,7 +142,7 @@
                     Create as New Library
                 </v-btn>
                 <v-btn @click='onShowConfirmDeleteAlert' class='ara-orange-bg white--text'
-                       v-show='!hasScenario' :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'>
+                       v-show='!hasScenario' :disabled='!hasLibraryEditPermission'>
                     Delete Library
                 </v-btn>
                 <v-btn @click='onDiscardChanges' class='ara-orange-bg white--text'
@@ -583,14 +583,10 @@ export default class BudgetPriorityEditor extends Vue {
     }
 
     onUpsertBudgetPriorityLibrary() {
-        console.log(this.selectedBudgetPriorityLibrary);
         const budgetPriorityLibrary: BudgetPriorityLibrary = {
             ...clone(this.selectedBudgetPriorityLibrary),
             budgetPriorities: clone(this.budgetPriorities),
         };
-
-        console.log(budgetPriorityLibrary);
-
         this.upsertBudgetPriorityLibraryAction(budgetPriorityLibrary);
     }
 
