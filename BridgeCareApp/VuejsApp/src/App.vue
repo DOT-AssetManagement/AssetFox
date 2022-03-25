@@ -113,6 +113,7 @@
                             @click="
                                 onNavigate('/CriterionLibraryEditor/Library/')
                             "
+                            v-if="false"
                         >
                             <v-list-tile-title>Criterion</v-list-tile-title>
                         </v-list-tile>

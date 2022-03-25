@@ -41,7 +41,7 @@
                         class="sharing"
                         label="Shared"
                         v-if="hasSelectedLibrary && !hasScenario"
-                        v-model="selectedCashFlowRuleLibrary.shared"
+                        v-model="selectedCashFlowRuleLibrary.isShared"
                     />
                 </v-flex>
             </v-layout>
@@ -434,7 +434,7 @@
                 v-show="hasSelectedLibrary || hasScenario"
             >
                 <v-btn
-                    :disabled="disableSubmitAction() || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
                     @click="onUpsertScenarioCashFlowRules"
                     class="ara-blue-bg white--text"
                     v-show="hasScenario"
@@ -442,7 +442,7 @@
                     Save
                 </v-btn>
                 <v-btn
-                    :disabled="disableSubmitAction() || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
                     @click="onUpsertCashFlowRuleLibrary"
                     class="ara-blue-bg white--text"
                     v-show="!hasScenario"
@@ -450,7 +450,7 @@
                     Update Library
                 </v-btn>
                 <v-btn
-                    :disabled="disableSubmitAction()"
+                    :disabled="disableCrudButtons()"
                     @click="onShowCreateCashFlowRuleLibraryDialog(true)"
                     class="ara-blue-bg white--text"
                 >
@@ -460,7 +460,7 @@
                     @click="onDeleteCashFlowRuleLibrary"
                     class="ara-orange-bg white--text"
                     v-show="!hasScenario"
-                    :disabled="!hasSelectedLibrary"
+                    :disabled="!hasLibraryEditPermission"
                 >
                     Delete Library
                 </v-btn>
@@ -665,6 +665,8 @@ export default class CashFlowEditor extends Vue {
     uuidNIL: string = getBlankGuid();
     hasScenario: boolean = false;
     hasCreatedLibrary: boolean = false;
+    disableCrudButtonsResult: boolean = false;
+    hasLibraryEditPermission: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -714,10 +716,15 @@ export default class CashFlowEditor extends Vue {
         console.log('message');
     }
 
-    @Watch('selectedCashFlowRuleLibrary')
+    @Watch('selectedCashFlowRuleLibrary', {deep: true})
     onSelectedCashFlowRuleLibraryChanged() {
         this.hasSelectedLibrary =
             this.selectedCashFlowRuleLibrary.id !== this.uuidNIL;
+
+        if (this.hasSelectedLibrary) {
+            this.checkLibraryEditPermission();
+            this.hasCreatedLibrary = false;
+        }
 
         if (this.hasScenario) {
             this.cashFlowRuleGridData = this.selectedCashFlowRuleLibrary.cashFlowRules.map(
@@ -896,6 +903,14 @@ export default class CashFlowEditor extends Vue {
         return getUserName();
     }
 
+    checkLibraryEditPermission() {
+        this.hasLibraryEditPermission = this.isAdmin || this.checkUserIsLibraryOwner();
+    }
+
+    checkUserIsLibraryOwner() {
+        return this.getUserNameByIdGetter(this.selectedCashFlowRuleLibrary.owner) == getUserName();
+    }
+
     getNewCashFlowDistributionRuleYearlyPercentages(durationInYears: number) {
         const percentages: number[] = [];
         let percentage = 100 / durationInYears;
@@ -1069,7 +1084,7 @@ export default class CashFlowEditor extends Vue {
         return null;
     }
 
-    disableSubmitAction() {
+    disableCrudButtons() {
         const allDataIsValid = this.cashFlowRuleGridData.every(
             (rule: CashFlowRule) => {
                 const allSubDataIsValid = rule.cashFlowDistributionRules.every(
@@ -1128,7 +1143,7 @@ export default class CashFlowEditor extends Vue {
                 ) === true && allDataIsValid
             );
         }
-
+        this.disableCrudButtonsResult = !allDataIsValid;
         return !allDataIsValid;
     }
 

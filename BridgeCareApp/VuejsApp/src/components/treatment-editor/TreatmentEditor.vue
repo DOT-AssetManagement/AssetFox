@@ -42,7 +42,7 @@
                         class='sharing'
                         label='Shared'
                         v-if='hasSelectedLibrary && !hasScenario'
-                        v-model='selectedTreatmentLibrary.shared'
+                        v-model='selectedTreatmentLibrary.isShared'
                     />
                 </v-flex>
             </v-layout>
@@ -173,21 +173,21 @@
                     @click='onUpsertScenarioTreatments'
                     class='ara-blue-bg white--text'
                     v-show='hasScenario'
-                    :disabled='disableCrudButton() || !hasUnsavedChanges'>
+                    :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'>
                     Save
                 </v-btn>
                 <v-btn
                     @click='onUpsertTreatmentLibrary'
                     class='ara-blue-bg white--text'
                     v-show='!hasScenario'
-                    :disabled='disableCrudButton() || !hasUnsavedChanges'
+                    :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
                 >
                     Update Library
                 </v-btn>
                 <v-btn
                     @click='onShowCreateTreatmentLibraryDialog(true)'
                     class='ara-blue-bg white--text'
-                    :disabled='disableCrudButton()'
+                    :disabled='disableCrudButtons()'
                 >
                     Create as New Library
                 </v-btn>
@@ -195,7 +195,7 @@
                     @click='onShowConfirmDeleteAlert'
                     class='ara-orange-bg white--text'
                     v-show='!hasScenario'
-                    :disabled='!hasSelectedLibrary'
+                    :disabled='!hasLibraryEditPermission'
                 >
                     Delete Library
                 </v-btn>
@@ -339,6 +339,8 @@ export default class TreatmentEditor extends Vue {
     hasScenario: boolean = false;
     budgets: SimpleBudgetDetail[] = [];
     hasCreatedLibrary: boolean = false;
+    disableCrudButtonsResult: boolean = false;
+    hasLibraryEditPermission: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -398,9 +400,14 @@ export default class TreatmentEditor extends Vue {
         );
     }
 
-    @Watch('selectedTreatmentLibrary')
+    @Watch('selectedTreatmentLibrary', {deep: true})
     onSelectedTreatmentLibraryChanged() {
         this.hasSelectedLibrary = this.selectedTreatmentLibrary.id !== this.uuidNIL;
+
+        if (this.hasSelectedLibrary) {
+            this.checkLibraryEditPermission();
+            this.hasCreatedLibrary = false;
+        }
 
         if (this.hasScenario) {
             this.treatments = this.selectedTreatmentLibrary.treatments
@@ -490,6 +497,14 @@ export default class TreatmentEditor extends Vue {
         }
         
         return getUserName();
+    }
+
+    checkLibraryEditPermission() {
+        this.hasLibraryEditPermission = this.isAdmin || this.checkUserIsLibraryOwner();
+    }
+
+    checkUserIsLibraryOwner() {
+        return this.getUserNameByIdGetter(this.selectedTreatmentLibrary.owner) == getUserName();
     }
 
     onSetTreatmentSelectItemValue(treatmentId: string | number) {
@@ -666,7 +681,7 @@ export default class TreatmentEditor extends Vue {
         }
     }
 
-    disableCrudButton() {
+    disableCrudButtons() {
         const allDataIsValid: boolean = this.treatments.every((treatment: Treatment) => {
             const allSubDataIsValid: boolean = treatment.consequences.every((consequence: TreatmentConsequence) => {
                     return (this.rules['generalRules'].valueIsNotEmpty(consequence.attribute,) === true &&
@@ -686,6 +701,7 @@ export default class TreatmentEditor extends Vue {
                 allDataIsValid);
         }
 
+        this.disableCrudButtonsResult = !allDataIsValid;
         return !allDataIsValid;
     }
 }

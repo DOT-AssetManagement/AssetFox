@@ -43,7 +43,7 @@
                         class="sharing"
                         label="Shared"
                         v-if="hasSelectedLibrary && !hasScenario"
-                        v-model="selectedTargetConditionGoalLibrary.shared"
+                        v-model="selectedTargetConditionGoalLibrary.isShared"
                     />
                 </v-flex>
             </v-layout>
@@ -239,7 +239,7 @@
                     @click="onUpsertScenarioTargetConditionGoals"
                     class="ara-blue-bg white--text"
                     v-show="hasScenario"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
                 >
                     Save
                 </v-btn>
@@ -247,14 +247,14 @@
                     @click="onUpsertTargetConditionGoalLibrary"
                     class="ara-blue-bg white--text"
                     v-show="!hasScenario"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
                 >
                     Update Library
                 </v-btn>
                 <v-btn
                     @click="onShowCreateTargetConditionGoalLibraryDialog(true)"
                     class="ara-blue-bg white--text"
-                    :disabled="disableCrudButton()"
+                    :disabled="disableCrudButtons()"
                 >
                     Create as New Library
                 </v-btn>
@@ -262,7 +262,7 @@
                     @click="onShowConfirmDeleteAlert"
                     class="ara-orange-bg white--text"
                     v-show="!hasScenario"
-                    :disabled="!hasSelectedLibrary"
+                    :disabled="!hasLibraryEditPermission"
                 >
                     Delete Library
                 </v-btn>
@@ -462,6 +462,8 @@ export default class TargetConditionGoalEditor extends Vue {
     hasScenario: boolean = false;
     currentUrl: string = window.location.href;
     hasCreatedLibrary: boolean = false;
+    disableCrudButtonsResult: boolean = false;
+    hasLibraryEditPermission: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -512,9 +514,14 @@ export default class TargetConditionGoalEditor extends Vue {
         );
     }
 
-    @Watch('selectedTargetConditionGoalLibrary')
+    @Watch('selectedTargetConditionGoalLibrary', {deep: true})
     onSelectedTargetConditionGoalLibraryChanged() {
         this.hasSelectedLibrary = this.selectedTargetConditionGoalLibrary.id !== this.uuidNIL;
+
+        if (this.hasSelectedLibrary) {
+            this.checkLibraryEditPermission();
+            this.hasCreatedLibrary = false;
+        }
 
         if (this.hasScenario) {
             this.targetConditionGoalGridData = this.selectedTargetConditionGoalLibrary.targetConditionGoals
@@ -568,6 +575,14 @@ export default class TargetConditionGoalEditor extends Vue {
         }
         
         return getUserName();
+    }
+
+    checkLibraryEditPermission() {
+        this.hasLibraryEditPermission = this.isAdmin || this.checkUserIsLibraryOwner();
+    }
+
+    checkUserIsLibraryOwner() {
+        return this.getUserNameByIdGetter(this.selectedTargetConditionGoalLibrary.owner) == getUserName();
     }
 
     onShowCreateTargetConditionGoalLibraryDialog(createAsNewLibrary: boolean) {
@@ -696,7 +711,7 @@ export default class TargetConditionGoalEditor extends Vue {
         }
     }
 
-    disableCrudButton() {
+    disableCrudButtons() {
         const dataIsValid: boolean = this.targetConditionGoalGridData.every(
             (targetGoal: TargetConditionGoal) => {
                 return (
@@ -719,6 +734,7 @@ export default class TargetConditionGoalEditor extends Vue {
             );
         }
 
+        this.disableCrudButtonsResult = !dataIsValid;
         return !dataIsValid;
     }
 }
