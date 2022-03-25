@@ -129,12 +129,12 @@
             <v-layout justify-end row v-show='hasSelectedLibrary || hasScenario'>
                 <v-btn @click='onUpsertScenarioBudgetPriorities'
                        class='ara-blue-bg white--text'
-                       v-show='hasScenario' :disabled='disableCrudButtonsResult || !hasUnsavedChanges || !isLibraryOwner'>
+                       v-show='hasScenario' :disabled='(disableCrudButtonsResult && !hasLibraryEditPermission) || !hasUnsavedChanges'>
                     Save
                 </v-btn>
                 <v-btn @click='onUpsertBudgetPriorityLibrary'
                        class='ara-blue-bg white--text'
-                       v-show='!hasScenario' :disabled='disableCrudButtonsResult || !hasUnsavedChanges || !isLibraryOwner'>
+                       v-show='!hasScenario' :disabled='(disableCrudButtonsResult && !hasLibraryEditPermission) || !hasUnsavedChanges'>
                     Update Library
                 </v-btn>
                 <v-btn @click='onShowCreateBudgetPriorityLibraryDialog(true)' class='ara-blue-bg white--text'
@@ -142,7 +142,7 @@
                     Create as New Library
                 </v-btn>
                 <v-btn @click='onShowConfirmDeleteAlert' class='ara-orange-bg white--text'
-                       v-show='!hasScenario' :disabled='disableCrudButtonsResult || !hasSelectedLibrary || !isLibraryOwner'>
+                       v-show='!hasScenario' :disabled='(disableCrudButtonsResult && !hasLibraryEditPermission) || !hasUnsavedChanges'>
                     Delete Library
                 </v-btn>
                 <v-btn @click='onDiscardChanges' class='ara-orange-bg white--text'
@@ -258,7 +258,7 @@ export default class BudgetPriorityEditor extends Vue {
     budgetPriorities: BudgetPriority[] = [];
     hasCreatedLibrary: boolean = false;
     disableCrudButtonsResult: boolean = false;
-    isLibraryOwner: boolean = false;
+    hasLibraryEditPermission: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -307,7 +307,7 @@ export default class BudgetPriorityEditor extends Vue {
         this.hasSelectedLibrary = this.selectedBudgetPriorityLibrary.id !== this.uuidNIL;
 
         if (this.hasSelectedLibrary) {
-            this.checkUserIsLibraryOwner();
+            this.checkLibraryEditPermission();
             this.hasCreatedLibrary = false;
         }
 
@@ -470,14 +470,22 @@ export default class BudgetPriorityEditor extends Vue {
         return getUserName();
     }
 
-    checkUserIsLibraryOwner() {
-        if ( this.getUserNameByIdGetter(this.selectedBudgetPriorityLibrary.owner) == getUserName())
-        {
-            this.isLibraryOwner = true;
-            return;
+    checkLibraryEditPermission()
+    {
+        if (this.isAdmin || this.checkUserIsLibraryOwner()) {
+            this.hasLibraryEditPermission = true;
         }
 
-        this.isLibraryOwner = false;
+        this.hasLibraryEditPermission = false;
+    }
+
+    checkUserIsLibraryOwner() {
+        if (this.getUserNameByIdGetter(this.selectedBudgetPriorityLibrary.owner) == getUserName())
+        {
+            return true;
+        }
+
+        return false;
     }
 
     onShowCreateBudgetPriorityLibraryDialog(createAsNewLibrary: boolean) {
