@@ -157,7 +157,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertBudgetPriorityLibrary")]
-        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer, SecurityConstants.Role.BAMSPlanningPartner)]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertBudgetPriorityLibrary(BudgetPriorityLibraryDTO dto)
         {
             try
@@ -188,7 +188,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpDelete]
         [Route("DeleteBudgetPriorityLibrary/{libraryId}")]
-        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer, SecurityConstants.Role.BAMSPlanningPartner)]
+        [RestrictAccess]
         public async Task<IActionResult> DeleteBudgetPriorityLibrary(Guid libraryId)
         {
             try
@@ -233,7 +233,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertScenarioBudgetPriorities/{simulationId}")]
-        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer, SecurityConstants.Role.BAMSPlanningPartner)]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertScenarioBudgetPriorities(Guid simulationId, List<BudgetPriorityDTO> dtos)
         {
             try

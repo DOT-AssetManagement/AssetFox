@@ -195,7 +195,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("UpsertScenarioTargetConditionGoals/{simulationId}")]
-        [RestrictAccess(SecurityConstants.Role.BAMSAdmin, SecurityConstants.Role.BAMSDBEngineer, SecurityConstants.Role.BAMSPlanningPartner)]
+        [RestrictAccess]
         public async Task<IActionResult> UpsertScenarioTargetConditionGoals(Guid simulationId, List<TargetConditionGoalDTO> dtos)
         {
             try
