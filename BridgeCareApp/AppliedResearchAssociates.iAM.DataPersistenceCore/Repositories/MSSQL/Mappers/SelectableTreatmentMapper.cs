@@ -50,7 +50,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             };
 
         public static TreatmentLibraryEntity ToEntity(this TreatmentLibraryDTO dto) =>
-            new TreatmentLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description };
+            new TreatmentLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
         public static void CreateSelectableTreatment(this ScenarioSelectableTreatmentEntity entity, Simulation simulation)
         {
@@ -128,6 +128,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Name = entity.Name,
                 Description = entity.Description,
                 Owner = entity.CreatedBy,
+                IsShared = entity.IsShared,
                 Treatments = entity.Treatments.Any()
                     ? entity.Treatments.Select(_ => _.ToDto()).OrderBy(t => t.Name).ToList()
                     : new List<TreatmentDTO>()

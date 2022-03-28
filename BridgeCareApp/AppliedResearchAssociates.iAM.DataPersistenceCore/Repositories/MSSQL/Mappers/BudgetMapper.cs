@@ -29,7 +29,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             new BudgetEntity { Id = dto.Id, BudgetLibraryId = libraryId, Name = dto.Name };
 
         public static BudgetLibraryEntity ToEntity(this BudgetLibraryDTO dto) =>
-            new BudgetLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description };
+            new BudgetLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
         public static BudgetDTO ToDto(this ScenarioBudgetEntity entity) =>
             new BudgetDTO
@@ -64,6 +64,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Name = entity.Name,
                 Description = entity.Description,
                 Owner = entity.CreatedBy,
+                IsShared = entity.IsShared,
                 Budgets = entity.Budgets.Any()
                     ? entity.Budgets.Select(_ => _.ToDto()).ToList()
                     : new List<BudgetDTO>()

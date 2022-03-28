@@ -12,5 +12,7 @@ namespace AppliedResearchAssociates.iAM.DTOs.Abstract
         public List<Guid> AppliedScenarioIds { get; set; } = new List<Guid>();
 
         public Guid Owner { get; set; }
+
+        public bool IsShared { get; set; }
     }
 }
