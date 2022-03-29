@@ -174,7 +174,7 @@ namespace BridgeCareCore.Controllers
                 RetrieveScenario = GetAnyForScenario,
                 DeleteScenario = DeleteAnyFromScenario,
                 UpsertLibrary = UpsertPermittedForLibrary,
-                RetrieveLibrary = GetAnyForLibrary,
+                RetrieveLibrary = GetPermittedForLibrary,
                 DeleteLibrary = DeletePermittedFromLibrary,
                 ImportScenarioInvestment = ImportPermittedForScenario,
                 ImportLibraryInvestment = ImportPermittedForLibrary
