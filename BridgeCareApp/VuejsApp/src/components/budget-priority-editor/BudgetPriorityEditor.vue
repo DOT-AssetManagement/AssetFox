@@ -129,7 +129,7 @@
             <v-layout justify-end row v-show='hasSelectedLibrary || hasScenario'>
                 <v-btn @click='onUpsertScenarioBudgetPriorities'
                        class='ara-blue-bg white--text'
-                       v-show='hasScenario' :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'>
+                       v-show='hasScenario' :disabled='disableCrudButtonsResult || !hasUnsavedChanges'>
                     Save
                 </v-btn>
                 <v-btn @click='onUpsertBudgetPriorityLibrary'

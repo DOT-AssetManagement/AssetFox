@@ -239,7 +239,7 @@
                     @click="onUpsertScenarioTargetConditionGoals"
                     class="ara-blue-bg white--text"
                     v-show="hasScenario"
-                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
                 >
                     Save
                 </v-btn>

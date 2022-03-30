@@ -154,16 +154,16 @@
         </v-flex>
         <v-flex xs12>
             <v-layout justify-end row v-show='hasSelectedLibrary || hasScenario'>
-                <v-btn :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
+                <v-btn :disabled='disableCrudButtonsResult || !hasUnsavedChanges'
                        @click='onUpsertInvestment()'
                        class='ara-blue-bg white--text'
-                       v-show='selectedScenarioId !== uuidNIL'>
+                       v-show='hasScenario'>
                     Save
                 </v-btn>
                 <v-btn :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
                        @click='onUpsertBudgetLibrary()'
                        class='ara-blue-bg white--text'
-                       v-show='selectedScenarioId === uuidNIL'>
+                       v-show='!hasScenario'>
                     Update Library
                 </v-btn>
                 <v-btn :disabled='disableCrudButton()'

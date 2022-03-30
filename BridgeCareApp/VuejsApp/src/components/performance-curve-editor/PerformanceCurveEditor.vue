@@ -284,7 +284,7 @@
         </v-flex>
         <v-flex xs12>
             <v-layout justify-end row v-show='hasSelectedLibrary || hasScenario'>
-                <v-btn :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
+                <v-btn :disabled='disableCrudButtonsResult || !hasUnsavedChanges'
                        @click='onUpsertScenarioPerformanceCurves'
                        class='ara-blue-bg white--text'
                        v-show='hasScenario'>
