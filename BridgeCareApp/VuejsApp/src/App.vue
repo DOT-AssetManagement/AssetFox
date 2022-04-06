@@ -78,6 +78,7 @@
                                     '/TargetConditionGoalEditor/Library/',
                                 )
                             "
+                            v-if="isAdmin"
                         >
                             <v-list-tile-title
                                 >Target Condition Goal</v-list-tile-title
@@ -89,6 +90,7 @@
                                     '/DeficientConditionGoalEditor/Library/',
                                 )
                             "
+                            v-if="isAdmin"
                         >
                             <v-list-tile-title
                                 >Deficient Condition Goal</v-list-tile-title
