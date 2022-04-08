@@ -217,7 +217,7 @@
                         Log In
                     </v-btn>
                     <v-btn
-                        v-if="securityType === esecSecurityType"
+                        v-if="securityType === esecSecurityType && currentURL != 'AuthenticationStart'"
                         @click="onNavigate('/AuthenticationStart/')"
                         class="ara-blue-bg white--text"
                         round
@@ -355,6 +355,7 @@ export default class AppComponent extends Vue {
     ];
     esecSecurityType: string = SecurityTypes.esec;
     b2cSecurityType: string = SecurityTypes.b2c;
+    currentURL: any = ''
 
     get container() {
         const container: any = {};
@@ -565,6 +566,7 @@ export default class AppComponent extends Vue {
             this.onSetErrorMessage,
         );
         this.$statusHub.$on(Hub.BroadcastEventType.BroadcastWarningEvent, this.onSetWarningMessage);
+        this.currentURL = this.$router.currentRoute.name;
     }
 
     beforeDestroy() {
