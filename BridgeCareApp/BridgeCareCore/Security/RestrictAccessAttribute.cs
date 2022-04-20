@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Authentication;
 using BridgeCareCore.Models;
@@ -43,6 +44,19 @@ namespace BridgeCareCore.Security
                 authorization = "";
                 return (false, new UserInfo());
             }
+
+            if (data[0] == "BearerB2C")
+            {
+                var decodedToken = DecodeToken(data[1]);
+                authorization = data[1];
+                var info = new UserInfo
+                {
+                    Name = decodedToken.GetClaimValue("name"),
+                    Email = decodedToken.GetClaimValue("email"),
+                    Role = SecurityConstants.Role.BAMSAdmin
+                };
+                return (true, info);
+            }
             authorization = data[1];
 
             try
@@ -59,6 +73,14 @@ namespace BridgeCareCore.Security
             {
                 throw new AuthenticationException(ex.Message);
             }
+        }
+
+        private JwtSecurityToken DecodeToken(string idToken)
+        {
+            var handler = new JwtSecurityTokenHandler();
+
+            var token = handler.ReadJwtToken(idToken);
+            return token;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
