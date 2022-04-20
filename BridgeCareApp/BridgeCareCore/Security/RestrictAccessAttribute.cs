@@ -45,7 +45,7 @@ namespace BridgeCareCore.Security
                 return (false, new UserInfo());
             }
 
-            if (data[0] == "BearerB2C")
+            if (data[0] == "BearerB2C" || request.Headers["From"].Equals("PostmanB2C"))
             {
                 var decodedToken = DecodeToken(data[1]);
                 authorization = data[1];
