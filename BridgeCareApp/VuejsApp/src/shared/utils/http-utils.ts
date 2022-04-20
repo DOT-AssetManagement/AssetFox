@@ -68,7 +68,7 @@ export const setAuthHeader = (headers: any) => {
         const accessToken: string = localStorage.getItem(
             'access_token',
         ) as string;
-        headers['Authorization'] = `Bearer ${accessToken}`;
+        headers['Authorization'] = `BearerB2C ${accessToken}`;
     }
 
     return headers;

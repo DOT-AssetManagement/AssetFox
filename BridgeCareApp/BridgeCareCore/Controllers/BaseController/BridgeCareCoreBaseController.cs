@@ -38,18 +38,26 @@ namespace BridgeCareCore.Controllers.BaseController
                 if (isPath.Value)
                 {
                     var data = ContextAccessor?.HttpContext?.Request.HttpContext.Items;
-                    if (!data.ContainsKey("name"))
+                    var dataFromB2C = ContextAccessor?.HttpContext?.Items;
+                    if (!data.ContainsKey("name") && !dataFromB2C.ContainsKey("name"))
                     {
                         SetUserInfo(ContextAccessor?.HttpContext?.Request);
                     }
                     else
                     {
-                        var localInfo = new UserInfo
+                        var localInfo = new UserInfo();
+                        if (data.ContainsKey("name"))
                         {
-                            Name = (string)data["name"],
-                            Role = (string)data["role"],
-                            Email = (string)data["email"]
-                        };
+                            localInfo.Name = (string)data["name"];
+                            localInfo.Role = (string)data["role"];
+                            localInfo.Email = (string)data["email"];
+                        }
+                        else
+                        {
+                            localInfo.Name = (string)dataFromB2C["name"];
+                            localInfo.Role = (string)dataFromB2C["role"];
+                            localInfo.Email = (string)dataFromB2C["email"];
+                        }
                         UserInfo = localInfo;
                     }
                 }
