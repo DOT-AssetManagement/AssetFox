@@ -788,8 +788,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         private int EnterMinDeckSuperSub(ExcelWorksheet worksheet, int row, int column, Dictionary<string, double> numericAttribute)
         {
             var minValue = Math.Min(_summaryReportHelper.checkAndGetValue<double>(numericAttribute, "DECK_SEEDED"),
-                           Math.Min(_summaryReportHelper.checkAndGetValue<double>(numericAttribute, "SUP_SEEDED")
-                                    , _summaryReportHelper.checkAndGetValue<double>(numericAttribute, "SUP_SEEDED")));
+                           Math.Min(_summaryReportHelper.checkAndGetValue<double>(numericAttribute, "SUB_SEEDED")
+                                    , _summaryReportHelper.checkAndGetValue<double>(numericAttribute, "SUB_SEEDED")));
             worksheet.Cells[row, ++column].Value = minValue;
             numericAttribute["MINCOND"] = minValue;
             return column;
