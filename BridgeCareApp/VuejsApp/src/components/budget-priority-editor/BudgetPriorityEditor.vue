@@ -168,6 +168,8 @@
 
         <ConfirmDeleteAlert :dialogData='confirmDeleteAlertData' @submit='onSubmitConfirmDeleteAlertResult' />
 
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreatePriorityLibraryDialog :dialogData='createBudgetPriorityLibraryDialogData'
                                      @submit='onSubmitCreateBudgetPriorityLibraryDialogResult' />
 
@@ -225,7 +227,7 @@ const ObjectID = require('bson-objectid');
 
 @Component({
     components: {
-        CreatePriorityLibraryDialog, CreatePriorityDialog, CriterionLibraryEditorDialog, ConfirmDeleteAlert: Alert,
+        CreatePriorityLibraryDialog, CreatePriorityDialog, CriterionLibraryEditorDialog, ConfirmDeleteAlert: Alert, ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class BudgetPriorityEditor extends Vue {
@@ -266,6 +268,7 @@ export default class BudgetPriorityEditor extends Vue {
     criterionLibraryEditorDialogData: CriterionLibraryEditorDialogData = clone(emptyCriterionLibraryEditorDialogData);
     createBudgetPriorityLibraryDialogData: CreateBudgetPriorityLibraryDialogData = clone(emptyCreateBudgetPriorityLibraryDialogData);
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     rules: InputValidationRules = rules;
     uuidNIL: string = getBlankGuid();
     hasScenario: boolean = false;
@@ -274,6 +277,7 @@ export default class BudgetPriorityEditor extends Vue {
     checkBoxChanged: boolean = false;
     hasLibraryEditPermission: boolean = false;
     hasCreatedLibrary: boolean = false;
+    overwriteWithLibrary: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -311,7 +315,12 @@ export default class BudgetPriorityEditor extends Vue {
 
     @Watch('librarySelectItemValue')
     onSelectItemValueChanged() {
-        this.selectBudgetPriorityLibraryAction({ libraryId: this.librarySelectItemValue });
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else {
+            this.selectBudgetPriorityLibraryAction({ libraryId: this.librarySelectItemValue });
+        }
     }
 
     @Watch('stateSelectedBudgetPriorityLibrary')
@@ -364,6 +373,12 @@ export default class BudgetPriorityEditor extends Vue {
         this.setGridCriteriaColumnWidth();
         this.setGridHeaders();
         this.setGridData();
+
+        if(this.overwriteWithLibrary)
+        {
+            this.overwriteWithLibrary = false;
+            this.onUpsertScenarioBudgetPriorities();
+        }
     }
 
     @Watch('selectedBudgetPriorityGridRows')
@@ -595,7 +610,11 @@ export default class BudgetPriorityEditor extends Vue {
         this.upsertScenarioBudgetPrioritiesAction({
             scenarioBudgetPriorities: this.budgetPriorities,
             scenarioId: this.selectedScenarioId,
-        }).then(() => this.librarySelectItemValue = null);
+        }).then(() => {
+                this.librarySelectItemValue = null
+                this.getScenarioSimpleBudgetDetailsAction({ scenarioId: this.selectedScenarioId });
+                this.getScenarioBudgetPrioritiesAction(this.selectedScenarioId);
+            });
     }
 
     onUpsertBudgetPriorityLibrary() {
@@ -622,6 +641,26 @@ export default class BudgetPriorityEditor extends Vue {
 
     onRemoveBudgetPriority(id: string){
         this.budgetPriorities = this.budgetPriorities.filter((bp: BudgetPriority) => bp.id !== id)
+    }
+
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectBudgetPriorityLibraryAction({ libraryId: this.librarySelectItemValue })
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
     }
 
     onShowConfirmDeleteAlert() {

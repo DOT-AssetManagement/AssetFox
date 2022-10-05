@@ -218,6 +218,9 @@
             :dialogData="confirmDeleteAlertData"
             @submit="onSubmitConfirmDeleteAlertResult"
         />
+
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreateCalculatedAttributeLibraryDialog
             :dialogData="createCalculatedAttributeLibraryDialogData"
             @submit="onSubmitCreateCalculatedAttributeLibraryDialogResult"
@@ -309,6 +312,7 @@ import { getUserName } from '@/shared/utils/get-user-info';
         EquationEditorDialog,
         CriterionLibraryEditorDialog,
         ConfirmDeleteAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class CalculatedAttributeEditor extends Vue {
@@ -355,6 +359,7 @@ export default class CalculatedAttributeEditor extends Vue {
     hasScenario: boolean = false;
     rules: InputValidationRules = clone(rules);
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     showCreateCalculatedAttributeDialog = false;
     hasSelectedCalculatedAttribute: boolean = false;
     selectedCalculatedAttribute: CalculatedAttribute = clone(
@@ -389,6 +394,7 @@ export default class CalculatedAttributeEditor extends Vue {
     selectedGridItem: CalculatedAttributeGridModel[] = [];
     selectedAttribute: CalculatedAttribute = clone(emptyCalculatedAttribute)
     hasCreatedLibrary: boolean = false;
+    overwriteWithLibrary: boolean = false;
 
     calculatedAttributeGridHeaders: DataTableHeader[] = [
         {
@@ -506,9 +512,14 @@ export default class CalculatedAttributeEditor extends Vue {
     }
     @Watch('librarySelectItemValue')
     onLibrarySelectItemValueChanged() {
-        this.selectCalculatedAttributeLibraryAction(
-            this.librarySelectItemValue,
-        );
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else {
+            this.selectCalculatedAttributeLibraryAction(
+                this.librarySelectItemValue,
+            );
+        }
     }
     @Watch('attributeSelectItemValue')
     onAttributeSelectItemValueChanged() {
@@ -837,6 +848,25 @@ export default class CalculatedAttributeEditor extends Vue {
         }
 
         return !dataIsValid;
+    }
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectCalculatedAttributeLibraryAction({ libraryId: this.librarySelectItemValue })
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
     }
     onShowConfirmDeleteAlert() {
         this.confirmDeleteAlertData = {
