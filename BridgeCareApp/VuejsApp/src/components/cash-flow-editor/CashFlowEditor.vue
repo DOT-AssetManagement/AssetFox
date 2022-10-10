@@ -541,7 +541,8 @@ export default class CashFlowEditor extends Vue {
               );
         this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
 
-        if(this.overwriteWithLibrary) {
+        //overwriteWithLibrary should only be set to true if user is in Scenarios page. hasScenario check added for extra safety
+        if(this.overwriteWithLibrary && this.hasScenario) {
             this.overwriteWithLibrary = false;
             this.onUpsertScenarioCashFlowRules();
         }
