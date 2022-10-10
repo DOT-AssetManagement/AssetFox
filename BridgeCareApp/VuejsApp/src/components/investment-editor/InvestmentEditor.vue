@@ -234,6 +234,8 @@
 
         <ConfirmDeleteAlert :dialogData='confirmDeleteAlertData' @submit='onSubmitConfirmDeleteAlertResult' />
 
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreateBudgetLibraryDialog :dialogData='createBudgetLibraryDialogData'
                                    @submit='onSubmitCreateCreateBudgetLibraryDialogResult' />
 
@@ -313,6 +315,7 @@ import { getUserName } from '@/shared/utils/get-user-info';
         SetRangeForDeletingBudgetYearsDialog,
         EditBudgetsDialog,
         ConfirmDeleteAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class InvestmentEditor extends Vue {
@@ -358,6 +361,7 @@ export default class InvestmentEditor extends Vue {
     showSetRangeForAddingBudgetYearsDialog: boolean = false;
     showSetRangeForDeletingBudgetYearsDialog: boolean = false;
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     uuidNIL: string = getBlankGuid();
     rules: InputValidationRules = clone(rules);
     showImportExportInvestmentBudgetsDialog: boolean = false;
@@ -369,6 +373,7 @@ export default class InvestmentEditor extends Vue {
     hasLibraryEditPermission: boolean = false;
     showReminder: boolean = false;
     range: number = 1;
+    overwriteWithLibrary: boolean = false;
 
     get addYearLabel() {
         return 'Add Year (' + this.getNextYear() + ')';
@@ -424,7 +429,12 @@ export default class InvestmentEditor extends Vue {
 
     @Watch('librarySelectItemValue')
     onLibrarySelectItemValueChanged() {
-        this.selectBudgetLibraryAction(this.librarySelectItemValue);
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else if(!isNil(this.librarySelectItemValue)) {
+            this.selectBudgetLibraryAction(this.librarySelectItemValue);
+        }
     }
 
     @Watch('stateSelectedBudgetLibrary')
@@ -478,6 +488,12 @@ export default class InvestmentEditor extends Vue {
             this.syncInvestmentPlanWithBudgets();
         }
         this.setHasUnsavedChangesFlag();
+
+        if(this.overwriteWithLibrary)
+        {
+            this.overwriteWithLibrary = false;
+            this.onUpsertInvestment();
+        }
     }
 
     @Watch('investmentPlan')
@@ -846,7 +862,10 @@ export default class InvestmentEditor extends Vue {
             },
             scenarioId: this.selectedScenarioId,
         })
-            .then(() => this.librarySelectItemValue = null);
+            .then(() => {
+                this.librarySelectItemValue = null;
+                this.getInvestmentAction(this.selectedScenarioId);
+            });
     }
 
     onUpsertBudgetLibrary() {
@@ -871,6 +890,26 @@ export default class InvestmentEditor extends Vue {
         }
 
         return null;
+    }
+
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectBudgetLibraryAction(this.librarySelectItemValue);
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
     }
 
     onShowConfirmDeleteAlert() {

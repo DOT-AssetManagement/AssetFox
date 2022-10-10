@@ -410,6 +410,8 @@
             @submit="onSubmitConfirmDeleteAlertResult"
         />
 
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreatePerformanceCurveLibraryDialog
             :dialogData="createPerformanceCurveLibraryDialogData"
             @submit="onSubmitCreatePerformanceCurveLibraryDialogResult"
@@ -510,6 +512,7 @@ import { getPropertyValues } from '@/shared/utils/getter-utils';
         EquationEditorDialog,
         CriterionLibraryEditorDialog,
         ConfirmDeleteAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class PerformanceCurveEditor extends Vue {
@@ -620,13 +623,15 @@ export default class PerformanceCurveEditor extends Vue {
     );
     showCreatePerformanceCurveDialog = false;
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     rules: InputValidationRules = clone(rules);
     uuidNIL: string = getBlankGuid();
     currentUrl: string = window.location.href;
     hasCreatedLibrary: boolean = false;
     disableCrudButtonsResult: boolean = false;
     hasLibraryEditPermission: boolean = false;
-    showImportExportPerformanceCurvesDialog: boolean = false;    
+    showImportExportPerformanceCurvesDialog: boolean = false;
+    overwriteWithLibrary: boolean = false;    
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -679,7 +684,12 @@ export default class PerformanceCurveEditor extends Vue {
 
     @Watch('librarySelectItemValue')
     onLibrarySelectItemValueChanged() {
-        this.selectPerformanceCurveLibraryAction(this.librarySelectItemValue);
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else if(!isNil(this.librarySelectItemValue)) {
+            this.selectPerformanceCurveLibraryAction(this.librarySelectItemValue);
+        }
     }
 
     @Watch('stateSelectedPerformanceCurveLibrary')
@@ -734,6 +744,12 @@ export default class PerformanceCurveEditor extends Vue {
                 {...clone(this.selectedPerformanceCurveLibrary), performanceCurves: clone(this.performanceCurveGridData)},
                 this.stateSelectedPerformanceCurveLibrary); 
         this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+
+        if(this.overwriteWithLibrary)
+        {
+            this.overwriteWithLibrary = false;
+            this.onUpsertScenarioPerformanceCurves();
+        }
     }
 
     setAttributeSelectItems() {
@@ -908,7 +924,10 @@ export default class PerformanceCurveEditor extends Vue {
         this.upsertScenarioPerformanceCurvesAction({
             scenarioPerformanceCurves: this.performanceCurveGridData,
             scenarioId: this.selectedScenarioId,
-        }).then(() => (this.librarySelectItemValue = null));
+        }).then(() => {
+            this.librarySelectItemValue = null;
+            this.getScenarioPerformanceCurvesAction(this.selectedScenarioId);
+        });
     }
 
     onUpsertPerformanceCurveLibrary() {
@@ -926,6 +945,26 @@ export default class PerformanceCurveEditor extends Vue {
                 this.performanceCurveGridData = clone(this.stateScenarioPerformanceCurves);
             }
         });
+    }
+
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectPerformanceCurveLibraryAction(this.librarySelectItemValue);
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
     }
 
     onShowConfirmDeleteAlert() {

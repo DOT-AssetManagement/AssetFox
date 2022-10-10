@@ -629,7 +629,10 @@ export default class CalculatedAttributeEditor extends Vue {
                   )
                 : false;
             this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+
         }
+
+        
     }
     @Watch('selectedCalculatedAttributeLibrary')
     onSelectedCalculatedAttributeLibraryChanged() {
@@ -754,7 +757,10 @@ export default class CalculatedAttributeEditor extends Vue {
         this.upsertScenarioCalculatedAttributeAction({
             scenarioCalculatedAttribute: this.calculatedAttributeGridData,
             scenarioId: this.selectedScenarioId,
-        }).then(() => (this.librarySelectItemValue = null));
+        }).then(() => {
+            this.librarySelectItemValue = null;
+            this.getScenarioCalculatedAttributeAction(this.selectedScenarioId);
+            });
     }
 
     onUpsertCalculatedAttributeLibrary() {

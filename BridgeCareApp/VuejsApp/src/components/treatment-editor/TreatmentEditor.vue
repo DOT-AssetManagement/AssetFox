@@ -250,6 +250,8 @@
             @submit='onSubmitConfirmDeleteAlertResult'
         />
 
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreateTreatmentLibraryDialog
             :dialogData='createTreatmentLibraryDialogData'
             @submit='onSubmitCreateTreatmentLibraryDialogResult'
@@ -341,7 +343,8 @@ import { hasValue } from '@/shared/utils/has-value-util';
         CreateTreatmentDialog,
         CreateTreatmentLibraryDialog,
         ConfirmDeleteAlert: Alert,
-        ConfirmDeleteTreatmentAlert: Alert
+        ConfirmDeleteTreatmentAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class TreatmentEditor extends Vue {
@@ -396,6 +399,7 @@ export default class TreatmentEditor extends Vue {
     );
     showCreateTreatmentDialog: boolean = false;
     confirmBeforeDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     hasSelectedTreatment: boolean = false;
     rules: InputValidationRules = rules;
     uuidNIL: string = getBlankGuid();
@@ -408,6 +412,7 @@ export default class TreatmentEditor extends Vue {
     showImportTreatmentsDialog: boolean = false;
     confirmBeforeDeleteTreatmentAlertData: AlertData = clone(emptyAlertData);
     isNoTreatmentSelected: boolean = false;
+    overwriteWithLibrary: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -455,9 +460,12 @@ export default class TreatmentEditor extends Vue {
 
     @Watch('librarySelectItemValue')
     onLibrarySelectItemValueChanged() {
-        this.selectTreatmentLibraryAction({
-            libraryId: this.librarySelectItemValue,
-        });
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else if(!isNil(this.librarySelectItemValue)) {
+            this.selectTreatmentLibraryAction({ libraryId: this.librarySelectItemValue });
+        }
     }
 
     @Watch('stateSelectedTreatmentLibrary')
@@ -524,6 +532,12 @@ export default class TreatmentEditor extends Vue {
             this.selectedTreatment = find(propEq('id', this.selectedTreatment.id), this.treatments) as Treatment;
         } else {
             this.treatmentSelectItemValue = null;
+        }
+
+        if(this.overwriteWithLibrary)
+        {
+            this.overwriteWithLibrary = false;
+            this.onUpsertScenarioTreatments();
         }
     }
 
@@ -638,7 +652,15 @@ export default class TreatmentEditor extends Vue {
 
     onUpsertScenarioTreatments() {
         this.upsertScenarioSelectableTreatmentsAction({ scenarioSelectableTreatments: this.treatments, scenarioId: this.selectedScenarioId, })
-            .then(() => this.librarySelectItemValue = null);
+            .then(() => {
+                this.librarySelectItemValue = null;
+                this.getScenarioSelectableTreatmentsAction(this.selectedScenarioId);
+
+                this.treatmentTabs = [...this.treatmentTabs, 'Budgets'];
+                this.getScenarioSimpleBudgetDetailsAction({
+                    scenarioId: this.selectedScenarioId,
+                });
+            });
     }
 
     onUpsertTreatmentLibrary() {
@@ -759,6 +781,26 @@ export default class TreatmentEditor extends Vue {
                 this.treatments = clone(this.stateScenarioSelectableTreatments);
             }
         });
+    }
+
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectTreatmentLibraryAction({ libraryId: this.librarySelectItemValue })
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
     }
 
     onShowConfirmDeleteAlert() {

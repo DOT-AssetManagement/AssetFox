@@ -167,6 +167,7 @@
           :dialogData="confirmDeleteAlertData"
           @submit="onSubmitConfirmDeleteAlertResult"
         />
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
         <CreateRemainingLifeLimitLibraryDialog
           :dialogData="createRemainingLifeLimitLibraryDialogData"
           @submit="onSubmitCreateRemainingLifeLimitLibraryDialogResult"
@@ -233,6 +234,7 @@ import { getUserName } from '@/shared/utils/get-user-info';
         CreateRemainingLifeLimitDialog,
         CriterionLibraryEditorDialog,
         ConfirmDeleteAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class RemainingLifeLimitEditor extends Vue {
@@ -338,11 +340,13 @@ export default class RemainingLifeLimitEditor extends Vue {
         emptyCreateRemainingLifeLimitLibraryDialogData,
     );
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     rules: InputValidationRules = rules;
     uuidNIL: string = getBlankGuid();
     hasScenario: boolean = false;
     currentUrl: string = window.location.href;
     hasCreatedLibrary: boolean = false;
+    overwriteWithLibrary: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -382,9 +386,14 @@ export default class RemainingLifeLimitEditor extends Vue {
 
     @Watch('selectItemValue')
     onSelectItemValueChanged() {
-        this.selectRemainingLifeLimitLibraryAction({
-            libraryId: this.selectItemValue,
-        });
+        if(this.hasScenario && !isNil(this.selectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else if(!isNil(this.selectItemValue)) {
+            this.selectRemainingLifeLimitLibraryAction({
+                libraryId: this.selectItemValue,
+            });
+        }
     }
 
     @Watch('stateSelectedRemainingLifeLimitLibrary')
@@ -428,6 +437,11 @@ export default class RemainingLifeLimitEditor extends Vue {
         // Update total data found and "showing results portion"
         this.totalDataFound = this.remainingLifeLimits.length;
         (this.totalDataFound < this.itemsPerPage) ? this.dataPerPage = this.totalDataFound : this.dataPerPage = this.itemsPerPage;
+
+        if(this.overwriteWithLibrary) {
+            this.overwriteWithLibrary = false;
+            this.onUpsertScenarioRemainingLifeLimits();
+        }
     }
 
     @Watch('stateNumericAttributes')
@@ -556,7 +570,10 @@ export default class RemainingLifeLimitEditor extends Vue {
         this.upsertScenarioRemainingLifeLimitsAction({
             scenarioRemainingLifeLimits: this.remainingLifeLimits,
             scenarioId: this.selectedScenarioId,
-        }).then(() => (this.selectItemValue = null));
+        }).then(() => {
+            this.selectItemValue = null;
+            this.getScenarioRemainingLifeLimitsAction(this.selectedScenarioId);
+        });
     }
 
     onDiscardChanges() {
@@ -566,6 +583,26 @@ export default class RemainingLifeLimitEditor extends Vue {
                 this.remainingLifeLimits = clone(this.stateScenarioRemainingLifeLimits);
             }
         });
+    }
+
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectRemainingLifeLimitLibraryAction({ libraryId: this.selectItemValue })
+        }
+        else {
+            this.selectItemValue = null;
+        }
     }
 
     onShowConfirmDeleteAlert() {

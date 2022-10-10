@@ -318,7 +318,7 @@ export default class BudgetPriorityEditor extends Vue {
         if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
             this.onShowConfirmLibraryLoadAlert();
         }
-        else {
+        else if(!isNil(this.librarySelectItemValue)) {
             this.selectBudgetPriorityLibraryAction({ libraryId: this.librarySelectItemValue });
         }
     }

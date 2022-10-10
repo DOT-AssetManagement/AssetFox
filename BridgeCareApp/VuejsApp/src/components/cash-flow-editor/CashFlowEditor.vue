@@ -219,6 +219,8 @@
             @submit="onSubmitConfirmDeleteAlertResult"
         />
 
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreateCashFlowRuleLibraryDialog
             :dialogData="createCashFlowRuleLibraryDialogData"
             @submit="onSubmitCreateCashFlowRuleLibraryDialogResult"
@@ -300,6 +302,7 @@ import { getUserName } from '@/shared/utils/get-user-info';
         CreateCashFlowRuleLibraryDialog,
         CriterionLibraryEditorDialog,
         ConfirmDeleteAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert,
         CashFlowRuleEditDialog,
         AddCashFlowRuleDialog
     },
@@ -409,6 +412,7 @@ export default class CashFlowEditor extends Vue {
         emptyCriterionLibraryEditorDialogData,
     );
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     rules: InputValidationRules = clone(rules);
     uuidNIL: string = getBlankGuid();
     hasScenario: boolean = false;
@@ -418,6 +422,7 @@ export default class CashFlowEditor extends Vue {
     showRuleEditorDialog: boolean = false;
     showAddCashFlowRuleDialog: boolean = false;
     importLibraryDisabled: boolean = true;
+    overwriteWithLibrary: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -456,10 +461,16 @@ export default class CashFlowEditor extends Vue {
 
     @Watch('librarySelectItemValue')
     onLibrarySelectItemValueChanged() {
-        if(!this.hasScenario || isNil(this.librarySelectItemValue))
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else if(!this.hasScenario && !isNil(this.librarySelectItemValue)) {
             this.selectCashFlowRuleLibraryAction(this.librarySelectItemValue);
+        }
         else if(!isNil(this.librarySelectItemValue))
+        {
             this.importLibraryDisabled = false;
+        }
     }
 
     importLibrary() {
@@ -529,6 +540,11 @@ export default class CashFlowEditor extends Vue {
                   this.stateSelectedCashRuleFlowLibrary,
               );
         this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+
+        if(this.overwriteWithLibrary) {
+            this.overwriteWithLibrary = false;
+            this.onUpsertScenarioCashFlowRules();
+        }
     }
 
     @Watch('selectedCashFlowRule')
@@ -714,6 +730,9 @@ export default class CashFlowEditor extends Vue {
         this.upsertScenarioCashFlowRulesAction({
             scenarioCashFlowRules: this.cashFlowRuleGridData,
             scenarioId: this.selectedScenarioId,
+        }).then(() => {
+            this.librarySelectItemValue = null
+            this.getScenarioCashFlowRulesAction(this.selectedScenarioId);
         });
     }
 
@@ -805,6 +824,26 @@ export default class CashFlowEditor extends Vue {
         }
         this.disableCrudButtonsResult = !allDataIsValid;
         return !allDataIsValid;
+    }
+
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectCashFlowRuleLibraryAction(this.librarySelectItemValue)
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
     }
 
     onDeleteCashFlowRuleLibrary() {

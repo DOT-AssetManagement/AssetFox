@@ -248,6 +248,8 @@
             @submit="onSubmitConfirmDeleteAlertResult"
         />
 
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreateDeficientConditionGoalLibraryDialog
             :dialogData="createDeficientConditionGoalLibraryDialogData"
             @submit="onSubmitCreateDeficientConditionGoalLibraryDialogResult"
@@ -327,6 +329,7 @@ import { getUserName } from '@/shared/utils/get-user-info';
         CreateDeficientConditionGoalDialog,
         CriterionLibraryEditorDialog,
         ConfirmBeforeDeleteAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class DeficientConditionGoalEditor extends Vue {
@@ -443,6 +446,7 @@ export default class DeficientConditionGoalEditor extends Vue {
         emptyCreateDeficientConditionGoalLibraryDialogData,
     );
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     rules: InputValidationRules = rules;
     uuidNIL: string = getBlankGuid();
     hasScenario: boolean = false;
@@ -451,6 +455,7 @@ export default class DeficientConditionGoalEditor extends Vue {
     disableCrudButtonsResult: boolean = false;
     hasLibraryEditPermission: boolean = false;
     importLibraryDisabled: boolean = true;
+    overwriteWithLibrary: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -489,10 +494,14 @@ export default class DeficientConditionGoalEditor extends Vue {
 
     @Watch('librarySelectItemValue')
     onSelectItemValueChanged() {
-        if(!this.hasScenario || isNil(this.librarySelectItemValue))
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else if(!this.hasScenario && !isNil(this.librarySelectItemValue)) {
             this.selectDeficientConditionGoalLibraryAction({
                 libraryId: this.librarySelectItemValue,
             });
+        }
         else if(!isNil(this.librarySelectItemValue))
         {
             this.importLibraryDisabled = false;
@@ -557,6 +566,11 @@ export default class DeficientConditionGoalEditor extends Vue {
                 {...clone(this.selectedDeficientConditionGoalLibrary), deficientConditionGoals: clone(this.deficientConditionGoalGridData)},
                 this.stateSelectedDeficientConditionGoalLibrary);
         this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+
+        if(this.overwriteWithLibrary) {
+            this.overwriteWithLibrary = false;
+            this.onUpsertScenarioDeficientConditionGoals();
+        }
     }
 
     importLibrary() {
@@ -669,7 +683,10 @@ export default class DeficientConditionGoalEditor extends Vue {
         this.upsertScenarioDeficientConditionGoalsAction({
             scenarioDeficientConditionGoals: this.deficientConditionGoalGridData,
             scenarioId: this.selectedScenarioId,
-        }).then(() => this.librarySelectItemValue = null);
+        }).then(() => {
+            this.librarySelectItemValue = null
+            this.getScenarioDeficientConditionGoalsAction(this.selectedScenarioId);
+        });
     }
 
     onDiscardChanges() {
@@ -688,6 +705,26 @@ export default class DeficientConditionGoalEditor extends Vue {
 
     onRemoveSelectedDeficientConditionGoal(id: string){
         this.deficientConditionGoalGridData = this.deficientConditionGoalGridData.filter((goal: DeficientConditionGoal) => goal.id !== id)
+    }
+
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectDeficientConditionGoalLibraryAction({ libraryId: this.librarySelectItemValue })
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
     }
 
     onShowConfirmDeleteAlert() {
