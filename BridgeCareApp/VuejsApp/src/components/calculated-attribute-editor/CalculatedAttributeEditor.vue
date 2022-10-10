@@ -563,7 +563,7 @@ export default class CalculatedAttributeEditor extends Vue {
         if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
             this.onShowConfirmLibraryLoadAlert();
         }
-        else {
+        else if (!isNil(this.librarySelectItemValue)) {
             this.selectCalculatedAttributeLibraryAction(
                 this.librarySelectItemValue,
             );
@@ -675,6 +675,12 @@ export default class CalculatedAttributeEditor extends Vue {
                   )
                   : false;
             this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+
+            if(this.overwriteWithLibrary)
+            {
+                this.overwriteWithLibrary = false;
+                this.onUpsertScenarioCalculatedAttribute();
+            }
 
         }
 
@@ -900,7 +906,7 @@ export default class CalculatedAttributeEditor extends Vue {
         this.confirmLibraryLoadAlertData = clone(emptyAlertData);
         if(submit){
             this.overwriteWithLibrary = true;
-            this.selectCalculatedAttributeLibraryAction({ libraryId: this.librarySelectItemValue })
+            this.selectCalculatedAttributeLibraryAction(this.librarySelectItemValue)
         }
         else {
             this.librarySelectItemValue = null;
