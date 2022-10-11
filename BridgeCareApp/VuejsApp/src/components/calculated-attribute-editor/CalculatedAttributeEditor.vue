@@ -280,6 +280,9 @@
             :dialogData="confirmDeleteAlertData"
             @submit="onSubmitConfirmDeleteAlertResult"
         />
+
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreateCalculatedAttributeLibraryDialog
             :dialogData="createCalculatedAttributeLibraryDialogData"
             @submit="onSubmitCreateCalculatedAttributeLibraryDialogResult"
@@ -369,6 +372,7 @@ import { getUserName } from '@/shared/utils/get-user-info';
         EquationEditorDialog,
         CriterionLibraryEditorDialog,
         ConfirmDeleteAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class CalculatedAttributeEditor extends Vue {
@@ -414,6 +418,7 @@ export default class CalculatedAttributeEditor extends Vue {
     hasScenario: boolean = false;
     rules: InputValidationRules = clone(rules);
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     showCreateCalculatedAttributeDialog = false;
     hasSelectedCalculatedAttribute: boolean = false;
     selectedCalculatedAttribute: CalculatedAttribute = clone(
@@ -447,6 +452,7 @@ export default class CalculatedAttributeEditor extends Vue {
     activeCalculatedAttributeId: string = getBlankGuid();
     selectedGridItem: CalculatedAttribute = clone(emptyCalculatedAttribute);
     hasCreatedLibrary: boolean = false;
+    overwriteWithLibrary: boolean = false;
 
     calculatedAttributeGridHeaders: DataTableHeader[] = [
         {
@@ -554,9 +560,14 @@ export default class CalculatedAttributeEditor extends Vue {
     }
     @Watch('librarySelectItemValue')
     onLibrarySelectItemValueChanged() {
-        this.selectCalculatedAttributeLibraryAction(
-            this.librarySelectItemValue,
-        );
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else if (!isNil(this.librarySelectItemValue)) {
+            this.selectCalculatedAttributeLibraryAction(
+                this.librarySelectItemValue,
+            );
+        }
     }
     @Watch('attributeSelectItemValue')
     onAttributeSelectItemValueChanged() {
@@ -664,14 +675,25 @@ export default class CalculatedAttributeEditor extends Vue {
                   )
                   : false;
             this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+
+            //overwriteWithLibrary should only be set to true if user is in Scenarios page. hasScenario check added for extra safety
+            if(this.overwriteWithLibrary && this.hasScenario)
+            {
+                this.overwriteWithLibrary = false;
+                this.onUpsertScenarioCalculatedAttribute();
+            }
+
         }
+
+        
     }
     @Watch('selectedCalculatedAttributeLibrary')
     onSelectedCalculatedAttributeLibraryChanged() {
         // change in library multiselect
         if (
             this.selectedCalculatedAttributeLibrary.id !== this.uuidNIL &&
-            this.selectedCalculatedAttributeLibrary.id != getBlankGuid()
+            this.selectedCalculatedAttributeLibrary.id != getBlankGuid() &&
+            !this.hasScenario
         ) {
             this.hasSelectedLibrary = true;
         } else {
@@ -788,7 +810,10 @@ export default class CalculatedAttributeEditor extends Vue {
         this.upsertScenarioCalculatedAttributeAction({
             scenarioCalculatedAttribute: this.calculatedAttributeGridData,
             scenarioId: this.selectedScenarioId,
-        }).then(() => (this.librarySelectItemValue = null));
+        }).then(() => {
+            this.librarySelectItemValue = null;
+            this.getScenarioCalculatedAttributeAction(this.selectedScenarioId);
+            });
     }
 
     onUpsertCalculatedAttributeLibrary() {
@@ -869,6 +894,25 @@ export default class CalculatedAttributeEditor extends Vue {
         }
 
         return !dataIsValid;
+    }
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectCalculatedAttributeLibraryAction(this.librarySelectItemValue)
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
     }
     onShowConfirmDeleteAlert() {
         this.confirmDeleteAlertData = {

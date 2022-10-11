@@ -281,6 +281,8 @@
             @submit="onSubmitConfirmDeleteAlertResult"
         />
 
+        <ConfirmLibraryLoadAlert :dialogData='confirmLibraryLoadAlertData' @submit='onSubmitConfirmLibraryLoadAlertResult' />
+
         <CreateTargetConditionGoalLibraryDialog
             :dialogData="createTargetConditionGoalLibraryDialogData"
             @submit="onSubmitCreateTargetConditionGoalLibraryDialogResult"
@@ -358,6 +360,7 @@ import { getUserName } from '@/shared/utils/get-user-info';
         CreateTargetConditionGoalLibraryDialog,
         CreateTargetConditionGoalDialog,
         ConfirmDeleteAlert: Alert,
+        ConfirmLibraryLoadAlert: Alert
     },
 })
 export default class TargetConditionGoalEditor extends Vue {
@@ -457,6 +460,7 @@ export default class TargetConditionGoalEditor extends Vue {
         emptyCreateTargetConditionGoalLibraryDialogData,
     );
     confirmDeleteAlertData: AlertData = clone(emptyAlertData);
+    confirmLibraryLoadAlertData: AlertData = clone(emptyAlertData);
     rules: InputValidationRules = rules;
     uuidNIL: string = getBlankGuid();
     hasScenario: boolean = false;
@@ -464,6 +468,7 @@ export default class TargetConditionGoalEditor extends Vue {
     hasCreatedLibrary: boolean = false;
     disableCrudButtonsResult: boolean = false;
     hasLibraryEditPermission: boolean = false;
+    overwriteWithLibrary: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -502,9 +507,14 @@ export default class TargetConditionGoalEditor extends Vue {
 
     @Watch('librarySelectItemValue')
     onLibrarySelectItemValueChanged() {
-        this.selectTargetConditionGoalLibraryAction({
-            libraryId: this.librarySelectItemValue,
-        });
+        if(this.hasScenario && !isNil(this.librarySelectItemValue)) {
+            this.onShowConfirmLibraryLoadAlert();
+        }
+        else if (!isNil(this.librarySelectItemValue)) {
+            this.selectTargetConditionGoalLibraryAction({
+                libraryId: this.librarySelectItemValue,
+            });
+        }
     }
 
     @Watch('stateSelectedTargetConditionLibrary')
@@ -566,6 +576,12 @@ export default class TargetConditionGoalEditor extends Vue {
                 {...clone(this.selectedTargetConditionGoalLibrary), targetConditionGoals: clone(this.targetConditionGoalGridData)},
                 this.stateSelectedTargetConditionLibrary);
         this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+
+        //overwriteWithLibrary should only be set to true if user is in Scenarios page. hasScenario check added for extra safety
+        if(this.overwriteWithLibrary && this.hasScenario) {
+            this.overwriteWithLibrary = false;
+            this.onUpsertScenarioTargetConditionGoals();
+        }
     }
 
     getOwnerUserName(): string {
@@ -673,7 +689,10 @@ export default class TargetConditionGoalEditor extends Vue {
         this.upsertScenarioTargetConditionGoalsAction({
             scenarioTargetConditionGoals: this.targetConditionGoalGridData,
             scenarioId: this.selectedScenarioId,
-        }).then(() => (this.librarySelectItemValue = null));
+        }).then(() => {
+            this.librarySelectItemValue = null
+            this.getScenarioTargetConditionGoalsAction(this.selectedScenarioId);
+        });
     }
 
     onDiscardChanges() {
@@ -691,6 +710,25 @@ export default class TargetConditionGoalEditor extends Vue {
         );
     }
 
+    onShowConfirmLibraryLoadAlert() {
+        this.confirmLibraryLoadAlertData = {
+            showDialog: true,
+            heading: 'Warning',
+            choice: true,
+            message: 'This will overwrite existing entries. Are you sure you want to load this library?',
+        };
+    }
+
+    onSubmitConfirmLibraryLoadAlertResult(submit: boolean){
+        this.confirmLibraryLoadAlertData = clone(emptyAlertData);
+        if(submit){
+            this.overwriteWithLibrary = true;
+            this.selectTargetConditionGoalLibraryAction({ libraryId: this.librarySelectItemValue })
+        }
+        else {
+            this.librarySelectItemValue = null;
+        }
+    }
     onShowConfirmDeleteAlert() {
         this.confirmDeleteAlertData = {
             showDialog: true,
