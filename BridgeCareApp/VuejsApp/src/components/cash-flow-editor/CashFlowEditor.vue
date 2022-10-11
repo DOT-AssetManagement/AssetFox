@@ -718,8 +718,6 @@ export default class CashFlowEditor extends Vue {
         }
     }
 
-    }
-
     @Watch('stateSelectedCashRuleFlowLibrary')
     onStateSelectedCashFlowRuleLibraryChanged() {
         this.selectedCashFlowRuleLibrary = clone(
