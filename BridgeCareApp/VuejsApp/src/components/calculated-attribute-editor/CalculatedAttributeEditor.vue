@@ -692,7 +692,8 @@ export default class CalculatedAttributeEditor extends Vue {
         // change in library multiselect
         if (
             this.selectedCalculatedAttributeLibrary.id !== this.uuidNIL &&
-            this.selectedCalculatedAttributeLibrary.id != getBlankGuid()
+            this.selectedCalculatedAttributeLibrary.id != getBlankGuid() &&
+            !this.hasScenario
         ) {
             this.hasSelectedLibrary = true;
         } else {
