@@ -135,9 +135,9 @@ const actions = {
                 hasValue(response, 'status') &&
                 http2XX.test(response.status.toString())
             ) {
-                commit(
-                    'scenarioSelectableTreatmentsMutator',
-                    payload.scenarioSelectableTreatments,
+                dispatch(
+                    'getScenarioSelectableTreatments',
+                    payload.scenarioId,
                 );
                 dispatch('addSuccessNotification', {
                     message: 'Modified scenario treatments',
