@@ -697,7 +697,7 @@ export default class CalculatedAttributeEditor extends Vue {
                         eq.criteriaLibrary.isSingleUse = true;
                     } else {
                         eq.criteriaLibrary.id = getNewGuid();
-                    }
+                    } 
                     eq.equation.id = getNewGuid();
                 });
             });
@@ -834,11 +834,10 @@ export default class CalculatedAttributeEditor extends Vue {
         const dataIsValid = this.calculatedAttributeGridData.every(_ =>
              this.rules['generalRules'].valueIsNotEmpty(_.equations) === true &&
              (
-                _.equations.length < 2 || 
                     (
                         _.equations.filter((set: CriterionAndEquationSet) => 
                         this.rules['generalRules'].valueIsNotEmpty(set.criteriaLibrary) === true &&
-                        this.rules['generalRules'].valueIsNotEmpty(set.criteriaLibrary.mergedCriteriaExpression) !== true).length < 2
+                        this.rules['generalRules'].valueIsNotEmpty(set.criteriaLibrary.mergedCriteriaExpression) !== true).length === 1
                     )
              ) &&
             _.equations.every((set: CriterionAndEquationSet) => {
@@ -848,9 +847,7 @@ export default class CalculatedAttributeEditor extends Vue {
                     this.rules['generalRules'].valueIsNotEmpty(set.equation.expression) === true                 
                 );
             }),
-        );
-
-        
+        );   
 
         if (this.hasSelectedLibrary) {
             return !(
