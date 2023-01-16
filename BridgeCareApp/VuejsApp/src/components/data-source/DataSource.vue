@@ -137,6 +137,9 @@ import CreateDataSourceDialog from '@/components/data-source/data-source-dialogs
 import { getUserName } from '@/shared/utils/get-user-info';
 import { NIL } from 'uuid';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
+import DataSourceService from '@/services/data-source.service';
+import { AxiosResponse } from 'axios';
+import { http2XX } from '@/shared/utils/http-utils';
 
 @Component({
     components: {
@@ -159,6 +162,8 @@ export default class DataSource extends Vue {
     @Action('importExcelSpreadsheetFile') importExcelSpreadsheetFileAction: any;
     @Action('getExcelSpreadsheetColumnHeaders') getExcelSpreadsheetColumnHeadersAction: any;
     @Action('checkSqlCommand') checkSqlCommandAction: any;
+
+    @Action('addSuccessNotification') addSuccessNotificationAction: any;
 
     @Getter('getUserNameById') getUserNameByIdGetter: any;
     @Getter('getIdByUserName') getIdByUserNameGetter: any;
@@ -338,17 +343,25 @@ export default class DataSource extends Vue {
                     secure: this.currentDatasource.secure,
                     createdBy: this.currentDatasource.createdBy
             };
-            this.upsertSqlDataSourceAction(sqldat).then(() => {
-                this.showSqlMessage = false;
-                this.showSaveMessage = true;
-                if(this.isNewDataSource)
-                {
-                    this.currentDatasource.createdBy = this.getIdByUserNameGetter(getUserName());
-                    this.isNewDataSource = false;
+            DataSourceService.upsertSqlDatasource(sqldat).then((response: AxiosResponse) => {
+                if (
+                    hasValue(response, 'status') &&
+                    http2XX.test(response.status.toString())
+                ) {
+                    this.showSqlMessage = false;
+                    this.showSaveMessage = true;
+                    if(this.isNewDataSource)
+                    {
+                        this.currentDatasource.createdBy = this.getIdByUserNameGetter(getUserName());
+                        this.isNewDataSource = false;
+                    }
+                    this.selectedConnection = this.isOwner() ? this.currentDatasource.connectionString : '';
+                    this.connectionStringPlaceHolderMessage = this.currentDatasource.connectionString!='' ? 'Replacement connection string' : 'New connection string';
+                    this.getDataSourcesAction()
+                    this.unmodifiedDatasource = clone(this.currentDatasource)
+                    this.onCurrentDataSourceChanged();
+                    this.addSuccessNotificationAction({message: 'Modified data sources'});
                 }
-                this.selectedConnection = this.isOwner() ? this.currentDatasource.connectionString : '';
-                this.connectionStringPlaceHolderMessage = this.currentDatasource.connectionString!='' ? 'Replacement connection string' : 'New connection string';
-                this.getDataSourcesAction();
             });
         } else {
             let exldat : ExcelDataSource = {
@@ -360,13 +373,23 @@ export default class DataSource extends Vue {
             secure: this.currentDatasource.secure,
             createdBy: this.currentDatasource.createdBy
             }
+            DataSourceService.upsertExcelDatasource(exldat).then((response: AxiosResponse) => {
+                if (
+                    hasValue(response, 'status') &&
+                    http2XX.test(response.status.toString())
+                ) {
+                    this.addSuccessNotificationAction({message: 'Modified data sources'});
+                }
+            });
             this.upsertExcelDataSourceAction(exldat).then(() => {
                 if (!this.isNewDataSource) {
                     this.showSaveMessage = true;
                 }
                 this.getDataSourcesAction().then(() => {
-                    this.isNewDataSource = false;
+                    this.isNewDataSource = false;                   
                 });
+                this.unmodifiedDatasource = clone(this.currentDatasource)
+                this.onCurrentDataSourceChanged();
             });
         }
     }
@@ -504,3 +527,7 @@ export default class DataSource extends Vue {
     color:green;
 }
 </style>
+
+function dispatch(arg0: string, arg1: { message: string; }) {
+  throw new Error('Function not implemented.');
+}
