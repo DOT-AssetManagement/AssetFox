@@ -35,8 +35,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             _summaryReportHelper = new SummaryReportHelper();
         }
 
-        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData,
-            List<int> simulationYears, Dictionary<string, Budget> yearlyBudgetAmount, IReadOnlyCollection<SelectableTreatment> selectableTreatments)
+        public void Fill(
+            ExcelWorksheet worksheet,
+            SimulationOutput reportOutputData,
+            List<int> simulationYears,
+            Dictionary<string, Budget> yearlyBudgetAmount,
+            IReadOnlyCollection<SelectableTreatment> selectableTreatments)
         {
             var startYear = simulationYears[0];
             var currentCell = new CurrentCell { Row = 1, Column = 1 };

@@ -53,7 +53,7 @@ namespace AppliedResearchAssociates.iAM.Analysis
         public BudgetPriority AddBudgetPriority()
         {
             var budgetPriority = new BudgetPriority(Simulation.Network.Explorer);
-            budgetPriority.SynchronizeWithBudgets(Simulation.InvestmentPlan.Budgets);
+            budgetPriority.SynchronizeWithBudgets(Simulation.InvestmentPlan.AllBudgets);
             _BudgetPriorities.Add(budgetPriority);
             return budgetPriority;
         }

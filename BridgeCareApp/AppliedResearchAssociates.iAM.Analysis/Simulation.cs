@@ -136,7 +136,7 @@ namespace AppliedResearchAssociates.iAM.Analysis
 
         internal BudgetContext[] GetBudgetContextsWithCostAllocationsForCommittedProjects()
         {
-            var budgetContexts = InvestmentPlan.Budgets
+            var budgetContexts = InvestmentPlan.AllBudgets
                 .Select(budget => new BudgetContext(budget, InvestmentPlan.FirstYearOfAnalysisPeriod))
                 .ToArray();
 
