@@ -10,7 +10,7 @@ namespace AppliedResearchAssociates.iAM.Analysis
     {
         public AnalysisMethod AnalysisMethod { get; }
 
-        public ICollection<CommittedProject> CommittedProjects { get; } = new SetWithoutNulls<CommittedProject>();
+        public IReadOnlyCollection<CommittedProject> CommittedProjects => _CommittedProjects;
 
         public SelectableTreatment DesignatedPassiveTreatment { get; internal set; }
 
@@ -54,6 +54,8 @@ namespace AppliedResearchAssociates.iAM.Analysis
         public ValidatorBag Subvalidators => new ValidatorBag { AnalysisMethod, CommittedProjects, InvestmentPlan, PerformanceCurves, Treatments };
 
         public IReadOnlyCollection<SelectableTreatment> Treatments => _Treatments;
+
+        public CommittedProject AddCommittedProject(AnalysisMaintainableAsset asset, int year) => _CommittedProjects.GetAdd(new(this, asset, year));
 
         public PerformanceCurve AddPerformanceCurve() => _PerformanceCurves.GetAdd(new PerformanceCurve(Network.Explorer));
 
@@ -116,6 +118,8 @@ namespace AppliedResearchAssociates.iAM.Analysis
             return results;
         }
 
+        public void Remove(CommittedProject committedProject) => _CommittedProjects.Remove(committedProject);
+
         public void Remove(SelectableTreatment treatment) => _Treatments.Remove(treatment);
 
         public void Remove(PerformanceCurve performanceCurve) => _PerformanceCurves.Remove(performanceCurve);
@@ -161,8 +165,12 @@ namespace AppliedResearchAssociates.iAM.Analysis
 
         private static readonly IComparer<SelectableTreatment> TreatmentComparer = SelectionComparer<SelectableTreatment>.Create(treatment => treatment.Name);
 
+        private readonly List<CommittedProject> _CommittedProjects = new();
+
         private readonly List<PerformanceCurve> _PerformanceCurves = new();
+
         private readonly WeakReference<SimulationOutput> _Results = new(null);
+
         private readonly List<SelectableTreatment> _Treatments = new();
     }
 }

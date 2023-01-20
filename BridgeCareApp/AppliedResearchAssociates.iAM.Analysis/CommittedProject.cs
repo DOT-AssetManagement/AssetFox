@@ -8,19 +8,28 @@ namespace AppliedResearchAssociates.iAM.Analysis
 {
     public sealed class CommittedProject : Treatment
     {
-        public CommittedProject(AnalysisMaintainableAsset asset, int year)
+        internal CommittedProject(Simulation simulation, AnalysisMaintainableAsset asset, int year)
         {
+            Simulation = simulation ?? throw new ArgumentNullException(nameof(simulation));
             Asset = asset ?? throw new ArgumentNullException(nameof(asset));
             Year = year;
+
+            _Budget = Simulation.InvestmentPlan.UnknownBudget;
         }
 
-        public Budget Budget { get; set; }
+        public AnalysisMaintainableAsset Asset { get; }
+
+        public Budget Budget
+        {
+            get => _Budget;
+            set => _Budget = value ?? Simulation.InvestmentPlan.UnknownBudget;
+        }
 
         public ICollection<TreatmentConsequence> Consequences { get; } = new SetWithoutNulls<TreatmentConsequence>();
 
         public double Cost { get; set; }
 
-        public AnalysisMaintainableAsset Asset { get; }
+        public DateTime LastModifiedDate { get; set; }
 
         public SelectableTreatment TemplateTreatment
         {
@@ -43,16 +52,9 @@ namespace AppliedResearchAssociates.iAM.Analysis
 
         public int Year { get; }
 
-        public DateTime LastModifiedDate { get; set; }
-
         public override ValidationResultBag GetDirectValidationResults()
         {
             var results = base.GetDirectValidationResults();
-
-            if (Budget == null)
-            {
-                results.Add(ValidationStatus.Error, "Budget is unset.", this, nameof(Budget));
-            }
 
             if (Cost < 0)
             {
@@ -74,6 +76,10 @@ namespace AppliedResearchAssociates.iAM.Analysis
         internal override IReadOnlyCollection<Action> GetConsequenceActions(AssetContext scope) => Consequences.Select(consequence => consequence.GetChangeApplicators(scope, null).Single().Action).ToArray();
 
         internal override double GetCost(AssetContext scope, bool shouldApplyMultipleFeasibleCosts) => Cost;
+
+        private readonly Simulation Simulation;
+
+        private Budget _Budget;
 
         private SelectableTreatment _TemplateTreatment;
     }

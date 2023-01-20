@@ -37,7 +37,7 @@ namespace AppliedResearchAssociates.iAM.Analysis
             {
                 _NumberOfYearsInAnalysisPeriod = value;
 
-                foreach (var budget in Budgets)
+                foreach (var budget in Budgets.Append(UnknownBudget))
                 {
                     budget.SetNumberOfYears(NumberOfYearsInAnalysisPeriod);
                 }
@@ -127,8 +127,13 @@ namespace AppliedResearchAssociates.iAM.Analysis
         {
             Simulation = simulation ?? throw new ArgumentNullException(nameof(simulation));
 
+            UnknownBudget = new(this) { Name = "Unknown Budget" };
+            UnknownBudget.SetNumberOfYears(NumberOfYearsInAnalysisPeriod);
+
             SynchronizeBudgetPriorities();
         }
+
+        internal Budget UnknownBudget { get; }
 
         internal double GetInflationFactor(int year) => Math.Pow(1 + InflationRatePercentage / 100, year - FirstYearOfAnalysisPeriod);
 

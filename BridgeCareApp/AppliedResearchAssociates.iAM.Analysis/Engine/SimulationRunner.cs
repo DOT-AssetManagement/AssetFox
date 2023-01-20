@@ -3,8 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.Validation;
 
@@ -764,7 +762,7 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
                 }
 
                 var budgetConditions = ConditionsPerBudget[budgetContext.Budget];
-                var budgetConditionIsMet = treatment is CommittedProject || budgetConditions.Count() == 0 || budgetConditions.Any(condition => condition.Criterion.EvaluateOrDefault(assetContext));
+                var budgetConditionIsMet = !budgetConditions.Any() || budgetConditions.Any(condition => condition.Criterion.EvaluateOrDefault(assetContext));
                 if (!budgetConditionIsMet)
                 {
                     budgetUsageDetail.Status = BudgetUsageStatus.ConditionNotMet;
