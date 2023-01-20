@@ -494,8 +494,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     i++;
                     if (row % 2 == 0)
                     {
-                        if (section.TreatmentCause != TreatmentCause.CashFlowProject ||
-                            section.TreatmentCause == TreatmentCause.CommittedProject)
+                        if (section.TreatmentCause != TreatmentCause.CashFlowProject || section.TreatmentCause == TreatmentCause.CommittedProject)
                         {
                             ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.LightGray);
                         }
@@ -619,12 +618,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(0, 255, 0)); //green OR #00ff00
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(255, 0, 0)); //red OR #ff0000
 
                         // Color the previous year project also
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment - 18], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - 18], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment - 18], Color.FromArgb(0, 255, 0)); //green OR #00ff00
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - 18], Color.FromArgb(255, 0, 0)); //red OR #ff0000
                     }
 
                     column = column + 1;

@@ -26,6 +26,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     var rangeWithPreviousColumn = worksheet.Cells[row, column - 1, row, column];
                     CommittedForConsecutiveYears(rangeWithPreviousColumn);
                     CommittedForConsecutiveYears(range);
+                    CommitedCashFlowedBridge(treatmentCause, rangeForCashFlow);
                 }
                 //ParallelBridgeMPMS(parallelBridge, treatmentCause, range);
                 //ParallelBridgeCashFlow(parallelBridge, treatmentCause, rangeForCashFlow);
@@ -34,7 +35,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
         private void CommittedForConsecutiveYears(ExcelRange range)
         {
-            ExcelHelper.ApplyColor(range, Color.FromArgb(255, 153, 0));
+            ExcelHelper.ApplyColor(range, Color.FromArgb(255, 153, 0)); //orange OR #ff9900
             ExcelHelper.SetTextColor(range, Color.White);
         }
 
@@ -43,7 +44,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             if (isParallel == 1 && (projectPickType == TreatmentCause.SelectedTreatment ||
                 projectPickType == TreatmentCause.CashFlowProject || projectPickType == TreatmentCause.CommittedProject))
             {
-                ExcelHelper.ApplyColor(range, Color.FromArgb(0, 204, 255));
+                ExcelHelper.ApplyColor(range, Color.FromArgb(0, 204, 255)); //cyan OR #00ccff
                 ExcelHelper.SetTextColor(range, Color.Black);
             }
         }
@@ -52,8 +53,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         {
             if (isParallel == 1 && projectPickType == TreatmentCause.CashFlowProject)
             {
-                ExcelHelper.ApplyColor(range, Color.FromArgb(0, 204, 255));
-                ExcelHelper.SetTextColor(range, Color.FromArgb(255, 0, 0));
+                ExcelHelper.ApplyColor(range, Color.FromArgb(0, 204, 255)); //cyan OR #00ccff
+                ExcelHelper.SetTextColor(range, Color.FromArgb(255, 0, 0)); //red OR #ff0000
                 return;
             }
         }
@@ -62,7 +63,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         {
             if (isParallel == 1 && projectPickType == TreatmentCause.CommittedProject)
             {
-                ExcelHelper.ApplyColor(range, Color.FromArgb(0, 204, 255));
+                ExcelHelper.ApplyColor(range, Color.FromArgb(0, 204, 255)); //cyan OR #00ccff
                 ExcelHelper.SetTextColor(range, Color.White);
             }
         }
@@ -71,8 +72,17 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         {
             if (projectPickType == TreatmentCause.CashFlowProject)
             {
-                ExcelHelper.ApplyColor(range, Color.FromArgb(0, 255, 0));
+                ExcelHelper.ApplyColor(range, Color.FromArgb(0, 255, 0)); //green OR #00ff00
                 ExcelHelper.SetTextColor(range, Color.Red);
+            }
+        }
+
+        private void CommitedCashFlowedBridge(TreatmentCause projectPickType, ExcelRange range)
+        {
+            if (projectPickType == TreatmentCause.CashFlowProject)
+            {
+                ExcelHelper.ApplyColor(range, Color.FromArgb(255, 153, 0)); //orange OR #ff9900
+                ExcelHelper.SetTextColor(range, Color.White);
             }
         }
     }
