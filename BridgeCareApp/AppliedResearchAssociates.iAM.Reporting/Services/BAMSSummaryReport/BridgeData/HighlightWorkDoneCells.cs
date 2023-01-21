@@ -21,12 +21,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 CashFlowedBridge(treatmentCause, rangeForCashFlow);
 
                 if (index != 1 && treatmentCause == TreatmentCause.CommittedProject
-                    && previousYearCause == TreatmentCause.CommittedProject && previousYearTreatment.ToLower() != BAMSConstants.NoTreatment)
-                {
-                    var rangeWithPreviousColumn = worksheet.Cells[row, column - 1, row, column];
+                    && previousYearCause == TreatmentCause.CommittedProject
+                    && previousYearTreatment.ToLower() != BAMSConstants.NoTreatment) {
+                    var rangeWithPreviousColumn = worksheet.Cells[row, column - 2, row, column + 1];
                     CommittedForConsecutiveYears(rangeWithPreviousColumn);
                     CommittedForConsecutiveYears(range);
-                    CommitedCashFlowedBridge(treatmentCause, rangeForCashFlow);
                 }
                 //ParallelBridgeMPMS(parallelBridge, treatmentCause, range);
                 //ParallelBridgeCashFlow(parallelBridge, treatmentCause, rangeForCashFlow);
@@ -74,15 +73,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 ExcelHelper.ApplyColor(range, Color.FromArgb(0, 255, 0)); //green OR #00ff00
                 ExcelHelper.SetTextColor(range, Color.Red);
-            }
-        }
-
-        private void CommitedCashFlowedBridge(TreatmentCause projectPickType, ExcelRange range)
-        {
-            if (projectPickType == TreatmentCause.CashFlowProject)
-            {
-                ExcelHelper.ApplyColor(range, Color.FromArgb(255, 153, 0)); //orange OR #ff9900
-                ExcelHelper.SetTextColor(range, Color.White);
             }
         }
     }
