@@ -135,7 +135,7 @@ namespace AppliedResearchAssociates.iAM.Analysis
         {
             Simulation = simulation ?? throw new ArgumentNullException(nameof(simulation));
 
-            UnknownBudget = new(this) { Name = "Unknown Budget" };
+            UnknownBudget = new(this) { Name = "Other" };
             UnknownBudget.SetNumberOfYears(NumberOfYearsInAnalysisPeriod);
 
             SynchronizeBudgetPriorities();
