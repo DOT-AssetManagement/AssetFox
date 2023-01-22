@@ -698,7 +698,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 "Paint Ext\r\n(6B37)",
                 "Year Built\r\n(5A15)",
                 "Age",
-                "ADTT\r\n(5C10)",
+                "ADT\r\n(5C10)",
                 "Risk Score",
                 "Detour Length\r\n(5C15)",
                 "Posting Status\r\n(VP02)",
