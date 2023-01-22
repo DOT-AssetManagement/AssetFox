@@ -172,7 +172,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 {
                     if (existingCommittedProject.Name == noTreatmentEntity.Name)
                     {
-                        simulation.CommittedProjects.Remove(existingCommittedProject);
+                        simulation.Remove(existingCommittedProject);
                     }
                     else
                     {
@@ -190,7 +190,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             }
             
 
-            var committedProject = simulation.CommittedProjects.GetAdd(new CommittedProject(asset, entity.Year));
+            var committedProject = simulation.AddCommittedProject(asset, entity.Year);
             committedProject.Id = entity.Id;
             committedProject.Name = entity.Name;
             committedProject.ShadowForAnyTreatment = entity.ShadowForAnyTreatment;
@@ -212,7 +212,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                         .Where(_ => _.Year == year && _.Asset.Id == committedProject.Asset.Id);
                     if (!existingCommittedProject.Any())
                     {
-                        var projectToAdd = simulation.CommittedProjects.GetAdd(new CommittedProject(asset, year));
+                        var projectToAdd = simulation.AddCommittedProject(asset, year);
                         projectToAdd.Id = Guid.NewGuid();
                         projectToAdd.Name = noTreatmentEntity.Name;
                         projectToAdd.ShadowForAnyTreatment = 0;

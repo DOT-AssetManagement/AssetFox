@@ -3,8 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.Validation;
 
@@ -152,35 +150,16 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
 
             SpendingLimit = Simulation.AnalysisMethod.SpendingLimit;
 
-            switch (Simulation.AnalysisMethod.SpendingStrategy)
+            ConditionGoalsEvaluator = Simulation.AnalysisMethod.SpendingStrategy switch
             {
-            case SpendingStrategy.NoSpending:
-                ConditionGoalsEvaluator = () => false;
-                break;
-
-            case SpendingStrategy.UnlimitedSpending:
-                ConditionGoalsEvaluator = () => false;
-                break;
-
-            case SpendingStrategy.UntilTargetAndDeficientConditionGoalsMet:
-                ConditionGoalsEvaluator = () => GoalsAreMet(TargetConditionActuals) && GoalsAreMet(DeficientConditionActuals);
-                break;
-
-            case SpendingStrategy.UntilTargetConditionGoalsMet:
-                ConditionGoalsEvaluator = () => GoalsAreMet(TargetConditionActuals);
-                break;
-
-            case SpendingStrategy.UntilDeficientConditionGoalsMet:
-                ConditionGoalsEvaluator = () => GoalsAreMet(DeficientConditionActuals);
-                break;
-
-            case SpendingStrategy.AsBudgetPermits:
-                ConditionGoalsEvaluator = () => false;
-                break;
-
-            default:
-                throw new InvalidOperationException(MessageStrings.InvalidSpendingStrategy);
-            }
+                SpendingStrategy.NoSpending => () => false,
+                SpendingStrategy.UnlimitedSpending => () => false,
+                SpendingStrategy.UntilTargetAndDeficientConditionGoalsMet => () => GoalsAreMet(TargetConditionActuals) && GoalsAreMet(DeficientConditionActuals),
+                SpendingStrategy.UntilTargetConditionGoalsMet => () => GoalsAreMet(TargetConditionActuals),
+                SpendingStrategy.UntilDeficientConditionGoalsMet => () => GoalsAreMet(DeficientConditionActuals),
+                SpendingStrategy.AsBudgetPermits => () => false,
+                _ => throw new InvalidOperationException(MessageStrings.InvalidSpendingStrategy),
+            };
 
             ObjectiveFunction = Simulation.AnalysisMethod.ObjectiveFunction;
 
@@ -194,13 +173,35 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
 
             foreach (var year in Simulation.InvestmentPlan.YearsOfAnalysis)
             {
-                if (CheckCanceled(cancellationToken)) return;
+                if (CheckCanceled(cancellationToken))
+                {
+                    return;
+                }
+
                 var percentComplete = (double)(year - Simulation.InvestmentPlan.FirstYearOfAnalysisPeriod) / Simulation.InvestmentPlan.NumberOfYearsInAnalysisPeriod * 100;
                 ReportProgress(ProgressStatus.Running, percentComplete, year);
 
-                var unhandledContexts = ApplyRequiredEvents(year); if (CheckCanceled(cancellationToken)) return;
-                var treatmentOptions = GetBeneficialTreatmentOptionsInOptimalOrder(unhandledContexts, year); if (CheckCanceled(cancellationToken)) return;
-                ConsiderTreatmentOptions(unhandledContexts, treatmentOptions, year); if (CheckCanceled(cancellationToken)) return;
+                var unhandledContexts = ApplyRequiredEvents(year);
+
+                if (CheckCanceled(cancellationToken))
+                {
+                    return;
+                }
+
+                var treatmentOptions = GetBeneficialTreatmentOptionsInOptimalOrder(unhandledContexts, year);
+
+                if (CheckCanceled(cancellationToken))
+                {
+                    return;
+                }
+
+                ConsiderTreatmentOptions(unhandledContexts, treatmentOptions, year);
+
+                if (CheckCanceled(cancellationToken))
+                {
+                    return;
+                }
+
                 treatmentOptions = null;
 
                 InParallel(AssetContexts, context =>
@@ -208,7 +209,11 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
                     context.ApplyTreatmentMetadataIfPending(year);
                     context.UnfixCalculatedFieldValues();
                 });
-                if (CheckCanceled(cancellationToken)) return;
+
+                if (CheckCanceled(cancellationToken))
+                {
+                    return;
+                }
 
                 Snapshot(year);
             }
@@ -221,8 +226,6 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
             ReportProgress(ProgressStatus.Completed, 100);
 
             StatusCode = STATUS_CODE_NOT_RUNNING;
-
-
 
             bool CheckCanceled(CancellationToken cancellationToken)
             {
@@ -764,7 +767,7 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
                 }
 
                 var budgetConditions = ConditionsPerBudget[budgetContext.Budget];
-                var budgetConditionIsMet = treatment is CommittedProject || budgetConditions.Count() == 0 || budgetConditions.Any(condition => condition.Criterion.EvaluateOrDefault(assetContext));
+                var budgetConditionIsMet = !budgetConditions.Any() || budgetConditions.Any(condition => condition.Criterion.EvaluateOrDefault(assetContext));
                 if (!budgetConditionIsMet)
                 {
                     budgetUsageDetail.Status = BudgetUsageStatus.ConditionNotMet;

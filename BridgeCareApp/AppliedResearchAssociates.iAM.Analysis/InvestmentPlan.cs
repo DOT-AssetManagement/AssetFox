@@ -7,6 +7,12 @@ namespace AppliedResearchAssociates.iAM.Analysis
 {
     public sealed class InvestmentPlan : WeakEntity, IValidator
     {
+        /// <summary>
+        ///     These are the "normal" budgets from <see cref="Budgets"/> plus any special budgets,
+        ///     e.g. <see cref="UnknownBudget"/>.
+        /// </summary>
+        public IEnumerable<Budget> AllBudgets => Budgets.Append(UnknownBudget);
+
         public IReadOnlyCollection<BudgetCondition> BudgetConditions => _BudgetConditions;
 
         /// <summary>
@@ -37,12 +43,14 @@ namespace AppliedResearchAssociates.iAM.Analysis
             {
                 _NumberOfYearsInAnalysisPeriod = value;
 
-                foreach (var budget in Budgets)
+                foreach (var budget in AllBudgets)
                 {
                     budget.SetNumberOfYears(NumberOfYearsInAnalysisPeriod);
                 }
             }
         }
+
+        public string ShortDescription => nameof(InvestmentPlan);
 
         public bool ShouldAccumulateUnusedBudgetAmounts { get; set; }
 
@@ -127,16 +135,21 @@ namespace AppliedResearchAssociates.iAM.Analysis
         {
             Simulation = simulation ?? throw new ArgumentNullException(nameof(simulation));
 
+            UnknownBudget = new(this) { Name = "Other" };
+            UnknownBudget.SetNumberOfYears(NumberOfYearsInAnalysisPeriod);
+
             SynchronizeBudgetPriorities();
         }
 
+        internal Budget UnknownBudget { get; }
+
         internal double GetInflationFactor(int year) => Math.Pow(1 + InflationRatePercentage / 100, year - FirstYearOfAnalysisPeriod);
 
-        private readonly List<BudgetCondition> _BudgetConditions = new List<BudgetCondition>();
+        private readonly List<BudgetCondition> _BudgetConditions = new();
 
-        private readonly List<Budget> _Budgets = new List<Budget>();
+        private readonly List<Budget> _Budgets = new();
 
-        private readonly List<CashFlowRule> _CashFlowRules = new List<CashFlowRule>();
+        private readonly List<CashFlowRule> _CashFlowRules = new();
 
         private readonly Simulation Simulation;
 
@@ -146,10 +159,8 @@ namespace AppliedResearchAssociates.iAM.Analysis
         {
             foreach (var budgetPriority in Simulation.AnalysisMethod.BudgetPriorities)
             {
-                budgetPriority.SynchronizeWithBudgets(Budgets);
+                budgetPriority.SynchronizeWithBudgets(AllBudgets);
             }
         }
-
-        public string ShortDescription => nameof(InvestmentPlan);
     }
 }
