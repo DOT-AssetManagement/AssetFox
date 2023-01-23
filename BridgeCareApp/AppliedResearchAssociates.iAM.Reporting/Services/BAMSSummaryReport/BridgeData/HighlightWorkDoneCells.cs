@@ -23,7 +23,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 if (index != 1 && treatmentCause == TreatmentCause.CommittedProject
                     && previousYearCause == TreatmentCause.CommittedProject
                     && previousYearTreatment.ToLower() != BAMSConstants.NoTreatment) {
-                    var rangeWithPreviousColumn = worksheet.Cells[row, column - 2, row, column + 1];
+                    var rangeWithPreviousColumn = worksheet.Cells[row, column - 2, row, column - 1];
                     CommittedForConsecutiveYears(rangeWithPreviousColumn);
                     CommittedForConsecutiveYears(range);
                 }

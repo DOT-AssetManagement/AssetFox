@@ -35,6 +35,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         // This will be used in Parameters TAB
         private readonly ParametersModel _parametersModel = new ParametersModel();
 
+        // Color RGB Constants
+        private readonly string LTGRAY_RGB = Color.LightGray.ToArgb().ToString("X");
+        private readonly string WHITE_RGB = Color.White.ToArgb().ToString("X");
+
         public BridgeDataForSummaryReport()
         {
             _highlightWorkDoneCells = new HighlightWorkDoneCells();
@@ -496,7 +500,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     {
                         if (section.TreatmentCause != TreatmentCause.CashFlowProject || section.TreatmentCause == TreatmentCause.CommittedProject)
                         {
-                            ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.LightGray);
+                            var currentCellForColor = worksheet.Cells[row, column].FirstOrDefault();
+                            if (currentCellForColor != null)
+                            {
+                                var currentCellColor = currentCellForColor.Style.Fill.BackgroundColor.Rgb;
+                                if (currentCellColor == LTGRAY_RGB || currentCellColor == WHITE_RGB || currentCellColor == null)
+                                {
+                                    ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.LightGray);
+                                }
+                            }
                         }
                         ExcelHelper.ApplyColor(worksheet.Cells[row, poorOnOffColumnStart], Color.LightGray);
                     }
