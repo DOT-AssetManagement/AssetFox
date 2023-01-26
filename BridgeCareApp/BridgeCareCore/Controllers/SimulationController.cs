@@ -453,22 +453,32 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
-                await Task.Factory.StartNew(() =>
-                {
-                    UnitOfWork.SimulationOutputRepo.ConvertSimulationOutpuFromJsonTorelational(simulationId);
-                });
-
                 return Ok();
             }
-            catch (UnauthorizedAccessException e)
+            finally
             {
-                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Error Converting Simulation Output from Json to Relational::{e.Message}");
-                throw;
-            }
-            catch (Exception e)
-            {
-                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Error Converting Simulation Output from Json to Relationa::{e.Message}");
-                throw;
+                Response.OnCompleted(async () =>
+                {
+                    HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastInfo, $"Started Simulation Output Conversion");
+                    try
+                    {
+                        await Task.Factory.StartNew(() =>
+                        {
+                            UnitOfWork.SimulationOutputRepo.ConvertSimulationOutpuFromJsonTorelational(simulationId);
+                        });
+                    }
+                    catch (UnauthorizedAccessException e)
+                    {
+                        HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Error Converting Simulation Output from Json to Relational::{e.Message}");
+                        throw;
+                    }
+                    catch (Exception e)
+                    {
+                        HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Error Converting Simulation Output from Json to Relationa::{e.Message}");
+                        throw;
+                    }
+                    HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastTaskCompleted, $"Completed Simulation Output Conversion");
+                });
             }
         }
     }
