@@ -251,6 +251,7 @@ namespace BridgeCareCore.Services.Treatment
             var treatmentCategory = EnumDeserializer.Deserialize<TreatmentDTOEnum.TreatmentCategory>(categoryString);
             var assetTypeString = dictionary.GetValueOrDefault(TreatmentExportStringConstants.AssetType.ToLowerInvariant());
             var assetType = EnumDeserializer.Deserialize<TreatmentDTOEnum.AssetType>(assetTypeString);
+            var criterion = dictionary.GetValueOrDefault(TreatmentExportStringConstants.Criterion.ToLowerInvariant());
             var loadCosts = LoadCosts(worksheet);
             var loadConsequences = LoadConsequences(worksheet);
             var newTreatment = new TreatmentDTO
@@ -264,7 +265,12 @@ namespace BridgeCareCore.Services.Treatment
                 ShadowForSameTreatment = ParseInt(yearsBeforeSame),
                 Costs = loadCosts.Costs,
                 Consequences = loadConsequences.Consequences,
-                CriterionLibrary = new CriterionLibraryDTO()
+                CriterionLibrary = criterion != default ? new CriterionLibraryDTO() {
+                    Id = Guid.NewGuid(),
+                    MergedCriteriaExpression = criterion,
+                    IsSingleUse = true,
+                    Name = "Is from import"
+                } : new CriterionLibraryDTO()
             };
             var validationMessages = new List<string>();
             validationMessages.AddRange(loadCosts.ValidationMessages);
