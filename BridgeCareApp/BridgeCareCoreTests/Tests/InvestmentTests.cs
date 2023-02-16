@@ -640,7 +640,7 @@ namespace BridgeCareCoreTests.Tests
             CreateLibraryTestData();
             var accessor = CreateRequestWithLibraryFormData();
             var controller = CreateAuthorizedController(service, accessor);
-            var year = DateTime.Now.Year;
+            var year = 2022;
 
 
             // Act
@@ -669,10 +669,10 @@ namespace BridgeCareCoreTests.Tests
         public async Task ShouldOverwriteExistingLibraryBudgetWithBudgetFromImportedInvestmentBudgetsFile()
         {
             // Arrange
-            var year = DateTime.Now.Year;
+            var year = 2022;
             var service = Setup();
             CreateLibraryTestData();
-            var accessor = CreateRequestWithLibraryFormData();
+            var accessor = CreateRequestWithLibraryFormData(true);
             var controller = CreateAuthorizedController(service, accessor);
 
             _testBudget.Name = "Sample Budget 1";
@@ -844,7 +844,7 @@ namespace BridgeCareCoreTests.Tests
         public async Task ShouldImportScenarioBudgetsFromFile()
         {
             // Arrange
-            var year = DateTime.Now.Year;
+            var year = 2022;
             var service = Setup();
             var simulation = SimulationTestSetup.CreateSimulation(TestHelper.UnitOfWork);
             var accessor = CreateRequestWithScenarioFormData(simulation.Id);
@@ -877,11 +877,11 @@ namespace BridgeCareCoreTests.Tests
         public async Task ShouldOverwriteExistingScenarioBudgetWithBudgetFromImportedInvestmentBudgetsFile()
         {
             // Arrange
-            var year = DateTime.Now.Year;
+            var year = 2022;
             var service = Setup();
             var simulation = SimulationTestSetup.CreateSimulation(TestHelper.UnitOfWork);
             CreateScenarioTestData(simulation.Id);
-            var accessor = CreateRequestWithScenarioFormData(simulation.Id);
+            var accessor = CreateRequestWithScenarioFormData(simulation.Id, true);
             var controller = CreateAuthorizedController(service, accessor);
 
             _testScenarioBudget.Name = "Sample Budget 1";
