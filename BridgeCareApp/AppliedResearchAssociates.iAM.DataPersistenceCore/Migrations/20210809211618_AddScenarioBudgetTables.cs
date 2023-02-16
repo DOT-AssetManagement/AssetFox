@@ -257,24 +257,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 table: "ScenarioTreatmentSupersession",
                 column: "TreatmentId");
 
-            //TODO UNCOMMENT AFTER FIXING DATA IN DATABASE
-            /*migrationBuilder.AddForeignKey(
-                name: "FK_BudgetPercentagePair_ScenarioBudget_ScenarioBudgetId",
-                table: "BudgetPercentagePair",
-                column: "ScenarioBudgetId",
-                principalTable: "ScenarioBudget",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);*/
-
-            //TODO UNCOMMENT AFTER FIXING DATA IN DATABASE
-            /*migrationBuilder.AddForeignKey(
-                name: "FK_CommittedProject_ScenarioBudget_ScenarioBudgetId",
-                table: "CommittedProject",
-                column: "ScenarioBudgetId",
-                principalTable: "ScenarioBudget",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);*/
-
             migrationBuilder.AddForeignKey(
                 name: "FK_CriterionLibrary_ScenarioTreatmentSupersession_ScenarioTreatmentSupersession_TreatmentSupersessionId",
                 table: "CriterionLibrary_ScenarioTreatmentSupersession",
