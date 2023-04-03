@@ -398,20 +398,6 @@ export default class BudgetPriorityEditor extends Vue {
 
     @Watch('currentPage')
     onBudgetPrioritiesChanged() {
-        if(this.hasScenario){
-            const allBudgetPercentagePairsMatchBudgets: boolean = this.currentPage
-            .every((budgetPriority: BudgetPriority) => this.hasBudgetPercentagePairsThatMatchBudgets(budgetPriority));
-            if (!allBudgetPercentagePairsMatchBudgets) {
-                this.syncBudgetPercentagePairsWithBudgets();
-                return;
-            }
-        }
-        // const hasUnsavedChanges: boolean = this.hasScenario
-        //     ? hasUnsavedChangesCore('', this.currentPage, this.stateScenarioBudgetPriorities)
-        //     : hasUnsavedChangesCore('',
-        //         {...clone(this.selectedBudgetPriorityLibrary), budgetPriorities: clone(this.currentPage)},
-        //         this.stateSelectedBudgetPriorityLibrary);
-        // this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
         this.setGridCriteriaColumnWidth();
         this.setGridHeaders();
         this.setGridData();
@@ -486,10 +472,6 @@ export default class BudgetPriorityEditor extends Vue {
             })) as SimpleBudgetDetail[];
 
         return isEqual(sortNonObjectLists(simpleBudgetDetails), sortNonObjectLists(clone(this.stateScenarioSimpleBudgetDetails)));
-    }
-
-    syncBudgetPercentagePairsWithBudgets() {
-        throw "We are trying to prevent this from ever happening."
     }
 
     createNewBudgetPercentagePairsFromBudgets() {
