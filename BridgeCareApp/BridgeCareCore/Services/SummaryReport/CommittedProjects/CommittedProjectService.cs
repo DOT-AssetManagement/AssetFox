@@ -194,7 +194,12 @@ namespace BridgeCareCore.Services
             var worksheet = excelPackage.Workbook.Worksheets.Add("Committed Projects");
             _keyProperties = _unitOfWork.AssetDataRepository.KeyProperties;
             _keyFields = _keyProperties.Keys.Where(_ => _ != "ID").ToList();
-            AddHeaderCells(worksheet, new List<string> { "Add Consequences Here and in columns to the right" });
+            var consequences = _unitOfWork.Config.GetSection("CommittedProjectConsequencesTemplate").GetChildren().Select(_ => _.Value).ToList();
+            if(consequences.Count < 1)
+            {
+                consequences = new List<string> { "Add Consequences Here and in columns to the right" };
+            }
+            AddHeaderCells(worksheet, consequences);
 
             return new FileInfoDTO
             {
