@@ -1044,9 +1044,13 @@ export default class CommittedProjectsEditor extends Vue  {
                 row.consequences = values.validTreatmentConsequences;
                 row.category = values.treatmentCategory;
                 scp.cost = row.cost;
+
+                this.validateChangeValue(row.consequences);
+
                 let cat = this.reverseCatMap.get(row.category);
-                if(!isNil(cat))
+                if(!isNil(cat)) {
                     scp.category = cat;           
+                }
                 this.updateCommittedProject(row, row.cost, 'cost')  
                 this.updateCommittedProject(row, row.consequences, 'consequences')  
                 this.onSelectedCommittedProject();
@@ -1130,7 +1134,13 @@ export default class CommittedProjectsEditor extends Vue  {
             this.checkYear(scp);
         })
     }
-
+    validateChangeValue(consequences: CommittedProjectConsequence[]) {
+        consequences.forEach(consequence => {
+            if (isEmpty(consequence.changeValue)) {
+                consequence.changeValue = "1";
+            }
+        });
+    }
     updateCommittedProject(row: SectionCommittedProject, value: any, property: string){
         const updatedRow = setItemPropertyValue(
                     property,
