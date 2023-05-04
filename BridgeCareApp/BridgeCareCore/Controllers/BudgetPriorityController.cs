@@ -226,6 +226,7 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
+                var result = new List<BudgetPriorityDTO>();
                 await Task.Factory.StartNew(() =>
                 {
                     UnitOfWork.BeginTransaction();
@@ -233,9 +234,11 @@ namespace BridgeCareCore.Controllers
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
                     UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(dtos, simulationId);
                     UnitOfWork.Commit();
+
+                    result = dtos;
                 });
 
-                return Ok();
+                return Ok(result);
             }
             catch (UnauthorizedAccessException)
             {

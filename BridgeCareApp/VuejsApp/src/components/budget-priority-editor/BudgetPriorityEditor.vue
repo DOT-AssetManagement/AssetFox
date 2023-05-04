@@ -215,7 +215,7 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
 import Alert from '@/shared/modals/Alert.vue';
 import { hasUnsavedChangesCore, isEqual, sortNonObjectLists } from '@/shared/utils/has-unsaved-changes-helper';
 import { InputValidationRules, rules } from '@/shared/utils/input-validation-rules';
-import { SimpleBudgetDetail } from '@/shared/models/iAM/investment';
+import { SimpleBudgetDetail, Budget } from '@/shared/models/iAM/investment';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { getAppliedLibraryId, hasAppliedLibrary } from '@/shared/utils/library-utils';
 import { CriterionLibrary } from '@/shared/models/iAM/criteria';
@@ -544,12 +544,18 @@ export default class BudgetPriorityEditor extends Vue {
                 criteria: budgetPriority.criterionLibrary.mergedCriteriaExpression != null ? budgetPriority.criterionLibrary.mergedCriteriaExpression : '',
             };
 
-            if (this.hasScenario && hasValue(budgetPriority.budgetPercentagePairs)) {
-                budgetPriority.budgetPercentagePairs.forEach((budgetPercentagePair: BudgetPercentagePair) => {
-                    row[budgetPercentagePair.budgetName] = budgetPercentagePair.percentage.toString();
-                });
+            if (this.hasScenario) {
+                if (hasValue(budgetPriority.budgetPercentagePairs)) {
+                    budgetPriority.budgetPercentagePairs.forEach((budgetPercentagePair: BudgetPercentagePair) => {
+                        row[budgetPercentagePair.budgetName] = budgetPercentagePair.percentage.toString();
+                    });
+                } else {
+                    budgetPriority.budgetPercentagePairs = this.createNewBudgetPercentagePairsFromBudgets();
+                    budgetPriority.budgetPercentagePairs.forEach((budgetPercentagePair: BudgetPercentagePair) => {
+                        row[budgetPercentagePair.budgetName] = budgetPercentagePair.percentage.toString();
+                    });
+                }
             }
-
             return row;
         });
     }
@@ -670,7 +676,6 @@ export default class BudgetPriorityEditor extends Vue {
                     budgetPriority.budgetPercentagePairs,
                 ),
             } as BudgetPriority)
-
         this.onPaginationChanged();
     }
 
@@ -720,6 +725,7 @@ export default class BudgetPriorityEditor extends Vue {
                 this.clearChanges();
                 this.librarySelectItemValue = null;
                 this.addSuccessNotificationAction({message: "Modified scenario's budget priorities"});
+                this.currentPage = response.data;
                 this.currentPage = sortByProperty("priorityLevel", this.currentPage);
             }           
         });
