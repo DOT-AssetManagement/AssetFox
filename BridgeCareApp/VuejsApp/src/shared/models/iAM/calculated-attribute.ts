@@ -22,6 +22,8 @@ export interface CalculatedAttribute {
     id: string;
     attribute: string;
     name: string;
+    libraryId: string;
+    isModified: boolean;
     calculationTiming: Timing;
     equations: CriterionAndEquationSet[];
 }
@@ -30,6 +32,7 @@ export interface CalculatedAttributeLibrary {
     id: string;
     name: string;
     description: string;
+    users: CalculatedAttributeLibraryUser[];
     calculatedAttributes: CalculatedAttribute[];
     isDefault: boolean;
     owner?: string;
@@ -58,6 +61,8 @@ export const emptyCalculatedAttribute: CalculatedAttribute = {
     attribute: 'CONDITIONINDEX',
     name: 'CONDITIONINDEX',
     equations: [],
+    libraryId: getBlankGuid(),
+    isModified: false,
     calculationTiming: Timing.OnDemand,
 };
 
@@ -71,6 +76,19 @@ export const emptyCalculatedAttributeLibrary: CalculatedAttributeLibrary = {
     id: getBlankGuid(),
     name: '',
     description: '',
+    users: [],
     calculatedAttributes: [] as CalculatedAttribute[],
     isDefault: false,
 };
+export interface CalculatedAttributeLibraryUser {
+    userId: string;
+    username: string;
+    canModify: boolean;
+    isOwner: boolean;
+}
+export const emptyCalculatedAttributeLibraryUsers: CalculatedAttributeLibraryUser[] = [{
+    userId: '',
+    username: '',
+    canModify: false,
+    isOwner: false
+}];

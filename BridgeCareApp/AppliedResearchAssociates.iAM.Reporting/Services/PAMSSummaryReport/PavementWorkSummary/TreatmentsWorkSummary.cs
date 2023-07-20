@@ -24,15 +24,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             CurrentCell currentCell,
             List<int> simulationYears,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int count)>> costAndLengthPerTreatmentPerYear,
+            Dictionary<int, Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int count)>> costAndLengthPerTreatmentPerYear,
             Dictionary<int, Dictionary<PavementTreatmentHelper.TreatmentGroup, (decimal treatmentCost, int length)>> costAndLengthPerTreatmentGroupPerYear,
-            List<(string Name, AssetCategory AssetType, TreatmentCategory Category)> simulationTreatments,
+            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments,
             Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, int length)>> workTypeTotals,
             ChartRowsModel chartRowsModel
             )
 
         {
-            var projectRowNumberModel = new ProjectRowNumberModel();
             FillFullDepthAsphaltTreatments(worksheet, currentCell, simulationYears, costAndLengthPerTreatmentPerYear, simulationTreatments);
             FillCompositeTreatments(worksheet, currentCell, simulationYears, costAndLengthPerTreatmentPerYear, simulationTreatments);
             FillConcreteTreatments(worksheet, currentCell, simulationYears, costAndLengthPerTreatmentPerYear, simulationTreatments);
@@ -47,11 +46,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             CurrentCell currentCell,
             List<int> simulationYears,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int length)>> lengthPerTreatmentPerYear,
-            List<(string Name, AssetCategory AssetType, TreatmentCategory Category)> simulationTreatments
+            Dictionary<int, Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>> lengthPerTreatmentPerYear,
+            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments
             )
         {
-            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Segment Miles of Full Depth Asphalt Pavement Treatments", "PAMS Full Depth Asphalt Treatments");
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of Full Depth Asphalt Pavement Treatments", "PAMS Full Depth Asphalt Treatments");
 
             var asphaltTreatments = _pavementWorkSummaryCommon.GetNoTreatments(simulationTreatments).Concat(_pavementWorkSummaryCommon.GetAsphaltTreatments(simulationTreatments)).ToList();
 
@@ -63,8 +62,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
 
         private void AddFullDepthAsphaltTreatmentSegmentMiles(ExcelWorksheet worksheet, CurrentCell currentCell,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int length)>> lengthPerTreatmentPerYear,
-            List<(string Name, AssetCategory AssetType, TreatmentCategory Category)> simulationTreatments
+            Dictionary<int, Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>> lengthPerTreatmentPerYear,
+            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments
             )
         {
             int startRow, startColumn, row, column;
@@ -101,11 +100,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
         ExcelWorksheet worksheet,
         CurrentCell currentCell,
         List<int> simulationYears,
-        Dictionary<int, Dictionary<string, (decimal treatmentCost, int length)>> lengthPerTreatmentPerYear,
-        List<(string Name, AssetCategory AssetType, TreatmentCategory Category)> simulationTreatments
+        Dictionary<int, Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>> lengthPerTreatmentPerYear,
+        List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments
         )
     {
-        _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Segment Miles of Composite Pavement Treatments", "PAMS Composite Treatments");
+        _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of Composite Pavement Treatments", "PAMS Composite Treatments");
 
             var asphaltTreatments = _pavementWorkSummaryCommon.GetNoTreatments(simulationTreatments).Concat(_pavementWorkSummaryCommon.GetAsphaltTreatments(simulationTreatments)).ToList();
 
@@ -118,8 +117,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
 
     private void AddCompositeTreatmentSegmentMiles(ExcelWorksheet worksheet, CurrentCell currentCell,
-        Dictionary<int, Dictionary<string, (decimal treatmentCost, int length)>> lengthPerTreatmentPerYear,
-        List<(string Name, AssetCategory AssetType, TreatmentCategory Category)> simulationTreatments
+        Dictionary<int, Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>> lengthPerTreatmentPerYear,
+        List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments
         )
     {
         int startRow, startColumn, row, column;
@@ -155,13 +154,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             CurrentCell currentCell,
             List<int> simulationYears,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int length)>> lengthPerTreatmentPerYear,
-            List<(string Name, AssetCategory AssetType, TreatmentCategory Category)> simulationTreatments
+            Dictionary<int, Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>> lengthPerTreatmentPerYear,
+            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments
             )
         {
             var concreteTreatments = _pavementWorkSummaryCommon.GetNoTreatments(simulationTreatments).Concat(_pavementWorkSummaryCommon.GetConcreteTreatments(simulationTreatments)).ToList();
 
-            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Segment Miles of Concrete Pavement Treatments", "PAMS Concrete Treatments");
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of Concrete Pavement Treatments", "PAMS Concrete Treatments");
             AddConcreteTreatmentSegmentMiles(worksheet, currentCell,
                 lengthPerTreatmentPerYear,
                 concreteTreatments
@@ -170,8 +169,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
 
         private void AddConcreteTreatmentSegmentMiles(ExcelWorksheet worksheet, CurrentCell currentCell,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int length)>> lengthPerTreatmentPerYear,
-            List<(string Name, AssetCategory AssetType, TreatmentCategory Category)> simulationTreatments
+            Dictionary<int, Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>> lengthPerTreatmentPerYear,
+            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments
             )
         {
             int startRow, startColumn, row, column;
@@ -213,7 +212,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 return;// workTypeConcrete;
             }
             var headerRange = new Range(currentCell.Row, currentCell.Row + 1);
-            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Segment Miles of Treatment Groups", "PAMS Treatment Groups Totals");
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of Treatment Groups", "PAMS Treatment Groups Totals");
 
             AddTreatmentGroupTotalDetails(worksheet, currentCell, costAndLengthPerTreatmentGroupPerYear, PavementTreatmentHelper.TreatmentGroupCategory.Bituminous);
             AddTreatmentGroupTotalDetails(worksheet, currentCell, costAndLengthPerTreatmentGroupPerYear, PavementTreatmentHelper.TreatmentGroupCategory.Concrete);
@@ -265,7 +264,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
         {
             var workTypesForReport = new List<TreatmentCategory> { TreatmentCategory.Maintenance, TreatmentCategory.Preservation, TreatmentCategory.Rehabilitation, TreatmentCategory.Replacement };
             var headerRange = new Range(currentCell.Row, currentCell.Row + 1);
-            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Total Number of Segment Miles", "Work Type Totals");
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Total Number of Section Miles", "Work Type Totals");
 
             int startRow, startColumn, row, column;
             _pavementWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);

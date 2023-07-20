@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -57,7 +59,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
     {
         public string Name => "Test Report File";
 
-        public IReport Create(UnitOfDataPersistenceWork uow, ReportIndexDTO results, IHubService hubService)
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService)
         {
             return new TestReportFile(uow, Name, results);
         }
@@ -69,10 +71,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         private List<string> _blankErrorList = new List<string>();
         private Guid _id;
         private Guid? _sid;
-        private UnitOfDataPersistenceWork _repo;
+        private IUnitOfWork _repo;
         private string _reportName;
 
-        public TestReportFile(UnitOfDataPersistenceWork repository, string name, ReportIndexDTO results)
+        public TestReportFile(IUnitOfWork repository, string name, ReportIndexDTO results)
         {
             _repo = repository;
             _reportName = name;
@@ -104,14 +106,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public string Status => "Report finished running";
 
-        public Task Run(string parameters) => throw new NotImplementedException();
+        public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }
 
     public class TestHTMLFileFactory : IReportFactory
     {
         public string Name => "Test HTML File";
 
-        public IReport Create(UnitOfDataPersistenceWork uow, ReportIndexDTO results, IHubService hubService)
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService)
         {
             return new TestHTMLFile(uow, Name, results);
         }
@@ -122,10 +124,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         private List<string> _blankErrorList = new List<string>();
         private Guid _id;
         private Guid? _sid = null;
-        private UnitOfDataPersistenceWork _repo;
+        private IUnitOfWork _repo;
         private string _reportName;
 
-        public TestHTMLFile(UnitOfDataPersistenceWork repository, string name, ReportIndexDTO results)
+        public TestHTMLFile(IUnitOfWork repository, string name, ReportIndexDTO results)
         {
             _repo = repository;
             _reportName = name;
@@ -155,14 +157,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public string Status => "Report finished running";
 
-        public Task Run(string parameters) => throw new NotImplementedException();
+        public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }
 
     public class TestBadReportFactory : IReportFactory
     {
         public string Name => "Bad Report";
 
-        public IReport Create(UnitOfDataPersistenceWork uow, ReportIndexDTO results, IHubService hubService)
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService)
         {
             var report = new TestBadReport(uow);
             return report;
@@ -173,10 +175,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
     {
         private List<string> _blankErrorList = new List<string>();
         private Guid _id = new Guid("d1999649-36ad-4e33-b7c2-e2afbea9b5fa");
-        private UnitOfDataPersistenceWork _repo;
+        private IUnitOfWork _repo;
         private string _reportName;
 
-        public TestBadReport(UnitOfDataPersistenceWork repository)
+        public TestBadReport(IUnitOfWork repository)
         {
             _repo = repository;
             _reportName = String.Empty;
@@ -196,6 +198,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public string Status => "Report finished running";
 
-        public Task Run(string parameters) => throw new NotImplementedException();
+        public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }
 }

@@ -23,7 +23,7 @@ namespace BridgeCareCore.StartupExtension
     {
         public static void AddSecurityConfig(this IServiceCollection services, IConfiguration Configuration)
         {
-            var securityType = Configuration.GetSection("SecurityType").Value;
+            var securityType = SecurityConfigurationReader.GetSecurityType(Configuration);
 
             if (securityType == SecurityConstants.SecurityTypes.Esec)
             {
@@ -191,6 +191,11 @@ namespace BridgeCareCore.StartupExtension
                                                                    Claim.SimulationRunAnyAccess,
                                                                    Claim.SimulationAccess));
 
+                options.AddPolicy(Policy.CloneSimulation,
+                    policy => policy.RequireClaim(ClaimTypes.Name, Claim.SimulationClonePermittedAccess,
+                                                                   Claim.SimulationCloneAnyAccess,
+                                                                   Claim.SimulationAccess));
+
                 // Budget Priority
                 options.AddPolicy(Policy.ViewBudgetPriorityFromLibrary,
                     policy => policy.RequireClaim(ClaimTypes.Name, Claim.BudgetPriorityViewAnyFromLibraryAccess, Claim.BudgetPriorityViewPermittedFromLibraryAccess));                
@@ -229,6 +234,14 @@ namespace BridgeCareCore.StartupExtension
                     policy => policy.RequireClaim(ClaimTypes.Name, Claim.CommittedProjectModifyPermittedAccess, Claim.CommittedProjectModifyAnyAccess));
                 options.AddPolicy(Policy.ViewCommittedProjects,
                     policy => policy.RequireClaim(ClaimTypes.Name, Claim.CommittedProjectViewPermittedAccess, Claim.CommittedProjectViewAnyAccess));
+
+                // GraphQL
+                options.AddPolicy(Policy.UseGraphQL,
+                    policy => policy.RequireClaim(ClaimTypes.Name, Claim.UseAnyGraphQLAccess, Claim.UsePermittedGraphQLAccess));
+
+                // Admin Settings
+                options.AddPolicy(Policy.ModifyAdminSiteSettings,
+                    policy => policy.RequireClaim(ClaimTypes.Name, Claim.AdminSiteSettingsAccess));
             });
 
             services.AddSingleton<IEsecSecurity, EsecSecurity>();

@@ -16,6 +16,20 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using AppliedResearchAssociates.iAM.Analysis;
 using Newtonsoft.Json;
+using System.Collections.ObjectModel;
+using Humanizer;
+using System.Xml.Linq;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
+using AppliedResearchAssociates.iAM.Data.Networking;
+using Org.BouncyCastle.Asn1.Cms;
+using AppliedResearchAssociates.iAM.TestHelpers;
+using System.Runtime.InteropServices;
+using MaintainableAsset = AppliedResearchAssociates.iAM.Data.Networking.MaintainableAsset;
+using AppliedResearchAssociates.iAM.DataPersistenceCore;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
 {
@@ -30,13 +44,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var mockedTestUOW = new Mock<IUnitOfWork>();
             _mockedContext = new Mock<IAMContext>();
 
-            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.Simulation, TestDataForCommittedProjects.Simulations.AsQueryable());
-            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.MaintainableAsset, TestDataForCommittedProjects.MaintainableAssetEntities.AsQueryable());
-            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.CommittedProject, TestDataForCommittedProjects.CommittedProjectEntities.AsQueryable());
-            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.Attribute, TestDataForCommittedProjects.AttribureEntities.AsQueryable());
-            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.InvestmentPlan, TestDataForCommittedProjects.InvestmentPlanEntities().AsQueryable());
-            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.ScenarioBudget, TestDataForCommittedProjects.ScenarioBudgetEntities.AsQueryable());
-            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.ScenarioSelectableTreatment, TestDataForCommittedProjects.FourYearScenarioNoTreatmentEntities().AsQueryable());
+            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.Simulation, TestEntitiesForCommittedProjects.Simulations.AsQueryable());
+            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.MaintainableAsset, TestEntitiesForCommittedProjects.MaintainableAssetEntities.AsQueryable());
+            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.CommittedProject, TestEntitiesForCommittedProjects.CommittedProjectEntities.AsQueryable());
+            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.Attribute, TestEntitiesForCommittedProjects.AttribureEntities.AsQueryable());
+            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.InvestmentPlan, TestEntitiesForCommittedProjects.InvestmentPlanEntities().AsQueryable());
+            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.ScenarioBudget, TestEntitiesForCommittedProjects.ScenarioBudgetEntities.AsQueryable());
+            MockedContextBuilder.AddDataSet(_mockedContext, _ => _.ScenarioSelectableTreatment, TestEntitiesForCommittedProjects.FourYearScenarioNoTreatmentEntities().AsQueryable());
 
             _testUOW = new UnitOfDataPersistenceWork((new Mock<IConfiguration>()).Object, _mockedContext.Object);
         }
@@ -45,15 +59,63 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public void GetForSimulationWorksWithCommittedProjects()
         {
             // Arrange
-            var repo = new CommittedProjectRepository(_testUOW);
-            var simulationDomain = CreateSimulation(TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "Test").Id);
+            var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
+
+            // Set up a network with maintainable assets
+            Guid networkId = Guid.Parse("502C1684-C8B6-48FD-9725-A2295AA3E0F0");
+            var maintainableAssets = new List<MaintainableAsset>();
+            var assetId = Guid.Parse("f286b7cf-445d-4291-9167-0f225b170cae");
+            var locationIdentifier = RandomStrings.WithPrefix("Location");
+            var location = Locations.Section(locationIdentifier);
+            var maintainableAsset = new MaintainableAsset(assetId, networkId, location, "[Deck_Area]");
+            var maintainableAssetEntity = maintainableAsset.ToEntity(networkId);
+            var maintainableAssetLocation = new MaintainableAssetLocationEntity()
+            {
+                Id = Guid.Parse("75b07f98-e168-438f-84b6-fcc57b3e3d8f"),
+                LocationIdentifier = "3",
+                Discriminator = DataPersistenceConstants.SectionLocation,
+            };
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            maintainableAssetEntity.MaintainableAssetLocation = maintainableAssetLocation;
+            var testMaintainableAsset = maintainableAssetEntity.ToDomain(locationIdentifier);
+            maintainableAssets.Add(testMaintainableAsset);
+            var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, maintainableAssets, networkId, TestAttributeIds.CulvDurationNId);
+
+            // Setup a simulation based on network
+            var simulation = SimulationTestSetup.CreateSimulation(TestHelper.UnitOfWork, Guid.Parse("dcdacfde-02da-4109-b8aa-add932756dee"), "Test Simulation", new Guid(), networkId);
+            simulation.NetworkId = network.Id;
+
+            // Set up a selectable treatment for the test with sample budgets
+            var testBudget = new TreatmentBudgetDTO
+            {
+                Id = Guid.NewGuid(),
+                Name = "Budget Test 1"
+            };
+            var libraryId = Guid.NewGuid();
+            var treatmentId = Guid.NewGuid();
+            var treatment = TreatmentDtos.DtoWithEmptyCostsAndConsequencesLists(treatmentId);
+            var costId = Guid.NewGuid();
+            var costLibraryId = Guid.NewGuid();
+            var insertCostEquationId = Guid.NewGuid();
+            var cost = TreatmentCostDtos.WithEquationAndCriterionLibrary(costId, insertCostEquationId, costLibraryId, "equation", "mergedCriteriaExpression");
+            treatment.Costs.Add(cost);
+            treatment.Budgets = new List<TreatmentBudgetDTO>() { testBudget };
+            treatment.BudgetIds = new List<Guid> { libraryId, treatmentId };
+            var treatments = new List<TreatmentDTO> { treatment };
+            TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulation.Id);
+
+            // Set up committed projects for the test
+            List<SectionCommittedProjectDTO> sectionCommittedProjects = CreateTestCommittedProjects(simulation.Id);
+            TestHelper.UnitOfWork.CommittedProjectRepo.UpsertCommittedProjects(sectionCommittedProjects);
 
             // Act
-            repo.GetSimulationCommittedProjects(simulationDomain);
+            var testSimulation = CreateSimulation(simulation.Id, false);
+            testSimulation.Network.Id = Guid.Parse("502C1684-C8B6-48FD-9725-A2295AA3E0F0");
+            TestHelper.UnitOfWork.CommittedProjectRepo.GetSimulationCommittedProjects(testSimulation);
 
             // Assert
-            Assert.Equal(2, simulationDomain.CommittedProjects.Count);
-            Assert.Equal(210000, simulationDomain.CommittedProjects.Sum(_ => _.Cost));
+            Assert.Equal(2, testSimulation.CommittedProjects.Count);
+            Assert.Equal(220000, testSimulation.CommittedProjects.Sum(_ => _.Cost));
         }
 
 
@@ -62,7 +124,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         {
             // Arrange
             var repo = new CommittedProjectRepository(_testUOW);
-            var inputSimulationEntity = TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "FourYearTest");
+            var inputSimulationEntity = TestEntitiesForCommittedProjects.Simulations.Single(_ => _.Name == "FourYearTest");
             var simulationDomain = CreateSimulation(inputSimulationEntity.Id);
             var simulationEntity = _testUOW.Context.Simulation.Single(s => s.Id == simulationDomain.Id);
             simulationEntity.NoTreatmentBeforeCommittedProjects = true;
@@ -83,14 +145,58 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public void GetForSimulationWorksWithoutCommittedProjects()
         {
             // Arrange
-            var repo = new CommittedProjectRepository(_testUOW);
-            var simulationDomain = CreateSimulation(TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "No Commit").Id);
+            var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
+
+            // Set up a network with maintainable assets
+            Guid networkId = Guid.Parse("119AD446-3330-426B-864D-E9D471949D6B");
+            var maintainableAssets = new List<MaintainableAsset>();
+            var assetId = Guid.Parse("46f5da89-5e65-4b8a-9b36-03d9af0302f7");
+            var locationIdentifier = RandomStrings.WithPrefix("Location");
+            var location = Locations.Section(locationIdentifier);
+            var maintainableAsset = new MaintainableAsset(assetId, networkId, location, "[Deck_Area]");
+            var maintainableAssetEntity = maintainableAsset.ToEntity(networkId);
+            var maintainableAssetLocation = new MaintainableAssetLocationEntity()
+            {
+                Id = Guid.Parse("ffff6f5d-0559-4363-aad0-e13849b8e369"),
+                LocationIdentifier = "3",
+                Discriminator = DataPersistenceConstants.SectionLocation,
+            };
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            maintainableAssetEntity.MaintainableAssetLocation = maintainableAssetLocation;
+            var testMaintainableAsset = maintainableAssetEntity.ToDomain(locationIdentifier);
+            maintainableAssets.Add(testMaintainableAsset);
+            var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, maintainableAssets, networkId, TestAttributeIds.CulvDurationNId);
+
+            // Setup a simulation based on network
+            var simulation = SimulationTestSetup.CreateSimulation(TestHelper.UnitOfWork, TestDataForCommittedProjects.NoCommitSimulationId, "Test Simulation", new Guid(), networkId);
+            simulation.NetworkId = network.Id;
+
+            // Set up a selectable treatment for the test with sample budgets
+            var testBudget = new TreatmentBudgetDTO
+            {
+                Id = Guid.NewGuid(),
+                Name = "Budget Test 1"
+            };
+            var libraryId = Guid.NewGuid();
+            var treatmentId = Guid.NewGuid();
+            var treatment = TreatmentDtos.DtoWithEmptyCostsAndConsequencesLists(treatmentId);
+            var costId = Guid.NewGuid();
+            var costLibraryId = Guid.NewGuid();
+            var insertCostEquationId = Guid.NewGuid();
+            var cost = TreatmentCostDtos.WithEquationAndCriterionLibrary(costId, insertCostEquationId, costLibraryId, "equation", "mergedCriteriaExpression");
+            treatment.Costs.Add(cost);
+            treatment.Budgets = new List<TreatmentBudgetDTO>() { testBudget };
+            treatment.BudgetIds = new List<Guid> { libraryId, treatmentId };
+            var treatments = new List<TreatmentDTO> { treatment };
+            TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulation.Id);
 
             // Act
-            repo.GetSimulationCommittedProjects(simulationDomain);
+            var testSimulation = CreateSimulation(simulation.Id, false);
+            testSimulation.Network.Id = Guid.Parse("502C1684-C8B6-48FD-9725-A2295AA3E0F0");
+            TestHelper.UnitOfWork.CommittedProjectRepo.GetSimulationCommittedProjects(testSimulation);
 
             // Assert
-            Assert.Equal(0, simulationDomain.CommittedProjects.Count);
+            Assert.Equal(0, testSimulation.CommittedProjects.Count);
         }
 
         [Fact]
@@ -111,7 +217,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var repo = new CommittedProjectRepository(_testUOW);
 
             // Act
-            var result = repo.GetCommittedProjectsForExport(TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "Test").Id);
+            var result = repo.GetCommittedProjectsForExport(TestDataForCommittedProjects.SimulationId);
 
             // Assert
             Assert.Equal(2, result.Count);
@@ -128,10 +234,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var repo = new CommittedProjectRepository(_testUOW);
 
             // Act
-            var result = repo.GetCommittedProjectsForExport(TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "No Commit").Id);
+            var result = repo.GetCommittedProjectsForExport(TestDataForCommittedProjects.NoCommitSimulationId);
 
             // Assert
-            Assert.Equal(0, result.Count);
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -150,7 +256,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Arrange
             var repo = new CommittedProjectRepository(_testUOW);
             var newProjects = TestDataForCommittedProjects.ValidCommittedProjects;
-            newProjects.ForEach(_ => _.SimulationId = TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "No Commit").Id);
+            newProjects.ForEach(_ => _.SimulationId = TestDataForCommittedProjects.NoCommitSimulationId);
 
             // Act
             repo.UpsertCommittedProjects(newProjects);
@@ -201,7 +307,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var repo = new CommittedProjectRepository(_testUOW);
 
             // Act
-            repo.DeleteSimulationCommittedProjects(TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "Test").Id);
+            repo.DeleteSimulationCommittedProjects(TestDataForCommittedProjects.SimulationId);
         }
 
         [Fact]
@@ -221,7 +327,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var repo = new CommittedProjectRepository(_testUOW);
 
             // Act
-            repo.DeleteSimulationCommittedProjects(TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "No Commit").Id);
+            repo.DeleteSimulationCommittedProjects(TestDataForCommittedProjects.NoCommitSimulationId);
 
             // No assert required as long as it works
         }
@@ -255,7 +361,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var repo = new CommittedProjectRepository(_testUOW);
 
             // Act
-            var result = repo.GetSectionCommittedProjectDTOs(TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "Test").Id);
+            var result = repo.GetSectionCommittedProjectDTOs(TestDataForCommittedProjects.SimulationId);
 
             // Assert
             Assert.Equal(2, result.Count);
@@ -271,7 +377,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var repo = new CommittedProjectRepository(_testUOW);
 
             // Act
-            var result = repo.GetSectionCommittedProjectDTOs(TestDataForCommittedProjects.Simulations.Single(_ => _.Name == "No Commit").Id);
+            var result = repo.GetSectionCommittedProjectDTOs(TestDataForCommittedProjects.NoCommitSimulationId);
 
             // Assert
             Assert.Equal(0, result.Count);
@@ -298,7 +404,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var result = repo.GetSimulationId(Guid.Parse("2e9e66df-4436-49b1-ae68-9f5c10656b1b"));
 
             // Assert
-            Assert.Equal(TestDataForCommittedProjects.Simulations.First(_ => _.Name == "Test").Id, result);
+            Assert.Equal(TestDataForCommittedProjects.SimulationId, result);
         }
 
         [Fact]
@@ -318,7 +424,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var testNetwork = exp.AddNetwork();
             testNetwork.Id = TestDataForCommittedProjects.NetworkId;
             SectionMapper mapper = new(testNetwork);
-            foreach (var asset in TestDataForCommittedProjects.MaintainableAssetEntities)
+            foreach (var asset in TestEntitiesForCommittedProjects.MaintainableAssetEntities)
             {
                 mapper.CreateMaintainableAsset(asset);
             }
@@ -328,7 +434,79 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             if (populateInvestments) _testUOW.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
             return simulation;
         }
-
+        private List<SectionCommittedProjectDTO> CreateTestCommittedProjects(Guid simulationId)
+        {
+            List<SectionCommittedProjectDTO> testCommittedProjects = new List<SectionCommittedProjectDTO>();
+            var committedProject = new SectionCommittedProjectDTO
+            {
+                Id = Guid.Parse("091001e2-c1f0-4af6-90e7-e998bbea5d00"),
+                Year = 2023,
+                Treatment = "Simple",
+                ShadowForAnyTreatment = 1,
+                ShadowForSameTreatment = 3,
+                Cost = 210000,
+                SimulationId = simulationId,
+                //ScenarioBudgetId = ScenarioBudgetDTOs().Single(_ => _.Name == "Interstate").Id,
+                LocationKeys = new Dictionary<string, string>()
+                {
+                    { "ID", "46f5da89-5e65-4b8a-9b36-03d9af0302f7" },
+                    { "CULV_DURATION_N", "3"},
+                    { "BRKEY_", "2" },
+                    { "BMSID", "9876543" }
+                },
+                Consequences = new List<CommittedProjectConsequenceDTO>()
+                {
+                    new CommittedProjectConsequenceDTO()
+                    {
+                        Id = Guid.NewGuid(),
+                        Attribute = "DECK_SEEDED",
+                        ChangeValue = "9"
+                    },
+                    new CommittedProjectConsequenceDTO()
+                    {
+                        Id = Guid.NewGuid(),
+                        Attribute = "DECK_DURATION_N",
+                        ChangeValue = "1"
+                    }
+                }
+            };
+            var committedProject2 = new SectionCommittedProjectDTO
+            {
+                Id = Guid.Parse("c6fd501b-83f3-49e0-a728-8444c14b6262"),
+                Year = 2024,
+                Treatment = "Simple again",
+                ShadowForAnyTreatment = 1,
+                ShadowForSameTreatment = 3,
+                Cost = 10000,
+                SimulationId = simulationId,
+                
+                LocationKeys = new Dictionary<string, string>()
+                {
+                    { "ID", "46f5da89-5e65-4b8a-9b36-03d9af0302f7" },
+                    { "CULV_DURATION_N", "3"},
+                    { "BRKEY_", "2" },
+                    { "BMSID", "9876543" }
+                },
+                Consequences = new List<CommittedProjectConsequenceDTO>()
+                {
+                    new CommittedProjectConsequenceDTO()
+                    {
+                        Id = Guid.NewGuid(),
+                        Attribute = "DECK_SEEDED",
+                        ChangeValue = "9"
+                    },
+                    new CommittedProjectConsequenceDTO()
+                    {
+                        Id = Guid.NewGuid(),
+                        Attribute = "DECK_DURATION_N",
+                        ChangeValue = "1"
+                    }
+                }
+            };
+            testCommittedProjects.Add(committedProject);
+            testCommittedProjects.Add(committedProject2);
+            return testCommittedProjects;
+        }
         #endregion
     }
 }

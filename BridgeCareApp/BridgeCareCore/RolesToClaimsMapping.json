@@ -16,9 +16,11 @@
             "NetworkAggregateAccess",
             "NetworkAddAccess",
             "NetworkViewAccess",
+            "NetworkDeleteAccess",
             "SimulationUpdateAnyAccess",
             "SimulationDeleteAnyAccess",
             "SimulationRunAnyAccess",
+            "SimulationCloneAnyAccess",
             "SimulationViewAnyAccess",
             "AnnouncementModifyAccess",
             "AnnouncementViewAccess",
@@ -81,7 +83,9 @@
             "AnalysisMethodViewAnyAccess",
             "CommittedProjectModifyAnyAccess",
             "CommittedProjectImportAnyAccess",
-            "CommittedProjectViewAnyAccess"
+            "CommittedProjectViewAnyAccess",
+            "UseAnyGraphQLAccess",
+            "AdminSiteSettingsAccess"
           ]
         },
         {
@@ -93,6 +97,7 @@
             "SimulationUpdatePermittedAccess",
             "SimulationDeletePermittedAccess",
             "SimulationRunPermittedAccess",
+            "SimulationClonePermittedAccess",
             "SimulationViewPermittedAccess",
             "AnnouncementViewAccess",
             "BudgetPriorityAddPermittedFromLibraryAccess",
@@ -157,7 +162,7 @@
           "Claims": [
             "SimulationAccess",
             "AttributesViewAccess",
-            "NetworkViewAccess",            
+            "NetworkViewAccess",
             "AnnouncementViewAccess",
             "BudgetPriorityAddPermittedFromLibraryAccess",
             "BudgetPriorityUpdatePermittedFromLibraryAccess",
@@ -291,9 +296,11 @@
             "NetworkAggregateAccess",
             "NetworkAddAccess",
             "NetworkViewAccess",
+            "NetworkDeleteAccess",
             "SimulationUpdateAnyAccess",
             "SimulationDeleteAnyAccess",
             "SimulationRunAnyAccess",
+            "SimulationCloneAnyAccess",
             "SimulationViewAnyAccess",
             "AnnouncementModifyAccess",
             "AnnouncementViewAccess",
@@ -356,7 +363,9 @@
             "AnalysisMethodViewAnyAccess",
             "CommittedProjectModifyAnyAccess",
             "CommittedProjectImportAnyAccess",
-            "CommittedProjectViewAnyAccess"
+            "CommittedProjectViewAnyAccess",
+            "UseAnyGraphQLAccess",
+            "AdminSiteSettingsAccess"
           ]
         },
         {
@@ -368,6 +377,7 @@
             "SimulationUpdatePermittedAccess",
             "SimulationDeletePermittedAccess",
             "SimulationRunPermittedAccess",
+            "SimulationClonePermittedAccess",
             "SimulationViewPermittedAccess",
             "AnnouncementViewAccess",
             "BudgetPriorityAddPermittedFromLibraryAccess",

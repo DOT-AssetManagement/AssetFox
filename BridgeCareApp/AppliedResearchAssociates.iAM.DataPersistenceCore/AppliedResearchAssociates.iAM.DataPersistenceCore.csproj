@@ -40,6 +40,7 @@
     <ProjectReference Include="..\AppliedResearchAssociates.iAM.Data\AppliedResearchAssociates.iAM.Data.csproj" />
     <ProjectReference Include="..\AppliedResearchAssociates.iAM.DTOs\AppliedResearchAssociates.iAM.DTOs.csproj" />
     <ProjectReference Include="..\AppliedResearchAssociates.iAM.Analysis\AppliedResearchAssociates.iAM.Analysis.csproj" />
+    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Hubs\AppliedResearchAssociates.iAM.Hubs.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +51,7 @@
 
   <ItemGroup>
     <Folder Include="Repositories\MSSQLLegacy\Mappings\" />
+    <Folder Include="Repositories\MSSQL\DTOs\" />
   </ItemGroup>
 
   <ItemGroup>

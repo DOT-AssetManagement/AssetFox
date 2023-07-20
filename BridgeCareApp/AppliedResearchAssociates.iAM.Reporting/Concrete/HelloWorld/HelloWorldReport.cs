@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -14,7 +16,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
         private List<string> _errorList;
         private string _reportTypeName;
 
-        public HelloWorldReport(UnitOfDataPersistenceWork repository, string name, ReportIndexDTO results)
+        public HelloWorldReport(IUnitOfWork repository, string name, ReportIndexDTO results)
         {
             _id = Guid.NewGuid();
             _errorList = new List<string>();
@@ -36,7 +38,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         public string Status => "No report to run.";
 
-        public async Task Run(string parameters)
+        public async Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null)
         {
             try
             {

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
@@ -19,10 +21,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public void AddAssignedData(List<MaintainableAsset> maintainableAssets, List<AttributeDTO> attributeDtos)
         {
-            var configurableAttributes = AttributeMapper.ToDomainList(attributeDtos, _unitOfWork.EncryptionKey);
+            var configurableAttributes = AttributeDtoDomainMapper.ToDomainList(attributeDtos, _unitOfWork.EncryptionKey);
 
             // insert/update configurable attributes
-            _unitOfWork.AttributeRepo.UpsertAttributes(configurableAttributes);
+            _unitOfWork.AttributeRepo.UpsertAttributesNonAtomic(configurableAttributes);
 
             // get the attribute ids off of the assigned data on the maintainable assets that have
             // not been modified yet
@@ -47,14 +49,40 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var attributeDatumEntities = maintainableAssets
                 .SelectMany(_ => _.AssignedData.Select(__ => __.ToEntity(_.Id)));
 
-             var configAttributeIds = configurableAttributes.Select(s => s.Id).ToHashSet();
-             var filteredEntities = attributeDatumEntities.Where(_ => configAttributeIds.Contains(_.AttributeId)).ToList();
+            var configAttributeIds = configurableAttributes.Select(s => s.Id).ToHashSet();
+            var filteredEntities = attributeDatumEntities.Where(_ => configAttributeIds.Contains(_.AttributeId)).ToList();
 
             _unitOfWork.Context.AddAll(filteredEntities, _unitOfWork.UserEntity?.Id);
 
             var attributeDatumLocationEntities = filteredEntities.Select(_ => _.AttributeDatumLocation).ToList();
 
             _unitOfWork.Context.AddAll(attributeDatumLocationEntities, _unitOfWork.UserEntity?.Id);
+        }
+
+        public List<AttributeDatumDTO> GetAllInNetwork(IEnumerable<Guid> networkMaintainableAssetIds, List<Guid> requiredAttributeIds)
+        {
+            var attributeDatumDTOs = new List<AttributeDatumDTO>();
+            var attributeDatumSet = _unitOfWork.Context.AttributeDatum;
+            var attributeDatums = requiredAttributeIds?.Count > 0 ? attributeDatumSet.Where(_ => requiredAttributeIds.Contains(_.AttributeId)) : attributeDatumSet.Select(_ => _);
+
+            foreach (var assetId in networkMaintainableAssetIds)
+            {
+                var attributeDatumsForAsset = attributeDatums.Where(_ => _.MaintainableAssetId == assetId).ToList();
+                foreach (var attributeDatumForAsset in attributeDatumsForAsset)
+                {
+                    var attributeDatumDTO = new AttributeDatumDTO
+                    {
+                        MaintainableAssetId = assetId,
+                        Id = attributeDatumForAsset.Id,
+                        Attribute = attributeDatumForAsset.Attribute.Name,
+                        NumericValue = attributeDatumForAsset.NumericValue,
+                        TextValue = attributeDatumForAsset.TextValue
+                    };
+                    attributeDatumDTOs.Add(attributeDatumDTO);
+                }
+            }
+
+            return attributeDatumDTOs;
         }
     }
 }

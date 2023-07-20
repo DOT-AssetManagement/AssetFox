@@ -103,6 +103,8 @@
                 <v-btn v-show="showMssql" @click="checkSQLConnection" class="ghd-blue-bg ghd-white ghd-button-text">Test</v-btn>
                 <v-btn v-show="showMssql || showExcel" :disabled="disableCrudButtons() || !hasUnsavedChanges" class="ghd-blue-bg ghd-white ghd-button-text" @click="onSaveDatasource">Save</v-btn>
                 <v-btn v-show="showExcel" :disabled="isNewDataSource" class="ghd-blue-bg ghd-white ghd-button-text" @click="onLoadExcel">Load</v-btn>
+                <v-btn v-show="showMssql || showExcel" :disabled="isNewDataSource" class="ghd-blue-bg ghd-white ghd-button-text" @click="onDeleteClick">Delete</v-btn>
+
             </v-flex>
         </v-layout>
 
@@ -158,6 +160,7 @@ export default class DataSource extends Vue {
     @Action('getDataSourceTypes') getDataSourceTypesAction: any;
     @Action('upsertSqlDataSource') upsertSqlDataSourceAction: any;
     @Action('upsertExcelDataSource') upsertExcelDataSourceAction: any;
+    @Action('deleteDataSource') deleteDataSourceAction: any;
 
     @Action('importExcelSpreadsheetFile') importExcelSpreadsheetFileAction: any;
     @Action('getExcelSpreadsheetColumnHeaders') getExcelSpreadsheetColumnHeadersAction: any;
@@ -284,6 +287,11 @@ export default class DataSource extends Vue {
             this.selectedConnection = this.isOwner() ? this.currentDatasource.connectionString : '';
             this.connectionStringPlaceHolderMessage = this.currentDatasource.connectionString != ''? "Replacement connection string" : 'New connection string';
             this.showSqlMessage = false; this.showSaveMessage = false;
+            if(!this.isNewDataSource) {
+                    this.getExcelSpreadsheetColumnHeadersAction(this.currentDatasource.id);
+                    this.currentExcelDateColumn = this.currentDatasource.dateColumn;
+                    this.currentExcelLocationColumn = this.currentDatasource.locationColumn;
+                }
         }
         @Watch('selectedConnection')
         onSelectedConnectionChanged() {
@@ -308,6 +316,12 @@ export default class DataSource extends Vue {
 
     @Watch('currentDatasource', {deep: true})
     onCurrentDataSourceChanged() {
+        const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', this.currentDatasource, this.unmodifiedDatasource);
+        this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+    }
+
+    @Watch('unmodifiedDatasource', {deep: true})
+    onUnmodifiedDatasourceChanged(){
         const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', this.currentDatasource, this.unmodifiedDatasource);
         this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
     }
@@ -343,25 +357,18 @@ export default class DataSource extends Vue {
                     secure: this.currentDatasource.secure,
                     createdBy: this.currentDatasource.createdBy
             };
-            DataSourceService.upsertSqlDatasource(sqldat).then((response: AxiosResponse) => {
-                if (
-                    hasValue(response, 'status') &&
-                    http2XX.test(response.status.toString())
-                ) {
-                    this.showSqlMessage = false;
-                    this.showSaveMessage = true;
-                    if(this.isNewDataSource)
-                    {
-                        this.currentDatasource.createdBy = this.getIdByUserNameGetter(getUserName());
-                        this.isNewDataSource = false;
-                    }
-                    this.selectedConnection = this.isOwner() ? this.currentDatasource.connectionString : '';
-                    this.connectionStringPlaceHolderMessage = this.currentDatasource.connectionString!='' ? 'Replacement connection string' : 'New connection string';
-                    this.getDataSourcesAction()
-                    this.unmodifiedDatasource = clone(this.currentDatasource)
-                    this.onCurrentDataSourceChanged();
-                    this.addSuccessNotificationAction({message: 'Modified data sources'});
+            this.upsertSqlDataSourceAction(sqldat).then(() => {
+                this.showSqlMessage = false;
+                this.showSaveMessage = true;
+                if(this.isNewDataSource)
+                {
+                    this.currentDatasource.createdBy = this.getIdByUserNameGetter(getUserName());
+                    this.isNewDataSource = false;
                 }
+                this.selectedConnection = this.isOwner() ? this.currentDatasource.connectionString : '';
+                this.connectionStringPlaceHolderMessage = this.currentDatasource.connectionString!='' ? 'Replacement connection string' : 'New connection string';
+                this.getDataSourcesAction();
+                this.unmodifiedDatasource = clone(this.currentDatasource);
             });
         } else {
             let exldat : ExcelDataSource = {
@@ -388,10 +395,15 @@ export default class DataSource extends Vue {
                 this.getDataSourcesAction().then(() => {
                     this.isNewDataSource = false;                   
                 });
-                this.unmodifiedDatasource = clone(this.currentDatasource)
-                this.onCurrentDataSourceChanged();
+                this.unmodifiedDatasource = clone(this.currentDatasource);
             });
         }
+    }
+
+    onDeleteClick(){
+        this.deleteDataSourceAction(this.currentDatasource.id).then(() => {
+            this.resetDataSource();
+        })
     }
     onShowCreateDataSourceDialog() {
         this.createDataSourceDialogData = {
@@ -403,20 +415,20 @@ export default class DataSource extends Vue {
         if (datasource != null || datasource != undefined) {
         this.dataSources.push(datasource);
         this.currentDatasource = datasource;
+        this.isNewDataSource = true;
         this.sourceTypeItem = datasource.name;
         this.dataSourceTypeItem = datasource.type;
         this.selectedConnection = datasource.connectionString;        
         this.connectionStringPlaceHolderMessage = 'New connection string';
         this.datColumns = [];
-        this.locColumns = [];
-        this.isNewDataSource = true;
+        this.locColumns = [];       
         }
     }
     allowSave(): boolean {
         let result: boolean = false;
         if (this.dataSources == undefined) return false;
         if (this.dataSourceTypeItem===DSEXCEL) {
-            if (this.datColumns.length === 0 && this.locColumns.length === 0) {
+            if (this.currentExcelDateColumn !== '' || this.currentExcelLocationColumn !== '') {
                 return true;
             }
         }
@@ -461,8 +473,6 @@ export default class DataSource extends Vue {
             this.showSqlMessage = false;
             this.showSaveMessage = false;
             let connStr: string = this.currentDatasource.connectionString;
-            //const regex1 = new RegExp(/\\/,'g');
-            //connStr = connStr.replace(regex1, "%5C");
 
             let testConnection: TestStringData = {testString: connStr};
 
@@ -487,6 +497,11 @@ export default class DataSource extends Vue {
         if(this.currentDatasource.type == "SQL")
         {
             return !this.sqlValid;
+        }
+
+        if(this.currentDatasource.type == "Excel" && !this.isNewDataSource)
+        {
+            return !this.allowSave();
         }
 
         return false;

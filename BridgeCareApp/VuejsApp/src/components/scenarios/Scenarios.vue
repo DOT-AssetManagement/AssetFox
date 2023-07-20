@@ -9,19 +9,12 @@
                         :key="item.name"
                         class="tab-theme"
                     >
-                        <!-- <img class="icon-selected-tab" style="padding-right:10px" v-bind:src="item.icon"/> -->
-                        <GhdQueueSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'Simulation queue'"/> 
+                        <GhdQueueSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'Work queue'"/> 
                         <GhdShareSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'Shared with me'"/>  
                         <GhdStarSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'My scenarios'"/>  
                         {{ item.name }} ( {{ item.count }} )
                     </v-tab>
                     <v-spacer></v-spacer>
-                    <!--<v-btn v-if="isAdmin"
-                        class="green darken-2 white--text"
-                        @click="onShowAggregatePopup"
-                    >
-                        Aggregate Data
-                    </v-btn>-->
                     <v-flex xs1></v-flex>
                 </v-tabs>
                 <v-tabs-items v-model="tab">
@@ -32,6 +25,7 @@
                                     <v-flex xs6>
                                         <v-layout>
                                             <v-text-field
+                                                id="Scenarios-searchScenarios-textField"
                                                 type="text"
                                                 placeholder="Search in scenarios"
                                                 prepend-inner-icon=$vuetify.icons.ghd-search
@@ -44,7 +38,8 @@
                                                 class="ghd-text-field-border ghd-text-field search-icon-general"
                                             >
                                             </v-text-field>
-                                            <v-btn style="margin-top: 2px;" 
+                                            <v-btn id="Scenarios-performSearch-button" 
+                                                style="margin-top: 2px;" 
                                                 class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' 
                                                 outline 
                                                 @click="onMineSearchClick()">
@@ -53,8 +48,9 @@
                                         </v-layout>
                                     </v-flex>
                                     <v-flex xs4></v-flex>
-                                    <v-flex class="justify-end xs2">
+                                    <v-layout class="flex-end xs2" style="justify-content: end; padding-right: 70px">
                                         <v-btn
+                                           id="Scenarios-createScenario-btn"
                                             @click="
                                                 showCreateScenarioDialog = true
                                             "
@@ -62,9 +58,10 @@
                                         >
                                             Create new scenario
                                         </v-btn>
-                                    </v-flex>
+                                    </v-layout>
                                 </v-card-title>
                                 <v-data-table
+                                    id="Scenarios-scenarios-datatable"
                                     :items="currentUserScenariosPage"                      
                                     :totalItems="totalUserScenarios"
                                     :pagination.sync="userScenariosPagination"
@@ -159,6 +156,7 @@
                                                     }"
                                                 >
                                                     <v-btn
+                                                        id="Scenarios-actionMenu-vbtn"
                                                         color="green--text darken-1"
                                                         icon
                                                         v-bind="attrs"
@@ -208,6 +206,7 @@
                                     <v-flex xs6>
                                         <v-layout>
                                             <v-text-field
+                                                id="Scenarios-shared-searchScenarios-textField"
                                                 label="Search"
                                                 placeholder="Search in scenarios"
                                                 outline
@@ -221,6 +220,7 @@
                                             >
                                             </v-text-field>
                                             <v-btn style="margin-top: 2px;" 
+                                                id="Scenarios-shared-performSearch-button"
                                                 class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' 
                                                 outline 
                                                 @click="onSharedSearchClick()">
@@ -322,6 +322,7 @@
                                                     }"
                                                 >
                                                     <v-btn
+                                                        id="Scenarios-shared-actionMenu-vbtn"
                                                         color="green--text darken-1"
                                                         icon
                                                         v-bind="attrs"
@@ -363,10 +364,10 @@
                         <v-flex xs12>
                             <v-card elevation="5">
                                 <v-data-table
-                                    :headers="simulationQueueGridHeaders"
-                                    :items="currentSimulationQueuePage"
+                                    :headers="workQueueGridHeaders"
+                                    :items="currentWorkQueuePage"
                                     :totalItems="totalQueuedSimulations"
-                                    :pagination.sync="simulationQueuePagination"
+                                    :pagination.sync="workQueuePagination"
                                     sort-icon=$vuetify.icons.ghd-table-sort
                                 >                           
                                     <template slot="items" slot-scope="props">
@@ -374,6 +375,7 @@
                                         <td>
                                             {{ props.item.name }}
                                         </td>
+                                        <td>{{props.item.workDescription}}</td>
                                         <td>
                                             {{
                                                 props.item.queueingUser
@@ -389,7 +391,7 @@
                                         </td>
                                         <td>{{ props.item.currentRunTime }}</td>
                                         <td>{{ props.item.previousRunTime }}</td>
-                                        <td>{{ props.item.status }}</td>
+                                        <td>{{ props.item.status }}</td>  
                                         <td>
                                             <v-menu offset-x left>
                                                 <template
@@ -409,9 +411,9 @@
                                                 </template>
 
                                                 <v-list>
-                                                    <v-list-tile v-for="(item,i) in actionItemsForSimulationQueue"
+                                                    <v-list-tile v-for="(item,i) in actionItemsForWorkQueue"
                                                         :key="i"
-                                                        @click="OnSimulationQueueActionTaken(item.action,props.item)"
+                                                        @click="OnWorkQueueActionTaken(item.action,props.item)"
                                                         class="menu-style">
                                                         <v-list-tile-title icon>                                                        
                                                             <img style="padding-right:5px" v-bind:src="item.icon"/>
@@ -423,7 +425,7 @@
                                         </td>
                                     </template>                                         
                                     <template slot="no-data">
-                                        {{ getEmptySimulationQueueMessage() }}
+                                        {{ getEmptyWorkQueueMessage() }}
                                     </template>
                                 </v-data-table>
                             </v-card>
@@ -432,11 +434,6 @@
                 </v-tabs-items>
             </v-card>
         </v-flex>
-
-        <!--    <CreateNetworkDialog :showDialog="showCreateNetworkDialog" @submit="onCreateNetworkDialogSubmit"/>-->
-
-        <!--    <ConfirmRollupAlert :dialogData="confirmRollupAlertData" @submit="onConfirmRollupAlertSubmit"/>-->
-
         <ConfirmAnalysisRunAlert
             :dialogData="confirmAnalysisRunAlertData"
             @submit="onConfirmAnalysisRunAlertSubmit"
@@ -508,8 +505,8 @@ import {
     ScenarioActions,
     TabItems,
     ScenarioUser,
-    emptySimulation,
-    QueuedSimulation,
+    emptyQueuedWork,
+    QueuedWork,
 } from '@/shared/models/iAM/scenario';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
@@ -525,7 +522,7 @@ import { CloneScenarioDialogData, emptyCloneScenarioDialogData } from '@/shared/
 import CreateScenarioDialog from '@/components/scenarios/scenarios-dialogs/CreateScenarioDialog.vue';
 import ShareScenarioDialog from '@/components/scenarios/scenarios-dialogs/ShareScenarioDialog.vue';
 import { Network } from '@/shared/models/iAM/network';
-import { any, clone, find, findIndex, isNil, propEq, update } from 'ramda';
+import { any, clone, isNil } from 'ramda';
 import { getUserName } from '@/shared/utils/get-user-info';
 import {
     InputValidationRules,
@@ -545,6 +542,7 @@ import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 import { FileInfo } from '@/shared/models/iAM/file-info';
+import { queuedWorkStatusUpdate } from '@/shared/models/iAM/queuedWorkStatusUpdate';
 import { ImportExportCommittedProjectsDialogResult } from '@/shared/models/modals/import-export-committed-projects-dialog-result';
 import FileDownload from 'js-file-download';
 import ImportExportCommittedProjectsDialog from './scenarios-dialogs/ImportExportCommittedProjectsDialog.vue';
@@ -552,7 +550,7 @@ import GhdStarSvg from '@/shared/icons/GhdStarSvg.vue';
 import GhdShareSvg from '@/shared/icons/GhdShareSvg.vue';
 import GhdQueueSvg from '@/shared/icons/GhdQueueSvg.vue';
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
-import { PagingPage, PagingRequest } from '@/shared/models/iAM/paging';
+import { PagingRequest } from '@/shared/models/iAM/paging';
 import ScenarioService from '@/services/scenario.service';
 
 @Component({
@@ -580,11 +578,11 @@ import ScenarioService from '@/services/scenario.service';
 export default class Scenarios extends Vue {
     @State(state => state.networkModule.networks) stateNetworks: Network[];
     @State(state => state.scenarioModule.scenarios) stateScenarios: Scenario[];
-    @State(state => state.scenarioModule.simulationQueue) stateSimulationQueue: QueuedSimulation[];
+    @State(state => state.scenarioModule.workQueue) stateWorkQueue: QueuedWork[];
 
     @State(state => state.scenarioModule.currentSharedScenariosPage) stateSharedScenariosPage: Scenario[];
     @State(state => state.scenarioModule.currentUserScenarioPage) stateUserScenariosPage: Scenario[];
-    @State(state => state.scenarioModule.currentSimulationQueuePage) stateSimulationQueuePage: QueuedSimulation[];
+    @State(state => state.scenarioModule.currentWorkQueuePage) stateWorkQueuePage: QueuedWork[];
 
     @State(state => state.scenarioModule.totalSharedScenarios) stateTotalSharedScenarios: number;
     @State(state => state.scenarioModule.totalUserScenarios) stateTotalUserScenarios: number;
@@ -605,7 +603,7 @@ export default class Scenarios extends Vue {
     @Action('addInfoNotification') addInfoNotificationAction: any;
     @Action('getScenarios') getScenariosAction: any;
     @Action('getSharedScenariosPage') getSharedScenariosPageAction: any;
-    @Action('getSimulationQueuePage') getSimulationQueuePageAction: any;
+    @Action('getWorkQueuePage') getWorkQueuePageAction: any;
     @Action('getUserScenariosPage') getUserScenariosPageAction: any;
     @Action('createScenario') createScenarioAction: any;
     @Action('cloneScenario') cloneScenarioAction: any;
@@ -621,11 +619,9 @@ export default class Scenarios extends Vue {
     updateSimulationReportDetailAction: any;
     @Action('updateNetworkRollupDetail') updateNetworkRollupDetailAction: any;
     @Action('selectScenario') selectScenarioAction: any;
-
-    //@Action('rollupNetwork') rollupNetworkAction: any;
-    //@Action('createNetwork') createNetworkAction: any;
     @Action('upsertBenefitQuantifier') upsertBenefitQuantifierAction: any;
     @Action('aggregateNetworkData') aggregateNetworkDataAction: any;
+    @Action('updateQueuedWorkStatus') updateQueuedWorkStatusAction: any;
 
     networks: Network[] = [];
     scenarioGridHeaders: DataTableHeader[] = [
@@ -726,7 +722,7 @@ export default class Scenarios extends Vue {
             width: '',
         },
     ];
-    simulationQueueGridHeaders: DataTableHeader[] = [
+    workQueueGridHeaders: DataTableHeader[] = [
         {
             text: 'Queue Position',
             value: 'queuePosition',
@@ -736,8 +732,16 @@ export default class Scenarios extends Vue {
             width: '',
         },        
         {
-            text: 'Scenario',
+            text: 'Name',
             value: 'name',
+            align: 'left',
+            sortable: true,
+            class: 'header-border',
+            width: '',
+        },
+        {
+            text: 'Description',
+            value: 'workDescription',
             align: 'left',
             sortable: true,
             class: 'header-border',
@@ -811,7 +815,7 @@ export default class Scenarios extends Vue {
 
     actionItems: ScenarioActions[] = [];
     actionItemsForSharedScenario: ScenarioActions[] = [];
-    actionItemsForSimulationQueue: ScenarioActions[] = [];
+    actionItemsForWorkQueue: ScenarioActions[] = [];
     tabItems: TabItems[] = [];
     tab: string = '';
     availableActions: any;
@@ -830,13 +834,13 @@ export default class Scenarios extends Vue {
     sharedScenariosPagination:  Pagination = clone(emptyPagination);    
     totalSharedScenarios: number = 0;
 
-    simulationQueue: QueuedSimulation[] = [];
-    currentSimulationQueuePage: QueuedSimulation[] = [];
-    simulationQueuePagination: Pagination = clone(emptyPagination);
+    workQueue: QueuedWork[] = [];
+    currentWWorkQueuePage: QueuedWork[] = [];
+    workQueuePagination: Pagination = clone(emptyPagination);
     totalQueuedSimulations: number = 0;
 
     initializing: boolean = true;
-    initializingSimulationQueue: boolean = true;
+    initializingWorkQueue: boolean = true;
     searchMine: string = '';
     currentSearchMine: string = '';
     searchShared: string = '';
@@ -858,13 +862,14 @@ export default class Scenarios extends Vue {
     confirmCancelAlertData: AlertData = clone(emptyAlertData);
     showCreateScenarioDialog: boolean = false;
     selectedScenario: Scenario = clone(emptyScenario);
-    selectedSimulation: QueuedSimulation = clone(emptySimulation);
+    selectedQueuedWork: QueuedWork = clone(emptyQueuedWork);
     networkDataAssignmentStatus: string = '';
     rules: InputValidationRules = rules;
     showMigrateLegacySimulationDialog: boolean = false;
     showImportExportCommittedProjectsDialog: boolean = false;
     alertDataForDeletingCommittedProjects: AlertData = { ...emptyAlertData };
     selectedScenarioId: string = "";
+    currentWorkQueuePage: QueuedWork[] = [];
 
     aggragateDialogData: any = { showDialog: false };
 
@@ -881,9 +886,9 @@ export default class Scenarios extends Vue {
         this.scenarios = clone(this.stateScenarios);
     }
 
-    @Watch('stateSimulationQueue', {deep: true})
-    onStateSimulationQueueChanged() {
-        this.simulationQueue = clone(this.stateSimulationQueue);
+    @Watch('stateWorkQueue', {deep: true})
+    onStateworkQueueChanged() {
+        this.workQueue = clone(this.stateWorkQueue);
     }
 
     @Watch('stateSharedScenariosPage', {deep: true}) onStateSharedScenariosPageChanged(){
@@ -906,8 +911,8 @@ export default class Scenarios extends Vue {
         this.setTabTotals();
     }
     
-    @Watch('stateSimulationQueuePage', {deep: true}) onStateSimulationQueuePageChanged(){
-        this.currentSimulationQueuePage = clone(this.stateSimulationQueuePage);
+    @Watch('stateWorkQueuePage', {deep: true}) onStateWorkQueuePageChanged(){
+        this.currentWorkQueuePage = clone(this.stateWorkQueuePage);
     }
     @Watch('stateTotalQueuedSimulations') onStateTotalQueuedSimulations(){
         this.totalQueuedSimulations = this.stateTotalQueuedSimulations;
@@ -924,11 +929,12 @@ export default class Scenarios extends Vue {
         const request: PagingRequest<Scenario>= {
             page: page,
             rowsPerPage: rowsPerPage,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false,
             },           
             sortColumn: sortBy != null ? sortBy : '',
             isDescending: descending != null ? descending : false,
@@ -946,11 +952,12 @@ export default class Scenarios extends Vue {
         const request: PagingRequest<Scenario>= {
             page: page,
             rowsPerPage: rowsPerPage,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false,
             },           
             sortColumn: sortBy != null ? sortBy : '',
             isDescending: descending != null ? descending : false,
@@ -969,11 +976,12 @@ export default class Scenarios extends Vue {
         const request: PagingRequest<Scenario>= {
             page: page,
             rowsPerPage: rowsPerPage,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false,
             },           
             sortColumn: sortBy != null ? sortBy : '',
             isDescending: descending != null ? descending : false,
@@ -986,29 +994,30 @@ export default class Scenarios extends Vue {
             });
     }
 
-    @Watch('simulationQueuePagination') onSimulationQueuePagination() {
-        this.doSimulationQueuePagination();
+    @Watch('workQueuePagination') onWorkQueuePagination() {
+        this.doWorkQueuePagination();
     }
 
-    doSimulationQueuePagination() {
-        if(this.initializingSimulationQueue)
+    doWorkQueuePagination() {
+        if(this.initializingWorkQueue)
             return;
-        const { sortBy, descending, page, rowsPerPage } = this.simulationQueuePagination;
+        const { sortBy, descending, page, rowsPerPage } = this.workQueuePagination;
 
-        const simulationQueueRequest: PagingRequest<QueuedSimulation>= {
+        const workQueueRequest: PagingRequest<QueuedWork>= {
             page: page,
             rowsPerPage: rowsPerPage,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false,
             },           
             sortColumn: sortBy != null ? sortBy : '',
             isDescending: descending != null ? descending : false,
             search: ""
         };
-        this.getSimulationQueuePageAction(simulationQueueRequest);    
+        this.getWorkQueuePageAction(workQueueRequest);    
     }
 
     mounted() {
@@ -1017,11 +1026,6 @@ export default class Scenarios extends Vue {
             this.initializeScenarioPages();
         } 
         
-
-        // this.$statusHub.$on(
-        //     Hub.BroadcastEventType.BroadcastAssignDataStatusEvent,
-        //     this.getDataAggregationStatus,
-        // );
         this.$statusHub.$on(
             Hub.BroadcastEventType.BroadcastDataMigrationEvent,
             this.getDataMigrationStatus,
@@ -1030,6 +1034,15 @@ export default class Scenarios extends Vue {
             Hub.BroadcastEventType.BroadcastSimulationAnalysisDetailEvent,
             this.getScenarioAnalysisDetailUpdate,
         );
+        this.$statusHub.$on(
+            Hub.BroadcastEventType.BroadcastWorkQueueUpdateEvent,
+            this.updateWorkQueue,
+        );
+        this.$statusHub.$on(
+            Hub.BroadcastEventType.BroadcastWorkQueueStatusUpdateEvent,
+            this.getWorkQueueUpdate,
+        );
+        
         this.$statusHub.$on(
             Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent,
             this.getReportStatus,
@@ -1092,9 +1105,9 @@ export default class Scenarios extends Vue {
                 isCustomIcon: true
             }           
         ];
-        this.actionItemsForSimulationQueue = [
+        this.actionItemsForWorkQueue = [
              {
-                title: 'Cancel Analysis',
+                title: 'Cancel Work',
                 action: this.availableSimulationActions.cancel,
                 icon: require("@/assets/icons/x-circle.svg"),
                 isCustomIcon: true
@@ -1110,7 +1123,7 @@ export default class Scenarios extends Vue {
         this.tabItems.push(
             { name: 'My scenarios', icon: require("@/assets/icons/star-empty.svg"), count: this.totalUserScenarios },
             { name: 'Shared with me', icon: require("@/assets/icons/share-empty.svg"), count: this.totalSharedScenarios },
-            { name: 'Simulation queue', icon: require("@/assets/icons/queue.svg"), count: this.totalQueuedSimulations },
+            { name: 'General work queue', icon: require("@/assets/icons/queue.svg"), count: this.totalQueuedSimulations },
         );
         this.tab = 'My scenarios';
     }
@@ -1125,6 +1138,14 @@ export default class Scenarios extends Vue {
             this.getScenarioAnalysisDetailUpdate,
         );
         this.$statusHub.$off(
+            Hub.BroadcastEventType.BroadcastWorkQueueUpdateEvent,
+            this.updateWorkQueue,
+        );
+        this.$statusHub.$off(
+            Hub.BroadcastEventType.BroadcastWorkQueueStatusUpdateEvent,
+            this.getWorkQueueUpdate,
+        );
+        this.$statusHub.$off(
             Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent,
             this.getReportStatus,
         );
@@ -1136,24 +1157,26 @@ export default class Scenarios extends Vue {
         const request: PagingRequest<Scenario> = {
             page: 1,
             rowsPerPage: 5,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false,
             },           
             sortColumn: '',
             isDescending: false,
             search: ''
         };
-        const simulationQueueRequest: PagingRequest<QueuedSimulation> = {
+        const workQueueRequest: PagingRequest<QueuedWork> = {
             page: 1,
             rowsPerPage: 5,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false
             },           
             sortColumn: '',
             isDescending: false,
@@ -1161,15 +1184,15 @@ export default class Scenarios extends Vue {
         };        
         this.getSharedScenariosPageAction(request).then(() =>
         this.getUserScenariosPageAction(request).then(() =>
-        this.getSimulationQueuePageAction(simulationQueueRequest).then(() => {
+        this.getWorkQueuePageAction(workQueueRequest).then(() => {
             this.initializing = false;
-            this.initializingSimulationQueue = false;
+            this.initializingWorkQueue = false;
             this.totalUserScenarios = this.stateTotalUserScenarios;
             this.totalSharedScenarios = this.stateTotalSharedScenarios;
             this.totalQueuedSimulations = this.stateTotalQueuedSimulations;
             this.currentUserScenariosPage = clone(this.stateUserScenariosPage);
             this.currentSharedScenariosPage = clone(this.stateSharedScenariosPage);
-            this.currentSimulationQueuePage = clone(this.stateSimulationQueuePage);
+            this.currentWorkQueuePage = clone(this.stateWorkQueuePage);
         }))); 
     }
 
@@ -1196,33 +1219,6 @@ export default class Scenarios extends Vue {
         );
     }
 
-    /*onShowConfirmRollupAlert() {
-      this.confirmRollupAlertData = {
-        showDialog: true,
-        heading: 'Warning',
-        choice: true,
-        message: 'The rollup can take around 5 minutes to finish. Continue?'
-      }
-    }
-
-    onConfirmRollupAlertSubmit(submit: boolean) {
-      this.confirmRollupAlertData = clone(emptyAlertData);
-
-      if (submit) {
-        this.rollupNetworkAction({
-          networkId: this.networks[0].id,
-        });
-      }
-    }*/
-
-    /*onCreateNetworkDialogSubmit(network: Network) {
-      this.showCreateNetworkDialog = false;
-
-      if (!isNil(network)) {
-        this.createNetworkAction({network: network});
-      }
-    }*/
-
     // TODO: update to send no payload when API is modified to migrate ALL simulations
     onStartDataMigration() {
         // the legacy scenario id is hardcoded to our test scenario "JML Run District 8"
@@ -1235,7 +1231,7 @@ export default class Scenarios extends Vue {
         scenario.name = name;
         if (hasValue(scenario.name)) {
             this.updateScenarioAction({ scenario: scenario }).then(() => {
-                if(this.tab == 0)
+                if(this.tab == '0')
                     this.onUserScenariosPagination();
                 else
                     this.onSharedScenariosPagination();
@@ -1295,7 +1291,6 @@ export default class Scenarios extends Vue {
     }
 
     onShowReportsDownloaderDialog(scenario: Scenario) {
-        console.log(scenario.networkId);
         this.reportsDownloaderDialogData = {
             showModal: true,
             scenarioId: scenario.id,
@@ -1382,7 +1377,7 @@ export default class Scenarios extends Vue {
                 scenarioId: this.selectedScenario.id,
             }).then(() => {
                 this.selectedScenario = clone(emptyScenario)
-                if(this.tab == 0)
+                if(this.tab == '0')
                     this.onUserScenariosPagination();
                 else
                     this.onSharedScenariosPagination();
@@ -1417,14 +1412,14 @@ export default class Scenarios extends Vue {
     }
 
 
-    onShowConfirmCancelAlert(simulation: QueuedSimulation) {
-        this.selectedSimulation = clone(simulation);
+    onShowConfirmCancelAlert(simulation: QueuedWork) {
+        this.selectedQueuedWork = clone(simulation);
 
         this.confirmCancelAlertData = {
             showDialog: true,
             heading: 'Warning',
             choice: true,
-            message: 'Are you sure you want to cancel the analysis?',
+            message: 'Are you sure you want to cancel this process?',
         };
     }
 
@@ -1435,9 +1430,8 @@ export default class Scenarios extends Vue {
             this.deleteScenarioAction({
                 scenarioId: this.selectedScenario.id,
                 scenarioName: this.selectedScenario.name,
-            }).then(() => {
-                this.selectedScenario = clone(emptyScenario);              
-                this.onScenariosPagination();
+            }).then(async () => {
+                this.selectedScenario = clone(emptyScenario); 
             });
         }
     }
@@ -1445,12 +1439,11 @@ export default class Scenarios extends Vue {
     onConfirmCancelAlertSubmit(submit: boolean) {
         this.confirmCancelAlertData = clone(emptyAlertData);
 
-        if (submit && this.selectedSimulation.id !== getBlankGuid()) {
+        if (submit && this.selectedQueuedWork.id !== getBlankGuid()) {
             this.cancelSimulationAction({
-                simulationId: this.selectedSimulation.id,
+                simulationId: this.selectedQueuedWork.id,
             }).then(() => {
-                this.selectedSimulation = clone(emptySimulation);
-                //this.onSimulationQueuePagination();
+                this.selectedQueuedWork = clone(emptyQueuedWork);
             });
         }
     }
@@ -1479,16 +1472,32 @@ export default class Scenarios extends Vue {
         this.updateSimulationAnalysisDetailAction({
             simulationAnalysisDetail: data.simulationAnalysisDetail,
         });
+        const updatedQueueItem: queuedWorkStatusUpdate = {
+            id: data.simulationAnalysisDetail.simulationId,
+            status: data.simulationAnalysisDetail.status
+        }
+        this.updateQueuedWorkStatusAction({
+            workQueueStatusUpdate: updatedQueueItem
+        })                            
+    }
+
+    getWorkQueueUpdate(data: any) {
+            var updatedQueueItem = data.queueItem as queuedWorkStatusUpdate
+            if(isNil(updatedQueueItem))
+                return;
+            var queueItem = this.stateWorkQueuePage.find(_ => _.id === updatedQueueItem.id)
+            if(!isNil(queueItem)){
+                this.updateQueuedWorkStatusAction({
+                    workQueueStatusUpdate: updatedQueueItem
+                })
+            }                                
+    }
+
+    updateWorkQueue(data: any) {
         (async () => { 
-            if ((data.simulationAnalysisDetail.status == "Queued to run.") ||
-                (data.simulationAnalysisDetail.status == "Getting simulation analysis network") ||
-                (data.simulationAnalysisDetail.status == "Simulation complete. 100%") ||
-                (data.simulationAnalysisDetail.status == "Canceled"))
-            {
-                await this.delay(1000);
-                this.doSimulationQueuePagination();
-            }
-        })();                            
+            await this.delay(1000);
+                this.doWorkQueuePagination();
+            })();
     }
 
     getReportStatus(data: any) {
@@ -1632,17 +1641,15 @@ export default class Scenarios extends Vue {
                 if (this.canModifySharedScenario(scenarioUsers) || isOwner) {
                     this.onNavigateToCommittedProjectView(scenario);
                 }
-                // this.selectedScenarioId = scenario.id;
-                // this.showImportExportCommittedProjectsDialog = true;
                 break;
             case this.availableActions.convert:
                 this.onShowConfirmConvertJsonToRelationalAlert(scenario);
         }
     }
 
-    OnSimulationQueueActionTaken(
+    OnWorkQueueActionTaken(
         action: string,
-        simulation: QueuedSimulation,
+        simulation: QueuedWork,
     ) {
         switch (action) {
             case this.availableSimulationActions.cancel:
@@ -1707,7 +1714,7 @@ export default class Scenarios extends Vue {
         })
     }
 
-    getEmptySimulationQueueMessage()
+    getEmptyWorkQueueMessage()
     {
         if (this.totalSharedScenarios == 0 &&
             this.totalUserScenarios == 0 &&
@@ -1716,7 +1723,7 @@ export default class Scenarios extends Vue {
             return "Retrieving data..."
         }
         else {
-            return "No running simulations"
+            return "No queued work"
         }
     }
 }

@@ -22,22 +22,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             _pavementWorkSummaryComputationHelper = new PavementWorkSummaryComputationHelper();
         }
 
-
-        private void AddSegmentMilesForBPN(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialSectionSummaries, BPNName bpn)
-        {
-            var bpnKey = bpn.ToMatchInDictionary();
-                        
-            var excellentMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(initialSectionSummaries, bpnKey, _ => _.OpiConditionIsExcellent());
-            var goodMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(initialSectionSummaries, bpnKey, _ => _.OpiConditionIsGood());
-            var fairMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(initialSectionSummaries, bpnKey, _ => _.OpiConditionIsFair());
-            var poorMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(initialSectionSummaries, bpnKey, _ => _.OpiConditionIsPoor());
-                        
-            worksheet.Cells[row++, column].Value = excellentMiles;
-            worksheet.Cells[row++, column].Value = goodMiles;
-            worksheet.Cells[row++, column].Value = fairMiles;
-            worksheet.Cells[row++, column].Value = poorMiles;
-        }
-
         private void AddSegmentMilesForBPN(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails, BPNName bpn)
         {
             var bpnKey = bpn.ToMatchInDictionary();
@@ -100,11 +84,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ChartRowsModel chartRowsModel
             )
         {
-            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Segment Miles BPN 1", chartRowsModel.OPI_BPN_1_ChartModel, BPNName.BPN1);
-            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Segment Miles BPN 2", chartRowsModel.OPI_BPN_2_ChartModel, BPNName.BPN2);
-            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Segment Miles BPN 3", chartRowsModel.OPI_BPN_3_ChartModel, BPNName.BPN3);
-            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Segment Miles BPN 4", chartRowsModel.OPI_BPN_4_ChartModel, BPNName.BPN4);
-            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Segment Miles Statewide", chartRowsModel.OPI_StateWide_ChartModel, BPNName.Statewide);
+            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles BPN 1", chartRowsModel.OPI_BPN_1_ChartModel, BPNName.BPN1);
+            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles BPN 2", chartRowsModel.OPI_BPN_2_ChartModel, BPNName.BPN2);
+            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles BPN 3", chartRowsModel.OPI_BPN_3_ChartModel, BPNName.BPN3);
+            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles BPN 4", chartRowsModel.OPI_BPN_4_ChartModel, BPNName.BPN4);
+            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles Statewide", chartRowsModel.OPI_StateWide_ChartModel, BPNName.Statewide);
 
 
             return chartRowsModel;

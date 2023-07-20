@@ -11,6 +11,13 @@ using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Network = AppliedResearchAssociates.iAM.Data.Networking.Network;
+using AppliedResearchAssociates.iAM.Data.Networking;
+using System.Threading;
+using AppliedResearchAssociates.iAM.Hubs.Interfaces;
+using AppliedResearchAssociates.iAM.Hubs.Services;
+using AppliedResearchAssociates.iAM.Hubs;
+using AppliedResearchAssociates.iAM.Common.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -18,8 +25,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
     {
         private readonly UnitOfDataPersistenceWork _unitOfWork;
 
-        public NetworkRepository(UnitOfDataPersistenceWork unitOfWork) => _unitOfWork = unitOfWork ??
-                                         throw new ArgumentNullException(nameof(unitOfWork));
+        public NetworkRepository(UnitOfDataPersistenceWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        } 
 
         public void CreateNetwork(Network network)
         {
@@ -64,9 +73,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             });
         }
 
+        public List<NetworkDTO> GetNetworksByIdsNoChildren(List<Guid> ids)
+        {
+            return _unitOfWork.Context.Network.Where(_ => ids.Contains(_.Id)).Select(_ => _.ToDto(null, _unitOfWork.EncryptionKey)).ToList();
+        }
+
         public NetworkEntity GetMainNetwork()
         {
-            var mainNetworkId = new Guid(_unitOfWork.Config["InventoryData:PrimaryNetwork"]);
+            var mainNetworkId =new Guid(_unitOfWork.Context.AdminSettings.Where(_ => _.Key == "PrimaryNetwork").SingleOrDefault().Value);
 
             if (!_unitOfWork.Context.Network.Any(_ => _.Id == mainNetworkId))
             {
@@ -156,6 +170,63 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.SaveChanges();
         }
 
+        public void DeleteNetwork(Guid networkId, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
+        {
+            try
+            {
+                queueLog ??= new DoNothingWorkQueueLog();
+                _unitOfWork.BeginTransaction();
+                                   
+                if(cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                {
+                    _unitOfWork.Rollback();
+                    return;
+                }
+                queueLog.UpdateWorkQueueStatus("Deleting Benefit Quantifier");
+
+                _unitOfWork.BenefitQuantifierRepo.DeleteBenefitQuantifier(networkId);
+                                   
+                if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                {
+                    _unitOfWork.Rollback();
+                    return;
+                }
+                queueLog.UpdateWorkQueueStatus("Deleting Simulations");
+
+                _unitOfWork.SimulationRepo.DeleteSimulationsByNetworkId(networkId);
+
+                if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                {
+                    _unitOfWork.Rollback();
+                    return;
+                }
+
+                var primaryNetwork = _unitOfWork.AdminSettingsRepo.GetPrimaryNetwork();
+                if(primaryNetwork != null && primaryNetwork == GetNetworkName(networkId))
+                {
+                    _unitOfWork.AdminSettingsRepo.DeleteAdminSetting(AdminSettingsRepository.primaryNetworkKey);
+                }
+
+                queueLog.UpdateWorkQueueStatus("Deleting Maintainable Assets");
+
+                _unitOfWork.Context.DeleteEntity<NetworkEntity>(_ => _.Id == networkId);
+                
+
+                if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                {
+                    _unitOfWork.Rollback();
+                    return;
+                }
+
+                _unitOfWork.Commit();
+            }
+            catch (Exception e)
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
+        }
+
         public void UpsertNetworkRollupDetail(Guid networkId, string status)
         {
             if (!_unitOfWork.Context.Network.Any(_ => _.Id == networkId))
@@ -173,6 +244,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         {
             var entity = _unitOfWork.Context.Network.SingleOrDefault(n => n.Id == networkId);
             return entity.Name;
+        }
+
+        public string GetNetworkKeyAttribute(Guid networkId)
+        {
+            var entity = _unitOfWork.Context.Network.Where(_ => _.Id == networkId).Select(_ => _.KeyAttributeId).FirstOrDefault();
+            if (entity == default)
+            {
+                throw new RowNotInTableException("The specified network was not found.");
+            }
+
+            return _unitOfWork.AttributeRepo.GetAttributeName(entity);
         }
     }
 }

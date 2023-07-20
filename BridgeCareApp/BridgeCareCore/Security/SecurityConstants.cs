@@ -54,6 +54,7 @@
             public const string DeleteSimulation = "DeleteSimulation";
             public const string UpdateSimulation = "UpdateSimulation";
             public const string RunSimulation = "RunSimulation";
+            public const string CloneSimulation = "CloneSimulation";
             public const string ViewBudgetPriorityFromLibrary = "ViewBudgetPriorityFromLibrary";
             public const string ModifyBudgetPriorityFromLibrary = "ModifyBudgetPriorityFromLibrary";
             public const string DeleteBudgetPriorityFromLibrary = "DeleteBudgetPriorityFromLibrary";
@@ -68,6 +69,8 @@
             public const string ImportCommittedProjects = "ImportCommittedProjects";
             public const string ModifyCommittedProjects = "ModifyCommittedProjects";
             public const string ViewCommittedProjects = "ViewCommittedProjects";
+            public const string UseGraphQL = "UseGraphQL";
+            public const string ModifyAdminSiteSettings = "ModifyAdminSiteSettings";
         }
 
         public static class Role
@@ -88,10 +91,12 @@
             public const string DataSourceViewAccess = "DataSourceViewAccess";
             public const string NetworkAggregateAccess = "NetworkAggregateAccess";
             public const string NetworkAddAccess = "NetworkAddAccess";
+            public const string NetworkDeleteAccess = "NetworkDeleteAccess";
             public const string NetworkViewAccess = "NetworkViewAccess";
             public const string SimulationUpdateAnyAccess = "SimulationUpdateAnyAccess";
             public const string SimulationDeleteAnyAccess = "SimulationDeleteAnyAccess";
             public const string SimulationRunAnyAccess = "SimulationRunAnyAccess";
+            public const string SimulationCloneAnyAccess = "SimulationCloneAnyAccess";
             public const string SimulationViewAnyAccess = "SimulationViewAnyAccess";
             public const string AnnouncementModifyAccess = "AnnouncementModifyAccess";
             public const string AnnouncementViewAccess = "AnnouncementViewAccess";
@@ -158,6 +163,7 @@
             public const string SimulationUpdatePermittedAccess = "SimulationUpdatePermittedAccess";
             public const string SimulationDeletePermittedAccess = "SimulationDeletePermittedAccess";
             public const string SimulationRunPermittedAccess = "SimulationRunPermittedAccess";
+            public const string SimulationClonePermittedAccess = "SimulationClonePermittedAccess";
             public const string SimulationViewPermittedAccess = "SimulationViewPermittedAccess";
             public const string BudgetPriorityAddPermittedFromLibraryAccess = "BudgetPriorityAddPermittedFromLibraryAccess";
             public const string BudgetPriorityUpdatePermittedFromLibraryAccess = "BudgetPriorityUpdatePermittedFromLibraryAccess";
@@ -214,6 +220,9 @@
             public const string CommittedProjectViewPermittedAccess = "CommittedProjectViewPermittedAccess";
             public const string AdminAccess = "AdminAccess";
             public const string SimulationAccess = "SimulationAccess";
+            public const string UseAnyGraphQLAccess = "UseAnyGraphQLAccess";
+            public const string UsePermittedGraphQLAccess = "UsePermittedGraphQLAccess";
+            public const string AdminSiteSettingsAccess = "AdminSiteSettingsAccess";
         }
     }
 }

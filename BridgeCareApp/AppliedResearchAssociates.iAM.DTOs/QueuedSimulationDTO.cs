@@ -1,8 +1,9 @@
 ﻿using System;
+using AppliedResearchAssociates.iAM.DTOs.Enums;
 
 namespace AppliedResearchAssociates.iAM.DTOs
 {
-    public class QueuedSimulationDTO
+    public class QueuedWorkDTO
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
@@ -13,5 +14,8 @@ namespace AppliedResearchAssociates.iAM.DTOs
         public string CurrentRunTime { get; set; }
         public string PreviousRunTime { get; set; }
         public int QueuePosition { get; set; }
+        public string WorkDescription { get; set; }
+        public WorkType WorkType { get; set; }
+        public DomainType DomainType { get; set; }
     }
 }

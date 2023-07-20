@@ -13,18 +13,24 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public MaintainableAssetDataRepository(UnitOfDataPersistenceWork uow)
         {
-            // TODO:  Switch this to be non-PennDOT specific.  It should take in an array
-            // of strings that name the key values and build KeyProperties
-
             _unitOfWork = uow;
             var network = _unitOfWork.NetworkRepo.GetMainNetwork();
-            var keyDatumFieldNames = _unitOfWork.Config.GetSection("InventoryData:KeyProperties").GetChildren()
-                .Select(_ => _.Value).ToList();
+            var keyDatumFieldNames = _unitOfWork.AdminSettingsRepo.GetKeyFields();
             var keyDatumFields = _unitOfWork.Context.Attribute
                 .Where(_ => keyDatumFieldNames.Contains(_.Name))
                 .Select(_ => new {_.Id, _.Name, Type = _.DataType})
                 .ToList();
-
+            var keyDatumFieldsNetwork = _unitOfWork.Context.Attribute
+                .Where(_ => _.Id == network.KeyAttributeId )
+                .Select(_ => new { _.Id, _.Name, Type = _.DataType })
+                .ToList();
+            foreach(var keyDatumField in keyDatumFieldsNetwork)
+            {
+                if (!keyDatumFields.Contains(keyDatumField))
+                {
+                    keyDatumFields.Add(keyDatumField);
+                }
+            }
             KeyProperties = new Dictionary<string, List<KeySegmentDatum>>();
             foreach (var attribute in keyDatumFields)
             {
@@ -93,6 +99,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
             return returnValueList;
         }
+
         public Dictionary<int, SegmentAttributeDatum> GetAttributeValueHistory(string keyName, string keyValue, string attribute)
         {
             // Check for the existence of the given key

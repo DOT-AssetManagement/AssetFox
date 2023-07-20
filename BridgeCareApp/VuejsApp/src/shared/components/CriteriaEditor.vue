@@ -42,6 +42,7 @@
                                 </v-layout>
                             </v-flex>
                                 <v-btn
+                                    id="CriteriaEditor-addSubCriteria-btn"
                                     @click="onAddSubCriteria"
                                     class="ghd-white-bg ghd-blue ghd-button-text ghd-outline-button-padding ghd-button ghd-button-border"    
                                     depressed                                
@@ -102,6 +103,7 @@
                             <v-layout>
                                 <div class="validation-check-btn-container">
                                     <v-btn
+                                        id="CriteriaEditor-checkOutput-btn"
                                         :disabled="onDisableCheckOutputButton()"
                                         @click="onCheckCriteria"
                                         class="ghd-white-bg ghd-blue ghd-button-text ghd-outline-button-padding ghd-button ghd-button-border"
@@ -120,6 +122,7 @@
                                         }}</strong>
                                     </p>
                                     <p
+                                        id="CriteriaEditor-validOutput-p"
                                         class="valid-message"
                                         v-if="validCriteriaMessage !== null"
                                     >
@@ -158,14 +161,15 @@
                             <v-tabs class="ghd-control-text" style="margin-left:4px;margin-right:4px;"
                                 v-if="selectedSubCriteriaClauseIndex !== -1"
                             >
-                                <v-tab @click="onParseRawSubCriteria" ripple>
+                                <v-tab @click="onParseRawSubCriteria" ripple  id="CriteriaEditor-treeView-tab">
                                     Tree View
                                 </v-tab>
-                                <v-tab @click="onParseSubCriteriaJson" ripple>
+                                <v-tab @click="onParseSubCriteriaJson" ripple id="CriteriaEditor-rawView-tab">
                                     Raw Criteria
                                 </v-tab>
                                 <v-tab-item>
                                     <vue-query-builder 
+                                        id="CriteriaEditor-criteria-vuequerybuilder"
                                         :labels="queryBuilderLabels"
                                         :maxDepth="25"
                                         :rules="queryBuilderRules"
@@ -177,6 +181,7 @@
                                 </v-tab-item>
                                 <v-tab-item>
                                     <v-textarea
+                                        id="CriteriaEditor-rawText-vtextarea"
                                         no-resize
                                         outline
                                         rows="23"
@@ -213,6 +218,7 @@
                                 </div>        
                                 <div class="validation-check-btn-container" style="height:64px;margin-top:4px;">
                                     <v-btn 
+                                        id="CriteriaEditor-updateSubcriteria-btn"
                                         :disabled="
                                             onDisableCheckCriteriaButton()
                                         "
@@ -236,6 +242,7 @@
             >
                 <v-layout justify-center wrap>
                     <v-btn
+                        id="CriteriaEditor-save-btn"
                         :disabled="cannotSubmit"
                         @click="onSubmitCriteriaEditorResult(true)"
                         class="ara-blue-bg white--text"
@@ -243,6 +250,7 @@
                         Save
                     </v-btn>
                     <v-btn
+                        id="CriteriaEditor-cancel-btn"
                         @click="onSubmitCriteriaEditorResult(false)"
                         class="ara-orange-bg white--text"
                         >Cancel</v-btn
@@ -263,7 +271,6 @@ import {
     CriteriaEditorData,
     CriteriaRule,
     CriteriaType,
-    CriteriaValidationResult,
     emptyCriteria,
 } from '../models/iAM/criteria';
 import {
@@ -297,11 +304,10 @@ import {
     ValidationParameter,
 } from '@/shared/models/iAM/expression-validation';
 import { UserCriteriaFilter } from '../models/iAM/user-criteria-filter';
-import CriteriaCombo from './CriteriaCombo.vue';
 import { getBlankGuid } from '../utils/uuid-utils';
 
 @Component({
-    components: { VueQueryBuilder, CriteriaCombo },
+    components: { VueQueryBuilder },
 })
 export default class CriteriaEditor extends Vue {
     @Prop() criteriaEditorData: CriteriaEditorData;
@@ -784,68 +790,21 @@ export default class CriteriaEditor extends Vue {
             return;
         }
 
-        const validationParameter = {
-            expression: criteria,
-            currentUserCriteriaFilter: this.currentUserCriteriaFilter,
-        } as ValidationParameter;
+        this.subCriteriaClauses = update(
+            this.selectedSubCriteriaClauseIndex,
+            criteria,
+            this.subCriteriaClauses,
+        );
+        this.resetCriteriaValidationProperties();
+        this.checkOutput = true;
+        this.resetSubCriteriaValidationProperties();
 
-                    this.subCriteriaClauses = update(
-                        this.selectedSubCriteriaClauseIndex,
-                        criteria,
-                        this.subCriteriaClauses,
-                    );
-                    this.resetCriteriaValidationProperties();
-                    this.checkOutput = true;
-                    this.resetSubCriteriaValidationProperties();
-
-                    if (this.criteriaEditorData.isLibraryContext) {
-                        this.$emit('submitCriteriaEditorResult', {
-                            validated: false,
-                            criteria: null,
-                        });
-                    }
-
-        // ValidationService.getCriterionValidationResult(
-        //     validationParameter,
-        // ).then((response: AxiosResponse) => {
-        //     this.resetSubCriteriaValidationProperties();
-
-        //     if (hasValue(response, 'data')) {
-        //         const result: CriterionValidationResult = response.data as CriterionValidationResult;
-        //         const message = `${result.resultsCount} result(s) returned`;
-        //         if (result.isValid) {
-        //             this.validSubCriteriaMessage = message;
-        //             this.subCriteriaClauses = update(
-        //                 this.selectedSubCriteriaClauseIndex,
-        //                 criteria,
-        //                 this.subCriteriaClauses,
-        //             );
-        //             this.resetCriteriaValidationProperties();
-        //             this.checkOutput = true;
-
-        //             if (this.criteriaEditorData.isLibraryContext) {
-        //                 this.$emit('submitCriteriaEditorResult', {
-        //                     validated: false,
-        //                     criteria: null,
-        //                 });
-        //             }
-        //         } else {
-        //             if (result.resultsCount === 0) {
-        //                 this.invalidSubCriteriaMessage = message;
-        //                 this.subCriteriaClauses = update(
-        //                     this.selectedSubCriteriaClauseIndex,
-        //                     criteria,
-        //                     this.subCriteriaClauses,
-        //                 );
-        //                 this.resetCriteriaValidationProperties();
-        //                 this.checkOutput = true;
-        //             } else {
-        //                 this.invalidSubCriteriaMessage =
-        //                     result.validationMessage;
-        //             }
-        //         }
-        //     }
-        // });
+        if (this.criteriaEditorData.isLibraryContext) {
+            this.$emit('submitCriteriaEditorResult', {
+                validated: false,
+                criteria: null,
+            });
+        }
     }
 
     getSubCriteriaValueToCheck() {

@@ -23,6 +23,35 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
                 IsCalculated = false,
                 IsAscending = true
             };
+
+
+        public static AttributeDTO Interstate
+            => new()
+            {
+                Id = Guid.Parse("5552b431-05ec-4ea9-92cd-4d663d657262"),
+                Name = TestAttributeNames.Interstate,
+                DefaultValue = "",
+                Type = "STRING",
+                Command = "",
+                AggregationRuleType = "PREDOMINANT",
+                IsCalculated = false,
+                IsAscending = true
+            };
+
+
+        public static AttributeDTO InternetReport
+            => new()
+            {
+                Id = Guid.Parse("4442b431-05ec-4ea9-92cd-4d663d657262"),
+                Name = TestAttributeNames.InternetReport,
+                DefaultValue = "",
+                Type = "STRING",
+                Command = "",
+                AggregationRuleType = "PREDOMINANT",
+                IsCalculated = false,
+                IsAscending = true
+            };
+
         public static AttributeDTO AdtTotal
             => new()
             {
@@ -122,10 +151,27 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
             IsAscending = true
         };
 
+        public static AttributeDTO BrKey
+           => new()
+           {
+               Id = TestAttributeIds.BrKeyId,
+               Name = TestAttributeNames.BrKey,
+               DefaultValue = "0",
+               Type = "NUMBER",
+               Command = "BRKEY",
+               AggregationRuleType = "AVERAGE",
+               IsCalculated = false,
+               IsAscending = true,
+               Minimum = 0,
+               Maximum = 999999
+
+           };
+
+
         public static AttributeDTO CulvDurationN
             => new()
             {
-                Id = Guid.Parse("efca598b-9fca-4e3c-ac48-0d95a9eaa867"),
+                Id = TestAttributeIds.CulvDurationNId,
                 Name = TestAttributeNames.CulvDurationN,
                 DefaultValue = "1",
                 Type = "NUMBER",
@@ -174,5 +220,44 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
                 IsCalculated = false,
                 IsAscending = false
             };
+
+        public static AttributeDTO Text(
+            string name,
+            Guid id)
+        {
+            var dto = new AttributeDTO
+            {
+                AggregationRuleType = "PREDOMINANT",
+                Id = id,
+                IsAscending = true,
+                Command = "",
+                Name = name,
+                Type = AttributeTypeNames.String,
+                DefaultValue = "default attribute value",
+                IsCalculated = false,
+            };
+            return dto;
+        }
+
+
+        public static AttributeDTO Numeric(
+            string name,
+            Guid id)
+        {
+            var dto = new AttributeDTO
+            {
+                AggregationRuleType = "AVERAGE",
+                Id = id,
+                IsAscending = true,
+                Command = "",
+                Name = name,
+                Type = AttributeTypeNames.Number,
+                DefaultValue = "0",
+                Minimum = 0,
+                Maximum = 100,
+                IsCalculated = false,
+            };
+            return dto;
+        }
     }
 }

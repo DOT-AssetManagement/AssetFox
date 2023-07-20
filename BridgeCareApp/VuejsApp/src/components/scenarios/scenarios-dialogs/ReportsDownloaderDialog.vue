@@ -30,7 +30,7 @@
                 @click="onGenerateReport(true)"
                 :disabled="selectedReport === ''"
             >
-                Generate Summary Report
+                Generate Report
             </v-chip>
             <v-divider vertical></v-divider>
             <v-chip color='ara-blue-bg' text-color='white' @click="onDownloadSimulationLog(true)">
@@ -62,15 +62,19 @@ import FileDownload from 'js-file-download';
 import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 import {hasValue} from '@/shared/utils/has-value-util';
 import { SelectItem } from '@/shared/models/vue/select-item';
+import { getBlankGuid } from '@/shared/utils/uuid-utils';
+import { clone } from 'ramda';
 
 @Component({})
 export default class ReportsDownloaderDialog extends Vue {
     @Prop() dialogData: ReportsDownloaderDialogData;
 
     @State(state => state.busyModule.isBusy) isBusy: boolean;
+    @State(state => state.adminDataModule.simulationReportNames) stateSimulationReportNames: string[];
 
     @Action('addSuccessNotification') addSuccessNotificationAction: any;
     @Action('addErrorNotification') addErrorNotificationAction: any;
+    @Action('getSimulationReports') getSimulationReportsAction: any;
 
     reports: SelectItem[] = [];   
     selectedReport: string = ''; 
@@ -78,13 +82,15 @@ export default class ReportsDownloaderDialog extends Vue {
     reportIndexID: string = getBlankGuid();
 
     mounted() {
-        const reports: string[] =  this.$config.reportType;
-        this.reports = reports.map(rep => {
-            return {text: rep, value: rep}
-        })
+        this.getSimulationReportsAction().then(() => {
+            const reports: string[] = clone(this.stateSimulationReportNames)
+            this.reports = reports.map(rep => {
+                return {text: rep, value: rep}
+            })
 
-        if(reports.length > 0)
-            this.selectedReport = reports[0];
+            if(reports.length > 0)
+                this.selectedReport = reports[0];
+        })       
     }
 
     async onGenerateReport(download: boolean) {
@@ -102,7 +108,7 @@ export default class ReportsDownloaderDialog extends Vue {
                     }
 
                     this.addSuccessNotificationAction({
-                        message: 'Summary report generation started for ' + this.dialogData.name + '.',
+                        message: this.selectedReport +  ' report generation started for ' + this.dialogData.name + '.',
                     });
                 } else {
                     this.addErrorNotificationAction({

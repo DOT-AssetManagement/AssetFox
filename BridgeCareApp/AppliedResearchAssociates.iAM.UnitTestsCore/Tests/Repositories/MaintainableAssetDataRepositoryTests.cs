@@ -21,6 +21,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
         private Mock<DbSet<AggregatedResultEntity>> _mockedAggregatedResultsEntitySet;
         private Mock<DbSet<MaintainableAssetLocationEntity>> _mockedMaintainableAssetLocationEntitySet;
         private Mock<DbSet<AttributeEntity>> _mockedAttributeSet;
+        private Mock<DbSet<AdminSettingsEntity>> _mockedAdminSettings;
 
         private void Setup()
         {
@@ -29,11 +30,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
 
             _mockedMaintainableAssetEntitySet = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.MaintainableAsset, _testData.MaintainableAssetsLibrary);
             _mockedAggregatedResultsEntitySet = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.AggregatedResult, _testData.AggregatedResultsLibrary);
+            _mockedAdminSettings = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.AdminSettings, _testData.AdminSettingsLibrary);
             _mockedMaintainableAssetLocationEntitySet = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.MaintainableAssetLocation, _testData.MaintainableAssetLocationLibrary);
             _mockedAttributeSet = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.Attribute, _testData.AttributeLibrary);
-
             var mockedConfiguration = new Mock<IConfiguration>();
-            MockedContextBuilder.AddConfigurationKeys(mockedConfiguration, "InventoryData:KeyProperties", new List<string> { "BRKEY_", "BMSID" });
 
             var mockedRepo = new Mock<UnitOfDataPersistenceWork>(mockedConfiguration.Object, _mockedContext.Object);
             mockedRepo.Setup(_ => _.NetworkRepo.GetMainNetwork()).Returns(_testData.TestNetwork);
@@ -59,18 +59,18 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
             Assert.Equal(bmsIdDatum.AssetId, checkGuid);
         }
 
-        [Fact (Skip ="Fails. The underlying apis have changed. Need to figure out if their behavior is appropriate or not.")]
+        [Fact]
         public void ReturnsSegmentDataWithBRKey()
         {
             Setup();
             var repo = new MaintainableAssetDataRepository(_testRepo);
 
             // Act
-            var testSegment = repo.GetAssetAttributes("BRKEY_", "2");
+            var testSegment = repo.GetAssetAttributes("BRKEY_", "13401256");
 
             // Assert
             var brKeyAsset = testSegment.Single(_ => _.Name == "BRKEY_");
-            Assert.Equal("101256", brKeyAsset.TextValue);
+            Assert.Equal("13401256", brKeyAsset.TextValue);
             var lengthAsset = testSegment.First(_ => _.Name == "Length");
             var nameAsset = testSegment.First(_ => _.Name == "Name");
             Assert.Equal("15.4", lengthAsset.TextValue);

@@ -28,7 +28,10 @@ namespace BridgeCareCore.Controllers
         private readonly IClaimHelper _claimHelper;
         private readonly IDeficientConditionGoalPagingService _deficientConditionGoalService;
 
-        public DeficientConditionGoalController(IEsecSecurity esecSecurity, UnitOfDataPersistenceWork unitOfWork, IHubService hubService,
+        public const string RequestedToModifyNonexistentLibraryErrorMessage = "The request says to modify a library, but the library does not exist.";
+        public const string RequestedToCreateExistingLibraryErrorMessage = "The request says to create a new library, but the library already exists.";
+
+        public DeficientConditionGoalController(IEsecSecurity esecSecurity, IUnitOfWork unitOfWork, IHubService hubService,
             IHttpContextAccessor httpContextAccessor, IClaimHelper claimHelper,
             IDeficientConditionGoalPagingService deficientConditionGoalService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
@@ -49,7 +52,11 @@ namespace BridgeCareCore.Controllers
                     result = UnitOfWork.DeficientConditionGoalRepo.GetDeficientConditionGoalLibrariesNoChildren();
                     if (_claimHelper.RequirePermittedCheck())
                     {
-                        result = result.Where(_ => _.Owner == UserId || _.IsShared == true).ToList();
+                        result = UnitOfWork.DeficientConditionGoalRepo.GetDeficientConditionGoalLibrariesNoChildrenAccessibleToUser(UserId);
+                    }
+                    else
+                    {
+                        result = UnitOfWork.DeficientConditionGoalRepo.GetDeficientConditionGoalLibrariesNoChildren();
                     }
                 });
 
@@ -103,7 +110,7 @@ namespace BridgeCareCore.Controllers
                 await Task.Factory.StartNew(() =>
                 {
                     _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
-                    result = _deficientConditionGoalService.GetScenarioDeficientConditionGoalPage(simulationId, pageRequest);
+                    result = _deficientConditionGoalService.GetScenarioPage(simulationId, pageRequest);
                 });
 
                 return Ok(result);
@@ -132,7 +139,7 @@ namespace BridgeCareCore.Controllers
                 var result = new PagingPageModel<DeficientConditionGoalDTO>();
                 await Task.Factory.StartNew(() =>
                 {
-                    result = _deficientConditionGoalService.GetLibraryDeficientConditionGoalPage(libraryId, pageRequest);
+                    result = _deficientConditionGoalService.GetLibraryPage(libraryId, pageRequest);
                 });
 
                 return Ok(result);
@@ -158,46 +165,31 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
-                    var items = new List<DeficientConditionGoalDTO>();
-                    if (upsertRequest.ScenarioId != null)
-                        items = _deficientConditionGoalService.GetSyncedScenarioDataset(upsertRequest.ScenarioId.Value, upsertRequest.PagingSync);
-                    else if (upsertRequest.ScenarioId != null)
-                        items = _deficientConditionGoalService.GetSyncedScenarioDataset(upsertRequest.ScenarioId.Value, upsertRequest.PagingSync);
-                    else if (upsertRequest.PagingSync.LibraryId != null)
-                        items = _deficientConditionGoalService.GetSyncedLibraryDataset(upsertRequest.PagingSync.LibraryId.Value, upsertRequest.PagingSync);
-                    else if (!upsertRequest.IsNewLibrary)
-                        items = _deficientConditionGoalService.GetSyncedLibraryDataset(upsertRequest.Library.Id, upsertRequest.PagingSync);
-                    if (upsertRequest.IsNewLibrary)
+                    var libraryAccess = UnitOfWork.DeficientConditionGoalRepo.GetLibraryAccess(upsertRequest.Library.Id, UserId);
+                    if (libraryAccess.LibraryExists == upsertRequest.IsNewLibrary)
                     {
-                        items.ForEach(item =>
-                        {
-                            item.Id = Guid.NewGuid();
-                            item.CriterionLibrary.Id = Guid.NewGuid();
-                        });
+                        var errorMessage = libraryAccess.LibraryExists ? RequestedToCreateExistingLibraryErrorMessage : RequestedToModifyNonexistentLibraryErrorMessage;
+                        throw new InvalidOperationException(errorMessage);
                     }
+                    var items = _deficientConditionGoalService.GetSyncedLibraryDataset(upsertRequest);
                     var dto = upsertRequest.Library;
                     if (dto != null)
                     {
-                        _claimHelper.CheckUserLibraryModifyAuthorization(dto.Owner, UserId);
+                        _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
                         dto.DeficientConditionGoals = items;
                     }
-                    UnitOfWork.DeficientConditionGoalRepo.UpsertDeficientConditionGoalLibrary(dto);
-                    UnitOfWork.DeficientConditionGoalRepo.UpsertOrDeleteDeficientConditionGoals(dto.DeficientConditionGoals, dto.Id);
-                    UnitOfWork.Commit();
+                    UnitOfWork.DeficientConditionGoalRepo.UpsertDeficientConditionGoalLibraryAndGoals(dto);
                 });
 
                 return Ok();
             }
             catch (UnauthorizedAccessException)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::UpsertDeficientConditionGoalLibrary - {HubService.errorList["Unauthorized"]}");
                 throw;
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::UpsertDeficientConditionGoalLibrary - {e.Message}");
                 throw;
             }
@@ -212,11 +204,11 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
-                    var dtos = _deficientConditionGoalService.GetSyncedScenarioDataset(simulationId, pagingSync);
+                    var dtos = _deficientConditionGoalService.GetSyncedScenarioDataSet(simulationId, pagingSync);
+                    UnitOfWork.DeficientConditionGoalRepo.AddLibraryIdToScenarioDeficientConditionGoal(dtos, pagingSync.LibraryId);
+                    UnitOfWork.DeficientConditionGoalRepo.AddModifiedToScenarioDeficientConditionGoal(dtos, pagingSync.IsModified);
                     UnitOfWork.DeficientConditionGoalRepo.UpsertOrDeleteScenarioDeficientConditionGoals(dtos, simulationId);
-                    UnitOfWork.Commit();
                 });
 
 
@@ -224,14 +216,12 @@ namespace BridgeCareCore.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                UnitOfWork.Rollback();
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::UpsertDeficientConditionGoalLibrary for {simulationName} - {HubService.errorList["Unauthorized"]}");
                 throw;
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::UpsertDeficientConditionGoalLibrary for {simulationName} - {e.Message}");
                 throw;
@@ -247,16 +237,16 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
                     if (_claimHelper.RequirePermittedCheck())
                     {
                         var dto = UnitOfWork.DeficientConditionGoalRepo.GetDeficientConditionGoalLibrariesWithDeficientConditionGoals()
                         .FirstOrDefault(_ => _.Id == libraryId);
                         if (dto == null) return;
-                        _claimHelper.CheckUserLibraryModifyAuthorization(dto.Owner, UserId);
+
+                        var access = UnitOfWork.DeficientConditionGoalRepo.GetLibraryAccess(libraryId, UserId);
+                        _claimHelper.CheckUserLibraryModifyAuthorization(access, UserId);
                     }
                     UnitOfWork.DeficientConditionGoalRepo.DeleteDeficientConditionGoalLibrary(libraryId);
-                    UnitOfWork.Commit();
                 });
 
                 return Ok();
@@ -268,8 +258,94 @@ namespace BridgeCareCore.Controllers
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::DeleteDeficientConditionGoalLibrary - {e.Message}");
+                throw;
+            }
+        }
+
+        [HttpGet]
+        [Route("GetIsSharedLibrary/{deficientConditionGoalLibraryId}")]
+        [Authorize(Policy = Policy.ViewDeficientConditionGoalFromlLibrary)]
+        public async Task<IActionResult> GetIsSharedLibrary(Guid deficientConditionGoalLibraryId)
+        {
+            try
+            {
+                bool result = false;
+                await Task.Factory.StartNew(() =>
+                {
+                    var users = UnitOfWork.DeficientConditionGoalRepo.GetLibraryUsers(deficientConditionGoalLibraryId);
+                    if (users.Count <= 0)
+                    {
+                        result = false;
+                    }
+                    else
+                    {
+                        result = true;
+                    }
+                });
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::GetIsSharedLibrary - {e.Message}");
+                throw;
+            }
+        }
+        [HttpGet]
+        [Route("GetDeficientConditionGoalLibraryUsers/{libraryId}")]
+        [Authorize(Policy = Policy.ViewDeficientConditionGoalFromlLibrary)]
+        public async Task<IActionResult> GetDeficientConditionGoalLibraryUsers(Guid libraryId)
+        {
+            try
+            {
+                List<LibraryUserDTO> users = new List<LibraryUserDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    var accessModel = UnitOfWork.DeficientConditionGoalRepo.GetLibraryAccess(libraryId, UserId);
+                    _claimHelper.CheckGetLibraryUsersValidity(accessModel, UserId);
+                    users = UnitOfWork.DeficientConditionGoalRepo.GetLibraryUsers(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::GetDeficientConditionGoalLibraryUsers - {e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::GetDeficientConditionGoalLibraryUsers - {e.Message}");
+                throw;
+            }
+        }
+        [HttpPost]
+        [Route("UpsertOrDeleteDeficientConditionGoalLibraryUsers/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyDeficientConditionGoalFromLibrary)]
+        public async Task<IActionResult> UpsertOrDeleteDeleteConditionGoalLibraryUsers(Guid libraryId, List<LibraryUserDTO> proposedUsers)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var libraryUsers = UnitOfWork.DeficientConditionGoalRepo.GetLibraryUsers(libraryId);
+                    _claimHelper.RequirePermittedCheck();
+                    UnitOfWork.DeficientConditionGoalRepo.UpsertOrDeleteUsers(libraryId, proposedUsers);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::UpsertOrDeleteDeleteConditionGoalLibraryUsers - {e.Message}");
+                return Ok();
+            }
+            catch (InvalidOperationException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::UpsertOrDeleteDeleteConditionGoalLibraryUsers - {e.Message}");
+                return BadRequest();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeficientConditionGoalError}::UpsertOrDeleteDeleteConditionGoalLibraryUsers - {e.Message}");
                 throw;
             }
         }
@@ -280,6 +356,9 @@ namespace BridgeCareCore.Controllers
         [Authorize(Policy = Policy.ModifyDeficientConditionGoalFromLibrary)]
         public async Task<IActionResult> GetHasPermittedAccess()
         {
+            await Task.Factory.StartNew(() =>
+            {
+            });
             return Ok(true);
         }
     }

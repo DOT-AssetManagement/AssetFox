@@ -4,20 +4,17 @@ using System.Drawing;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
-
-using AppliedResearchAssociates.iAM.Reporting.Interfaces.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PamsData
 {
-    public class PamsDataForSummaryReport: IPamsDataForSummaryReport
+    public class PamsDataForSummaryReport
     {
         private List<int> _spacerColumnNumbers;
         private readonly List<int> _simulationYears = new List<int>();
-        private ISummaryReportHelper _summaryReportHelper;
+        private SummaryReportHelper _summaryReportHelper;
 
         // This is also used in Bridge Work Summary TAB
         private readonly List<double> _previousYearInitialMinC = new List<double>();
@@ -39,18 +36,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
         {
             return new List<string>
             {
-                "Asset Management Section",
+                "Section",
+                "Start Segment",
+                "End Segment",
                 "District",
                 "County",
                 "Co No",
-                "Route",
-                "Segment",
+                "Route",                
 
                 "Length",
                 "Width",
                 "Pavement Depth",
                 "Direction",
-
                 "Lanes",
                 "FamilyID",
                 "MPO/ RPO",
@@ -64,7 +61,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
                 "ADT",
                 "Truck %",
-                "ESALS",
                 "Risk Score",
             };
         }
@@ -75,9 +71,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             {
                 "OPI",
                 "IRI",
-                "Rutting",
-                "Faulting",
-                "Cracking",
+                "Rut",
+                "Fault",
                 "Project Source",
                 "Budget",
                 "Recommended Treatment",
@@ -228,17 +223,20 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             foreach (var sectionSummary in reportOutputData.InitialAssetSummaries)
             {
                 rowNo++; columnNo = 1;
+                var crs = _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "CRS");
+                worksheet.Cells[rowNo, columnNo++].Value = crs;
 
-                worksheet.Cells[rowNo, columnNo++].Value = ""; //Asset Management Section Column Blank
+                var lastUnderScoreIndex = crs.LastIndexOf('_');
+                var hyphenIndex = crs.IndexOf('-');
+                var startSeg = crs.Substring(lastUnderScoreIndex + 1, hyphenIndex - lastUnderScoreIndex - 1);
+                var endSeg = crs.Substring(hyphenIndex + 1);
+
+                worksheet.Cells[rowNo, columnNo++].Value = startSeg;
+                worksheet.Cells[rowNo, columnNo++].Value = endSeg;
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "DISTRICT");
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "COUNTY");
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "CNTY");
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "SR");
-
-                var segmentNumber = _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "CNTY");
-                segmentNumber += _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "SR");
-                segmentNumber += sectionSummary.AssetName;
-                worksheet.Cells[rowNo, columnNo++].Value = segmentNumber;
 
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "SEGMENT_LENGTH");
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "WIDTH");
@@ -256,7 +254,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "LAST_STRUCTURAL_OVERLAY");
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "AADT");
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "TRK_PERCENT");
-                worksheet.Cells[rowNo, columnNo++].Value = ""; //_summaryReportHelper.checkAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "ESLAS"); 
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "RISKSCORE"); 
 
                 if (rowNo % 2 == 0) { ExcelHelper.ApplyColor(worksheet.Cells[rowNo, 1, rowNo, columnNo], Color.LightGray); }
@@ -390,7 +387,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
                     foreach (var item in treatmentConsideration)
                     {
-                        budgetUsage = item.BudgetUsages.Find(_ => _.Status == BudgetUsageStatus.CostCoveredInFull || _.Status == BudgetUsageStatus.CostCoveredInPart);
+                        budgetUsage = item.BudgetUsages.Find(_ => _.Status == BudgetUsageStatus.CostCovered);
                     }
 
                     var budgetName = budgetUsage == null ? "" : budgetUsage.BudgetName;
@@ -431,11 +428,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             var initialColumnForShade = column + 1;
             var selectedSection = initialSection ?? section;
 
-            worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "OPI")));
-            worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "HPMS_IRI")));
+            worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "OPI_CALCULATED")));
+            worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "ROUGHNESS")));
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "HPMS_RUTTING")), 3);
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "HPMS_FAULTING")), 3);
-            worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "HPMS_CRACKING")), 1);
 
             if (row % 2 == 0) {
                 ExcelHelper.ApplyColor(worksheet.Cells[row, initialColumnForShade, row, column], Color.LightGray);
@@ -445,12 +441,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
         }
 
 
-        private void TrackInitialYearDataForParametersTAB(AssetSummaryDetail intialsection)
+        private void TrackInitialYearDataForParametersTAB(AssetSummaryDetail initialSection)
         {
             // Get NHS record for Parameter TAB
             if (_parametersModel.nHSModel.NHS == null || _parametersModel.nHSModel.NonNHS == null)
             {
-                int.TryParse(intialsection.ValuePerTextAttribute["NHS_IND"], out var numericValue);
+                int.TryParse(initialSection.ValuePerTextAttribute["NHS_IND"], out var numericValue);
+                //var numericValue = _summaryReportHelper.checkAndGetValue<int>(initialSection.ValuePerTextAttribute, "NHS_IND");
                 if (numericValue > 0)
                 {
                     _parametersModel.nHSModel.NHS = "Y";
@@ -463,9 +460,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                 }
             }
             // Get BPN data for parameter TAB
-            if (!_parametersModel.BPNValues.Contains(intialsection.ValuePerTextAttribute["BUSIPLAN"]))
+            if (!_parametersModel.BPNValues.Contains(initialSection.ValuePerTextAttribute["BUSIPLAN"]))
             {
-                _parametersModel.BPNValues.Add(intialsection.ValuePerTextAttribute["BUSIPLAN"]);
+                _parametersModel.BPNValues.Add(initialSection.ValuePerTextAttribute["BUSIPLAN"]);
             }
         }
 

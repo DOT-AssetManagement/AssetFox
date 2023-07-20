@@ -27,10 +27,24 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 
         public List<CalculatedAttributeDTO> GetCalcuatedAttributesByScenarioIdNoChildren(Guid scenarioId);
 
+        void UpsertScenarioCalculatedAttributesNonAtomic(ICollection<CalculatedAttributeDTO> calculatedAttributes, Guid simulationId);
+
         void UpsertScenarioCalculatedAttributes(ICollection<CalculatedAttributeDTO> calculatedAttributes, Guid simulationId);
 
         void PopulateScenarioCalculatedFields(Simulation simulation);
 
-        CalculatedAttributeDTO GetLibraryCalulatedAttributesByLibraryAndAttributeId(Guid libraryId, Guid attributeId);       
+        CalculatedAttributeDTO GetLibraryCalulatedAttributesByLibraryAndAttributeId(Guid libraryId, Guid attributeId);
+
+        List<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibrariesNoChildrenAccessibleToUser(Guid userId);
+
+        LibraryUserAccessModel GetLibraryAccess(Guid libraryId, Guid userId);
+
+        void UpsertOrDeleteUsers(Guid calculatedAttribueLibraryId, IList<LibraryUserDTO> libraryUsers);
+
+        List<LibraryUserDTO> GetLibraryUsers(Guid calculatedAttributeLibraryId);
+
+        void AddLibraryIdToScenarioCalculatedAttributes(List<CalculatedAttributeDTO> calculatedAttributesDTOs, Guid? libraryId);
+
+        void AddModifiedToScenarioCalculatedAttributes(List<CalculatedAttributeDTO> calculatedAttributesDTOs, bool IsModified);
     }
 }

@@ -1,27 +1,27 @@
 using System;
 using System.Collections.Generic;
+using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.Reporting;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.Hubs.Services;
-using BridgeCareCore.Logging;
+using AppliedResearchAssociates.iAM.Reporting;
+using AppliedResearchAssociates.iAM.Reporting.Interfaces;
+using AppliedResearchAssociates.iAM.Reporting.Logging;
+using BridgeCareCore.Security;
 using BridgeCareCore.Services.Aggregation;
 using BridgeCareCore.StartupExtension;
+using BridgeCareCore.GraphQL;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using AppliedResearchAssociates.iAM.Reporting.Interfaces;
-using AppliedResearchAssociates.iAM.Common;
-using Microsoft.AspNetCore.Authentication;
-using BridgeCareCore.Security;
-using Microsoft.AspNetCore.Authorization;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
+using BridgeCareCore.Services;
 
 namespace BridgeCareCore
 {
@@ -83,6 +83,12 @@ namespace BridgeCareCore
                 sqlServerOptions => sqlServerOptions.CommandTimeout(1800))
                 );
 
+            services.AddGraphQLServer()
+                .AddQueryType<QueryObjectType>()
+                .AddFiltering()
+                .AddSorting()
+                .AddAuthorization();
+
             SetupReporting(services);
             var reportLookup = new Dictionary<string, Type>();
 
@@ -90,16 +96,23 @@ namespace BridgeCareCore
 
             services.AddScoped<IReportGenerator, DictionaryBasedReportGenerator>();
             services.AddScoped<IAggregationService, AggregationService>();
+
+            services.AddSingleton<IAnalysisEventLoggingService, AnalysisEventLoggingService>();
         }
 
         private void SetupReporting(IServiceCollection services)
         {
             var reportFactoryList = new List<IReportFactory>();
-            reportFactoryList.Add(new HelloWorldReportFactory());
-            reportFactoryList.Add(new InventoryReportFactory());
+            //reportFactoryList.Add(new HelloWorldReportFactory());
+            reportFactoryList.Add(new BAMSInventoryReportFactory());
             reportFactoryList.Add(new BAMSSummaryReportFactory());
             reportFactoryList.Add(new ScenarioOutputReportFactory());
             reportFactoryList.Add(new PAMSSummaryReportFactory());
+            reportFactoryList.Add(new BAMSAuditReportFactory());
+            reportFactoryList.Add(new BAMSPBExportReportFactory());
+            reportFactoryList.Add(new PAMSPBExportReportFactory());
+            reportFactoryList.Add(new PAMSInventorySectionsReportFactory());
+            reportFactoryList.Add(new PAMSInventorySegmentsReportFactory());
             services.AddSingleton<IReportLookupLibrary>(service => new ReportLookupLibrary(reportFactoryList));
         }
 
@@ -130,6 +143,7 @@ namespace BridgeCareCore
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<BridgeCareHub>("/bridgecarehub");
+                endpoints.MapGraphQL();
             });
         }
 

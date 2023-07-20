@@ -1,6 +1,5 @@
 import { getBlankGuid } from "@/shared/utils/uuid-utils";
-import { TreatmentConsequence, TreatmentCategory } from "./treatment";
-import {ValidationParameter} from "./expression-validation"
+import { TreatmentCategory } from "./treatment";
 
 export interface BaseCommittedProject {
     id: string;
@@ -17,7 +16,7 @@ export interface BaseCommittedProject {
 }
 export interface SectionCommittedProjectTableData {
     id: string;
-    brkey: string;
+    keyAttr: string;
     year: number;
     treatment: string;
     treatmentId: string;
@@ -35,6 +34,7 @@ export interface SectionCommittedProject extends BaseCommittedProject{
 export interface CommittedProjectConsequence {
     id: string;
     committedProjectId: string;
+    performanceFactor: number;
     attribute: string;
     changeValue: string;
 }
@@ -59,6 +59,7 @@ export const emptyCommittedProjectConsequence ={
     id: getBlankGuid(),
     committedProjectId: getBlankGuid(),
     attribute: '',
+    performanceFactor: 1.2,
     changeValue: ''
 }
 
@@ -72,7 +73,7 @@ export interface CommittedProjectFillTreatmentValues {
     committedProjectId: string;
     treatmentLibraryId: string;
     treatmentName: string;
-    brkey_Value: string; 
+    KeyAttributeValue: string; 
     networkId: string;
 }
 

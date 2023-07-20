@@ -1,8 +1,10 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.FileSystem;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.WorkQueue;
 using BridgeCareCore.Interfaces;
+using BridgeCareCore.Models;
 using BridgeCareCore.Services;
 using BridgeCareCore.Services.Treatment;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,11 +19,10 @@ namespace BridgeCareCore.StartupExtension
 
             services.AddScoped<ISimulationOutputFileRepository, SimulationOutputFileRepository>();
 
-            services.AddSingleton<SequentialWorkQueue>();
+            services.AddSingleton<SequentialWorkQueue<WorkQueueMetadata>>();
             services.AddHostedService<SequentialWorkBackgroundService>();
-            services.AddScoped<ISimulationAnalysis, SimulationAnalysisService>();
+            services.AddScoped<IGeneralWorkQueueService, GeneralWorkQueueService>();
             services.AddScoped<AttributeService>();
-            services.AddScoped<AttributeImportService>();
             services.AddScoped<IExcelRawDataImportService, ExcelRawDataImportService>();
             services.AddScoped<IExpressionValidationService, ExpressionValidationService>();
             services.AddScoped<IUserCriteriaRepository, UserCriteriaRepository>();
@@ -31,16 +32,10 @@ namespace BridgeCareCore.StartupExtension
             services.AddScoped<ITreatmentService, TreatmentService>();
             services.AddScoped<ICommittedProjectService, CommittedProjectService>();
             services.AddScoped<ExcelTreatmentLoader>();
-            services.AddScoped<IUnitOfWork, UnitOfDataPersistenceWork>();
-            services.AddScoped<UnitOfDataPersistenceWork>();
+            services.AddScoped<UnitOfDataPersistenceWork>();
+            services.AddScoped<IUnitOfWork>(x => x.GetRequiredService<UnitOfDataPersistenceWork>());
+
             services.AddScoped<ISimulationRepository, SimulationRepository>();
-            services.AddScoped<ISimulationService,SimulationService>();
-            services.AddScoped<ISimulationQueueService, SimulationQueueService>();
-            services.AddScoped<ICalculatedAttributeService, CalculatedAttributeService>();
-            services.AddScoped<IBudgetPriortyService, BudgetPriortyService>();
-            services.AddScoped<ITargetConditionGoalService, TargetConditionGoalService>();
-            services.AddScoped<IRemainingLifeLimitService, RemainingLifeLimitService>();
-            services.AddScoped<ICashFlowService, CashFlowService>();
         }
     }
 }

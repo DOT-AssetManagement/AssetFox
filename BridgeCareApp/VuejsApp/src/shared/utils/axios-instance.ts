@@ -43,10 +43,10 @@ export const API = {
     UserCriteria: '/api/UserCriteria',
     CommittedProject: '/api/CommittedProject',
     Announcement: '/api/Announcement',
-    AnalysisDefaultData: '/api/AnalysisDefaultData',
-    InvestmentDefaultData: '/api/InvestmentDefaultData',
     CalculatedAttributes: '/api/CalculatedAttributes',
     Aggregation: '/api/Aggregation',
     DataSource: '/api/DataSource',
     RawData: '/api/RawData',
+    AdminSettings: '/api/AdminSiteSettings',
+    AdminData: '/api/AdminData'
 };

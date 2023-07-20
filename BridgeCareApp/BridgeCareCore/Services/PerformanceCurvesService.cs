@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.Common.Logging;
+using System.Threading;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Models.Validation;
 using OfficeOpenXml;
-using MoreLinq;
-using Microsoft.EntityFrameworkCore;
-using System.IO;
-using BridgeCareCore.Models;
-using System.Data;
+using AppliedResearchAssociates.iAM.DTOs.Abstract;
 
 namespace BridgeCareCore.Services
 {
@@ -31,14 +29,18 @@ namespace BridgeCareCore.Services
             _expressionValidationService = expressionValidationService ?? throw new ArgumentNullException(nameof(expressionValidationService));
         }
 
-        public PerformanceCurvesImportResultDTO ImportLibraryPerformanceCurvesFile(Guid performanceCurveLibraryId, ExcelPackage excelPackage, UserCriteriaDTO currentUserCriteriaFilter)
+        public PerformanceCurvesImportResultDTO ImportLibraryPerformanceCurvesFile(Guid performanceCurveLibraryId, ExcelPackage excelPackage, UserCriteriaDTO currentUserCriteriaFilter, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
+            queueLog ??= new DoNothingWorkQueueLog();
+            queueLog.UpdateWorkQueueStatus("Starting Import");
             var performanceCurvesToImport = new List<PerformanceCurveDTO>();
             var performanceCurvesWithMissingAttributes = new List<string>();
             var performanceCurvesWithInvalidCriteria = new List<string>();
             var performanceCurvesWithInvalidEquation = new List<string>();
             var warningSb = new StringBuilder();
             var performanceCurveRepo = _unitOfWork.PerformanceCurveRepo;
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                return new PerformanceCurvesImportResultDTO();
             var performanceCurveLibraryDto = performanceCurveRepo.GetPerformanceCurveLibrary(performanceCurveLibraryId);
             try
             {
@@ -57,7 +59,13 @@ namespace BridgeCareCore.Services
                 //// Combine curves to be imported
                 //performanceCurvesToImport.AddRange(existingPerformanceCurves);
                 #endregion
+                if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                    return new PerformanceCurvesImportResultDTO();
+                queueLog.UpdateWorkQueueStatus("Updating Library");
                 performanceCurveRepo.UpsertPerformanceCurveLibrary(performanceCurveLibraryDto);
+                if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                    return new PerformanceCurvesImportResultDTO();
+                queueLog.UpdateWorkQueueStatus("Updating Performance Curves");
                 performanceCurveRepo.UpsertOrDeletePerformanceCurves(performanceCurvesToImport, performanceCurveLibraryId);
             }
             catch (Exception ex)
@@ -78,8 +86,9 @@ namespace BridgeCareCore.Services
             };
         }
 
-        public ScenarioPerformanceCurvesImportResultDTO ImportScenarioPerformanceCurvesFile(Guid simulationId, ExcelPackage excelPackage, UserCriteriaDTO currentUserCriteriaFilter)
+        public ScenarioPerformanceCurvesImportResultDTO ImportScenarioPerformanceCurvesFile(Guid simulationId, ExcelPackage excelPackage, UserCriteriaDTO currentUserCriteriaFilter, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
+            queueLog ??= new DoNothingWorkQueueLog();
             var performanceCurvesToImport = new List<PerformanceCurveDTO>();
             var performanceCurvesWithMissingAttributes = new List<string>();
             var performanceCurvesWithInvalidCriteria = new List<string>();
@@ -88,6 +97,9 @@ namespace BridgeCareCore.Services
             var performanceCurveRepo = _unitOfWork.PerformanceCurveRepo;
             try
             {
+                if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                    return new ScenarioPerformanceCurvesImportResultDTO();
+                queueLog.UpdateWorkQueueStatus("Creating Performance Curves To Be Imported");
                 CreatePerformanceCurvesDtos(excelPackage, currentUserCriteriaFilter, performanceCurvesWithMissingAttributes, performanceCurvesWithInvalidCriteria, performanceCurvesWithInvalidEquation, performanceCurvesToImport);
 
                 #region Commented update of existing and keeping existing curves
@@ -103,8 +115,10 @@ namespace BridgeCareCore.Services
                 //// Combine curves to be imported
                 //performanceCurvesToImport.AddRange(existingPerformanceCurves);
                 #endregion
-
-                performanceCurveRepo.UpsertOrDeleteScenarioPerformanceCurves(performanceCurvesToImport, simulationId);
+                if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                    return new ScenarioPerformanceCurvesImportResultDTO();
+                queueLog.UpdateWorkQueueStatus("Upserting Performance Curves");
+                performanceCurveRepo.UpsertOrDeleteScenarioPerformanceCurvesNonAtomic(performanceCurvesToImport, simulationId);
             }
             catch (Exception ex)
             {
@@ -114,158 +128,15 @@ namespace BridgeCareCore.Services
             UpdateWarningForMissingAttributes(performanceCurvesWithMissingAttributes, warningSb);
             UpdateWarningForInvalidCriteria(performanceCurvesWithInvalidCriteria, warningSb);
             UpdateWarningForInvalidEquation(performanceCurvesWithInvalidEquation, warningSb);
+            var scenarioCurves = performanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
 
             return new ScenarioPerformanceCurvesImportResultDTO
             {
-                PerformanceCurves = performanceCurveRepo.GetScenarioPerformanceCurves(simulationId),
+                PerformanceCurves = scenarioCurves,
                 WarningMessage = !string.IsNullOrEmpty(warningSb.ToString())
                     ? warningSb.ToString()
                     : null
             };
-        }
-
-        public PagingPageModel<PerformanceCurveDTO> GetLibraryPerformanceCurvePage(Guid libraryId, PagingRequestModel<PerformanceCurveDTO> request)
-        {
-            var skip = 0;
-            var take = 0;
-            var items = new List<PerformanceCurveDTO>();
-            var curves = _unitOfWork.PerformanceCurveRepo.GetPerformanceCurvesForLibraryOrderedById(libraryId);           
-
-            curves = SyncedDataset(curves, request.PagingSync);
-
-            if (request.search.Trim() != "")
-                curves = SearchCurves(curves, request.search);
-            if (request.sortColumn.Trim() != "")
-                curves = OrderByColumn(curves, request.sortColumn, request.isDescending);
-
-            if (request.RowsPerPage > 0)
-            {
-                take = request.RowsPerPage;
-                skip = request.RowsPerPage * (request.Page - 1);
-                items = curves.Skip(skip).Take(take).ToList();
-            }
-            else
-            {
-                items = curves;
-                return new PagingPageModel<PerformanceCurveDTO>()
-                {
-                    Items = items,
-                    TotalItems = items.Count
-                };
-            }
-
-            return new PagingPageModel<PerformanceCurveDTO>()
-            {
-                Items = items,
-                TotalItems = curves.Count()
-            };
-        }
-
-        public PagingPageModel<PerformanceCurveDTO> GetScenarioPerformanceCurvePage(Guid simulationId, PagingRequestModel<PerformanceCurveDTO> request)
-        {
-            var skip = 0;
-            var take = 0;
-            var items = new List<PerformanceCurveDTO>();
-            var curves = request.PagingSync.LibraryId == null ? _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurvesOrderedById(simulationId) :
-                _unitOfWork.PerformanceCurveRepo.GetPerformanceCurvesForLibraryOrderedById(request.PagingSync.LibraryId.Value);
-
-            curves = SyncedDataset(curves, request.PagingSync);
-
-            if (request.search != null && request.search.Trim() != "")
-                curves = SearchCurves(curves, request.search);
-            if (request.sortColumn != null && request.sortColumn.Trim() != "")
-                curves = OrderByColumn(curves, request.sortColumn, request.isDescending);
-
-            if (request.RowsPerPage > 0)
-            {
-                take = request.RowsPerPage;
-                skip = request.RowsPerPage * (request.Page - 1);
-                items = curves.Skip(skip).Take(take).ToList();
-            }
-            else
-            {
-                items = curves;
-                return new PagingPageModel<PerformanceCurveDTO>()
-                {
-                    Items = items,
-                    TotalItems = items.Count
-                };
-            }
-
-            return new PagingPageModel<PerformanceCurveDTO>()
-            {
-                Items = items,
-                TotalItems = curves.Count()
-            };
-        }
-
-        public List<PerformanceCurveDTO> GetSyncedScenarioDataset(Guid simulationId, PagingSyncModel<PerformanceCurveDTO> request)
-        {
-            var curves = new List<PerformanceCurveDTO>();
-            if (request.LibraryId == null)
-            {
-                curves = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
-            }
-            else
-            {
-                curves = _unitOfWork.PerformanceCurveRepo.GetPerformanceCurvesForLibrary(request.LibraryId.Value);
-                // Create new performance curves based on provided library
-                foreach (var curve in curves)
-                {
-                    curve.Id = Guid.NewGuid();
-                }
-            }
-
-            return SyncedDataset(curves, request);
-        }
-
-        public List<PerformanceCurveDTO> GetSyncedLibraryDataset(Guid libraryId, PagingSyncModel<PerformanceCurveDTO> request)
-        {
-            var curves = _unitOfWork.PerformanceCurveRepo.GetPerformanceCurvesForLibrary(libraryId);
-            return SyncedDataset(curves, request);
-        }
-
-        private List<PerformanceCurveDTO> OrderByColumn(List<PerformanceCurveDTO> curves, string sortColumn, bool isDescending)
-        {
-            sortColumn = sortColumn?.ToLower();
-            switch (sortColumn)
-            {
-                case "name":
-                    if (isDescending)
-                        return curves.OrderByDescending(_ => _.Name.ToLower()).ToList();
-                    else
-                        return curves.OrderBy(_ => _.Name.ToLower()).ToList();
-                case "attribute":
-                    if (isDescending)
-                        return curves.OrderByDescending(_ => _.Attribute.ToLower()).ToList();
-                    else
-                        return curves.OrderBy(_ => _.Attribute.ToLower()).ToList();
-            }
-            return curves;
-        }
-
-        private List<PerformanceCurveDTO> SearchCurves(List<PerformanceCurveDTO> curves, string search)
-        {
-            var lowerCaseSearch = search.ToLower();
-            return curves
-                .Where(_ => _.Name.ToLower().Contains(lowerCaseSearch) ||
-                    _.Attribute.ToLower().Contains(lowerCaseSearch) ||
-                    (_.Equation.Expression != null && _.Equation.Expression.ToLower().Contains(lowerCaseSearch)) ||
-                    (_.CriterionLibrary.MergedCriteriaExpression != null && _.CriterionLibrary.MergedCriteriaExpression.ToLower().Contains(lowerCaseSearch))).ToList();
-        }
-
-        private List<PerformanceCurveDTO> SyncedDataset(List<PerformanceCurveDTO> curves, PagingSyncModel<PerformanceCurveDTO> request)
-        {
-            curves = curves.Concat(request.AddedRows).Where(_ => !request.RowsForDeletion.Contains(_.Id)).ToList();
-
-            for(var i = 0; i < curves.Count; i++)
-            {
-                var item = request.UpdateRows.FirstOrDefault(row => row.Id == curves[i].Id);
-                if (item != null)
-                    curves[i] = item;
-            }
-            
-            return curves;
         }
 
         private static void UpdateWarningForInvalidEquation(List<string> performanceCurvesWithInvalidEquation, StringBuilder warningSb)
@@ -352,8 +223,7 @@ namespace BridgeCareCore.Services
         {
             var performanceCurveRepo = _unitOfWork.PerformanceCurveRepo;
             var PerformanceCurves = performanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
-            var simulationName = _unitOfWork.Context.Simulation.Where(_ => _.Id == simulationId)
-                    .Select(_ => new SimulationEntity { Name = _.Name }).AsNoTracking().Single().Name;
+            var simulationName = _unitOfWork.SimulationRepo.GetSimulationName(simulationId);
             var fileName = $"{simulationName.Trim().Replace(" ", "_")}_performance_curves.xlsx";
             
             return CreateExportFile(PerformanceCurves, fileName);
@@ -402,12 +272,6 @@ namespace BridgeCareCore.Services
                 FileData = Convert.ToBase64String(excelPackage.GetAsByteArray()),
                 MimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             };
-        }
-
-        public List<PerformanceCurveDTO> GetNewLibraryDataset(PagingSyncModel<PerformanceCurveDTO> request)
-        {
-            var curves = new List<PerformanceCurveDTO>();
-            return SyncedDataset(curves, request);
-        }
+        }      
     }
 }
