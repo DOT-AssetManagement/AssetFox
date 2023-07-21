@@ -30,8 +30,6 @@ namespace AppliedResearchAssociates.iAM.Analysis
 
         public double Cost { get; set; }
 
-        public DateTime LastModifiedDate { get; set; }
-
         public SelectableTreatment TemplateTreatment
         {
             get => _TemplateTreatment;
