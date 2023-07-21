@@ -8,7 +8,6 @@ namespace AppliedResearchAssociates.iAM.Analysis
         internal BudgetCondition(Explorer explorer) => Criterion = new Criterion(explorer ?? throw new ArgumentNullException(nameof(explorer)));
 
         public Budget Budget { get; set; }
-
         public string ShortDescription => nameof(BudgetCondition);
 
         public Criterion Criterion { get; }
