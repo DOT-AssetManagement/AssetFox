@@ -292,12 +292,11 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _unitOfWork.CommittedProjectRepo.GetSimulationCommittedProjects(simulation);
 
             var yearlyBudgetAmount = new Dictionary<string, Budget>();
-            foreach (var budget in simulation.InvestmentPlan.Budgets)
+            foreach (var budget in simulation.InvestmentPlan.AllBudgets)
             {
 
-            reportDetailDto.Status = $"Adding yearly budget amounts";
-            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            foreach (var budget in simulation.InvestmentPlan.Budgets)
+                reportDetailDto.Status = $"Adding yearly budget amounts";
+                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
                 checkCancelled(cancellationToken, simulationId);
                 if (!yearlyBudgetAmount.ContainsKey(budget.Name))
                 {
