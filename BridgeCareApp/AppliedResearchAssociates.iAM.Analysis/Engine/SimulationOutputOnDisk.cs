@@ -69,6 +69,11 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
 
         private readonly string MainFilePath;
 
+        ~SimulationOutputOnDisk()
+        {
+            TryDeleteFolder();
+        }
+
         private static void Serialize<T>(T t, string path)
         {
             using var writer = File.CreateText(path);
