@@ -36,7 +36,7 @@ public sealed class SimulationRunner
     }
 #endif
 
-    public Simulation Simulation { get;}
+    public Simulation Simulation { get; }
 
     public void HandleValidationFailures(ValidationResultBag simulationValidationResults)
     {
