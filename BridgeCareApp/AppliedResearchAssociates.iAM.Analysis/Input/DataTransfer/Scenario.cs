@@ -313,7 +313,7 @@ public sealed class Scenario
 
             foreach (var item in source.CommittedProjects)
             {
-                result.CommittedProjects.Add(Convert(item));
+                Convert(item, result);
             }
 
             TreatmentByName[source.NameOfPassiveTreatment].DesignateAsPassiveForSimulation();
@@ -563,24 +563,21 @@ public sealed class Scenario
             }
         }
 
-        private Analysis.CommittedProject Convert(CommittedProject source)
+        private void Convert(CommittedProject source, Simulation target)
         {
-            var result = new Analysis.CommittedProject(AssetByID[source.AssetID], source.Year)
-            {
-                Budget = BudgetByName[source.NameOfUsableBudget],
-                Cost = source.Cost,
-                Name = source.Name,
-                ShadowForAnyTreatment = source.ShadowForAnyTreatment,
-                ShadowForSameTreatment = source.ShadowForSameTreatment,
-                treatmentCategory = source.Category,
-            };
+            var result = target.AddCommittedProject(AssetByID[source.AssetID], source.Year);
+
+            result.Budget = BudgetByName[source.NameOfUsableBudget];
+            result.Cost = source.Cost;
+            result.Name = source.Name;
+            result.ShadowForAnyTreatment = source.ShadowForAnyTreatment;
+            result.ShadowForSameTreatment = source.ShadowForSameTreatment;
+            result.treatmentCategory = source.Category;            
 
             foreach (var item in source.Consequences)
             {
                 result.Consequences.Add(Convert(item));
             }
-
-            return result;
         }
 
         private Analysis.TreatmentConsequence Convert(TreatmentConsequence source) => new()

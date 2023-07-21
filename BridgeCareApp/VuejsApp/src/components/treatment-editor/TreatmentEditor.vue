@@ -353,6 +353,7 @@ import {
     any,
     append,
     clone,
+    find,
     findIndex,
     isNil,
     prepend,

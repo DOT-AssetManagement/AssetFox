@@ -357,7 +357,11 @@ export default class DataSource extends Vue {
                     secure: this.currentDatasource.secure,
                     createdBy: this.currentDatasource.createdBy
             };
-            this.upsertSqlDataSourceAction(sqldat).then(() => {
+            DataSourceService.upsertSqlDatasource(sqldat).then((response: AxiosResponse) => {
+                if (
+                    hasValue(response, 'status') &&
+                    http2XX.test(response.status.toString())
+                ) {
                 this.showSqlMessage = false;
                 this.showSaveMessage = true;
                 if(this.isNewDataSource)
@@ -369,7 +373,9 @@ export default class DataSource extends Vue {
                 this.connectionStringPlaceHolderMessage = this.currentDatasource.connectionString!='' ? 'Replacement connection string' : 'New connection string';
                 this.getDataSourcesAction();
                 this.unmodifiedDatasource = clone(this.currentDatasource);
-            });
+                this.onCurrentDataSourceChanged();
+                this.addSuccessNotificationAction({message: 'Modified data sources'});
+            }});
         } else {
             let exldat : ExcelDataSource = {
             id: this.currentDatasource.id,
@@ -396,6 +402,7 @@ export default class DataSource extends Vue {
                     this.isNewDataSource = false;                   
                 });
                 this.unmodifiedDatasource = clone(this.currentDatasource);
+                this.onCurrentDataSourceChanged();
             });
         }
     }
