@@ -1,4 +1,4 @@
-import {clone, any, propEq, update, findIndex, append} from 'ramda';
+import {clone, any, propEq, update, findIndex, append, reject} from 'ramda';
 import {AxiosResponse} from 'axios';
 import {
     Datasource, 
@@ -8,13 +8,13 @@ import {
     SqlDataSource, 
     SqlCommandResponse, 
     emptySqlCommandResponse,
-    TestConnection,
     noneDatasource
 } from '@/shared/models/iAM/data-source';
 import {hasValue} from '@/shared/utils/has-value-util';
 import DataSourceService from '@/services/data-source.service';
 import { http2XX } from '@/shared/utils/http-utils';
 import CommittedProjectsService from '@/services/committed-projects.service';
+import { TestStringData } from '@/shared/models/iAM/test-string';
 
 const state = {
     dataSources: [] as Datasource[],
@@ -93,9 +93,32 @@ const actions = {
             }
         });
     },
+    async deleteDataSource(
+        {dispatch, commit, state  }: any,
+        payload: string,
+    ) {
+        await DataSourceService.DeleteDataSource(
+            payload
+        ).then((response: AxiosResponse) => {
+            if (
+                hasValue(response, 'status') &&
+                http2XX.test(response.status.toString())
+            ) {
+
+                dispatch('addSuccessNotification', {
+                    message: 'Deleted data sources',
+                });
+                const dataSources: Datasource[] = reject(
+                    propEq('id', payload),
+                    state.dataSources,
+                );
+                commit('dataSourceMutator', dataSources)
+            }
+        });
+    },
     async checkSqlCommand(
         {commit}: any,
-        payload: TestConnection
+        payload: TestStringData
     ) {
         await DataSourceService.checkSqlConnection(
             payload

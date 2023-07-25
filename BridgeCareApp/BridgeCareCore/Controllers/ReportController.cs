@@ -1,24 +1,29 @@
-﻿using System;
-using System.Threading.Tasks;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Net;
-using AppliedResearchAssociates.iAM.Reporting;
+using System.Text;
+using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.Common;
+using AppliedResearchAssociates.iAM.Common.Logging;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.Reporting;
 using BridgeCareCore.Controllers.BaseController;
+using BridgeCareCore.Interfaces;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
+using BridgeCareCore.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using Microsoft.AspNetCore.Mvc;
+
 
 namespace BridgeCareCore.Controllers
 {
@@ -28,12 +33,15 @@ namespace BridgeCareCore.Controllers
     {
         private readonly IReportGenerator _generator;
         private readonly ILog _log;
+        private readonly IGeneralWorkQueueService _generalWorkQueueService;
+        public const string ReportError = "Report Error";
 
         public ReportController(IReportGenerator generator, IEsecSecurity esecSecurity, UnitOfDataPersistenceWork unitOfWork, IHubService hubService,
-            IHttpContextAccessor httpContextAccessor, ILog logger) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor, ILog logger, IGeneralWorkQueueService generalWorkQueService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
             _log = logger ?? throw new ArgumentNullException(nameof(logger));
+            _generalWorkQueueService = generalWorkQueService ?? throw new ArgumentNullException(nameof(generalWorkQueService));
         }
 
         #region "API functions"
@@ -76,79 +84,93 @@ namespace BridgeCareCore.Controllers
             return validResult;
         }
 
+        [HttpGet]
+        [Route("GetAllReportNamesInSystem")]
+        [Authorize]
+        public async Task<IActionResult> GetReportNames()
+        {
+            try
+            {
+                var reportList = await Task.Run(() => UnitOfWork.ReportIndexRepository.GetAllReportsInSystem());
+                var reportNames = reportList.Select(report => new { report.ReportId, report.ReportName });
+                return Ok(reportNames);
+            }
+            catch (Exception ex)
+            {
+
+                // Return a meaningful error message to the client
+                var errorMessage = $"An error occurred while retrieving the report names. Error: {ex.Message}";
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, errorMessage);
+                return BadRequest();
+            }
+        }
+
+        [HttpDelete]
+        [Route("Cancel/{networkId}")]
+        [Authorize]
+        public async Task<IActionResult> CancelNetworkDeletion(Guid networkId)
+        {
+            try
+            {
+                var hasBeenRemovedFromQueue = _generalWorkQueueService.Cancel(networkId);
+                await Task.Delay(125);
+
+                if (hasBeenRemovedFromQueue)
+                {
+                    HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueStatusUpdate, new QueuedWorkStatusUpdateModel() { Id = networkId, Status = "Canceled" });
+                }
+                else
+                {
+                    HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueStatusUpdate, new QueuedWorkStatusUpdateModel() { Id = networkId, Status = "Canceling network deletion..." });
+
+                }
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                var networkName = UnitOfWork.NetworkRepo.GetNetworkName(networkId);
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Error canceling network deltion for {networkName}::{e.Message}");
+                throw;
+            }
+        }
+
         [HttpPost]
         [Route("GetFile/{reportName}")]
         [Authorize]
         public async Task<IActionResult> GetFile(string reportName)
         {
-            var parameters = await GetParameters();
-            var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(parameters);
-            HubService.SendRealTimeMessage(UnitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, "", parameters);
-
             try
             {
+                var parameters = await GetParameters();
+                var scenarioName = "";
+                var scenarioId = new Guid();
+                if (Guid.TryParse(parameters, out scenarioId))
+                {
+                    await Task.Factory.StartNew(() =>
+                    {
+                        scenarioName = UnitOfWork.SimulationRepo.GetSimulationName(scenarioId);
+                    });
+                }
+                else
+                    scenarioId = Guid.NewGuid();
+
+                ReportGenerationWorkitem workItem = new ReportGenerationWorkitem(scenarioId, UserInfo.Name, scenarioName, reportName);
+                var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
+
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, scenarioId.ToString());
+
                 return Ok();
             }
-            finally
+            catch (UnauthorizedAccessException)
             {
-                Response.OnCompleted(async () =>
-                {
-                    var report = await GenerateReport(reportName, ReportType.File, parameters);
-
-                    if (report == null)
-                    {
-                        SendRealTimeMessage($"Failed to generate report object for '{reportName}' on simulation '{simulationName}'");
-                    }
-
-                    // Handle a completed run with errors
-                    if (report.Errors.Any())
-                    {
-                        SendRealTimeMessage($"Failed to generate '{reportName}' on simulation '{simulationName}'");
-
-                        _log.Information($"Failed to generate '{reportName}'");
-
-                        foreach (string message in report.Errors)
-                        {
-                            _log.Information($"Message: {message}");
-                        }
-                    }
-
-                    // Handle an incomplete run without errors
-                    if (!report.IsComplete)
-                    {
-                        SendRealTimeMessage($"{reportName} on simulation '{simulationName}' ran but never completed");
-                    }
-
-                    //create report index repository
-                    var reportIndexID = createReportIndexRepository(report);
-
-                    if (string.IsNullOrEmpty(reportIndexID) || string.IsNullOrWhiteSpace(reportIndexID))
-                    {
-                        SendRealTimeMessage($"Failed to create report repository index on {reportName}");
-                    }
-                });
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{ReportError}::GetFile - {HubService.errorList["Unauthorized"]}");
+                throw;
             }
-        }
-
-        [HttpGet]
-        [Route("ListReports/{simulationId}")]
-        [Authorize]
-        public async Task<IActionResult> GetSimulationReports(Guid simulationId)
-        {
-            // Since Guid cannot be null, if it is not provided, simulation ID will be Guid.Empty
-            if (simulationId == Guid.Empty)
+            catch (Exception e)
             {
-                var message = new List<string>() { $"No simulation ID provided." };
-                return CreateErrorListing(message);
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{ReportError}::GetFile - {e.Message}");
+                throw;
             }
-
-            if (UnitOfWork.SimulationRepo.GetSimulation(simulationId) == null)
-            {
-                var message = new List<string>() { $"A simulation with the ID of {simulationId} is not available in the database." };
-                return CreateErrorListing(message);
-            }
-
-            return Ok(UnitOfWork.ReportIndexRepository.GetAllForScenario(simulationId));
         }
 
         [HttpGet]
@@ -190,39 +212,6 @@ namespace BridgeCareCore.Controllers
             try
             {
                 result = await GetReport(report);
-            }
-            catch (Exception e)
-            {
-                return CreateErrorListing(new List<string>() { e.Message });
-            }
-            return Ok(result);
-        }
-
-        [HttpGet]
-        [Route("DownloadSpecificReport/{reportIndexID}")]
-        [Authorize]
-        public async Task<IActionResult> DownloadSpecificReport(string reportIndexID)
-        {
-            if (string.IsNullOrEmpty(reportIndexID) || string.IsNullOrWhiteSpace(reportIndexID))
-            {
-                var message = new List<string>() { $"Repository index identifier is missing or not set" };
-                return CreateErrorListing(message);
-            }
-
-            //get report path
-            var reportIndex = UnitOfWork.ReportIndexRepository.Get(Guid.Parse(reportIndexID));
-            var reportPath = reportIndex?.Result != null ? Path.Combine(Environment.CurrentDirectory, reportIndex.Result) : "";
-            if (string.IsNullOrEmpty(reportPath) || string.IsNullOrWhiteSpace(reportPath))
-            {
-                var message = new List<string>() { $"Failed to get report path using the specified repository index" };
-                return CreateErrorListing(message);
-            }
-
-            // return the download response
-            FileInfoDTO result;
-            try
-            {
-                result = await GetReport(reportIndex);
             }
             catch (Exception e)
             {
@@ -305,19 +294,19 @@ namespace BridgeCareCore.Controllers
         {
             var functionRetrunValue = "";
 
-            //configure report index entity
-            var reportIndexEntity = new ReportIndexEntity()
+            //configure report index dto
+            var reportIndexDto = new ReportIndexDTO()
             {
                 Id = reportObject.ID,
-                SimulationID = reportObject.SimulationID,
-                ReportTypeName = reportObject.ReportTypeName,
+                SimulationId = reportObject.SimulationID,
+                Type = reportObject.ReportTypeName,
                 Result = reportObject.Results,
                 ExpirationDate = DateTime.Now.AddDays(30),
             };
 
             ////create report index repository
-            var isSuccess = this.UnitOfWork.ReportIndexRepository.Add(reportIndexEntity);
-            if (isSuccess == true) { functionRetrunValue = reportIndexEntity.Id.ToString(); }
+            var isSuccess = this.UnitOfWork.ReportIndexRepository.Add(reportIndexDto);
+            if (isSuccess == true) { functionRetrunValue = reportIndexDto.Id.ToString(); }
 
             //return value
             return functionRetrunValue;
@@ -351,7 +340,7 @@ namespace BridgeCareCore.Controllers
 
             var returnValue = Content(errorHtml.ToString());
             returnValue.ContentType = "text/html";
-            returnValue.StatusCode = (int?)HttpStatusCode.BadRequest;
+            returnValue.StatusCode = (int?)HttpStatusCode.OK;
             return returnValue;
         }
 

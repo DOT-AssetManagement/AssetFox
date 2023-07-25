@@ -17,6 +17,9 @@ using BridgeCareCore.Models;
 using BridgeCareCore.Interfaces;
 
 using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
+using Microsoft.SqlServer.Dac.Model;
+using BridgeCareCore.Utils.Interfaces;
+using BridgeCareCore.Utils;
 
 namespace BridgeCareCore.Controllers
 {
@@ -26,15 +29,19 @@ namespace BridgeCareCore.Controllers
     {
         public const string CalculatedAttributeError = "Calculated Attribute Error";
         private readonly ICalculatedAttributesRepository calculatedAttributesRepo;
-        private readonly ICalculatedAttributeService _calulatedAttributeService;
+        private readonly ICalculatedAttributePagingService _calulatedAttributeService;
         private readonly IAttributeRepository attributeRepo;
+        private readonly IClaimHelper _claimHelper;
+
+        private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
 
         public CalculatedAttributesController(IEsecSecurity esec, IUnitOfWork unitOfWork, IHubService hubService,
-            IHttpContextAccessor httpContextAccessor, ICalculatedAttributeService calulatedAttributeService) : base(esec, unitOfWork, hubService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor, IClaimHelper claimHelper, ICalculatedAttributePagingService calulatedAttributeService) : base(esec, unitOfWork, hubService, httpContextAccessor)
         {
             attributeRepo = unitOfWork.AttributeRepo;
             calculatedAttributesRepo = unitOfWork.CalculatedAttributeRepo;
             _calulatedAttributeService = calulatedAttributeService;
+            _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
         }
 
         [HttpGet]
@@ -105,7 +112,7 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
-                var result = await Task.Factory.StartNew(() => _calulatedAttributeService.GetScenarioCalculatedAttributePage(simulationId, pageRequest));
+                var result = await Task.Factory.StartNew(() => _calulatedAttributeService.GetLibraryPage(simulationId, pageRequest));
                 return Ok(result);
             }
             catch (Exception e)
@@ -122,7 +129,7 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
-                var result = await Task.Factory.StartNew(() => _calulatedAttributeService.GetLibraryCalculatedAttributePage(libraryId, pageRequest));
+                var result = await Task.Factory.StartNew(() => _calulatedAttributeService.GetScenarioPage(libraryId, pageRequest));
                 return Ok(result);
             }
             catch (Exception e)
@@ -141,10 +148,9 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
                     var attributes = new List<CalculatedAttributeDTO>();
                     if (upsertRequest.ScenarioId != null)
-                        attributes = _calulatedAttributeService.GetSyncedScenarioDataset(upsertRequest.ScenarioId.Value, upsertRequest.SyncModel);
+                        attributes = _calulatedAttributeService.GetSyncedScenarioDataSet(upsertRequest.ScenarioId.Value, upsertRequest.SyncModel);
                     else if (upsertRequest.SyncModel.LibraryId != null)
                         attributes = _calulatedAttributeService.GetSyncedLibraryDataset(upsertRequest.SyncModel.LibraryId.Value, upsertRequest.SyncModel);
                     else if (!upsertRequest.IsNewLibrary)
@@ -165,14 +171,12 @@ namespace BridgeCareCore.Controllers
                     var dto = upsertRequest.Library;
                     dto.CalculatedAttributes = attributes;
                     calculatedAttributesRepo.UpsertCalculatedAttributeLibrary(dto);
-                    UnitOfWork.Commit();
                 });
                 return Ok();
 
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CalculatedAttributeError}::UpsertCalculatedAttributeLibrary - {e.Message}");
                 throw;
             }
@@ -208,17 +212,17 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    var dto = _calulatedAttributeService.GetSyncedScenarioDataset(simulationId, syncModel);
-                    UnitOfWork.BeginTransaction();
+                    var dto = _calulatedAttributeService.GetSyncedScenarioDataSet(simulationId, syncModel);
+
+                    calculatedAttributesRepo.AddLibraryIdToScenarioCalculatedAttributes(dto, syncModel.LibraryId);
+                    calculatedAttributesRepo.AddModifiedToScenarioCalculatedAttributes(dto, syncModel.IsModified);
                     
                     calculatedAttributesRepo.UpsertScenarioCalculatedAttributes(dto, simulationId);
-                    UnitOfWork.Commit();
                 });
                 return Ok();
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CalculatedAttributeError}::UpsertScenarioAttributes for {simulationName} - {e.Message}");
                 throw;
@@ -242,7 +246,92 @@ namespace BridgeCareCore.Controllers
             } 
             return Ok();
         }
-
+        [HttpGet]
+        [Route("GetIsSharedLibrary/{calculatedAttributeLimitLibraryId}")]
+        [ClaimAuthorize("CalculatedAttributesViewAccess")]
+        public async Task<IActionResult> GetIsSharedLibrary(Guid calculatedAttributeLimitLibraryId)
+        {
+            bool result = false;
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var users = UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(calculatedAttributeLimitLibraryId);
+                    if (users.Count <= 0)
+                    {
+                        result = false;
+                    }
+                    else
+                    {
+                        result = true;
+                    }
+                });
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CalculatedAttributeError}::GetIsSharedLibrary - {e.Message}");
+                throw;
+            }
+        }
+        [HttpGet]
+        [Route("GetCalculatedAttributeLibraryUsers/{libraryId}")]
+        [ClaimAuthorize("CalculatedAttributesViewAccess")]
+        public async Task<IActionResult> GetCalculatedAttributeLibraryUsers(Guid libraryId)
+        {
+            try
+            {
+                List<LibraryUserDTO> users = new List<LibraryUserDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    var accessModel = UnitOfWork.CalculatedAttributeRepo.GetLibraryAccess(libraryId, UserId);
+                    _claimHelper.RequirePermittedCheck();
+                    users = UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CalculatedAttributeError}::GetCalculatedAttributeLibraryUsers - {e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CalculatedAttributeError}::GetCalculatedAttributeLibraryUsers - {e.Message}");
+                throw;
+            }
+        }
+        [HttpPost]
+        [Route("UpsertOrDeleteCalculatedAttributeLibraryUsers/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyCalculatedAttributesFromLibrary)]
+        public async Task<IActionResult> UpsertOrDeleteCalculatedAttributeLibraryUsers(Guid libraryId, List<LibraryUserDTO> proposedUsers)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var libraryUsers = UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(libraryId);
+                    _claimHelper.RequirePermittedCheck();
+                    UnitOfWork.CalculatedAttributeRepo.UpsertOrDeleteUsers(libraryId, proposedUsers);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CalculatedAttributeError}::UpsertOrDeleteCalculatedAttributeLibraryUsers - {e.Message}");
+                return Ok();
+            }
+            catch (InvalidOperationException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CalculatedAttributeError}::UpsertOrDeleteCalculatedAttributeLibraryUsers - {e.Message}");
+                return BadRequest();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CalculatedAttributeError}::UpsertOrDeleteCalculatedAttributeLibraryUsers - {e.Message}");
+                throw;
+            }
+        }
         // Helpers
         private Dictionary<Guid, string> LibraryIdList() =>
             calculatedAttributesRepo.GetCalculatedAttributeLibraries().Select(_ => new { _.Name, _.Id }).ToDictionary(_ => _.Id, _ => _.Name);

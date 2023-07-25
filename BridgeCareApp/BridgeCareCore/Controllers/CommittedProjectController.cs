@@ -19,6 +19,8 @@ using OfficeOpenXml;
 using BridgeCareCore.Utils.Interfaces;
 using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using BridgeCareCore.Services;
+using BridgeCareCore.Services.General_Work_Queue.WorkItems;
 
 namespace BridgeCareCore.Controllers
 {
@@ -28,15 +30,22 @@ namespace BridgeCareCore.Controllers
     {
         public const string CommittedProjectError = "Committed Project Error";
         private static ICommittedProjectService _committedProjectService;
+        private static ICommittedProjectPagingService _committedProjectPagingService;
         private readonly IClaimHelper _claimHelper;
+        private readonly IGeneralWorkQueueService _generalWorkQueueService;
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
 
-        public CommittedProjectController(ICommittedProjectService committedProjectService,
-            IEsecSecurity esecSecurity, IUnitOfWork unitOfWork, IHubService hubService, IHttpContextAccessor httpContextAccessor, IClaimHelper claimHelper) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+        public CommittedProjectController(ICommittedProjectService committedProjectService, ICommittedProjectPagingService committedProjectPagingService,
+            IEsecSecurity esecSecurity,
+            IUnitOfWork unitOfWork,
+            IHubService hubService,
+            IHttpContextAccessor httpContextAccessor,
+            IClaimHelper claimHelper, IGeneralWorkQueueService generalWorkQueueService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
-            _committedProjectService = committedProjectService ??
-                                       throw new ArgumentNullException(nameof(committedProjectService));
+            _committedProjectService = committedProjectService ?? throw new ArgumentNullException(nameof(committedProjectService));
+            _committedProjectPagingService = committedProjectPagingService ?? throw new ArgumentNullException(nameof(committedProjectPagingService));
             _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
+            _generalWorkQueueService = generalWorkQueueService ?? throw new ArgumentNullException(nameof(generalWorkQueueService));
         }
 
         [HttpPost]
@@ -71,11 +80,16 @@ namespace BridgeCareCore.Controllers
                     applyNoTreatment = ContextAccessor.HttpContext.Request.Form["applyNoTreatment"].ToString() == "1";
                 }
 
+                var siulationName = "";
                 await Task.Factory.StartNew(() =>
                 {
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
-                    _committedProjectService.ImportCommittedProjectFiles(simulationId, excelPackage, filename, applyNoTreatment);
+                    siulationName = UnitOfWork.SimulationRepo.GetSimulationName(simulationId);
                 });
+                ImportCommittedProjectWorkItem workItem = new ImportCommittedProjectWorkItem(simulationId, excelPackage, filename,applyNoTreatment, UserInfo.Name, siulationName);
+                var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
+
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, simulationId.ToString());
 
                 return Ok();
             }
@@ -121,16 +135,16 @@ namespace BridgeCareCore.Controllers
         }
 
         [HttpPost]
-        [Route("ValidateAssetExistence/{brkeyValue}")]
+        [Route("ValidateAssetExistence/{keyAttrValue}")]
         [Authorize]
-        public async Task<IActionResult> ValidateAssetExistence(NetworkDTO network, string brkeyValue)
+        public async Task<IActionResult> ValidateAssetExistence(NetworkDTO network, string keyAttrValue)
         {
             try
             {
                 var isValid = false;
                 await Task.Factory.StartNew(() =>
                 {
-                    isValid = UnitOfWork.MaintainableAssetRepo.CheckIfKeyAttributeValueExists(network.Id, brkeyValue);
+                    isValid = UnitOfWork.MaintainableAssetRepo.CheckIfKeyAttributeValueExists(network.Id, keyAttrValue);
                 });
                 return Ok(isValid);
             }
@@ -145,14 +159,14 @@ namespace BridgeCareCore.Controllers
         [HttpPost]
         [Route("ValidateExistenceOfAssets/{networkId}")]
         [Authorize]
-        public async Task<IActionResult> ValidateExistenceOfAssets(Guid networkId, List<string> brkeys)
+        public async Task<IActionResult> ValidateExistenceOfAssets(Guid networkId, List<string> keyattrValues)
         {
             try
             {
                 var result = new Dictionary<string, bool>();
                 await Task.Factory.StartNew(() =>
                 {
-                    result = UnitOfWork.MaintainableAssetRepo.CheckIfKeyAttributeValuesExists(networkId, brkeys);
+                    result = UnitOfWork.MaintainableAssetRepo.CheckIfKeyAttributeValuesExists(networkId, keyattrValues);
                 });
                 return Ok(result);
             }
@@ -174,14 +188,14 @@ namespace BridgeCareCore.Controllers
                 var result = await Task.Factory.StartNew(() =>
                 {
                     CommittedProjectFillTreatmentReturnValuesModel returnValues = new CommittedProjectFillTreatmentReturnValuesModel();
-                    var treatment = UnitOfWork.Context.SelectableTreatment
-                        .FirstOrDefault(_ => _.Name == treatmentValues.TreatmentName && _.TreatmentLibraryId == treatmentValues.TreatmentLibraryId);
+                    var treatment = UnitOfWork.SelectableTreatmentRepo.GetSelectableTreatmentByLibraryIdAndName(
+                        treatmentValues.TreatmentLibraryId, treatmentValues.TreatmentName);
                     if (treatment == null)
                         return returnValues;
                     returnValues.ValidTreatmentConsequences =  _committedProjectService.GetValidConsequences(treatmentValues.CommittedProjectId, treatmentValues.TreatmentLibraryId,
-                        treatmentValues.Brkey_Value, treatmentValues.TreatmentName, treatmentValues.NetworkId);
+                        treatmentValues.KeyAttributeValue, treatmentValues.TreatmentName, treatmentValues.NetworkId);
                     returnValues.TreatmentCost = _committedProjectService.GetTreatmentCost(treatmentValues.TreatmentLibraryId,
-                        treatmentValues.Brkey_Value, treatmentValues.TreatmentName, treatmentValues.NetworkId);
+                        treatmentValues.KeyAttributeValue, treatmentValues.TreatmentName, treatmentValues.NetworkId);
                     
                     returnValues.TreatmentCategory = (TreatmentCategory)treatment.Category;
                     return returnValues;
@@ -196,11 +210,11 @@ namespace BridgeCareCore.Controllers
         }
 
         [HttpGet]
-        [Route("CommittedProjectTemplate")]
+        [Route("CommittedProjectTemplate/{networkId}")]
         [Authorize]
-        public async Task<IActionResult> GetCommittedProjectTemplate()
+        public async Task<IActionResult> GetCommittedProjectTemplate(Guid networkId)
         {
-            var result = await Task.Factory.StartNew(() => _committedProjectService.CreateCommittedProjectTemplate());
+            var result = await Task.Factory.StartNew(() => _committedProjectService.CreateCommittedProjectTemplate(networkId));
             return Ok(result);
         }
 
@@ -312,7 +326,7 @@ namespace BridgeCareCore.Controllers
                 {
                     _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
                     var sectionCommittedProjectDTOs = UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
-                    result = _committedProjectService.GetCommittedProjectPage(sectionCommittedProjectDTOs, request);
+                    result = _committedProjectPagingService.GetCommittedProjectPage(sectionCommittedProjectDTOs, request);
                 });
 
                 return Ok(result);
@@ -343,7 +357,7 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    var projects = _committedProjectService.GetSyncedDataset(simulationId, request);
+                    var projects = _committedProjectPagingService.GetSyncedDataset(simulationId, request);
                     CheckUpsertPermit(projects);
                     UnitOfWork.CommittedProjectRepo.UpsertCommittedProjects(projects);
                 });

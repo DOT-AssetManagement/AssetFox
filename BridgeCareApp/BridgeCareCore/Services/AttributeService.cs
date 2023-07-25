@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using AppliedResearchAssociates;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using BridgeCareCore.Models;
@@ -14,66 +12,35 @@ namespace BridgeCareCore.Services
 {
     public class AttributeService
     {
-        private readonly UnitOfDataPersistenceWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
+        public const string ValuesForAttribute = "Values for attribute";
+        public const string IsANumberUseTextInput = "is a number; use text input";
 
-        public AttributeService(UnitOfDataPersistenceWork unitOfDataPersistenceWork) => _unitOfWork =
-            unitOfDataPersistenceWork ?? throw new ArgumentNullException(nameof(unitOfDataPersistenceWork));
+        public AttributeService(IUnitOfWork unitOfWork) => _unitOfWork =
+            unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
         public List<AttributeSelectValuesResult> GetAttributeSelectValues(List<string> attributeNames)
         {
-            if (!_unitOfWork.Context.AggregatedResult.Any(_ => attributeNames.Contains(_.Attribute.Name)))
+            var aggregatedResults = _unitOfWork.AggregatedResultRepo.GetAggregatedResultsForAttributeNames(attributeNames);
+            if (aggregatedResults.Count == 0)
+                return new();
+
+            List<AttributeSelectValuesResult> returnList = new();
+            foreach (var result in aggregatedResults)
             {
-                return new List<AttributeSelectValuesResult>();
+                var returnValue = new AttributeSelectValuesResult
+                {
+                    Attribute = result.Attribute.Name,
+                    Values = result.IsNumber ? new List<string>() : result.Values.ToSortedSet(new AlphanumericComparator()).ToList(),
+                    ResultMessage = !result.Values.Any() ? $"No values found for attribute {result.Attribute.Name}; use text input"
+                                                                   : result.IsNumber ? $"{ValuesForAttribute} {result.Attribute.Name} {IsANumberUseTextInput}" : "Success",
+                    ResultType = result.ResultType
+                };
+                returnList.Add(returnValue);
             }
-            return _unitOfWork.Context.AggregatedResult
-                .Where(_ => attributeNames.Contains(_.Attribute.Name))
-                .Select(aggregatedResult => new AggregatedResultEntity
-                {
-                    Attribute = new AttributeEntity
-                    {
-                        Name = aggregatedResult.Attribute.Name, DataType = aggregatedResult.Attribute.DataType
-                    },
-                    NumericValue = aggregatedResult.NumericValue,
-                    TextValue = aggregatedResult.TextValue,
-                    Discriminator = aggregatedResult.Discriminator
-                }).AsEnumerable()
-                .GroupBy(_ => _.Attribute.Name, _ => _)
-                .ToDictionary(_ => _.Key, _ => _.ToList())
-                .Select(keyValuePair =>
-                {
-                    var values = new List<string>();
-                    var dtypes = new List<string>();
-                    if (keyValuePair.Value.All(aggregatedResultEntity =>
-                        aggregatedResultEntity.Discriminator == DataPersistenceConstants.AggregatedResultNumericDiscriminator))
-                    {
-                        values = keyValuePair.Value.Where(_ => _.NumericValue.HasValue)
-                            .DistinctBy(_ => _.NumericValue).Select(_ => _.NumericValue!.Value.ToString()).ToList();
-                        dtypes = keyValuePair.Value.Where(_ => _.Attribute.DataType == "NUMBER").DistinctBy(_ => _.Attribute.DataType).Select(_ => _.Attribute.DataType!).ToList();
-                    }
-                    if (keyValuePair.Value.All(aggregatedResultEntity =>
-                        aggregatedResultEntity.Discriminator == DataPersistenceConstants.AggregatedResultTextDiscriminator))
-                    {
-                        values = keyValuePair.Value.Where(_ => _.TextValue != null)
-                            .DistinctBy(_ => _.TextValue).Select(_ => _.TextValue).ToList();
-                        dtypes = keyValuePair.Value.Where(_ => _.Attribute.DataType == "NUMBER").DistinctBy(_ => _.Attribute.DataType).Select(_ => _.Attribute.DataType).ToList();
-                    }
-                    return new AttributeSelectValuesResult
-                    {
-                        Attribute = keyValuePair.Key,
-                        //Values = values.Count > 100
-                        Values = dtypes.Count > 0
-                            ? new List<string>()
-                            : values.ToSortedSet(new AlphanumericComparator()).ToList(),
-                        ResultMessage = !values.Any()
-                            ? $"No values found for attribute {keyValuePair.Key}; use text input"
- //                           : values.Count > 100
-                            : dtypes.Count > 0
-                                ? $"Values for attribute {keyValuePair.Key} is a number; use text input"
-                                : "Success",
-                        ResultType = !values.Any() ? "warning" : "success"
-                    };
-                }).ToList();
+            return returnList;
         }
+
         public static AttributeDTO ConvertAllAttribute(AllAttributeDTO allAttribute)
         {
             var result = new AttributeDTO

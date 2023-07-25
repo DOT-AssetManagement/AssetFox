@@ -22,12 +22,12 @@ import unsavedChangesFlagModule from '@/store-modules/unsaved-changes-flag.modul
 import criterionModule from '@/store-modules/criterion-library.module';
 import analysisMethodModule from '@/store-modules/analysis-method.module';
 import azureB2CModule from '@/store-modules/azureB2C.module';
-import analysisDefaultDataModule from '@/store-modules/analysisDefaultData.module';
-import investmentDefaultDataModule from '@/store-modules/investmentDefaultData.module';
 import calculatedAttributeModule from '@/store-modules/calculated-attribute.module';
 import notificationModule from '@/store-modules/notification.module';
 import datasourceModule from '@/store-modules/data-source.module';
 import committedProjectsModule from '@/store-modules/committed-project.module';
+import adminDataModule from '@/store-modules/admin-data.module';
+import adminSiteSettingsModule from '@/store-modules/admin-site-settings.module';
 
 Vue.use(Vuex);
 
@@ -54,11 +54,11 @@ export default new Vuex.Store({
         criterionModule,
         analysisMethodModule,
         azureB2CModule,
-        analysisDefaultDataModule,
-        investmentDefaultDataModule,
         calculatedAttributeModule,
         notificationModule,
         datasourceModule,
         committedProjectsModule,
+        adminDataModule,
+        adminSiteSettingsModule
     },
 });

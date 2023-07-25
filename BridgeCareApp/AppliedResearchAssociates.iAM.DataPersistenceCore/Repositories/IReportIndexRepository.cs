@@ -7,7 +7,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
     public interface IReportIndexRepository
     {
-        bool Add(ReportIndexEntity report);
+        bool Add(ReportIndexDTO report);
         ReportIndexDTO Get(Guid reportId);
         List<ReportIndexDTO> GetAllForScenario(Guid scenarioId);
         bool DeleteReport(Guid reportId);
@@ -16,5 +16,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         /// Deletes any ReportIndex with an ExpirationDate before the current date
         /// </summary>
         bool DeleteExpiredReports();
+        IList<Generics.ReportItemList> GetAllReportsInSystem();
     }
 }

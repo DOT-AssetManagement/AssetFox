@@ -26,14 +26,17 @@ namespace BridgeCareCore.Controllers
         public const string RemainingLifeLimitError = "Remaining Life Limit Error";
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
         private readonly IClaimHelper _claimHelper;
-        private readonly IRemainingLifeLimitService _remainingLIfeLimitService;
+        private readonly IRemainingLifeLimitPagingService _remainingLifeLimitService;
+
+        public const string RequestedToModifyNonexistentLibraryErrorMessage = "The request says to modify a library, but the library does not exist.";
+        public const string RequestedToCreateExistingLibraryErrorMessage = "The request says to create a new library, but the library already exists.";
 
         public RemainingLifeLimitController(IEsecSecurity esecSecurity, IUnitOfWork unitOfWork, IHubService hubService,
             IHttpContextAccessor httpContextAccessor, IClaimHelper claimHelper,
-            IRemainingLifeLimitService remainingLifeService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+            IRemainingLifeLimitPagingService remainingLifeService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
             _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
-            _remainingLIfeLimitService = remainingLifeService ?? throw new ArgumentNullException(nameof(remainingLifeService));
+            _remainingLifeLimitService = remainingLifeService ?? throw new ArgumentNullException(nameof(remainingLifeService));
         }
 
 
@@ -48,7 +51,7 @@ namespace BridgeCareCore.Controllers
                 await Task.Factory.StartNew(() =>
                 {
                     _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
-                    result = _remainingLIfeLimitService.GetRemainingLifeLimitPage(simulationId, pageRequest);
+                    result = _remainingLifeLimitService.GetScenarioPage(simulationId, pageRequest);
                 });
 
                 return Ok(result);
@@ -77,7 +80,7 @@ namespace BridgeCareCore.Controllers
                 var result = new PagingPageModel<RemainingLifeLimitDTO>();
                 await Task.Factory.StartNew(() =>
                 {
-                    result = _remainingLIfeLimitService.GetLibraryRemainingLifeLimitPage(libraryId, pageRequest);
+                    result = _remainingLifeLimitService.GetLibraryPage(libraryId, pageRequest);
                 });
 
                 return Ok(result);
@@ -102,7 +105,11 @@ namespace BridgeCareCore.Controllers
                     result = UnitOfWork.RemainingLifeLimitRepo.GetAllRemainingLifeLimitLibrariesNoChildren();
                     if (_claimHelper.RequirePermittedCheck())
                     {
-                        result = result.Where(_ => _.Owner == UserId || _.IsShared == true).ToList();
+                        result = UnitOfWork.RemainingLifeLimitRepo.GetRemainingLifeLimitLibrariesNoChildrenAccessibleToUser(UserId);
+                    }
+                    else
+                    {
+                        result = UnitOfWork.RemainingLifeLimitRepo.GetAllRemainingLifeLimitLibrariesNoChildren();
                     }
                 });
 
@@ -154,31 +161,20 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
-                    var items = new List<RemainingLifeLimitDTO>();
-                    if (upsertRequest.ScenarioId != null)
-                        items = _remainingLIfeLimitService.GetSyncedScenarioDataset(upsertRequest.ScenarioId.Value, upsertRequest.PagingSync);
-                    else if (upsertRequest.PagingSync.LibraryId != null)
-                        items = _remainingLIfeLimitService.GetSyncedLibraryDataset(upsertRequest.PagingSync.LibraryId.Value, upsertRequest.PagingSync);
-                    else if (!upsertRequest.IsNewLibrary)
-                        items = _remainingLIfeLimitService.GetSyncedLibraryDataset(upsertRequest.Library.Id, upsertRequest.PagingSync);
-                    if (upsertRequest.IsNewLibrary)
+                    var libraryAccess = UnitOfWork.RemainingLifeLimitRepo.GetLibraryAccess(upsertRequest.Library.Id, UserId);
+                    if (libraryAccess.LibraryExists == upsertRequest.IsNewLibrary)
                     {
-                        items.ForEach(item =>
-                        {
-                            item.Id = Guid.NewGuid();
-                            item.CriterionLibrary.Id = Guid.NewGuid();
-                        });
+                        var errorMessage = libraryAccess.LibraryExists ? RequestedToCreateExistingLibraryErrorMessage : RequestedToModifyNonexistentLibraryErrorMessage;
+                        throw new InvalidOperationException(errorMessage);
                     }
+                    var items = _remainingLifeLimitService.GetSyncedLibraryDataset(upsertRequest);                   
                     var dto = upsertRequest.Library;
                     if (dto != null)
                     {
-                        _claimHelper.CheckUserLibraryModifyAuthorization(dto.Owner, UserId);
+                        _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
                         dto.RemainingLifeLimits = items;
                     }
-                    UnitOfWork.RemainingLifeLimitRepo.UpsertRemainingLifeLimitLibrary(dto);
-                    UnitOfWork.RemainingLifeLimitRepo.UpsertOrDeleteRemainingLifeLimits(dto.RemainingLifeLimits, dto.Id);
-                    UnitOfWork.Commit();
+                    UnitOfWork.RemainingLifeLimitRepo.UpsertRemainingLifeLimitLibraryAndLimits(dto);
                 });
 
                 return Ok();
@@ -205,25 +201,23 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
-                    var dtos = _remainingLIfeLimitService.GetSyncedScenarioDataset(simulationId, pagingSync);
+                    var dtos = _remainingLifeLimitService.GetSyncedScenarioDataSet(simulationId, pagingSync);
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                    UnitOfWork.RemainingLifeLimitRepo.AddLibraryIdToScenarioRemainingLifeLimit(dtos, pagingSync.LibraryId);
+                    UnitOfWork.RemainingLifeLimitRepo.AddModifiedToScenarioRemainingLifeLimit(dtos, pagingSync.IsModified);
                     UnitOfWork.RemainingLifeLimitRepo.UpsertOrDeleteScenarioRemainingLifeLimits(dtos, simulationId);
-                    UnitOfWork.Commit();
                 });
 
                 return Ok();
             }
             catch (UnauthorizedAccessException)
             {
-                UnitOfWork.Rollback();
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::UpsertScenarioRemainingLifeLimits for {simulationName} - {HubService.errorList["Unauthorized"]}");
                 throw;
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::UpsertScenarioRemainingLifeLimits for {simulationName} - {e.Message}");
                 throw;
@@ -239,16 +233,16 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
                     if (_claimHelper.RequirePermittedCheck())
                     {
                         var dto = GetAllRemainingLifeLimitLibrariesWithRemainingLifeLimits()
                         .FirstOrDefault(_ => _.Id == libraryId);
                         if (dto == null) return;
-                        _claimHelper.CheckUserLibraryModifyAuthorization(dto.Owner, UserId);
+
+                        var access = UnitOfWork.RemainingLifeLimitRepo.GetLibraryAccess(libraryId, UserId);
+                        _claimHelper.CheckUserLibraryDeleteAuthorization(access, UserId);
                     }
                     UnitOfWork.RemainingLifeLimitRepo.DeleteRemainingLifeLimitLibrary(libraryId);
-                    UnitOfWork.Commit();
                 });
 
                 return Ok();
@@ -260,7 +254,6 @@ namespace BridgeCareCore.Controllers
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::DeleteRemainingLifeLimitLibrary - {e.Message}");
                 throw;
             }
@@ -269,6 +262,93 @@ namespace BridgeCareCore.Controllers
         private List<RemainingLifeLimitLibraryDTO> GetAllRemainingLifeLimitLibrariesWithRemainingLifeLimits()
         {
             return UnitOfWork.RemainingLifeLimitRepo.GetAllRemainingLifeLimitLibrariesWithRemainingLifeLimits();
+        }
+
+        [HttpGet]
+        [Route("GetIsSharedLibrary/{remainingLifeLimitLibraryId}")]
+        [Authorize(Policy = Policy.ViewRemainingLifeLimitFromLibrary)]
+        public async Task<IActionResult> GetIsSharedLibrary(Guid remainingLifeLimitLibraryId)
+        {
+            try
+            {
+                bool result = false;
+                await Task.Factory.StartNew(() =>
+                {
+                    var users = UnitOfWork.RemainingLifeLimitRepo.GetLibraryUsers(remainingLifeLimitLibraryId);
+                    if (users.Count <= 0)
+                    {
+                        result = false;
+                    }
+                    else
+                    {
+                        result = true;
+                    }
+                });
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::GetIsSharedLibrary - {e.Message}");
+                throw;
+            }
+        }
+        [HttpGet]
+        [Route("GetRemainingLifeLimitLibraryUsers/{libraryId}")]
+        [Authorize(Policy = Policy.ViewRemainingLifeLimitFromLibrary)]
+        public async Task<IActionResult> GetRemainingLifeLimitLibraryUsers(Guid libraryId)
+        {
+            try
+            {
+                List<LibraryUserDTO> users = new List<LibraryUserDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    var accessModel = UnitOfWork.RemainingLifeLimitRepo.GetLibraryAccess(libraryId, UserId);
+                    _claimHelper.RequirePermittedCheck();
+                    users = UnitOfWork.RemainingLifeLimitRepo.GetLibraryUsers(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::GetRemainingLifeLimitLibraryUsers - {e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::GetRemainingLifeLimitLibraryUsers - {HubService.errorList["Exception"]}");
+                throw;
+            }
+        }
+        [HttpPost]
+        [Route("UpsertOrDeleteRemainingLifeLimitLibraryUsers/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyRemainingLifeLimitFromLibrary)]
+        public async Task<IActionResult> UpsertOrDeleteRemainingLifeLimitLibraryUsers(Guid libraryId, List<LibraryUserDTO> proposedUsers)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var libraryUsers = UnitOfWork.RemainingLifeLimitRepo.GetLibraryUsers(libraryId);
+                    _claimHelper.RequirePermittedCheck();
+                    UnitOfWork.RemainingLifeLimitRepo.UpsertOrDeleteUsers(libraryId, proposedUsers);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::UpsertOrDeleteRemainingLifeLimitLibraryUsers - {e.Message}");
+                return Ok();
+            }
+            catch (InvalidOperationException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::UpsertOrDeleteRemainingLifeLimitLibraryUsers - {e.Message}");
+                return BadRequest();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{RemainingLifeLimitError}::UpsertOrDeleteRemainingLifeLimitLibraryUsers - {e.Message}");
+                throw;
+            }
         }
     }
 }

@@ -4,6 +4,9 @@ using AppliedResearchAssociates.iAM.DTOs.Enums;
 
 namespace AppliedResearchAssociates.iAM.DTOs.Abstract
 {
+    /// <summary>
+    /// A base project DTO class that all projects derive from.
+    /// </summary>
     public abstract class BaseCommittedProjectDTO : BaseDTO
     {
         /// <summary>
@@ -73,9 +76,10 @@ namespace AppliedResearchAssociates.iAM.DTOs.Abstract
         /// <summary>
         /// Verifies the LocationsKeys provided result in a valid location for the network type
         /// </summary>
+        /// <param name="networkKeyAttribute"></param>
         /// <returns>
         /// An indication if the LocationKeys are valid
         /// </returns>
-        public abstract bool VerifyLocation();
+        public abstract bool VerifyLocation(string networkKeyAttribute);
     }
 }

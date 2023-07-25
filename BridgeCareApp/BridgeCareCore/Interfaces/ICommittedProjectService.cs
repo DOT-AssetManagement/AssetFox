@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using AppliedResearchAssociates.iAM.Common.Logging;
+using System.Threading;
 using AppliedResearchAssociates.iAM.DTOs;
 using BridgeCareCore.Models;
 using OfficeOpenXml;
@@ -10,16 +12,12 @@ namespace BridgeCareCore.Interfaces
     {
         FileInfoDTO ExportCommittedProjectsFile(Guid simulationId);
 
-        FileInfoDTO CreateCommittedProjectTemplate();
+        FileInfoDTO CreateCommittedProjectTemplate(Guid networkId);
 
-        void ImportCommittedProjectFiles(Guid simulationId, ExcelPackage excelPackage, string filename, bool applyNoTreatment);
+        void ImportCommittedProjectFiles(Guid simulationId, ExcelPackage excelPackage, string filename, bool applyNoTreatment, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null);
 
         double GetTreatmentCost(Guid simulationId, string assetKeyData, string treatment, Guid networkId);
 
         List<CommittedProjectConsequenceDTO> GetValidConsequences(Guid committedProjectId, Guid simulationId, string assetKeyData, string treatment, Guid networkId);
-
-        PagingPageModel<SectionCommittedProjectDTO> GetCommittedProjectPage(List<SectionCommittedProjectDTO> committedProjects, PagingRequestModel<SectionCommittedProjectDTO> request);
-
-        List<SectionCommittedProjectDTO> GetSyncedDataset(Guid simulationId, PagingSyncModel<SectionCommittedProjectDTO> request);
     }
 }

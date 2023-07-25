@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using MoreLinq;
 using AppliedResearchAssociates.iAM.Data.Aggregation;
 using System.Text;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -73,6 +74,69 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             });
 
             _unitOfWork.Context.AddAll(aggregatedResultEntities, _unitOfWork.UserEntity?.Id);
+        }
+
+        public List<AggregatedResultDTO> GetAggregatedResultsForAttributeNames(Guid networkId, List<string> attributeNames)
+        {
+            return _unitOfWork.Context.AggregatedResult
+                .Include(_ => _.MaintainableAsset)
+                .Include(_ => _.Attribute)
+                .Where(_ => attributeNames.Contains(_.Attribute.Name) && _.MaintainableAsset.NetworkId == networkId)
+                .Select(e => AggregatedResultMapper.ToDto(e))
+                .AsNoTracking().AsSplitQuery().ToList();
+        }
+
+        public List<AggregatedSelectValuesResultDTO> GetAggregatedResultsForAttributeNames(List<string> attributeNames)
+        {
+            List<AggregatedSelectValuesResultDTO> returnList = new();
+            var uniqueAttributes = attributeNames.Distinct().ToList();
+            var allOfAttributeDTOs = _unitOfWork.Context.AggregatedResult
+                .Include(_ => _.Attribute)
+                .Where(_ => uniqueAttributes.Contains(_.Attribute.Name))
+                .Select(e => AggregatedResultMapper.ToDto(e))
+                .AsNoTracking().AsSplitQuery().ToList();
+
+            foreach (var attributeName in uniqueAttributes)
+            {
+                var attributeDTO = allOfAttributeDTOs.Where(_ => _.Attribute.Name == attributeName).ToList();
+
+                if (!attributeDTO.Any())
+                    break;
+
+                var values = new List<string>();
+                bool isNumber = false;
+                if (attributeDTO.All(x => x.Discriminator == DataPersistenceConstants.AggregatedResultNumericDiscriminator))
+                {
+                    values = attributeDTO.Where(_ => _.NumericValue.HasValue).Select(_ => _.NumericValue.Value.ToString()).Distinct().ToList();
+                    isNumber = attributeDTO.Any(_ => _.Attribute.Type == "NUMBER");
+                }
+                else if (attributeDTO.All(x => x.Discriminator == DataPersistenceConstants.AggregatedResultTextDiscriminator))
+                {
+                    values = attributeDTO.Where(_ => _.TextValue != null).Select(_ => _.TextValue).Distinct().ToList();
+                    isNumber = attributeDTO.Any(_ => _.Attribute.Type == "NUMBER");
+                }
+                else
+                    break;
+
+                AttributeDTO attr = attributeDTO.Select(_ => _.Attribute).FirstOrDefault();
+                string resultType = values.Any() ? "success" : "warning";
+                AggregatedSelectValuesResultDTO returnResult = new()
+                {
+                    Attribute = attr,
+                    Values = values,
+                    ResultType = resultType,
+                    IsNumber = isNumber
+                };
+                returnList.Add(returnResult);
+            }
+            return returnList;
+        }
+
+        public List<AggregatedResultDTO> GetAggregatedResultsForMaintainableAsset(Guid assetId, List<Guid> attributeIds)
+        {
+            var entities = _unitOfWork.Context.AggregatedResult.AsSplitQuery().AsNoTracking().Include(_ => _.Attribute)
+                    .Where(_ => _.MaintainableAssetId == assetId).ToList().Where(_ => attributeIds.Contains(_.AttributeId)).ToList();
+            return entities.Select(AggregatedResultMapper.ToDto).ToList();
         }
     }
 }

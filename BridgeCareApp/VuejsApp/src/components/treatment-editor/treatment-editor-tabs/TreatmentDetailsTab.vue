@@ -22,7 +22,7 @@
                     <v-flex xs3>
                         <v-subheader class="ghd-control-label ghd-md-gray">Category</v-subheader>
                         <v-select
-                        class='ghd-select ghd-control-text ghd-text-field ghd-text-field-border ghd-control-width'
+                        class='ghd-select ghd-control-text ghd-text-field ghd-text-field-border'
                             :items="Array.from(treatmentCategoryMap.keys())"
                             append-icon=$vuetify.icons.ghd-down
                             @input="
@@ -40,7 +40,7 @@
                     <v-flex xs3>
                         <v-subheader class="ghd-control-label ghd-md-gray">Asset type</v-subheader>
                         <v-select
-                        class='ghd-select ghd-control-text ghd-text-field ghd-text-field-border ghd-control-width'
+                        class='ghd-select ghd-control-text ghd-text-field ghd-text-field-border'
                         :items="Array.from(assetTypeMap.keys())"
                         append-icon=$vuetify.icons.ghd-down
                             @input="
@@ -57,7 +57,7 @@
                     </v-flex>
                     <v-flex xs3>
                         <v-subheader class="ghd-control-label ghd-md-gray">Years Before Any</v-subheader>
-                        <v-text-field
+                        <v-text-field 
                             class='ghd-control-border ghd-control-text ghd-control-width-sm'
                             :mask="'####'"
                             @input="
@@ -94,13 +94,32 @@
                             :rules="[rules['generalRules'].valueIsNotEmpty]"
                         />
                     </v-flex>
-                </v-layout>                
+<!--                     <v-flex xs3>
+                        <v-subheader class="ghd-control-label ghd-md-gray">Performance Factor</v-subheader>
+                        <v-text-field
+                            class='ghd-control-border ghd-control-text ghd-control-width-sm'
+                            @input="
+                                onEditTreatmentDetails(
+                                    'performanceFactor',
+                                    selectedTreatmentDetails.performanceFactor,
+                                )
+                            "
+                            label="Performance Factor"
+                            outline
+                            :value='parseFloat(selectedTreatmentDetails.performanceFactor).toFixed(2)'
+                            v-model.number="
+                                selectedTreatmentDetails.performanceFactor
+                            "
+                            :rules="[rules['generalRules'].valueIsNotEmpty]"
+                        />
+                    </v-flex>
+ -->                </v-layout>                
                 <v-flex class="criteria-flex">
                     <v-menu
                         full-width
                         bottom
                         min-height="500px"
-                        min-width="800px"
+                        min-width="1000px"
                     >   
                         <template slot="activator">                                                                                       
                             <v-layout column class="ghd-left-padding">  

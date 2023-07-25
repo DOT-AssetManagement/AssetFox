@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using AppliedResearchAssociates.iAM.Common.Logging;
+using System.Threading;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using BridgeCareCore.Models;
@@ -14,19 +16,9 @@ namespace BridgeCareCore.Interfaces
         FileInfoDTO ExportLibraryInvestmentBudgetsFile(Guid budgetLibraryId);
 
         ScenarioBudgetImportResultDTO ImportScenarioInvestmentBudgetsFile(Guid simulationId, ExcelPackage excelPackage, UserCriteriaDTO currentUserCriteriaFilter,
-            bool overwriteBudgets);
+            bool overwriteBudgets, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null);
 
         BudgetImportResultDTO ImportLibraryInvestmentBudgetsFile(Guid budgetLibraryId, ExcelPackage excelPackage, UserCriteriaDTO currentUserCriteriaFilter,
-            bool overwriteBudgets);
-
-        InvestmentPagingPageModel GetLibraryInvestmentPage(Guid libraryId, InvestmentPagingRequestModel request);
-
-        InvestmentPagingPageModel GetScenarioInvestmentPage(Guid simulationId, InvestmentPagingRequestModel request);
-
-        List<BudgetDTO> GetSyncedInvestmentDataset(Guid simulationId, InvestmentPagingSyncModel request);
-
-        List<BudgetDTO> GetSyncedLibraryDataset(Guid libraryId, InvestmentPagingSyncModel request);
-
-        List<BudgetDTO> GetNewLibraryDataset(InvestmentPagingSyncModel request);
+            bool overwriteBudgets, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null);
     }
 }

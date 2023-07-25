@@ -25,7 +25,7 @@
       </v-card-text>
       <v-card-actions>
           <v-layout justify-center row>
-            <v-btn
+            <v-btn outline
                    class="ghd-white-bg ghd-blue ghd-button-text"
                    depressed
                    @click="onSubmit(false)">
@@ -54,7 +54,6 @@ import {getUserName} from '@/shared/utils/get-user-info';
 import {InputValidationRules, rules} from '@/shared/utils/input-validation-rules';
 import {clone} from 'ramda';
 import {getBlankGuid, getNewGuid} from '@/shared/utils/uuid-utils';
-import {hasValue} from '@/shared/utils/has-value-util';
 
 @Component
 export default class CreatePerformanceCurveLibraryDialog extends Vue {

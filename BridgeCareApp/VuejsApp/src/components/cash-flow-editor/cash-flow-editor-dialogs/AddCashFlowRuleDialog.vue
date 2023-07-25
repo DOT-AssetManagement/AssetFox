@@ -13,6 +13,7 @@
         <v-layout column>
           <v-subheader class="ghd-md-gray ghd-control-label">Rule Name</v-subheader>
           <v-text-field outline v-model="newCashRule.name"
+                        id="AddCashFlowRuleDialog-ruleName-vtextfield"
                         :rules="[rules['generalRules'].valueIsNotEmpty]"
                         class="ghd-text-field-border ghd-text-field"/>
         </v-layout>
@@ -23,6 +24,7 @@
             Cancel
           </v-btn>
           <v-btn :disabled="newCashRule.name === ''" @click="onSubmit(true)"
+                  id="AddCashFlowRuleDialog-submit-btn"
                  outline class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'>
             Submit
           </v-btn>        
@@ -34,21 +36,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {Getter} from 'vuex-class';
 import Component from 'vue-class-component';
-import {Prop, Watch} from 'vue-property-decorator';
-import {CreateCashFlowRuleLibraryDialogData} from '@/shared/models/modals/create-cash-flow-rule-library-dialog-data';
+import {Prop} from 'vue-property-decorator';
 import {
-  CashFlowDistributionRule,
   CashFlowRule,
-  CashFlowRuleLibrary,
   emptyCashFlowRule,
-  emptyCashFlowRuleLibrary
 } from '@/shared/models/iAM/cash-flow';
-import {hasValue} from '@/shared/utils/has-value-util';
-import {getUserName} from '@/shared/utils/get-user-info';
 import {InputValidationRules, rules} from '@/shared/utils/input-validation-rules';
-import {clone} from 'ramda';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 
 @Component

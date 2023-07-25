@@ -67,9 +67,18 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
             ApplyTreatmentMetadata(year);
         }
 
+        public void ApplyTreatmentConsequences(Treatment treatment)
+        {
+            var consequenceActions = treatment.GetConsequenceActions(this);
+            foreach (var consequenceAction in consequenceActions)
+            {
+                consequenceAction();
+            }
+        }
+
         public void ApplyTreatmentMetadataIfPending(int year)
         {
-            if (AppliedTreatmentWithPendingMetadata is object)
+            if (AppliedTreatmentWithPendingMetadata is not null)
             {
                 ApplyTreatmentMetadata(year);
             }
@@ -79,18 +88,31 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
 
         public void CopyDetailFrom(AssetContext other) => Detail = new AssetDetail(other.Detail);
 
+        public bool? Evaluate(Criterion criterion)
+        {
+            if (!EvaluationCache.TryGetValue(criterion.Expression, out var result))
+            {
+                result = criterion.Evaluate(this);
+                EvaluationCache.Add(criterion.Expression, result);
+            }
+
+            return result;
+        }
+
         public void FixCalculatedFieldValuesWithoutPreDeteriorationTiming() => FixCalculatedFieldValues(AllCalculatedFields.Where(cf => cf.Timing != CalculatedFieldTiming.PreDeterioration));
 
         public void FixCalculatedFieldValuesWithPostDeteriorationTiming() => FixCalculatedFieldValues(AllCalculatedFields.Where(cf => cf.Timing == CalculatedFieldTiming.PostDeterioration));
 
         public void FixCalculatedFieldValuesWithPreDeteriorationTiming() => FixCalculatedFieldValues(AllCalculatedFields.Where(cf => cf.Timing == CalculatedFieldTiming.PreDeterioration));
 
-        public double GetBenefit()
+        public double GetBenefit() => GetBenefit(true);
+
+        public double GetBenefit(bool withWeighting)
         {
             var rawBenefit = GetNumber(AnalysisMethod.Benefit.Attribute.Name);
             var benefit = AnalysisMethod.Benefit.GetValueRelativeToLimit(rawBenefit);
 
-            if (AnalysisMethod.Weighting != null)
+            if (withWeighting && AnalysisMethod.Weighting != null)
             {
                 var weight = GetNumber(AnalysisMethod.Weighting.Name);
                 benefit *= weight;
@@ -214,19 +236,19 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
 
         public override void SetNumber(string key, double value)
         {
-            NumberCache.Clear();
+            ClearCache();
             base.SetNumber(key, value);
         }
 
         public override void SetNumber(string key, Func<double> getValue)
         {
-            NumberCache.Clear();
+            ClearCache();
             base.SetNumber(key, getValue);
         }
 
         public override void SetText(string key, string value)
         {
-            NumberCache.Clear();
+            ClearCache();
             base.SetText(key, value);
         }
 
@@ -246,13 +268,17 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
 
         private static readonly StringComparer KeyComparer = StringComparer.OrdinalIgnoreCase;
 
-        private readonly IDictionary<string, int> FirstUnshadowedYearForSameTreatment = new Dictionary<string, int>();
+        private readonly Dictionary<string, bool?> EvaluationCache = new();
 
-        private readonly Stack<string> GetNumber_ActiveKeysOfCurrentInvocation = new Stack<string>();
+        private readonly Dictionary<string, int> FirstUnshadowedYearForSameTreatment = new();
 
-        private readonly IDictionary<string, double> NumberCache = new Dictionary<string, double>(KeyComparer);
+        private readonly Stack<string> GetNumber_ActiveKeysOfCurrentInvocation = new();
 
-        private readonly IDictionary<string, double> NumberCache_Override = new Dictionary<string, double>(KeyComparer);
+        private readonly Dictionary<Attribute, double> MostRecentAdjustmentFactorsForPerformanceCurves = new();
+
+        private readonly Dictionary<string, double> NumberCache = new(KeyComparer);
+
+        private readonly Dictionary<string, double> NumberCache_Override = new(KeyComparer);
 
         private Treatment AppliedTreatmentWithPendingMetadata;
 
@@ -272,12 +298,7 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
 
         private void ApplyTreatmentButNotMetadata(Treatment treatment)
         {
-            var consequenceActions = treatment.GetConsequenceActions(this);
-            foreach (var consequenceAction in consequenceActions)
-            {
-                consequenceAction();
-            }
-
+            ApplyTreatmentConsequences(treatment);
             AppliedTreatmentWithPendingMetadata = treatment;
         }
 
@@ -308,9 +329,14 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
 
             Detail.AppliedTreatment = treatment.Name;
             Detail.TreatmentStatus = TreatmentStatus.Applied;
+
+            foreach (var (attribute, factor) in treatment.PerformanceCurveAdjustmentFactors)
+            {
+                MostRecentAdjustmentFactorsForPerformanceCurves[attribute] = factor;
+            }
         }
 
-        private double CalculateValueOnCurve(PerformanceCurve curve) => curve.Equation.Compute(this, curve);
+        private double CalculateValueOnCurve(PerformanceCurve curve) => curve.Equation.Compute(this, curve, MostRecentAdjustmentFactorsForPerformanceCurves);
 
         private double CalculateValueOnCurve(PerformanceCurve curve, Action<double> handle)
         {
@@ -344,6 +370,12 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
             }
         }
 
+        private void ClearCache()
+        {
+            NumberCache.Clear();
+            EvaluationCache.Clear();
+        }
+
         private void CopyAttributeValuesToDetail(AssetSummaryDetail detail)
         {
             detail.ValuePerNumericAttribute.Add(Network.SpatialWeightIdentifier, GetNumber(Network.SpatialWeightIdentifier));
@@ -370,7 +402,7 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine
         private Func<double> GetCalculator(IGrouping<NumberAttribute, PerformanceCurve> curves)
         {
             curves.Channel(
-                curve => curve.Criterion.Evaluate(this),
+                curve => Evaluate(curve.Criterion),
                 result => result ?? false,
                 result => !result.HasValue,
                 out var applicableCurves,

@@ -24,22 +24,25 @@
                     outline
                 ></v-select>
                 <v-text-field
+                    id="CloneScenarioDialog-scenarioName-textField"
                     label="Scenario name"
                     outline
-                    v-model="newScenario.name"
+                    v-model="dialogData.scenario.name"
                 ></v-text-field>
                 <v-checkbox v-model="shared" label="Share with all?" />
             </v-card-text>
             <v-card-actions>
                 <v-layout justify-space-between row>
                     <v-btn
-                        :disabled="newScenario.name === '' || !isNetworkSelected"
+                        id="CloneScenarioDialog-save-btn"
+                        :disabled="dialogData.scenario.name === '' || !isNetworkSelected"
                         @click="onSubmit(true)"
                         class="ara-blue-bg white--text"
                     >
                         Save
                     </v-btn>
                     <v-btn
+                        id="CloneScenarioDialog-cancel-btn"
                         @click="onSubmit(false)"
                         class="ara-orange-bg white--text"
                         >Cancel</v-btn
@@ -62,7 +65,6 @@ import {
     ScenarioUser,
 } from '@/shared/models/iAM/scenario';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
-import { hasValue } from '@/shared/utils/has-value-util';
 import { find, isNil, propEq, clone } from 'ramda';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
 import {CloneScenarioDialogData} from '@/shared/models/modals/clone-scenario-dialog-data';
@@ -158,7 +160,8 @@ export default class CloneScenarioDialog extends Vue {
     onSubmit(submit: boolean) {
         if (submit) {
             this.newScenario.networkId = this.selectedNetworkId;
-            this.newScenario.networkName = this.selectedNetworkName;
+            this.newScenario.networkName = this.selectedNetworkName;      
+            this.newScenario.name = this.dialogData.scenario.name;
             this.$emit('submit', this.newScenario);
         } else {
             this.$emit('submit', null);

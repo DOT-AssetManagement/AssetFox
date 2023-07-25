@@ -26,11 +26,14 @@ namespace BridgeCareCore.Controllers
         public const string CashFlowError = "Cash Flow Error";
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
         private readonly IClaimHelper _claimHelper;
-        private readonly ICashFlowService _cashFlowService;
+        private readonly ICashFlowPagingService _cashFlowService;
+
+        public const string RequestedToModifyNonexistentLibraryErrorMessage = "The request says to modify a library, but the library does not exist.";
+        public const string RequestedToCreateExistingLibraryErrorMessage = "The request says to create a new library, but the library already exists.";
 
         public CashFlowController(IEsecSecurity esecSecurity, IUnitOfWork unitOfWork, IHubService hubService,
             IHttpContextAccessor httpContextAccessor, IClaimHelper claimHelper,
-            ICashFlowService cashFlowService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+            ICashFlowPagingService cashFlowService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
             _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
             _cashFlowService = cashFlowService ?? throw new ArgumentNullException(nameof(cashFlowService));
@@ -46,7 +49,7 @@ namespace BridgeCareCore.Controllers
                 var result = new PagingPageModel<CashFlowRuleDTO>();
                 await Task.Factory.StartNew(() =>
                 {
-                    result = _cashFlowService.GetLibraryCashFlowPage(libraryId, pageRequest);
+                    result = _cashFlowService.GetLibraryPage(libraryId, pageRequest);
                 });
 
                 return Ok(result);
@@ -69,7 +72,7 @@ namespace BridgeCareCore.Controllers
                 await Task.Factory.StartNew(() =>
                 {
                     _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
-                    result = _cashFlowService.GetCashFlowPage(simulationId, pageRequest);
+                    result = _cashFlowService.GetScenarioPage(simulationId, pageRequest);
                 });
 
                 return Ok(result);
@@ -101,7 +104,7 @@ namespace BridgeCareCore.Controllers
                     result = UnitOfWork.CashFlowRuleRepo.GetCashFlowRuleLibrariesNoChildren();
                     if (_claimHelper.RequirePermittedCheck())
                     {
-                        result = result.Where(_ => _.Owner == UserId || _.IsShared == true).ToList();
+                        result = UnitOfWork.CashFlowRuleRepo.GetCashFlowRuleLibrariesNoChildrenAccessibleToUser(UserId);
                     }
                 });
 
@@ -153,50 +156,31 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
-                    var items = new List<CashFlowRuleDTO>();
-                    if (upsertRequest.ScenarioId != null)
-                        items = _cashFlowService.GetSyncedScenarioDataset(upsertRequest.ScenarioId.Value, upsertRequest.PagingSync);
-                    else if (upsertRequest.PagingSync.LibraryId != null && upsertRequest.PagingSync.LibraryId != Guid.Empty)
-                        items = _cashFlowService.GetSyncedLibraryDataset(upsertRequest.PagingSync.LibraryId.Value, upsertRequest.PagingSync);
-                    else if (!upsertRequest.IsNewLibrary)
-                        items = _cashFlowService.GetSyncedLibraryDataset(upsertRequest.Library.Id, upsertRequest.PagingSync);
-                    else if (upsertRequest.IsNewLibrary && upsertRequest.PagingSync.LibraryId == Guid.Empty)
+                    var libraryAccess = UnitOfWork.CashFlowRuleRepo.GetLibraryAccess(upsertRequest.Library.Id, UserId);
+                    if (libraryAccess.LibraryExists == upsertRequest.IsNewLibrary)
                     {
-                        items = _cashFlowService.GetNewLibraryDataset(upsertRequest.PagingSync);
+                        var errorMessage = libraryAccess.LibraryExists ? RequestedToCreateExistingLibraryErrorMessage : RequestedToModifyNonexistentLibraryErrorMessage;
+                        throw new InvalidOperationException(errorMessage);
                     }
-
-                    if (upsertRequest.IsNewLibrary)
-                    {
-                        items.ForEach(item =>
-                        {
-                            item.Id = Guid.NewGuid();
-                            item.CriterionLibrary.Id = Guid.NewGuid();
-                            item.CashFlowDistributionRules.ForEach(_ => _.Id = Guid.NewGuid());
-                        });
-                    }
+                    var items = _cashFlowService.GetSyncedLibraryDataset(upsertRequest);                  
                     var dto = upsertRequest.Library;
                     if (dto != null)
                     {
-                        _claimHelper.CheckUserLibraryModifyAuthorization(dto.Owner, UserId);
+                        _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
                         dto.CashFlowRules = items;
                     }
-                    UnitOfWork.CashFlowRuleRepo.UpsertCashFlowRuleLibrary(dto);
-                    UnitOfWork.CashFlowRuleRepo.UpsertOrDeleteCashFlowRules(dto.CashFlowRules, dto.Id);
-                    UnitOfWork.Commit();
+                    UnitOfWork.CashFlowRuleRepo.UpsertCashFlowRuleLibraryAndRules(dto);
                 });
 
                 return Ok();
             }
             catch (UnauthorizedAccessException)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::UpsertCashFlowRuleLibrary - {HubService.errorList["Unauthorized"]}");
                 throw;
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::UpsertCashFlowRuleLibrary - {e.Message}");
                 throw;
             }
@@ -212,25 +196,23 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
-                    var dtos = _cashFlowService.GetSyncedScenarioDataset(simulationId, pagingSync);
+                    var dtos = _cashFlowService.GetSyncedScenarioDataSet(simulationId, pagingSync);
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                    UnitOfWork.CashFlowRuleRepo.AddLibraryIdToScenarioCashFlowRule(dtos, pagingSync.LibraryId);
+                    UnitOfWork.CashFlowRuleRepo.AddModifiedToScenarioCashFlowRule(dtos, pagingSync.IsModified);
                     UnitOfWork.CashFlowRuleRepo.UpsertOrDeleteScenarioCashFlowRules(dtos, simulationId);
-                    UnitOfWork.Commit();
                 });
 
                 return Ok();
             }
             catch (UnauthorizedAccessException)
             {
-                UnitOfWork.Rollback();
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::UpsertScenarioCashFlowRules for {simulationName} - {HubService.errorList["Unauthorized"]}");
                 throw;
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::UpsertScenarioCashFlowRules for {simulationName} - {e.Message}");
                 throw;
@@ -246,15 +228,16 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
                     if (_claimHelper.RequirePermittedCheck())
                     {
                         var dto = GetAllCashFlowRuleLibraries().FirstOrDefault(_ => _.Id == libraryId);
                         if (dto == null) return;
-                        _claimHelper.CheckUserLibraryModifyAuthorization(dto.Owner, UserId);
+
+                        var access = UnitOfWork.CashFlowRuleRepo.GetLibraryAccess(libraryId, UserId);
+                        _claimHelper.CheckUserLibraryDeleteAuthorization(access, UserId);
+
                     }
                     UnitOfWork.CashFlowRuleRepo.DeleteCashFlowRuleLibrary(libraryId);
-                    UnitOfWork.Commit();
                 });
 
                 return Ok();
@@ -266,7 +249,6 @@ namespace BridgeCareCore.Controllers
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::DeleteCashFlowRuleLibrary - {e.Message}");
                 throw;
             }
@@ -279,7 +261,92 @@ namespace BridgeCareCore.Controllers
         {
             return Ok(true);
         }
-
+        [HttpGet]
+        [Route("GetIsSharedLibrary/{cashFlowRuleLibraryId}")]
+        [Authorize(Policy = Policy.ViewCashFlowFromLibrary)]
+        public async Task<IActionResult> GetIsSharedLibrary(Guid cashFlowRuleLibraryId)
+        {
+            bool result = false;
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var users = UnitOfWork.CashFlowRuleRepo.GetLibraryUsers(cashFlowRuleLibraryId);
+                    if (users.Count <= 0)
+                    {
+                        result = false;
+                    }
+                    else
+                    {
+                        result = true;
+                    }
+                });
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::GetIsSharedLibrary - {e.Message}");
+                throw;
+            }
+        }
+        [HttpGet]
+        [Route("GetCashFlowRuleLibraryUsers/{libraryId}")]
+        [Authorize(Policy = Policy.ViewCashFlowFromLibrary)]
+        public async Task<IActionResult> GetCashFlowRuleLibraryUsers(Guid libraryId)
+        {
+            try
+            {
+                List<LibraryUserDTO> users = new List<LibraryUserDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    var accessModel = UnitOfWork.CashFlowRuleRepo.GetLibraryAccess(libraryId, UserId);
+                    _claimHelper.RequirePermittedCheck();
+                    users = UnitOfWork.CashFlowRuleRepo.GetLibraryUsers(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::GetCashFlowRuleLibraryUsers - {e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::GetCashFlowRuleLibraryUsers - {e.Message}");
+                throw;
+            }
+        }
+        [HttpPost]
+        [Route("UpsertOrDeleteCashFlowRuleLibraryUsers/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyCashFlowFromLibrary)]
+        public async Task<IActionResult> UpsertOrDeleteCashFlowRuleLibraryUsers(Guid libraryId, List<LibraryUserDTO> proposedUsers)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var libraryUsers = UnitOfWork.CashFlowRuleRepo.GetLibraryUsers(libraryId);
+                    _claimHelper.RequirePermittedCheck();
+                    UnitOfWork.CashFlowRuleRepo.UpsertOrDeleteUsers(libraryId, proposedUsers);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::UpsertOrDeleteCashFlowRuleLibraryUsers - {e.Message}");
+                return Ok();
+            }
+            catch (InvalidOperationException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::UpsertOrDeleteCashFlowRuleLibraryUsers - {e.Message}");
+                return BadRequest();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{CashFlowError}::UpsertOrDeleteCashFlowRuleLibraryUsers - {e.Message}");
+                throw;
+            }
+        }
         private List<CashFlowRuleLibraryDTO> GetAllCashFlowRuleLibraries()
         {
             return UnitOfWork.CashFlowRuleRepo.GetCashFlowRuleLibraries();

@@ -23,5 +23,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         List<TargetConditionGoalDTO> GetTargetConditionGoalsByLibraryId(Guid libraryId);
 
         void UpsertOrDeleteScenarioTargetConditionGoals(List<TargetConditionGoalDTO> scenarioTargetConditionGoal, Guid simulationId);
+
+        List<TargetConditionGoalLibraryDTO> GetTargetConditionGoalLibrariesNoChildrenAccessibleToUser(Guid userId);
+
+        LibraryUserAccessModel GetLibraryAccess(Guid libraryId, Guid userId);
+
+        void UpsertOrDeleteUsers(Guid targetConditionGoalLibraryId, IList<LibraryUserDTO> libraryUsers);
+
+        List<LibraryUserDTO> GetLibraryUsers(Guid targetConditionGoalLibraryId);
+
+        void AddLibraryIdToScenarioTargetConditionGoal(List<TargetConditionGoalDTO> targetConditionGoalDTOs, Guid? libraryId);
+
+        void AddModifiedToScenarioTargetConditionGoal(List<TargetConditionGoalDTO> targetConditionGoalDTOs, bool IsModified);
+        void UpsertTargetConditionGoalLibraryGoalsAndPossiblyUser(TargetConditionGoalLibraryDTO dto, bool isNewLibrary, Guid ownerIdForNewLibrary);
     }
 }

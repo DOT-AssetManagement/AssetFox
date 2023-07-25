@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Reporting.Interfaces.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Logging;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.CountySummary;
@@ -30,17 +31,17 @@ namespace AppliedResearchAssociates.iAM.Reporting
     public class PAMSSummaryReport : IReport
     {
         private readonly IHubService _hubService;
-        private readonly UnitOfDataPersistenceWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         private readonly SummaryReportParameters _summaryReportParameters;
-        private readonly IPamsDataForSummaryReport _pamsDataForSummaryReport;
-        private readonly IPavementWorkSummary _pavementWorkSummary;
-        private readonly IPavementWorkSummaryByBudget _pavementWorkSummaryByBudget;
+        private readonly PamsDataForSummaryReport _pamsDataForSummaryReport;
+        private readonly PavementWorkSummary _pavementWorkSummary;
+        private readonly PavementWorkSummaryByBudget _pavementWorkSummaryByBudget;
         private readonly UnfundedPavementProjects _unfundedPavementProjects;
 
-        private readonly ICountySummary _countySummary;
+        private readonly CountySummary _countySummary;
 
-        private readonly IAddGraphsInTabs _addGraphsInTabs;
+        private readonly AddGraphsInTabs _addGraphsInTabs;
         private readonly SummaryReportGlossary _summaryReportGlossary;
 
         private Guid _networkId;
@@ -61,7 +62,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         public string Status { get; private set; }
 
-        public PAMSSummaryReport(UnitOfDataPersistenceWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
+        public PAMSSummaryReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {
             //store passed parameter   
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -89,8 +90,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             IsComplete = false;
         }
 
-        public async Task Run(string parameters)
+        public async Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null)
         {
+            workQueueLog ??= new DoNothingWorkQueueLog();
             //check for the parameters string
             if (string.IsNullOrEmpty(parameters) || string.IsNullOrWhiteSpace(parameters))
             {
@@ -142,7 +144,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var summaryReportPath = "";
             try
             {
-                summaryReportPath = GenerateSummaryReport(_networkId, _simulationId);
+                summaryReportPath = GenerateSummaryReport(_networkId, _simulationId, workQueueLog, cancellationToken);
             }
             catch (Exception e)
             {
@@ -166,8 +168,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             return;
         }
 
-        private string GenerateSummaryReport(Guid networkId, Guid simulationId)
+        private string GenerateSummaryReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
+            checkCancelled(cancellationToken, simulationId);
             var functionReturnValue = "";
 
             var logger = new CallbackLogger((string message) =>
@@ -215,59 +218,73 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             using var excelPackage = new ExcelPackage(new FileInfo("SummaryReportTestData.xlsx"));
 
+            checkCancelled(cancellationToken, simulationId);
             // Parameters TAB
             reportDetailDto.Status = $"Creating Parameters TAB";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var parametersWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.Parameters_Tab);
 
+            checkCancelled(cancellationToken, simulationId);
             // PAMS Data TAB
             reportDetailDto.Status = $"Creating Pams Data TAB";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PAMSData_Tab);
             var workSummaryModel = _pamsDataForSummaryReport.Fill(worksheet, reportOutputData);
 
+            checkCancelled(cancellationToken, simulationId);
             //Filling up parameters tab
             _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulation);
 
-
+            checkCancelled(cancellationToken, simulationId);
             //// Pavement Work Summary TAB
             reportDetailDto.Status = $"Creating Pavement Work Summary TAB";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pamsWorkSummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummary_Tab);
             var chartRowModel = _pavementWorkSummary.Fill(pamsWorkSummaryWorksheet, reportOutputData, simulationYears, workSummaryModel, yearlyBudgetAmount, simulation.Treatments);
 
-
+            checkCancelled(cancellationToken, simulationId);
             //// Pavement Work Summary By Budget TAB
             reportDetailDto.Status = $"Creating Pavement Work Summary By Budget TAB";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pavementWorkSummaryByBudgetWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummaryByBudget_Tab);
             _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, simulation.Treatments);
 
-
+            checkCancelled(cancellationToken, simulationId);
             // Unfunded Pavement Projects TAB
             reportDetailDto.Status = $"Unfunded Pavement Projects TAB";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             var _unfundedPavementProjectsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.UnfundedPavementProjects_Tab);
             _unfundedPavementProjects.Fill(_unfundedPavementProjectsWorksheet, reportOutputData);
 
+            checkCancelled(cancellationToken, simulationId);
             // County Summary TAB
             reportDetailDto.Status = $"County Summary TAB";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             var _countySummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.CountySummary_Tab);
             _countySummary.Fill(_countySummaryWorksheet, reportOutputData, simulationYears, simulation);
 
+            checkCancelled(cancellationToken, simulationId);
             //Graph TABs
             reportDetailDto.Status = $"Creating Graph TABs";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             _addGraphsInTabs.Add(excelPackage, worksheet, pamsWorkSummaryWorksheet, chartRowModel, simulationYearsCount);
 
+            checkCancelled(cancellationToken, simulationId);
             // Legend TAB
             reportDetailDto.Status = $"Creating Legends TAB";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             var shortNameWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.Legend_Tab);
             _summaryReportGlossary.Fill(shortNameWorksheet);
-
+            checkCancelled(cancellationToken, simulationId);
             //check and generate folder            
             var folderPathForSimulation = $"Reports\\{simulationId}";
             if (Directory.Exists(folderPathForSimulation) == false) { Directory.CreateDirectory(folderPathForSimulation); }
-
+            checkCancelled(cancellationToken, simulationId);
             var filePath = Path.Combine(folderPathForSimulation, "SummaryReport.xlsx");
             var bin = excelPackage.GetAsByteArray();
             File.WriteAllBytes(filePath, bin);
@@ -276,6 +293,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             functionReturnValue = filePath;
 
             reportDetailDto.Status = $"Report generation completed";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpdateSimulationAnalysisDetail(reportDetailDto);
 
             //return value
@@ -283,39 +301,27 @@ namespace AppliedResearchAssociates.iAM.Reporting
         }
 
 
-
-        private byte[] FetchFromFileLocation(Guid networkId, Guid simulationId)
-        {
-            var folderPathForSimulation = $"Reports\\{simulationId}";
-            var relativeFolderPath = Path.Combine(Environment.CurrentDirectory, folderPathForSimulation);
-            var filePath = Path.Combine(relativeFolderPath, "SummaryReport.xlsx");
-            var reportDetailDto = new SimulationReportDetailDTO { SimulationId = simulationId };
-
-            if (File.Exists(filePath))
-            {
-                reportDetailDto.Status = $"Gathering summary report data";
-                UpdateSimulationAnalysisDetail(reportDetailDto);
-                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
-                Errors.Add(reportDetailDto.Status);
-
-                byte[] summaryReportData = File.ReadAllBytes(filePath);
-                return summaryReportData;
-            }
-
-            reportDetailDto.Status = $"Summary report is not available in the path {filePath}";
-            UpdateSimulationAnalysisDetail(reportDetailDto);
-            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
-            Errors.Add(reportDetailDto.Status);
-
-            throw new FileNotFoundException($"Summary report is not available in the path {filePath}", "SummaryReport.xlsx");
-        }
-
         private void UpdateSimulationAnalysisDetail(SimulationReportDetailDTO dto) => _unitOfWork.SimulationReportDetailRepo.UpsertSimulationReportDetail(dto);
 
         private void IndicateError()
         {
             Status = "Summary output report completed with errors";
             IsComplete = true;
+        }
+        private void UpsertSimulationReportDetail(SimulationReportDetailDTO dto) => _unitOfWork.SimulationReportDetailRepo.UpsertSimulationReportDetail(dto);
+
+        private void checkCancelled(CancellationToken? cancellationToken, Guid simulationId)
+        {
+            if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+            {
+                throw new Exception("Report was cancelled");
+            }
+            var reportDetailDto = new SimulationReportDetailDTO
+            {
+                SimulationId = simulationId,
+                Status = $""
+            };
+            UpsertSimulationReportDetail(reportDetailDto);
         }
     }
 }

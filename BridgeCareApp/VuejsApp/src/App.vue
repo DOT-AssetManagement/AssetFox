@@ -3,20 +3,22 @@
         <v-content>
             <v-toolbar app class="paper-white-bg">
                 <v-toolbar-title>
-                    <img :src="require('@/assets/images/PennDOTLogo.svg')" @click="onNavigate('/Scenarios/')" class="pointer-for-image" />
+                    <img v-bind:src="agencyLogo" @click="onNavigate('/Scenarios/')" class="pointer-for-image" /> 
                     <v-divider class="mx-2 navbar-divider" vertical color="#798899"/>
-                    <img :src="require('@/assets/images/BridgeCareLogo.svg')" @click="onNavigate('/Scenarios/')" class="pointer-for-image" />
+                    <img v-bind:src="productLogo" @click="onNavigate('/Scenarios/')" class="pointer-for-image" />
                     <v-divider class="mx-2 navbar-divider" vertical color="#798899"/>
                 </v-toolbar-title>
                 <v-toolbar-items>
                     <v-btn
+                        id="App-scenarios-btn"
                         @click="onNavigate('/Scenarios/')"
-                        flat
                         class="ara-blue-pantone-281"
+                        flat                        
                     >
                         Scenarios
                     </v-btn>                   
                      <v-btn
+                        id="App-libraries-btn"
                         @click="onNavigate('/EditLibrary/')"
                         class="ara-blue-pantone-281"
                         flat
@@ -24,6 +26,7 @@
                         Libraries
                     </v-btn>
                     <v-btn
+                        id="App-rawData-btn"
                         @click="onNavigate('/EditRawData/')"
                         class="ara-blue-pantone-281"
                         flat
@@ -32,14 +35,17 @@
                         Raw Data
                     </v-btn>
                     <v-btn
-                        @click="onNavigate('/UserCriteria/')"
+                        id="App-administration-btn"
+                        @click="onNavigate('/EditAdmin/')"
                         class="ara-blue-pantone-281"
                         flat
                         v-if="hasAdminAccess"
                     >
-                        Security
+                        Administration
                     </v-btn>
                     <v-btn
+                    v-if="stateInventoryReportNames.length > 0"
+                        id="App-inventory-btn"
                         @click="onNavigate('/Inventory/')"
                         class="ara-blue-pantone-281"
                         flat
@@ -47,6 +53,7 @@
                         Inventory
                     </v-btn>
                      <v-btn
+                        id="App-news-btn"
                         @click="onShowNewsDialog()"
                         class="ara-blue-pantone-281"
                         flat
@@ -196,19 +203,23 @@
                     </v-btn>
                 </v-toolbar-title>
             </v-toolbar>
-            <div class="ara-blue-pantone-281 scenario-status" v-if="hasSelectedScenario">
-                <span class="font-weight-light">Scenario: </span>
-                    <span>{{ selectedScenario.name }}</span>
-                    <span
-                        v-if="selectedScenarioHasStatus"
-                        class="font-weight-light"
-                    >
-                        => Status:
-                    </span>
-                    <span v-if="selectedScenarioHasStatus">{{
-                        selectedScenario.status
-                    }}</span>
-            </div>
+                <div class="scenario-status" v-if="hasSelectedScenario">
+                        <br>
+                        <span>Scenario: </span>
+                            <span id = 'App-scenarioName-span' style="font-weight: normal;">{{ selectedScenario.name }}</span>
+                            {{ "\xA0" }}
+                            <span v-if="selectedScenarioHasStatus && hasSelectedScenario">
+                            <hr color="#798899" class="mx-1 navbar-divider v-divider v-divider--vertical theme--light">
+                            </span>
+                            {{ "\xA0" }}
+                            <span v-if="selectedScenarioHasStatus">
+                            Status:
+                            </span>
+                            <span style="font-weight: normal;"
+                             v-if="selectedScenarioHasStatus">{{
+                                 selectedScenario.status
+                             }}</span>
+                    </div>
             <v-container fluid v-bind="container">
                 <router-view></router-view>
             </v-container>
@@ -217,7 +228,7 @@
                 <v-flex xs2>
                     <div class="dev-and-ver-div">
                         <div class="font-weight-light">iAM</div>
-                        <div>BridgeCare &copy; 2021</div>
+                        <div>{{implementationName}}</div>
                         <div>{{ packageVersion }}</div>
                     </div>
                 </v-flex>
@@ -249,10 +260,9 @@ import {
     setAuthHeader,
     setContentTypeCharset,
 } from '@/shared/utils/http-utils';
-//import ReportsService from './services/reports.service';
 import Alert from '@/shared/modals/Alert.vue';
 import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
-import { clone } from 'ramda';
+import { bind, clone } from 'ramda';
 import { emptyScenario, Scenario } from '@/shared/models/iAM/scenario';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
 import { newsAccessDateComparison, getDateOnly, getCurrentDateOnly } from '@/shared/utils/date-utils';
@@ -296,7 +306,11 @@ export default class AppComponent extends Vue {
     securityType: string;
     @State(state => state.announcementModule.announcements) announcements: Announcement[];
     @State(state => state.userModule.currentUser) currentUser: User;
-
+    @State(state => state.adminSiteSettingsModule.implementationName) stateImplementationName: string;
+    @State(state => state.adminSiteSettingsModule.agencyLogo) agencyLogoBase64: string;
+    @State(state => state.adminSiteSettingsModule.productLogo) productLogoBase64: string;
+    @State(state => state.adminDataModule.inventoryReportNames) stateInventoryReportNames: string[];
+    
     @Action('logOut') logOutAction: any;
     @Action('setIsBusy') setIsBusyAction: any;
     @Action('getNetworks') getNetworksAction: any;
@@ -317,6 +331,10 @@ export default class AppComponent extends Vue {
     @Action('azureB2CLogout') azureB2CLogoutAction: any;
     @Action('getCurrentUserByUserName') getCurrentUserByUserNameAction: any;
     @Action('updateUserLastNewsAccessDate') updateUserLastNewsAccessDateAction: any;
+    @Action('getImplementationName') getImplementationNameAction: any;
+    @Action('getAgencyLogo') getAgencyLogoAction: any;
+    @Action('getProductLogo') getProductLogoAction: any;
+    @Action('getInventoryReports') getInventoryReportsAction: any;
 
     drawer: boolean = false;
     latestNewsDate: string = '0001-01-01';
@@ -340,6 +358,10 @@ export default class AppComponent extends Vue {
     hasUnreadNewsItem: boolean = false;
     currentURL: any = '';
     unauthorizedError: string = '';
+    implementationName: string = '';
+    agencyLogo: string = '';
+    productLogo: string = '';
+    inventoryReportName: string = '';
 
     get container() {
         const container: any = {};
@@ -395,6 +417,25 @@ export default class AppComponent extends Vue {
         this.currentUserLastNewsAccessDate = getDateOnly(this.currentUser.lastNewsAccessDate);
         this.checkLastNewsAccessDate();
     }
+    @Watch('stateImplementationName')
+    onimplementationNameChange() {
+        this.implementationName = this.stateImplementationName;
+    }
+    @Watch('agencyLogoBase64')
+    onAgencyLogoBase64Change() {
+        this.agencyLogo = this.agencyLogoBase64;
+    }
+
+    @Watch('productLogoBase64')
+    onProductLogoBase64Change() {
+        this.productLogo = this.productLogoBase64;
+    }
+
+    @Watch('stateInventoryReportNames')
+        onStateInventoryReportNamesChanged(){
+            if(this.stateInventoryReportNames.length > 0)
+                this.inventoryReportName = this.stateInventoryReportNames[0]
+        }
 
     created() {
         // create a request handler
@@ -514,6 +555,21 @@ export default class AppComponent extends Vue {
         );
         
         this.currentURL = this.$router.currentRoute.name;
+
+        if(this.$config.agencyLogo.trim() === "")
+            this.agencyLogo = require(`@/assets/images/PennDOTLogo.svg`)
+        else
+            this.agencyLogo = this.$config.agencyLogo
+
+        if(this.$config.productLogo.trim() === "")
+            this.productLogo = require(`@/assets/images/BridgeCareLogo.svg`)
+        else
+            this.productLogo = this.$config.productLogo
+
+        if(this.implementationName === "")
+            this.implementationName = "BridgeCare"
+        else
+            this.implementationName = this.$config.implementationName
     }
 
     beforeDestroy() {
@@ -547,10 +603,19 @@ export default class AppComponent extends Vue {
     }
 
     onAddWarningNotification(data: any) {
-        this.addWarningNotificationAction({
-            message: 'Server Warning',
-            longMessage: data.info,
-        });
+        let warningNotification:string = data.warning.toString();
+        let spl = warningNotification.split('::');
+        if (spl.length > 0) {
+            this.addWarningNotificationAction({
+                message: spl[0],
+                longMessage: spl.length > 1 ? spl[1] : ''
+            });
+        } else {
+            this.addWarningNotificationAction({
+                message: 'Server Warning',
+                longMessage: data.warning,
+            });
+        }
     }
 
     onAddTaskCompletedNotification(data: any) {
@@ -595,6 +660,11 @@ export default class AppComponent extends Vue {
         if (this.username != null && this.username != '') {
             this.getCurrentUserByUserNameAction(this.username);
         }
+
+        //If these gets are placed before authorization, GetUserInformation() in EsecSecurity.cs will throw an error, as its HttpRequest will have no Authorization header!
+        this.getImplementationNameAction();
+        this.getAgencyLogoAction();
+        this.getProductLogoAction();
     }
 
     /**
@@ -603,17 +673,15 @@ export default class AppComponent extends Vue {
      */
     onLogout() {
         this.logOutAction().then(() => {
-            clearRefreshIntervalID();
-            if (
-                window.location.host.toLowerCase().indexOf('penndot.gov') === -1
-            ) {
+            clearRefreshIntervalID(); 
+            if (window.location.host.toLowerCase().indexOf('penndot.gov') === -1) {
                 /*
                  * In order to log out properly, the browser must visit the /iAM page of a penndot deployment, as iam-deploy.com cannot
                  * modify browser cookies for penndot.gov. So, the current host is sent as part of the query to the penndot site
                  * to allow the landing page to redirect the browser to the original host.
                  */
                 window.location.href =
-                    'http://bamssyst.penndot.gov/iAM?host=' +
+                    'http://www.bamssyst.penndot.gov/iAM?host=' +
                     encodeURI(window.location.host);
             } else {
                 this.onNavigate('/iAM/');
@@ -627,7 +695,7 @@ export default class AppComponent extends Vue {
      */
     onNavigate(route: any) {
         if (this.$router.currentRoute.path !== route.path) {
-            this.$router.push(route);
+            this.$router.push(route).catch(() => {});
         }
     }
 

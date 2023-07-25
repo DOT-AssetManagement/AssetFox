@@ -3,34 +3,24 @@
         <!-- top row -->
         <v-flex xs12>
             <v-layout justify-space-between>
-                <v-flex xs4 class="ghd-constant-header">
+                <v-flex xs5 class="ghd-constant-header" style="margin-right: 10px">
                     <v-layout column>
                         <v-subheader class="ghd-md-gray ghd-control-label">Calculated Attribute</v-subheader>
                         <v-select
-                            :items="librarySelectItems"
-                            append-icon=$vuetify.icons.ghd-down
-                            outline
-                            v-model="librarySelectItemValue"
-                            class="ghd-select ghd-text-field ghd-text-field-border">
-                        </v-select>                       
+                                  id="CalculatedAttribute-CalculatedAttribute-select"
+                                  :items="librarySelectItems"
+                                  append-icon=$vuetify.icons.ghd-down
+                                  outline
+                                  v-model="librarySelectItemValue"
+                                  class="ghd-select ghd-text-field ghd-text-field-border">
+                        </v-select>
+                        <div class="ghd-md-gray ghd-control-subheader" v-if="hasScenario"><b>Library Used: {{parentLibraryName}} <span v-if="scenarioLibraryIsModified">&nbsp;(Modified)</span></b></div>
                     </v-layout>
                 </v-flex>
-                <v-flex xs4 class="ghd-constant-header">
-                    <v-layout v-if='hasSelectedLibrary && !hasScenario' style="padding-top: 24px !important" class="shared-owner-flex-padding">
-                        <div class="header-text-content owner-padding" style="padding-top: 7px !important">
-                            Owner: {{ getOwnerUserName() || '[ No Owner ]' }}
-                        </div>
-                        <v-divider class="owner-shared-divider" inset vertical></v-divider>
-                        <v-switch
-                            class='sharing header-text-content'
-                            label="Default Calculation"
-                            v-model="isDefaultBool"
-                            />
-                    </v-layout>
-                </v-flex>
-                <v-flex xs4 class="ghd-constant-header">
+                <v-flex xs7 class="ghd-constant-header" style="margin-right: 10px">
                     <v-layout align-end>
                         <v-text-field
+                                    id="CalculatedAttribute-search-textField"
                                     prepend-inner-icon=$vuetify.icons.ghd-search
                                     hide-details
                                     lablel="Search"
@@ -43,8 +33,7 @@
                                     class="ghd-text-field-border ghd-text-field search-icon-general"
                                     style="margin-top:20px !important">
                         </v-text-field>
-                        <v-btn style="position: relative; top: 3px" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline @click="onSearchClick()">Search</v-btn>
-
+                        <v-btn id="CalculatedAttribute-search-btn" style="position: relative; top: 3px; margin-right: 1px" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline @click="onSearchClick()">Search</v-btn>
                         <v-btn
                             @click="onShowCreateCalculatedAttributeLibraryDialog(false)"
                             class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
@@ -57,6 +46,23 @@
                 </v-flex>
             </v-layout>
         </v-flex>
+        <v-flex xs6 class="ghd-constant-header" style="margin-bottom: 15px">
+            <v-layout v-if='hasSelectedLibrary && !hasScenario' align-center>
+                <div class="header-text-content owner-padding">
+                     Owner: {{ getOwnerUserName() || '[ No Owner ]' }}
+                </div>
+                <v-divider class="owner-shared-divider" inset vertical></v-divider>
+                <v-badge v-show="isShared" style="padding: 10px">
+                    <template v-slot:badge>
+                        <span>Shared</span>
+                    </template>
+                    </v-badge>
+                    <v-btn @click='onShowShareCalculatedAttributeLibraryDialog(selectedCalculatedAttributeLibrary)' class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline
+                v-show='!hasScenario'>
+                Share Library
+            </v-btn>
+        </v-layout>
+        </v-flex>
         <!-- attributes and timing -->
         <v-flex xs12 v-show="hasSelectedLibrary || hasScenario">
             <v-layout justify-space-between>
@@ -64,6 +70,7 @@
                 <v-layout column style="float:left; width: 100%">
                     <v-subheader class="ghd-md-gray ghd-control-label">Attribute</v-subheader>
                     <v-select
+                        id="CalculatedAttribute-Attribute-select"   
                         :items="attributeSelectItems"
                         append-icon=$vuetify.icons.ghd-down
                         outline
@@ -78,6 +85,7 @@
                 <v-layout column style="float:right; width: 100%">
                     <v-subheader class="ghd-md-gray ghd-control-label">Timing</v-subheader>
                     <v-select
+                        id="CalculatedAttribute-Timing-select"
                         :items="attributeTimingSelectItems"
                         append-icon=$vuetify.icons.ghd-down
                         outline
@@ -97,12 +105,14 @@
                     <v-layout column>
                         <v-subheader class="ghd-md-gray ghd-control-label">Default Equation</v-subheader>
                         <v-text-field
+                            id="CalculatedAttribute-defaultEquation-textfield"
                             readonly
                             class="sm-txt"
                             v-model="defaultEquation.equation.expression"
                             :disabled="!hasAdminAccess">
                             <template slot="append-outer">
                                 <v-btn
+                                    id="CalculatedAttribute-defaultEquationEditor-btn"
                                     @click="onShowEquationEditorDialogForDefaultEquation()"
                                     class="ghd-blue"
                                     icon
@@ -118,6 +128,7 @@
         <!-- data table -->
         <v-flex xs12 v-show="hasSelectedLibrary || hasScenario">
             <v-data-table
+                id="CalculatedAttribute-equation-table"    
                 :headers="calculatedAttributeGridHeaders"
                 :items="selectedGridItem"
                 :pagination.sync="pagination"
@@ -207,13 +218,7 @@
                     v-show="hasSelectedLibrary || hasScenario">
                     Cancel
                 </v-btn>
-                <v-btn
-                    @click="onUpsertScenarioCalculatedAttribute"
-                    class='ghd-blue-bg white--text ghd-button-text ghd-button'
-                    v-show="hasScenario && hasAdminAccess"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges">
-                    Save
-                </v-btn>
+                
                 <v-btn
                     @click="onShowConfirmDeleteAlert"
                     class='ghd-blue ghd-button-text ghd-button'
@@ -236,6 +241,13 @@
                     class='ghd-blue-bg white--text ghd-button-text ghd-outline-button-padding ghd-button'
                     v-show="!hasScenario">
                     Update Library
+                </v-btn>
+                <v-btn
+                    @click="onUpsertScenarioCalculatedAttribute"
+                    class='ghd-blue-bg white--text ghd-button-text ghd-button'
+                    v-show="hasScenario && hasAdminAccess"
+                    :disabled="disableCrudButton() || !hasUnsavedChanges">
+                    Save
                 </v-btn> 
             </v-layout>
         </v-flex>
@@ -248,7 +260,9 @@
             :dialogData="createCalculatedAttributeLibraryDialogData"
             @submit="onSubmitCreateCalculatedAttributeLibraryDialogResult"
         />
-
+        <ShareCalculatedAttributeLibraryDialog :dialogData="shareCalculatedAttributeLibraryDialogData"
+            @submit="onShareCalculatedAttributeDialogSubmit" 
+        />
         <CreateCalculatedAttributeDialog
             :showDialog="showCreateCalculatedAttributeDialog"
             @submit="onSubmitCreateCalculatedAttributeDialogResult"
@@ -272,6 +286,8 @@ import Alert from '@/shared/modals/Alert.vue';
 import EquationEditorDialog from '../../shared/modals/EquationEditorDialog.vue';
 import CreateCalculatedAttributeLibraryDialog from './calculated-attribute-editor-dialogs/CreateCalculatedAttributeLibraryDialog.vue';
 import CreateCalculatedAttributeDialog from './calculated-attribute-editor-dialogs/CreateCalculatedAttributeDialog.vue';
+import ShareCalculatedAttributeLibraryDialog from '@/components/calculated-attribute-editor/calculated-attribute-editor-dialogs/ShareCalculatedAttributeLibraryDialog.vue';
+import { emptyShareCalculatedAttributeLibraryDialogData, ShareCalculatedAttributeLibraryDialogData } from '@/shared/models/modals/share-calculated-attribute-data';
 import {
     InputValidationRules,
     rules,
@@ -282,23 +298,19 @@ import {
     find,
     findIndex,
     isNil,
-    map,
-    prepend,
     propEq,
-    reject,
     update,
 } from 'ramda';
 import {
     CalculatedAttribute,
     CalculatedAttributeGridModel,
     CalculatedAttributeLibrary,
+    CalculatedAttributeLibraryUser,
     CriterionAndEquationSet,
     emptyCalculatedAttribute,
     emptyCalculatedAttributeLibrary,
-    emptyCalculatedAttributeGridModel,
     emptyCriterionAndEquationSet,
     Timing,
-    TimingMap,
 } from '@/shared/models/iAM/calculated-attribute';
 import { DataTableHeader } from '@/shared/models/vue/data-table-header';
 import { Attribute } from '@/shared/models/iAM/attribute';
@@ -312,31 +324,31 @@ import {
     emptyEquationEditorDialogData,
     EquationEditorDialogData,
 } from '@/shared/models/modals/equation-editor-dialog-data';
-import { emptyEquation, Equation } from '@/shared/models/iAM/equation';
+import { Equation } from '@/shared/models/iAM/equation';
 import {
-    CriterionLibrary,
-    emptyCriteria,
     emptyCriterionLibrary,
 } from '@/shared/models/iAM/criteria';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { SelectItem } from '@/shared/models/vue/select-item';
 import { ScenarioRoutePaths } from '@/shared/utils/route-paths';
-import { emptySelectItem } from '@/shared/models/vue/select-item';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
-import { CalculatedAttributeLibraryUpsertPagingRequestModel, CalculatedAttributePagingRequestModel, CalculatedAttributePagingSyncModel, calculcatedAttributePagingPageModel, PagingPage } from '@/shared/models/iAM/paging';
+import { CalculatedAttributeLibraryUpsertPagingRequestModel, CalculatedAttributePagingRequestModel, CalculatedAttributePagingSyncModel, calculcatedAttributePagingPageModel} from '@/shared/models/iAM/paging';
 import { mapToIndexSignature } from '@/shared/utils/conversion-utils';
 import CalculatedAttributeService from '@/services/calculated-attribute.service';
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditorDialog.vue';
 import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
+import { isNullOrUndefined } from 'util';
+import { LibraryUser } from '@/shared/models/iAM/user';
 
 @Component({
     components: {
         CreateCalculatedAttributeLibraryDialog,
         CreateCalculatedAttributeDialog,
+        ShareCalculatedAttributeLibraryDialog,
         EquationEditorDialog,
         GeneralCriterionEditorDialog,
         ConfirmDeleteAlert: Alert,
@@ -350,7 +362,8 @@ export default class CalculatedAttributeEditor extends Vue {
     @State(state => state.calculatedAttributeModule.calculatedAttributes) stateCalculatedAttributes: Attribute[];
     @State(state => state.unsavedChangesFlagModule.hasUnsavedChanges) hasUnsavedChanges: boolean;
     @State(state => state.authenticationModule.hasAdminAccess) hasAdminAccess: boolean;
-
+    @State(state => state.calculatedAttributeModule.isSharedLibrary) isSharedLibrary: boolean;
+    @Action('getIsSharedCalculatedAttributeLibrary') getIsSharedLibraryAction: any;
     @Action('upsertScenarioCalculatedAttribute')
     upsertScenarioCalculatedAttributeAction: any;
     @Action('deleteCalculatedAttributeLibrary')
@@ -392,6 +405,10 @@ export default class CalculatedAttributeEditor extends Vue {
     currentPage: CalculatedAttribute = clone(emptyCalculatedAttribute);
     initializing: boolean = true;
     uuidNIL: string = getBlankGuid();
+    isShared: boolean = false;
+
+    shareCalculatedAttributeLibraryDialogData: ShareCalculatedAttributeLibraryDialogData = clone(emptyShareCalculatedAttributeLibraryDialogData);
+
 
     defaultEquation: CriterionAndEquationSet = emptyCriterionAndEquationSet;
     defaultEquationCache: CriterionAndEquationSet = emptyCriterionAndEquationSet;
@@ -445,6 +462,13 @@ export default class CalculatedAttributeEditor extends Vue {
     selectedGridItem: CalculatedAttributeGridModel[] = [];
     selectedAttribute: CalculatedAttribute = clone(emptyCalculatedAttribute)
     hasCreatedLibrary: boolean = false;
+
+    parentLibraryName: string = "None";
+    parentLibraryId: string = "";
+    scenarioLibraryIsModified: boolean = false;
+    loadedParentName: string = "";
+    loadedParentId: string = "";
+    newLibrarySelection: boolean = false;
 
     calculatedAttributeGridHeaders: DataTableHeader[] = [
         {
@@ -525,14 +549,14 @@ export default class CalculatedAttributeEditor extends Vue {
                 updatedPairs: mapToIndexSignature( this.updatedPairs),
                 addedPairs: mapToIndexSignature(this.addedPairs),
                 addedCalculatedAttributes: this.addedCalcAttr,
-                defaultEquations: mapToIndexSignature(this.defaultEquations)
+                defaultEquations: mapToIndexSignature(this.defaultEquations),
+                isModified: this.scenarioLibraryIsModified
             },           
             sortColumn: sortBy === '' ? 'year' : sortBy,
             isDescending: descending != null ? descending : false,
             search: this.currentSearch,
             attributeId: this.stateCalculatedAttributes.find(_ => _.name === this.selectedAttribute.attribute)!.id
         };
-        
         if((!this.hasSelectedLibrary && this.hasScenario) && this.selectedScenarioId !== this.uuidNIL){
             CalculatedAttributeService.getScenarioCalculatedAttrbiutetPage(this.selectedScenarioId, request).then(response => {
                 if(response.data){
@@ -552,11 +576,13 @@ export default class CalculatedAttributeEditor extends Vue {
                     let data = response.data as calculcatedAttributePagingPageModel;
                     this.currentPage.equations = data.items;
                     this.currentPage.calculationTiming = data.calculationTiming
-                    // this.CalcAttrCache = this.currentPage
                     this.pairsCache = this.currentPage.equations;
                     this.totalItems = data.totalItems;
                     this.defaultEquation = data.defaultEquation;
-                    this.selectedGridItem = this.calculatedAttributeGridModelConverter(this.currentPage)
+                    this.selectedGridItem = this.calculatedAttributeGridModelConverter(this.currentPage);
+                    if (!isNullOrUndefined(this.selectedCalculatedAttributeLibrary.id) ) {
+                        this.getIsSharedLibraryAction(this.selectedCalculatedAttributeLibrary).then(this.isShared = this.isSharedLibrary);
+                    }
                 }
             });     
     }
@@ -571,7 +597,6 @@ export default class CalculatedAttributeEditor extends Vue {
         this.checkHasUnsavedChanges();
     }
 
-    // @Watch('selectedAttribute')
     onSelectedAttributeChanged(){
         this.selectedGridItem = this.calculatedAttributeGridModelConverter(this.currentPage)
     }
@@ -584,6 +609,15 @@ export default class CalculatedAttributeEditor extends Vue {
     @Watch('stateCalculatedAttributes')
     onStateCalculatedAttributesChanged() {
         this.setAttributeSelectItems();
+    }
+    @Watch('currentPage')
+    onCurrentPageChanged() {
+        // Get parent name from library id
+        this.librarySelectItems.forEach(library => {
+            if (library.value === this.parentLibraryId) {
+                this.parentLibraryName = library.text;
+            }
+        });
     }
     setAttributeSelectItems() {
         if (hasValue(this.stateCalculatedAttributes)) {
@@ -599,6 +633,8 @@ export default class CalculatedAttributeEditor extends Vue {
                     id: getNewGuid(),
                     attribute: _.text,
                     name: _.text,
+                    libraryId: getNewGuid(),
+                    isModified: false,
                     calculationTiming: Timing.OnDemand,
                     equations: [] as CriterionAndEquationSet[],
                 };
@@ -633,11 +669,15 @@ export default class CalculatedAttributeEditor extends Vue {
             this.onLibrarySelectItemValueChanged();
             this.unsavedDialogAllowed = false;
         }           
-        else if(this.librarySelectItemValueAllowedChanged)
+        else if(this.librarySelectItemValueAllowedChanged) {
             this.CheckUnsavedDialog(this.onLibrarySelectItemValueChanged, () => {
                 this.librarySelectItemValueAllowedChanged = false;
                 this.librarySelectItemValue = this.trueLibrarySelectItemValue;               
-            })
+            });
+        }
+        this.parentLibraryId = this.librarySelectItemValue ? this.librarySelectItemValue : "";
+        this.setParentLibraryName(this.parentLibraryId);
+        this.newLibrarySelection = true;
         this.librarySelectItemValueAllowedChanged = true;
     }
     onLibrarySelectItemValueChanged() {
@@ -684,6 +724,8 @@ export default class CalculatedAttributeEditor extends Vue {
                 // Add a new object for it. Because we cannot loop over a object, which is null
                 var newAttributeObject: CalculatedAttribute = {
                     id: getNewGuid(),
+                    libraryId: getNewGuid(),
+                    isModified: false,
                     attribute: this.attributeSelectItemValue,
                     name: this.attributeSelectItemValue,
                     calculationTiming: Timing.OnDemand,
@@ -699,7 +741,7 @@ export default class CalculatedAttributeEditor extends Vue {
         }
     }
     @Watch('attributeTimingSelectItemValue')
-    onAttributeTimingSelectItemValue() {//(touched)
+    onAttributeTimingSelectItemValue() {
         // Change in timings select box
         if (
             isNil(this.attributeTimingSelectItemValue) ||
@@ -823,7 +865,13 @@ export default class CalculatedAttributeEditor extends Vue {
             })          
         }         
     }
-
+    @Watch('isSharedLibrary')
+    onStateSharedAccessChanged() {
+        this.isShared = this.isSharedLibrary;
+        if (!isNullOrUndefined(this.selectCalculatedAttributeLibrary)) {
+            this.selectCalculatedAttributeLibrary.isShared = this.isShared;
+        } 
+    }
     setTiming(selectedItem: number) {
         this.setTimingsMultiSelect(selectedItem);
     }
@@ -838,6 +886,10 @@ export default class CalculatedAttributeEditor extends Vue {
     }
 
     onUpsertScenarioCalculatedAttribute() {
+
+        if (this.selectedCalculatedAttributeLibrary.id === this.uuidNIL || this.hasUnsavedChanges && this.newLibrarySelection ===false) {this.scenarioLibraryIsModified = true;}
+        else { this.scenarioLibraryIsModified = false; }
+
         const syncModel: CalculatedAttributePagingSyncModel = {
                 libraryId: this.selectedCalculatedAttributeLibrary.id === this.uuidNIL ? null : this.selectedCalculatedAttributeLibrary.id,
                 updatedCalculatedAttributes: Array.from(this.updatedCalcAttrMap.values()).map(r => r[1]),
@@ -845,10 +897,12 @@ export default class CalculatedAttributeEditor extends Vue {
                 updatedPairs: mapToIndexSignature( this.updatedPairs),
                 addedPairs: mapToIndexSignature(this.addedPairs) ,
                 addedCalculatedAttributes: this.addedCalcAttr,
-                defaultEquations: mapToIndexSignature(this.defaultEquations)
+                defaultEquations: mapToIndexSignature(this.defaultEquations),
+                isModified: this.scenarioLibraryIsModified
         }
         CalculatedAttributeService.upsertScenarioCalculatedAttribute(syncModel, this.selectedScenarioId).then(((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
+                this.parentLibraryId = this.librarySelectItemValue ? this.librarySelectItemValue : "";
                 this.getScenarioCalculatedAttributeAction(this.selectedScenarioId);
                 this.clearChanges()
                 this.resetPage();
@@ -866,7 +920,8 @@ export default class CalculatedAttributeEditor extends Vue {
                 updatedPairs: mapToIndexSignature( this.updatedPairs),
                 addedPairs: mapToIndexSignature(this.addedPairs),
                 addedCalculatedAttributes: this.addedCalcAttr,
-                defaultEquations: mapToIndexSignature(this.defaultEquations)
+                defaultEquations: mapToIndexSignature(this.defaultEquations),
+                isModified: false
         }
         const request: CalculatedAttributeLibraryUpsertPagingRequestModel = {
             syncModel: syncModel,
@@ -909,7 +964,7 @@ export default class CalculatedAttributeEditor extends Vue {
             attributeSelectItems: this.attributeSelectItems,
         };
     }
-    onSubmitCreateCalculatedAttributeLibraryDialogResult(//new library upsert stuff(touched)
+    onSubmitCreateCalculatedAttributeLibraryDialogResult(
         calculatedAttributeLibrary: CalculatedAttributeLibrary,
     ) {
         this.createCalculatedAttributeLibraryDialogData = clone(
@@ -924,7 +979,8 @@ export default class CalculatedAttributeEditor extends Vue {
                 updatedPairs: calculatedAttributeLibrary.calculatedAttributes.length === 0 ? {} : mapToIndexSignature( this.updatedPairs),
                 addedPairs: calculatedAttributeLibrary.calculatedAttributes.length === 0 ? {} : mapToIndexSignature(this.addedPairs),
                 addedCalculatedAttributes: calculatedAttributeLibrary.calculatedAttributes.length === 0 ? [] : this.addedCalcAttr,
-                defaultEquations: calculatedAttributeLibrary.calculatedAttributes.length === 0 ? {} : mapToIndexSignature(this.defaultEquations)
+                defaultEquations: calculatedAttributeLibrary.calculatedAttributes.length === 0 ? {} : mapToIndexSignature(this.defaultEquations),
+                isModified: false
             }
             const request: CalculatedAttributeLibraryUpsertPagingRequestModel = {
                 syncModel: syncModel,
@@ -955,7 +1011,7 @@ export default class CalculatedAttributeEditor extends Vue {
         }
     }
 
-    disableCrudButton() {//gonna have to do something with this
+    disableCrudButton() {
         if (this.calculatedAttributeGridData == undefined) {
             return false;
         }
@@ -971,7 +1027,7 @@ export default class CalculatedAttributeEditor extends Vue {
         if(!isNil(addedPairs))
             equations = equations.concat(addedPairs);
 
-        if(equations === [] || equations.length === 0)
+        if(equations.length === 0)
             return false;
 
         var dataIsValid = false
@@ -1100,19 +1156,6 @@ export default class CalculatedAttributeEditor extends Vue {
     }
 
     onShowEquationEditorDialogForDefaultEquation() {
-        // if(this.defaultEquation.id === getBlankGuid()){
-        //     var newSet = clone(emptyCriterionAndEquationSet);
-        //     newSet.id = getNewGuid();
-
-        //     newSet.equation.id = getNewGuid();
-
-        //     let pairs = this.addedPairs.get(this.selectedAttribute.id);
-        //     if(!isNil(pairs)){
-        //         pairs.push(newSet)
-        //     }
-        //     else
-        //         this.addedPairs.set(this.selectedAttribute.id, [newSet])
-        // }
         this.defaultSelected = true;
         this.equationEditorDialogData = {
             showDialog: true,
@@ -1203,6 +1246,8 @@ export default class CalculatedAttributeEditor extends Vue {
                 this.resetPage();
             }
         });
+        this.parentLibraryName = this.loadedParentName;
+        this.parentLibraryId = this.loadedParentId;
     }
 
     resetGridData() {
@@ -1252,7 +1297,7 @@ export default class CalculatedAttributeEditor extends Vue {
         this.attributeTimingSelectItemValue = selectedItem;
         this.isTimingSelectedItemValue = true;
     }
-    setDefaultAttributeOnLoad(localCalculatedAttribute: CalculatedAttribute) {//might want to look at
+    setDefaultAttributeOnLoad(localCalculatedAttribute: CalculatedAttribute) {
         this.attributeSelectItemValue = clone(
             localCalculatedAttribute.attribute,
         );
@@ -1425,6 +1470,66 @@ export default class CalculatedAttributeEditor extends Vue {
         }
     };
 
+    onShowShareCalculatedAttributeLibraryDialog(calculatedAttributeLibrary: CalculatedAttributeLibrary) {
+        this.shareCalculatedAttributeLibraryDialogData = {
+            showDialog:true,
+            calculatedAttributeLibrary: clone(calculatedAttributeLibrary)
+        }
+    }
+
+    onShareCalculatedAttributeDialogSubmit(calculatedAttributeLibraryUsers: CalculatedAttributeLibraryUser[]) {
+        this.shareCalculatedAttributeLibraryDialogData = clone(emptyShareCalculatedAttributeLibraryDialogData);
+
+                if (!isNil(calculatedAttributeLibraryUsers) && this.selectedCalculatedAttributeLibrary.id !== getBlankGuid())
+                {
+                    let libraryUserData: LibraryUser[] = [];
+
+                    //create library users
+                    calculatedAttributeLibraryUsers.forEach((calculatedAttributeLibraryUser, index) =>
+                    {   
+                        //determine access level
+                        let libraryUserAccessLevel: number = 0;
+                        if (libraryUserAccessLevel == 0 && calculatedAttributeLibraryUser.isOwner == true) { libraryUserAccessLevel = 2; }
+                        if (libraryUserAccessLevel == 0 && calculatedAttributeLibraryUser.canModify == true) { libraryUserAccessLevel = 1; }
+
+                        //create library user object
+                        let libraryUser: LibraryUser = {
+                            userId: calculatedAttributeLibraryUser.userId,
+                            userName: calculatedAttributeLibraryUser.username,
+                            accessLevel: libraryUserAccessLevel
+                        }
+
+                        //add library user to an array
+                        libraryUserData.push(libraryUser);
+                    });
+                    if (!isNullOrUndefined(this.selectedCalculatedAttributeLibrary.id) ) {
+                        this.getIsSharedLibraryAction(this.selectedCalculatedAttributeLibrary).then(this.isShared = this.isSharedLibrary);
+                    }
+                    //update calculated attribute library sharing
+                    CalculatedAttributeService.upsertOrDeleteCalculatedAttributeLibraryUsers(this.selectedCalculatedAttributeLibrary.id, libraryUserData).then((response: AxiosResponse) => {
+                        if (hasValue(response, 'status') && http2XX.test(response.status.toString()))
+                        {
+                            this.resetPage();
+                        }
+                    });
+                }
+    }
+
+    setParentLibraryName(libraryId: string) {
+        if (libraryId === "None") {
+            this.parentLibraryName = "None";
+            return;
+        }
+        let foundLibrary: CalculatedAttributeLibrary = emptyCalculatedAttributeLibrary;
+        this.stateCalculatedAttributeLibraries.forEach(library => {
+            if (library.id === libraryId ) {
+                foundLibrary = clone(library);
+            }
+        });
+        this.parentLibraryId = foundLibrary.id;
+        this.parentLibraryName = foundLibrary.name;
+    }
+
     initializePages(){
         const request: CalculatedAttributePagingRequestModel= {
             page: 1,
@@ -1436,7 +1541,8 @@ export default class CalculatedAttributeEditor extends Vue {
                 updatedPairs: mapToIndexSignature( this.updatedPairs),
                 addedPairs: mapToIndexSignature(this.addedPairs),
                 addedCalculatedAttributes: this.addedCalcAttr,
-                defaultEquations: mapToIndexSignature(this.defaultEquations) 
+                defaultEquations: mapToIndexSignature(this.defaultEquations),
+                isModified: false
             },           
             sortColumn: '',
             isDescending: false,
@@ -1450,13 +1556,17 @@ export default class CalculatedAttributeEditor extends Vue {
                     let data = response.data as calculcatedAttributePagingPageModel;
                     this.currentPage.equations = data.items;
                     this.currentPage.calculationTiming = data.calculationTiming
-                    // this.CalcAttrCache = this.currentPage
                     this.pairsCache = this.currentPage.equations;
                     this.totalItems = data.totalItems;
                     this.defaultEquation = data.defaultEquation;
                     this.defaultEquationCache = clone(this.defaultEquation);
                     this.selectedGridItem = this.calculatedAttributeGridModelConverter(this.currentPage)
                     this.setTimingsMultiSelect(this.currentPage.calculationTiming);
+
+                    this.setParentLibraryName(data.libraryId);
+                    this.loadedParentId = data.libraryId;
+                    this.loadedParentName = this.parentLibraryName; //store original
+                    this.scenarioLibraryIsModified = data.isModified;
                 }
                 this.initializing = false;
             });
@@ -1467,7 +1577,6 @@ export default class CalculatedAttributeEditor extends Vue {
                     let data = response.data as calculcatedAttributePagingPageModel;
                     this.currentPage.equations = data.items;
                     this.currentPage.calculationTiming = data.calculationTiming
-                    // this.CalcAttrCache = this.currentPage
                     this.pairsCache = this.currentPage.equations;
                     this.totalItems = data.totalItems;
                     this.defaultEquation = data.defaultEquation;
@@ -1490,7 +1599,6 @@ export default class CalculatedAttributeEditor extends Vue {
 .sharing .v-input__slot{
     top: 5px !important;
 }
-
 .sharing .v-label{
     margin-bottom: 0;
     position: relative;

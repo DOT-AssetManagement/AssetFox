@@ -1,63 +1,69 @@
 <template>
-
     <v-layout column>
-        <!-- <v-flex xs12> -->
-           <v-layout justify-start align-center>
-                <v-card-title>
-                    <v-layout row align-center class="px-4">
-                            <v-layout column>
-                                <v-subheader class="ghd-control-label ghd-md-gray">Target Condition Goal Library</v-subheader>
-                                <v-select
-                                    class="ghd-select ghd-text-field ghd-text-field-border"
-                                    :items="librarySelectItems"
-                                    append-icon=$vuetify.icons.ghd-down
-                                    outline
-                                    v-model="librarySelectItemValue"
-                                    outlined
-                                >
-                                </v-select>
-                            </v-layout>
-                        <v-divider vertical 
-                            class="mx-3"
-                            v-if="hasSelectedLibrary && !hasScenario"
+        <v-flex xs12>
+           <v-layout justify-space-between>
+                <v-flex xs4 class="ghd-constant-header">
+                    <v-layout column>
+                        <v-subheader class="ghd-control-label ghd-md-gray">Target Condition Goal Library</v-subheader>
+                        <v-select
+                            class="ghd-select ghd-text-field ghd-text-field-border"
+                            :items="librarySelectItems"
+                            append-icon=$vuetify.icons.ghd-down
+                            outline
+                            v-model="librarySelectItemValue"
+                            outlined
                         >
-                        </v-divider>
-                        <div v-if="hasSelectedLibrary && !hasScenario" class="ghd-control-label ghd-md-gray">
+                        </v-select>
+                        <div class="ghd-md-gray ghd-control-subheader budget-parent" v-if="hasScenario"><b>Library Used: {{parentLibraryName}}<span v-if="scenarioLibraryIsModified">&nbsp;(Modified)</span></b></div>  
+                    </v-layout>
+                </v-flex>
+                <v-flex xs4 class="ghd-constant-header">
+                    <v-layout v-if="hasSelectedLibrary && ! hasScenario" style="padding-top: 10px; padding-left: 10px">
+                        <div v-if="hasSelectedLibrary && !hasScenario" class="header-text-content owner-padding" style="padding-top: 7px;">
                             Owner: {{ getOwnerUserName() || '[ No Owner ]' }}
                         </div>
                         <v-divider vertical 
-                            class="mx-3"
+                            class="owner-shared-divider"
                             v-if="hasSelectedLibrary && !hasScenario"
                         >
                         </v-divider>
-                        <v-switch
-                            label="Shared"
-                            class="ghd-control-label ghd-md-gray my-2"
-                            v-if="hasSelectedLibrary && !hasScenario"
-                            v-model="selectedTargetConditionGoalLibrary.isShared"
-                            @change="checkHasUnsavedChanges()"
-                        />
+                        <v-badge v-show="isShared" style="padding: 10px">
+                            <template v-slot: badge>
+                                <span>Shared</span>
+                            </template>
+                        </v-badge>
+                        <v-btn @click='onShowShareTargetConditionGoalLibraryDialog(selectedTargetConditionGoalLibrary)' class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline
+                            v-show='!hasScenario'>
+                            Share Library
+                        </v-btn>
                     </v-layout>
-                </v-card-title>
-                <v-layout justify-end align-center class="ma-2">
-                    <v-btn outline
-                        @click="showCreateTargetConditionGoalDialog = true"
-                        class="ghd-control-border ghd-blue"
-                        v-show="hasSelectedLibrary || hasScenario" 
-                    >Add Target Condition Goal</v-btn>
-                    <v-btn outline
-                        @click="onShowCreateTargetConditionGoalLibraryDialog(false)"
-                        class="ghd-control-border ghd-blue"
-                        v-show="!hasScenario"
-                    >
-                    Create New Library
-                    </v-btn>
-                </v-layout>
-            </v-layout>
+                </v-flex>
+                <v-flex xs4 class="ghd-constant-header">
+                    <v-layout justify-end align-end style="padding-top: 18px !important;">
+                        <v-spacer></v-spacer>
+                        <v-btn outline
+                            id="TargetConditionGoalEditor-addTargetConditionGoal-btn"
+                            @click="showCreateTargetConditionGoalDialog = true"
+                            class="ghd-control-border ghd-blue"
+                            v-show="hasSelectedLibrary || hasScenario" 
+                        >Add Target Condition Goal</v-btn>
+                        <v-btn 
+                            @click="onShowCreateTargetConditionGoalLibraryDialog(false)"
+                            class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
+                            v-show="!hasScenario"
+                            outline
+                        >
+                        Create New Library
+                        </v-btn>
+                    </v-layout>
+                </v-flex>
+           </v-layout>
+        </v-flex>
         <!-- </v-flex> -->
         <v-flex v-show="hasSelectedLibrary || hasScenario" xs12>
             <div class="targets-data-table">
                 <v-data-table
+                    id="TargetConditionGoalEditor-targetConditionGoals-vdatatable"
                     :headers="targetConditionGoalGridHeaders"
                     :items="currentPage"  
                     :pagination.sync="pagination"
@@ -73,6 +79,7 @@
                     <template slot="items" slot-scope="props">
                         <td>
                             <v-checkbox
+                                id="TargetConditionGoalEditor-selectForDelete-vcheckbox"
                                 hide-details
                                 primary
                                 v-model="props.selected"
@@ -80,29 +87,22 @@
                         </td>
                         <td v-for="header in targetConditionGoalGridHeaders">
                             <div>
-                                <v-edit-dialog
+                                <!-- <v-edit-dialog
                                     v-if="header.value !== 'criterionLibrary'"
-                                    :return-value.sync="
-                                        props.item[header.value]
-                                    "
+                                    :return-value.sync="props.item[header.value]"
                                     @save="
                                         onEditTargetConditionGoalProperty(
                                             props.item,
                                             header.value,
-                                            props.item[header.value],
-                                        )
-                                    "
+                                            props.item[header.value])"
                                     large
-                                    lazy
-                                    persistent
-                                >
+                                    lazy>
                                     <v-text-field
                                         v-if="header.value === 'year'"
                                         readonly
                                         single-line
                                         class="sm-txt"
-                                        :value="props.item[header.value]"
-                                    />
+                                        :value="props.item[header.value]"/>
                                     <v-text-field
                                         v-else
                                         readonly
@@ -111,28 +111,8 @@
                                         :value="props.item[header.value]"
                                         :rules="[
                                             rules['generalRules']
-                                                .valueIsNotEmpty,
-                                        ]"
-                                    />
-                                    <v-card-actions
-                                        v-if="header.value === 'actions'"
-                                        label="Actions"
-                                    >
-                                        <v-btn                                       
-                                            @click="onShowCriterionLibraryEditorDialog(props.item)"
-                                            class="ghd-blue"
-                                            icon
-                                        >
-                                            <img class='img-general' :src="require('@/assets/icons/edit.svg')"/>
-                                        </v-btn>
-                                        <v-btn
-                                            @click="onRemoveTargetConditionGoalsIcon(props.item)"
-                                            class="ghd-blue"
-                                            icon
-                                        >
-                                            <img class='img-general' :src="require('@/assets/icons/trash-ghd-blue.svg')"/>
-                                        </v-btn>
-                                    </v-card-actions>
+                                                .valueIsNotEmpty]"/>
+                                    
 
                                     <template slot="input">
                                         <v-select
@@ -143,31 +123,22 @@
                                             v-model="props.item.attribute"
                                             :rules="[
                                                 rules['generalRules']
-                                                    .valueIsNotEmpty,
-                                            ]"
-                                        />
+                                                    .valueIsNotEmpty]"/>
                                         <v-text-field
                                             v-if="header.value === 'year'"
                                             label="Edit"
                                             single-line
                                             :mask="'####'"
-                                            v-model.number="
-                                                props.item[header.value]
-                                            "
-                                        />
+                                            v-model.number="props.item[header.value]"/>
                                         <v-text-field
                                             v-if="header.value === 'target'"
                                             label="Edit"
                                             single-line
                                             :mask="'##########'"
-                                            v-model.number="
-                                                props.item[header.value]
-                                            "
+                                            v-model.number="props.item[header.value]"
                                             :rules="[
                                                 rules['generalRules']
-                                                    .valueIsNotEmpty,
-                                            ]"
-                                        />
+                                                    .valueIsNotEmpty]"/>
                                         <v-text-field
                                             v-if="header.value === 'name'"
                                             label="Edit"
@@ -175,31 +146,25 @@
                                             v-model="props.item[header.value]"
                                             :rules="[
                                                 rules['generalRules']
-                                                    .valueIsNotEmpty,
-                                            ]"
-                                        />
+                                                    .valueIsNotEmpty]"/>
                                     </template>
-                                </v-edit-dialog>
-                                <v-layout
+                                </v-edit-dialog> -->
+                                <!-- <v-layout
                                     v-else
                                     align-center
                                     row
-                                    style="flex-wrap:nowrap"
-                                >
+                                    style="flex-wrap:nowrap">
                                     <v-menu
                                         bottom
                                         min-height="500px"
-                                        min-width="500px"
-                                    >
+                                        min-width="500px">
                                         <template slot="activator">
                                             <v-text-field
                                                 readonly
                                                 class="sm-txt"
                                                 :value="
                                                     props.item.criterionLibrary
-                                                        .mergedCriteriaExpression
-                                                "
-                                            />
+                                                        .mergedCriteriaExpression"/>
                                         </template>
                                         <v-card>
                                             <v-card-text>
@@ -207,18 +172,121 @@
                                                     :value="
                                                         props.item
                                                             .criterionLibrary
-                                                            .mergedCriteriaExpression
-                                                    "
+                                                            .mergedCriteriaExpression"
                                                     full-width
                                                     no-resize
                                                     outline
                                                     readonly
-                                                    rows="5"
-                                                />
+                                                    rows="5"/>
                                             </v-card-text>
                                         </v-card>
                                     </v-menu>
+                                </v-layout>  -->
+                                <v-edit-dialog
+                                    v-if="header.value !== 'criterionLibrary' && header.value !== 'actions'"
+                                    :return-value.sync="props.item[header.value]"
+                                    @save="
+                                        onEditTargetConditionGoalProperty(
+                                            props.item,
+                                            header.value,
+                                            props.item[header.value])"
+                                    large
+                                    lazy>
+                                    <v-text-field
+                                        v-if="header.value === 'year'"
+                                        readonly
+                                        single-line
+                                        class="sm-txt"
+                                        :value="props.item[header.value]"/>
+                                    <v-text-field
+                                        v-else
+                                        readonly
+                                        single-line
+                                        class="sm-txt"
+                                        :value="props.item[header.value]"
+                                        :rules="[
+                                            rules['generalRules']
+                                                .valueIsNotEmpty]"/>
+
+                                    <template slot="input">
+                                        <v-select
+                                            id="TargetConditionGoalEditor-editTargetConditionGoalAttribute-vselect"
+                                            v-if="header.value === 'attribute'"
+                                            :items="numericAttributeNames"
+                                            append-icon=$vuetify.icons.ghd-down
+                                            label="Select an Attribute"
+                                            v-model="props.item.attribute"
+                                            :rules="[
+                                                rules['generalRules']
+                                                    .valueIsNotEmpty]"/>
+                                        <v-text-field
+                                            id="TargetConditionGoalEditor-editTargetConditionGoalYear-vtextfield"
+                                            v-if="header.value === 'year'"
+                                            label="Edit"
+                                            single-line
+                                            :mask="'####'"
+                                            v-model.number="props.item[header.value]"/>
+                                        <v-text-field
+                                            id="TargetConditionGoalEditor-editTargetConditionGoalTarget-vtextfield"
+                                            v-if="header.value === 'target'"
+                                            label="Edit"
+                                            single-line
+                                            :mask="'##########'"
+                                            v-model.number="props.item[header.value]"
+                                            :rules="[
+                                                rules['generalRules']
+                                                    .valueIsNotEmpty]"/>
+                                        <v-text-field
+                                            id="TargetConditionGoalEditor-editTargetConditionGoalName-vtextfield"
+                                            v-if="header.value === 'name'"
+                                            label="Edit"
+                                            single-line
+                                            v-model="props.item[header.value]"
+                                            :rules="[
+                                                rules['generalRules']
+                                                    .valueIsNotEmpty]"/>
+                                    </template>
+                                </v-edit-dialog>
+                                
+                                <v-layout
+                                    v-if="header.value === 'criterionLibrary'"
+                                    align-center
+                                    style="flex-wrap:nowrap">
+                                    <v-menu
+                                        bottom
+                                        min-height="500px"
+                                        min-width="500px">
+                                        <template slot="activator">
+                                            <v-text-field
+                                                readonly
+                                                class="sm-txt"
+                                                :value="props.item.criterionLibrary.mergedCriteriaExpression"/>
+                                        </template>
+                                        <v-card>
+                                            <v-card-text>
+                                                <v-textarea
+                                                    :value="props.item.criterionLibrary.mergedCriteriaExpression"
+                                                    full-width
+                                                    no-resize
+                                                    outline
+                                                    readonly
+                                                    rows="5"/>
+                                            </v-card-text>
+                                        </v-card>
+                                    </v-menu>
+                                    <v-btn
+                                        id="TargetConditionGoalEditor-editTargetConditionGoalCriteria-vbtn"
+                                        @click="onShowCriterionLibraryEditorDialog(props.item)"
+                                        class="ghd-blue"
+                                        icon>
+                                        <img class='img-general' :src="require('@/assets/icons/edit.svg')"/>
+                                    </v-btn>
                                 </v-layout>
+                                <div v-if="header.value === 'actions'">
+                                    <v-btn id="TargetConditionGoalEditor-deleteTargetConditionGoal-vbtn" @click="onRemoveTargetConditionGoalsIcon(props.item)"  class="ghd-blue" icon>
+                                        <img class='img-general' :src="require('@/assets/icons/trash-ghd-blue.svg')"/>
+                                    </v-btn>
+                                </div> 
                             </div>
                         </td>
                     </template>
@@ -228,9 +296,10 @@
 
         <v-layout justify-start align-center v-show="hasSelectedLibrary || hasScenario">
             <v-btn flat right
+                id="TargetConditionGoalEditor-deleteSelected-vbtn"
                 class="ghd-control-label ghd-blue"
-                @click="onRemoveTargetConditionGoals"
-            > Delete Selected 
+                @click="onRemoveTargetConditionGoals"> 
+                Delete Selected 
             </v-btn>
         </v-layout>
 
@@ -240,13 +309,12 @@
                 class="ghd-control-text ghd-control-border"
                 outline
                 v-model="selectedTargetConditionGoalLibrary.description"
-                @input='checkHasUnsavedChanges()'
-            >
+                @input='checkHasUnsavedChanges()'>
             </v-textarea>
         </v-flex>
         <v-flex v-show="hasSelectedLibrary || hasScenario" xs12>
             <v-layout justify-center row>
-                <v-btn flat
+                <v-btn outline
                     @click="onShowConfirmDeleteAlert"
                     class="ghd-white-bg ghd-blue"
                     v-show="!hasScenario"
@@ -263,7 +331,7 @@
                 </v-btn>
                 <v-btn outline
                     @click="onShowCreateTargetConditionGoalLibraryDialog(true)"
-                    class="ghd-control-border ghd-blue"
+                    class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
                     :disabled="disableCrudButtons()"
                 >
                     Create as New Library
@@ -286,7 +354,7 @@
                 </v-btn>
             </v-layout>
         </v-flex>
-
+    
         <ConfirmDeleteAlert
             :dialogData="confirmDeleteAlertData"
             @submit="onSubmitConfirmDeleteAlertResult"
@@ -303,6 +371,10 @@
                 selectedTargetConditionGoalLibrary.targetConditionGoals.length
             "
             @submit="onAddTargetConditionGoal"
+        />
+
+        <ShareTargetConditionGoalLibraryDialog :dialogData="shareTargetConditionGoalLibraryDialogData"
+            @submit="onShareTargetConditionGoalDialogSubmit" 
         />
 
         <GeneralCriterionEditorDialog
@@ -322,25 +394,25 @@ import {
     emptyTargetConditionGoalLibrary,
     TargetConditionGoal,
     TargetConditionGoalLibrary,
+    TargetConditionGoalLibraryUser
 } from '@/shared/models/iAM/target-condition-goal';
 import {
   any,
     clone,
-    contains,
     find,
-    findIndex,
     isNil,
-    prepend,
     propEq,
-    reject,
-    update,
+    isEmpty,
 } from 'ramda';
+import {
+    ShareTargetConditionGoalLibraryDialogData,
+    emptyShareTargetConditionGoalLibraryDialogData
+} from '@/shared/models/modals/share-target-condition-goals-data';
+import ShareTargetConditionGoalLibraryDialog from '@/components/target-editor/target-editor-dialogs/ShareTargetConditionGoalLibraryDialog.vue';
 import { DataTableHeader } from '@/shared/models/vue/data-table-header';
-import CriterionLibraryEditorDialog from '@/shared/modals/CriterionLibraryEditorDialog.vue';
 import CreateTargetConditionGoalDialog from '@/components/target-editor/target-editor-dialogs/CreateTargetConditionGoalDialog.vue';
 import { getPropertyValues } from '@/shared/utils/getter-utils';
 import { SelectItem } from '@/shared/models/vue/select-item';
-import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import {
     CreateTargetConditionGoalLibraryDialogData,
     emptyCreateTargetConditionGoalLibraryDialogData,
@@ -355,11 +427,9 @@ import {
     rules,
 } from '@/shared/utils/input-validation-rules';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
-import {
-    CriterionLibrary,
-} from '@/shared/models/iAM/criteria';
 import { ScenarioRoutePaths } from '@/shared/utils/route-paths';
 import { getUserName } from '@/shared/utils/get-user-info';
+import {LibraryUser} from '@/shared/models/iAM/user'
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
 import { LibraryUpsertPagingRequest, PagingPage, PagingRequest } from '@/shared/models/iAM/paging';
 import TargetConditionGoalService from '@/services/target-condition-goal.service';
@@ -368,11 +438,13 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditorDialog.vue';
 import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
+import { isNullOrUndefined } from 'util';
 
 @Component({
     components: {
         GeneralCriterionEditorDialog,
         CreateTargetConditionGoalLibraryDialog,
+        ShareTargetConditionGoalLibraryDialog,
         CreateTargetConditionGoalDialog,
         ConfirmDeleteAlert: Alert,
     },
@@ -396,6 +468,9 @@ export default class TargetConditionGoalEditor extends Vue {
     hasUnsavedChanges: boolean;
     @State(state => state.authenticationModule.hasAdminAccess) hasAdminAccess: boolean;
     @State(state => state.targetConditionGoalModule.hasPermittedAccess) hasPermittedAccess: boolean;
+    @State(state => state.targetConditionGoalModule.isSharedLibrary) isSharedLibrary: boolean;
+    @Action('getIsSharedTargetConditionGoalLibrary') getIsSharedLibraryAction: any;
+
     @Action('getHasPermittedAccess') getHasPermittedAccessAction: any;
     @Action('addErrorNotification') addErrorNotificationAction: any;
     @Action('getTargetConditionGoalLibraries') getTargetConditionGoalLibrariesAction: any;
@@ -435,6 +510,8 @@ export default class TargetConditionGoalEditor extends Vue {
 
     selectedScenarioId: string = getBlankGuid();
     librarySelectItems: SelectItem[] = [];
+    shareTargetConditionGoalLibraryDialogData: ShareTargetConditionGoalLibraryDialogData = clone(emptyShareTargetConditionGoalLibraryDialogData);
+    isShared: boolean = false;
     selectedTargetConditionGoalLibrary: TargetConditionGoalLibrary = clone(
         emptyTargetConditionGoalLibrary,
     );
@@ -510,6 +587,12 @@ export default class TargetConditionGoalEditor extends Vue {
     hasCreatedLibrary: boolean = false;
     disableCrudButtonsResult: boolean = false;
     hasLibraryEditPermission: boolean = false;
+    parentLibraryId: string = "";
+    parentLibraryName: string = "None";
+    scenarioLibraryIsModified: boolean = false;
+    loadedParentName: string = "";
+    loadedParentId: string = "";
+    newLibrarySelection: boolean = false;
 
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
@@ -561,11 +644,14 @@ export default class TargetConditionGoalEditor extends Vue {
             this.onLibrarySelectItemValueChanged();
             this.unsavedDialogAllowed = false;
         }           
-        else if(this.librarySelectItemValueAllowedChanged)
+        else if(this.librarySelectItemValueAllowedChanged) {
             this.CheckUnsavedDialog(this.onLibrarySelectItemValueChanged, () => {
                 this.librarySelectItemValueAllowedChanged = false;
                 this.librarySelectItemValue = this.trueLibrarySelectItemValue;               
-            })
+            });
+        }
+        this.parentLibraryId = this.librarySelectItemValue ? this.librarySelectItemValue : "";
+        this.newLibrarySelection = true;
         this.librarySelectItemValueAllowedChanged = true;
     }
     onLibrarySelectItemValueChanged() {
@@ -618,23 +704,36 @@ export default class TargetConditionGoalEditor extends Vue {
 
     @Watch('currentPage')
     onCurrentPageChanged() {
-    }
 
+        // Get parent name from library id
+        this.librarySelectItems.forEach(library => {
+            if (library.value === this.parentLibraryId) {
+                this.parentLibraryName = library.text;
+            }
+        });
+
+    }
+    
+    @Watch('isSharedLibrary')
+    onStateSharedAccessChanged() {
+        this.isShared = this.isSharedLibrary;
+    }
+    
     @Watch('pagination')
     onPaginationChanged() {
         if(this.initializing)
             return;
         this.checkHasUnsavedChanges();
         const { sortBy, descending, page, rowsPerPage } = this.pagination;
-
         const request: PagingRequest<TargetConditionGoal>= {
             page: page,
             rowsPerPage: rowsPerPage,
-            pagingSync: {
+            syncModel: {
                 libraryId: this.librarySelectItemValue !== null ? this.librarySelectItemValue : null,
                 updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
                 rowsForDeletion: this.deletionIds,
                 addedRows: this.addedRows,
+                isModified: this.scenarioLibraryIsModified
             },           
             sortColumn: sortBy,
             isDescending: descending != null ? descending : false,
@@ -656,6 +755,9 @@ export default class TargetConditionGoalEditor extends Vue {
                     this.currentPage = data.items;
                     this.rowCache = clone(this.currentPage)
                     this.totalItems = data.totalItems;
+                    if (!isNullOrUndefined(this.selectedTargetConditionGoalLibrary.id) ) {
+                        this.getIsSharedLibraryAction(this.selectedTargetConditionGoalLibrary).then(this.isShared = this.isSharedLibrary);
+                    }
                 }
             });     
     }
@@ -703,11 +805,12 @@ export default class TargetConditionGoalEditor extends Vue {
             const upsertRequest: LibraryUpsertPagingRequest<TargetConditionGoalLibrary, TargetConditionGoal> = {
                 library: library,    
                 isNewLibrary: true,           
-                 pagingSync: {
+                 syncModel: {
                     libraryId: library.targetConditionGoals.length == 0 || !this.hasSelectedLibrary ? null : this.selectedTargetConditionGoalLibrary.id,
-                    rowsForDeletion: library.targetConditionGoals === [] ? [] : this.deletionIds,
-                    updateRows: library.targetConditionGoals === [] ? [] : Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-                    addedRows: library.targetConditionGoals === [] ? [] : this.addedRows,
+                    rowsForDeletion: library.targetConditionGoals.length == 0 ? [] : this.deletionIds,
+                    updateRows: library.targetConditionGoals.length == 0 ? [] : Array.from(this.updatedRowsMap.values()).map(r => r[1]),
+                    addedRows: library.targetConditionGoals.length == 0 ? [] : this.addedRows,
+                    isModified: false
                  },
                  scenarioId: this.hasScenario ? this.selectedScenarioId : null
             }
@@ -716,7 +819,7 @@ export default class TargetConditionGoalEditor extends Vue {
                     this.hasCreatedLibrary = true;
                     this.librarySelectItemValue = library.id;
                     
-                    if(library.targetConditionGoals === []){
+                    if(library.targetConditionGoals.length == 0){
                         this.clearChanges();
                     }
 
@@ -730,7 +833,7 @@ export default class TargetConditionGoalEditor extends Vue {
 
     onAddTargetConditionGoal(newTargetConditionGoal: TargetConditionGoal) {
         this.showCreateTargetConditionGoalDialog = false;
-
+        newTargetConditionGoal.libraryId = this.selectedTargetConditionGoalLibrary.id;
         if (!isNil(newTargetConditionGoal)) {
             this.addedRows.push(newTargetConditionGoal);
             this.onPaginationChanged()
@@ -742,19 +845,6 @@ export default class TargetConditionGoalEditor extends Vue {
         property: string,
         value: any,
     ) {
-        // this.currentPage = update(
-        //     findIndex(
-        //         propEq('id', targetConditionGoal.id),
-        //         this.currentPage,
-        //     ),
-        //     setItemPropertyValue(
-        //         property,
-        //         value,
-        //         targetConditionGoal,
-        //     ) as TargetConditionGoal,
-        //     this.currentPage,
-        // );
-
         this.onUpdateRow(targetConditionGoal.id, clone(targetConditionGoal))
         this.onPaginationChanged();
     }
@@ -786,26 +876,21 @@ export default class TargetConditionGoalEditor extends Vue {
     }
 
     onUpsertTargetConditionGoalLibrary() {
-        const targetConditionGoalLibrary: TargetConditionGoalLibrary = {
-            ...clone(this.selectedTargetConditionGoalLibrary),
-            targetConditionGoals: clone(this.currentPage),
-        };
-
         const upsertRequest: LibraryUpsertPagingRequest<TargetConditionGoalLibrary, TargetConditionGoal> = {
                 library: this.selectedTargetConditionGoalLibrary,
                 isNewLibrary: false,
-                pagingSync: {
+                syncModel: {
                 libraryId: this.selectedTargetConditionGoalLibrary.id === this.uuidNIL ? null : this.selectedTargetConditionGoalLibrary.id,
                 rowsForDeletion: this.deletionIds,
                 updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-                addedRows: this.addedRows
+                addedRows: this.addedRows,
+                isModified: false
                 },
                 scenarioId: null
         }
         TargetConditionGoalService.upsertTargetConditionGoalLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                this.clearChanges()
-                this.resetPage();
+                this.clearChanges();
                 this.addedOrUpdatedTargetConditionGoalLibraryMutator(this.selectedTargetConditionGoalLibrary);
                 this.selectedTargetConditionGoalLibraryMutator(this.selectedTargetConditionGoalLibrary.id);
                 this.addSuccessNotificationAction({message: "Updated target condition goal library",});
@@ -814,13 +899,18 @@ export default class TargetConditionGoalEditor extends Vue {
     }
 
     onUpsertScenarioTargetConditionGoals() {
+        if (this.selectedTargetConditionGoalLibrary.id === this.uuidNIL || this.hasUnsavedChanges && this.newLibrarySelection ===false) {this.scenarioLibraryIsModified = true;}
+        else { this.scenarioLibraryIsModified = false; }
+
         TargetConditionGoalService.upsertScenarioTargetConditionGoals({
             libraryId: this.selectedTargetConditionGoalLibrary.id === this.uuidNIL ? null : this.selectedTargetConditionGoalLibrary.id,
             rowsForDeletion: this.deletionIds,
             updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-            addedRows: this.addedRows           
+            addedRows: this.addedRows,
+            isModified: this.scenarioLibraryIsModified     
         }, this.selectedScenarioId).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
+                this.parentLibraryId = this.librarySelectItemValue ? this.librarySelectItemValue : "";
                 this.clearChanges();
                 this.librarySelectItemValue = null;
                 this.resetPage();
@@ -837,6 +927,8 @@ export default class TargetConditionGoalEditor extends Vue {
                 this.resetPage();
             }
         });
+        this.parentLibraryName = this.loadedParentName;
+        this.parentLibraryId = this.loadedParentId;
     }
 
     onRemoveTargetConditionGoals() {
@@ -973,15 +1065,27 @@ export default class TargetConditionGoalEditor extends Vue {
         }
     };
 
+    setParentLibraryName(libraryId: string) {
+        let foundLibrary: TargetConditionGoalLibrary = emptyTargetConditionGoalLibrary;
+        this.stateTargetConditionGoalLibraries.forEach(library => {
+            if (library.id === libraryId ) {
+                foundLibrary = clone(library);
+            }
+        });
+        this.parentLibraryId = foundLibrary.id;
+        this.parentLibraryName = foundLibrary.name;
+    }
+
     initializePages(){
         const request: PagingRequest<TargetConditionGoal>= {
             page: 1,
             rowsPerPage: 5,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false
             },           
             sortColumn: '',
             isDescending: false,
@@ -995,9 +1099,64 @@ export default class TargetConditionGoalEditor extends Vue {
                     this.currentPage = data.items;
                     this.rowCache = clone(this.currentPage)
                     this.totalItems = data.totalItems;
+                    this.setParentLibraryName(this.currentPage.length > 0 ? this.currentPage[0].libraryId : "None");
+                    this.loadedParentId = this.currentPage.length > 0 ? this.currentPage[0].libraryId : "";
+                    this.loadedParentName = this.parentLibraryName; //store original
+                    this.scenarioLibraryIsModified = this.currentPage.length > 0 ? this.currentPage[0].isModified : false;
                 }
             });
     }
+
+    onShowShareTargetConditionGoalLibraryDialog(targetConditionGoalLibrary: TargetConditionGoalLibrary) {
+        this.shareTargetConditionGoalLibraryDialogData = {
+            showDialog:true,
+            targetConditionGoalLibrary: clone(targetConditionGoalLibrary)
+        }
+    }
+
+    onShareTargetConditionGoalDialogSubmit(targetConditionGoalLibraryUsers: TargetConditionGoalLibraryUser[]) {
+            this.shareTargetConditionGoalLibraryDialogData = clone(emptyShareTargetConditionGoalLibraryDialogData);
+
+            if (!isNil(targetConditionGoalLibraryUsers) && this.selectedTargetConditionGoalLibrary.id !== getBlankGuid())
+            {
+                let libraryUserData: LibraryUser[] = [];
+
+                //create library users
+                targetConditionGoalLibraryUsers.forEach((targetConditionGoalLibraryUser, index) =>
+                {   
+                    //determine access level
+                    let libraryUserAccessLevel: number = 0;
+                    if (libraryUserAccessLevel == 0 && targetConditionGoalLibraryUser.isOwner == true) { libraryUserAccessLevel = 2; }
+                    if (libraryUserAccessLevel == 0 && targetConditionGoalLibraryUser.canModify == true) { libraryUserAccessLevel = 1; }
+
+                    //create library user object
+                    let libraryUser: LibraryUser = {
+                        userId: targetConditionGoalLibraryUser.userId,
+                        userName: targetConditionGoalLibraryUser.username,
+                        accessLevel: libraryUserAccessLevel
+                    }
+
+                    //add library user to an array
+                    libraryUserData.push(libraryUser);
+                });
+
+                if (!isNullOrUndefined(this.selectedTargetConditionGoalLibrary.id) ) {
+                            this.getIsSharedLibraryAction(this.selectedTargetConditionGoalLibrary).then(this.isShared = this.isSharedLibrary);
+                }
+                //update budget library sharing
+                TargetConditionGoalService.upsertOrDeleteTargetConditionGoalLibraryUsers(this.selectedTargetConditionGoalLibrary.id, libraryUserData).then((response: AxiosResponse) => {
+                    if (hasValue(response, 'status') && http2XX.test(response.status.toString()))
+                    {
+                        this.resetPage();
+                    }
+            });
+        }
+    }
+
+
+
+
+
 }
 </script>
 

@@ -13,6 +13,8 @@ export interface BudgetPriority {
     id: string;
     priorityLevel: number;
     year: number | null;
+    libraryId: string;
+    isModified: boolean;
     budgetPercentagePairs: BudgetPercentagePair[];
     criterionLibrary: CriterionLibrary;
 }
@@ -23,14 +25,22 @@ export interface BudgetPriorityLibrary {
     description: string;
     budgetPriorities: BudgetPriority[];
     appliedScenarioIds: string[];
+    users: BudgetPriorityLibraryUser[];
     owner?: string;
     isShared: boolean;
 }
-
+export interface BudgetPriorityLibraryUser {
+    userId: string;
+    username: string;
+    canModify: boolean;
+    isOwner: boolean;
+}
 export const emptyBudgetPriority: BudgetPriority = {
     id: getBlankGuid(),
     priorityLevel: 1,
     year: null,
+    isModified: false,
+    libraryId: getBlankGuid(),
     budgetPercentagePairs: [],
     criterionLibrary: clone(emptyCriterionLibrary)
 };
@@ -41,8 +51,15 @@ export const emptyBudgetPriorityLibrary: BudgetPriorityLibrary = {
     description: '',
     budgetPriorities: [],
     appliedScenarioIds: [],
+    users : [],
     isShared: false,
 };
+export const emptyBudgetPriorityLibraryUsers: BudgetPriorityLibraryUser[] = [{
+    userId: '',
+    username: '',
+    canModify: false,
+    isOwner: false
+}];
 
 export interface BudgetPriorityGridDatum {
     id: string;

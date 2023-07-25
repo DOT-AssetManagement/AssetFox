@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.WorkQueue;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -15,9 +17,9 @@ namespace BridgeCareCoreTests.Tests
         [Fact]
         public void items_execute_in_the_order_they_were_added()
         {
-            SequentialWorkQueue queue = new();
+            SequentialWorkQueue<WorkQueueMetadata> queue = new();
             List<int> taskEffects = new();
-
+            
             queue.Enqueue(new TestWorkItem(1, 0, taskEffects), out _).Wait();
             queue.Enqueue(new TestWorkItem(2, 1000, taskEffects), out _).Wait();
             queue.Enqueue(new TestWorkItem(3, 0, taskEffects), out _).Wait();
@@ -31,8 +33,8 @@ namespace BridgeCareCoreTests.Tests
             {
                 while (!cts.IsCancellationRequested)
                 {
-                    var workItem = queue.Dequeue(cts.Token).Result;
-                    workItem.DoWork(null);
+                    var workStarter = queue.Dequeue(cts.Token).Result;
+                    workStarter.StartWork(null);
                 }
             }
             catch (AggregateException e) when (e.InnerException is OperationCanceledException)
@@ -42,17 +44,25 @@ namespace BridgeCareCoreTests.Tests
             Assert.Equal(Enumerable.Range(1, 5), taskEffects);
         }
 
-        private record TestWorkItem(int Id, int MsDelay, List<int> WorkTarget) : IWorkItem
+        private record TestWorkItem(int Id, int MsDelay, List<int> WorkTarget) : IWorkSpecification<WorkQueueMetadata>
         {
             public string WorkId { get; } = Id.ToString();
 
-            public UserInfo UserInfo => new();
+            public string UserId => "";
 
-            public void DoWork(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+            public WorkQueueMetadata Metadata => throw new NotImplementedException();
+
+            public string WorkDescription => "";
+
+            public string WorkName => throw new NotImplementedException();
+
+            public void DoWork(IServiceProvider serviceProvider, Action<string> updateStatus, CancellationToken cancellationToken)
             {
                 WorkTarget.Add(Id);
                 Task.Delay(MsDelay).Wait();
             }
+
+            public void OnFault(IServiceProvider serviceProvider, string errorMessage) => throw new NotImplementedException();
         }
     }
 }

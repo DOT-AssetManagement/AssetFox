@@ -16,7 +16,9 @@
                 </v-flex>
 
                 <v-flex xs12>
-                    <v-checkbox class='ghd-checkbox' label='No Treatments Before Committed Projects' v-model='isNoTreatmentBefore' />
+                    <v-checkbox 
+                    id="CommittedProjectsEditor-noTreatmentsBeforeCommittedProjects-ghdcheckbox"
+                    class='ghd-checkbox' label='No Treatments Before Committed Projects' v-model='isNoTreatmentBefore' />
                 </v-flex>
 
                 <v-flex xs12 class="ghd-constant-header">
@@ -25,6 +27,7 @@
                             <v-layout column>
                                 <v-subheader class="ghd-control-label ghd-md-gray">Treatment Library</v-subheader>
                                 <v-select
+                                    id="CommittedProjectsEditor-treatmentLibrary-vSelect"
                                     outline
                                     append-icon=$vuetify.icons.ghd-down
                                     class="ghd-select ghd-text-field ghd-text-field-border pa-0"
@@ -37,6 +40,7 @@
                             <v-subheader class="ghd-control-label ghd-md-gray"></v-subheader>
                             <v-layout>                                
                                 <v-text-field
+                                    id="CommittedProjectsEditor-search-vtextfield"
                                     prepend-inner-icon=$vuetify.icons.ghd-search
                                     hide-details
                                     lablel="Search"
@@ -48,7 +52,9 @@
                                     @click:clear="onClearClick()"
                                     class="ghd-text-field-border ghd-text-field search-icon-general">
                                 </v-text-field>
-                                <v-btn style="margin-top: 2px;" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline @click="onSearchClick()">Search</v-btn>
+                                <v-btn 
+                                id="CommittedProjectsEditor-performSearch-vbtn"
+                                style="margin-top: 2px;" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline @click="onSearchClick()">Search</v-btn>
                             </v-layout>
                            
                         </v-flex>
@@ -58,11 +64,13 @@
                     <v-layout justify-end class="px-4">
                         <p>Commited Projects: {{totalItems}}</p>
                     </v-layout>
+                    
                 </v-flex>       
                 
                 <v-flex xs12 >
                     <v-layout column>
                         <v-data-table
+                        id="CommittedProjectsEditor-committedProjects-vdatatable"
                         :headers="cpGridHeaders"
                         :items="currentPage"
                         sort-icon=$vuetify.icons.ghd-table-sort
@@ -90,11 +98,12 @@
                                             @save="onEditCommittedProjectProperty(props.item,header.value,props.item[header.value])"
                                             large
                                             lazy
-                                            persistent>
+                                            >
                                             <v-text-field v-if="header.value !== 'budget' 
                                                 && header.value !== 'year' 
-                                                && header.value !== 'brkey' 
+                                                && header.value !== 'keyAttr' 
                                                 && header.value !== 'treatment'
+                                                && header.value !== 'performanceFactor'
                                                 && header.value !== 'cost'"
                                                 readonly
                                                 class="sm-txt"
@@ -105,7 +114,7 @@
                                                 class="sm-txt"
                                                 :value="props.item[header.value]"/>
 
-                                            <v-text-field v-if="header.value === 'brkey'"
+                                            <v-text-field v-if="header.value === 'keyAttr'"
                                                 readonly
                                                 class="sm-txt"
                                                 :value="props.item[header.value]"
@@ -115,15 +124,19 @@
                                             <v-text-field v-if="header.value === 'year'"
                                                 :value="props.item[header.value]"
                                                 :mask="'##########'"
-                                                :rules="[rules['generalRules'].valueIsNotEmpty]"
+                                                :rules="[rules['committedProjectRules'].hasInvestmentYears([firstYear, lastYear]), rules['generalRules'].valueIsNotEmpty, rules['generalRules'].valueIsWithinRange(props.item[header.value], [firstYear, lastYear])]"
                                                 :error-messages="props.item.yearErrors"/>
 
                                             <v-text-field v-if="header.value === 'cost'"
                                                 :value='formatAsCurrency(props.item[header.value])'
                                                 :rules="[rules['generalRules'].valueIsNotEmpty]"/>
 
+                                            <v-text-field v-if="header.value === 'performanceFactor'"
+                                                :value='parseFloat(props.item[header.value])'
+                                                :rules="[rules['generalRules'].valueIsNotEmpty]"/>
+
                                             <template slot="input">
-                                                <v-text-field v-if="header.value === 'brkey'"
+                                                <v-text-field v-if="header.value === 'keyAttr'"
                                                     label="Edit"
                                                     single-line
                                                     v-model="props.item[header.value]"
@@ -142,13 +155,13 @@
                                                     label="Select a Budget"
                                                     v-model="props.item[header.value]">
                                                 </v-select>
-
+                                                
                                                 <v-text-field v-if="header.value === 'year'"
                                                     label="Edit"
                                                     single-line
                                                     v-model="props.item[header.value]"
                                                     :mask="'##########'"
-                                                    :rules="[rules['generalRules'].valueIsNotEmpty]"/>
+                                                    :rules="[rules['committedProjectRules'].hasInvestmentYears([firstYear, lastYear]), rules['generalRules'].valueIsNotEmpty, rules['generalRules'].valueIsWithinRange(props.item[header.value], [firstYear, lastYear])]"/>
 
                                                 <v-text-field v-if="header.value === 'cost'"
                                                     label="Edit"
@@ -162,10 +175,13 @@
                                 
                                         <div v-if="header.value === 'actions'">
                                             <v-layout style='flex-wrap:nowrap'>
-                                                <v-btn @click="OnDeleteClick(props.item.id)"  class="ghd-blue" icon>
+                                                <v-btn 
+                                                    id="CommittedProjectsEditor-deleteCommittedProject-vbtn"
+                                                    @click="OnDeleteClick(props.item.id)"  class="ghd-blue" icon>
                                                     <img class='img-general' :src="require('@/assets/icons/trash-ghd-blue.svg')"/>
                                                 </v-btn>
                                                 <v-btn
+                                                    id="CommittedProjectsEditor-editCommittedProject-vbtn"
                                                     @click="onSelectCommittedProject(props.item.id)"
                                                     class="ghd-blue"
                                                     icon>
@@ -177,7 +193,8 @@
                                 </td>
                             </template>
                         </v-data-table>    
-                        <v-btn @click="OnAddCommittedProjectClick" v-if="selectedCommittedProject === ''"
+                        <v-btn id="CommittedProjectsEditor-addCommittedProject-vbtn" 
+                        @click="OnAddCommittedProjectClick" v-if="selectedCommittedProject === ''"
                         class="ghd-white-bg ghd-blue ghd-button btn-style" outline>Add Committed Project</v-btn> 
                     </v-layout>
                 </v-flex>
@@ -186,8 +203,12 @@
 
                 <v-flex xs12>
                     <v-layout justify-center>
-                        <v-btn @click="onCancelClick" :disabled='!hasUnsavedChanges' class="ghd-white-bg ghd-blue ghd-button-text" flat>Cancel</v-btn>    
-                        <v-btn @click="OnSaveClick" :disabled='!hasUnsavedChanges || disableCrudButtons()' class="ghd-blue-bg ghd-white ghd-button">Save</v-btn>    
+                        <v-btn 
+                        id="CommittedProjectsEditor-cancel-vbtn"
+                        @click="onCancelClick" :disabled='!hasUnsavedChanges' class="ghd-white-bg ghd-blue ghd-button-text" flat>Cancel</v-btn>    
+                        <v-btn 
+                        id="CommittedProjectsEditor-save-vbtn"
+                        @click="OnSaveClick" :disabled='!hasUnsavedChanges || disableCrudButtons()' class="ghd-blue-bg ghd-white ghd-button">Save</v-btn>    
                     </v-layout>
                 </v-flex> 
             </v-layout>
@@ -245,7 +266,6 @@
                             </v-edit-dialog>
                             </td>
                             <td>
-                                
                                 <v-edit-dialog
                                     :return-value.sync="props.item.changeValue"
                                     @save="onEditConsequenceProperty(props.item,'changeValue',props.item.changeValue) "
@@ -270,10 +290,32 @@
                                 </v-edit-dialog>
                             </td>
                             <td>
+                                <v-edit-dialog
+                                :return-value.sync="props.item.performanceFactor"
+                                large
+                                lazy
+                                persistent
+                                @save="onEditConsequenceProperty(props.item,'performanceFactor',props.item.performanceFactor)">
+                                <v-text-field
+                                    readonly 
+                                    single-line
+                                    class="sm-text"
+                                    :value='props.item.performanceFactor'
+                                    :rules="[rules['generalRules'].valueIsNotEmpty]"/>
+                                <template slot="input">
+                                    <v-text-field
+                                        label=""
+                                        single-line
+                                        maxlength="5"
+                                        v-model="props.item.performanceFactor"
+                                        :rules="[rules['generalRules'].valueIsNotEmpty]"/>
+                                </template>    
+                                </v-edit-dialog>
+                            </td>
+                            <td>
                                 <v-btn @click="OnDeleteConsequence(props.item.id)"  class="ghd-blue" icon>
                                     <img class='img-general' :src="require('@/assets/icons/trash-ghd-blue.svg')"/>
                                 </v-btn>
-                                
                             </td>
                         </template>
                     </v-data-table>    
@@ -301,7 +343,7 @@ import { CommittedProjectConsequence, CommittedProjectFillTreatmentReturnValues,
 import { Action, Getter, State } from 'vuex-class';
 import { Watch } from 'vue-property-decorator';
 import { getBlankGuid, getNewGuid } from '../../shared/utils/uuid-utils';
-import { Treatment, TreatmentCategory, treatmentCategoryMap, treatmentCategoryReverseMap, TreatmentConsequence, TreatmentLibrary } from '@/shared/models/iAM/treatment';
+import { Treatment, treatmentCategoryMap, treatmentCategoryReverseMap, TreatmentLibrary } from '@/shared/models/iAM/treatment';
 import { SelectItem } from '@/shared/models/vue/select-item';
 import CommittedProjectsService from '@/services/committed-projects.service';
 import { Attribute } from '@/shared/models/iAM/attribute';
@@ -309,24 +351,19 @@ import { FileInfo } from '@/shared/models/iAM/file-info';
 import FileDownload from 'js-file-download';
 import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 import { hasValue } from '@/shared/utils/has-value-util';
-import { AxiosPromise, AxiosResponse } from 'axios';
-import { any, clone, find, findIndex, isEmpty, isNil, map, mathMod, propEq, update } from 'ramda';
+import { AxiosResponse } from 'axios';
+import { any, clone, find, findIndex, isNil, propEq, update } from 'ramda';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
 import { http2XX } from '@/shared/utils/http-utils';
 import { ImportExportCommittedProjectsDialogResult } from '@/shared/models/modals/import-export-committed-projects-dialog-result';
 import ImportExportCommittedProjectsDialog from './committed-project-editor-dialogs/CommittedProjectsImportDialog.vue';
 import CreateConsequenceDialog from './committed-project-editor-dialogs/CreateCommittedProjectConsequenceDialog.vue';
-import { Budget, InvestmentPlan, SimpleBudgetDetail } from '@/shared/models/iAM/investment';
+import { InvestmentPlan, SimpleBudgetDetail } from '@/shared/models/iAM/investment';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import {InputValidationRules, rules} from '@/shared/utils/input-validation-rules';
-import { NIL } from 'uuid';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
-import { Scenario } from '@/shared/models/iAM/scenario';
 import ScenarioService from '@/services/scenario.service';
-import NetworkService from '@/services/network.service';
-import { AsyncComponentFactory } from 'vue/types/options';
 import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
-import { ValidationParameter } from '@/shared/models/iAM/expression-validation';
 import Alert from '@/shared/modals/Alert.vue';
 import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
@@ -334,6 +371,7 @@ import { PagingPage, PagingRequest } from '@/shared/models/iAM/paging';
 import InvestmentService from '@/services/investment.service';
 import { formatAsCurrency } from '@/shared/utils/currency-formatter';
 import { isNullOrUndefined } from 'util';
+import { max } from 'moment';
 @Component({
     components: {
         CommittedProjectsFileUploaderDialog: ImportExportCommittedProjectsDialog,
@@ -416,6 +454,7 @@ export default class CommittedProjectsEditor extends Vue  {
     catMap = clone(treatmentCategoryMap);
     
     brkey_: string = 'BRKEY_'
+    keyattr: string = '';
 
     investmentYears: number[] = [];
     lastYear: number = 0;
@@ -426,8 +465,8 @@ export default class CommittedProjectsEditor extends Vue  {
     
     cpGridHeaders: DataTableHeader[] = [
         {
-            text: 'BRKEY',
-            value: 'brkey',
+            text: '',
+            value: 'keyAttr',
             align: 'left',
             sortable: true,
             class: '',
@@ -500,6 +539,14 @@ export default class CommittedProjectsEditor extends Vue  {
             width: '40%',
         },
         {
+            text: 'Factor',
+            value: 'performanceFactor',
+            align: 'left',
+            sortable: false,
+            class: '',
+            width: '15%',
+        },
+        {
             text: '',
             value: 'actions',
             align: 'left',
@@ -511,9 +558,9 @@ export default class CommittedProjectsEditor extends Vue  {
     
     mounted() {
         this.reverseCatMap.forEach(cat => {
-            this.categorySelectItems.push({text: cat, value: cat})
+            this.categorySelectItems.push({text: cat, value: cat})        
         })
-    }
+    }   
     beforeDestroy() {
         this.setHasUnsavedChangesAction({ value: false });
     }
@@ -529,30 +576,25 @@ export default class CommittedProjectsEditor extends Vue  {
                 });
                 vm.$router.push('/Scenarios/');
             }
-     
-            vm.getNetworksAction().then(() => {
-                InvestmentService.getScenarioBudgetYears(vm.scenarioId).then(response => {  
+            (async () => { 
+                await vm.getNetworksAction();
+                await InvestmentService.getScenarioBudgetYears(vm.scenarioId).then(response => {  
                     if(response.data)
                         vm.investmentYears = response.data;
-                    ScenarioService.getNoTreatmentBeforeCommitted(vm.scenarioId).then(response => {
+                });
+                await ScenarioService.getNoTreatmentBeforeCommitted(vm.scenarioId).then(response => {
                         if(!isNil(response.data)){
                             vm.isNoTreatmentBeforeCache = response.data;
                             vm.isNoTreatmentBefore = response.data;
                         }
-                            
-                        vm.getScenarioSimpleBudgetDetailsAction({scenarioId: vm.scenarioId}).then(() =>{
-                            vm.getAttributesAction().then(() => {                       
-                                vm.getTreatmentLibrariesAction().then(() => {
-                                    vm.getCurrentUserOrSharedScenarioAction({simulationId: vm.scenarioId}).then(() => {         
-                                        vm.selectScenarioAction({ scenarioId: vm.scenarioId });        
-                                        vm.initializePages();
-                                    });                                                                
-                                });   
-                            });
-                        }) 
-                    })                                                           
-                })
-            });                     
+                });
+                await vm.getScenarioSimpleBudgetDetailsAction({scenarioId: vm.scenarioId});
+                await vm.getAttributesAction();
+                await vm.getTreatmentLibrariesAction();
+                await vm.getCurrentUserOrSharedScenarioAction({simulationId: vm.scenarioId});
+                await vm.selectScenarioAction({ scenarioId: vm.scenarioId });
+                vm.initializePages();
+            })();                    
         });
     }
 
@@ -564,8 +606,11 @@ export default class CommittedProjectsEditor extends Vue  {
 
     @Watch('investmentYears')
     onInvestmentYearsChanged(){
-        this.lastYear = Math.max(...this.investmentYears);
-        this.firstYear = Math.min(...this.investmentYears);
+        //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
+        if (this.investmentYears.length > 0) {
+            this.lastYear = Math.max(...this.investmentYears);
+            this.firstYear = Math.min(...this.investmentYears);
+        }
     }
 
     @Watch('networks')
@@ -601,6 +646,12 @@ export default class CommittedProjectsEditor extends Vue  {
                 value: attribute.name
             }),
         );
+        let keyAttr = this.stateAttributes.find(_ => _.id == this.network.keyAttribute)
+        if(!isNil(keyAttr)){
+            this.keyattr = keyAttr.name;
+            this.cpGridHeaders[0].text = this.keyattr;
+        }
+            
     }
 
     @Watch('stateScenarioSimpleBudgetDetails')
@@ -667,11 +718,12 @@ export default class CommittedProjectsEditor extends Vue  {
         const request: PagingRequest<SectionCommittedProject>= {
             page: page,
             rowsPerPage: rowsPerPage,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
                 rowsForDeletion: this.deletionIds,
                 addedRows: this.addedRows,
+                isModified: false
             },           
             sortColumn: sortBy,
             isDescending: descending != null ? descending : false,
@@ -684,10 +736,24 @@ export default class CommittedProjectsEditor extends Vue  {
                     this.sectionCommittedProjects = data.items;
                     this.rowCache = clone(this.sectionCommittedProjects)
                     this.totalItems = data.totalItems;
-                    const row = data.items.find(scp => scp.id == this.selectedCommittedProject)
-                    if(isNil(row))
-                        this.selectedCommittedProject = ''
-                }
+                    const row = data.items.find(scp => scp.id == this.selectedCommittedProject);
+
+                    // Updated existing data with no factor set to 1.2
+                    this.sectionCommittedProjects.forEach(element => {
+                        if (element.consequences !=null){
+                            element.consequences.forEach(consequence => {
+                            if (consequence.performanceFactor === 0) {
+                                consequence.performanceFactor = 1.2;
+                                this.updateCommittedProject(row ? row : emptySectionCommittedProject, "1.2", "performanceFactor");
+                            }
+                        });
+                        }
+                        
+                    });
+                    if(isNil(row)) {
+                        this.selectedCommittedProject = '';
+                    }
+                } 
             }); 
     }
 
@@ -704,10 +770,10 @@ export default class CommittedProjectsEditor extends Vue  {
     //Events
     onCancelClick() {
         this.clearChanges()
-        this.resetPage();
         this.selectedCommittedProject = '';
         this.selectedCpItems = [];
         this.isNoTreatmentBefore = this.isNoTreatmentBeforeCache
+        this.resetPage();
     }
 
     OnExportProjectsClick(){
@@ -721,7 +787,7 @@ export default class CommittedProjectsEditor extends Vue  {
      }
 
      OnGetTemplateClick(){
-        CommittedProjectsService.getCommittedProjectTemplate()
+        CommittedProjectsService.getCommittedProjectTemplate(this.networkId)
             .then((response: AxiosResponse) => {
                 if (hasValue(response, 'data')) {
                     const fileInfo: FileInfo = response.data as FileInfo;  
@@ -734,7 +800,7 @@ export default class CommittedProjectsEditor extends Vue  {
         const newRow: SectionCommittedProject = clone(emptySectionCommittedProject)
         newRow.id = getNewGuid();
         newRow.name = '';
-        newRow.locationKeys[this.brkey_] = '';
+        newRow.locationKeys[this.keyattr] = '';
         newRow.locationKeys['ID'] = getNewGuid();
         newRow.simulationId = this.scenarioId;
         this.addedRows.push(newRow)
@@ -745,8 +811,9 @@ export default class CommittedProjectsEditor extends Vue  {
         const newRow: CommittedProjectConsequence = clone(emptyCommittedProjectConsequence)
         newRow.id = getNewGuid();
         newRow.committedProjectId = this.selectedCommittedProject;
-        newRow.attribute = ''
-        newRow.changeValue = ''
+        newRow.attribute = '';
+        newRow.changeValue = '';
+        newRow.performanceFactor = 1.2;
         this.selectedConsequences.push(newRow);
      }
 
@@ -755,7 +822,8 @@ export default class CommittedProjectsEditor extends Vue  {
                     libraryId: null,
                     rowsForDeletion: this.deletionIds,
                     updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-                    addedRows: this.addedRows           
+                    addedRows: this.addedRows,
+                    isModified: false    
                 }
         if(!this.committedProjectsAreChanged())
         {
@@ -837,9 +905,12 @@ export default class CommittedProjectsEditor extends Vue  {
             if(property === 'treatment'){
                 this.handleTreatmentChange(scp, value, row)             
             }
-            else if(property === 'brkey'){
-                this.handleBrkeyChange(row, scp, value);               
-            }            
+            else if(property === 'keyAttr'){
+                this.handleKeyAttrChange(row, scp, value);               
+            }
+            else if(property === 'performanceFactor') {
+                this.handleFactorChange(row, scp, value);
+            }
             else if(property === 'budget'){
                 this.handleBudgetChange(row, scp, value)
             }
@@ -861,7 +932,7 @@ export default class CommittedProjectsEditor extends Vue  {
      onAddCommittedProjectConsequenc(newConsequence: CommittedProjectConsequence) {
         this.showCreateCommittedProjectConsequenceDialog = false;     
         if (!isNil(newConsequence)) {
-            newConsequence.committedProjectId = this.selectedCommittedProject
+            newConsequence.committedProjectId = this.selectedCommittedProject;
             this.selectedConsequences.push(newConsequence);
             this.updateSelectedProjectConsequences();  
         }
@@ -930,7 +1001,6 @@ export default class CommittedProjectsEditor extends Vue  {
             this.deleteSimulationCommittedProjectsAction(this.scenarioId);
             CommittedProjectsService.deleteSimulationCommittedProjects(this.scenarioId).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                    this.addSuccessNotificationAction({message:'Added deterioration model library'})   
                     this.onCancelClick();
                 }
             })
@@ -968,7 +1038,7 @@ export default class CommittedProjectsEditor extends Vue  {
                         scp.treatment
                     ) == true &&
                     this.rules['generalRules'].valueIsNotEmpty(
-                        scp.locationKeys[this.brkey_]
+                        scp.locationKeys[this.keyattr]
                     ) == true &&
                     scp.consequences.every(consequence => 
                         this.rules['generalRules'].valueIsNotEmpty(
@@ -976,11 +1046,16 @@ export default class CommittedProjectsEditor extends Vue  {
                     ) === true &&
                     this.rules['generalRules'].valueIsNotEmpty(
                         consequence.changeValue,
-                    ) === true)
+                    ) === true &&
+                    this.rules['generalRules'].valueIsNotEmpty(
+                        consequence.performanceFactor,
+                    ) === true ) &&
+                    this.rules['generalRules'].valueIsWithinRange(
+                        scp.year, [this.firstYear, this.lastYear],
+                    ) === true
                 );
             },
         );
-
         this.disableCrudButtonsResult = !dataIsValid;
         return !dataIsValid;
     }
@@ -999,7 +1074,7 @@ export default class CommittedProjectsEditor extends Vue  {
             const row: SectionCommittedProjectTableData = this.cpItemFactory(o);
             return row
         })
-        this.checkBrkeys();
+        this.checkExistenceOfAssets();
         this.checkYears();
     }
 
@@ -1012,7 +1087,7 @@ export default class CommittedProjectsEditor extends Vue  {
         if(!isNil(cat))
             value = cat;
         const row: SectionCommittedProjectTableData = {
-            brkey: scp.locationKeys[this.brkey_],
+            keyAttr: scp.locationKeys[this.keyattr],
             year: scp.year,
             cost: scp.cost,
             scenarioBudgetId: scp.scenarioBudgetId? scp.scenarioBudgetId : '',
@@ -1034,7 +1109,7 @@ export default class CommittedProjectsEditor extends Vue  {
             committedProjectId: row.id,
             treatmentLibraryId: this.librarySelectItemValue ? this.librarySelectItemValue : getBlankGuid(),
             treatmentName: treatmentName,
-            brkey_Value: row.locationKeys[this.brkey_],
+            KeyAttributeValue: row.locationKeys[this.keyattr],
             networkId: this.networkId
         })
         .then((response: AxiosResponse) => {
@@ -1068,38 +1143,43 @@ export default class CommittedProjectsEditor extends Vue  {
         this.onPaginationChanged();       
     }
 
-    handleBrkeyChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, brkey: string){
-        row.locationKeys[this.brkey_] = brkey;
-        this.updateCommittedProject(row, brkey, 'brkey');
+    handleKeyAttrChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, keyAttr: string){
+        row.locationKeys[this.keyattr] = keyAttr;
+        this.updateCommittedProject(row, keyAttr, 'keyAttr');
         this.onPaginationChanged();
     }
 
-    checkBrkey(scp: SectionCommittedProjectTableData, brkey: string){
-        CommittedProjectsService.ValidateBRKEY(this.network, brkey).then((response: AxiosResponse) => {
+    handleFactorChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, factor: number) {
+        this.updateCommittedProject(row, factor, 'performanceFactor');
+        this.onPaginationChanged();
+    }
+
+    checkAssetExistence(scp: SectionCommittedProjectTableData, keyAttr: string){
+        CommittedProjectsService.validateAssetExistence(this.network, keyAttr).then((response: AxiosResponse) => {
             if (hasValue(response, 'data')) {
                 if(!response.data)
-                    scp.errors = ['BRKEY does not exist'];
+                    scp.errors = [this.keyattr + ' does not exist'];
                 else
                     scp.errors = [];
             }
         });
     }
 
-    checkBrkeys(){//todo: refine this
-        const uncheckKeys = this.currentPage.map(scp => scp.brkey).filter(key => isNil(this.isKeyAttributeValidMap.get(key)))
+    checkExistenceOfAssets(){//todo: refine this
+        const uncheckKeys = this.currentPage.map(scp => scp.keyAttr).filter(key => isNil(this.isKeyAttributeValidMap.get(key)))
         if(uncheckKeys.length > 0){
-            CommittedProjectsService.ValidateBRKEYs(uncheckKeys, this.network.id).then((response: AxiosResponse) => {
+            CommittedProjectsService.validateExistenceOfAssets(uncheckKeys, this.network.id).then((response: AxiosResponse) => {
                 if (hasValue(response, 'data')) {
                     for(let i = 0; i < this.currentPage.length; i++)
                     {
-                        const check = response.data[this.currentPage[i].brkey]
+                        const check = response.data[this.currentPage[i].keyAttr]
                         if(!isNil(check)){
-                            if(!response.data[this.currentPage[i].brkey])
-                                this.currentPage[i].errors = ['BRKEY does not exist'];
+                            if(!response.data[this.currentPage[i].keyAttr])
+                                this.currentPage[i].errors = [this.keyattr + ' does not exist'];
                             else
                                 this.currentPage[i].errors = [];
 
-                            this.isKeyAttributeValidMap.set(this.currentPage[i].brkey,response.data[this.currentPage[i].brkey] )
+                            this.isKeyAttributeValidMap.set(this.currentPage[i].keyAttr,response.data[this.currentPage[i].keyAttr] )
                         }
                     }                  
                 }
@@ -1107,8 +1187,8 @@ export default class CommittedProjectsEditor extends Vue  {
         }
         for(let i = 0; i < this.currentPage.length; i++)
         {
-            if(!this.isKeyAttributeValidMap.get(this.currentPage[i].brkey))
-                this.currentPage[i].errors = ['BRKEY does not exist'];
+            if(!this.isKeyAttributeValidMap.get(this.currentPage[i].keyAttr))
+                this.currentPage[i].errors = [this.keyattr + ' does not exist'];
             else
                 this.currentPage[i].errors = [];
         }
@@ -1118,8 +1198,10 @@ export default class CommittedProjectsEditor extends Vue  {
     checkYear(scp:SectionCommittedProjectTableData){
         if(!hasValue(scp.year))
             scp.yearErrors = ['Value cannot be empty'];
-        else if(scp.year < this.firstYear || scp.year > this.lastYear)
-            scp.yearErrors = ['Year is outside of Analysis period'];
+        else if (this.investmentYears.length === 0)
+            scp.yearErrors = ['There are no years in the investment settings']
+        else if(scp.year < this.firstYear )
+            scp.yearErrors = ['Year is outside of Analysis period'];      
         else
             scp.yearErrors = [];
     }
@@ -1232,11 +1314,12 @@ export default class CommittedProjectsEditor extends Vue  {
         const request: PagingRequest<SectionCommittedProject>= {
             page: 1,
             rowsPerPage: 5,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false
             },           
             sortColumn: '',
             isDescending: false,

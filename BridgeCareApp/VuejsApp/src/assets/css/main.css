@@ -59,10 +59,6 @@
     background-color: #FFFFFF !important;
 }
 
-.ara-blue-pantone-281-bg {
-    background-color: #002E6C !important;
-}
-
 .ara-blue-pantone-289-bg {
     background-color: #00204B !important;
 }
@@ -75,28 +71,12 @@
     background-color: #F05632 !important;
 }
 
-.ara-light-gray-bg {
-    background-color: #B0BFC8 !important;
-}
-
-.ara-light-gray {
-    color: #B0BFC8 !important;
-}
-
 .ara-blue {
     color: #008FCA !important;
 }
 
 .ara-orange {
     color: #F05632 !important;
-}
-
-.ara-yellow {
-    color: #D1DD30 !important;
-}
-
-.ara-dark-gray {
-    color: #798899 !important;
 }
 
 .ara-blue-pantone-281 {
@@ -387,21 +367,6 @@ v-list-item.ghd-control-text {
     color: black !important;
 }
 
-/* .ghd-navigation-rawdata-list {
-    background-color: #FFFFFF !important;
-    color: #999999 !important;
-}
-
-.ghd-navigation-rawdata-list .primary--text .sidebar-icon .v-icon {
-    background-color: #FFFFFF !important;
-    color: #999999 ! important;
-}
-
-.ghd-navigation-rawdata-list .sidebar-icon .v-icon {
-    background-color: #FFFFFF !important;
-    color: #999999 ! important;
-} */
-
 .ghd-dialog {
     padding:30px !important;
 }
@@ -496,9 +461,11 @@ table.v-table tbody td input {
 }
 
 .scenario-status {
-    display: inline;
-    min-inline-size: 90%; 
-    padding: 2%;  
+    display: block;
+    padding-left: 18px;
+    color: #2a578d !important;
+    font-weight: bold;
+    font-size: 16px;
 }
 
 .notification-message {
@@ -767,6 +734,10 @@ display: none !important;
 .bottom-margin-zero label {
     margin-bottom: 0 !important;
 } 
+
+.ghd-margin-top{
+    margin-top: 25px !important;
+}
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
 .ghd-content{

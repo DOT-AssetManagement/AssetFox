@@ -13,6 +13,7 @@
 
             <v-card-text>
               <v-select
+                    id="CreateScenarioDialog-selectANetwork-select"
                     :items="stateNetworks"
                     label="Select a network"
                     item-text="name"
@@ -23,6 +24,7 @@
                     outline
                 ></v-select>
                 <v-text-field
+                    id="CreateScenarioDialog-scenarioName-textField"
                     label="Scenario name"
                     outline
                     v-model="newScenario.name"
@@ -32,6 +34,7 @@
             <v-card-actions>
                 <v-layout justify-space-between row>
                     <v-btn
+                        id="CreateScenarioDialog-save-btn"
                         :disabled="newScenario.name === '' || !isNetworkSelected"
                         @click="onSubmit(true)"
                         class="ara-blue-bg white--text"
@@ -39,6 +42,7 @@
                         Save
                     </v-btn>
                     <v-btn
+                        id="CreateScenarioDialog-cancel-btn"
                         @click="onSubmit(false)"
                         class="ara-orange-bg white--text"
                         >Cancel</v-btn
@@ -52,7 +56,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import { Action, State } from 'vuex-class';
+import { State } from 'vuex-class';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { User } from '@/shared/models/iAM/user';
 import {
@@ -61,7 +65,6 @@ import {
     ScenarioUser,
 } from '@/shared/models/iAM/scenario';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
-import { hasValue } from '@/shared/utils/has-value-util';
 import { find, isNil, propEq } from 'ramda';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage;
 using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using OfficeOpenXml;
@@ -15,13 +14,11 @@ namespace BridgeCareCore.Services
 
         public const string TopSpreadsheetRowIsEmpty = "The top row of the spreadsheet is empty. It is expected to contain column names.";
         public const string DataSourceDoesNotExist = "No DataSource in the database with id";
-        private const int MaximumRows = 100000;
-        private const int MaximumColumns = 1000;
 
-        private UnitOfDataPersistenceWork _unitOfWork;
+        private IUnitOfWork _unitOfWork;
 
         public ExcelRawDataImportService(
-            UnitOfDataPersistenceWork unitOfWork
+            IUnitOfWork unitOfWork
             )
         {
             _unitOfWork = unitOfWork;
@@ -48,18 +45,25 @@ namespace BridgeCareCore.Services
             var cells = worksheet.Cells;
             var end = worksheet.Dimension.End;
 
-            // Check Excel file dimensions
-            // This addresses the case where Excel thinks it has far more rows or columns than it actually has
-            // TODO:  Implement file trimmer?
-            if (end.Column > MaximumColumns || end.Row > MaximumRows)
+            int endRow = 1;
+            int endCol = 1;
+            for (int i = 1; i <= end.Row; i++)
             {
-                return new ExcelRawDataImportResultDTO
-                {
-                    WarningMessage = $"Excel file size unexpected.  Number of columns are {end.Column} and number of rows are {end.Row}"
-                };
+                //Check if the second column has text, in case the first column has gaps or ends early.
+                if (!string.IsNullOrWhiteSpace(cells[i, 1].Text) || !string.IsNullOrWhiteSpace(cells[i, 2].Text))
+                    endRow = i;
+                else
+                    break;
             }
-
-            for (int i = 1; i <= end.Column; i++)
+            for (int j = 1; j <= end.Column; j++)
+            {
+                //Check for each column title, as it should exist.
+                if (!string.IsNullOrWhiteSpace(cells[1, j].Text))
+                    endCol = j;
+                else
+                    break;
+            }
+            for (int i = 1; i <= endCol; i++)
             {
                 var titleContent = cells[1, i].Value;
                 var shouldIncludeColumn = includeColumnsWithoutTitles || titleContent != null && !string.IsNullOrWhiteSpace(titleContent.ToString());
@@ -76,12 +80,12 @@ namespace BridgeCareCore.Services
                 };
             }
             var columns = new List<ExcelRawDataColumn>();
-            for (var columnIndex = 1; columnIndex <= end.Column; columnIndex++)
+            for (var columnIndex = 1; columnIndex <= endCol; columnIndex++)
             {
                 if (columnIndexesToInclude.Contains(columnIndex))
                 {
                     var columnCells = new List<IExcelCellDatum>();
-                    for (var rowIndex = 1; rowIndex <= end.Row; rowIndex++)
+                    for (var rowIndex = 1; rowIndex <= endRow; rowIndex++)
                     {
                         var cellValue = cells[rowIndex, columnIndex].Value;
                         var newCell = ExcelCellData.ForObject(cellValue);
@@ -97,7 +101,7 @@ namespace BridgeCareCore.Services
             }
             var workseet = ExcelRawDataSpreadsheets.WithColumns(columns);
             var newId = Guid.NewGuid();
-            var dto = ExcelDatabaseWorksheetMapper.ToDTO(workseet, dataSourceId, newId);
+            var dto = ExcelRawDataSpreadsheetSerializationMapper.ToDTO(workseet, dataSourceId, newId);
             var returnId = _unitOfWork.ExcelWorksheetRepository.AddExcelRawData(dto);
             return new ExcelRawDataImportResultDTO
             {

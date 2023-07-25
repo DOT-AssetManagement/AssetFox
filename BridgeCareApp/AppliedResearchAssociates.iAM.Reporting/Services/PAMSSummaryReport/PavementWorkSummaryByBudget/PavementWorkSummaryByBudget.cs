@@ -8,7 +8,6 @@ using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Interfaces.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent;
@@ -16,7 +15,7 @@ using OfficeOpenXml;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummaryByBudget
 {
-    public class PavementWorkSummaryByBudget : IPavementWorkSummaryByBudget
+    public class PavementWorkSummaryByBudget
     {
         private PavementWorkSummaryComputationHelper _pavementWorkSummaryComputationHelper;
 
@@ -37,10 +36,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
             SetupBudgetModelsAndCommittedTreatments(reportOutputData, selectableTreatments, workSummaryByBudgetModels, committedTreatments);
 
-            var simulationTreatments = new List<(string Name, AssetCategory AssetType, TreatmentCategory Category)>();
+            var simulationTreatments = new List<(string Name, AssetCategories AssetType, TreatmentCategory Category)>();
             foreach (var item in selectableTreatments)
             {
-                simulationTreatments.Add((item.Name, item.AssetCategory, item.Category));
+                simulationTreatments.Add((item.Name, (AssetCategories)item.AssetCategory, item.Category));
             }
             simulationTreatments.Sort((a, b) => a.Name.CompareTo(b.Name));
 
@@ -48,10 +47,16 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
             foreach (var budgetSummaryModel in workSummaryByBudgetModels)
             {
+                var noData = !budgetSummaryModel.YearlyData.Any(datum => datum.Amount != 0);
+                if (noData)
+                {
+                    continue;
+                }
+
                 // Inside iteration since each section has its own budget analysis section.
                 var costBudgetsWorkSummary = new CostBudgetsWorkSummary();
 
-                var costAndLengthPerTreatmentPerYear = new Dictionary<int, Dictionary<string, (decimal treatmentCost, int length)>>();
+                var costAndLengthPerTreatmentPerYear = new Dictionary<int, Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>();
                 var costAndLengthPerTreatmentGroupPerYear = new Dictionary<int, Dictionary<PavementTreatmentHelper.TreatmentGroup, (decimal treatmentCost, int length)>>();
 
                 currentCell.Column = 1;
@@ -60,7 +65,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 worksheet.Cells[currentCell.Row, currentCell.Column].Style.Font.Size = 18;
                 worksheet.Cells[currentCell.Row, currentCell.Column].Style.Font.Bold = true;
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[currentCell.Row, currentCell.Column]);
-                ExcelHelper.MergeCells(worksheet, currentCell.Row, currentCell.Column, currentCell.Row, simulationYears.Count);
+                ExcelHelper.MergeCells(worksheet, currentCell.Row, currentCell.Column, currentCell.Row, simulationYears.Count + 2);
 
                 if (budgetSummaryModel.YearlyData.Count == 0)
                 {
@@ -70,7 +75,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     {
                         if (!costAndLengthPerTreatmentPerYear.ContainsKey(year))
                         {
-                            costAndLengthPerTreatmentPerYear.Add(year, new Dictionary<string, (decimal treatmentCost, int length)>());
+                            costAndLengthPerTreatmentPerYear.Add(year, new Dictionary<string, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>());
                         }
                         var treatmentData = costAndLengthPerTreatmentPerYear[year];
 
@@ -84,7 +89,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         {
                             if (treatment.Name != PAMSConstants.NoTreatmentForWorkSummary)
                             {
-                                treatmentData.Add(treatment.Name, (0, 0));
+                                treatmentData.Add(treatment.Name, (0, 0, 0));
 
                                 var treatmentGroup = PavementTreatmentHelper.GetTreatmentGroup(treatment.Name);
                                 if (!treatmentGroupData.ContainsKey(treatmentGroup))
@@ -112,21 +117,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 // Finally, advance for next budget label
                 currentCell.Row++;
             }
-        }
-
-        private Dictionary<int, double> CalculateTotalBudgetPerYear(List<int> simulationYears, List<YearsData> costForCommittedBudgets)
-        {
-            // Fill up the total costs
-            var totalBudgetPerYear = new Dictionary<int, double>();
-            //var totalSpent = new List<(int year, double amount)>();
-            foreach (var year in simulationYears)
-            {
-                var yearlyBudget = costForCommittedBudgets.FindAll(_ => _.Year == year);
-                var committedAmountSum = yearlyBudget.Sum(s => s.Amount);
-                totalBudgetPerYear.Add(year, committedAmountSum);
-                //totalSpent.Add((year, committedAmountSum));
-            }
-            return totalBudgetPerYear;
         }
 
         private static void SetupBudgetModelsAndCommittedTreatments(SimulationOutput reportOutputData, IReadOnlyCollection<SelectableTreatment> selectableTreatments, List<WorkSummaryByBudgetModel> workSummaryByBudgetModels, HashSet<string> committedTreatments)
@@ -157,7 +147,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                 Amount = budgetAmount,
                                 isCommitted = true,
                                 //costPerBPN = (_summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "BUS_PLAN_NETWORK"), budgetAmount),
-                                TreatmentCategory = category
+                                TreatmentCategory = category,
+                                SurfaceId = (int)section.ValuePerNumericAttribute["SURFACEID"]
                             });
                             committedTreatments.Add(section.AppliedTreatment);
                         }
@@ -175,7 +166,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                 Amount = budgetAmount,
                                 //costPerBPN = (_summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "BUS_PLAN_NETWORK"), budgetAmount),
                                 TreatmentCategory = treatmentData.Category,
-                                AssetType = treatmentData.AssetCategory
+                                AssetType = (AssetCategories)treatmentData.AssetCategory,
+                                SurfaceId = (int)section.ValuePerNumericAttribute["SURFACEID"]
                             });
                         }
                     }

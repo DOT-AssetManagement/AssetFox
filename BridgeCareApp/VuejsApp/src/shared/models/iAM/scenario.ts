@@ -1,5 +1,4 @@
 import {getBlankGuid} from '@/shared/utils/uuid-utils';
-import internal from 'stream';
 export interface ScenarioUser {
     userId: string;
     username: string;
@@ -23,7 +22,7 @@ export interface Scenario {
     runTime?: string;
 }
 
-export interface QueuedSimulation {
+export interface QueuedWork {
     id: string;
     name: string;
     status?: string;
@@ -33,6 +32,19 @@ export interface QueuedSimulation {
     currentRunTime?: string;
     previousRunTime?: string;
     queuePosition: number;
+    workDescription: string;
+    workType: WorkType;
+    domainType: DomainType;
+}
+
+export enum WorkType {
+    SimulationAnalysis,
+    DeleteNetwork
+}
+
+export enum DomainType {
+    Simulation,
+    Network
 }
 
 export interface ScenarioActions {
@@ -63,11 +75,15 @@ export const emptyScenario: Scenario = {
     lastModifiedDate: new Date(),
 };
 
-export const emptySimulation: QueuedSimulation = {
+export const emptyQueuedWork: QueuedWork = {
     id: getBlankGuid(),
     name: '',
     queueEntryTimestamp: new Date(),
     workStartedTimestamp: new Date(),
     queueingUser: '',
-    queuePosition: 0
+    queuePosition: 0,
+    workDescription: '',
+    workType: WorkType.SimulationAnalysis,
+    domainType: DomainType.Simulation
+
 };

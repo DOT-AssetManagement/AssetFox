@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
@@ -10,6 +12,7 @@ using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace BridgeCareCore.Controllers
 {
@@ -40,27 +43,48 @@ namespace BridgeCareCore.Controllers
             if (!_assetData.KeyProperties.ContainsKey(propertyName)) return BadRequest($"Requested key property ({propertyName}) does not exist");
             return Ok(_assetData.KeyProperties[propertyName].Select(_ => _.KeyValue.Value).ToList());
         }
-
-        // TODO: Remove this once front end can handle generic properties
+                
         [HttpGet]
-        [Route("GetPennDOTInventory")]
+        [Route("GetInventory")]
         [Authorize]
-        public async Task<IActionResult> GetPennDOTInventory()
+        public async Task<IActionResult> GetInventory(string keyProperties)
         {
-            var data = new List<KeyIDs>();
-
-            if (_assetData.KeyProperties.ContainsKey("BRKEY_") && _assetData.KeyProperties.ContainsKey("BMSID"))
+            var assetKeyData = new Dictionary<Guid, List<string>>();
+            var keySegmentDatums = new List<List<KeySegmentDatum>>();
+                        
+            var keyPropertiesList = JsonConvert.DeserializeObject<List<string>>(keyProperties);
+            foreach (var keyProperty in keyPropertiesList)
             {
-                data = _assetData.KeyProperties["BMSID"].Join(
-                    _assetData.KeyProperties["BRKEY_"],
-                    assetIDBMS => assetIDBMS.AssetId,
-                    assetBrKey => assetBrKey.AssetId,
-                    (bmsid, brkey)
-                    => new KeyIDs { BrKey = brkey.KeyValue.TextValue, BmsId = bmsid.KeyValue.TextValue })
-                    .ToList();
+                if (_assetData.KeyProperties.ContainsKey(keyProperty))
+                {
+                    keySegmentDatums.Add(_assetData.KeyProperties[keyProperty]);
+                }
+            }
+            
+            foreach (var keySegmentDatum in keySegmentDatums)
+            {
+                foreach (var keyDatum in keySegmentDatum.OrderBy(_ => _.KeyValue.TextValue))
+                {
+                    var assetId = keyDatum.AssetId;
+                    var value = keyDatum.KeyValue.TextValue;
+                    if (!assetKeyData.ContainsKey(assetId))
+                    {
+                        assetKeyData.Add(assetId, new List<string> { value });
+                    }
+                    else
+                    {
+                        assetKeyData[assetId].Add(value);
+                    }
+                }
+            }            
+
+            List<InventoryItem> inventoryItems = new List<InventoryItem>();
+            foreach(var assetKeyDataValue in  assetKeyData.Values)
+            {
+                inventoryItems.Add(new InventoryItem { keyProperties = assetKeyDataValue });
             }
 
-            return Ok(data.OrderBy(_ => _.BrKey.Length).ThenBy(_ => _.BrKey));
+            return Ok(inventoryItems);
         }
     }
 }

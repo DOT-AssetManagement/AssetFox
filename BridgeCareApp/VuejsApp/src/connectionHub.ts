@@ -6,12 +6,11 @@ import {
 import { SimulationAnalysisDetail } from '@/shared/models/iAM/simulation-analysis-detail';
 import { SimulationReportDetail } from '@/shared/models/iAM/simulation-report-detail';
 import { NetworkRollupDetail } from '@/shared/models/iAM/network-rollup-detail';
-import AuthenticationModule from '@/store-modules/authentication.module';
 import { hasValue } from '@/shared/utils/has-value-util';
-import { UserInfo } from '@/shared/models/iAM/authentication';
-import { parseLDAP } from '@/shared/utils/parse-ldap';
+
 import has = Reflect.has;
 import { getUserName } from '@/shared/utils/get-user-info';
+import { queuedWorkStatusUpdate } from './shared/models/iAM/queuedWorkStatusUpdate';
 
 export default {
     install(Vue: any) {
@@ -19,7 +18,6 @@ export default {
             .withUrl(
                 `${process.env.VUE_APP_BRIDGECARE_CORE_URL}/bridgecarehub/`,
                 {
-                    //skipNegotiation: false,
                     transport: HttpTransportType.LongPolling,
                 },
             )
@@ -73,10 +71,22 @@ export default {
                 statusHub.$emit(
                     Hub.BroadcastEventType
                         .BroadcastSimulationAnalysisDetailEvent,
-                    { simulationAnalysisDetail },
+                    {simulationAnalysisDetail},
                 );
             },
         );
+
+        connection.on(Hub.BroadcastType.BroadcastWorkQueueUpdate, workId => {
+            statusHub.$emit(Hub.BroadcastEventType.BroadcastWorkQueueUpdateEvent, {
+                workId,
+            });
+        });
+
+        connection.on(Hub.BroadcastType.BroadcastWorkQueueStatusUpdate, (queueItem: queuedWorkStatusUpdate) => {
+            statusHub.$emit(Hub.BroadcastEventType.BroadcastWorkQueueStatusUpdateEvent, {
+                queueItem,
+            });
+        });       
 
         connection.on(Hub.BroadcastType.BroadcastError, error => {
             statusHub.$emit(Hub.BroadcastEventType.BroadcastErrorEvent, {
@@ -148,6 +158,9 @@ export const Hub = {
         BroadcastSimulationAnalysisDetail: 'BroadcastSimulationAnalysisDetail',
         BroadcastDataMigration: 'BroadcastDataMigration',
         BroadcastNetworkRollupDetail: 'BroadcastNetworkRollupDetail',
+        BroadcastWorkQueueUpdate: 'BroadcastWorkQueueUpdate',
+        BroadcastWorkQueueStatusUpdate: 'BroadcastWorkQueueStatusUpdate',
+        
     },
     BroadcastEventType: {
         BroadcastErrorEvent: 'BroadcastErrorEvent',
@@ -163,5 +176,8 @@ export const Hub = {
             'BroadcastSimulationAnalysisDetailEvent',
         BroadcastDataMigrationEvent: 'BroadcastDataMigrationEvent',
         BroadcastNetworkRollupDetailEvent: 'BroadcastNetworkRollupDetailEvent',
+        BroadcastWorkQueueUpdateEvent: 'BroadcastWorkQueueUpdateEvent',
+        BroadcastWorkQueueStatusUpdateEvent: 'BroadcastWorkQueueStatusUpdateEvent',
+        
     },
 };

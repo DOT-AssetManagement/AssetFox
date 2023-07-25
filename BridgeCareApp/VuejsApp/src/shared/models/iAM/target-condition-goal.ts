@@ -8,6 +8,8 @@ export interface TargetConditionGoal {
     attribute: string;
     target: number;
     year: number | null;
+    libraryId: string;
+    isModified: boolean;
     criterionLibrary: CriterionLibrary;
 }
 
@@ -17,6 +19,7 @@ export interface TargetConditionGoalLibrary {
     description: string;
     targetConditionGoals: TargetConditionGoal[];
     owner?: string;
+    users: TargetConditionGoalLibraryUser[];
     isShared: boolean;
 }
 
@@ -26,6 +29,8 @@ export const emptyTargetConditionGoal: TargetConditionGoal = {
     attribute: '',
     target: 1,
     year: null,
+    isModified: false,
+    libraryId: getBlankGuid(),
     criterionLibrary: clone(emptyCriterionLibrary)
 };
 
@@ -34,5 +39,19 @@ export const emptyTargetConditionGoalLibrary: TargetConditionGoalLibrary = {
     name: '',
     description: '',
     targetConditionGoals: [],
+    users: [],
     isShared: false
 };
+export interface TargetConditionGoalLibraryUser {
+    userId: string;
+    username: string;
+    canModify: boolean;
+    isOwner: boolean;
+}
+export const emptyTargetConditionGoalLibraryUsers: TargetConditionGoalLibraryUser[] = [{
+    userId: '',
+    username: '',
+    canModify: false,
+    isOwner: false
+}];
+

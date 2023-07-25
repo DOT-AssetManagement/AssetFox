@@ -1,22 +1,32 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.Data;
 using AppliedResearchAssociates.iAM.Data.Attributes;
+using AppliedResearchAssociates.iAM.Data.Mappers;
+using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Controllers.BaseController;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
+using BridgeCareCore.Controllers.BaseController;
+using BridgeCareCore.Models;
+using BridgeCareCore.Security;
 using BridgeCareCore.Security.Interfaces;
 using BridgeCareCore.Services;
-using BridgeCareCore.Models;
+using BridgeCareCore.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using BridgeCareCore.Utils;
-using BridgeCareCore.Security;
+using System.Linq;
+using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DTOs.Static;
+using BridgeCareCore.Interfaces;
+using BridgeCareCore.Utils.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.SqlServer.Dac.Model;
+using static BridgeCareCore.Security.SecurityConstants;
 
 namespace BridgeCareCore.Controllers
 {
@@ -25,8 +35,13 @@ namespace BridgeCareCore.Controllers
     public class NetworkController : BridgeCareCoreBaseController
     {
         public const string NetworkError = "Network Error";
+
+        private readonly IGeneralWorkQueueService _workQueueService;
         public NetworkController(IEsecSecurity esecSecurity, UnitOfDataPersistenceWork unitOfWork, IHubService hubService,
-            IHttpContextAccessor httpContextAccessor) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor) { }
+            IHttpContextAccessor httpContextAccessor, IGeneralWorkQueueService workQueueService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+        {
+            _workQueueService = workQueueService ?? throw new ArgumentNullException(nameof(workQueueService));
+        }
 
         [HttpGet]
         [Route("GetAllNetworks")]
@@ -70,7 +85,7 @@ namespace BridgeCareCore.Controllers
             {
                 var idAttribute = AttributeService.ConvertAllAttribute(parameters.NetworkDefinitionAttribute);
 
-                var attribute = AttributeMapper.ToDomain(idAttribute, UnitOfWork.EncryptionKey);
+                var attribute = AttributeDtoDomainMapper.ToDomain(idAttribute, UnitOfWork.EncryptionKey);
                 var result = await Task.Factory.StartNew(() =>
                 {
                     // throw an exception if not network definition attribute is present
@@ -105,6 +120,37 @@ namespace BridgeCareCore.Controllers
         }
 
         [HttpPost]
+        [Route("DeleteNetwork/{networkId}")]
+        [ClaimAuthorize("NetworkDeleteAccess")]
+        public async Task<IActionResult> DeleteNetwork(Guid networkId)
+        {
+            try
+            {
+                var networkName = "";
+                await Task.Factory.StartNew(() =>
+                {
+                    networkName = UnitOfWork.NetworkRepo.GetNetworkName(networkId);
+                });
+                DeleteNetworkWorkitem workItem = new DeleteNetworkWorkitem(networkId, UserInfo.Name, networkName);
+                var analysisHandle = _workQueueService.CreateAndRun(workItem);
+                
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, null);
+
+                return Ok();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{NetworkError}::DeleteNetwork - {HubService.errorList["Unauthorized"]}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{NetworkError}::DeleteNetwork - {e.Message}");
+                throw;
+            }
+        }
+
+        [HttpPost]
         [Route("GetCompatibleNetworks/{networkId}")]
         [ClaimAuthorize("NetworkViewAccess")]
         public async Task<IActionResult> GetCompatibleNetworks(Guid networkId)
@@ -114,29 +160,23 @@ namespace BridgeCareCore.Controllers
             {
                 var attributesForOriginalNetwork = UnitOfWork.AttributeRepo.GetAttributeIdsInNetwork(networkId);
                 var networks = await UnitOfWork.NetworkRepo.Networks();
-
+                var originalNetwork = networks.First(_ => _.Id == networkId);
                 var compatibleNetworks = new List<NetworkDTO>();
-
+                compatibleNetworks.Add(originalNetwork);
                 foreach (var network in networks)
                 {
-                    //TODO: Investigate case where networks have separate key attributes. Disable until handled in 3.1
-                    /*
+                    if(network.Id == networkId)
+                        continue;
+                    if (network.KeyAttribute != originalNetwork.KeyAttribute)
+                        continue;
                     var attributesForNetwork = UnitOfWork.AttributeRepo.GetAttributeIdsInNetwork(network.Id);
 
                     if (attributesForOriginalNetwork.TrueForAll(_ => attributesForNetwork.Any(__ => _ == __))) {
                         compatibleNetworks.Add(network);
                     }
-                    */
-
-                    //Placeholder until above enabled
-                    if (network.Id == networkId)
-                    {
-                        compatibleNetworks.Add(network);
-                    }
+                    
                 }
                 
-
-
                 return Ok(compatibleNetworks);
 
             }
@@ -155,17 +195,13 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
                     UnitOfWork.BenefitQuantifierRepo.UpsertBenefitQuantifier(dto);
-                    UnitOfWork.Commit();
                 });
-
 
                 return Ok();
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{NetworkError}::UpsertBenefitQuantifier - {e.Message}");
                 throw;
             }

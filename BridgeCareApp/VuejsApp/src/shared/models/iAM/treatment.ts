@@ -5,7 +5,6 @@ import {
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
 import { clone } from 'ramda';
 import { emptyEquation, Equation } from '@/shared/models/iAM/equation';
-import { Attribute } from './attribute';
 
 // order is important
 export enum TreatmentCategory {
@@ -21,10 +20,20 @@ export enum AssetType {
     culvert,
 }
 
+export interface TreatmentAttributeFactor {
+    attribute: string;
+    factor: number;
+}
 export interface TreatmentCost {
     id: string;
     equation: Equation;
     criterionLibrary: CriterionLibrary;
+}
+
+export interface TreatmentPerformanceFactor {
+    id: string;
+    attribute: string;
+    performanceFactor: number;
 }
 
 export interface TreatmentConsequence {
@@ -44,10 +53,13 @@ export interface Treatment {
     criterionLibrary: CriterionLibrary;
     costs: TreatmentCost[];
     consequences: TreatmentConsequence[];
+    performanceFactors: TreatmentPerformanceFactor[];
     budgetIds: string[];
     addTreatment: boolean;
     category: TreatmentCategory;
     assetType: AssetType;
+    isModified: boolean;
+    libraryId: string;
 }
 
 export interface SimpleTreatment {
@@ -55,6 +67,12 @@ export interface SimpleTreatment {
     name: string;
 }
 
+export interface TreatmentLibraryUser {
+    userId: string;
+    username: string;
+    canModify: boolean;
+    isOwner: boolean;
+}
 export interface TreatmentLibrary {
     id: string;
     name: string;
@@ -62,6 +80,8 @@ export interface TreatmentLibrary {
     treatments: Treatment[];
     owner?: string;
     isShared: boolean;
+    isModified: boolean;
+    users: TreatmentLibraryUser[];
 }
 
 export interface TreatmentDetails {
@@ -82,6 +102,7 @@ export const emptyCost: TreatmentCost = {
     equation: clone(emptyEquation),
     criterionLibrary: clone(emptyCriterionLibrary),
 };
+
 
 export const emptyConsequence: TreatmentConsequence = {
     id: getBlankGuid(),
@@ -104,6 +125,9 @@ export const emptyTreatment: Treatment = {
     addTreatment: false,
     category: TreatmentCategory.preservation,
     assetType: AssetType.bridge,
+    performanceFactors: [],
+    isModified: false,
+    libraryId:  getBlankGuid(),
 };
 
 export const emptyTreatmentLibrary: TreatmentLibrary = {
@@ -111,8 +135,17 @@ export const emptyTreatmentLibrary: TreatmentLibrary = {
     name: '',
     description: '',
     treatments: [],
-    isShared: false
+    isShared: false,
+    isModified: false,
+    users: []
 };
+
+export const emptyTreatmentLibraryUser: TreatmentLibraryUser = {
+    userId: '',
+    username: '',
+    canModify: false,
+    isOwner: false
+}
 
 export const emptyTreatmentDetails: TreatmentDetails = {
     description: '',

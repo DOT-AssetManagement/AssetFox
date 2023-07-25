@@ -3,10 +3,12 @@ const fs = require('fs')
 const packageJson = fs.readFileSync('./package.json')
 const version = JSON.parse(packageJson).version || 0
 const port = JSON.parse(packageJson).port || 8080
-const security = JSON.parse(packageJson).security || 'B2C'
 
 module.exports = {
     configureWebpack: {
+        output: {
+            hashFunction: "sha256"
+        },
         devtool: 'source-map',
         plugins: [
             new webpack.DefinePlugin({
@@ -29,7 +31,8 @@ module.exports = {
                         name(module) {
                             // get the name. E.g. node_modules/packageName/not/this/part.js
                             // or node_modules/packageName
-                            const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
+                            const packageNameMatch = module.context && module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/);
+                            const packageName = packageNameMatch ? packageNameMatch[1] : 'vendor';
 
                             // npm package names are URL-safe, but some servers don't like @ symbols
                             return `npm.${packageName.replace('@', '')}`;

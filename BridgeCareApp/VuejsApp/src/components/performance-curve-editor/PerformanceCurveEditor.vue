@@ -6,6 +6,7 @@
                     <v-flex xs5>
                         <v-subheader class="ghd-control-label ghd-md-gray">Deterioration Model Library</v-subheader>
                         <v-select
+                            id="PerformanceCurveEditor-library-select"
                             class="ghd-control-border ghd-control-text ghd-select"
                             :items="librarySelectItems"
                             append-icon=$vuetify.icons.ghd-down
@@ -27,6 +28,12 @@
                                 </v-list-item>
                             </template>
                         </v-select>
+                        <div class="ghd-md-gray ghd-control-subheader budget-parent" v-if="hasScenario"><b>Library Used: {{parentLibraryName}} 
+                            
+                            <span v-if="scenarioLibraryIsModified">&nbsp;&nbsp;{{modifiedStatus}}</span></b>
+                        
+                        </div>
+
                     </v-flex>
                     <v-flex xs2 v-show="hasScenario"></v-flex>
                     <v-flex xs5 v-show="hasSelectedLibrary || hasScenario">                     
@@ -34,6 +41,7 @@
                         <v-layout>
                         
                         <v-text-field
+                            id="PerformanceCurveEditor-searchDeteriorationEquations-textField"
                             class="ghd-text-field-border ghd-text-field search-icon-general"
                             style="margin-top:0px;"
                             prepend-inner-icon=$vuetify.icons.ghd-search
@@ -47,19 +55,19 @@
                             v-model="gridSearchTerm"
                         >
                         </v-text-field>
-                        <v-btn style="margin-top: 2px;" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline @click="onSearchClick()">Search</v-btn>
+                        <v-btn id="PerformanceCurveEditor-search-button" style="margin-top: 2px;" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline @click="onSearchClick()">Search</v-btn>
                         </v-layout>
                     </v-flex>
                     <v-flex xs5 v-show="!(hasSelectedLibrary || hasScenario)">
                     </v-flex>                    
                     <v-flex xs2 v-show='!hasScenario'>
                         <v-subheader class="ghd-control-label ghd-md-gray"> </v-subheader>
-                        <v-layout row align-end>
-                            <v-btn @click='onShowCreatePerformanceCurveLibraryDialog(false)'
+                        <v-layout row align-end justify-end>
+                            <v-btn
+                                id="PerformanceCurveEditor-createNewLibrary-button"
+                                @click='onShowCreatePerformanceCurveLibraryDialog(false)'
                                 class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
-                                style="margin-top:0px;"
-                                outline                               
-                            >
+                                outline>
                                 Create New Library
                             </v-btn>
                         </v-layout>
@@ -75,36 +83,44 @@
                                 v-if='hasSelectedLibrary && !hasScenario'
                                 class="ghd-control-label ghd-md-gray"
                             > 
-                                Owner: {{ getOwnerUserName() || '[ No Owner ]' }}
+                                Owner: {{ getOwnerUserName() || '[ No Owner ]' }} |
+                            <v-badge v-show="isShared">
+                            <template v-slot: badge>
+                                <span>Shared</span>
+                            </template>
+                            </v-badge>
+                            <v-btn
+                                id="PerformanceCurveEditor-shareLibrary-button"
+                                @click='onShowSharePerformanceCurveLibraryDialog(selectedPerformanceCurveLibrary)' class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline
+                                v-show='!hasScenario'>
+                                Share Library
+                            </v-btn>
                             </div>
-                            <v-divider v-if='hasSelectedLibrary && !hasScenario' class="owner-shared-divider" style="margin-left:10px;" inset vertical>
-                            </v-divider>                        
-                            <v-switch style="margin-left:10px;margin-top:4px;"
-                                class="sharing ghd-checkbox"
-                                label="Shared"
-                                v-if="hasSelectedLibrary && !hasScenario"
-                                v-model="selectedPerformanceCurveLibrary.isShared"
-                                @change="checkHasUnsavedChanges()"
-                            />               
                     </v-layout>
                 </v-flex>
                 <v-flex xs9 v-show="hasScenario">
                 </v-flex>
                 <v-flex xs2 v-show="hasScenario || hasSelectedLibrary">
                     <v-layout row align-end style="margin-top:-4px;height:40px;">
-                        <v-btn :disabled='false' @click='showImportExportPerformanceCurvesDialog = true'
+                        <v-btn
+                            id="PerformanceCurveEditor-upload-button"
+                            :disabled='false' @click='showImportExportPerformanceCurvesDialog = true'
                             flat class='ghd-blue ghd-button-text ghd-separated-button ghd-button'>
                             Upload
                         </v-btn>
                         <v-divider class="upload-download-divider" inset vertical>
                         </v-divider>
-                        <v-btn :disabled='false' @click='exportPerformanceCurves()'
+                        <v-btn
+                            id="PerformanceCurveEditor-download-button"
+                            :disabled='false' @click='exportPerformanceCurves()'
                             flat class='ghd-blue ghd-button-text ghd-separated-button ghd-button'>
                             Download
                         </v-btn>
                         <v-divider class="upload-download-divider" inset vertical>
                         </v-divider>
-                        <v-btn :disabled='false' @click='OnDownloadTemplateClick()'
+                        <v-btn
+                            id="PerformanceCurveEditor-downloadTemplate-button"
+                            :disabled='false' @click='OnDownloadTemplateClick()'
                             flat class='ghd-blue ghd-button-text ghd-separated-button ghd-button'>
                             Download Template
                         </v-btn>
@@ -117,6 +133,7 @@
                 <v-flex xs12>
                     <v-card class="elevation-0">
                         <v-data-table
+                            id="PerformanceCurveEditor-deteriorationModels-datatable"
                             :headers="performanceCurveGridHeaders"
                             :items="currentPage"                       
                             :pagination.sync="performancePagination"
@@ -149,7 +166,6 @@
                                         "
                                         large
                                         lazy
-                                        persistent
                                     >
                                         <v-text-field
                                             readonly
@@ -188,7 +204,6 @@
                                         "
                                         large
                                         lazy
-                                        persistent
                                     >
                                         <v-text-field
                                             readonly
@@ -322,6 +337,7 @@
                             </template>                               
                         </v-data-table>
                         <v-btn style="margin-top:-84px"
+                            id="PerformanceCurveEditor-deleteSelected-button"
                             :disabled='selectedPerformanceEquationIds.length === 0 || (!hasLibraryEditPermission && !hasScenario)'
                             @click='onRemovePerformanceEquations'
                             class='ghd-blue' flat
@@ -335,6 +351,7 @@
             <v-layout class="header-height" justify-left v-show="hasSelectedLibrary || hasScenario">
                 <v-flex xs3>
                     <v-btn
+                        id="PerformanceCurveEditor-addDeteriorationModel-button"
                         @click="showCreatePerformanceCurveDialog = true"
                         class="ghd-blue ghd-white-bg ghd-button-text ghd-button-border ghd-outline-button-padding"
                         depressed                
@@ -367,6 +384,7 @@
                 v-show='hasSelectedLibrary || hasScenario'
             >
                 <v-btn
+                    id="PerformanceCurveEditor-cancel-button"
                     :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
                     @click="onDiscardChanges"
                     class="ghd-white-bg ghd-blue ghd-button-text"
@@ -375,7 +393,8 @@
                 >
                     Cancel
                 </v-btn>
-                <v-btn
+                <v-btn outline
+                    id="PerformanceCurveEditor-deleteLibrary-button"
                     @click="onShowConfirmDeleteAlert"
                     class="ghd-white-bg ghd-blue ghd-button-text"
                     depressed
@@ -385,15 +404,16 @@
                     Delete Library
                 </v-btn>                
                 <v-btn
+                    id="PerformanceCurveEditor-createAsNewLibrary-button"
                     :disabled="disableCrudButtons()"
                     @click="onShowCreatePerformanceCurveLibraryDialog(true)"
-                    class="ghd-blue ghd-white-bg ghd-button-text ghd-button-border ghd-outline-button-padding"
-                    depressed                    
-                    outlined
+                    class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
+                    outline                  
                 >
                     Create as New Library
                 </v-btn>
                <v-btn
+                    id="PerformanceCurveEditor-updateLibrary-button"
                     :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
                     @click='onUpsertPerformanceCurveLibrary'
                     class="ghd-blue-bg ghd-white ghd-button-text ghd-button-border ghd-outline-button-padding"
@@ -403,11 +423,13 @@
                 >
                     Update Library
                 </v-btn>
-                <v-btn :disabled='disableCrudButtonsResult || !hasUnsavedChanges'
-                       @click='onUpsertScenarioPerformanceCurves'
-                       class="ghd-blue-bg ghd-white ghd-button-text"
-                       depressed
-                       v-show='hasScenario'
+                <v-btn
+                    id="PerformanceCurveEditor-save-button"
+                    :disabled='disableCrudButtonsResult || !hasUnsavedChanges'
+                    @click='onUpsertScenarioPerformanceCurves'
+                    class="ghd-blue-bg ghd-white ghd-button-text"
+                    depressed
+                    v-show='hasScenario'
                 >
                     Save
                 </v-btn>
@@ -422,6 +444,11 @@
         <CreatePerformanceCurveLibraryDialog
             :dialogData="createPerformanceCurveLibraryDialogData"
             @submit="onSubmitCreatePerformanceCurveLibraryDialogResult"
+        />
+
+        <SharePerformanceCurveLibraryDialog 
+            :dialogData='sharePerformanceCurveLibraryDialogData' 
+            @submit='onSharePerformanceCurveLibraryDialogSubmit'
         />
 
         <CreatePerformanceCurveDialog
@@ -465,13 +492,12 @@ import {
     any,
     prepend,
     clone,
-    contains,
     find,
     findIndex,
     isNil,
     propEq,
-    reject,
     update,
+    fromPairs,
 } from 'ramda';
 import { hasValue } from '@/shared/utils/has-value-util';
 import {
@@ -479,13 +505,17 @@ import {
     emptyCreatePerformanceLibraryDialogData,
 } from '@/shared/models/modals/create-performance-curve-library-dialog-data';
 import {
+    SharePerformanceCurveLibraryDialogData,
+    emptySharePerformanceCurveLibraryDialogData
+} from '@/shared/models/modals/share-performance-curve-library-dialog-data';
+import SharePerformanceCurveLibraryDialog from './performance-curve-editor-dialogs/SharePerformanceCurveLibraryDialog.vue';
+import {
     emptyEquationEditorDialogData,
     EquationEditorDialogData,
 } from '@/shared/models/modals/equation-editor-dialog-data';
 import { Attribute } from '@/shared/models/iAM/attribute';
 import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
 import Alert from '@/shared/modals/Alert.vue';
-import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
 import {
     InputValidationRules,
@@ -493,6 +523,8 @@ import {
 } from '@/shared/utils/input-validation-rules';
 import { emptyEquation, Equation } from '@/shared/models/iAM/equation';
 import { CriterionLibrary } from '@/shared/models/iAM/criteria';
+import { LibraryUser } from '@/shared/models/iAM/user';
+import { PerformanceCurveLibraryUser } from '@/shared/models/iAM/performance';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { ScenarioRoutePaths } from '@/shared/utils/route-paths';
 import { getUserName } from '@/shared/utils/get-user-info';
@@ -510,6 +542,7 @@ import { LibraryUpsertPagingRequest, PagingPage, PagingRequest } from '@/shared/
 import { http2XX } from '@/shared/utils/http-utils';
 import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditorDialog.vue';
 import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
+import { isNullOrUndefined } from 'util';
 
 @Component({
     components: {
@@ -519,6 +552,7 @@ import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData
         EquationEditorDialog,
         GeneralCriterionEditorDialog,
         ConfirmDeleteAlert: Alert,
+        SharePerformanceCurveLibraryDialog,
     },
 })
 export default class PerformanceCurveEditor extends Vue {
@@ -538,6 +572,9 @@ export default class PerformanceCurveEditor extends Vue {
     @State(state => state.userModule.currentUserCriteriaFilter) currentUserCriteriaFilter: UserCriteriaFilter;
     @State(state => state.performanceCurveModule.hasPermittedAccess) hasPermittedAccess: boolean;
     @Action('getHasPermittedAccess') getHasPermittedAccessAction: any;
+    @State(state => state.performanceCurveModule.isSharedLibrary) isSharedLibrary: boolean;
+    @Action('getIsSharedPerformanceCurveLibrary') getIsSharedLibraryAction: any;
+    
     @Action('getPerformanceCurveLibraries')
     getPerformanceCurveLibrariesAction: any;
     @Action('selectPerformanceCurveLibrary')
@@ -547,6 +584,9 @@ export default class PerformanceCurveEditor extends Vue {
     @Action('setHasUnsavedChanges') setHasUnsavedChangesAction: any;
     @Action('updatePerformanceCurvesCriterionLibraries')
     updatePerformanceCurveCriterionLibrariesAction: any;
+    
+    @Action('upsertOrDeletePerformanceCurveLibraryUsers') upsertOrDeletePerformanceCurveLibraryUsersAction: any;
+
     @Action('importScenarioPerformanceCurvesFile')
     importScenarioPerformanceCurvesFileAction: any;
     @Action('importLibraryPerformanceCurvesFile')
@@ -574,7 +614,7 @@ export default class PerformanceCurveEditor extends Vue {
     totalItems = 0;
     currentPage: PerformanceCurve[] = [];
     isRunning: boolean = true;
-
+    isShared: boolean = false;
     selectedScenarioId: string = getBlankGuid();
     hasSelectedLibrary: boolean = false;
     hasScenario: boolean = false;
@@ -654,6 +694,16 @@ export default class PerformanceCurveEditor extends Vue {
     hasLibraryEditPermission: boolean = false;
     showImportExportPerformanceCurvesDialog: boolean = false;    
 
+    sharePerformanceCurveLibraryDialogData: SharePerformanceCurveLibraryDialogData = clone(emptySharePerformanceCurveLibraryDialogData);
+
+    parentLibraryName: string = "None";
+    parentLibraryId: string = "";
+    scenarioLibraryIsModified: boolean = false;
+    loadedParentName: string = "";
+    loadedParentId: string = "";
+    newLibrarySelection: boolean = false;
+    modifiedStatus : string = "";
+
     beforeRouteEnter(to: any, from: any, next: any) {
         next((vm: any) => {
             vm.librarySelectItemValue = null;           
@@ -698,15 +748,15 @@ export default class PerformanceCurveEditor extends Vue {
             return;
         this.checkHasUnsavedChanges();
         const { sortBy, descending, page, rowsPerPage } = this.performancePagination;
-
         const request: PagingRequest<PerformanceCurve>= {
             page: page,
             rowsPerPage: rowsPerPage,
-            pagingSync: {
+            syncModel: {
                 libraryId: this.selectedPerformanceCurveLibrary.id === this.uuidNIL ? null : this.selectedPerformanceCurveLibrary.id,
                 updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
                 rowsForDeletion: this.deletionIds,
                 addedRows: this.addedRows,
+                isModified: this.scenarioLibraryIsModified
             },           
             sortColumn: sortBy != null ? sortBy : '',
             isDescending: descending != null ? descending : false,
@@ -733,6 +783,9 @@ export default class PerformanceCurveEditor extends Vue {
                     this.rowCache = clone(this.currentPage)
                     this.totalItems = data.totalItems;
                     this.isRunning = false;
+                    if (!isNullOrUndefined(this.selectedPerformanceCurveLibrary.id) ) {
+                        this.getIsSharedLibraryAction(this.selectedPerformanceCurveLibrary).then(this.isShared = this.isSharedLibrary);
+                    }
                 }
             });  
         }
@@ -747,6 +800,7 @@ export default class PerformanceCurveEditor extends Vue {
         this.deletionIds = this.deletionIds.concat(this.selectedPerformanceEquationIds);
         this.selectedPerformanceEquations = [];
         this.onPaginationChanged();
+        this.modifiedStatus = " (Modified)";
     }    
 
     @Watch('statePerformanceCurveLibraries')
@@ -765,11 +819,15 @@ export default class PerformanceCurveEditor extends Vue {
             this.onSelectItemValueChanged();
             this.unsavedDialogAllowed = false;
         }           
-        else if(this.librarySelectItemValueAllowedChanged)
+        else if(this.librarySelectItemValueAllowedChanged) {
             this.CheckUnsavedDialog(this.onSelectItemValueChanged, () => {
                 this.librarySelectItemValueAllowedChanged = false;
                 this.librarySelectItemValue = this.trueLibrarySelectItemValue;               
-            })
+            });
+        }
+        this.parentLibraryId = this.librarySelectItemValue ? this.librarySelectItemValue : "";
+        this.newLibrarySelection = true;
+        this.scenarioLibraryIsModified = false;
         this.librarySelectItemValueAllowedChanged = true;
     }
     onSelectItemValueChanged() {
@@ -824,7 +882,22 @@ export default class PerformanceCurveEditor extends Vue {
     onAddedRowsChanged(){
         this.checkHasUnsavedChanges();
     }
-
+    @Watch('currentPage')
+    onCurrentPageChanged() {
+        // Get parent name from library id
+        this.librarySelectItems.forEach(library => {
+            if (library.value === this.parentLibraryId) {
+                this.parentLibraryName = library.text;
+            }
+            if(this.parentLibraryName == ""){
+                this.parentLibraryName = "None";
+            }
+        });
+    }
+    @Watch('isSharedLibrary')
+    onStateSharedAccessChanged() {
+        this.isShared = this.isSharedLibrary;
+    }
     checkHasUnsavedChanges(){
         const hasUnsavedChanges: boolean = 
             this.deletionIds.length > 0 || 
@@ -880,11 +953,12 @@ export default class PerformanceCurveEditor extends Vue {
             const upsertRequest: LibraryUpsertPagingRequest<PerformanceCurveLibrary, PerformanceCurve> = {
                 library: performanceCurveLibrary,    
                 isNewLibrary: true,           
-                 pagingSync: {
+                 syncModel: {
                     libraryId: performanceCurveLibrary.performanceCurves.length == 0 || !this.hasSelectedLibrary ? null : this.selectedPerformanceCurveLibrary.id,
-                    rowsForDeletion: performanceCurveLibrary.performanceCurves === [] ? [] : this.deletionIds,
-                    updateRows: performanceCurveLibrary.performanceCurves === [] ? [] : Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-                    addedRows: performanceCurveLibrary.performanceCurves === [] ? [] : this.addedRows,
+                    rowsForDeletion: performanceCurveLibrary.performanceCurves.length == 0 ? [] : this.deletionIds,
+                    updateRows: performanceCurveLibrary.performanceCurves.length == 0 ? [] : Array.from(this.updatedRowsMap.values()).map(r => r[1]),
+                    addedRows: performanceCurveLibrary.performanceCurves.length == 0 ? [] : this.addedRows,
+                    isModified: this.scenarioLibraryIsModified
                  },
                 scenarioId: this.hasScenario ? this.selectedScenarioId : null
             }
@@ -892,7 +966,7 @@ export default class PerformanceCurveEditor extends Vue {
                 this.hasCreatedLibrary = true;
                 this.librarySelectItemValue = performanceCurveLibrary.id;
                 
-                if(performanceCurveLibrary.performanceCurves === []){
+                if(performanceCurveLibrary.performanceCurves.length == 0){
                     this.clearChanges();
                 }
 
@@ -1014,13 +1088,19 @@ export default class PerformanceCurveEditor extends Vue {
     }
 
     onUpsertScenarioPerformanceCurves() {
+
+        if (this.selectedPerformanceCurveLibrary.id === this.uuidNIL || this.hasUnsavedChanges && this.newLibrarySelection ===false) {this.scenarioLibraryIsModified = true;}
+        else { this.scenarioLibraryIsModified = false; }
+
         PerformanceCurveService.UpsertScenarioPerformanceCurves({
             libraryId: this.selectedPerformanceCurveLibrary.id === this.uuidNIL ? null : this.selectedPerformanceCurveLibrary.id,
             rowsForDeletion: this.deletionIds,
             updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-            addedRows: this.addedRows           
+            addedRows: this.addedRows,
+            isModified: this.scenarioLibraryIsModified
         }, this.selectedScenarioId).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
+                this.parentLibraryId = this.librarySelectItemValue ? this.librarySelectItemValue : "";
                 this.clearChanges()
                 this.resetPage();
                 this.addSuccessNotificationAction({message: "Modified scenario's deterioration models"});
@@ -1033,18 +1113,18 @@ export default class PerformanceCurveEditor extends Vue {
         const upsertRequest: LibraryUpsertPagingRequest<PerformanceCurveLibrary, PerformanceCurve> = {
                 library: this.selectedPerformanceCurveLibrary,
                 isNewLibrary: false,
-                 pagingSync: {
+                 syncModel: {
                     libraryId: this.selectedPerformanceCurveLibrary.id === this.uuidNIL ? null : this.selectedPerformanceCurveLibrary.id,
                     rowsForDeletion: this.deletionIds,
                     updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-                    addedRows: this.addedRows
+                    addedRows: this.addedRows,
+                    isModified: this.scenarioLibraryIsModified
                  },
                  scenarioId: null
         }
         PerformanceCurveService.UpsertPerformanceCurveLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 this.clearChanges()
-                this.resetPage();
                 this.performanceCurveLibraryMutator(this.selectedPerformanceCurveLibrary);
                 this.selectedPerformanceCurveLibraryMutator(this.selectedPerformanceCurveLibrary.id);
                 this.addSuccessNotificationAction({message: "Updated deterioration model library",});
@@ -1062,6 +1142,8 @@ export default class PerformanceCurveEditor extends Vue {
                 this.resetPage();
             }
         });
+        this.parentLibraryName = this.loadedParentName;
+        this.parentLibraryId = this.loadedParentId;
     }
 
     onShowConfirmDeleteAlert() {
@@ -1167,7 +1249,51 @@ export default class PerformanceCurveEditor extends Vue {
             }
         }
     }
+    onShowSharePerformanceCurveLibraryDialog(performanceCurveLibrary: PerformanceCurveLibrary)
+    {
+        this.sharePerformanceCurveLibraryDialogData =
+        {
+            showDialog: true,
+            performanceCurveLibrary: clone(performanceCurveLibrary),
+        };
+    }
+    onSharePerformanceCurveLibraryDialogSubmit(performanceCurveLibraryUsers: PerformanceCurveLibraryUser[]) {
+        this.sharePerformanceCurveLibraryDialogData = clone(emptySharePerformanceCurveLibraryDialogData);
 
+        if (!isNil(performanceCurveLibraryUsers) && this.selectedPerformanceCurveLibrary.id !== getBlankGuid())
+        {
+            let libraryUserData: LibraryUser[] = [];
+
+            //create library users
+            performanceCurveLibraryUsers.forEach((performanceCurveLibraryUser, index) =>
+            {   
+                //determine access level
+                let libraryUserAccessLevel: number = 0;
+                if (libraryUserAccessLevel == 0 && performanceCurveLibraryUser.isOwner == true) { libraryUserAccessLevel = 2; }
+                if (libraryUserAccessLevel == 0 && performanceCurveLibraryUser.canModify == true) { libraryUserAccessLevel = 1; }
+
+                //create library user object
+                let libraryUser: LibraryUser = {
+                    userId: performanceCurveLibraryUser.userId,
+                    userName: performanceCurveLibraryUser.username,
+                    accessLevel: libraryUserAccessLevel
+                }
+
+                //add library user to an array
+                libraryUserData.push(libraryUser);
+            });
+            if (!isNullOrUndefined(this.selectedPerformanceCurveLibrary.id) ) {
+                this.getIsSharedLibraryAction(this.selectedPerformanceCurveLibrary).then(this.isShared = this.isSharedLibrary);
+            }
+            //update performance curve library sharing
+            PerformanceCurveService.upsertOrDeletePerformanceCurveLibraryUsers(this.selectedPerformanceCurveLibrary.id, libraryUserData).then((response: AxiosResponse) => {
+                if (hasValue(response, 'status') && http2XX.test(response.status.toString()))
+                {
+                    this.resetPage();
+                }
+            });
+        }
+    }
     onSearchClick(){
         this.currentSearch = this.gridSearchTerm;
         this.resetPage();
@@ -1226,15 +1352,31 @@ export default class PerformanceCurveEditor extends Vue {
         }
     };
 
+    setParentLibraryName(libraryId: string) {
+         if (libraryId === "None") {
+            this.parentLibraryName = "None";
+            return;
+        }
+        let foundLibrary: PerformanceCurveLibrary = emptyPerformanceCurveLibrary;
+        this.statePerformanceCurveLibraries.forEach(library => {
+            if (library.id === libraryId ) {
+                foundLibrary = clone(library);
+            }
+        });
+        this.parentLibraryId = foundLibrary.id;
+        this.parentLibraryName = foundLibrary.name;
+    }
+
     initializePages(){
         const request: PagingRequest<PerformanceCurve>= {
             page: 1,
             rowsPerPage: 5,
-            pagingSync: {
+            syncModel: {
                 libraryId: null,
                 updateRows: [],
                 rowsForDeletion: [],
                 addedRows: [],
+                isModified: false
             },           
             sortColumn: '',
             isDescending: false,
@@ -1248,6 +1390,11 @@ export default class PerformanceCurveEditor extends Vue {
                     this.currentPage = data.items;
                     this.rowCache = clone(this.currentPage)
                     this.totalItems = data.totalItems;
+                    this.setParentLibraryName(this.currentPage.length > 0 ? this.currentPage[0].libraryId : "None");
+                    this.loadedParentId = this.currentPage.length > 0 ? this.currentPage[0].libraryId : "";
+                    this.loadedParentName = this.parentLibraryName; //store original
+                    this.scenarioLibraryIsModified = this.currentPage.length > 0 ? this.currentPage[0].isModified : false;
+
                 }
             });
     }

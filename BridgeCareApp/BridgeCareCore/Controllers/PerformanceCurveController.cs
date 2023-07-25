@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -12,7 +13,7 @@ using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Models;
 using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.Services;
+using BridgeCareCore.Services.General_Work_Queue.WorkItems;
 using BridgeCareCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -30,13 +31,23 @@ namespace BridgeCareCore.Controllers
 
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
         private readonly IPerformanceCurvesService _performanceCurvesService;
+        private readonly IPerformanceCurvesPagingService _performanceCurvePagingService;
         private readonly IClaimHelper _claimHelper;
+        private readonly IGeneralWorkQueueService _generalWorkQueueService;
+
+        public const string RequestedToModifyNonexistentLibraryErrorMessage = "The request says to modify a library, but the library does not exist.";
+        public const string RequestedToCreateExistingLibraryErrorMessage = "The request says to create a new library, but the library already exists.";
 
         public PerformanceCurveController(IEsecSecurity esecSecurity, IUnitOfWork unitOfWork,
-            IHubService hubService, IHttpContextAccessor httpContextAccessor, IPerformanceCurvesService performanceCurvesService, IClaimHelper claimHelper) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+            IHubService hubService,
+            IHttpContextAccessor httpContextAccessor,
+            IPerformanceCurvesService performanceCurvesService, IPerformanceCurvesPagingService performanceCurvesPagingService,
+            IClaimHelper claimHelper, IGeneralWorkQueueService generalWorkQueueService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
             _performanceCurvesService = performanceCurvesService ?? throw new ArgumentNullException(nameof(performanceCurvesService));
+            _performanceCurvePagingService = performanceCurvesPagingService ?? throw new ArgumentNullException(nameof(performanceCurvesPagingService));
             _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
+            _generalWorkQueueService = generalWorkQueueService ?? throw new ArgumentNullException(nameof(generalWorkQueueService));
         }
 
         [HttpPost]
@@ -46,7 +57,7 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
-                var result = await Task.Factory.StartNew(() => _performanceCurvesService.GetScenarioPerformanceCurvePage(simulationId, pageRequest));
+                var result = await Task.Factory.StartNew(() => _performanceCurvePagingService.GetScenarioPage(simulationId, pageRequest));
                 return Ok(result);
             }
             catch (Exception e)
@@ -64,7 +75,7 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
-                var result = await Task.Factory.StartNew(() => _performanceCurvesService.GetLibraryPerformanceCurvePage(libraryId, pageRequest));
+                var result = await Task.Factory.StartNew(() => _performanceCurvePagingService.GetLibraryPage(libraryId, pageRequest));
                 return Ok(result);
             }
             catch (Exception e)
@@ -87,7 +98,7 @@ namespace BridgeCareCore.Controllers
                     result = UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrariesNoPerformanceCurves();
                     if (_claimHelper.RequirePermittedCheck())
                     {
-                        result = result.Where(_ => _.Owner == UserId || _.IsShared == true).ToList();
+                        result = UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrariesNoChildrenAccessibleToUser(UserId);
                     }
                 });
 
@@ -139,46 +150,31 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
-                    var curves = new List<PerformanceCurveDTO>();
-                    if (upsertRequest.ScenarioId != null)
-                        curves = _performanceCurvesService.GetSyncedScenarioDataset(upsertRequest.ScenarioId.Value, upsertRequest.PagingSync);
-                    else if (upsertRequest.PagingSync.LibraryId != null && upsertRequest.PagingSync.LibraryId != Guid.Empty)
-                        curves = _performanceCurvesService.GetSyncedLibraryDataset(upsertRequest.PagingSync.LibraryId.Value, upsertRequest.PagingSync);
-                    else if (!upsertRequest.IsNewLibrary)
-                        curves = _performanceCurvesService.GetSyncedLibraryDataset(upsertRequest.Library.Id, upsertRequest.PagingSync);
-                    else if (upsertRequest.IsNewLibrary && upsertRequest.PagingSync.LibraryId == Guid.Empty)
+                    var libraryAccess = UnitOfWork.PerformanceCurveRepo.GetLibraryAccess(upsertRequest.Library.Id, UserId);
+                    if (libraryAccess.LibraryExists == upsertRequest.IsNewLibrary)
                     {
-                        curves = _performanceCurvesService.GetNewLibraryDataset(upsertRequest.PagingSync);
+                        var errorMessage = libraryAccess.LibraryExists ? RequestedToCreateExistingLibraryErrorMessage : RequestedToModifyNonexistentLibraryErrorMessage;
+                        throw new InvalidOperationException(errorMessage);
                     }
-
-                    if (upsertRequest.IsNewLibrary)
-                        curves.ForEach(curve => {
-                            curve.Id = Guid.NewGuid();
-                            curve.CriterionLibrary.Id = Guid.NewGuid();
-                        });
+                    var curves = _performanceCurvePagingService.GetSyncedLibraryDataset(upsertRequest);
                     var dto = upsertRequest.Library;
                     if (dto != null)
                     {
-                        _claimHelper.CheckUserLibraryModifyAuthorization(dto.Owner, UserId);
+                        _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
                         dto.PerformanceCurves = curves;
                     }
-                    UnitOfWork.PerformanceCurveRepo.UpsertPerformanceCurveLibrary(dto);
-                    UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurves(dto.PerformanceCurves, dto.Id);
-                    UnitOfWork.Commit();
+                    UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurveLibraryAndCurves(dto, upsertRequest.IsNewLibrary, UserId);
                 });
 
                 return Ok();
             }
             catch (UnauthorizedAccessException)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::UpsertPerformanceCurveLibrary - {HubService.errorList["Unauthorized"]}");
                 throw;
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::UpsertPerformanceCurveLibrary - {e.Message}");
                 throw;
             }
@@ -193,24 +189,22 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
-                    var dtos = _performanceCurvesService.GetSyncedScenarioDataset(simulationId, pagingSync);                   
+                    var dtos = _performanceCurvePagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);                   
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                    UnitOfWork.PerformanceCurveRepo.AddLibraryIdToScenarioPerformanceCurve(dtos, pagingSync.LibraryId);
+                    UnitOfWork.PerformanceCurveRepo.AddModifiedToScenarioPerformanceCurve(dtos, pagingSync.IsModified);
                     UnitOfWork.PerformanceCurveRepo.UpsertOrDeleteScenarioPerformanceCurves(dtos, simulationId);
-                    UnitOfWork.Commit();
                 });
 
                 return Ok();
             }
             catch (UnauthorizedAccessException)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::UpsertScenarioPerformanceCurves - {HubService.errorList["Unauthorized"]}");
                 throw;
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::UpsertScenarioPerformanceCurves - {e.Message}");
                 throw;
             }
@@ -225,15 +219,15 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    UnitOfWork.BeginTransaction();
                     if (_claimHelper.RequirePermittedCheck())
                     {
                         var dto = GetAllPerformanceCurveLibraries().FirstOrDefault(_ => _.Id == libraryId);
                         if (dto == null) return;
-                        _claimHelper.CheckUserLibraryModifyAuthorization(dto.Owner, UserId);
+
+                        var access = UnitOfWork.PerformanceCurveRepo.GetLibraryAccess(libraryId, UserId);
+                        _claimHelper.CheckUserLibraryDeleteAuthorization(access, UserId);
                     }
                     UnitOfWork.PerformanceCurveRepo.DeletePerformanceCurveLibrary(libraryId);
-                    UnitOfWork.Commit();
                 });
 
                 return Ok();
@@ -245,7 +239,6 @@ namespace BridgeCareCore.Controllers
             }
             catch (Exception e)
             {
-                UnitOfWork.Rollback();
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::DeletePerformanceCurveLibrary - {e.Message}");
                 throw;
             }
@@ -286,26 +279,29 @@ namespace BridgeCareCore.Controllers
                         Newtonsoft.Json.JsonConvert.DeserializeObject<UserCriteriaDTO>(
                             ContextAccessor.HttpContext.Request.Form["currentUserCriteriaFilter"]);
                 }
-                                
-                var result= new PerformanceCurvesImportResultDTO();
+
+                var libraryName = "";
                 await Task.Factory.StartNew(() =>
                 {
+                    var existingPerformanceCurveLibrary = UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(performanceCurveLibraryId);
+                    if(existingPerformanceCurveLibrary != null)
+                        libraryName = existingPerformanceCurveLibrary.Name;
                     if (_claimHelper.RequirePermittedCheck())
                     {
-                        var existingPerformanceCurveLibrary = UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(performanceCurveLibraryId);
+                        
                         if (existingPerformanceCurveLibrary != null)
                         {
-                            _claimHelper.CheckUserLibraryModifyAuthorization(existingPerformanceCurveLibrary.Owner, UserId);
+                            var accessModel = UnitOfWork.PerformanceCurveRepo.GetLibraryAccess(performanceCurveLibraryId, UserId);
+                            _claimHelper.CheckUserLibraryRecreateAuthorization(accessModel, UserId);
                         }
                     }
-                    result = _performanceCurvesService.ImportLibraryPerformanceCurvesFile(performanceCurveLibraryId, excelPackage, currentUserCriteriaFilter);
                 });
+                ImportLibraryPerformanceCurveWorkitem workItem = new ImportLibraryPerformanceCurveWorkitem(performanceCurveLibraryId, excelPackage, currentUserCriteriaFilter, UserInfo.Name, libraryName);
+                var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
 
-                if (result.WarningMessage != null)
-                {
-                    HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWarning, result.WarningMessage);
-                }
-                return Ok(result.PerformanceCurveLibraryDTO);
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, libraryId.ToString());
+
+                return Ok();
             }
             catch (UnauthorizedAccessException)
             {
@@ -354,18 +350,19 @@ namespace BridgeCareCore.Controllers
                             ContextAccessor.HttpContext.Request.Form["currentUserCriteriaFilter"]);
                 }
 
-                var result = new ScenarioPerformanceCurvesImportResultDTO();
+                var simulationName = "";
                 await Task.Factory.StartNew(() =>
                 {
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
-                    result = _performanceCurvesService.ImportScenarioPerformanceCurvesFile(simulationId, excelPackage, currentUserCriteriaFilter);
+                    simulationName = UnitOfWork.SimulationRepo.GetSimulationName(simulationId);
                 });
 
-                if (result.WarningMessage != null)
-                {
-                    HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWarning, result.WarningMessage);
-                }
-                return Ok(result.PerformanceCurves);
+                ImportScenarioPerformanceCurveWorkitem workItem = new ImportScenarioPerformanceCurveWorkitem(simulationId, excelPackage, currentUserCriteriaFilter, UserInfo.Name, simulationName);
+                var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
+
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, simulationId.ToString());
+
+                return Ok();
             }
             catch (UnauthorizedAccessException)
             {
@@ -459,6 +456,91 @@ namespace BridgeCareCore.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("GetPerformanceCurveLibraryUsers/{libraryId}")]
+        [Authorize(Policy=Policy.ViewPerformanceCurveFromLibrary)]
+        public async Task<IActionResult> GetPerformanceCurveLibraryUsers(Guid libraryId)
+        {
+            try
+            {
+                List<LibraryUserDTO> users = new List<LibraryUserDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    var accessModel = UnitOfWork.PerformanceCurveRepo.GetLibraryAccess(libraryId, UserId);
+                    _claimHelper.CheckGetLibraryUsersValidity(accessModel, UserId);
+                    users = UnitOfWork.PerformanceCurveRepo.GetLibraryUsers(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::GetPerformanceCurveLibraryUsers - {HubService.errorList["Unauthorized"]}");
+                return Ok();
+            }
+            catch (Exception)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::GetPerformanceCurveLibraryUsers - {HubService.errorList["Exception"]}");
+                throw;
+            }
+        }
+        [HttpPost]
+        [Route("UpsertOrDeletePerformanceCurveLibraryUsers/{libraryId}")]
+        [Authorize(Policy=Policy.ModifyOrDeletePerformanceCurveFromLibrary)]
+        public async Task<IActionResult> UpsertOrDeletePerformanceCurveLibraryUsers(Guid libraryId, List<LibraryUserDTO> proposedUsers)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var libraryUsers = UnitOfWork.PerformanceCurveRepo.GetLibraryUsers(libraryId);
+                    _claimHelper.CheckAccessModifyValidity(libraryUsers, proposedUsers, UserId);
+                    UnitOfWork.PerformanceCurveRepo.UpsertOrDeleteUsers(libraryId, proposedUsers);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::UpsertOrDeletePerformanceCurveLibraryUsers - {HubService.errorList["Unauthorized"]}");
+                return Ok();
+            }
+            catch (InvalidOperationException)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::UpsertOrDeletePerformanceCurveLibraryUsers - {HubService.errorList["InvalidOperationException"]}");
+                return BadRequest();
+            }
+            catch (Exception)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::UpsertOrDeletePerformanceCurveLibraryUsers - {HubService.errorList["Exception"]}");
+                throw;
+            }
+        }
+        [HttpGet]
+        [Route("GetIsSharedLibrary/{performanceCurveLibraryId}")]
+        [Authorize(Policy = Policy.ViewPerformanceCurveFromLibrary)]
+        public async Task<IActionResult> GetIsSharedLibrary(Guid performanceCurveLibraryId)
+        {
+            bool result = false;
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var users = UnitOfWork.PerformanceCurveRepo.GetLibraryUsers(performanceCurveLibraryId);
+                    if (users.Count<=0)
+                    {
+                        result = false;
+                    } else
+                    {
+                        result = true;
+                    }
+                });
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{DeteriorationModelError}::GetIsSharedLibrary - {HubService.errorList["Exception"]}");
+                throw;
+            }
+        }
         [HttpGet]
         [Route("GetHasPermittedAccess")]
         [Authorize]
