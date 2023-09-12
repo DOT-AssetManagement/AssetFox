@@ -71,7 +71,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Par
 
         #region
 
-        private int FillData(ExcelWorksheet worksheet, ParametersModel parametersModel, DateTime lastRun, CurrentCell currentCell, DateTime lastModifiedDate, List<AssetSummaryDetail> initialAssetSummaries, ICollection<CommittedProject> committedProjects, IReadOnlyCollection<SelectableTreatment> BAMStreatments)
+        private int FillData(ExcelWorksheet worksheet, ParametersModel parametersModel, DateTime lastRun, CurrentCell currentCell, DateTime lastModifiedDate, List<AssetSummaryDetail> initialAssetSummaries, IEnumerable<CommittedProject> committedProjects, IReadOnlyCollection<SelectableTreatment> BAMStreatments)
         {
             var bpnValueCellTracker = new Dictionary<string, (int row, int col)>();
             var statusValueCellTracker = new Dictionary<string, (int row, int col)>();
@@ -278,7 +278,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Par
             return maxDataRow;
         }
 
-        private int FillTreatmentsInSimulations(ExcelWorksheet worksheet, CurrentCell currentCell, ICollection<CommittedProject> committedProjects, IReadOnlyCollection<SelectableTreatment> BAMStreatments, int rowNo)
+        private int FillTreatmentsInSimulations(ExcelWorksheet worksheet, CurrentCell currentCell, IEnumerable<CommittedProject> committedProjects, IReadOnlyCollection<SelectableTreatment> BAMStreatments, int rowNo)
         {
             var MPMSTreatments = committedProjects?.OrderBy(c => c.Name).Select(c => c.Name).Distinct();
 

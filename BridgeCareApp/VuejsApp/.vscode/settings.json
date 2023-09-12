@@ -3,5 +3,8 @@
     "gotoSymbolStack.maxStackPosition": 0,
     "gotoSymbolStack.filePositionInfo": [],
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnPaste": false
+    "editor.formatOnPaste": false,
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    }
 }

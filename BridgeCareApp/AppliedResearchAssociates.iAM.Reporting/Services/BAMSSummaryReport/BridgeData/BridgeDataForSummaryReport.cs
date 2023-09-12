@@ -31,6 +31,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         // This will be used in Parameters TAB
         private readonly ParametersModel _parametersModel = new ParametersModel();
 
+        // Color RGB Constants
+        private readonly string LTGRAY_RGB = Color.LightGray.ToArgb().ToString("X");
+        private readonly string WHITE_RGB = Color.White.ToArgb().ToString("X");
+
         public BridgeDataForSummaryReport()
         {
             _highlightWorkDoneCells = new HighlightWorkDoneCells();
@@ -507,10 +511,17 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     i++;
                     if (row % 2 == 0)
                     {
-                        if (section.TreatmentCause != TreatmentCause.CashFlowProject ||
-                            section.TreatmentCause == TreatmentCause.CommittedProject)
+                        if (section.TreatmentCause != TreatmentCause.CashFlowProject || section.TreatmentCause == TreatmentCause.CommittedProject)
                         {
-                            ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.LightGray);
+                            var currentCellForColor = worksheet.Cells[row, column].FirstOrDefault();
+                            if (currentCellForColor != null)
+                            {
+                                var currentCellColor = currentCellForColor.Style.Fill.BackgroundColor.Rgb;
+                                if (currentCellColor == LTGRAY_RGB || currentCellColor == WHITE_RGB || currentCellColor == null)
+                                {
+                                    ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.LightGray);
+                                }
+                            }
                         }
                         ExcelHelper.ApplyColor(worksheet.Cells[row, poorOnOffColumnStart], Color.LightGray);
                     }
@@ -683,12 +694,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(0, 255, 0)); //green OR #00ff00
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(255, 0, 0)); //red OR #ff0000
 
                         // Color the previous year project also
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment - 18], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - 18], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment - 18], Color.FromArgb(0, 255, 0)); //green OR #00ff00
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - 18], Color.FromArgb(255, 0, 0)); //red OR #ff0000
                     }
 
                     column = column + 1;
@@ -769,7 +780,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 "Paint Ext\r\n(6B37)",
                 "Year Built\r\n(5A15)",
                 "Age",
-                "ADTT\r\n(5C10)",
+                "ADT\r\n(5C10)",
                 "Risk Score",
                 "Detour Length\r\n(5C15)",
                 "Posting Status\r\n(VP02)",

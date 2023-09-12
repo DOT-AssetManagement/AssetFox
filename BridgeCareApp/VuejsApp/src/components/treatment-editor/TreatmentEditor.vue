@@ -372,6 +372,7 @@ import {
     any,
     append,
     clone,
+    find,
     findIndex,
     isNil,
     prepend,
@@ -486,7 +487,7 @@ export default class TreatmentEditor extends Vue {
 
     @Mutation('addedOrUpdatedTreatmentLibraryMutator') addedOrUpdatedTreatmentLibraryMutator: any;
     @Mutation('selectedTreatmentLibraryMutator') selectedTreatmentLibraryMutator: any;
-
+    @Mutation('simpleScenarioSelectableTreatmentsMutator') simpleScenarioSelectableTreatmentsMutator : any
     selectedTreatmentLibrary: TreatmentLibrary = clone(emptyTreatmentLibrary);
     treatments: Treatment[] = [];
     selectedScenarioId: string = getBlankGuid();
@@ -520,6 +521,7 @@ export default class TreatmentEditor extends Vue {
 
     addedRows: Treatment[] = [];
     updatedRowsMap:Map<string, [Treatment, Treatment]> = new Map<string, [Treatment, Treatment]>();//0: original value | 1: updated value
+    deletionIds: string[] = [];
     rowCache: Treatment[] = [];
     gridSearchTerm = '';
     currentSearch = '';
@@ -857,11 +859,26 @@ export default class TreatmentEditor extends Vue {
 
     onDeleteTreatment(treatmentId: string | number) {
         if(this.hasScenario)
-        {         
+        {    
             const treatments : SimpleTreatment[] = reject(propEq('id', treatmentId.toString()), this.simpleTreatments);
-            this.deleteScenarioSelectableTreatmentAction({ scenarioSelectableTreatment: this.selectedTreatment, simulationId: this.selectedScenarioId, treatments}).then(() => {
-                this.addedRows = this.addedRows.filter(_ => _.id !== treatmentId.toString());
-            });
+            const id = treatmentId.toString();
+            if(this.hasSelectedLibrary){
+                this.simpleScenarioSelectableTreatmentsMutator(treatments)
+                if(isNil(find(propEq('id', id), this.addedRows))){
+                    this.deletionIds.push(id);
+                    if(!isNil(this.updatedRowsMap.get(id)))
+                        this.updatedRowsMap.delete(id)
+                }           
+                else{          
+                    this.addedRows = this.addedRows.filter((row) => row.id !== id)
+                }  
+            }
+            else{
+                
+                this.deleteScenarioSelectableTreatmentAction({ scenarioSelectableTreatment: this.selectedTreatment, simulationId: this.selectedScenarioId, treatments}).then(() => {
+                    this.addedRows = this.addedRows.filter(_ => _.id !== treatmentId.toString());
+                });
+            }               
         }
         else
         {
@@ -941,7 +958,7 @@ export default class TreatmentEditor extends Vue {
 
         TreatmentService.upsertScenarioSelectedTreatments({
             libraryId: this.selectedTreatmentLibrary.id === this.uuidNIL ? null : this.selectedTreatmentLibrary.id,
-            rowsForDeletion: [],
+            rowsForDeletion: this.deletionIds,
             updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
             addedRows: this.addedRows,
             isModified: this.scenarioLibraryIsModified,
@@ -1300,6 +1317,7 @@ export default class TreatmentEditor extends Vue {
     clearChanges(){
         this.updatedRowsMap.clear();
         this.addedRows = [];
+        this.deletionIds = [];
         this.treatmentCache = [];
     }
 
@@ -1307,6 +1325,7 @@ export default class TreatmentEditor extends Vue {
         const hasUnsavedChanges: boolean = 
             this.addedRows.length > 0 ||
             this.updatedRowsMap.size > 0 || 
+            this.deletionIds.length > 0 ||
             (this.hasScenario && this.hasSelectedLibrary) ||
             (this.hasSelectedLibrary && hasUnsavedChangesCore('', this.stateSelectedTreatmentLibrary, this.selectedTreatmentLibrary))
         this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });

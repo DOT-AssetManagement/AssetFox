@@ -152,3 +152,4 @@ public sealed class InvestmentPlan : WeakEntity, IValidator
 
     public string ShortDescription => nameof(InvestmentPlan);
 }
+}

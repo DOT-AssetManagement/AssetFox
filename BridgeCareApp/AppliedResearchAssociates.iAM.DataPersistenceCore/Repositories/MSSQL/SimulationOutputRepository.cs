@@ -229,9 +229,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         {
             var directory = Directory.GetCurrentDirectory();
             var path = Path.Combine(directory, "SimulationOutput.json");
-            var serializedOutput = JsonConvert.SerializeObject(simulationOutput);
-            File.Delete(path);
-            File.WriteAllText(path, serializedOutput);
+            using var writer = File.CreateText(path);
+            var serializer = JsonSerializer.Create(new() { Formatting = Formatting.Indented });
+            serializer.Converters.Add(new StringEnumConverter());
+            serializer.Serialize(writer, simulationOutput);
         }
 
         /// <summary>
