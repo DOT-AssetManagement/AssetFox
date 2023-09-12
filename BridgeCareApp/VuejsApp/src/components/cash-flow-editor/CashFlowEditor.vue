@@ -7,6 +7,7 @@
                     <v-select
                         :items="librarySelectItems"
                         append-icon=$vuetify.icons.ghd-down
+                        id="CashFlowEditor-SelectLibrary-vselect"
                         outline
                         v-model="librarySelectItemValue"
                         class="ghd-select ghd-text-field ghd-text-field-border">
@@ -14,14 +15,6 @@
                     <div class="ghd-md-gray ghd-control-subheader budget-parent" v-if='hasScenario'><b>{{parentLibraryName}}<span v-if="scenarioLibraryIsModified">&nbsp;(Modified)</span></b></div>  
                 </v-flex>
                 <v-flex xs4 class="ghd-constant-header">    
-                    <div v-if="hasScenario" style="padding-top: 18px !important">
-                        <v-btn  
-                            class='ghd-blue-bg white--text ghd-button-text ghd-outline-button-padding ghd-button'
-                            @click="importLibrary()"
-                            :disabled="importLibraryDisabled">
-                            Import
-                        </v-btn>
-                    </div>               
                     <v-layout row v-show='hasSelectedLibrary || hasScenario' style="padding-top: 28px !important">
                         <div v-if='hasSelectedLibrary && !hasScenario' class="header-text-content" style="padding-top: 7px !important">
                             Owner: {{ getOwnerUserName() || '[ No Owner ]' }}
@@ -49,6 +42,7 @@
                             Add Cash Flow Rule
                         </v-btn>
                         <v-btn @click="onShowCreateCashFlowRuleLibraryDialog(false)"
+                            id="CashFlowEditor-addCashFlowLibrary-btn"
                             outline class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
                             v-show="!hasScenario">
                             Create New Library
@@ -191,6 +185,7 @@
                 v-show="hasSelectedLibrary || hasScenario">
                 <v-btn outline
                     @click="onDeleteCashFlowRuleLibrary"
+                    id="CashFlowEditor-deleteLibrary-btn"
                     flat class='ghd-blue ghd-button-text ghd-button'
                     v-show="!hasScenario"
                     :disabled="!hasLibraryEditPermission">
@@ -548,9 +543,7 @@ export default class CashFlowEditor extends Vue {
 
             this.scenarioHasCreatedNew = false;
         }
-    }
 
-    importLibrary() {
         this.setParentLibraryName(this.librarySelectItemValue ? this.librarySelectItemValue : "");
         this.selectCashFlowRuleLibraryAction(this.librarySelectItemValue);
         this.importLibraryDisabled = true;
@@ -656,7 +649,7 @@ export default class CashFlowEditor extends Vue {
         // Get parent name from library id
         this.librarySelectItems.forEach(library => {
             if (library.value === this.parentLibraryId) {
-                this.parentLibraryName = library.text;
+                this.parentLibraryName = "Library Used: " + library.text;
             }
         });
     }
