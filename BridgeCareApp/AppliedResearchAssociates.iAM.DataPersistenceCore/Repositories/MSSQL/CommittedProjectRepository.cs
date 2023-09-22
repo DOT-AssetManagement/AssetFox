@@ -14,6 +14,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
+using OfficeOpenXml.FormulaParsing.Utilities;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -47,7 +48,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Include(_ => _.ScenarioBudget)
                 .Include(_ => _.CommittedProjectConsequences)
                 .ThenInclude(_ => _.Attribute)
-                .Where(_ => _.SimulationId == simulation.Id).ToList();
+                .Where(_ => _.SimulationId == simulation.Id)
+                .OrderBy(_ => _.Year).ToList();
 
             var keyPropertyNames = (List<string>)_unitOfWork.AdminSettingsRepo.GetKeyFields();
 
