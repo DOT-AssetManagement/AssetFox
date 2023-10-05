@@ -29,7 +29,8 @@ namespace BridgeCareCore.Controllers
     public class TreatmentController : BridgeCareCoreBaseController
     {
         public const string TreatmentError = "Treatment Error";
-
+        public const string RequestedToModifyNonexistentLibraryErrorMessage = "The request says to modify a library, but the library does not exist.";
+        public const string RequestedToCreateExistingLibraryErrorMessage = "The request says to create a new library, but the library already exists.";
         private readonly ITreatmentService _treatmentService;
         private readonly ITreatmentPagingService _treatmentPagingService;
         private readonly IClaimHelper _claimHelper;
@@ -332,16 +333,21 @@ namespace BridgeCareCore.Controllers
             try
             {
                 await Task.Factory.StartNew(() =>
-                {
-                    var treatments = _treatmentPagingService.GetSyncedLibraryDataset(upsertRequest);
+                {                    
+                    var libraryAccess = UnitOfWork.SelectableTreatmentRepo.GetLibraryAccess(upsertRequest.Library.Id, UserId);
+                    if (libraryAccess.LibraryExists == upsertRequest.IsNewLibrary)
+                    {
+                        var errorMessage = libraryAccess.LibraryExists ? RequestedToCreateExistingLibraryErrorMessage : RequestedToModifyNonexistentLibraryErrorMessage;
+                        throw new InvalidOperationException(errorMessage);
+                    }
+                    var items = _treatmentPagingService.GetSyncedLibraryDataset(upsertRequest);
                     var dto = upsertRequest.Library;
-                    dto.Treatments = treatments;
                     if (dto != null)
                     {
-                        var accessModel = UnitOfWork.TreatmentLibraryUserRepo.GetLibraryAccess(dto.Id, UserId);
-                        _claimHelper.CheckGetLibraryUsersValidity(accessModel, UserId);
+                        _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
+                        dto.Treatments = items;
                     }
-                    UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers(dto, upsertRequest.IsNewLibrary, UserId);
+                    UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers(dto,upsertRequest.IsNewLibrary, UserId);
                 });
 
                 return Ok();
