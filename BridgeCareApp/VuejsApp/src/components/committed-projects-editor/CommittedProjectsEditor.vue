@@ -383,7 +383,6 @@ import { stat } from 'fs';
 import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
-import TreatmentService from '@/services/treatment.service';
 @Component({
     components: {
         CommittedProjectsFileUploaderDialog: ImportExportCommittedProjectsDialog,
@@ -575,8 +574,7 @@ export default class CommittedProjectsEditor extends Vue  {
         this.$statusHub.$on(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             this.importCompleted,
-        );
-        this.fetchTreatmentLibrary(this.scenarioId);
+        );        
     }   
     beforeDestroy() {
         this.setHasUnsavedChangesAction({ value: false });
@@ -1341,35 +1339,6 @@ export default class CommittedProjectsEditor extends Vue  {
             })
         }        
     }
-
-    async fetchTreatmentLibrary(simulationId: string) {
-        try {
-            const response = await TreatmentService.getTreatmentLibraryBySimulationId(simulationId);
-
-            if (hasValue(response, 'data')) {
-                const treatmentLibrary = response.data as TreatmentLibrary;
-                this.$store.commit('scenarioTreatmentLibraryMutator', treatmentLibrary);
-                this.handleLibrarySelectChange(treatmentLibrary.id);
-            }
-        } catch (error) {
-            this.addErrorNotificationAction({
-                message: 'Error fetching treatment library.',
-                longMessage: 'There was an issue fetching the treatment library. Please try again.'
-            });
-        }
-    }
-
-    handleLibrarySelectChange(libraryId: string) {
-        this.selectTreatmentLibraryAction(libraryId);
-        this.hasSelectedLibrary = true;        
-        const library = this.stateTreatmentLibraries.find((o) => o.id === libraryId);
-
-        if (!isNil(library)) {
-        this.selectedLibraryTreatments = library.treatments;
-        this.onSelectedLibraryTreatmentsChanged();
-        } 
-    }
-
 
     async initializePages(){
         const request: PagingRequest<SectionCommittedProject>= {
