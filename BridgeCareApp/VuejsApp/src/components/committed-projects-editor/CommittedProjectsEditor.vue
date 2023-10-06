@@ -406,7 +406,7 @@ export default class CommittedProjectsEditor extends Vue  {
     networkId: string = getBlankGuid();
     rules: InputValidationRules = rules;
     network: Network = clone(emptyNetwork);
-    selectedLibraryTreatments: Treatment[];
+    
     addedRows: SectionCommittedProject[] = [];
     updatedRowsMap:Map<string, [SectionCommittedProject, SectionCommittedProject]> = new Map<string, [SectionCommittedProject, SectionCommittedProject]>();//0: original value | 1: updated value
     deletionIds: string[] = [];
@@ -423,6 +423,7 @@ export default class CommittedProjectsEditor extends Vue  {
 
     @State(state => state.committedProjectsModule.sectionCommittedProjects) stateSectionCommittedProjects: SectionCommittedProject[];
     @State(state => state.treatmentModule.treatmentLibraries)stateTreatmentLibraries: TreatmentLibrary[];    
+    selectedLibraryTreatments: Treatment[];
     @State(state => state.attributeModule.attributes) stateAttributes: Attribute[];
     @State(state => state.investmentModule.investmentPlan) stateInvestmentPlan: InvestmentPlan;
     @State(state => state.investmentModule.scenarioSimpleBudgetDetails) stateScenarioSimpleBudgetDetails: SimpleBudgetDetail[];

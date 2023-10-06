@@ -113,7 +113,7 @@ const mutations = {
 
 const actions = {
     selectTreatmentLibrary({ commit }: any, payload: any) {
-        commit('selectedTreatmentLibraryMutator', payload);
+        commit('selectedTreatmentLibraryMutator', payload.libraryId);
     },
     async getTreatmentLibraries({ commit }: any) {
         await TreatmentService.getTreatmentLibraries().then(
