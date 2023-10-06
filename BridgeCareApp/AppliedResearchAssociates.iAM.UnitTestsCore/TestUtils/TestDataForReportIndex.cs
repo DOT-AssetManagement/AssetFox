@@ -63,6 +63,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         {
             return new TestReportFile(uow, Name, results);
         }
+
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService, string suffix = "") => throw new NotImplementedException();
     }
 
     // Test Reports
@@ -106,6 +108,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public string Status => "Report finished running";
 
+        public string Suffix => throw new NotImplementedException();
+
         public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }
 
@@ -117,6 +121,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         {
             return new TestHTMLFile(uow, Name, results);
         }
+
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService, string suffix = "") => throw new NotImplementedException();
     }
 
     public class TestHTMLFile : IReport
@@ -157,6 +163,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public string Status => "Report finished running";
 
+        public string Suffix => throw new NotImplementedException();
+
         public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }
 
@@ -169,6 +177,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
             var report = new TestBadReport(uow);
             return report;
         }
+
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService, string suffix = "") => throw new NotImplementedException();
     }
 
     public class TestBadReport : IReport
@@ -197,6 +207,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         public bool IsComplete => true;
 
         public string Status => "Report finished running";
+
+        public string Suffix => throw new NotImplementedException();
 
         public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }

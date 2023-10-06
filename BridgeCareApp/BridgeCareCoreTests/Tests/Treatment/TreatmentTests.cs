@@ -11,6 +11,7 @@ using BridgeCareCore.Models;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.Treatment;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Graph.Models;
 using Microsoft.SqlServer.Dac.Model;
 using Moq;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
@@ -97,8 +98,7 @@ namespace BridgeCareCoreTests.Tests
         public async Task ShouldReturnOkResultOnLibraryPost()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var _ = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var treatmentRepo = SelectableTreatmentRepositoryMocks.New(unitOfWork);
+            var _ = UserRepositoryMocks.EveryoneExists(unitOfWork);            
             var treatementLibraryUserRepo = TreatmentLibraryUserMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var treatmentId = Guid.NewGuid();
@@ -110,12 +110,15 @@ namespace BridgeCareCoreTests.Tests
                 Name = "",
                 Treatments = new List<TreatmentDTO>()
             };
-
+            var user = UserDtos.Admin();
+            var libraryUser = LibraryUserDtos.Modify(user.Id);
+            var libraryExists = LibraryAccessModels.LibraryExistsWithUsers(user.Id, libraryUser);
             var libraryRequest = new LibraryUpsertPagingRequestModel<TreatmentLibraryDTO, TreatmentDTO>()
             {
-                IsNewLibrary = true,
+                IsNewLibrary = false,
                 Library = dto,
             };
+            treatementLibraryUserRepo.SetupGetLibraryAccess(libraryRequest.Library.Id, libraryExists);
             pagingService.Setup(ts => ts.GetSyncedLibraryDataset(It.IsAny<LibraryUpsertPagingRequestModel<TreatmentLibraryDTO, TreatmentDTO>>())).Returns(new List<TreatmentDTO>()); // correct? Merge build error here.
             var controller = TestTreatmentControllerSetup.Create(unitOfWork, treatmentService, pagingService);
             // Act
@@ -234,12 +237,10 @@ namespace BridgeCareCoreTests.Tests
         public async Task ShouldModifyLibraryTreatmentData()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var _ = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var treatmentRepo = SelectableTreatmentRepositoryMocks.New(unitOfWork);
+            var _ = UserRepositoryMocks.EveryoneExists(unitOfWork);            
             var treatmentLibraryRepo = TreatmentLibraryUserMocks.New(unitOfWork);
             var treatmentService = TreatmentServiceMocks.EmptyMock;
-            var pagingService = TreatmentPagingServiceMocks.EmptyMock;
-            var controller = TestTreatmentControllerSetup.Create(unitOfWork, treatmentService, pagingService);
+            var pagingService = TreatmentPagingServiceMocks.EmptyMock;           
             var libraryId = Guid.NewGuid();
             var treatmentId = Guid.NewGuid();
             var treatmentBefore = new TreatmentDTO
@@ -280,13 +281,14 @@ namespace BridgeCareCoreTests.Tests
             var user = UserDtos.Admin();
             var libraryUser = LibraryUserDtos.Modify(user.Id);
             var libraryExists = LibraryAccessModels.LibraryExistsWithUsers(user.Id, libraryUser);
-            treatmentLibraryRepo.SetupGetLibraryAccess(libraryId, libraryExists);
+            treatmentLibraryRepo.SetupGetLibraryAccess(libraryId, libraryExists);              
+            var controller = TestTreatmentControllerSetup.Create(unitOfWork, treatmentService, pagingService);
 
             // Act
             var result = await controller.UpsertTreatmentLibrary(libraryRequest);
 
             // Assert
-            var libraryInvocation = treatmentRepo.SingleInvocationWithName(nameof(ISelectableTreatmentRepository.UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers));
+            var libraryInvocation = treatmentLibraryRepo.SingleInvocationWithName(nameof(ITreatmentLibraryUserRepository.UpsertTreatmentLibraryUser));
             ObjectAssertions.Equivalent(libraryAfter, libraryInvocation.Arguments[0]);
             var libraryArgument = libraryInvocation.Arguments[0] as TreatmentLibraryDTO;
             Assert.Equal(treatmentsAfter, libraryArgument.Treatments);
