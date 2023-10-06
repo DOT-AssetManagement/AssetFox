@@ -263,7 +263,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .ToList();
         }
 
-        public List<TreatmentLibraryDTO> GetAllTreatmentLibrariesNoChildren()
+        public List<TreatmentLibraryDTO> GetAllTreatmentLibrariesWithTreatments()
         {
             if (!_unitOfWork.Context.SelectableTreatment.Any())
             {
@@ -276,11 +276,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Select(_ => _.ToDto())
                 .ToList();
         }
-        public List<TreatmentLibraryDTO> GetTreatmentLibrariesNoChildrenAccessibleToUser(Guid userId)
+        public List<TreatmentLibraryDTO> GetTreatmentLibrariesWithTreatmentsAccessibleToUser(Guid userId)
         {
             return _unitOfWork.Context.TreatmentLibraryUser
                 .AsNoTracking()
                 .Include(u => u.TreatmentLibrary)
+                .Include(u => u.TreatmentLibrary.Treatments)
                 .Where(u => u.UserId == userId)
                 .Select(u => u.TreatmentLibrary.ToDto())
                 .ToList();

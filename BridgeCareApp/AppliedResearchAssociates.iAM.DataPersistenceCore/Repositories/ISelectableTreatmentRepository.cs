@@ -39,9 +39,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 
         TreatmentLibraryDTO GetSingleTreatmentLibaryNoChildren(Guid libraryId);
 
-        List<TreatmentLibraryDTO> GetAllTreatmentLibrariesNoChildren();
+        List<TreatmentLibraryDTO> GetAllTreatmentLibrariesWithTreatments();
 
-        List<TreatmentLibraryDTO> GetTreatmentLibrariesNoChildrenAccessibleToUser(Guid userId);
+        List<TreatmentLibraryDTO> GetTreatmentLibrariesWithTreatmentsAccessibleToUser(Guid userId);
 
         List<SimpleTreatmentDTO> GetSimpleTreatmentsBySimulationId(Guid simulationId);
         List<SimpleTreatmentDTO> GetSimpleTreatmentsByLibraryId(Guid simulationId);

@@ -220,7 +220,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.SelectableTreatment
         {
             Setup();
             // Act
-            var result = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibrariesNoChildren();
+            var result = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibrariesWithTreatments();
 
             Assert.NotEmpty(result);
         }
@@ -326,7 +326,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.SelectableTreatment
             CreateLibraryTestData();
 
             // Act
-            var dtos = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibrariesNoChildren();
+            var dtos = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibrariesWithTreatments();
 
             Assert.Contains(dtos, t => t.Id == _testTreatmentLibrary.Id);
         }
@@ -361,7 +361,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.SelectableTreatment
             Setup();
             CreateLibraryTestData();
 
-            var dto = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibrariesNoChildren();
+            var dto = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibrariesWithTreatments();
             var dtoLibrary = dto.Where(t => t.Name == "Test Name").FirstOrDefault();
             var treatments = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSelectableTreatments(dtoLibrary.Id);
             dtoLibrary.Description = "Updated Description";

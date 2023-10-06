@@ -406,7 +406,7 @@ export default class CommittedProjectsEditor extends Vue  {
     networkId: string = getBlankGuid();
     rules: InputValidationRules = rules;
     network: Network = clone(emptyNetwork);
-
+    
     addedRows: SectionCommittedProject[] = [];
     updatedRowsMap:Map<string, [SectionCommittedProject, SectionCommittedProject]> = new Map<string, [SectionCommittedProject, SectionCommittedProject]>();//0: original value | 1: updated value
     deletionIds: string[] = [];
@@ -422,7 +422,7 @@ export default class CommittedProjectsEditor extends Vue  {
     projectPagination: Pagination = clone(emptyPagination);
 
     @State(state => state.committedProjectsModule.sectionCommittedProjects) stateSectionCommittedProjects: SectionCommittedProject[];
-    @State(state => state.treatmentModule.treatmentLibraries)stateTreatmentLibraries: TreatmentLibrary[];
+    @State(state => state.treatmentModule.treatmentLibraries)stateTreatmentLibraries: TreatmentLibrary[];    
     selectedLibraryTreatments: Treatment[];
     @State(state => state.attributeModule.attributes) stateAttributes: Attribute[];
     @State(state => state.investmentModule.investmentPlan) stateInvestmentPlan: InvestmentPlan;
@@ -575,7 +575,7 @@ export default class CommittedProjectsEditor extends Vue  {
         this.$statusHub.$on(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             this.importCompleted,
-        );
+        );        
     }   
     beforeDestroy() {
         this.setHasUnsavedChangesAction({ value: false });
