@@ -61,12 +61,12 @@ namespace BridgeCareCore.Controllers
                 await Task.Factory.StartNew(() =>
                 {
                     if (_claimHelper.RequirePermittedCheck())
-                    {
-                        result = UnitOfWork.SelectableTreatmentRepo.GetTreatmentLibrariesNoChildrenAccessibleToUser(UserId);
+                    {                        
+                        result = UnitOfWork.SelectableTreatmentRepo.GetTreatmentLibrariesWithTreatmentsAccessibleToUser(UserId);
                     }
                     else
-                    {
-                        result = UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibrariesNoChildren();
+                    {                        
+                        result = UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibrariesWithTreatments();
                     }
                 });
 

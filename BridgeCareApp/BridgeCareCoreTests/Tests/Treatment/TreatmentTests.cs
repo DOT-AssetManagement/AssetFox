@@ -197,7 +197,7 @@ namespace BridgeCareCoreTests.Tests
                 Id = libraryId,
             };
             var dtos = new List<TreatmentLibraryDTO> { dto };
-            treatmentRepo.Setup(tr => tr.GetAllTreatmentLibrariesNoChildren()).Returns(dtos);
+            treatmentRepo.Setup(tr => tr.GetAllTreatmentLibrariesWithTreatments()).Returns(dtos);
 
             // Act
             var result = await controller.GetTreatmentLibraries();

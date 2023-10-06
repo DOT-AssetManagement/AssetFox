@@ -383,6 +383,7 @@ import { stat } from 'fs';
 import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
+import TreatmentService from '@/services/treatment.service';
 @Component({
     components: {
         CommittedProjectsFileUploaderDialog: ImportExportCommittedProjectsDialog,
@@ -406,7 +407,7 @@ export default class CommittedProjectsEditor extends Vue  {
     networkId: string = getBlankGuid();
     rules: InputValidationRules = rules;
     network: Network = clone(emptyNetwork);
-
+    selectedLibraryTreatments: Treatment[];
     addedRows: SectionCommittedProject[] = [];
     updatedRowsMap:Map<string, [SectionCommittedProject, SectionCommittedProject]> = new Map<string, [SectionCommittedProject, SectionCommittedProject]>();//0: original value | 1: updated value
     deletionIds: string[] = [];
@@ -422,8 +423,7 @@ export default class CommittedProjectsEditor extends Vue  {
     projectPagination: Pagination = clone(emptyPagination);
 
     @State(state => state.committedProjectsModule.sectionCommittedProjects) stateSectionCommittedProjects: SectionCommittedProject[];
-    @State(state => state.treatmentModule.treatmentLibraries)stateTreatmentLibraries: TreatmentLibrary[];
-    selectedLibraryTreatments: Treatment[];
+    @State(state => state.treatmentModule.treatmentLibraries)stateTreatmentLibraries: TreatmentLibrary[];    
     @State(state => state.attributeModule.attributes) stateAttributes: Attribute[];
     @State(state => state.investmentModule.investmentPlan) stateInvestmentPlan: InvestmentPlan;
     @State(state => state.investmentModule.scenarioSimpleBudgetDetails) stateScenarioSimpleBudgetDetails: SimpleBudgetDetail[];
@@ -576,6 +576,7 @@ export default class CommittedProjectsEditor extends Vue  {
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             this.importCompleted,
         );
+        this.fetchTreatmentLibrary(this.scenarioId);
     }   
     beforeDestroy() {
         this.setHasUnsavedChangesAction({ value: false });
@@ -1340,6 +1341,35 @@ export default class CommittedProjectsEditor extends Vue  {
             })
         }        
     }
+
+    async fetchTreatmentLibrary(simulationId: string) {
+        try {
+            const response = await TreatmentService.getTreatmentLibraryBySimulationId(simulationId);
+
+            if (hasValue(response, 'data')) {
+                const treatmentLibrary = response.data as TreatmentLibrary;
+                this.$store.commit('scenarioTreatmentLibraryMutator', treatmentLibrary);
+                this.handleLibrarySelectChange(treatmentLibrary.id);
+            }
+        } catch (error) {
+            this.addErrorNotificationAction({
+                message: 'Error fetching treatment library.',
+                longMessage: 'There was an issue fetching the treatment library. Please try again.'
+            });
+        }
+    }
+
+    handleLibrarySelectChange(libraryId: string) {
+        this.selectTreatmentLibraryAction(libraryId);
+        this.hasSelectedLibrary = true;        
+        const library = this.stateTreatmentLibraries.find((o) => o.id === libraryId);
+
+        if (!isNil(library)) {
+        this.selectedLibraryTreatments = library.treatments;
+        this.onSelectedLibraryTreatmentsChanged();
+        } 
+    }
+
 
     async initializePages(){
         const request: PagingRequest<SectionCommittedProject>= {
