@@ -630,6 +630,7 @@ import GhdQueueSvg from '@/shared/icons/GhdQueueSvg.vue';
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
 import { PagingRequest } from '@/shared/models/iAM/paging';
 import ScenarioService from '@/services/scenario.service';
+import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 
 @Component({
     components: {
@@ -1175,6 +1176,11 @@ export default class Scenarios extends Vue {
             this.getReportStatus,
         );
 
+        this.$statusHub.$on(
+            Hub.BroadcastEventType.BroadcastSimulationDeletionCompletionEvent,
+            this.importCompleted,
+        );
+
         this.availableActions = {
             runAnalysis: 'runAnalysis',
             reports: 'reports',
@@ -1292,6 +1298,11 @@ export default class Scenarios extends Vue {
         this.$statusHub.$off(
             Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent,
             this.getReportStatus,
+        );
+
+        this.$statusHub.$off(
+            Hub.BroadcastEventType.BroadcastSimulationDeletionCompletionEvent,
+            this.importCompleted,
         );
     }
 
@@ -1674,6 +1685,13 @@ export default class Scenarios extends Vue {
                     workQueueStatusUpdate: updatedQueueItem
                 })
             }                                
+    }
+
+    importCompleted(data: any){
+        var workType = data as WorkType
+        if(workType == WorkType.DeleteSimulation){
+            this.onScenariosPagination()
+        }        
     }
 
     updateFastWorkQueue(data: any) {
