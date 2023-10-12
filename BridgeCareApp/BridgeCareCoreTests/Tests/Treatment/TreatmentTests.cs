@@ -98,8 +98,8 @@ namespace BridgeCareCoreTests.Tests
         public async Task ShouldReturnOkResultOnLibraryPost()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var _ = UserRepositoryMocks.EveryoneExists(unitOfWork);            
-            var treatementLibraryUserRepo = TreatmentLibraryUserMocks.New(unitOfWork);
+            var _ = UserRepositoryMocks.EveryoneExists(unitOfWork);
+            var treatmentRepo = SelectableTreatmentRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var treatmentId = Guid.NewGuid();
             var treatmentService = TreatmentServiceMocks.EmptyMock;
@@ -118,7 +118,7 @@ namespace BridgeCareCoreTests.Tests
                 IsNewLibrary = false,
                 Library = dto,
             };
-            treatementLibraryUserRepo.SetupGetLibraryAccess(libraryRequest.Library.Id, libraryExists);
+            treatmentRepo.Setup(r => r.GetLibraryAccess(libraryRequest.Library.Id, It.IsAny<Guid>())).Returns(libraryExists);
             pagingService.Setup(ts => ts.GetSyncedLibraryDataset(It.IsAny<LibraryUpsertPagingRequestModel<TreatmentLibraryDTO, TreatmentDTO>>())).Returns(new List<TreatmentDTO>()); // correct? Merge build error here.
             var controller = TestTreatmentControllerSetup.Create(unitOfWork, treatmentService, pagingService);
             // Act
@@ -236,9 +236,9 @@ namespace BridgeCareCoreTests.Tests
         [Fact]
         public async Task ShouldModifyLibraryTreatmentData()
         {
-            var unitOfWork = UnitOfWorkMocks.New();
-            var _ = UserRepositoryMocks.EveryoneExists(unitOfWork);            
-            var treatmentLibraryRepo = TreatmentLibraryUserMocks.New(unitOfWork);
+            var unitOfWork = UnitOfWorkMocks.New();//
+            var _ = UserRepositoryMocks.EveryoneExists(unitOfWork);
+            var treatmentRepo = SelectableTreatmentRepositoryMocks.New(unitOfWork);
             var treatmentService = TreatmentServiceMocks.EmptyMock;
             var pagingService = TreatmentPagingServiceMocks.EmptyMock;           
             var libraryId = Guid.NewGuid();
@@ -281,14 +281,14 @@ namespace BridgeCareCoreTests.Tests
             var user = UserDtos.Admin();
             var libraryUser = LibraryUserDtos.Modify(user.Id);
             var libraryExists = LibraryAccessModels.LibraryExistsWithUsers(user.Id, libraryUser);
-            treatmentLibraryRepo.SetupGetLibraryAccess(libraryId, libraryExists);              
+            treatmentRepo.Setup(r => r.GetLibraryAccess(libraryId, It.IsAny<Guid>())).Returns(libraryExists);
             var controller = TestTreatmentControllerSetup.Create(unitOfWork, treatmentService, pagingService);
 
             // Act
             var result = await controller.UpsertTreatmentLibrary(libraryRequest);
 
             // Assert
-            var libraryInvocation = treatmentLibraryRepo.SingleInvocationWithName(nameof(ITreatmentLibraryUserRepository.UpsertTreatmentLibraryUser));
+            var libraryInvocation = treatmentRepo.SingleInvocationWithName(nameof(ISelectableTreatmentRepository.UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers));
             ObjectAssertions.Equivalent(libraryAfter, libraryInvocation.Arguments[0]);
             var libraryArgument = libraryInvocation.Arguments[0] as TreatmentLibraryDTO;
             Assert.Equal(treatmentsAfter, libraryArgument.Treatments);
