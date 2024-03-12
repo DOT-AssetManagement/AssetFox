@@ -218,7 +218,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
                 foreach (var otherProject in existingCommittedProjectsForThisAssetYear.Where(cp => cp != mainProject))
                 {
-                    simulation.Remove(otherProject);
+                    _ = simulation.CommittedProjects.Remove(otherProject);
                 }
             }
             catch (InvalidOperationException e)
@@ -259,7 +259,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                         .Where(_ => _.Year == year && _.Asset.Id == committedProject.Asset.Id);
                     if (!existingCommittedProject.Any())
                     {
-                        var projectToAdd = simulation.AddCommittedProject(asset, year);
+                        var projectToAdd = simulation.CommittedProjects.GetAdd(new CommittedProject(asset, year));
                         projectToAdd.Id = Guid.NewGuid();
                         projectToAdd.Name = noTreatmentEntity.Name;
                         projectToAdd.Cost = noTreatmentDefaultCost;
