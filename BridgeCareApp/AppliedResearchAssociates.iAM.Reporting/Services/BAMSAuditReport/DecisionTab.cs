@@ -4,9 +4,11 @@ using System.Drawing;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Models.BAMSAuditReport;
+using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
 using OfficeOpenXml;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
@@ -17,10 +19,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
         private const int headerRow1 = 1;
         private const int headerRow2 = 2;
         private List<int> columnNumbersBudgetsUsed;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public DecisionTab()
+        public DecisionTab(IUnitOfWork unitOfWork)
         {
-            _reportHelper = new ReportHelper();
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _reportHelper = new ReportHelper(_unitOfWork);
         }
 
         public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, Simulation simulation, HashSet<string> performanceCurvesAttributes)
@@ -51,6 +55,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
 
         private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, ExcelWorksheet decisionsWorksheet, CurrentCell currentCell)
         {
+            Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
                 var brKey = CheckGetValue(initialAssetSummary.ValuePerNumericAttribute, "BRKEY_");
@@ -62,6 +68,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
                 FillInitialDataInWorksheet(decisionsWorksheet, decisionDataModel, currentAttributes, familyId, currentCell.Row, 1);
 
                 var yearZeroRow = currentCell.Row++;
+                var firstYearSection = years.First().Assets.FirstOrDefault(_ => CheckGetValue(_.ValuePerNumericAttribute, "BRKEY_") == brKey);
                 foreach (var year in years)
                 {
                     var section = year.Assets.FirstOrDefault(_ => CheckGetValue(_.ValuePerNumericAttribute, "BRKEY_") == brKey);
@@ -70,8 +77,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
                         continue;
                     }
 
+                    // Build keyCashFlowFundingDetails                    
+                    if (section.TreatmentStatus != TreatmentStatus.Applied)
+                    {
+                        var fundingSection = year.Assets.FirstOrDefault(_ => _reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, "BRKEY_") == brKey && _.TreatmentCause == TreatmentCause.SelectedTreatment && _.AppliedTreatment.ToLower() != BAMSConstants.NoTreatment && _.AppliedTreatment == section.AppliedTreatment);
+                        if (fundingSection != null && !keyCashFlowFundingDetails.ContainsKey(brKey))
+                        {
+                            keyCashFlowFundingDetails.Add(brKey, fundingSection?.TreatmentConsiderations ?? new());
+                        }
+                    }
+
                     // Generate data model                    
-                    var decisionsDataModel = GenerateDecisionDataModel(currentAttributes, budgets, treatments, brKey, year, section);
+                    var decisionsDataModel = GenerateDecisionDataModel(currentAttributes, budgets, treatments, brKey, year, section, keyCashFlowFundingDetails);
 
                     // Fill in excel
                     currentCell = FillDataInWorksheet(decisionsWorksheet, decisionsDataModel, budgets.Count, currentAttributes, familyId, currentCell);
@@ -80,21 +97,24 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             }
         }
 
-        private DecisionDataModel GenerateDecisionDataModel(HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, double brKey, SimulationYearDetail year, AssetDetail section)
+        private DecisionDataModel GenerateDecisionDataModel(HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, double brKey, SimulationYearDetail year, AssetDetail section, Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
             var decisionDataModel = GetInitialDecisionDataModel(currentAttributes, brKey, year.Year, section);
 
             // Budget levels
-            var budgetsAtDecisionTime = section.TreatmentConsiderations.FirstOrDefault(_ => _.TreatmentName == section.AppliedTreatment)?.BudgetsAtDecisionTime ?? (section.TreatmentConsiderations.FirstOrDefault()?.BudgetsAtDecisionTime ?? new List<BudgetDetail>());
+            var budgetsAtDecisionTime = section.TreatmentConsiderations.FirstOrDefault(_ => _.TreatmentName == section.AppliedTreatment)?.FundingCalculationInput?.CurrentBudgetsToSpend.Where(_ => _.Year == year.Year).ToList() ??
+              section.TreatmentConsiderations.FirstOrDefault()?.FundingCalculationInput?.CurrentBudgetsToSpend.Where(_ => _.Year == year.Year).ToList() ??
+                new();
+
             var budgetLevels = new List<decimal>();
             if (budgetsAtDecisionTime.Count > 0)
             {
                 foreach (var budget in budgets)
                 {
-                    var budgetAtDecisionTime = budgetsAtDecisionTime.FirstOrDefault(_ => _.BudgetName == budget);
+                    var budgetAtDecisionTime = budgetsAtDecisionTime.FirstOrDefault(_ => _.Name == budget);
                     if (budgetAtDecisionTime != null)
                     {
-                        budgetLevels.Add(budgetAtDecisionTime.AvailableFunding);
+                        budgetLevels.Add(budgetAtDecisionTime.Amount);
                     }
                 }
             }
@@ -106,23 +126,40 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             foreach (var treatment in treatments)
             {
                 var decisionsTreatment = new DecisionTreatment();
-                var treatmentRejection = section.TreatmentRejections.FirstOrDefault(_ => _.TreatmentName == treatment);
-                decisionsTreatment.Feasiable = isCashFlowProject ? "-" : (treatmentRejection == null ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No);
+                var treatmentRejection = section.TreatmentRejections.FirstOrDefault(_ => _.TreatmentName == treatment);                
                 var currentCIImprovement = Convert.ToDouble(decisionDataModel.CurrentAttributesValues.Last());                
                 var treatmentOption = section.TreatmentOptions.FirstOrDefault(_ => _.TreatmentName == treatment);
+                decisionsTreatment.Feasible = isCashFlowProject ? "-" : (treatmentOption != null ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No);
                 decisionsTreatment.CIImprovement = treatmentOption?.ConditionChange;
                 decisionsTreatment.Cost = treatmentOption != null ? treatmentOption.Cost : 0;
                 decisionsTreatment.BCRatio = treatmentOption != null ? treatmentOption.Benefit / treatmentOption.Cost : 0;
                 decisionsTreatment.Benefit = treatmentOption != null ? decisionsTreatment.BCRatio * decisionsTreatment.Cost : 0;
                 decisionsTreatment.Selected = isCashFlowProject ? BAMSAuditReportConstants.CashFlow : (section.AppliedTreatment == treatment ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No);
-                var treatmentConsideration = section.TreatmentConsiderations.FirstOrDefault(_ => _.TreatmentName == treatment);
-                var budgetPriorityLevel = treatmentConsideration != null && treatmentConsideration.BudgetPriorityLevel != null ? treatmentConsideration.BudgetPriorityLevel.Value.ToString() : string.Empty;
-                decisionsTreatment.AmountSpent = treatmentConsideration != null ? treatmentConsideration.BudgetUsages.Sum(_ => _.CoveredCost) : 0;
-                var budgetsUsed = treatmentConsideration?.BudgetUsages.Where(_ => _.CoveredCost > 0);
-                var budgetsUsedValue = budgetsUsed != null && budgetsUsed.Any() ? string.Join(", ", budgetsUsed.Select(_ => _.BudgetName)) : string.Empty; // currently this will be single value
-                decisionsTreatment.BudgetsUsed = budgetsUsedValue;
-                decisionsTreatment.RejectionReason = treatmentConsideration == null ? string.Empty : (budgetsUsed != null && budgetsUsed.Any() ? string.Join(", ", budgetsUsed.Select(_ => _.BudgetName + ": " + _.Status)) : string.Join(", ", treatmentConsideration.BudgetUsages.Where(_ => _.Status != BudgetUsageStatus.ConditionNotMet).Select(_ => _.BudgetName + ": " + _.Status)));
+
+                // If TreatmentStatus Applied and TreatmentCause is not CashFlowProject it means no CF then consider section obj and if Progressed that means it is CF then use obj from dict
+                var treatmentConsiderations = section.TreatmentStatus == TreatmentStatus.Applied && section.TreatmentCause != TreatmentCause.CashFlowProject ?
+                                              section.TreatmentConsiderations : keyCashFlowFundingDetails[brKey];
+                var treatmentConsideration = treatmentConsiderations.FirstOrDefault();// _ => _.TreatmentName == treatment);               
+                // AllocationMatrix includes cash flow funding of future years.
+                var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
+                var amountSpent = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix.
+                                                Where(_ => _.Year == year.Year).Sum(_ => _.AllocatedAmount)
+                                                ?? 0;
+                decisionsTreatment.AmountSpent = amountSpent;
+                                
+                var budgetsUsed = allocationMatrix.Where(_ => _.AllocatedAmount > 0 && _.Year == year.Year)
+                                .Select(_ => _.BudgetName).Distinct().ToList()
+                                ?? new();
+                decisionsTreatment.BudgetsUsed = string.Join(", ", budgetsUsed);
+
+                var budgetStatuses = allocationMatrix.Where(_ => _.AllocatedAmount > 0 && _.Year == year.Year)
+                                    .Select(_ => treatmentConsideration.GetBudgetUsageStatus(_.Year, _.BudgetName, _.TreatmentName).ToString()).Distinct().ToList()
+                                    ?? new();
+                decisionsTreatment.BudgetUsageStatuses = string.Join(", ", budgetStatuses);
+
+                var budgetPriorityLevel = treatmentConsideration?.BudgetPriorityLevel != null ? treatmentConsideration.BudgetPriorityLevel.Value.ToString() : string.Empty;
                 decisionsTreatment.BudgetPriorityLevel = budgetPriorityLevel;
+
                 decisionsTreatments.Add(decisionsTreatment);
             }
             decisionDataModel.DecisionsTreatments = decisionsTreatments;
@@ -175,7 +212,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             foreach (var decisionsTreatment in decisionsDataModel.DecisionsTreatments)
             {
                 ExcelHelper.HorizontalCenterAlign(decisionsWorksheet.Cells[row, column]);
-                decisionsWorksheet.Cells[row, column++].Value = decisionsTreatment.Feasiable;
+                decisionsWorksheet.Cells[row, column++].Value = decisionsTreatment.Feasible;
                 SetDecimalFormat(decisionsWorksheet.Cells[row, column]);
                 decisionsWorksheet.Cells[row, column++].Value = decisionsTreatment.CIImprovement;
                 ExcelHelper.HorizontalCenterAlign(decisionsWorksheet.Cells[row, column]);
@@ -192,7 +229,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
                 decisionsWorksheet.Cells[row, column++].Value = decisionsTreatment.AmountSpent;
                 decisionsWorksheet.Cells[row, column++].Value = decisionsTreatment.BudgetsUsed;
                 decisionsWorksheet.Cells[row, column - 1].Style.WrapText = true;
-                decisionsWorksheet.Cells[row, column++].Value = decisionsTreatment.RejectionReason;
+                decisionsWorksheet.Cells[row, column++].Value = decisionsTreatment.BudgetUsageStatuses;
             }
             ExcelHelper.ApplyBorder(decisionsWorksheet.Cells[row, 1, row, column - 1]);
 
@@ -337,9 +374,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
                 "B/C\r\nRatio",
                 "Benefit",
                 "Selected?",
-                "Amount\r\nAvailable",
+                "Amount\r\nSpent",
                 "Budget(s)\r\nUsed",
-                "Rejection Reason"
+                "Budget Usage Status(es)"
             };
         }
 

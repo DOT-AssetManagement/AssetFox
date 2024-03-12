@@ -20,11 +20,20 @@ public sealed class AssetDetail : AssetSummaryDetail
     {
     }
 
+    [Obsolete("Non-simulation data should not live in the simulation.")]
+    public string ProjectSource { get; set; }
+
     /// <summary>
     ///     A specific treatment that has been applied to this asset. Can be the default treatment
     ///     (e.g., "No Treatment").
     /// </summary>
     public string AppliedTreatment { get; set; }
+
+    /// <summary>
+    ///     This asset's spatial weight that adjusts the unweighted objective value of a treatment
+    ///     option to determine overall consideration order among all assets' treatment options.
+    /// </summary>
+    public double? SpatialWeightForOrderingOptions { get; set; }
 
     /// <summary>
     ///     Reason the treatment was applied.
@@ -47,7 +56,7 @@ public sealed class AssetDetail : AssetSummaryDetail
     public List<TreatmentOptionDetail> TreatmentOptions { get; } = new List<TreatmentOptionDetail>();
 
     /// <summary>
-    ///     List of rejection reasosns for treatments that could be applied to this asset.
+    ///     List of rejection reasons for treatments that could be applied to this asset.
     /// </summary>
     public List<TreatmentRejectionDetail> TreatmentRejections { get; } = new List<TreatmentRejectionDetail>();
 
@@ -63,7 +72,10 @@ public sealed class AssetDetail : AssetSummaryDetail
 
     internal AssetDetail(AssetDetail original) : base(original)
     {
+        ProjectSource = original.ProjectSource;
+
         AppliedTreatment = original.AppliedTreatment;
+        SpatialWeightForOrderingOptions = original.SpatialWeightForOrderingOptions;
         TreatmentCause = original.TreatmentCause;
         TreatmentStatus = original.TreatmentStatus;
         TreatmentFundingIgnoresSpendingLimit = original.TreatmentFundingIgnoresSpendingLimit;

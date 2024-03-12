@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using BridgeCareCore.Interfaces;
@@ -92,7 +90,7 @@ namespace BridgeCareCore.Services.Treatment
                     var equationValidationResult = ValidateEquation(equation);
                     if (!equationValidationResult.IsValid)
                     {
-                        validationMessages.Add($"{ValidationLocation(worksheet.Name, i, 1)}: { equationValidationResult.ValidationMessage}");
+                        validationMessages.Add($"{ValidationLocation(worksheet.Name, i, 1)}: {equationValidationResult.ValidationMessage}");
                     }
                     var equationDto = new EquationDTO
                     {
@@ -223,13 +221,13 @@ namespace BridgeCareCore.Services.Treatment
             var validationMessages = new List<string>();
 
             var budgetsLineIndex = FindRowWithFirstColumnContent(worksheet, TreatmentExportStringConstants.Budgets, 2);
-            var PfLineIndex = FindRowWithFirstColumnContent(worksheet, TreatmentExportStringConstants.Budgets, budgetsLineIndex);
+            var PfLineIndex = FindRowWithFirstColumnContent(worksheet, TreatmentExportStringConstants.PerformanceFactors, budgetsLineIndex);
             if (budgetsLineIndex == 0)
             {
-                throw new Exception($"Cell with content {TreatmentExportStringConstants.Budgets} not found!");
+                return new TreatmentBudgetsLoadResult { budgetIds = budgetIds, ValidationMessages = validationMessages };
             }
 
-            for (var i = budgetsLineIndex + 2; i <= PfLineIndex; i++)
+            for (var i = budgetsLineIndex + 2; i < PfLineIndex; i++)
             {
                 var budgetName = worksheet.Cells[i, 1].Text;
                 if (!string.IsNullOrEmpty(budgetName))
@@ -257,7 +255,7 @@ namespace BridgeCareCore.Services.Treatment
             var pfLineIndex = FindRowWithFirstColumnContent(worksheet, TreatmentExportStringConstants.PerformanceFactors, 2);
             if (pfLineIndex == 0)
             {
-                throw new Exception($"Cell with content {TreatmentExportStringConstants.PerformanceFactors} not found!");
+                return new TreatmentPerformanceFactorLoadResult { PerformanceFactors = performanceFactors, ValidationMessages = validationMessages };
             }
 
             var height = worksheet.Dimension.End.Row;
@@ -268,7 +266,7 @@ namespace BridgeCareCore.Services.Treatment
 
                 if (!string.IsNullOrEmpty(attribute) && !string.IsNullOrEmpty(pf))
                 {
-                    performanceFactors.Add(new TreatmentPerformanceFactorDTO() { Attribute = attribute, PerformanceFactor = ParseFloat(pf) , Id = Guid.NewGuid()});
+                    performanceFactors.Add(new TreatmentPerformanceFactorDTO() { Attribute = attribute, PerformanceFactor = ParseFloat(pf), Id = Guid.NewGuid() });
                 }
             }
 
@@ -287,7 +285,7 @@ namespace BridgeCareCore.Services.Treatment
             var assetTypeString = dictionary.GetValueOrDefault(TreatmentExportStringConstants.AssetType.ToLowerInvariant());
             var assetType = EnumDeserializer.Deserialize<AssetCategories>(assetTypeString);
             var criterion = dictionary.GetValueOrDefault(TreatmentExportStringConstants.Criterion.ToLowerInvariant());
-            var performanceFactors = LoadPerformanceFactor(worksheet);
+            
             var loadCosts = LoadCosts(worksheet);
             var loadConsequences = LoadConsequences(worksheet);
             var newTreatment = new TreatmentDTO
@@ -301,13 +299,13 @@ namespace BridgeCareCore.Services.Treatment
                 ShadowForSameTreatment = ParseInt(yearsBeforeSame),
                 Costs = loadCosts.Costs,
                 Consequences = loadConsequences.Consequences,
-                CriterionLibrary = criterion != default ? new CriterionLibraryDTO() {
+                CriterionLibrary = criterion != default ? new CriterionLibraryDTO()
+                {
                     Id = Guid.NewGuid(),
                     MergedCriteriaExpression = criterion,
                     IsSingleUse = true,
                     Name = "Is from import"
                 } : new CriterionLibraryDTO(),
-                PerformanceFactors = performanceFactors.PerformanceFactors
             };
             var validationMessages = new List<string>();
             validationMessages.AddRange(loadCosts.ValidationMessages);
@@ -323,12 +321,66 @@ namespace BridgeCareCore.Services.Treatment
         public TreatmentLoadResult LoadScenarioTreatment(ExcelWorksheet worksheet, List<BudgetDTO> scenarioBudgets)
         {
             var treatmentLoadResult = LoadTreatment(worksheet);
-             var loadBudgets = LoadBudgets(worksheet, scenarioBudgets);
+            var loadBudgets = LoadBudgets(worksheet, scenarioBudgets);
+            var performanceFactors = LoadPerformanceFactor(worksheet);
 
-            treatmentLoadResult.Treatment.BudgetIds = loadBudgets.budgetIds;                        
+            treatmentLoadResult.Treatment.BudgetIds = loadBudgets.budgetIds;
+            treatmentLoadResult.Treatment.PerformanceFactors = performanceFactors.PerformanceFactors;
             treatmentLoadResult.ValidationMessages.AddRange(loadBudgets.ValidationMessages);
 
             return treatmentLoadResult;
         }
+
+        public TreatmentSupersedeRulesLoadResult LoadTreatmentSupersedeRules(ExcelWorksheet worksheet, List<TreatmentDTO> treatments)
+        {
+            var supersedeRulesPerTreatmentId = new Dictionary<Guid, List<TreatmentSupersedeRuleDTO>>();            
+            var validationMessages = new List<string>();
+
+            var index = FindRowWithFirstColumnContent(worksheet, TreatmentExportStringConstants.SupersedeTreatmentName, 1);
+            if (index == 0)
+            {
+                throw new Exception($"Cell with content {TreatmentExportStringConstants.SupersedeTreatmentName} not found!");
+            }
+
+            var height = worksheet.Dimension.End.Row;
+            for (var i = index + 1; i <= height; i++)
+            {
+                if (!(worksheet.Cells[i, 1].Text == string.Empty && worksheet.Cells[i, 2].Text == string.Empty && worksheet.Cells[i, 3].Text == string.Empty))
+                {
+                    var treatmentName = worksheet.Cells[i, 1].Text;
+                    var supersededTreatmentName = worksheet.Cells[i, 2].Text;
+                    var criteria = worksheet.Cells[i, 3].Text;
+                    var treatment = treatments.FirstOrDefault(_ => _.Name.Equals(treatmentName));
+                    var supersededTreatment = treatments.FirstOrDefault(_ => _.Name.Equals(supersededTreatmentName));
+                    if (treatment != null && supersededTreatment != null)
+                    {
+                        var criterionLibrary = new CriterionLibraryDTO
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "FromExcelImport",
+                            MergedCriteriaExpression = criteria,
+                            IsSingleUse = true,
+                        };
+
+                        if (supersedeRulesPerTreatmentId.ContainsKey(treatment.Id))
+                        {
+                            supersedeRulesPerTreatmentId[treatment.Id].Add(new TreatmentSupersedeRuleDTO() { Id = Guid.NewGuid(), CriterionLibrary = criterionLibrary, treatment = supersededTreatment });
+                        }
+                        else
+                        {
+                            supersedeRulesPerTreatmentId.Add(treatment.Id, new List<TreatmentSupersedeRuleDTO>() { new TreatmentSupersedeRuleDTO() { Id = Guid.NewGuid(), CriterionLibrary = criterionLibrary, treatment = supersededTreatment } });
+                        }
+                    }
+                    else
+                    {
+                        var name = treatment == null ? treatmentName : string.Empty;
+                        name = supersededTreatment == null ? (string.IsNullOrEmpty(name) ? supersededTreatmentName : ", " + supersededTreatmentName) : name;
+                        validationMessages.Add("Treatment(s) " + name + " does not exist.");
+                    }
+                }
+            }
+            return new TreatmentSupersedeRulesLoadResult { supersedeRulesPerTreatmentIdDict = supersedeRulesPerTreatmentId, ValidationMessages = validationMessages };
+        }
     }
 }
+

@@ -46,12 +46,18 @@ public sealed class Simulation : WeakEntity, IValidator
     public string ShortDescription => Name;
 
     /// <summary>
+    ///     Whether to always consider and apply all feasible treatments together, as a single
+    ///     "bundle" of treatments. This option exists to support a PAMS requirement.
+    /// </summary>
+    public bool ShouldBundleFeasibleTreatments { get; set; } = DefaultSettings.ShouldBundleFeasibleTreatments;
+
+    /// <summary>
     ///     Whether to always pre-apply the passive treatment just after deterioration. This
     ///     feature exists in order to provide v1-compatible analysis behavior.
     /// </summary>
-    public bool ShouldPreapplyPassiveTreatment { get; set; } = true;
+    public bool ShouldPreapplyPassiveTreatment { get; set; } = DefaultSettings.ShouldPreapplyPassiveTreatment;
 
-    public ValidatorBag Subvalidators => new ValidatorBag { AnalysisMethod, CommittedProjects, InvestmentPlan, PerformanceCurves, Treatments };
+    public ValidatorBag Subvalidators => new() { AnalysisMethod, CommittedProjects, InvestmentPlan, PerformanceCurves, Treatments };
 
     public IReadOnlyCollection<SelectableTreatment> Treatments => _Treatments;
 
@@ -63,7 +69,7 @@ public sealed class Simulation : WeakEntity, IValidator
 
     public IReadOnlyCollection<SelectableTreatment> GetActiveTreatments()
     {
-        var result = Treatments.ToList();
+        var result = Treatments.Where(treatment => !treatment.ForCommittedProjectsOnly).ToList();
         _ = result.Remove(DesignatedPassiveTreatment);
         result.Sort(TreatmentComparer);
         return result;
@@ -73,14 +79,10 @@ public sealed class Simulation : WeakEntity, IValidator
     {
         var results = new ValidationResultBag();
 
-        var treatmentsWithEmptyFeasibility = Treatments.Where(treatment => treatment.FeasibilityCriteria.All(criterion => criterion.ExpressionIsBlank)).ToList();
-        if (treatmentsWithEmptyFeasibility.Count != 1)
+        var potentialPassiveTreatments = Treatments.Where(treatment => treatment.IsPotentialPassiveTreatment).ToList();
+        if (potentialPassiveTreatments.Count != 1)
         {
-            results.Add(ValidationStatus.Error, $"There are {treatmentsWithEmptyFeasibility.Count} treatments with empty feasibility.", this, nameof(Treatments));
-        }
-        else if (DesignatedPassiveTreatment != null && DesignatedPassiveTreatment != treatmentsWithEmptyFeasibility[0])
-        {
-            results.Add(ValidationStatus.Error, "Designated passive treatment is not the single treatment with empty feasibility.", this, nameof(DesignatedPassiveTreatment));
+            results.Add(ValidationStatus.Error, $"There are {potentialPassiveTreatments.Count} potential passive treatments.", this, nameof(Treatments));
         }
 
         if (DesignatedPassiveTreatment == null)
@@ -111,19 +113,11 @@ public sealed class Simulation : WeakEntity, IValidator
             results.Add(ValidationStatus.Error, "Multiple selectable treatments have the same name.", this, nameof(Treatments));
         }
 
-        if (CommittedProjects.Select(project => (project.Asset, project.Year)).Distinct().Count() < CommittedProjects.Count)
+        foreach (var project in CommittedProjects)
         {
-            results.Add(ValidationStatus.Error, "Multiple projects are committed to the same asset in the same year.", this, nameof(CommittedProjects));
-        }
-        else if (InvestmentPlan.GetAllValidationResults(new List<string>()).All(result => result.Status != ValidationStatus.Error))
-        {
-            try
+            if (!Treatments.Contains(project.TemplateTreatment))
             {
-                _ = GetBudgetContextsWithCostAllocationsForCommittedProjects();
-            }
-            catch (SimulationException e)
-            {
-                results.Add(ValidationStatus.Error, "At least one committed project cannot be funded: " + e.Message, this, nameof(CommittedProjects));
+                results.Add(ValidationStatus.Error, "Simulation contains a treatment that is not found within the treatment list.", project, nameof(project.TemplateTreatment));
             }
         }
 
@@ -178,4 +172,11 @@ public sealed class Simulation : WeakEntity, IValidator
     private readonly List<PerformanceCurve> _PerformanceCurves = new();
     private readonly WeakReference<SimulationOutput> _Results = new(null);
     private readonly List<SelectableTreatment> _Treatments = new();
+
+    public static class DefaultSettings
+    {
+        public static bool ShouldBundleFeasibleTreatments { get; set; } = false;
+
+        public static bool ShouldPreapplyPassiveTreatment { get; set; } = true;
+    }
 }

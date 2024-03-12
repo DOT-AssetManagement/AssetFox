@@ -24,28 +24,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public BudgetRepository(UnitOfDataPersistenceWork unitOfWork) =>
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
-        public void CreateScenarioBudgets(List<Budget> budgets, Guid simulationId)
-        {
-            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
-            {
-                throw new RowNotInTableException("No simulation was found for the given scenario.");
-            }
-
-            var budgetEntities = budgets.Select(_ => _.ToScenarioEntity(simulationId))
-                .ToList();
-
-            _unitOfWork.Context.AddAll(budgetEntities);
-
-            if (budgets.Any(_ => _.YearlyAmounts.Any()))
-            {
-                var budgetAmountsPerBudgetId = budgets
-                    .Where(_ => _.YearlyAmounts.Any())
-                    .ToDictionary(_ => _.Id, _ => _.YearlyAmounts.ToList());
-
-                _unitOfWork.BudgetAmountRepo.CreateScenarioBudgetAmounts(budgetAmountsPerBudgetId, simulationId);
-            }
-        }
-
         public List<SimpleBudgetDetailDTO> GetScenarioSimpleBudgetDetails(Guid simulationId)
         {
             if (simulationId == Guid.Empty)
@@ -158,6 +136,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return dtos;
         }
 
+        public DateTime GetLibraryModifiedDate(Guid budgetLibraryId)
+        {
+            var dtos = _unitOfWork.Context.BudgetLibrary.Where(_ => _.Id == budgetLibraryId).FirstOrDefault().LastModifiedDate;
+            return dtos;
+        }
 
         public void UpsertBudgetLibrary(BudgetLibraryDTO dto) {
             _unitOfWork.Context.Upsert(dto.ToEntity(), dto.Id, _unitOfWork.UserEntity?.Id);
@@ -285,21 +268,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var user = users.FirstOrDefault();
             return LibraryAccessModels.LibraryExistsWithUsers(userId, user);
         }
-        public void AddLibraryIdToScenarioBudget(List<BudgetDTO> budgetDTOs, Guid? libraryId)
-        {
-            if (libraryId == null) return;
-            foreach (var dto in budgetDTOs)
-            {
-                dto.LibraryId = (Guid)libraryId;
-            }
-        }
-        public void AddModifiedToScenarioBudget(List<BudgetDTO> budgetDTOs, bool IsModified)
-        {
-            foreach (var dto in budgetDTOs)
-            {
-                dto.IsModified = IsModified;
-            }
-        }
         public BudgetLibraryDTO GetBudgetLibrary(Guid libraryId)
         {
             if (!_unitOfWork.Context.BudgetLibrary.Any(_ => _.Id == libraryId))
@@ -325,7 +293,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("No simulation was found for the given scenario.");
             }
 
-            return _unitOfWork.Context.ScenarioBudget
+            var budgets = _unitOfWork.Context.ScenarioBudget
                 .AsNoTracking()
                 .AsSplitQuery()
                 .Where(_ => _.SimulationId == simulationId)
@@ -334,6 +302,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .ThenInclude(_ => _.CriterionLibrary)
                 .Select(_ => _.ToDto())
                 .ToList();
+            return budgets.OrderBy(_ => _.BudgetOrder).ToList();
         }
 
         public void UpsertOrDeleteScenarioBudgets(List<BudgetDTO> budgets, Guid simulationId)
@@ -358,6 +327,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 committedProjects.ForEach(_ => _.ScenarioBudgetId = null);
                 _unitOfWork.Context.UpdateAll(committedProjects);
             }
+
+            _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentScenarioBudgetEntity>(_ =>
+                    _.ScenarioSelectableTreatment.SimulationId == simulationId && !entityIds.Contains(_.ScenarioBudgetId));
             
             _unitOfWork.Context.DeleteAll<ScenarioBudgetEntity>(_ =>
                 _.SimulationId == simulationId && !entityIds.Contains(_.Id));

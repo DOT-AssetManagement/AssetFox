@@ -7,11 +7,15 @@ import { any, append, clone, contains, findIndex, propEq, update } from "ramda";
 
 const state = {
     sectionCommittedProjects: [] as SectionCommittedProject[],
+    committedProjectTemplate : ''
 };
 
 const mutations = {
     sectionCommittedProjectsCloneMutator(state: any, sectionCommittedProjects: SectionCommittedProject[] ) {
         state.sectionCommittedProjects = clone(sectionCommittedProjects);
+    },
+    committedProjectTemplateMutator(state: any, committedProjectTemplate: string){
+        state.committedProjectTemplate = committedProjectTemplate;
     },
     sectionCommittedProjectsMutator(state: any, sectionCommittedProjects: SectionCommittedProject[] ) {
         sectionCommittedProjects.forEach((proj: SectionCommittedProject) => {
@@ -46,6 +50,14 @@ const actions = {
                 }
         });
     },
+    async getUploadedCommittedProjectTemplates({ commit }: any) {
+        await CommittedProjectsService.getUploadedCommittedProjectTemplates()
+            .then((response: AxiosResponse) => {
+                if (hasValue(response, 'data')) {
+                    commit('getCommittedProjectsCloneMutator',response.data as string[]);
+                }
+        });
+    },
     async deleteSpecificCommittedProjects({commit, dispatch}: any, ids: string[]){
         await CommittedProjectsService.deleteSpecificCommittedProjects(ids)
             .then((response: AxiosResponse) => {
@@ -56,6 +68,30 @@ const actions = {
                     });           
                 }
             })
+    },
+    async importCommittedProjectTemplate({commit, dispatch}: any, payload: File) {
+        await CommittedProjectsService.importCommittedProjectTemplate(payload)
+        .then(async (response: AxiosResponse) => {
+            if (response.status >= 200 && response.status < 300) {
+                const base64 = await convertFileToBase64(payload);
+                commit('isSuccessfulImportMutator', true);
+                dispatch('addSuccessNotification',{
+                    message: 'Committed Project Template imported'
+                });
+            }
+        });
+    },
+    async addCommittedProjectTemplate({commit, dispatch}: any, payload: File) {
+        await CommittedProjectsService.addCommittedProjectTemplate(payload)
+        .then(async (response: AxiosResponse) => {
+            if (response.status >= 200 && response.status < 300) {
+                const base64 = await convertFileToBase64(payload);
+                commit('isSuccessfulImportMutator', true);
+                dispatch('addSuccessNotification',{
+                    message: 'Committed Project Template imported'
+                });
+            }
+        });
     },
     async deleteSimulationCommittedProjects({commit, dispatch}: any, scenarioId: string){
         await CommittedProjectsService.deleteSimulationCommittedProjects(scenarioId)
@@ -71,8 +107,7 @@ const actions = {
     async importCommittedProjects( { commit, dispatch }: any,payload: any,){
         await CommittedProjectsService.importCommittedProjects(
             payload.file,
-            payload.applyNoTreatment,
-            payload.selectedScenarioId,
+            payload.selectedScenarioId
         ).then((response: AxiosResponse) => {
             if (hasValue(response, 'data')) {
                 //todo more needs to be done here
@@ -83,6 +118,14 @@ const actions = {
         });
     },
 }
+
+function convertFileToBase64(file: File): Promise<string> {
+    return new Promise<string>(() => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+    });
+  }
+  
 export default {
     state,
     actions,

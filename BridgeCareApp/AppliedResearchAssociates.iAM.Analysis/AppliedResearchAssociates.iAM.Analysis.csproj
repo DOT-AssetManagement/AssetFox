@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Configurations>Debug;Release;MsSqlDebug;LiteDbDebug;Test</Configurations>
+    <TargetFramework>net8.0</TargetFramework>
+    <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MsSqlDebug|AnyCPU'">
@@ -17,13 +17,14 @@
 	<ItemGroup>
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
     <PackageReference Include="MathNet.Numerics" Version="4.11.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AppliedResearchAssociates.CalculateEvaluate\AppliedResearchAssociates.CalculateEvaluate.csproj" />
     <ProjectReference Include="..\AppliedResearchAssociates.Choice\AppliedResearchAssociates.Choice.csproj" />
     <ProjectReference Include="..\AppliedResearchAssociates.CycleDetection\AppliedResearchAssociates.CycleDetection.csproj" />
+    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Analysis.Logic\AppliedResearchAssociates.iAM.Analysis.Logic.csproj" />
     <ProjectReference Include="..\AppliedResearchAssociates.iAM.Data\AppliedResearchAssociates.iAM.Data.csproj" />
     <ProjectReference Include="..\AppliedResearchAssociates.iAM.DTOs\AppliedResearchAssociates.iAM.DTOs.csproj" />
     <ProjectReference Include="..\AppliedResearchAssociates.Option\AppliedResearchAssociates.Option.csproj" />

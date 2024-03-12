@@ -1,34 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Linq;
 using System.Text;using System.Threading;
 using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.ExcelHelpers;
 using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Models.Validation;
 using BridgeCareCore.Services.Treatment;
-using Microsoft.SqlServer.Dac.Model;
 using OfficeOpenXml;
 
 namespace BridgeCareCore.Services
 {
     public class TreatmentService : ITreatmentService
     {
-        private readonly UnitOfDataPersistenceWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ExcelTreatmentLoader _treatmentLoader;
 
         public TreatmentService(
-            UnitOfDataPersistenceWork unitOfWork,
+            IUnitOfWork unitOfWork,
             ExcelTreatmentLoader treatmentLoader
             )
         {
             _unitOfWork = unitOfWork;
             _treatmentLoader = treatmentLoader;
         }
-
+
         public FileInfoDTO ExportLibraryTreatmentsExcelFile(Guid libraryId)
         {
             var library = _unitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(libraryId);
@@ -68,6 +66,7 @@ namespace BridgeCareCore.Services
             {
                 var treatmentLoadResult = _treatmentLoader.LoadScenarioTreatment(worksheet, scenarioBudgets);
                 scenarioTreatments.Add(treatmentLoadResult.Treatment);
+                _unitOfWork.SelectableTreatmentRepo.AddDefaultPerformanceFactors(simulationId, scenarioTreatments);
                 validationMessages.AddRange(treatmentLoadResult.ValidationMessages);
             }
             var combinedValidationMessage = string.Empty;
@@ -169,7 +168,6 @@ namespace BridgeCareCore.Services
             }
             return returnValue;
         }
-
         public ScenarioTreatmentImportResultDTO ImportScenarioTreatmentsFile(Guid simulationId, ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
             queueLog ??= new DoNothingWorkQueueLog();
@@ -182,6 +180,7 @@ namespace BridgeCareCore.Services
             {                
                 var treatmentLoadResult = _treatmentLoader.LoadScenarioTreatment(worksheet, scenarioBudgets);
                 scenarioTreatments.Add(treatmentLoadResult.Treatment);
+                _unitOfWork.SelectableTreatmentRepo.AddDefaultPerformanceFactors(simulationId, scenarioTreatments);
                 validationMessages.AddRange(treatmentLoadResult.ValidationMessages);
             }
             var combinedValidationMessage = string.Empty;
@@ -232,13 +231,143 @@ namespace BridgeCareCore.Services
                 };
             }
             return fileInfoResult;
-        }
+        }
+
+        public TreatmentSupersedeRuleImportResultDTO ImportScenarioTreatmentSupersedeRulesFile(Guid simulationId, ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
+        {
+            queueLog ??= new DoNothingWorkQueueLog();            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
+                return new TreatmentSupersedeRuleImportResultDTO();
+            }
+            queueLog.UpdateWorkQueueStatus("Loading Excel");
+
+            var worksheet = excelPackage.Workbook.Worksheets.FirstOrDefault();
+            var scenarioTreatments = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+            var treatmentSupersedeRuleResult = _treatmentLoader.LoadTreatmentSupersedeRules(worksheet, scenarioTreatments);
+            var scenarioTreatmentSupersedeRuleImportResult = GetTreatmentSupersedeRuleImportResultDTO(treatmentSupersedeRuleResult);
+
+            if (scenarioTreatmentSupersedeRuleImportResult.WarningMessage.Length == 0)
+            {
+                if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                {
+                    return new TreatmentSupersedeRuleImportResultDTO();
+                }
+                queueLog.UpdateWorkQueueStatus("Upserting Scenario Treatment Supersede Rules");
+                _unitOfWork.TreatmentSupersedeRuleRepo.UpsertOrDeleteScenarioTreatmentSupersedeRules(scenarioTreatmentSupersedeRuleImportResult.supersedeRulesPerTreatmentIdDict, simulationId);
+            }
+            return scenarioTreatmentSupersedeRuleImportResult;
+        }
+
+        public FileInfoDTO ExportScenarioTreatmentSupersedeRuleExcelFile(Guid simulationId)
+        {
+            var simulation = _unitOfWork.SimulationRepo.GetSimulation(simulationId);            
+            var scenarioTreatmentSupersedeRules = _unitOfWork.TreatmentSupersedeRuleRepo.GetScenarioTreatmentSupersedeRulesBysimulationId(simulationId); 
+            var fileName = $"ScenarioTreatmentSupersedeRules_{simulation.Name.Trim().Replace(" ", "_")}.xlsx";
+
+            return CreateExportTreatmentSupersedeRuleExportFile(scenarioTreatmentSupersedeRules, fileName);
+        }
+
+        public FileInfoDTO ExportLibraryTreatmentSupersedeRuleExcelFile(Guid libraryId)
+        {
+            if (libraryId.Equals(Guid.Empty))
+            {
+                return null;
+            }
+            var library = _unitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibaryNoChildren(libraryId) ?? throw new NullReferenceException("No Treatment Library found for given id");
+            var libraryTreatmentSupersedeRules = _unitOfWork.TreatmentSupersedeRuleRepo.GetLibraryTreatmentSupersedeRulesByLibraryId(libraryId);
+            var fileName = $"TreatmentSupersedeRules_{library.Name.Trim().Replace(" ", "_")}.xlsx";
+
+            return CreateExportTreatmentSupersedeRuleExportFile(libraryTreatmentSupersedeRules, fileName);
+        }
+
+        public TreatmentSupersedeRuleImportResultDTO ImportLibraryTreatmentSupersedeRulesFile(Guid libraryId, ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
+        {
+            queueLog ??= new DoNothingWorkQueueLog();            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
+                return new TreatmentSupersedeRuleImportResultDTO();
+            }
+            queueLog.UpdateWorkQueueStatus("Loading Excel");
+
+            var worksheet = excelPackage.Workbook.Worksheets.FirstOrDefault();
+            var libraryTreatments = _unitOfWork.SelectableTreatmentRepo.GetSelectableTreatments(libraryId);
+            var treatmentSupersedeRuleResult = _treatmentLoader.LoadTreatmentSupersedeRules(worksheet, libraryTreatments);
+            var treatmentSupersedeRuleImportResult = GetTreatmentSupersedeRuleImportResultDTO(treatmentSupersedeRuleResult);
+
+            if (treatmentSupersedeRuleImportResult.WarningMessage.Length == 0)
+            {
+                if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                {
+                    return new TreatmentSupersedeRuleImportResultDTO();
+                }
+                queueLog.UpdateWorkQueueStatus("Upserting Scenario Treatment Supersede Rules");
+                _unitOfWork.TreatmentSupersedeRuleRepo.UpsertOrDeleteTreatmentSupersedeRules(treatmentSupersedeRuleImportResult.supersedeRulesPerTreatmentIdDict, libraryId);
+            }
+            return treatmentSupersedeRuleImportResult;
+        }
+
+        private static TreatmentSupersedeRuleImportResultDTO GetTreatmentSupersedeRuleImportResultDTO(TreatmentSupersedeRulesLoadResult treatmentSupersedeRuleResult)
+        {
+            var combinedValidationMessage = string.Empty;
+            var validationMessages = treatmentSupersedeRuleResult.ValidationMessages;
+            if (validationMessages.Any())
+            {
+                var combinedValidationMessageBuilder = new StringBuilder();
+                foreach (var message in validationMessages)
+                {
+                    combinedValidationMessageBuilder.AppendLine(message);
+                }
+                combinedValidationMessage = combinedValidationMessageBuilder.ToString();
+            }
+
+            var scenarioTreatmentSupersedeRuleImportResult = new TreatmentSupersedeRuleImportResultDTO
+            {
+                supersedeRulesPerTreatmentIdDict = treatmentSupersedeRuleResult.supersedeRulesPerTreatmentIdDict,
+                WarningMessage = combinedValidationMessage,
+            };
+
+            return scenarioTreatmentSupersedeRuleImportResult;
+        }
+
+        private static FileInfoDTO CreateExportTreatmentSupersedeRuleExportFile(List<TreatmentSupersedeRuleExportDTO> treatmentSupersedeRules, string fileName)
+        {
+            using var excelPackage = new ExcelPackage(new FileInfo(fileName));
+            var worksheet = excelPackage.Workbook.Worksheets.Add("Treatment Supersede Rules");
+
+            // headers
+            var startRow = worksheet.Cells.Start.Row;
+            var startColumn = worksheet.Cells.Start.Column;
+            var headerColumn = startColumn;
+            worksheet.Cells[startRow, headerColumn++].Value = "Treatment Name (selected treatment)";
+            worksheet.Cells[startRow, headerColumn++].Value = "Superseded treatment";
+            worksheet.Cells[startRow, headerColumn++].Value = "Criteria";            
+            ExcelHelper.ApplyStyleNoWrap(worksheet.Cells[startRow, startColumn, startRow, headerColumn - 1]);
+
+            // data rows
+            var dataRow = startRow + 1;
+            foreach (var treatmentSupersedeRule in treatmentSupersedeRules)
+            {
+                var dataColumn = startColumn;
+                worksheet.Cells[dataRow, dataColumn++].Value = treatmentSupersedeRule.TreatmentName;
+                worksheet.Cells[dataRow, dataColumn++].Value = treatmentSupersedeRule.treatment.Name;
+                worksheet.Cells[dataRow, dataColumn++].Value = treatmentSupersedeRule.CriterionLibrary?.MergedCriteriaExpression;
+                dataRow++;
+            }
+            worksheet.Cells.AutoFitColumns();
+
+            return new FileInfoDTO
+            {
+                FileName = fileName,
+                FileData = Convert.ToBase64String(excelPackage.GetAsByteArray()),
+                MimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            };
+        }
+
         private void SaveToDatabase(
             TreatmentImportResultDTO importResult)
         {
             var libraryId = importResult.TreatmentLibrary.Id;
             var importedTreatments = importResult.TreatmentLibrary.Treatments;
             _unitOfWork.SelectableTreatmentRepo.ReplaceTreatmentLibrary(libraryId, importedTreatments);
-        }       
+        }        
     }
 }

@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Configurations>Debug;Release;MsSqlDebug;LiteDbDebug;Test</Configurations>
+    <TargetFramework>net8.0</TargetFramework>
+    <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

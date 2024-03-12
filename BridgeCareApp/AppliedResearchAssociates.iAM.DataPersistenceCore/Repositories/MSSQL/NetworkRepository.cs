@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Network = AppliedResearchAssociates.iAM.Data.Networking.Network;
 using System.Threading;
 using AppliedResearchAssociates.iAM.Common.Logging;
+using Microsoft.Data.SqlClient;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -37,18 +38,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(network.MaintainableAssets.ToList(), network.Id);
         }
 
-        public void CreateNetwork(Analysis.Network network) => _unitOfWork.Context.AddEntity(network.ToEntity(), _unitOfWork.UserEntity?.Id);
-
-        public List<Network> GetAllNetworks()
-        {
-            var domain = _unitOfWork.Context.Network
-                .Include(n => n.MaintainableAssets)
-                .ThenInclude(ma => ma.MaintainableAssetLocation)
-                .Select(e => e.ToDomain(_unitOfWork.EncryptionKey))
-                .ToList();
-            return domain;
-        }
-
         public Task<List<NetworkDTO>> Networks()
         {
             if (!_unitOfWork.Context.Network.Any())
@@ -66,11 +55,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Select(_ => _.ToDto(attributeDbSet, _unitOfWork.EncryptionKey))
                 .ToList();
             });
-        }
-
-        public List<NetworkDTO> GetNetworksByIdsNoChildren(List<Guid> ids)
-        {
-            return _unitOfWork.Context.Network.Where(_ => ids.Contains(_.Id)).Select(_ => _.ToDto(null, _unitOfWork.EncryptionKey)).ToList();
         }
 
         public NetworkEntity GetMainNetwork()
@@ -175,41 +159,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             };
         }
 
-        public void DeleteNetworkData()
-        {
-            /*_unitOfWork.Context.Database.ExecuteSqlRaw(
-                "ALTER TABLE [dbo].[CommittedProject] DROP CONSTRAINT[FK_CommittedProject_Section_SectionId];" +
-                "ALTER TABLE [dbo].[NumericAttributeValueHistory] DROP CONSTRAINT[FK_NumericAttributeValueHistory_Section_SectionId];" +
-                "ALTER TABLE [dbo].[TextAttributeValueHistory] DROP CONSTRAINT[FK_TextAttributeValueHistory_Section_SectionId];" +
-                "ALTER TABLE [dbo].[NumericAttributeValueHistory] DROP CONSTRAINT[FK_NumericAttributeValueHistory_Attribute_AttributeId];" +
-                "ALTER TABLE [dbo].[TextAttributeValueHistory] DROP CONSTRAINT[FK_TextAttributeValueHistory_Attribute_AttributeId];" +
-                "ALTER TABLE [dbo].[Facility] DROP CONSTRAINT[FK_Facility_Network_NetworkId];" +
-                "ALTER TABLE [dbo].[Section] DROP CONSTRAINT[FK_Section_Facility_FacilityId];" +
-                "TRUNCATE TABLE [dbo].[Facility];" +
-                "TRUNCATE TABLE [dbo].[Section];" +
-                "TRUNCATE TABLE [dbo].[NumericAttributeValueHistory];" +
-                "TRUNCATE TABLE [dbo].[TextAttributeValueHistory];" +
-                "ALTER TABLE [dbo].[CommittedProject] WITH NOCHECK ADD CONSTRAINT[FK_CommittedProject_Section_SectionId] FOREIGN KEY([SectionId]) REFERENCES[dbo].[Section]([Id]) ON DELETE NO ACTION; ALTER TABLE[dbo].[CommittedProject] CHECK CONSTRAINT[FK_CommittedProject_Section_SectionId];" +
-                "ALTER TABLE [dbo].[NumericAttributeValueHistory] WITH NOCHECK ADD CONSTRAINT[FK_NumericAttributeValueHistory_Section_SectionId] FOREIGN KEY([SectionId]) REFERENCES[dbo].[Section]([Id]) ON DELETE CASCADE; ALTER TABLE[dbo].[NumericAttributeValueHistory] CHECK CONSTRAINT[FK_NumericAttributeValueHistory_Section_SectionId];" +
-                "ALTER TABLE [dbo].[TextAttributeValueHistory] WITH NOCHECK ADD CONSTRAINT[FK_TextAttributeValueHistory_Section_SectionId] FOREIGN KEY([SectionId]) REFERENCES[dbo].[Section]([Id]) ON DELETE CASCADE; ALTER TABLE[dbo].[TextAttributeValueHistory] CHECK CONSTRAINT[FK_TextAttributeValueHistory_Section_SectionId];" +
-                "ALTER TABLE [dbo].[NumericAttributeValueHistory] WITH NOCHECK ADD CONSTRAINT[FK_NumericAttributeValueHistory_Attribute_AttributeId] FOREIGN KEY([AttributeId]) REFERENCES[dbo].[Attribute]([Id]) ON DELETE CASCADE; ALTER TABLE[dbo].[NumericAttributeValueHistory] CHECK CONSTRAINT[FK_NumericAttributeValueHistory_Attribute_AttributeId];" +
-                "ALTER TABLE [dbo].[TextAttributeValueHistory] WITH NOCHECK ADD CONSTRAINT[FK_TextAttributeValueHistory_Attribute_AttributeId] FOREIGN KEY([AttributeId]) REFERENCES[dbo].[Attribute]([Id]) ON DELETE CASCADE; ALTER TABLE[dbo].[TextAttributeValueHistory] CHECK CONSTRAINT[FK_TextAttributeValueHistory_Attribute_AttributeId];" +
-                "ALTER TABLE [dbo].[Facility] WITH NOCHECK ADD CONSTRAINT[FK_Facility_Network_NetworkId] FOREIGN KEY([NetworkId]) REFERENCES[dbo].[Network]([Id]) ON DELETE CASCADE; ALTER TABLE[dbo].[Facility] CHECK CONSTRAINT[FK_Facility_Network_NetworkId];" +
-                "ALTER TABLE [dbo].[Section] WITH NOCHECK ADD CONSTRAINT[FK_Section_Facility_FacilityId] FOREIGN KEY([FacilityId]) REFERENCES[dbo].[Facility]([Id]) ON DELETE CASCADE; ALTER TABLE[dbo].[Section] CHECK CONSTRAINT[FK_Section_Facility_FacilityId];");*/
-
-            _unitOfWork.Context.Database.ExecuteSqlRaw(
-                $"DELETE FROM [dbo].[MaintainableAsset] WHERE [dbo].[MaintainableAsset].[NetworkId] = '{DataPersistenceConstants.PennDotNetworkId}'");
-            _unitOfWork.Context.SaveChanges();
-        }
-
         public void DeleteNetwork(Guid networkId, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
             try
             {
                 queueLog ??= new DoNothingWorkQueueLog();
-                _unitOfWork.BeginTransaction();
-                                   
-                if(cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                _unitOfWork.BeginTransaction(); 
+                //_unitOfWork.Context.Database.BeginTransaction(IsolationLevel.ReadUncommitted); locks
+
+                if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                 {
                     _unitOfWork.Rollback();
                     return;
@@ -241,8 +199,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
                 queueLog.UpdateWorkQueueStatus("Deleting Maintainable Assets");
 
-                _unitOfWork.Context.DeleteEntity<NetworkEntity>(_ => _.Id == networkId);
-                
+                //Slow Starts here
+                // _unitOfWork.Context.DeleteEntity<NetworkEntity>(_ => _.Id == networkId);
+
+                _unitOfWork.Context.Database.SetCommandTimeout(TimeSpan.FromSeconds(18000));
+
+                // Create parameters for the stored procedure
+                var retMessageParam = new SqlParameter("@RetMessage", SqlDbType.VarChar, 250);
+                string retMessage = "";
+                var networkGuidParam = new SqlParameter("@NetworkGuid", networkId);
+                retMessageParam.Direction = ParameterDirection.Output;
+
+                // Execute the stored procedure
+                _unitOfWork.Context.Database.ExecuteSqlRaw("EXEC usp_delete_network @NetworkGuid, @RetMessage OUTPUT", networkGuidParam, retMessageParam);
+
+                // Capture the success output value
+                retMessage = retMessageParam.Value as string;
 
                 if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                 {

@@ -42,8 +42,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 
         ICashFlowRuleRepository CashFlowRuleRepo { get; }
 
-        ICommittedProjectConsequenceRepository CommittedProjectConsequenceRepo { get; }
-
         ICommittedProjectRepository CommittedProjectRepo { get; }
 
         ICriterionLibraryRepository CriterionLibraryRepo { get; }
@@ -84,7 +82,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 
         ITreatmentSchedulingRepository TreatmentSchedulingRepo { get; }
 
-        ITreatmentSupersessionRepository TreatmentSupersessionRepo { get; }
+        ITreatmentSupersedeRuleRepository TreatmentSupersedeRuleRepo { get; }
 
         IUserRepository UserRepo { get; }
 

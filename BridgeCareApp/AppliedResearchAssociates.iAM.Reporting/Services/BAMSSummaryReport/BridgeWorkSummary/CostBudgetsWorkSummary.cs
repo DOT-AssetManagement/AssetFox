@@ -9,6 +9,7 @@ using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeW
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.Reporting.Models;
+using AppliedResearchAssociates.iAM.DTOs.Abstract;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
@@ -20,10 +21,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         private Dictionary<int, decimal> TotalCulvertSpent = new Dictionary<int, decimal>();
         private Dictionary<int, decimal> TotalBridgeSpent = new Dictionary<int, decimal>();
         private Dictionary<int, decimal> TotalCommittedSpent = new Dictionary<int, decimal>();
-        
-        private int BridgeTotalRow = 0;
-        private int CulvertTotalRow = 0;
+        private Dictionary<int, decimal> TotalSAPSpent = new Dictionary<int, decimal>();
+        private Dictionary<int, decimal> TotalProjectBuilderSpent = new Dictionary<int, decimal>();
+
         private int CommittedTotalRow = 0;
+        private int TotalSpentRow = 0;
+        private bool ShouldBundleFeasibleTreatments;
 
         public CostBudgetsWorkSummary(WorkSummaryModel workSummaryModel)
         {
@@ -31,47 +34,101 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             _workSummaryModel = workSummaryModel;
         }
 
-        public void FillCostBudgetWorkSummarySections(ExcelWorksheet worksheet, CurrentCell currentCell,
+        public void FillCostBudgetWorkSummarySections(
+            ExcelWorksheet worksheet,
+            CurrentCell currentCell,
             Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> costPerTreatmentPerYear,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> yearlyCostCommittedProj, List<int> simulationYears, Dictionary<string, Budget> yearlyBudgetAmount,
+            Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount, string projectSource, string treatmentCategory)>> yearlyCostCommittedProjects,
+            List<int> simulationYears,
+            Dictionary<string, Budget> yearlyBudgetAmount,
             Dictionary<int, Dictionary<string, decimal>> bpnCostPerYear,
-            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments)
+            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments,
+            List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
+            bool shouldBundleFeasibleTreatments)
         {
+            ShouldBundleFeasibleTreatments = shouldBundleFeasibleTreatments;
             var localSimulationTreatments = new List<(string Name, AssetCategories AssetType, TreatmentCategory Category)>(simulationTreatments);
             localSimulationTreatments.Remove((BAMSConstants.CulvertNoTreatment, AssetCategories.Culvert, TreatmentCategory.Other));
             localSimulationTreatments.Remove((BAMSConstants.NonCulvertNoTreatment, AssetCategories.Bridge, TreatmentCategory.Other));
-
-            var workTypeTotalMPMS = FillCostOfCommittedWorkSection(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+                        
+            var workTypeTotalMPMS = FillCostOfCommittedWorkSection(worksheet, currentCell, simulationYears, yearlyCostCommittedProjects);
+            var workTypeTotalSAP = FillCostOfSAPWorkSection(worksheet, currentCell, simulationYears, yearlyCostCommittedProjects);
+            var workTypeTotalProjectBuilder = FillCostOfProjectBuilderWorkSection(worksheet, currentCell, simulationYears, yearlyCostCommittedProjects);
 
             var workTypeTotalCulvert = FillCostOfCulvertWorkSection(worksheet, currentCell,
                 simulationYears, costPerTreatmentPerYear, localSimulationTreatments);
+            var WorkTypeTotalBundled = new Dictionary<TreatmentCategory, SortedDictionary<int, decimal>>();
             var workTypeTotalBridge = FillCostOfBridgeWorkSection(worksheet, currentCell,
-                simulationYears, costPerTreatmentPerYear, localSimulationTreatments);
-
+                simulationYears, costPerTreatmentPerYear, localSimulationTreatments, WorkTypeTotalBundled);            
+            var workTypeTotalWorkOutsideScope = AddCostOfWorkOutsideScope(committedProjectsForWorkOutsideScope);
+            
             var workTypeTotalAggregated = new WorkTypeTotalAggregated
             {
                 WorkTypeTotalCulvert = workTypeTotalCulvert,
                 WorkTypeTotalBridge = workTypeTotalBridge,
-                WorkTypeTotalMPMS = workTypeTotalMPMS
+                WorkTypeTotalMPMS = workTypeTotalMPMS,
+                WorkTypeTotalSAP = workTypeTotalSAP,
+                WorkTypeTotalProjectBuilder = workTypeTotalProjectBuilder,
+                WorkTypeTotalWorkOutsideScope = workTypeTotalWorkOutsideScope,
+                WorkTypeTotalBundled = WorkTypeTotalBundled
             };
-            var workTypeTotalRow = FillWorkTypeTotalsSection(worksheet, currentCell, simulationYears,
-                yearlyBudgetAmount,
-                workTypeTotalAggregated);
+            
+            var workTypeTotalRow = FillWorkTypeTotalsSection(worksheet, currentCell, simulationYears, yearlyBudgetAmount, workTypeTotalAggregated, shouldBundleFeasibleTreatments);
 
             var bpnTotalRow = FillBpnSection(worksheet, currentCell, simulationYears, bpnCostPerYear);
             FillRemainingBudgetSection(worksheet, simulationYears, currentCell, workTypeTotalRow);
         }
 
         #region Private methods
+        private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> AddCostOfWorkOutsideScope(List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope)
+        {
+            var workTypeTotalWorkOutsideScope = new Dictionary<TreatmentCategory, SortedDictionary<int, decimal>>();
+            var category = TreatmentCategory.WorkOutsideScope;
+
+            foreach (var committedProjectForWorkOutsideScope in committedProjectsForWorkOutsideScope)
+            {
+                var currYear = committedProjectForWorkOutsideScope.Year;
+                var treatmentCost = Convert.ToDecimal(committedProjectForWorkOutsideScope.Cost);
+
+                if (!workTypeTotalWorkOutsideScope.ContainsKey(category))
+                {
+                    workTypeTotalWorkOutsideScope.Add(category, new SortedDictionary<int, decimal>());
+                }
+                if (!workTypeTotalWorkOutsideScope[category].ContainsKey(currYear))
+                {
+                    workTypeTotalWorkOutsideScope[category].Add(currYear, 0);
+                }
+                workTypeTotalWorkOutsideScope[category][currYear] += treatmentCost;
+            }
+
+            return workTypeTotalWorkOutsideScope;
+        }
 
         private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> FillCostOfCommittedWorkSection(ExcelWorksheet worksheet, CurrentCell currentCell,
-            List<int> simulationYears,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> yearlyCostCommittedProj)
+            List<int> simulationYears, Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount, string projectSource, string treatmentCategory)>> yearlyCostCommittedProj)
         {
-            var headerRange = new Range(currentCell.Row, currentCell.Row + 1);
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of MPMS Work", "MPMS Work Type");
             var workTypeTotalData = AddCostsOfCommittedWork(worksheet, simulationYears, currentCell, yearlyCostCommittedProj);
             return workTypeTotalData;
+        }
+
+        private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> FillCostOfSAPWorkSection(
+            ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount, string projectSource, string treatmentCategory)>> yearlyCostCommittedProj)
+        {
+            _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of SAP Work", "SAP Work Type");
+            var workTypeTotalDataSAP = AddCostsOfSAPWork(worksheet, simulationYears, currentCell, yearlyCostCommittedProj);
+            return workTypeTotalDataSAP;
+        }
+
+        private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> FillCostOfProjectBuilderWorkSection(
+            ExcelWorksheet worksheet,
+            CurrentCell currentCell,
+            List<int> simulationYears,
+            Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount, string projectSource, string treatmentCategory)>> yearlyCostCommittedProj)
+        {
+            _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of Project Builder Work", "Project Builder Work Type");
+            var workTypeTotalDataProjectBuilder = AddCostsOfProjectBuilderWork(worksheet, simulationYears, currentCell, yearlyCostCommittedProj);
+            return workTypeTotalDataProjectBuilder;
         }
 
         private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> FillCostOfCulvertWorkSection(ExcelWorksheet worksheet, CurrentCell currentCell,
@@ -79,7 +136,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> costPerTreatmentPerYear,
             List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments)
         {
-            var headerRange = new Range(currentCell.Row, currentCell.Row + 1);
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of BAMS Culvert Work", "BAMS Culvert Work Type");
             var workTypeTotalCulvert = AddCostsOfCulvertWork(worksheet, simulationYears, currentCell, costPerTreatmentPerYear, simulationTreatments);
 
@@ -89,11 +145,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> FillCostOfBridgeWorkSection(ExcelWorksheet worksheet, CurrentCell currentCell,
             List<int> simulationYears,
             Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> costPerTreatmentPerYear,
-            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments)
+            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments, Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> workTypeTotalBundled)
         {
-            var headerRange = new Range(currentCell.Row, currentCell.Row + 1);
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of BAMS Bridge Work", "BAMS Bridge Work Type");
-            var workTypeTotalBridge = AddCostsOfBridgeWork(worksheet, simulationYears, currentCell, costPerTreatmentPerYear, simulationTreatments);
+            var workTypeTotalBridge = AddCostsOfBridgeWork(worksheet, simulationYears, currentCell, costPerTreatmentPerYear, simulationTreatments, workTypeTotalBundled);
 
             return workTypeTotalBridge;
         }
@@ -103,7 +158,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             CurrentCell currentCell,
             List<int> simulationYears,
             Dictionary<string, Budget> yearlyBudgetAmount,
-            WorkTypeTotalAggregated workTypeTotalAggregated)
+            WorkTypeTotalAggregated workTypeTotalAggregated,
+            bool shouldBundleFeasibleTreatments)
         {
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "", "BAMS Work Type Totals");
             var initialRow = currentCell.Row;
@@ -125,11 +181,26 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 // For MPMS data
                 AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalMPMS, workType, worksheet, rowIndex);
 
+                // For SAP data
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalSAP, workType, worksheet, rowIndex);
+
+                // For Project Builder data
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalProjectBuilder, workType, worksheet, rowIndex);
+
                 // For culvert data
                 AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalCulvert, workType, worksheet, rowIndex);
 
                 // For non culvert data
                 AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalBridge, workType, worksheet, rowIndex);
+
+                // For work outside scope
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalWorkOutsideScope, workType, worksheet, rowIndex);
+
+                // Bundled
+                if (workType == TreatmentCategory.Bundled)
+                {
+                    AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalBundled, workType, worksheet, rowIndex);
+                }
 
                 // This line fills up data for "Total (all years)"
                 worksheet.Cells[rowIndex, startColumnIndex + numberOfYears].Formula = ExcelFormulas.Sum(rowIndex, startColumnIndex, rowIndex, startColumnIndex + numberOfYears - 1);
@@ -137,6 +208,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             var lastContentRow = firstContentRow + workTypes.Count - 1;
             currentCell.Row += workTypes.Count();
             var totalSpentRow = currentCell.Row;
+            TotalSpentRow = totalSpentRow;
             worksheet.Cells[totalSpentRow, startColumnIndex + numberOfYears].Formula = ExcelFormulas.Sum(totalSpentRow, startColumnIndex, currentCell.Row, startColumnIndex + numberOfYears - 1); ;
             worksheet.Cells[totalSpentRow, 1].Value = "Total Spent";
             for (var columnIndex = 3; columnIndex < 3 + numberOfYears; columnIndex++)
@@ -144,6 +216,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 var startAddress = worksheet.Cells[firstContentRow, columnIndex].Address;
                 var endAddress = worksheet.Cells[lastContentRow, columnIndex].Address;
                 worksheet.Cells[currentCell.Row, columnIndex].Formula = ExcelFormulas.RangeSum(startAddress, endAddress);
+                worksheet.Cells[currentCell.Row, columnIndex].Calculate();
             }
 
             // Adding percentage after the Total (all years)
@@ -196,9 +269,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
         private void AddWorkTypeTotalData(Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> workTypeTotal,
-            TreatmentCategory workType, ExcelWorksheet worksheet,
-            int rowIndex
-            )
+            TreatmentCategory workType, ExcelWorksheet worksheet, int rowIndex)
         {
             workTypeTotal.TryGetValue(workType, out SortedDictionary<int, decimal> yearAndAmount);
             var col = 3;
@@ -300,8 +371,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             AddDetailsForRemainingBudget(worksheet, simulationYears, currentCell, budgetTotalRow);
         }
 
-        private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> AddCostsOfCommittedWork(ExcelWorksheet worksheet, List<int> simulationYears, CurrentCell currentCell,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> yearlyCostCommittedProj)
+        private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> AddCostsOfCommittedWork(ExcelWorksheet worksheet, List<int> simulationYears, CurrentCell currentCell, Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount, string projectSource, string treatmentCategory)>> yearlyCostCommittedProj)
         {
             var workTypeTotalMPMS = new Dictionary<TreatmentCategory, SortedDictionary<int, decimal>>();
             if (simulationYears.Count <= 0)
@@ -312,49 +382,52 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             _bridgeWorkSummaryCommon.SetRowColumns(currentCell, out var startRow, out var startColumn, out var row, out var column);
             currentCell.Column = column;
             var committedTotalRow = 0;
-
             var uniqueTreatments = new Dictionary<string, int>();
-            var costForTreatments = new Dictionary<string, decimal>();
             var map = WorkTypeMap.Map;
+
             // filling in the committed treatments in the excel TAB
             foreach (var yearlyItem in yearlyCostCommittedProj)
             {
                 decimal committedTotalCost = 0;
                 row = currentCell.Row;
-                //column = ++column;
                 foreach (var data in yearlyItem.Value)
                 {
-                    if (!uniqueTreatments.ContainsKey(data.Key))
+                    // Check that the projectSource is neither 'Maintenance' nor 'ProjectBuilder'
+                    var dataValue = data.Value;
+                    if (dataValue.projectSource != "Maintenance" && dataValue.projectSource != "ProjectBuilder")
                     {
-                        uniqueTreatments.Add(data.Key, currentCell.Row);
-                        worksheet.Cells[row++, column].Value = data.Key;
-                        var cellToEnterCost = yearlyItem.Key - startYear;
-                        worksheet.Cells[uniqueTreatments[data.Key], column + cellToEnterCost + 2].Value = data.Value.treatmentCost;
-                        costForTreatments.Add(data.Key, data.Value.treatmentCost);
-                        currentCell.Row += 1;
-                    }
-                    else
-                    {
-                        var cellToEnterCost = yearlyItem.Key - startYear;
-                        worksheet.Cells[uniqueTreatments[data.Key], column + cellToEnterCost + 2].Value = data.Value.treatmentCost;
-                    }
-                    committedTotalCost += data.Value.treatmentCost;
+                        var key = data.Key.Contains("Bundle") ? data.Key : dataValue.treatmentCategory;
+                        if (!uniqueTreatments.ContainsKey(key))
+                        {                            
+                            uniqueTreatments.Add(key, currentCell.Row);
+                            worksheet.Cells[row++, column].Value = key;
+                            var cellToEnterCost = yearlyItem.Key - startYear;
+                            worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value = dataValue.treatmentCost;
+                            currentCell.Row += 1;
+                        }
+                        else
+                        {
+                            var cellToEnterCost = yearlyItem.Key - startYear;
+                            worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value = dataValue.treatmentCost;
+                        }
+                        committedTotalCost += dataValue.treatmentCost;
 
-                    // setting up data for Work type totals
-                    if (map.ContainsKey(data.Key))
-                    {
-                        var category = map[data.Key];
-                        var treatmentCost = data.Value.treatmentCost;
-                        var currYear = yearlyItem.Key;
-                        FillWorkTypeTotalMPMS(workTypeTotalMPMS, category, simulationYears, currYear, treatmentCost);
-                    }
-                    else
-                    {
-                        var treatmentCost = data.Value.treatmentCost;
-                        var currYear = yearlyItem.Key;
-                        var category = TreatmentCategory.Other;
-                        FillWorkTypeTotalMPMS(workTypeTotalMPMS, category, simulationYears, currYear, treatmentCost);
+                        // setting up data for Work type totals
+                        if (map.ContainsKey(dataValue.treatmentCategory))
+                        {
+                            var category = map[dataValue.treatmentCategory];
+                            var treatmentCost = dataValue.treatmentCost;
+                            var currYear = yearlyItem.Key;
+                            FillWorkTypeTotalMPMS(workTypeTotalMPMS, category, simulationYears, currYear, treatmentCost);
+                        }
+                        else
+                        {
+                            var treatmentCost = dataValue.treatmentCost;
+                            var currYear = yearlyItem.Key;
+                            var category = TreatmentCategory.Other;
+                            FillWorkTypeTotalMPMS(workTypeTotalMPMS, category, simulationYears, currYear, treatmentCost);
 
+                        }                        
                     }
                 }
                 TotalCommittedSpent.Add(yearlyItem.Key, committedTotalCost);
@@ -383,6 +456,204 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
             CommittedTotalRow = committedTotalRow;
             return workTypeTotalMPMS;
+        }
+
+        private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> AddCostsOfSAPWork(
+            ExcelWorksheet worksheet,
+            List<int> simulationYears,
+            CurrentCell currentCell,
+            Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount, string projectSource, string treatmentCategory)>> yearlyCostSAPProj)
+        {
+            var workTypeTotalSAP = new Dictionary<TreatmentCategory, SortedDictionary<int, decimal>>();
+            if (simulationYears.Count <= 0)
+            {
+                return workTypeTotalSAP;
+            }
+
+            var startYear = simulationYears[0];
+            _bridgeWorkSummaryCommon.SetRowColumns(currentCell, out var startRow, out var startColumn, out var row, out var column);
+            currentCell.Column = column;
+            var sapTotalRow = 0;
+            var uniqueTreatments = new Dictionary<string, int>();
+            var map = WorkTypeMap.Map;
+
+            foreach (var yearlyItem in yearlyCostSAPProj)
+            {
+                decimal sapTotalCost = 0;
+                row = currentCell.Row; 
+
+                foreach (var data in yearlyItem.Value)
+                {
+                    var dataValue = data.Value;
+                    if (dataValue.projectSource == "Maintenance")
+                    {
+                        var key = data.Key.Contains("Bundle") ? data.Key : dataValue.treatmentCategory;
+                        if (!uniqueTreatments.ContainsKey(key))
+                        {
+                            uniqueTreatments.Add(key, currentCell.Row);
+                            worksheet.Cells[row++, column].Value = key;
+                            var cellToEnterCost = yearlyItem.Key - startYear;
+                            worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value = dataValue.treatmentCost;
+                            currentCell.Row += 1;
+                        }
+                        else
+                        {
+                            var cellToEnterCost = yearlyItem.Key - startYear;
+                            worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value = dataValue.treatmentCost;
+                        }
+                        sapTotalCost += dataValue.treatmentCost;
+
+                        if (map.ContainsKey(dataValue.treatmentCategory))
+                        {
+                            var category = map[dataValue.treatmentCategory];
+                            var treatmentCost = dataValue.treatmentCost;
+                            var currYear = yearlyItem.Key;
+                            FillWorkTypeTotalSAP(workTypeTotalSAP, category, simulationYears, currYear, treatmentCost);
+                        }
+                        else
+                        {
+                            var treatmentCost = dataValue.treatmentCost;
+                            var currYear = yearlyItem.Key;
+                            var category = TreatmentCategory.Other;
+                            FillWorkTypeTotalSAP(workTypeTotalSAP, category, simulationYears, currYear, treatmentCost);
+                        }
+                    }
+                }
+
+                TotalSAPSpent.Add(yearlyItem.Key, sapTotalCost);
+            }
+
+            column = currentCell.Column;
+            worksheet.Cells[currentCell.Row, column].Value = BAMSConstants.SAPTotal; 
+            column++;
+            var fromColumn = column + 1;
+
+            foreach (var cost in TotalSAPSpent)
+            {
+                if (cost.Value == 0)
+                {
+                    worksheet.Cells[currentCell.Row, fromColumn++].Value = "-"; 
+                }
+                else
+                {
+                    worksheet.Cells[currentCell.Row, fromColumn++].Value = cost.Value;
+                }
+            }
+            sapTotalRow = currentCell.Row;
+
+            fromColumn = column + 1;
+
+            var endColumn = startColumn + simulationYears.Count + 1; 
+
+            ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, sapTotalRow, endColumn]);
+            ExcelHelper.SetCustomFormat(worksheet.Cells[startRow, fromColumn, sapTotalRow, endColumn], ExcelHelperCellFormat.NegativeCurrency); 
+            ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, sapTotalRow, endColumn], Color.FromArgb(198, 224, 180)); 
+
+            ExcelHelper.ApplyColor(worksheet.Cells[sapTotalRow, fromColumn, sapTotalRow, endColumn], Color.FromArgb(84, 130, 53)); 
+            ExcelHelper.SetTextColor(worksheet.Cells[sapTotalRow, fromColumn, sapTotalRow, endColumn], Color.White);
+
+            _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, sapTotalRow + 1, endColumn);
+
+            return workTypeTotalSAP;
+        }
+
+        private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> AddCostsOfProjectBuilderWork(
+                 ExcelWorksheet worksheet,
+                 List<int> simulationYears,
+                 CurrentCell currentCell,
+                 Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount, string projectSource, string treatmentCategory)>> yearlyCostProjectBuilderProj)
+        {
+            var workTypeTotalProjectBuilder = new Dictionary<TreatmentCategory, SortedDictionary<int, decimal>>();
+            if (simulationYears.Count <= 0)
+            {
+                return workTypeTotalProjectBuilder;
+            }
+
+            var startYear = simulationYears[0];
+            _bridgeWorkSummaryCommon.SetRowColumns(currentCell, out var startRow, out var startColumn, out var row, out var column);
+            currentCell.Column = column;
+            var projectBuilderTotalRow = 0;
+
+            var uniqueTreatments = new Dictionary<string, int>();
+            var map = WorkTypeMap.Map;
+
+            foreach (var yearlyItem in yearlyCostProjectBuilderProj)
+            {
+                decimal projectBuilderTotalCost = 0;
+                row = currentCell.Row;
+
+                foreach (var data in yearlyItem.Value)
+                {
+                    var dataValue = data.Value;
+                    if (dataValue.projectSource == "ProjectBuilder")
+                    {
+                        var key = data.Key.Contains("Bundle") ? data.Key : dataValue.treatmentCategory;
+                        if (!uniqueTreatments.ContainsKey(key))
+                        {                           
+                            uniqueTreatments.Add(key, currentCell.Row);
+                            worksheet.Cells[row++, column].Value = key;
+                            var cellToEnterCost = yearlyItem.Key - startYear + 2;
+                            worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost].Value = dataValue.treatmentCost;
+                            currentCell.Row += 1;
+                        }
+                        else
+                        {
+                            var cellToEnterCost = yearlyItem.Key - startYear + 2;
+                            worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost].Value = dataValue.treatmentCost;
+                        }
+                        projectBuilderTotalCost += dataValue.treatmentCost;
+
+                        if (map.ContainsKey(dataValue.treatmentCategory))
+                        {
+                            var category = map[dataValue.treatmentCategory];
+                            var treatmentCost = dataValue.treatmentCost;
+                            var currYear = yearlyItem.Key;
+                            FillWorkTypeTotalProjectBuilder(workTypeTotalProjectBuilder, category, simulationYears, currYear, treatmentCost);
+                        }
+                        else
+                        {
+                            var treatmentCost = dataValue.treatmentCost;
+                            var currYear = yearlyItem.Key;
+                            var category = TreatmentCategory.Other;
+                            FillWorkTypeTotalProjectBuilder(workTypeTotalProjectBuilder, category, simulationYears, currYear, treatmentCost);
+                        }
+                    }
+                }
+
+                TotalProjectBuilderSpent.Add(yearlyItem.Key, projectBuilderTotalCost); 
+            }
+
+            column = currentCell.Column;
+            worksheet.Cells[currentCell.Row, column].Value = BAMSConstants.ProjectBuilderTotal; 
+            column++;
+            var fromColumn = column + 1;
+
+            foreach (var cost in TotalProjectBuilderSpent)
+            {
+                if (cost.Value == 0)
+                {
+                    worksheet.Cells[currentCell.Row, fromColumn++].Value = "-";
+                }
+                else
+                {
+                    worksheet.Cells[currentCell.Row, fromColumn++].Value = cost.Value;
+                }
+            }
+            projectBuilderTotalRow = currentCell.Row;
+
+            fromColumn = column + 1;
+
+            var endColumn = startColumn + simulationYears.Count + 1; 
+
+            ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, projectBuilderTotalRow, endColumn]);
+            ExcelHelper.SetCustomFormat(worksheet.Cells[startRow, fromColumn, projectBuilderTotalRow, endColumn], ExcelHelperCellFormat.NegativeCurrency);
+            ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, projectBuilderTotalRow, endColumn], Color.FromArgb(198, 224, 180));
+            ExcelHelper.ApplyColor(worksheet.Cells[projectBuilderTotalRow, fromColumn, projectBuilderTotalRow, endColumn], Color.FromArgb(84, 130, 53));
+            ExcelHelper.SetTextColor(worksheet.Cells[projectBuilderTotalRow, fromColumn, projectBuilderTotalRow, endColumn], Color.White);
+
+            _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, projectBuilderTotalRow + 1, endColumn);
+
+            return workTypeTotalProjectBuilder;
         }
 
         private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> AddCostsOfCulvertWork(ExcelWorksheet worksheet,
@@ -452,14 +723,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             ExcelHelper.SetTextColor(worksheet.Cells[culvertTotalRow, fromColumn, culvertTotalRow, column], Color.White);
             _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, column);
 
-            CulvertTotalRow = culvertTotalRow;
             return workTypeTotalCulvert;
         }
 
         private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> AddCostsOfBridgeWork(ExcelWorksheet worksheet,
             List<int> simulationYears, CurrentCell currentCell,
             Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> costPerTreatmentPerYear,
-            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments)
+            List<(string Name, AssetCategories AssetType, TreatmentCategory Category)> simulationTreatments, Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> workTypeTotalBundled)
         {
             var workTypeTotalBridge = new Dictionary<TreatmentCategory, SortedDictionary<int, decimal>>();
             if (simulationYears.Count <= 0)
@@ -470,7 +740,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             _bridgeWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);
             int bridgeTotalRow = 0;
             _bridgeWorkSummaryCommon.SetNonCulvertSectionExcelString(worksheet, simulationTreatments, ref row, ref column);
-
+            // Bundled Treatments
+            if (ShouldBundleFeasibleTreatments)
+            {
+                worksheet.Cells[row++, column].Value = BAMSConstants.BundledTreatments;
+            }
             worksheet.Cells[row++, column].Value = BAMSConstants.BridgeTotal;
             column++;
             var fromColumn = column + 1;
@@ -495,9 +769,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                         if (!workTypeTotalBridge.ContainsKey(treatment.Category))
                         {
                             workTypeTotalBridge.Add(treatment.Category, new SortedDictionary<int, decimal>()
-                        {
-                            { yearlyValues.Key, cost }
-                        });
+                            {
+                                { yearlyValues.Key, cost }
+                            });
                         }
                         else
                         {
@@ -508,6 +782,39 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                             workTypeTotalBridge[treatment.Category][yearlyValues.Key] += cost;
                         }
                     }
+                }
+
+                if (ShouldBundleFeasibleTreatments)
+                {
+                    var category = TreatmentCategory.Bundled;
+                    if (!workTypeTotalBundled.ContainsKey(category))
+                    {
+                        workTypeTotalBundled.Add(category, new SortedDictionary<int, decimal>()
+                        {
+                            { yearlyValues.Key, 0 }
+                        });
+                    }
+                    else
+                    {
+                        if (!workTypeTotalBundled[category].ContainsKey(yearlyValues.Key))
+                        {
+                            workTypeTotalBundled[category].Add(yearlyValues.Key, 0);
+                        }
+                    }
+                    decimal bundledCost = 0;
+                    foreach (var yearlyValue in yearlyValues.Value)
+                    {
+                        var treatment = yearlyValue.Key;
+                        if (treatment.Contains("Bundle"))
+                        {
+                            decimal cost = 0;
+                            cost = yearlyValue.Value.treatmentCost;
+                            bundledCost += cost;
+                            nonCulvertTotalCost += cost;
+                            workTypeTotalBundled[category][yearlyValues.Key] += cost;
+                        }
+                    }
+                    worksheet.Cells[row++, column].Value = bundledCost;
                 }
 
                 worksheet.Cells[row, column].Value = nonCulvertTotalCost;
@@ -521,7 +828,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             ExcelHelper.ApplyColor(worksheet.Cells[bridgeTotalRow, fromColumn, bridgeTotalRow, column], Color.FromArgb(84, 130, 53));
             ExcelHelper.SetTextColor(worksheet.Cells[bridgeTotalRow, fromColumn, bridgeTotalRow, column], Color.White);
             _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, column);
-            BridgeTotalRow = bridgeTotalRow;
             return workTypeTotalBridge;
         }
 
@@ -539,9 +845,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                var totalSpent = Convert.ToDouble(worksheet.Cells[CulvertTotalRow, column].Value) +
-                    Convert.ToDouble(worksheet.Cells[BridgeTotalRow, column].Value) +
-                Convert.ToDouble(worksheet.Cells[CommittedTotalRow, column].Value);
+                var totalSpent = Convert.ToDouble(worksheet.Cells[TotalSpentRow, column].Value);
 
                 worksheet.Cells[row, column].Value = Convert.ToDouble(worksheet.Cells[budgetTotalRow, column].Value) - totalSpent;
                 row++;
@@ -588,13 +892,38 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 foreach (var year in simulationYears)
                 {
                     workTypeTotalMPMS[category].Add(year, 0);
-                }
-                workTypeTotalMPMS[category][currYear] += treatmentCost;
+                }                
             }
-            else
+            workTypeTotalMPMS[category][currYear] += treatmentCost;
+        }
+
+        private void FillWorkTypeTotalSAP(Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> workTypeTotalSAP,
+            TreatmentCategory category, List<int> simulationYears, int currYear, decimal treatmentCost)
+        {
+            if (!workTypeTotalSAP.ContainsKey(category))
             {
-                workTypeTotalMPMS[category][currYear] += treatmentCost;
+                workTypeTotalSAP.Add(category, new SortedDictionary<int, decimal>());
+                foreach (var year in simulationYears)
+                {
+                    workTypeTotalSAP[category].Add(year, 0);
+                }
             }
+            workTypeTotalSAP[category][currYear] += treatmentCost;
+        }
+
+        private void FillWorkTypeTotalProjectBuilder(Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> workTypeTotalProjectBuilder,
+            TreatmentCategory category, List<int> simulationYears, int currYear, decimal treatmentCost)
+        {
+
+            if (!workTypeTotalProjectBuilder.ContainsKey(category))
+            {
+                workTypeTotalProjectBuilder.Add(category, new SortedDictionary<int, decimal>());
+                foreach (var year in simulationYears)
+                {
+                    workTypeTotalProjectBuilder[category].Add(year, 0); 
+                }
+            }
+            workTypeTotalProjectBuilder[category][currYear] += treatmentCost;
         }
     }
 

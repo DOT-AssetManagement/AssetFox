@@ -21,10 +21,14 @@ namespace AppliedResearchAssociates.iAM.Reporting
         /// </remarks>
         Guid? SimulationID { get; set; }
 
+        Guid? NetworkID { get; set; }
+
         /// <summary>
         /// Runs the report, populating all read only fields
         /// </summary>
-        /// <param name="parameters">JSON representation of data to be projected in report</param>
+        ///<param name="parameters"></param>
+        ///<param name="cancellationToken"></param>
+        ///<param name="workQueueLog"></param>
         Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null);
 
         /// <summary>
@@ -67,5 +71,10 @@ namespace AppliedResearchAssociates.iAM.Reporting
         /// Status message to be shown in UI
         /// </summary>
         string Status { get; }
+
+        /// <summary>
+        /// Report criteria to filter report output based on criteria compatible assets
+        /// </summary>
+        string Criteria { get; set; }
     }
 }

@@ -9,8 +9,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
     public interface IBudgetRepository
     {
-        void CreateScenarioBudgets(List<Budget> budgets, Guid simulationId);
-
         List<SimpleBudgetDetailDTO> GetScenarioSimpleBudgetDetails(Guid simulationId);
 
         List<BudgetLibraryDTO> GetBudgetLibraries();
@@ -44,6 +42,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void UpsertOrDeleteUsers(Guid budgetLibraryId, IList<LibraryUserDTO> libraryUsers);
         List<LibraryUserDTO> GetLibraryUsers(Guid budgetLibraryId);
 
+        DateTime GetLibraryModifiedDate(Guid budgetLibraryId);
+
         List<int> GetBudgetYearsBySimulationId(Guid simulationId);
         Dictionary<string, string> GetCriteriaPerBudgetNameForSimulation(Guid simulationId);
         Dictionary<string, string> GetCriteriaPerBudgetNameForBudgetLibrary(Guid budgetLibraryId);
@@ -59,7 +59,5 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void UpdateBudgetLibraryAndUpsertOrDeleteBudgets(BudgetLibraryDTO dto);
         void CreateNewBudgetLibrary(BudgetLibraryDTO dto, Guid userId);
         void UpsertOrDeleteScenarioBudgetsWithInvestmentPlan(List<BudgetDTO> budgets, InvestmentPlanDTO investmentPlan, Guid simulationId);
-        void AddLibraryIdToScenarioBudget(List<BudgetDTO> budgetDTOs, Guid? libraryId);
-        void AddModifiedToScenarioBudget(List<BudgetDTO> budgetDTOs, bool IsModified);
     }
 }

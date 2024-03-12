@@ -69,10 +69,10 @@ const actions = {
                 }
             });
     },
-    async azureB2CLogout() {
-        await state.app.logout();
+    async azureB2CLogout() {     
         localStorage.removeItem('access_token');
         localStorage.removeItem('LoggedInUser');
+        state.app.logout();
     },
     async getAzureB2CAccessToken(
         { commit, dispatch }: any,
@@ -119,13 +119,13 @@ const actions = {
         const accountDetails: msal.Account = await state.app.getAccount();
         if (hasValue(accountDetails.name)) {
             localStorage.setItem('LoggedInUser', accountDetails.name);
-            dispatch('setAzureUserInfo', {
+           await dispatch('setAzureUserInfo', {
                 status: true,
                 username: accountDetails.name,
             });
         } else {
             localStorage.removeItem('LoggedInUser');
-            dispatch('setAzureUserInfo', {
+           await dispatch('setAzureUserInfo', {
                 status: false,
                 username: '',
             });

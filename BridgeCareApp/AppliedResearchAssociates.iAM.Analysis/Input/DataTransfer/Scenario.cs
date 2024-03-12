@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
 
@@ -24,6 +25,8 @@ public sealed class Scenario
 
     public List<SelectableTreatment> SelectableTreatments { get; init; } = new();
 
+    public bool ShouldBundleFeasibleTreatments { get; set; }
+
     public bool ShouldPreapplyPassiveTreatment { get; set; }
 
     public static Scenario ConvertIn(Simulation source) => new()
@@ -37,6 +40,7 @@ public sealed class Scenario
         NameOfPassiveTreatment = source.DesignatedPassiveTreatment.Name,
         PerformanceCurves = source.PerformanceCurves.Select(Convert).ToList(),
         SelectableTreatments = source.Treatments.Select(Convert).ToList(),
+        ShouldBundleFeasibleTreatments = source.ShouldBundleFeasibleTreatments,
         ShouldPreapplyPassiveTreatment = source.ShouldPreapplyPassiveTreatment,
     };
 
@@ -49,7 +53,7 @@ public sealed class Scenario
         AllowFundingFromMultipleBudgets = source.AllowFundingFromMultipleBudgets,
         BenefitAttributeName = source.Benefit.Attribute.Name,
         BenefitLimit = source.Benefit.Limit,
-        BenefitWeightAttributeName = source.Weighting.Name,
+        BenefitWeightAttributeName = source.Weighting?.Name,
         BudgetPriorities = source.BudgetPriorities.Select(Convert).ToList(),
         DeficientConditionGoals = source.DeficientConditionGoals.Select(Convert).ToList(),
         FilterExpression = source.Filter.Expression,
@@ -57,7 +61,6 @@ public sealed class Scenario
         RemainingLifeLimits = source.RemainingLifeLimits.Select(Convert).ToList(),
         ShouldApplyMultipleFeasibleCosts = source.ShouldApplyMultipleFeasibleCosts,
         ShouldDeteriorateDuringCashFlow = source.ShouldDeteriorateDuringCashFlow,
-        ShouldRestrictCashFlowToFirstYearBudgets = source.ShouldRestrictCashFlowToFirstYearBudgets,
         SpendingStrategy = source.SpendingStrategy,
         TargetConditionGoals = source.TargetConditionGoals.Select(Convert).ToList(),
     };
@@ -141,12 +144,10 @@ public sealed class Scenario
     private static CommittedProject Convert(Analysis.CommittedProject source) => new()
     {
         AssetID = source.Asset.Id,
-        Consequences = source.Consequences.Select(Convert).ToList(),
         Cost = source.Cost,
         Name = source.Name,
-        ShadowForAnyTreatment = source.ShadowForAnyTreatment,
-        ShadowForSameTreatment = source.ShadowForSameTreatment,
         NameOfUsableBudget = source.Budget.Name,
+        NameOfTemplateTreatment = source.TemplateTreatment.Name,
         Year = source.Year,
     };
 
@@ -200,7 +201,7 @@ public sealed class Scenario
         InflationRatePercentage = source.InflationRatePercentage,
         MinimumProjectCostLimit = source.MinimumProjectCostLimit,
         NumberOfYearsInAnalysisPeriod = source.NumberOfYearsInAnalysisPeriod,
-        ShouldAccumulateUnusedBudgetAmounts = source.ShouldAccumulateUnusedBudgetAmounts,
+        AllowFundingCarryover = source.AllowFundingCarryover,
     };
 
     private static Network Convert(Analysis.Network source) => new()
@@ -240,12 +241,13 @@ public sealed class Scenario
         Consequences = source.Consequences.Select(Convert).ToList(),
         Costs = source.Costs.Select(Convert).ToList(),
         FeasibilityCriterionExpressions = source.FeasibilityCriteria.Select(criterion => criterion.Expression).ToList(),
+        ForCommittedProjectsOnly = source.ForCommittedProjectsOnly,
         Name = source.Name,
         PerformanceCurveAdjustmentFactors = source.PerformanceCurveAdjustmentFactors.Select(Convert).ToList(),
         Schedulings = source.Schedulings.Select(Convert).ToList(),
         ShadowForAnyTreatment = source.ShadowForAnyTreatment,
         ShadowForSameTreatment = source.ShadowForSameTreatment,
-        Supersessions = source.Supersessions.Select(Convert).ToList(),
+        SupersedeRules = source.SupersedeRules.Select(Convert).ToList(),
         NamesOfUsableBudgets = source.Budgets.Select(budget => budget.Name).ToList(),
     };
 
@@ -264,19 +266,13 @@ public sealed class Scenario
         Name = source.Name,
     };
 
-    private static TreatmentConsequence Convert(Analysis.TreatmentConsequence source) => new()
-    {
-        AttributeName = source.Attribute.Name,
-        ChangeExpression = source.Change.Expression,
-    };
-
     private static TreatmentScheduling Convert(Analysis.TreatmentScheduling source) => new()
     {
         OffsetToFutureYear = source.OffsetToFutureYear,
-        TreatmentName = source.Treatment.Name,
+        TreatmentName = source.TreatmentToSchedule.Name,
     };
 
-    private static TreatmentSupersession Convert(Analysis.TreatmentSupersession source) => new()
+    private static TreatmentSupersedeRule Convert(Analysis.TreatmentSupersedeRule source) => new()
     {
         CriterionExpression = source.Criterion.Expression,
         TreatmentName = source.Treatment.Name,
@@ -294,6 +290,7 @@ public sealed class Scenario
 
             result.Name = source.Name;
             result.NumberOfYearsOfTreatmentOutlook = source.NumberOfYearsOfTreatmentOutlook;
+            result.ShouldBundleFeasibleTreatments = source.ShouldBundleFeasibleTreatments;
             result.ShouldPreapplyPassiveTreatment = source.ShouldPreapplyPassiveTreatment;
 
             Convert(source.AnalysisMethod, result.AnalysisMethod);
@@ -340,10 +337,10 @@ public sealed class Scenario
         {
             var result = target.AddTreatment();
 
-            result.Category = source.Category;
             result.Name = source.Name;
-            result.ShadowForAnyTreatment = source.ShadowForAnyTreatment;
-            result.ShadowForSameTreatment = source.ShadowForSameTreatment;
+            result.SetShadowForAnyTreatment(source.ShadowForAnyTreatment);
+            result.SetShadowForSameTreatment(source.ShadowForSameTreatment);
+            result.ForCommittedProjectsOnly = source.ForCommittedProjectsOnly;
 
             foreach (var item in source.NamesOfUsableBudgets)
             {
@@ -376,15 +373,15 @@ public sealed class Scenario
                 Convert(item, result);
             }
 
-            foreach (var item in source.Supersessions)
+            foreach (var item in source.SupersedeRules)
             {
                 Convert(item, result);
             }
         }
 
-        private void Convert(TreatmentSupersession source, Analysis.SelectableTreatment target)
+        private void Convert(TreatmentSupersedeRule source, Analysis.SelectableTreatment target)
         {
-            var result = target.AddSupersession();
+            var result = target.AddSupersedeRule();
 
             result.Criterion.Expression = source.CriterionExpression;
 
@@ -399,7 +396,7 @@ public sealed class Scenario
             target.Schedulings.Add(result);
 
             ActionsToPerformAtEndOfConversion.Enqueue(
-                () => result.Treatment = TreatmentByName[source.TreatmentName]);
+                () => result.TreatmentToSchedule = TreatmentByName[source.TreatmentName]);
         }
 
         private static void Convert(CriterionEquationPair source, Analysis.SelectableTreatment target)
@@ -504,7 +501,7 @@ public sealed class Scenario
             target.InflationRatePercentage = source.InflationRatePercentage;
             target.MinimumProjectCostLimit = source.MinimumProjectCostLimit;
             target.NumberOfYearsInAnalysisPeriod = source.NumberOfYearsInAnalysisPeriod;
-            target.ShouldAccumulateUnusedBudgetAmounts = source.ShouldAccumulateUnusedBudgetAmounts;
+            target.AllowFundingCarryover = source.AllowFundingCarryover;
 
             foreach (var item in source.Budgets)
             {
@@ -565,26 +562,16 @@ public sealed class Scenario
 
         private void Convert(CommittedProject source, Simulation target)
         {
-            var result = target.AddCommittedProject(AssetByID[source.AssetID], source.Year);
-
-            result.Budget = BudgetByName[source.NameOfUsableBudget];
-            result.Cost = source.Cost;
-            result.Name = source.Name;
-            result.ShadowForAnyTreatment = source.ShadowForAnyTreatment;
-            result.ShadowForSameTreatment = source.ShadowForSameTreatment;
-            result.treatmentCategory = source.Category;            
-
-            foreach (var item in source.Consequences)
+            var result = new Analysis.CommittedProject(AssetByID[source.AssetID], source.Year)
             {
-                result.Consequences.Add(Convert(item));
-            }
-        }
+                Budget = BudgetByName[source.NameOfUsableBudget],
+                Cost = source.Cost,
+                Name = source.Name,
+                TemplateTreatment = TreatmentByName[source.NameOfTemplateTreatment],
+            };
 
-        private Analysis.TreatmentConsequence Convert(TreatmentConsequence source) => new()
-        {
-            Attribute = AttributeByName[source.AttributeName],
-            Change = { Expression = source.ChangeExpression },
-        };
+            return result;
+        }
 
         private void Convert(AnalysisMethod source, Analysis.AnalysisMethod target)
         {
@@ -595,7 +582,6 @@ public sealed class Scenario
             target.OptimizationStrategy = source.OptimizationStrategy;
             target.ShouldApplyMultipleFeasibleCosts = source.ShouldApplyMultipleFeasibleCosts;
             target.ShouldDeteriorateDuringCashFlow = source.ShouldDeteriorateDuringCashFlow;
-            target.ShouldRestrictCashFlowToFirstYearBudgets = source.ShouldRestrictCashFlowToFirstYearBudgets;
             target.SpendingStrategy = source.SpendingStrategy;
 
             if (source.BenefitWeightAttributeName != null)

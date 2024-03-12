@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Common.Logging;
@@ -59,9 +60,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
     {
         public string Name => "Test Report File";
 
-        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService)
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService, string suffix)
         {
-            return new TestReportFile(uow, Name, results);
+            return new TestReportFile(uow, Name, results, suffix);
         }
     }
 
@@ -73,11 +74,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         private Guid? _sid;
         private IUnitOfWork _repo;
         private string _reportName;
+        private string _suffix;
 
-        public TestReportFile(IUnitOfWork repository, string name, ReportIndexDTO results)
+        public TestReportFile(IUnitOfWork repository, string name, ReportIndexDTO results, string suffix)
         {
             _repo = repository;
             _reportName = name;
+            _suffix = suffix;
             Guid? _newSid = new Guid("2319a829-8df7-4ad7-86a1-00dceb1fadaa");
 
             if (results == null)
@@ -94,17 +97,22 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public Guid ID { get => _id; set { } }
         public Guid? SimulationID { get => _sid; set { } }
+        public Guid? NetworkID { get; set; }
         public string Results { get => $"C:\\fakepath\\filename.xlsx"; set { } }
 
         public ReportType Type => ReportType.File;
 
         public string ReportTypeName => _reportName;
 
+        public string Suffix => _suffix;
+
         public List<string> Errors => _blankErrorList;
 
         public bool IsComplete => true;
 
         public string Status => "Report finished running";
+
+        public string Criteria { get; set; }
 
         public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }
@@ -113,9 +121,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
     {
         public string Name => "Test HTML File";
 
-        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService)
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService, string suffix)
         {
-            return new TestHTMLFile(uow, Name, results);
+            return new TestHTMLFile(uow, Name, results, suffix);
         }
     }
 
@@ -126,11 +134,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         private Guid? _sid = null;
         private IUnitOfWork _repo;
         private string _reportName;
+        private string _suffix;
 
-        public TestHTMLFile(IUnitOfWork repository, string name, ReportIndexDTO results)
+        public TestHTMLFile(IUnitOfWork repository, string name, ReportIndexDTO results, string suffix)
         {
             _repo = repository;
             _reportName = name;
+            _suffix = suffix;
 
             if (results == null)
             {
@@ -145,17 +155,22 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public Guid ID { get => _id; set { } }
         public Guid? SimulationID { get => _sid; set { } }
+        public Guid? NetworkID { get; set; }
         public string Results { get => $"<p>Hello, World!</p>"; set { } }
 
         public ReportType Type => ReportType.HTML;
 
         public string ReportTypeName => _reportName;
 
+        public string Suffix => _suffix;
+
         public List<string> Errors => _blankErrorList;
 
         public bool IsComplete => true;
 
         public string Status => "Report finished running";
+
+        public string Criteria { get ; set ; }
 
         public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }
@@ -164,7 +179,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
     {
         public string Name => "Bad Report";
 
-        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService)
+        public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService, string suffix)
         {
             var report = new TestBadReport(uow);
             return report;
@@ -177,26 +192,33 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         private Guid _id = new Guid("d1999649-36ad-4e33-b7c2-e2afbea9b5fa");
         private IUnitOfWork _repo;
         private string _reportName;
+        private string _suffix;
 
         public TestBadReport(IUnitOfWork repository)
         {
             _repo = repository;
             _reportName = String.Empty;
+            _suffix = String.Empty;
         }
 
         public Guid ID { get => _id; set { } }
         public Guid? SimulationID { get => null; set { } }
+        public Guid? NetworkID { get; set; }
         public string Results { get => $"<p>Hello, World!</p>"; set { } }
 
         public ReportType Type => ReportType.HTML;
 
         public string ReportTypeName => _reportName;
 
+        public string Suffix => _suffix;
+
         public List<string> Errors => _blankErrorList;
 
         public bool IsComplete => true;
 
         public string Status => "Report finished running";
+
+        public string Criteria { get; set; }
 
         public Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null) => throw new NotImplementedException();
     }

@@ -10,6 +10,32 @@ export default class CommittedProjectsService {
             `${API.CommittedProject}/CommittedProjectTemplate/${networkId}`,
         );
     }
+    static getUploadedCommittedProjectTemplate(): AxiosPromise {
+        return coreAxiosInstance.get(
+            `${API.CommittedProject}/DownloadCommittedProjectTemplate`,
+        );
+    }
+    static getUploadedCommittedProjectTemplates(): AxiosPromise {
+        return coreAxiosInstance.get(
+            `${API.CommittedProject}/getUploadedCommittedProjectTemplates`,
+        );
+    }
+    static addCommittedProjectTemplate(file: File): AxiosPromise {
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        let formData = new FormData();
+        formData.append('file', file);
+        return coreAxiosInstance.post(
+            `${API.CommittedProject}/AddCommittedProjectTemplate`,
+            formData,
+            {headers: {'Content-Type': 'multipart/form-data'}},
+        );
+    }
+    static getSelectedCommittedProjectTemplate(filename: string): AxiosPromise {
+        return coreAxiosInstance.get(
+            `${API.CommittedProject}/DownloadSelectedCommittedProjectTemplate/${filename}`,
+        );
+    }
     static exportCommittedProjects(scenarioId: string): AxiosPromise {
         return coreAxiosInstance.get(
             `${API.CommittedProject}/ExportCommittedProjects/${scenarioId}`,
@@ -18,6 +44,17 @@ export default class CommittedProjectsService {
     static getCommittedProjects(scenarioId: string): AxiosPromise {
         return coreAxiosInstance.get(
             `${API.CommittedProject}/GetSectionCommittedProjects/${scenarioId}`,
+        );
+    }
+    static importCommittedProjectTemplate(file: File): AxiosPromise {
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        let formData = new FormData();
+        formData.append('file', file);
+        return coreAxiosInstance.post(
+            `${API.CommittedProject}/SetCommittedProjectTemplate`,
+            formData,
+            {headers: {'Content-Type': 'multipart/form-data'}},
         );
     }
     static getCommittedProjectsPage(scenarioId: string, data:PagingRequest<SectionCommittedProject>): AxiosPromise {
@@ -37,13 +74,11 @@ export default class CommittedProjectsService {
     }
     static importCommittedProjects(
         file: File,
-        applyNoTreatment: boolean,
         selectedScenarioId: string,
     ): AxiosPromise {
         let formData = new FormData();
 
         formData.append('file', file);
-        formData.append('applyNoTreatment', applyNoTreatment ? '1' : '0');
         formData.append('simulationId', selectedScenarioId);
 
         return coreAxiosInstance.post(
@@ -83,6 +118,10 @@ export default class CommittedProjectsService {
         );
     }
 
+    static getProjectSources(): AxiosPromise {
+        return coreAxiosInstance.get(`${API.CommittedProject}/projectsources`);
+    }
+       
     static FillTreatmentValues(data: CommittedProjectFillTreatmentValues){
         return coreAxiosInstance.post(
             `${API.CommittedProject}/FillTreatmentValues`, data

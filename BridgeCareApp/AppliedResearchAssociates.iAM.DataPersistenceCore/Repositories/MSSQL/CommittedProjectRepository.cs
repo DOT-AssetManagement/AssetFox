@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,8 +13,13 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappe
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AppliedResearchAssociates.iAM.Hubs.Services;
+using AppliedResearchAssociates.iAM.Hubs;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
+using Microsoft.Extensions.DependencyModel;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -28,8 +34,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public void GetSimulationCommittedProjects(Simulation simulation)
         {
+            Guid guid = simulation.Id;
             double noTreatmentDefaultCost = 0.0;
             var selectableTreatmentRepository = _unitOfWork.SelectableTreatmentRepo;
+            var selectableTreatments = simulation.Treatments;
 
             var simulationEntity = _unitOfWork.Context.Simulation.FirstOrDefault(_ => _.Id == simulation.Id)
                 ?? throw new RowNotInTableException("No simulation was found for the given scenario.");
@@ -45,9 +53,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var projects = _unitOfWork.Context.CommittedProject
                 .Include(_ => _.CommittedProjectLocation)
                 .Include(_ => _.ScenarioBudget)
-                .Include(_ => _.CommittedProjectConsequences)
-                .ThenInclude(_ => _.Attribute)
-                .Where(_ => _.SimulationId == simulation.Id).ToList();
+                .Where(_ => _.SimulationId == simulation.Id)
+                .OrderBy(_ => _.Year).ToList();
 
             var keyPropertyNames = (List<string>)_unitOfWork.AdminSettingsRepo.GetKeyFields();
 
@@ -61,11 +68,34 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                         var defaultNoTreatment = selectableTreatmentRepository.GetDefaultNoTreatment(simulation.Id);
                         noTreatmentDefaultCost = GetDefaultNoTreatmentCost(defaultNoTreatment, asset.Id);
                     }
-
-                    project.CreateCommittedProject(simulation, asset.Id, simulationEntity.NoTreatmentBeforeCommittedProjects, noTreatmentDefaultCost, noTreatmentEntity, keyPropertyNames);
+                    project.CreateCommittedProject(simulation, selectableTreatments, asset.Id, simulationEntity.NoTreatmentBeforeCommittedProjects, noTreatmentDefaultCost, noTreatmentEntity, keyPropertyNames);
                 }
             }
         }
+
+        public void SetCommittedProjectTemplate(Stream stream)
+        {
+            BinaryReader br = new BinaryReader(stream);
+            var fileSize = stream.Length;
+            var bytes = br.ReadBytes(Convert.ToInt32(fileSize));
+            br.Close();
+            stream.Close();
+
+            var existingComittedProjectTemplate = _unitOfWork.Context.CommittedProjectSettings.Where(_ => _.Key == "Committed Project Template").FirstOrDefault();
+            if (existingComittedProjectTemplate == null)
+                _unitOfWork.Context.CommittedProjectSettings.Add(new CommittedProjectSettingsEntity
+                {
+                    Key = "Committed Project Template",
+                    Value = string.Format(Convert.ToBase64String(bytes))
+                });
+            else
+            {
+                existingComittedProjectTemplate.Value = string.Format(Convert.ToBase64String(bytes));
+                _unitOfWork.Context.CommittedProjectSettings.Update(existingComittedProjectTemplate);
+            }
+            _unitOfWork.Context.SaveChanges();
+         }
+
 
         public double GetDefaultNoTreatmentCost(TreatmentDTO treatment, Guid assetId)
         {
@@ -104,6 +134,62 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 totalCost += currentCost;
             });
             return totalCost;
+        }
+
+        public string DownloadCommittedProjectTemplate()
+        {
+            try
+            {
+                return _unitOfWork.Context.CommittedProjectSettings.Where(_ => _.Key == "Committed Project Template").FirstOrDefault().Value;
+            }
+            catch (Exception e)
+            {
+                return "";
+            }
+        }
+
+        public string DownloadSelectedCommittedProjectTemplate(string filename)
+        {
+            try
+            {
+                return _unitOfWork.Context.CommittedProjectTemplates.Where(_ => _.Key == filename).FirstOrDefault().Value;
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+
+        public List<String> getUploadedCommittedProjectTemplates()
+        {
+            var names = _unitOfWork.Context.CommittedProjectTemplates
+                .Select(t => t.Key)
+                .ToList();
+
+            return names;
+        }
+
+        public void AddCommittedProjectTemplate(Stream stream, string filename)
+        {
+            BinaryReader br = new BinaryReader(stream);
+            var fileSize = stream.Length;
+            var bytes = br.ReadBytes(Convert.ToInt32(fileSize));
+            br.Close();
+            stream.Close();
+
+            var existingComittedProjectTemplate = _unitOfWork.Context.CommittedProjectTemplates.Where(_ => _.Key == filename).FirstOrDefault();
+            if (existingComittedProjectTemplate == null)
+                _unitOfWork.Context.CommittedProjectTemplates.Add(new CommittedProjectTreatmentEntity
+                {
+                    Key = filename,
+                    Value = string.Format(Convert.ToBase64String(bytes))
+                });
+            else
+            {
+                existingComittedProjectTemplate.Value = string.Format(Convert.ToBase64String(bytes));
+                _unitOfWork.Context.CommittedProjectTemplates.Update(existingComittedProjectTemplate);
+            }
+            _unitOfWork.Context.SaveChanges();
         }
 
         private List<AttributeEntity> InstantiateCompilerAndGetExpressionAttributes(string mergedCriteriaExpression, CalculateEvaluateCompiler compiler)
@@ -154,8 +240,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var allProjectsInScenario = _unitOfWork.Context.CommittedProject.AsNoTracking()
                 .Where(_ => _.SimulationId == simulationId)
                 .Include(_ => _.ScenarioBudget)
-                .Include(_ => _.CommittedProjectConsequences)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.CommittedProjectLocation)
                 .Include(_=>_.Simulation.Network);
 
@@ -176,8 +260,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return _unitOfWork.Context.CommittedProject
                 .Where(_ => _.SimulationId == simulationId)
                 .Include(_ => _.ScenarioBudget)
-                .Include(_ => _.CommittedProjectConsequences)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.CommittedProjectLocation)
                 .Include(_ => _.Simulation.Network)
                 .Select(_ => _.ToDTO(networkKeyAttribute))
@@ -196,6 +278,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 }
             }
 
+            var keyAttrDict = new Dictionary<Guid, string>();
+            simulationIds.ForEach(_ =>
+            {
+                keyAttrDict[_] = GetNetworkKeyAttribute(_);
+            });
+
             // Test for existing budget
             var budgetIds = _unitOfWork.Context.ScenarioBudget.AsNoTracking()
                 .Where(_ => simulationIds.Contains(_.SimulationId))
@@ -207,7 +295,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             if (badBudgets.Any())
             {
                 var budgetList = new StringBuilder();
-                badBudgets.ForEach(budget => budgetList.Append(budget.ToString() + ", "));
+                badBudgets.ForEach(budget => budgetList.Append(budget.Id.ToString() + ", "));
                 throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}");
             }
 
@@ -217,43 +305,24 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var committedProjectEntities = projects.Select(p =>
                 {
                     AssignIdWhenNull(p);
-                    return p.ToEntity(attributes, GetNetworkKeyAttribute(p.SimulationId));
+                    return p.ToEntity(attributes, keyAttrDict[p.SimulationId]);
                 }).ToList();
-
-            var committedProjectConsequenceEntities = committedProjectEntities
-                    .Where(_ => _.CommittedProjectConsequences.Any())
-                    .SelectMany(_ => _.CommittedProjectConsequences)
-                    .ToList();
-
-            var allProvidedConsequenceEntityIds = committedProjectConsequenceEntities.Select(_ => _.Id).ToList();
-            _unitOfWork.Context.DeleteAll<CommittedProjectConsequenceEntity>(_ => !allProvidedConsequenceEntityIds.Contains(_.Id));
 
             var locations = committedProjectEntities.Select(_ => _.CommittedProjectLocation).ToList();
 
             // Determine the committed projects that exist
-            var allProvidedEntityIds = committedProjectEntities.Select(_ => _.Id).ToList();
-            var allExistingCommittedProjectIds = new List<Guid>();
-            foreach (var simulation in simulationIds)
+ 
+            var groupedCpByYearTreatAsset = projects.GroupBy(_ => _.Year.ToString() + _.Treatment + _.LocationKeys[keyAttrDict[_.SimulationId]]).ToList();
+            if(groupedCpByYearTreatAsset.Count < projects.Count)
             {
-                var simulationProjects = _unitOfWork.Context.CommittedProject
-                    .Where(_ => _.SimulationId == simulation && allProvidedEntityIds.Contains(_.Id))
-                    .Select(_ => _.Id);
-                allExistingCommittedProjectIds.AddRange(simulationProjects);
+                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset");
             }
-            _unitOfWork.BeginTransaction();
-            try
-            {
-                // Upsert(update/insert) all
-                _unitOfWork.Context.UpsertAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
-                _unitOfWork.Context.UpsertAll(committedProjectConsequenceEntities, _unitOfWork.UserEntity?.Id);
-                
-                _unitOfWork.Commit();
-            }
-            catch (Exception e)
-            {
-                _unitOfWork.Rollback();
-                throw;
-            }
+            _unitOfWork.AsTransaction(() =>
+            {                
+                _unitOfWork.Context.UpsertAll(committedProjectEntities);
+                var committedProjectLocations = committedProjectEntities.Select(_ => _.CommittedProjectLocation).ToList();
+                _unitOfWork.Context.UpsertAll(committedProjectLocations);
+            });
         }
 
         public void DeleteSimulationCommittedProjects(Guid simulationId)
@@ -268,16 +337,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 return;
             }
 
-            try
-            {
-                _unitOfWork.BeginTransaction();
-                _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(_ => _.SimulationId == simulationId);
-                _unitOfWork.Commit();
-            }
-            catch (Exception e)
-            {
-                _unitOfWork.Rollback();
-            }
+            _unitOfWork.AsTransaction(() =>
+                _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(_ => _.SimulationId == simulationId));
 
             // Update last modified date
             var simulationEntity = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
@@ -290,17 +351,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Where(_ => projectIds.Contains(_.Id))
                 .Select(_ => _.SimulationId);
 
-            try
-            {
-                _unitOfWork.BeginTransaction();
-                _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(_ => projectIds.Contains(_.Id));
-                _unitOfWork.Commit();
-            }
-            catch (Exception e)
-            {
-                _unitOfWork.Rollback();
-                throw;
-            }
+            _unitOfWork.AsTransaction(() => 
+                _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(_ => projectIds.Contains(_.Id)));
+              
 
             // Update last modified date
             foreach (var simulationId in simulationIds)
@@ -323,8 +376,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         private void AssignIdWhenNull(BaseCommittedProjectDTO dto)
         {
             if (dto.Id == Guid.Empty) dto.Id = Guid.NewGuid();
-            dto.Consequences.Where(c => c.Id == Guid.Empty)
-                .ForEach(n => n.Id = Guid.NewGuid());
         }
 
         public string GetNetworkKeyAttribute(Guid simulationId)

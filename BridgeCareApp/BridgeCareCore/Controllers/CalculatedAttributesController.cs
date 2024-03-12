@@ -20,6 +20,7 @@ using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
 using Microsoft.SqlServer.Dac.Model;
 using BridgeCareCore.Utils.Interfaces;
 using BridgeCareCore.Utils;
+using BridgeCareCore.Services;
 
 namespace BridgeCareCore.Controllers
 {
@@ -67,6 +68,32 @@ namespace BridgeCareCore.Controllers
             {
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError,
                     $"{CalculatedAttributeError}::{nameof(GetEmptyCalculatedAttributesByLibraryId)} - {HubService.errorList["Exception"]}");
+                throw;
+            }
+        }
+
+        [HttpGet]
+        [Route("GetCalculatedLibraryModifiedDate/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyInvestmentFromLibrary)]
+        public async Task<IActionResult> GetCalculatedLibraryDate(Guid libraryId)
+        {
+            try
+            {
+                var users = new DateTime();
+                await Task.Factory.StartNew(() =>
+                {
+                    users = UnitOfWork.CalculatedAttributeRepo.GetLibraryModifiedDate(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
                 throw;
             }
         }
@@ -155,6 +182,7 @@ namespace BridgeCareCore.Controllers
                         attributes = _calulatedAttributeService.GetSyncedLibraryDataset(upsertRequest.SyncModel.LibraryId.Value, upsertRequest.SyncModel);
                     else if (!upsertRequest.IsNewLibrary)
                         attributes = _calulatedAttributeService.GetSyncedLibraryDataset(upsertRequest.Library.Id, upsertRequest.SyncModel);
+
                     if (upsertRequest.IsNewLibrary)
                         attributes.ForEach(attribute =>
                         {
@@ -164,7 +192,10 @@ namespace BridgeCareCore.Controllers
                             {
                                 _.Id = Guid.NewGuid();
                                 _.Equation.Id = Guid.NewGuid();
-                                _.CriteriaLibrary.Id = Guid.NewGuid();
+                                if (_.CriteriaLibrary != null)
+                                {
+                                    _.CriteriaLibrary.Id = Guid.NewGuid();
+                                }
                             });
                             attribute.Equations = equations;
                         });
@@ -172,8 +203,8 @@ namespace BridgeCareCore.Controllers
                     dto.CalculatedAttributes = attributes;
                     calculatedAttributesRepo.UpsertCalculatedAttributeLibrary(dto);
                 });
-                return Ok();
 
+                return Ok();
             }
             catch (Exception e)
             {
@@ -214,8 +245,8 @@ namespace BridgeCareCore.Controllers
                 {
                     var dto = _calulatedAttributeService.GetSyncedScenarioDataSet(simulationId, syncModel);
 
-                    calculatedAttributesRepo.AddLibraryIdToScenarioCalculatedAttributes(dto, syncModel.LibraryId);
-                    calculatedAttributesRepo.AddModifiedToScenarioCalculatedAttributes(dto, syncModel.IsModified);
+                    CalculatedAttributeDtoListService.AddLibraryIdToScenarioCalculatedAttributes(dto, syncModel.LibraryId);
+                    CalculatedAttributeDtoListService.AddModifiedToScenarioCalculatedAttributes(dto, syncModel.IsModified);
                     
                     calculatedAttributesRepo.UpsertScenarioCalculatedAttributes(dto, simulationId);
                 });

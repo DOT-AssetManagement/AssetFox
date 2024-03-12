@@ -26,6 +26,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
         public Guid ID { get => _id; set { } }
         public Guid? SimulationID { get => null; set { } }
 
+        public Guid? NetworkID { get; set; }
+
         public string Results => "<p>Hello, world!</p>";
 
         public ReportType Type => ReportType.HTML;
@@ -39,6 +41,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
         public string Status => "No report to run.";
 
         public string Suffix => throw new NotImplementedException();
+        
+        public string Criteria { get => null; set { } }
 
         public async Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null)
         {
