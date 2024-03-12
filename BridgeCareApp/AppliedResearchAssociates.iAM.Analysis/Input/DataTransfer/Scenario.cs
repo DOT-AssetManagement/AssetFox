@@ -310,7 +310,7 @@ public sealed class Scenario
 
             foreach (var item in source.CommittedProjects)
             {
-                Convert(item, result);
+                result.CommittedProjects.Add(Convert(item));
             }
 
             TreatmentByName[source.NameOfPassiveTreatment].DesignateAsPassiveForSimulation();
@@ -560,7 +560,7 @@ public sealed class Scenario
             }
         }
 
-        private void Convert(CommittedProject source, Simulation target)
+        private Analysis.CommittedProject Convert(CommittedProject source)
         {
             var result = new Analysis.CommittedProject(AssetByID[source.AssetID], source.Year)
             {
