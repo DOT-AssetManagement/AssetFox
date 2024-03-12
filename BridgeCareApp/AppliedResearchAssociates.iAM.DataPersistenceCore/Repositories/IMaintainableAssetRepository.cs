@@ -18,8 +18,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 
         void CreateMaintainableAssets(List<MaintainableAsset> maintainableAssets, Guid networkId);
 
-        void CreateMaintainableAssets(List<AnalysisMaintainableAsset> maintainableAssets, Guid networkId);
-
         void UpdateMaintainableAssetsSpatialWeighting(List<Data.Networking.MaintainableAsset> maintainableAssets);
 
         string GetPredominantAssetSpatialWeighting(Guid networkId);
@@ -27,5 +25,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         MaintainableAsset GetMaintainableAssetByKeyAttribute(Guid networkId, string attributeValue);
 
         List<Guid> GetAllIdsInCommittedProjectsForSimulation(Guid simulationId, Guid networkId);
+
+        List<Guid> GetMaintainableAssetAttributeIdsByNetworkId(Guid networkId);
+
     }
 }

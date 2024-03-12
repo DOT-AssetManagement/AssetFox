@@ -18,9 +18,8 @@ using BridgeCareCore.Utils.Interfaces;
 using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
 using BridgeCareCore.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
 using BridgeCareCore.Services.General_Work_Queue.WorkItems;
-using AppliedResearchAssociates.iAM.Analysis;
+using BridgeCareCore.Services;
 
 namespace BridgeCareCore.Controllers
 {
@@ -29,7 +28,8 @@ namespace BridgeCareCore.Controllers
     public class TreatmentController : BridgeCareCoreBaseController
     {
         public const string TreatmentError = "Treatment Error";
-
+        public const string RequestedToModifyNonexistentLibraryErrorMessage = "The request says to modify a library, but the library does not exist.";
+        public const string RequestedToCreateExistingLibraryErrorMessage = "The request says to create a new library, but the library already exists.";
         private readonly ITreatmentService _treatmentService;
         private readonly ITreatmentPagingService _treatmentPagingService;
         private readonly IClaimHelper _claimHelper;
@@ -47,6 +47,32 @@ namespace BridgeCareCore.Controllers
             _treatmentPagingService = treatmentPagingService ?? throw new ArgumentNullException(nameof(treatmentPagingService));
             _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
             _generalWorkQueueService = generalWorkQueueService ?? throw new ArgumentNullException(nameof(generalWorkQueueService));
+        }
+
+        [HttpGet]
+        [Route("GetTreatmentLibraryModifiedDate/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyInvestmentFromLibrary)]
+        public async Task<IActionResult> GetTreatmentLibraryDate(Guid libraryId)
+        {
+            try
+            {
+                var users = new DateTime();
+                await Task.Factory.StartNew(() =>
+                {
+                    users = UnitOfWork.SelectableTreatmentRepo.GetLibraryModifiedDate(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                throw;
+            }
         }
 
         [HttpGet]
@@ -122,7 +148,7 @@ namespace BridgeCareCore.Controllers
                     }
                     else
                     {
-                        var library = UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibraries().FirstOrDefault(_ => _.Id == selectableTreatment.LibraryId);
+                        var library = UnitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibaryNoChildren(selectableTreatment.LibraryId);
                         if (library != null) library.IsModified = selectableTreatment.IsModified;
                         result = library;
                     }                                         
@@ -332,14 +358,19 @@ namespace BridgeCareCore.Controllers
             try
             {
                 await Task.Factory.StartNew(() =>
-                {
-                    var treatments = _treatmentPagingService.GetSyncedLibraryDataset(upsertRequest);
+                {                    
+                    var libraryAccess = UnitOfWork.TreatmentLibraryUserRepo.GetLibraryAccess(upsertRequest.Library.Id, UserId);
+                    if (libraryAccess.LibraryExists == upsertRequest.IsNewLibrary)
+                    {
+                        var errorMessage = libraryAccess.LibraryExists ? RequestedToCreateExistingLibraryErrorMessage : RequestedToModifyNonexistentLibraryErrorMessage;
+                        throw new InvalidOperationException(errorMessage);
+                    }
+                    var items = _treatmentPagingService.GetSyncedLibraryDataset(upsertRequest);
                     var dto = upsertRequest.Library;
-                    dto.Treatments = treatments;
                     if (dto != null)
                     {
-                        var accessModel = UnitOfWork.TreatmentLibraryUserRepo.GetLibraryAccess(dto.Id, UserId);
-                        _claimHelper.CheckGetLibraryUsersValidity(accessModel, UserId);
+                        _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
+                        dto.Treatments = items;
                     }
                     UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers(dto, upsertRequest.IsNewLibrary, UserId);
                 });
@@ -392,8 +423,8 @@ namespace BridgeCareCore.Controllers
                 {
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
                     var dtos = _treatmentPagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);
-                    UnitOfWork.SelectableTreatmentRepo.AddLibraryIdToScenarioSelectableTreatments(dtos, pagingSync.LibraryId);
-                    UnitOfWork.SelectableTreatmentRepo.AddModifiedToScenarioSelectableTreatments(dtos, pagingSync.IsModified);
+                    TreatmentDtoListService.AddLibraryIdToScenarioSelectableTreatments(dtos, pagingSync.LibraryId);
+                    TreatmentDtoListService.AddModifiedToScenarioSelectableTreatments(dtos, pagingSync.IsModified);
                     UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(dtos, simulationId);
                 });
 
@@ -445,7 +476,6 @@ namespace BridgeCareCore.Controllers
                 throw;
             }
         }
-
 
         [HttpPost]
         [Route("ImportLibraryTreatmentsFile")]
@@ -507,7 +537,6 @@ namespace BridgeCareCore.Controllers
                 throw;
             }
         }
-
 
         [HttpPost]
         [Route("ImportLibraryTreatmentsFileSingle")]
@@ -792,6 +821,193 @@ namespace BridgeCareCore.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("ImportScenarioTreatmentSupersedeRulesFile")]
+        [Authorize(Policy = Policy.ImportTreatmentSupersedeRuleFromScenario)]
+        public async Task<IActionResult> ImportScenarioTreatmentSupersedeRulesFile()
+        {
+            try
+            {
+                if (!ContextAccessor.HttpContext.Request.HasFormContentType)
+                {
+                    throw new ConstraintException("Request MIME type is invalid.");
+                }
+
+                if (ContextAccessor.HttpContext.Request.Form.Files.Count < 1)
+                {
+                    throw new ConstraintException("Treatment Supersede Rule file not found.");
+                }
+
+                if (!ContextAccessor.HttpContext.Request.Form.TryGetValue("simulationId", out var id))
+                {
+                    throw new ConstraintException("Request contained no simulation id.");
+                }
+
+                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                var simulationId = Guid.Parse(id.ToString());
+                var simulationName = "";
+                await Task.Factory.StartNew(() =>
+                {
+                    _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                    simulationName = UnitOfWork.SimulationRepo.GetSimulationName(simulationId);
+                });
+
+                var workItem = new ImportScenarioTreatmentSupersedeRuleWorkitem(simulationId, excelPackage, UserInfo.Name, simulationName);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, simulationId.ToString());
+
+                return Ok();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::ImportScenarioTreatmentSupersedeRulesFile - {HubService.errorList["Unauthorized"]}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::ImportScenarioTreatmentSupersedeRulesFile - {e.Message}");
+                throw;
+            }
+        }
+
+        [HttpGet]
+        [Route("ExportScenarioTreatmentSupersedeRuleExcelFile/{simulationId}")]
+        [Authorize]
+        public async Task<IActionResult> ExportScenarioTreatmentSupersedeRuleExcelFile(Guid simulationId)
+        {
+            try
+            {
+                var result =
+                    await Task.Factory.StartNew(() => _treatmentService.ExportScenarioTreatmentSupersedeRuleExcelFile(simulationId));
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::ExportScenarioTreatmentSupersedeRuleExcelFile for {simulationName} - {HubService.errorList["Unauthorized"]}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::ExportScenarioTreatmentSupersedeRuleExcelFile for {simulationName} - {e.Message}");
+                throw;
+            }
+        }
+
+        [HttpGet]
+        [Route("DownloadTreatmentSupersedeRuleTemplate")]
+        [Authorize]
+        // Note: Scenario settings and Libraries will use same API
+        public async Task<IActionResult> DownloadTreatmentSupersedeRuleTemplate()
+        {
+            try
+            {
+                var filePath = AppDomain.CurrentDomain.BaseDirectory + "DownloadTemplates\\TreatmentSupersedeRules_template.xlsx";
+                var fileData = System.IO.File.ReadAllBytes(filePath);
+                var result = await Task.Factory.StartNew(() => new FileInfoDTO
+                {
+                    FileName = "TreatmentSupersedeRules_template",
+                    FileData = Convert.ToBase64String(fileData),
+                    MimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                });
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::DownloadTreatmentSupersedeRuleTemplate - {HubService.errorList["Unauthorized"]}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::DownloadTreatmentSupersedeRuleTemplate - {e.Message}");
+                throw;
+            }
+        }
+
+        [HttpGet]
+        [Route("ExportTreatmentSupersedeRuleExcelFile/{libraryId}")]
+        [Authorize]
+        public async Task<IActionResult> ExportTreatmentSupersedeRuleExcelFile(Guid libraryId)
+        {
+            try
+            {
+                var result =
+                    await Task.Factory.StartNew(() => _treatmentService.ExportLibraryTreatmentSupersedeRuleExcelFile(libraryId));
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::ExportTreatmentSupersedeRuleExcelFile - {HubService.errorList["Unauthorized"]}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::ExportTreatmentSupersedeRuleExcelFile - {e.Message}");
+                throw;
+            }
+        }
+
+        [HttpPost]
+        [Route("ImportLibraryTreatmentSupersedeRulesFile")]
+        [Authorize(Policy = Policy.ImportTreatmentSupersedeRuleFromLibrary)]
+        public async Task<IActionResult> ImportLibraryTreatmentSupersedeRulesFile()
+        {
+            try
+            {
+                if (!ContextAccessor.HttpContext.Request.HasFormContentType)
+                {
+                    throw new ConstraintException("Request MIME type is invalid.");
+                }
+
+                if (ContextAccessor.HttpContext.Request.Form.Files.Count < 1)
+                {
+                    throw new ConstraintException("Treatment Supersede Rule file not found.");
+                }
+
+                if (!ContextAccessor.HttpContext.Request.Form.TryGetValue("libraryId", out var id) || id == Guid.Empty.ToString())
+                {
+                    throw new ConstraintException("Request contained no library id.");
+                }
+
+                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                var libraryId = Guid.Parse(id.ToString());
+                var libraryName = string.Empty;
+                await Task.Factory.StartNew(() =>
+                {
+                    var existingTreatmentLibrary = UnitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(libraryId);
+                    if (existingTreatmentLibrary != null)
+                    {
+                        libraryName = existingTreatmentLibrary.Name;
+                        if (_claimHelper.RequirePermittedCheck())
+                        {
+                            var accessModel = UnitOfWork.TreatmentLibraryUserRepo.GetLibraryAccess(libraryId, UserId);
+                            _claimHelper.CheckUserLibraryRecreateAuthorization(accessModel, UserId);
+                        }
+                    }
+                });
+
+                var workItem = new ImportLibraryTreatmentSupersedeRuleWorkitem(libraryId, excelPackage, UserInfo.Name, libraryName);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, libraryId.ToString());
+
+                return Ok();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::ImportLibraryTreatmentSupersedeRulesFile - {HubService.errorList["Unauthorized"]}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"{TreatmentError}::ImportLibraryTreatmentSupersedeRulesFile - {e.Message}");
+                throw;
+            }
+        }
+
         [HttpGet]
         [Route("DownloadLibraryTreatmentsTemplate")]
         [Authorize]
@@ -829,6 +1045,7 @@ namespace BridgeCareCore.Controllers
         {
             return Ok(true);
         }
+
         [HttpGet]
         [Route("GetIsSharedLibrary/{treatmentLibraryId}")]
         [Authorize]
@@ -857,6 +1074,7 @@ namespace BridgeCareCore.Controllers
                 throw;
             }
         }
+
         private List<TreatmentLibraryDTO> GetAllTreatmentLibraries()
         {
             return UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibraries();

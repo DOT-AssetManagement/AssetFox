@@ -4,6 +4,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entit
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using MoreLinq;
+using System.Collections.Generic;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -20,7 +21,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 SpendingStrategy = domain.SpendingStrategy,
                 ShouldApplyMultipleFeasibleCosts = domain.ShouldApplyMultipleFeasibleCosts,
                 ShouldDeteriorateDuringCashFlow = domain.ShouldDeteriorateDuringCashFlow,
-                ShouldUseExtraFundsAcrossBudgets = domain.AllowFundingFromMultipleBudgets
+                ShouldUseExtraFundsAcrossBudgets = domain.AllowFundingFromMultipleBudgets,
             };
 
         public static void FillSimulationAnalysisMethod(this AnalysisMethodEntity entity, Simulation simulation, string userCriteria)
@@ -67,10 +68,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             entity.Simulation.RemainingLifeLimits
                 .ForEach(_ => _.CreateRemainingLifeLimit(simulation));
+
+            simulation.ShouldBundleFeasibleTreatments = entity.shouldAllowMultipleTreatments;
         }
 
-        public static AnalysisMethodEntity ToEntity(this AnalysisMethodDTO dto, Guid simulationId, Guid? attributeId = null) =>
-            new AnalysisMethodEntity
+        public static AnalysisMethodEntity ToEntity(this AnalysisMethodDTO dto, Guid simulationId, Guid? attributeId = null, BaseEntityProperties baseEntityProperties = null)
+        {
+            var entity = new AnalysisMethodEntity
             {
                 Id = dto.Id,
                 SimulationId = simulationId,
@@ -80,8 +84,28 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldApplyMultipleFeasibleCosts = dto.ShouldApplyMultipleFeasibleCosts,
                 ShouldDeteriorateDuringCashFlow = dto.ShouldDeteriorateDuringCashFlow,
                 ShouldUseExtraFundsAcrossBudgets = dto.ShouldUseExtraFundsAcrossBudgets,
+                shouldAllowMultipleTreatments = dto.shouldAllowMultipleTreatments,
                 AttributeId = attributeId,
-            };
+
+            };            
+            BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
+            return entity;
+        }
+            
+
+        public static AnalysisMethodEntity ToEntityWithBenefit(this AnalysisMethodDTO dto, Guid simulationId, List<AttributeEntity> attributes, Guid? attributeId = null, BaseEntityProperties baseEntityProperties = null)
+        {
+            var entity = dto.ToEntity(simulationId, attributeId, baseEntityProperties);
+            var benefit = dto.Benefit;
+            if (benefit != null&&benefit.Id!=Guid.Empty)
+            {
+                var benefitAttribute = attributes.First(a => a.Name == benefit.Attribute);
+                var benefitEntity = benefit.ToEntity(dto.Id, benefitAttribute.Id, baseEntityProperties);
+                entity.Benefit = benefitEntity;                
+            }
+            BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
+            return entity;
+         }
 
         public static AnalysisMethodDTO ToDto(this AnalysisMethodEntity entity) =>
             new AnalysisMethodDTO
@@ -92,6 +116,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 SpendingStrategy = entity.SpendingStrategy,
                 ShouldApplyMultipleFeasibleCosts = entity.ShouldApplyMultipleFeasibleCosts,
                 ShouldDeteriorateDuringCashFlow = entity.ShouldDeteriorateDuringCashFlow,
+                shouldAllowMultipleTreatments = entity.shouldAllowMultipleTreatments,
                 ShouldUseExtraFundsAcrossBudgets = entity.ShouldUseExtraFundsAcrossBudgets,
                 Attribute = entity.Attribute?.Name ?? string.Empty,
                 Benefit = entity.Benefit?.ToDto() ?? new BenefitDTO(),

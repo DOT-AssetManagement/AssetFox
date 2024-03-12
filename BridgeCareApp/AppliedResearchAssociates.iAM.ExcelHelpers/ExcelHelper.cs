@@ -13,6 +13,8 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
         Percentage,
         PercentageDecimal2,
         DecimalPrecision3,
+        DecimalPrecision2,
+        PercentDecimal4,
         Accounting
     }
     public static class ExcelHelper
@@ -30,7 +32,7 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
             using (var cells = worksheet.Cells[fromRow, fromColumn, toRow, toColumn])
             {
                 cells.Merge = true;
-                if (makeTextBold == true)
+                if (makeTextBold == true)      
                 {
                     ApplyStyle(cells);
                 }
@@ -119,6 +121,12 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
                 break;
             case ExcelHelperCellFormat.DecimalPrecision3:
                 cells.Style.Numberformat.Format = "#0.000";
+                break;
+            case ExcelHelperCellFormat.DecimalPrecision2:
+                cells.Style.Numberformat.Format = "#0.00";
+                break;
+            case ExcelHelperCellFormat.PercentDecimal4:
+                cells.Style.Numberformat.Format = "#0.00##%";
                 break;
             case ExcelHelperCellFormat.Accounting:
                 cells.Style.Numberformat.Format = "_-$* #,##0.00_-;-$* #,##0.00_-;_-$* \"-\"??_-;_-@_-";

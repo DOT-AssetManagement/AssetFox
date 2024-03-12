@@ -26,7 +26,7 @@
         /// <summary>
         /// The treatment will replace the exisiting asset
         /// </summary>
-        Replacement,
+        Reconstruction,
 
         /// <summary>
         /// Treatment is low-cost and usually applied according to a timed scehdule as opposed
@@ -37,6 +37,16 @@
         /// <summary>
         /// The treatment is applied for reasons outside of condition or capcity
         /// </summary>
-        Other
+        Other,
+
+        ///<summary>
+        /// The treatment that is outside scope of scenario criteria
+        ///</summary>
+        WorkOutsideScope,
+
+        /// <summary>
+        /// Bundled treatments
+        /// </summary>
+        Bundled
     }
 }

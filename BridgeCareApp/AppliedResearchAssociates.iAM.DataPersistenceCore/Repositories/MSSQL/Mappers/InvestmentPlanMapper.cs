@@ -4,6 +4,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entit
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using MoreLinq;
+using System.IO;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -18,11 +19,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 InflationRatePercentage = domain.InflationRatePercentage,
                 MinimumProjectCostLimit = domain.MinimumProjectCostLimit,
                 NumberOfYearsInAnalysisPeriod = domain.NumberOfYearsInAnalysisPeriod,
-                ShouldAccumulateUnusedBudgetAmounts = domain.ShouldAccumulateUnusedBudgetAmounts
+                ShouldAccumulateUnusedBudgetAmounts = domain.AllowFundingCarryover
             };
 
-        public static InvestmentPlanEntity ToEntity(this InvestmentPlanDTO dto, Guid simulationId) =>
-            new InvestmentPlanEntity
+        public static InvestmentPlanEntity ToEntity(this InvestmentPlanDTO dto, Guid simulationId, BaseEntityProperties baseEntityProperties = null)
+        {
+            var entity = new InvestmentPlanEntity
             {
                 Id = dto.Id,
                 SimulationId = simulationId,
@@ -32,6 +34,19 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 NumberOfYearsInAnalysisPeriod = dto.NumberOfYearsInAnalysisPeriod,
                 ShouldAccumulateUnusedBudgetAmounts = dto.ShouldAccumulateUnusedBudgetAmounts
             };
+            BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties); 
+            return entity;
+        }
+        public static InvestmentPlanEntity ToEntityNullPropagating(this InvestmentPlanDTO dto, Guid simulationId, BaseEntityProperties baseEntityProperties)
+        {
+            if (dto == null)
+            {
+                return null;
+            }
+            return ToEntity(dto, simulationId, baseEntityProperties);
+        }
+
+
 
         public static InvestmentPlanDTO ToDto(this InvestmentPlanEntity entity) =>
             new InvestmentPlanDTO
@@ -51,7 +66,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             simulation.InvestmentPlan.InflationRatePercentage = entity.InflationRatePercentage;
             simulation.InvestmentPlan.MinimumProjectCostLimit = entity.MinimumProjectCostLimit;
             simulation.InvestmentPlan.NumberOfYearsInAnalysisPeriod = entity.NumberOfYearsInAnalysisPeriod;
-            simulation.InvestmentPlan.ShouldAccumulateUnusedBudgetAmounts = entity.ShouldAccumulateUnusedBudgetAmounts;
+            simulation.InvestmentPlan.AllowFundingCarryover = entity.ShouldAccumulateUnusedBudgetAmounts;
             
             entity.Simulation.Budgets?.OrderBy(_ => _.BudgetOrder).ForEach(_ =>
             {
@@ -64,7 +79,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                     sortedBudgetAmountEntities.ForEach(__ =>
                     {
                         var year = __.Year;
-                        var yearOffset = year - simulation.InvestmentPlan.FirstYearOfAnalysisPeriod;
+                        var firstYearOfAnalysisPeriod = simulation.InvestmentPlan.FirstYearOfAnalysisPeriod;
+                        var yearOffset = year - firstYearOfAnalysisPeriod;
+                        if (yearOffset < 0)
+                        {
+                            throw new InvalidDataException("Invalid budget year " + year + ", it is prior to 'First Year of Analysis Period' setting " + firstYearOfAnalysisPeriod + ".");
+                        }
                         budget.YearlyAmounts[yearOffset].Id = __.Id;
                         budget.YearlyAmounts[yearOffset].Value = __.Value;
                     });

@@ -43,8 +43,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
         private IBudgetRepository _budgetRepo;
         private ICashFlowDistributionRuleRepository _cashFlowDistributionRuleRepo;
         private ICashFlowRuleRepository _cashFlowRuleRepo;
-        private ICommittedProjectConsequenceRepository _committedProjectConsequenceRepo;
-        private ICommittedProjectRepository _committedProjectRepo;
+        private ICommittedProjectRepository _committedProjectRepo;      
         private ICriterionLibraryRepository _criterionLibraryRepo;
         private IDeficientConditionGoalRepository _deficientConditionGoalRepo;
         private IExcelRawDataRepository _excelWorksheetRepo;
@@ -64,7 +63,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
         private ITreatmentCostRepository _treatmentCostRepo;
         private ITreatmentPerformanceFactorRepository _treatmentPerformanceFactorRepo;
         private ITreatmentSchedulingRepository _treatmentSchedulingRepo;
-        private ITreatmentSupersessionRepository _treatmentSupersessionRepo;
+        private ITreatmentSupersedeRuleRepository _treatmentSupersedeRuleRepo;
         private IUserRepository _userRepo;
         private IAdminSettingsRepository _adminSettingsRepo;
         private ISimulationReportDetailRepository _simulationReportDetailRepo;
@@ -98,8 +97,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
         public ICashFlowDistributionRuleRepository CashFlowDistributionRuleRepo => _cashFlowDistributionRuleRepo ??= new CashFlowDistributionRuleRepository(this);
 
         public ICashFlowRuleRepository CashFlowRuleRepo => _cashFlowRuleRepo ??= new CashFlowRuleRepository(this);
-
-        public ICommittedProjectConsequenceRepository CommittedProjectConsequenceRepo => _committedProjectConsequenceRepo ??= new CommittedProjectConsequenceRepository(this);
 
         public ICommittedProjectRepository CommittedProjectRepo => _committedProjectRepo ??= new CommittedProjectRepository(this);
 
@@ -141,7 +138,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 
         public ITreatmentSchedulingRepository TreatmentSchedulingRepo => _treatmentSchedulingRepo ??= new TreatmentSchedulingRepository(this);
 
-        public ITreatmentSupersessionRepository TreatmentSupersessionRepo => _treatmentSupersessionRepo ??= new TreatmentSupersessionRepository(this);
+        public ITreatmentSupersedeRuleRepository TreatmentSupersedeRuleRepo => _treatmentSupersedeRuleRepo ??= new TreatmentSupersedeRuleRepository(this);
 
         public IUserRepository UserRepo => _userRepo ??= new UserRepository(this);
 
@@ -188,9 +185,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
             {
                 if (!UserRepo.UserExists(username))
                 {
-                    BeginTransaction();
                     UserRepo.AddUser(username, hasAdminClaim);
-                    Commit();
                 }
             }
         }

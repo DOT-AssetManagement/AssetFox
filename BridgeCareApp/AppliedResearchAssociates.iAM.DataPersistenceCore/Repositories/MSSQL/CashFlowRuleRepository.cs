@@ -22,6 +22,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public CashFlowRuleRepository(UnitOfDataPersistenceWork unitOfWork) => _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
+        public DateTime GetLibraryModifiedDate(Guid cashLibraryId)
+        {
+            var dtos = _unitOfWork.Context.CashFlowRuleLibrary.Where(_ => _.Id == cashLibraryId).FirstOrDefault().LastModifiedDate;
+            return dtos;
+        }
+
 
         public void CreateCashFlowRules(List<CashFlowRule> cashFlowRules, Guid simulationId)
         {
@@ -345,21 +351,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var entitiesToDelete = existingEntities.Where(u => userIdsToDelete.Contains(u.UserId)).ToList();
             _unitOfWork.Context.RemoveRange(entitiesToDelete);
             _unitOfWork.Context.SaveChanges();
-        }
-        public void AddLibraryIdToScenarioCashFlowRule(List<CashFlowRuleDTO> cashFlowRuleDTOs, Guid? libraryId)
-        {
-            if (libraryId == null) return;
-            foreach (var dto in cashFlowRuleDTOs)
-            {
-                dto.LibraryId = (Guid)libraryId;
-            }
-        }
-        public void AddModifiedToScenarioCashFlowRule(List<CashFlowRuleDTO> cashFlowRuleDTOs, bool IsModified)
-        {
-            foreach (var dto in cashFlowRuleDTOs)
-            {
-                dto.IsModified = IsModified;
-            }
         }
 
         private List<LibraryUserDTO> GetAccessForUser(Guid cashFlowRuleLibraryId, Guid userId)

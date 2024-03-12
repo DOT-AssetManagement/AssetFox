@@ -10,9 +10,9 @@ export interface BaseCommittedProject {
     cost: number;
     shadowForAnyTreatment: number;
     shadowForSameTreatment: number;
-    consequences: CommittedProjectConsequence[];
     locationKeys: { [key: string]: string; }; 
-    category: TreatmentCategory
+    category: TreatmentCategory;
+    projectSource: string;
 }
 export interface SectionCommittedProjectTableData {
     id: string;
@@ -25,7 +25,8 @@ export interface SectionCommittedProjectTableData {
     cost: number;
     errors: string[];
     yearErrors: string[];
-    category: string;
+    category: TreatmentCategory;
+    projectSource: string;
 }
 export interface SectionCommittedProject extends BaseCommittedProject{
     name: string;
@@ -49,9 +50,9 @@ export const emptySectionCommittedProject = {
     cost: 0,
     shadowForAnyTreatment: 0,
     shadowForSameTreatment: 0,
-    consequences: [],
     locationKeys: {},
     name: '',
+    projectSource: '',
     category: TreatmentCategory.other
 }
 
@@ -63,8 +64,12 @@ export const emptyCommittedProjectConsequence ={
     changeValue: ''
 }
 
+export interface CommittedProjectTemplates{
+    templateName: string;
+    templateData: string;
+}
+
 export interface CommittedProjectFillTreatmentReturnValues {
-    validTreatmentConsequences: CommittedProjectConsequence[];
     treatmentCost: number;
     treatmentCategory: TreatmentCategory;
 }

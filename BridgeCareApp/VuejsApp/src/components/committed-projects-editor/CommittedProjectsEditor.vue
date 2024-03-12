@@ -1,356 +1,317 @@
 <template>
-    <v-layout class="Montserrat-font-family">
-        <v-flex xs12>
-            <v-layout column >
-                <v-flex xs12>
-                    <v-layout>
-                        <v-btn @click='OnGetTemplateClick' 
-                            class="ghd-white-bg ghd-blue ghd-button" outline>Get Template</v-btn>
-                        <v-btn @click='showImportExportCommittedProjectsDialog = true' 
-                            class="ghd-white-bg ghd-blue ghd-button" outline>Import Projects</v-btn>
-                        <v-btn @click='OnExportProjectsClick' 
-                            class="ghd-white-bg ghd-blue ghd-button" outline>Export Projects</v-btn>
-                        <v-btn @click='OnDeleteAllClick' 
-                            class="ghd-white-bg ghd-blue ghd-button" outline>Delete All</v-btn>
-                    </v-layout>
-                </v-flex>
-
-                <v-flex xs12>
-                    <v-checkbox 
+    <v-card class="elevation-0 vcard-main-layout">
+    <v-div>
+        <v-row class="Montserrat-font-family" justify="space-between">
+            <v-col>
+                <v-btn @click='OnGetTemplateClick' 
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" variant="outlined" style="margin: 10px;">Get Default Template</v-btn>
+                    <input
+                    id="committedProjectTemplateUpload"
+                    type="file"
+                    @change="handleCommittedProjectTemplateUpload"
+                    accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                    ref="committedProjectTemplateInput"
+                    hidden/>
+                <v-btn @click="onUploadCommittedProjectTemplate" style="margin-right: auto;" variant="outlined"
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" outline>Change Default Template</v-btn>
+            </v-col>
+            <v-col>
+                <v-btn @click='showImportExportCommittedProjectsDialog = true' 
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Import Projects</v-btn>
+                <v-btn @click='OnExportProjectsClick' 
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Export Projects</v-btn>
+                <v-btn @click='OnDeleteAllClick' 
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Delete All</v-btn>
+            </v-col>
+        </v-row>
+        <v-col>                   
+            <v-row>
+                <v-col>
+                    <v-select
+                    :items= 'templateSelectItems'
+                    class='ghd-control-border ghd-control-text ghd-select'
+                    label='Select a Template'
+                    style="width: 20% !important;"
+                    v-model="templateItemSelected"
+                    menu-icon=custom:GhdDownSvg
+                    variant="outlined"
+                    density="compact">
+                    </v-select>
+                    <v-btn @click='onDownloadSelectedTemplate' 
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin:0px;" variant="outlined">Download Selected Template</v-btn>
+                    <input
+                        id="addCommittedProjectTemplate"
+                        type="file"
+                        @change="handleAddCommittedProjectTemplateUpload"
+                        accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                        ref="committedProjectTemplateInput"
+                        hidden
+                    />
+                    <v-btn @click='onAddSelectedTemplate'  
+                        class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" 
+                        style="margin:10px;" 
+                        variant="outlined">Upload New Template</v-btn>
+                </v-col>
+            </v-row>
+            <v-checkbox 
                     id="CommittedProjectsEditor-noTreatmentsBeforeCommittedProjects-ghdcheckbox"
-                    class='ghd-checkbox' label='No Treatments Before Committed Projects' v-model='isNoTreatmentBefore' />
-                </v-flex>
-
-                <v-flex xs12 class="ghd-constant-header">
-                    <v-layout>
-                        <v-flex xs6>
-                            <v-layout column>
-                                <v-subheader class="ghd-control-label ghd-md-gray">Treatment Library</v-subheader>
-                                <v-select
-                                    id="CommittedProjectsEditor-treatmentLibrary-vSelect"
-                                    outline
-                                    append-icon=$vuetify.icons.ghd-down
-                                    class="ghd-select ghd-text-field ghd-text-field-border pa-0"
-                                    :items='librarySelectItems' 
-                                    v-model='librarySelectItemValue'>
-                                </v-select>                       
-                            </v-layout>
-                        </v-flex>
-                        <v-flex xs6 style="margin-left: 5px">
-                            <v-subheader class="ghd-control-label ghd-md-gray"></v-subheader>
-                            <v-layout>                                
-                                <v-text-field
-                                    id="CommittedProjectsEditor-search-vtextfield"
-                                    prepend-inner-icon=$vuetify.icons.ghd-search
-                                    hide-details
-                                    lablel="Search"
-                                    placeholder="Search"
-                                    single-line
-                                    v-model="gridSearchTerm"
-                                    outline
-                                    clearable
-                                    @click:clear="onClearClick()"
-                                    class="ghd-text-field-border ghd-text-field search-icon-general">
-                                </v-text-field>
-                                <v-btn 
-                                id="CommittedProjectsEditor-performSearch-vbtn"
-                                style="margin-top: 2px;" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' outline @click="onSearchClick()">Search</v-btn>
-                            </v-layout>
-                           
-                        </v-flex>
-                    </v-layout>
-                </v-flex>
-                <v-flex xs12>
-                    <v-layout justify-end class="px-4">
+                    label='No Treatments Before Committed Projects' v-model='isNoTreatmentBefore' />
+        </v-col>
+        <v-col cols="3" class="ghd-constant-header">
+            <v-row>
+                <v-subheader class="ghd-control-label ghd-md-gray"></v-subheader>
+                <v-row align="center" style="padding: 10px;">                                
+                    <v-text-field
+                        id="CommittedProjectsEditor-search-vtextfield"
+                        hide-details
+                        lablel="Search"
+                        placeholder="Search"
+                        single-line
+                        v-model="gridSearchTerm"
+                        prepend-inner-icon=custom:GhdSearchSvg
+                        variant="outlined"
+                        density="compact"
+                        clearable
+                        @click:clear="onClearClick()"
+                        style="margin-left: 15px;"
+                        class="ghd-text-field-border ghd-text-field search-icon-general">
+                    </v-text-field>
+                    <v-btn 
+                    id="CommittedProjectsEditor-performSearch-vbtn"
+                    style="margin-top: 2px; margin-left: 5px;" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' variant = "outlined" @click="onSearchClick()">Search</v-btn>
+                </v-row>
+                        
+                </v-row>
+        </v-col>
+        <v-row justify="end" class="px-4">
                         <p>Commited Projects: {{totalItems}}</p>
-                    </v-layout>
-                    
-                </v-flex>       
-                
-                <v-flex xs12 >
-                    <v-layout column>
-                        <v-data-table
+        </v-row>
+        <v-col>
+                <p-card style="padding: 10px; width: auto;">
+                    <v-row>
+                        <v-data-table-server
                         id="CommittedProjectsEditor-committedProjects-vdatatable"
                         :headers="cpGridHeaders"
+                        :items-length="totalItems"
                         :items="currentPage"
-                        sort-icon=$vuetify.icons.ghd-table-sort
                         item-key='id'
+                        sort-asc-icon="custom:GhdTableSortAscSvg"
+                        sort-desc-icon="custom:GhdTableSortDescSvg"
                         :pagination.sync="projectPagination"
-                        :total-items="totalItems"
-                        :rows-per-page-items=[5,10,25]
+                        :items-per-page-options="[
+                                        {value: 5, title: '5'},
+                                        {value: 10, title: '10'},
+                                        {value: 25, title: '25'},
+                                    ]"
+                        v-model:sort-by="projectPagination.sort"
+                        v-model:page="projectPagination.page"
+                        v-model:items-per-page="projectPagination.rowsPerPage"
+                        item-value="name"
                         v-model="selectedCpItems"
+                        @update:options="onPaginationChanged"
                         class=" fixed-header v-table__overflow">
-                            <template slot="items" slot-scope="props">
+                            <template v-slot:item="item">
+                                <tr>
+                                
                                 <td v-for="header in cpGridHeaders">
                                     <div>
-                                        <v-combobox v-if="header.value === 'treatment'"
-                                                    :items="treatmentSelectItems"
-                                                    append-icon=$vuetify.icons.ghd-down
-                                                    class="ghd-down-small"
-                                                    label="Select a Treatment"
-                                                    v-model="props.item.treatment"
-                                                    :rules="[rules['generalRules'].valueIsNotEmpty]"
-                                                    @change="onEditCommittedProjectProperty(props.item,header.value,props.item[header.value])">
+                                        <v-select v-if="header.key === 'treatment'"
+                                            :items="treatmentSelectItems"
+                                            menu-icon=custom:GhdDownSvg
+                                            class="ghd-down-small"
+                                            density="compact"
+                                            variant="underlined"
+                                            v-model="item.item[header.key]"
+                                            :rules="[inputRules['generalRules'].valueIsNotEmpty]"
+                                            :style="getTreatmentStyle(item.item[header.key])"
+                                            @update:model-value="onEditCommittedProjectProperty(item.item,header.key,item.item[header.key])">
+                                        </v-select>
+                                        <v-select
+                                            v-else-if="header.key === 'projectSource'"
+                                            :items="projectSourceOptions"
+                                            menu-icon=custom:GhdDownSvg
+                                            class="ghd-down-small"
+                                            density="compact"
+                                            variant="underlined"
+                                            v-model="item.item[header.key]"
+                                            :rules="[rules['generalRules'].valueIsNotEmpty]"
+                                            @update:model-value="onEditCommittedProjectProperty(item.item, header.key, item.item.projectSource)"
                                             
-                                        </v-combobox>
-                                        <v-edit-dialog v-if="header.value !== 'actions' && header.value !== 'selection'"
-                                            :return-value.sync="props.item[header.value]"
-                                            @save="onEditCommittedProjectProperty(props.item,header.value,props.item[header.value])"
-                                            large
+                                        ></v-select>
+                                        <editDialog v-if="header.key !== 'actions' && header.key !== 'selection'"
+                                            v-model:return-value="item.item[header.key]"
+                                            @save="onEditCommittedProjectProperty(item.item,header.key,item.item[header.key])"
+                                            size="large"
                                             lazy
                                             >
-                                            <v-text-field v-if="header.value !== 'budget' 
-                                                && header.value !== 'year' 
-                                                && header.value !== 'keyAttr' 
-                                                && header.value !== 'treatment'
-                                                && header.value !== 'performanceFactor'
-                                                && header.value !== 'cost'"
+                                            <v-text-field v-if="header.key !== 'budget' 
+                                                && header.key !== 'year' 
+                                                && header.key !== 'keyAttr' 
+                                                && header.key !== 'treatment'
+                                                && header.key !== 'cost'
+                                                && header.key !== 'projectSource'
+                                                && header.key !== 'category'"
                                                 readonly
                                                 class="sm-txt"
-                                                :value="props.item[header.value]"
-                                                :rules="[rules['generalRules'].valueIsNotEmpty]"/>
-                                            <v-text-field v-if="header.value === 'budget'"
+                                                density="compact"
+                                                variant="underlined"
+                                                :model-value="item.item[header.key]"
+                                                :rules="[inputRules['generalRules'].valueIsNotEmpty]"/>
+                                            <v-text-field v-if="header.key === 'category'"
                                                 readonly
                                                 class="sm-txt"
-                                                :value="props.item[header.value]"/>
-
-                                            <v-text-field v-if="header.value === 'keyAttr'"
+                                                density="compact"
+                                                variant="underlined"
+                                                :model-value="reverseCatMap.get(item.item[header.key])"
+                                                :rules="[inputRules['generalRules'].valueIsNotEmpty]"/>
+                                            <v-text-field v-if="header.key === 'budget'"
                                                 readonly
                                                 class="sm-txt"
-                                                :value="props.item[header.value]"
-                                                :rules="[rules['generalRules'].valueIsNotEmpty]"
-                                                :error-messages="props.item.errors"/>
+                                                density="compact"
+                                                variant="underlined"
+                                                :model-value="item.item[header.key]"/>
 
-                                            <v-text-field v-if="header.value === 'year'"
-                                                :value="props.item[header.value]"
-                                                :mask="'##########'"
-                                                :rules="[rules['committedProjectRules'].hasInvestmentYears([firstYear, lastYear]), rules['generalRules'].valueIsNotEmpty, rules['generalRules'].valueIsWithinRange(props.item[header.value], [firstYear, lastYear])]"
-                                                :error-messages="props.item.yearErrors"/>
+                                            <v-text-field v-if="header.key === 'keyAttr'"
+                                                readonly
+                                                class="sm-txt"
+                                                density="compact"
+                                                variant="underlined"
+                                                :model-value="item.item[header.key]"
+                                                :rules="[inputRules['generalRules'].valueIsNotEmpty]"
+                                                :error-messages="item.item.errors"/>
 
-                                            <v-text-field v-if="header.value === 'cost'"
-                                                :value='formatAsCurrency(props.item[header.value])'
-                                                :rules="[rules['generalRules'].valueIsNotEmpty]"/>
+                                            <v-text-field v-if="header.key === 'year'"
+                                                :model-value="item.item[header.key]"
+                                                v-maska:[yearMask]
+                                                density="compact"
+                                                variant="underlined"
+                                                :rules="[inputRules['committedProjectRules'].hasInvestmentYears([firstYear, lastYear]), inputRules['generalRules'].valueIsNotEmpty, inputRules['generalRules'].valueIsWithinRange(item.item[header.key], [firstYear, lastYear])]"
+                                                :error-messages="item.item.yearErrors"/>
 
-                                            <v-text-field v-if="header.value === 'performanceFactor'"
-                                                :value='parseFloat(props.item[header.value])'
-                                                :rules="[rules['generalRules'].valueIsNotEmpty]"/>
+                                            <currencyTextbox v-if="header.key === 'cost'"
+                                                :model-value='item.item[header.key]'
+                                                density="compact"
+                                                variant="underlined"
+                                                :rules="[inputRules['generalRules'].valueIsNotEmpty]"/>
 
-                                            <template slot="input">
-                                                <v-text-field v-if="header.value === 'keyAttr'"
+                                            <template v-slot:input>
+                                                <v-text-field v-if="header.key === 'keyAttr'"
                                                     label="Edit"
                                                     single-line
-                                                    v-model="props.item[header.value]"
-                                                    :rules="[rules['generalRules'].valueIsNotEmpty]"/>
+                                                    variant="underlined"
+                                                    v-model="item.item[header.key]"
+                                                    :rules="[inputRules['generalRules'].valueIsNotEmpty]"/>
 
-                                                <v-select v-if="header.value === 'budget'"
+                                                <v-select v-if="header.key === 'budget'"
                                                     :items="budgetSelectItems"
-                                                    append-icon=$vuetify.icons.ghd-down
+                                                    menu-icon=custom:GhdDownSvg
                                                     label="Select a Budget"
-                                                    v-model="props.item[header.value]">
+                                                    variant="outlined"
+                                                    item-title="text"  
+                                                    item-value="value"
+                                                    v-model="item.item[header.key]">
                                                 </v-select>
 
-                                                <v-select v-if="header.value === 'category'"
+                                                <v-select v-if="header.key === 'category'"
                                                     :items="categorySelectItems"
-                                                    append-icon=$vuetify.icons.ghd-down
-                                                    label="Select a Budget"
-                                                    v-model="props.item[header.value]">
+                                                    menu-icon=custom:GhdDownSvg
+                                                    label="Select a Category"
+                                                    variant="outlined"
+                                                    item-title="text"  
+                                                    item-value="value"
+                                                    v-model="item.item[header.key]">
                                                 </v-select>
                                                 
-                                                <v-text-field v-if="header.value === 'year'"
+                                                <v-text-field v-if="header.key === 'year'"
                                                     label="Edit"
                                                     single-line
-                                                    v-model="props.item[header.value]"
-                                                    :mask="'##########'"
-                                                    :rules="[rules['committedProjectRules'].hasInvestmentYears([firstYear, lastYear]), rules['generalRules'].valueIsNotEmpty, rules['generalRules'].valueIsWithinRange(props.item[header.value], [firstYear, lastYear])]"/>
+                                                    variant = "underlined"
+                                                    v-model="item.item[header.key]"
+                                                    v-maska:[yearMask]
+                                                    :rules="[inputRules['committedProjectRules'].hasInvestmentYears([firstYear, lastYear]), rules['generalRules'].valueIsNotEmpty, rules['generalRules'].valueIsWithinRange(item.item[header.key], [firstYear, lastYear])]"/>
 
-                                                <v-text-field v-if="header.value === 'cost'"
+                                                <currencyTextbox v-if="header.key === 'cost'"
                                                     label="Edit"
                                                     single-line
-                                                    v-model.number="props.item[header.value]"
-                                                    v-currency="{currency: {prefix: '$', suffix: ''}, locale: 'en-US', distractionFree: false}"
-                                                    :rules="[rules['generalRules'].valueIsNotEmpty]"/>
+                                                    v-model.number="item.item[header.key]"
+                                                    :rules="[inputRules['generalRules'].valueIsNotEmpty]"/>
 
                                             </template>
-                                        </v-edit-dialog>
+                                        </editDialog>
                                 
-                                        <div v-if="header.value === 'actions'">
-                                            <v-layout style='flex-wrap:nowrap'>
+                                        <div v-if="header.key === 'actions'">
+                                            <v-row justify="center">
                                                 <v-btn 
                                                     id="CommittedProjectsEditor-deleteCommittedProject-vbtn"
-                                                    @click="OnDeleteClick(props.item.id)"  class="ghd-blue" icon>
-                                                    <img class='img-general' :src="require('@/assets/icons/trash-ghd-blue.svg')"/>
+                                                    @click="OnDeleteClick(item.item.id)"  class="ghd-blue" flat>
+                                                    <img class='img-general' :src="getUrl('assets/icons/trash-ghd-blue.svg')"/>
                                                 </v-btn>
-                                                <v-btn
-                                                    id="CommittedProjectsEditor-editCommittedProject-vbtn"
-                                                    @click="onSelectCommittedProject(props.item.id)"
-                                                    class="ghd-blue"
-                                                    icon>
-                                                    <img class='img-general' :src="require('@/assets/icons/edit.svg')"/>
-                                                </v-btn>
-                                            </v-layout>
+                                            </v-row>
                                         </div>                            
                                     </div>
                                 </td>
+                            </tr>
                             </template>
-                        </v-data-table>    
-                        <v-btn id="CommittedProjectsEditor-addCommittedProject-vbtn" 
+                        </v-data-table-server>    
+                    </v-row>
+            </p-card>
+        </v-col>
+        <v-divider></v-divider>
+        <v-btn id="CommittedProjectsEditor-addCommittedProject-vbtn" 
                         @click="OnAddCommittedProjectClick" v-if="selectedCommittedProject === ''"
-                        class="ghd-white-bg ghd-blue ghd-button btn-style" outline>Add Committed Project</v-btn> 
-                    </v-layout>
-                </v-flex>
+                        class="ghd-white-bg ghd-blue ghd-button btn-style" style="margin:10px" variant = "outlined"
+                > Add Committed Project
+        </v-btn> 
+        <v-divider
+            :thickness="2"
+            class="border-opacity-100"
+        ></v-divider>
+        <v-col>
+            <v-row justify="center" style="padding-bottom: 40px;">
+                <v-btn 
+                id="CommittedProjectsEditor-cancel-vbtn"
+                @click="onCancelClick" :disabled='!hasUnsavedChanges' class="ghd-white-bg ghd-blue ghd-button-text" variant="text">Cancel</v-btn>    
+                <div style="padding:5px"></div>
 
-                <v-divider></v-divider>
-
-                <v-flex xs12>
-                    <v-layout justify-center>
-                        <v-btn 
-                        id="CommittedProjectsEditor-cancel-vbtn"
-                        @click="onCancelClick" :disabled='!hasUnsavedChanges' class="ghd-white-bg ghd-blue ghd-button-text" flat>Cancel</v-btn>    
-                        <v-btn 
-                        id="CommittedProjectsEditor-save-vbtn"
-                        @click="OnSaveClick" :disabled='!hasUnsavedChanges || disableCrudButtons()' class="ghd-blue-bg ghd-white ghd-button">Save</v-btn>    
-                    </v-layout>
-                </v-flex> 
-            </v-layout>
-        </v-flex>
-        <v-flex xs8 style="border:1px solid #999999 !important;" v-if="selectedCommittedProject !== ''">
-            <v-layout column>
-                <v-flex xs12>
+                <v-btn 
+                id="CommittedProjectsEditor-save-vbtn"
+                @click="OnSaveClick" :disabled='!hasUnsavedChanges || disableCrudButtons()' class="ghd-blue-bg ghd-white ghd-button">Save</v-btn>    
+            </v-row>
+        </v-col> 
+        <v-row justify="center">
+            <p v-if="importedProjectTreatmentBoolean" style="color: red; padding-bottom: 20px;">The following treatments have not been found in the treatment list: {{ missingTreatments.join(', ') }}</p>
+        </v-row>
+        <v-col cols = "8" style="border:1px solid #999999 !important;" v-if="selectedCommittedProject !== ''">
+            <v-row column>
+                <v-col cols = "12">
                     <v-btn 
                        id="CommittedProjectsEditor-closeSelectedCommitedProject-vbtn"
-                       @click="selectedCommittedProject = ''" flat class="ghd-close-button">
+                       @click="selectedCommittedProject = ''" variant = "flat" class="ghd-close-button">
                         X
                     </v-btn>
-                </v-flex>
-                <v-flex xs12>
-                    <v-layout justify-center>
-                        <v-btn 
-                            id="CommittedProjectsEditor-addConsequence-vbtn"
-                            @click="showCreateCommittedProjectConsequenceDialog = true" 
-                            class="ghd-white-bg ghd-blue ghd-button btn-style" outline>Add Conseqence
-                        </v-btn> 
-                    </v-layout>
-                </v-flex>
-                <v-flex xs12>
-                    <v-data-table
-                    id="CommittedProjectsEditor-consequences-vDataTable"
-                    :headers="consequenceHeaders"
-                    :items="selectedConsequences"
-                    item-key='id'
-                    sort-icon=$vuetify.icons.ghd-table-sort
-                    class=" fixed-header v-table__overflow">
-                        <template slot="items" slot-scope="props">
-                            <td>
-                                
-                                <v-edit-dialog
-                                :return-value.sync="props.item.attribute"
-                                large
-                                lazy
-                                persistent
-                                @save="onEditConsequenceProperty(props.item,'attribute',props.item.attribute) ">
-                                <v-text-field
-                                    readonly
-                                    single-line
-                                    class="sm-txt"
-                                    :value="props.item.attribute"
-                                    :rules="[
-                                        rules['generalRules'].valueIsNotEmpty,
-                                    ]"/>
-                                <template slot="input">
-                                    <v-select
-                                        :items="attributeSelectItems"
-                                        append-icon=$vuetify.icons.ghd-down
-                                        label="Select an Attribute"
-                                        outline
-                                        v-model="props.item.attribute"
-                                        :rules="[
-                                            rules['generalRules']
-                                                .valueIsNotEmpty,
-                                        ]" />
-                                </template>
-                            </v-edit-dialog>
-                            </td>
-                            <td>
-                                <v-edit-dialog
-                                    :return-value.sync="props.item.changeValue"
-                                    @save="onEditConsequenceProperty(props.item,'changeValue',props.item.changeValue) "
-                                    large
-                                    lazy
-                                    persistent>
-                                    <v-text-field
-                                    readonly
-                                    single-line
-                                    class="sm-txt"
-                                    :value="props.item.changeValue"
-                                    :rules="[
-                                        rules['generalRules'].valueIsNotEmpty,
-                                    ]"/>
-                                    <template slot="input">
-                                        <v-text-field
-                                            label="Change value"
-                                            single-line
-                                            v-model="props.item.changeValue"
-                                            :rules="[rules['generalRules'].valueIsNotEmpty]"/>
-                                    </template>
-                                </v-edit-dialog>
-                            </td>
-                            <td>
-                                <v-edit-dialog
-                                :return-value.sync="props.item.performanceFactor"
-                                large
-                                lazy
-                                persistent
-                                @save="onEditConsequenceProperty(props.item,'performanceFactor',props.item.performanceFactor)">
-                                <v-text-field
-                                    readonly 
-                                    single-line
-                                    class="sm-text"
-                                    :value='props.item.performanceFactor'
-                                    :rules="[rules['generalRules'].valueIsNotEmpty]"/>
-                                <template slot="input">
-                                    <v-text-field
-                                        label=""
-                                        single-line
-                                        maxlength="5"
-                                        v-model="props.item.performanceFactor"
-                                        :rules="[rules['generalRules'].valueIsNotEmpty]"/>
-                                </template>    
-                                </v-edit-dialog>
-                            </td>
-                            <td>
-                                <v-btn 
-                                    id="CommittedProjectsEditor-deleteConsequence-vbtn"
-                                    @click="OnDeleteConsequence(props.item.id)"  class="ghd-blue" icon>
-                                    <img class='img-general' :src="require('@/assets/icons/trash-ghd-blue.svg')"/>
-                                </v-btn>
-                            </td>
-                        </template>
-                    </v-data-table>    
-                </v-flex>
-            </v-layout>
-        </v-flex>
-        <CommittedProjectsFileUploaderDialog
-            :showDialog="showImportExportCommittedProjectsDialog"
+                </v-col>
+            </v-row>
+        </v-col>
+        <ImportExportCommittedProjectsDialog
+            :show-dialog="showImportExportCommittedProjectsDialog"
             @submit="onSubmitImportExportCommittedProjectsDialogResult"
-            @delete="onDeleteCommittedProjects"
         />
         <Alert
             :dialogData="alertDataForDeletingCommittedProjects"
             @submit="onDeleteCommittedProjectsSubmit"
         />
-
-        <CreateConsequenceDialog :showDialog='showCreateCommittedProjectConsequenceDialog' @submit='onAddCommittedProjectConsequenc' />
-    </v-layout>
+        <ConfirmDialog></ConfirmDialog>
+    </v-div>
+</v-card>
 </template>
-<script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component';
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+import editDialog from '@/shared/modals/Edit-Dialog.vue'
+import { watch, ref, shallowReactive, onMounted, onBeforeUnmount, shallowRef, computed, inject } from 'vue'
 import { DataTableHeader } from '@/shared/models/vue/data-table-header';
-import { CommittedProjectConsequence, CommittedProjectFillTreatmentReturnValues, emptyCommittedProjectConsequence, emptySectionCommittedProject, SectionCommittedProject, SectionCommittedProjectTableData } from '@/shared/models/iAM/committed-projects';
-import { Action, Getter, State } from 'vuex-class';
-import { Watch } from 'vue-property-decorator';
+import { CommittedProjectFillTreatmentReturnValues, emptySectionCommittedProject, SectionCommittedProject, SectionCommittedProjectTableData } from '@/shared/models/iAM/committed-projects';
 import { getBlankGuid, getNewGuid } from '../../shared/utils/uuid-utils';
-import { Treatment, treatmentCategoryMap, treatmentCategoryReverseMap, TreatmentLibrary } from '@/shared/models/iAM/treatment';
+import { emptyTreatmentLibrary, SimpleTreatment, Treatment, treatmentCategoryMap, treatmentCategoryReverseMap, TreatmentLibrary } from '@/shared/models/iAM/treatment';
 import { SelectItem } from '@/shared/models/vue/select-item';
 import CommittedProjectsService from '@/services/committed-projects.service';
 import { Attribute } from '@/shared/models/iAM/attribute';
@@ -364,7 +325,6 @@ import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper
 import { http2XX } from '@/shared/utils/http-utils';
 import { ImportExportCommittedProjectsDialogResult } from '@/shared/models/modals/import-export-committed-projects-dialog-result';
 import ImportExportCommittedProjectsDialog from './committed-project-editor-dialogs/CommittedProjectsImportDialog.vue';
-import CreateConsequenceDialog from './committed-project-editor-dialogs/CreateCommittedProjectConsequenceDialog.vue';
 import { InvestmentPlan, SimpleBudgetDetail } from '@/shared/models/iAM/investment';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import {InputValidationRules, rules} from '@/shared/utils/input-validation-rules';
@@ -376,543 +336,582 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
 import { PagingPage, PagingRequest } from '@/shared/models/iAM/paging';
 import InvestmentService from '@/services/investment.service';
-import { formatAsCurrency } from '@/shared/utils/currency-formatter';
-import { isNullOrUndefined } from 'util';
+// import { formatAsCurrency } from '@/shared/utils/currency-formatter';
 import { max } from 'moment';
-import { stat } from 'fs';
 import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
-@Component({
-    components: {
-        CommittedProjectsFileUploaderDialog: ImportExportCommittedProjectsDialog,
-        CreateConsequenceDialog,
-        Alert
-    },
-})
-export default class CommittedProjectsEditor extends Vue  {
-    searchItems = '';
-    dataPerPage = 0;
-    totalDataFound = 0;
-    librarySelectItemValue: string | null = null;
-    hasSelectedLibrary: boolean = false;
-    librarySelectItems: SelectItem[] = [];
-    attributeSelectItems: SelectItem[] = [];
-    treatmentSelectItems: string[] = [];
-    budgetSelectItems: SelectItem[] = [];
-    categorySelectItems: SelectItem[] = [];
-    categories: string[] = [];
-    scenarioId: string = getBlankGuid();
-    networkId: string = getBlankGuid();
-    rules: InputValidationRules = rules;
-    network: Network = clone(emptyNetwork);
+import { storeKey, useStore } from 'vuex';
+import { createDecipheriv } from 'crypto';
+import mitt, { Emitter, EventType } from 'mitt';
+import Dialog from 'primevue/dialog';
+import Column from 'primevue/column';
+import TreatmentService from '@/services/treatment.service';
+import { getUrl } from '@/shared/utils/get-url';
+import  currencyTextbox  from '@/shared/components/CurrencyTextbox.vue';
+import ConfirmDialog from 'primevue/confirmdialog';
 
-    addedRows: SectionCommittedProject[] = [];
-    updatedRowsMap:Map<string, [SectionCommittedProject, SectionCommittedProject]> = new Map<string, [SectionCommittedProject, SectionCommittedProject]>();//0: original value | 1: updated value
-    deletionIds: string[] = [];
-    rowCache: SectionCommittedProject[] = [];
-    gridSearchTerm = '';
-    currentSearch = '';
-    totalItems = 0;
-    currentPage: SectionCommittedProjectTableData[] = [];
-    isRunning: boolean = true;
+    let store = useStore();
+    const $router = useRouter();    
+    const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
+    created();
 
-    isKeyAttributeValidMap: Map<string, boolean> = new Map<string, boolean>();
-
-    projectPagination: Pagination = clone(emptyPagination);
-
-    @State(state => state.committedProjectsModule.sectionCommittedProjects) stateSectionCommittedProjects: SectionCommittedProject[];
-    @State(state => state.treatmentModule.treatmentLibraries)stateTreatmentLibraries: TreatmentLibrary[];
-    selectedLibraryTreatments: Treatment[];
-    @State(state => state.attributeModule.attributes) stateAttributes: Attribute[];
-    @State(state => state.investmentModule.investmentPlan) stateInvestmentPlan: InvestmentPlan;
-    @State(state => state.investmentModule.scenarioSimpleBudgetDetails) stateScenarioSimpleBudgetDetails: SimpleBudgetDetail[];
-    @State(state => state.unsavedChangesFlagModule.hasUnsavedChanges) hasUnsavedChanges: boolean;
-    @State(state => state.networkModule.networks) networks: Network[];
-
-    @Action('getCommittedProjects') getCommittedProjects: any;
-    @Action('getTreatmentLibraries') getTreatmentLibrariesAction: any;
-    @Action('getScenarioSelectableTreatments') getScenarioSelectableTreatmentsAction: any;
-    @Action('getInvestmentPlan') getInvestmentPlanAction: any;
-    @Action('getScenarioSimpleBudgetDetails') getScenarioSimpleBudgetDetailsAction:any;
-    @Action('getAttributes') getAttributesAction: any;
-    @Action('getNetworks') getNetworksAction: any;
-    @Action('deleteSpecificCommittedProjects') deleteSpecificCommittedProjectsAction: any;
-    @Action('deleteSimulationCommittedProjects') deleteSimulationCommittedProjectsAction: any;
-    @Action('upsertCommittedProjects') upsertCommittedProjectsAction: any;
-
-    @Action('selectTreatmentLibrary') selectTreatmentLibraryAction: any;
-    @Action('setHasUnsavedChanges') setHasUnsavedChangesAction: any;
-    @Action('addSuccessNotification') addSuccessNotificationAction: any;
-    @Action('addErrorNotification') addErrorNotificationAction: any;
-    @Action('getCurrentUserOrSharedScenario') getCurrentUserOrSharedScenarioAction: any;
-    @Action('selectScenario') selectScenarioAction: any;
-    @Action('setAlertMessage') setAlertMessageAction: any;
-
-    @Getter('getUserNameById') getUserNameByIdGetter: any;
-    @State(state => state.userModule.currentUserCriteriaFilter) currentUserCriteriaFilter: UserCriteriaFilter;
-
-    cpItems: SectionCommittedProjectTableData[] = [];
-    selectedCpItems: SectionCommittedProjectTableData[] = [];
-    sectionCommittedProjects: SectionCommittedProject[] = [];
-    selectedConsequences: CommittedProjectConsequence[] = [];
-    committedProjectsCount: number = 0;
-    showImportExportCommittedProjectsDialog: boolean = false;
-    selectedCommittedProject: string  = '';
-    showCreateCommittedProjectConsequenceDialog: boolean = false;
-    disableCrudButtonsResult: boolean = true;
-    alertDataForDeletingCommittedProjects: AlertData = { ...emptyAlertData };
-    reverseCatMap = clone(treatmentCategoryReverseMap);
-    catMap = clone(treatmentCategoryMap);
+    let searchItems = '';
+    let dataPerPage = 0;
+    let totalDataFound = 0;
+    let hasScenario: boolean = false;
+    let librarySelectItemValue = ref<string>("");
+    const templateSelectItems = ref<string[]>([]);
+    const templateItemSelected = ref<string>("");
+    let hasSelectedLibrary: boolean = false;
+    let librarySelectItems: SelectItem[] = [];
+    let attributeSelectItems: SelectItem[] = [];
+    const treatmentSelectItems = ref< string[] >([]);
+    const projectSourceOptions = ref< string [] >([]);
+    const budgetSelectItems = ref< SelectItem[] >([]);
+    const categorySelectItems = ref<SelectItem[]>([]);
+    let importedProjectTreatmentName = ref<string>("");
+    let importedProjectTreatmentBoolean = ref(false);
+    let categories: string[] = [];
+    const missingTreatments = ref< string[] >([]);
+    const missingTreatmentsValue = ref< string[] >([]);
+    let allImportedTreatments;
+    let scenarioId: string = getBlankGuid();
+    let networkId: string = getBlankGuid();
+    let inputRules: InputValidationRules = rules;
+    let network: Network = clone(emptyNetwork);
+    let isAdminTemplateUploaded: Boolean;
+    let fileData: AxiosResponse;
     
-    keyattr: string = '';
+    const projectSourceMap = new Map<number, string>([
+        [0, "None"],
+        [1, "iAMPick"],
+        [2, "Committed"],
+        [3, "SAP"],
+        [4, "ProjectBuilder"]
+    ]);
 
-    investmentYears: number[] = [];
-    lastYear: number = 0;
-    firstYear: number = 0;
+    const uuidNIL: string = getBlankGuid();
+    let addedRows = ref<SectionCommittedProject[]>([]);
+    let updatedRowsMap:Map<string, [SectionCommittedProject, SectionCommittedProject]> = new Map<string, [SectionCommittedProject, SectionCommittedProject]>();//0: original value | 1: updated value
+    let deletionIds = ref<string[]>([]);
+    const rowCache = ref<SectionCommittedProject[]>([]);
+    const gridSearchTerm = ref('');
+    const currentSearch = ref('');
+    let totalItems = ref(0);
+    const currentPage = ref<SectionCommittedProjectTableData[]>([]);
+    let isRunning: boolean = true;
 
-    isNoTreatmentBefore: boolean = true
-    isNoTreatmentBeforeCache: boolean = true
+    const selectedLibraryTreatments = ref<SimpleTreatment[]>([]);
+    let isKeyAttributeValidMap: Map<string, boolean> = new Map<string, boolean>();
+
+    let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
+
+    const currentUserCriteriaFilter = computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
+    const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
+    const committedProjectTemplate = computed<string>(() =>store.state.committedProjectsModule.committedProjectTemplate);
+    const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
+    const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
+    const stateInvestmentPlan = computed<InvestmentPlan>(() => store.state.investmentModule.investmentPlan);
+    const stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() =>store.state.investmentModule.scenarioSimpleBudgetDetails);
+    const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
+    const networks = computed<Network[]>(() => store.state.networkModule.networks);
+    const selectedStateTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
+
+    async function getCommittedProjects(payload?: any): Promise<any> { await store.dispatch('getCommittedProjects', payload); }
+    async function getTreatmentLibrariesAction(payload?: any): Promise<any> { await store.dispatch('getTreatmentLibraries', payload); }
+    async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getScenarioSelectableTreatments', payload); }
+    async function getInvestmentPlanAction(payload?: any): Promise<any> { await store.dispatch('getInvestmentPlan', payload); }
+    async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any> { await store.dispatch('getScenarioSimpleBudgetDetails', payload); }
+    async function getAttributesAction(payload?: any): Promise<any> { await store.dispatch('getAttributes', payload); }
+    async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload); }
+    async function deleteSpecificCommittedProjectsAction(payload?: any): Promise<any> { await store.dispatch('deleteSpecificCommittedProjects', payload); }
+    async function deleteSimulationCommittedProjectsAction(payload?: any): Promise<any> { await store.dispatch('deleteSimulationCommittedProjects', payload); }
+    async function upsertCommittedProjectsAction(payload?: any): Promise<any> { await store.dispatch('upsertCommittedProjects', payload); }
+
+        // TODO:Remove this one?
+        async function importCommittedProjectTemplate(payload?: any): Promise<any> { await store.dispatch('importComittedProjectTemplate', payload);}
+
+    async function selectTreatmentLibraryAction(payload?: any): Promise<any> { await store.dispatch('selectTreatmentLibrary', payload); }
+    async function setHasUnsavedChangesAction(payload?: any): Promise<any> { await store.dispatch('setHasUnsavedChanges', payload); }
+    async function addSuccessNotificationAction(payload?: any): Promise<any> { await store.dispatch('addSuccessNotification', payload); }
+    async function addErrorNotificationAction(payload?: any): Promise<any> { await store.dispatch('addErrorNotification', payload); } 
+    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserOrSharedScenario', payload); }
+    async function selectScenarioAction(payload?: any): Promise<any> { await store.dispatch('selectScenario', payload); }
+    async function setAlertMessageAction(payload?: any): Promise<any> { await store.dispatch('setAlertMessage', payload); }
     
-    cpGridHeaders: DataTableHeader[] = [
+    let getUserNameByIdGetter: any = store.getters.getUserNameByIdGetter;
+    
+    let cpItems: SectionCommittedProjectTableData[] = [];
+    let selectedCpItems = ref<SectionCommittedProjectTableData[]>([]);
+    let sectionCommittedProjects = ref<SectionCommittedProject[]>([]);
+    let committedProjectsCount: number = 0;
+    const showImportExportCommittedProjectsDialog = ref< boolean > (false);
+    let selectedCommittedProject = ref<string>('');
+    let showCreateCommittedProjectConsequenceDialog: boolean = false;
+    let disableCrudButtonsResult: boolean = true;
+    const alertDataForDeletingCommittedProjects = ref<AlertData>({ ...emptyAlertData });
+    let reverseCatMap = clone(treatmentCategoryReverseMap);
+    let catMap = clone(treatmentCategoryMap);
+    
+    let keyattr: string = '';
+
+    let lastYear: number = 0;
+    let firstYear: number = 0;
+
+    let investmentYears = ref<number[]>([]);
+    let isNoTreatmentBefore = ref<boolean>(true);
+    let isNoTreatmentBeforeCache = ref<boolean>(true);
+
+    const yearMask = { mask: '####' };
+    
+    const cpGridHeaders = ref<any[]>([
         {
-            text: '',
-            value: 'keyAttr',
+            title: '',
+            key: 'keyAttr',
             align: 'left',
             sortable: true,
             class: '',
             width: '10%',
         },
         {
-            text: 'Year',
-            value: 'year',
+            title: 'Year',
+            key: 'year',
             align: 'left',
             sortable: true,
             class: '',
             width: '10%',
         },
         {
-            text: 'Treatment',
-            value: 'treatment',
+            title: 'Treatment',
+            key: 'treatment',
             align: 'left',
             sortable: true,
-            class: '',
-            width: '10%',
-        },
-        {
-            text: 'Category',
-            value: 'category',
-            align: 'left',
-            sortable: true,
-            class: '',
-            width: '10%',
-        },
-        {
-            text: 'Budget',
-            value: 'budget',
-            align: 'left',
-            sortable: true,
-            class: '',
-            width: '10%',
-        },
-        {
-            text: 'Cost',
-            value: 'cost',
-            align: 'left',
-            sortable: true,
-            class: '',
-            width: '10%',
-        },
-        {
-            text: 'Actions',
-            value: 'actions',
-            align: 'left',
-            sortable: false,
-            class: '',
-            width: '10%',
-        },
-    ];
-    consequenceHeaders: DataTableHeader[] = [
-        {
-            text: 'Attribute',
-            value: 'attribute',
-            align: 'left',
-            sortable: false,
-            class: '',
-            width: '40%',
-        },
-        {
-            text: 'Change',
-            value: 'changeValue',
-            align: 'left',
-            sortable: false,
-            class: '',
-            width: '40%',
-        },
-        {
-            text: 'Factor',
-            value: 'performanceFactor',
-            align: 'left',
-            sortable: false,
             class: '',
             width: '15%',
         },
         {
-            text: '',
-            value: 'actions',
+            title: 'Category',
+            key: 'category',
+            align: 'left',
+            sortable: true,
+            class: '',
+            width: '15%',
+        },
+        {
+            title: 'Budget',
+            key: 'budget',
+            align: 'left',
+            sortable: true,
+            class: '',
+            width: '10%',
+        },
+        {
+            title: 'Cost',
+            key: 'cost',
+            align: 'left',
+            sortable: true,
+            class: '',
+            width: '10%',
+        },
+        { 
+            title: 'Project Source', 
+            key: 'projectSource',
             align: 'left',
             sortable: false,
             class: '',
-            width: '20%',
-        }
-    ];
-    
-    mounted() {
-        this.reverseCatMap.forEach(cat => {
-            this.categorySelectItems.push({text: cat, value: cat})        
-        })
+            width: '15%'
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            align: 'left',
+            sortable: false,
+            class: '',
+            width: '10%',
+        },
+    ]);
 
-        this.$statusHub.$on(
+    function created() {
+        $emitter.on(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
-            this.importCompleted,
+            importCompleted,
         );
-    }   
-    beforeDestroy() {
-        this.setHasUnsavedChangesAction({ value: false });
-
-        this.$statusHub.$off(
-            Hub.BroadcastEventType.BroadcastImportCompletionEvent,
-            this.importCompleted,
-        );
-
-        this.setAlertMessageAction('');
     }
-    beforeRouteEnter(to: any, from: any, next:any) {
-        next((vm:any) => {
-            vm.scenarioId = to.query.scenarioId;
-            vm.networkId = to.query.networkId;
-            vm.librarySelectItemValue = null;
-            
-            if (vm.scenarioId === vm.uuidNIL || vm.networkId == vm.uuidNIL) {
-                vm.addErrorNotificationAction({
-                   message: 'Found no selected scenario for edit',
-                });
-                vm.$router.push('/Scenarios/');
-            }
-            (async () => { 
-                await vm.getNetworksAction();
-                await InvestmentService.getScenarioBudgetYears(vm.scenarioId).then(response => {  
-                    if(response.data)
-                        vm.investmentYears = response.data;
-                });
-                await ScenarioService.getNoTreatmentBeforeCommitted(vm.scenarioId).then(response => {
-                        if(!isNil(response.data)){
-                            vm.isNoTreatmentBeforeCache = response.data;
-                            vm.isNoTreatmentBefore = response.data;
-                        }
-                });
-                await vm.getScenarioSimpleBudgetDetailsAction({scenarioId: vm.scenarioId});
-                await vm.getAttributesAction();
-                await vm.getTreatmentLibrariesAction();
-                await vm.getCurrentUserOrSharedScenarioAction({simulationId: vm.scenarioId});
-                await vm.selectScenarioAction({ scenarioId: vm.scenarioId });
-                await ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: vm.scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
-                    if(response.data){
-                        vm.setAlertMessageAction("Committed project import has been added to the work queue")
-                    }
-                })
-                await vm.initializePages()
-            })();                    
+    onMounted(async() => {
+        scenarioId = $router.currentRoute.value.query.scenarioId as string;
+        networkId = $router.currentRoute.value.query.networkId as string;
+        
+        if (scenarioId === uuidNIL || networkId == uuidNIL) {
+            addErrorNotificationAction({
+               message: 'Found no selected scenario for edit',
+            });
+            $router.push('/Scenarios/');
+        }
+        let i = 0
+        reverseCatMap.forEach(cat => {
+            categorySelectItems.value.push({text: cat, value: i})     
+            i++   
         });
-    }
-
-    //Watch
-    @Watch('isNoTreatmentBefore')
-    onIsNoTreatmentBeforeChanged(){
-        this.checkHasUnsavedChanges();
-    }
-
-    @Watch('investmentYears')
-    onInvestmentYearsChanged(){
-        //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
-        if (this.investmentYears.length > 0) {
-            this.lastYear = Math.max(...this.investmentYears);
-            this.firstYear = Math.min(...this.investmentYears);
+        await getTreatmentLibrariesAction();
+        await fetchTreatmentLibrary(scenarioId);
+        hasScenario = true;
+        await getNetworksAction();
+        await InvestmentService.getScenarioBudgetYears(scenarioId).then(response => {  
+            if(response.data) {
+                if (response.data.length === 0) {
+                    investmentYears.value = [];
+                } else {
+                    investmentYears.value = response.data;
+                }
+            }
+        });
+        await ScenarioService.getNoTreatmentBeforeCommitted(scenarioId).then(response => {
+            if(!isNil(response.data)){
+                isNoTreatmentBeforeCache.value = response.data;
+                isNoTreatmentBefore.value = response.data;
+            }
+        });
+        await getScenarioSimpleBudgetDetailsAction({scenarioId: scenarioId});
+        await getAttributesAction();
+        
+        await getCurrentUserOrSharedScenarioAction({simulationId: scenarioId});
+        await selectScenarioAction({ scenarioId: scenarioId });
+        await ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
+            if(response.data){
+                setAlertMessageAction("Committed project import has been added to the work queue");
+            }
+        });
+        await initializePages();
+        if (scenarioId !== undefined) {  
+            await fetchProjectSources();
         }
+
+        await CommittedProjectsService.getUploadedCommittedProjectTemplates().then(response => {
+            if(!isNil(response.data)){
+                    templateSelectItems.value = response.data;
+            }
+        });   
+        onPaginationChanged();         
+    });
+    onBeforeUnmount(() => beforeDestroy())
+    function beforeDestroy() {
+        setHasUnsavedChangesAction({ value: false });
+
+        $emitter.off(
+            Hub.BroadcastEventType.BroadcastImportCompletionEvent,
+            importCompleted,
+        );
+        setAlertMessageAction('');
     }
 
-    @Watch('networks')
-    onStateNetworksChanged(){
-        const network = this.networks.find(o => o.id == this.networkId)
+        //Watch
+        watch(isNoTreatmentBefore, () => {
+            checkHasUnsavedChanges();
+        });
+
+    watch(investmentYears, () => {
+        //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
+        if (investmentYears.value.length > 0) {
+            lastYear = Math.max(...investmentYears.value);
+            firstYear = Math.min(...investmentYears.value);
+        }
+    });
+
+    watch(networks, () => {
+        const net: any = networks.value.find(o => o.id == networkId)
         if(!isNil(network)){
-            this.network = network;
+            network = net? net : undefined;
         }           
-    }
+    });
 
-    @Watch('stateTreatmentLibraries')
-    onStateTreatmentLibrariesChanged() {
-        this.librarySelectItems = this.stateTreatmentLibraries.map(
-            (library: TreatmentLibrary) => ({
-                text: library.name,
-                value: library.id
-            }),
-        );
-    }
-
-    @Watch('selectedLibraryTreatments', {deep: true})
-    onSelectedLibraryTreatmentsChanged(){
-        this.treatmentSelectItems = this.selectedLibraryTreatments.map(
-            (treatment: Treatment) => (treatment.name)
-        );
-    }
-
-    @Watch('stateAttributes')
-    onStateAttributesChanged(){
-        this.attributeSelectItems = this.stateAttributes.map(
+    watch(stateAttributes, () => {
+        attributeSelectItems = stateAttributes.value.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name
             }),
         );
-        let keyAttr = this.stateAttributes.find(_ => _.id == this.network.keyAttribute)
+        let keyAttr = stateAttributes.value.find(_ => _.id == network.keyAttribute);
         if(!isNil(keyAttr)){
-            this.keyattr = keyAttr.name;
-            this.cpGridHeaders[0].text = this.keyattr;
+            keyattr = keyAttr.name;
+            cpGridHeaders.value[0].title = keyattr;
         }
-            
-    }
+    });
 
-    @Watch('stateScenarioSimpleBudgetDetails')
-    onStateScenarioSimpleBudgetDetailsChanged(){
-        this.budgetSelectItems = this.stateScenarioSimpleBudgetDetails.map(
+    watch(selectedLibraryTreatments, onSelectedLibraryTreatmentsChanged)
+    function onSelectedLibraryTreatmentsChanged() {
+        treatmentSelectItems.value = selectedLibraryTreatments.value.map(
+            (treatment: SimpleTreatment) => (treatment.name)
+        );
+    };
+
+    watch(selectedStateTreatmentLibrary, () => {
+    });
+
+    watch(stateScenarioSimpleBudgetDetails, () => {
+        budgetSelectItems.value = stateScenarioSimpleBudgetDetails.value.map(
             (budget: SimpleBudgetDetail) => ({
                 text: budget.name,
                 value: budget.name
             }),
         );
-        this.budgetSelectItems.push({
+        budgetSelectItems.value.push({
             text: 'None',
             value: ''
         });
-    }
+    });
 
-    @Watch('stateSectionCommittedProjects')
-        onStateSectionCommittedProjectsChanged(){
-            this.sectionCommittedProjects = clone(this.stateSectionCommittedProjects);
-            this.setCpItems();
-    }
+    watch(stateSectionCommittedProjects, () => {
+        sectionCommittedProjects.value = clone(stateSectionCommittedProjects.value);
+        setCpItems();
+    });
 
-    @Watch('librarySelectItemValue')
-    onSelectAttributeItemValueChanged() {
-        this.selectTreatmentLibraryAction(this.librarySelectItemValue);
-        this.hasSelectedLibrary = true;
-        const library = this.stateTreatmentLibraries.find(o => o.id == this.librarySelectItemValue)
-        if(!isNil(library)){
-            this.selectedLibraryTreatments = library.treatments;
-            this.onSelectedLibraryTreatmentsChanged()
-        }        
-    }
+    watch(sectionCommittedProjects, () => {
+        setCpItems();  
+    });
 
-    @Watch('selectedCommittedProject')
-    onSelectedCommittedProject(){
-        if(!isNil(this.selectedCommittedProject)){
-            const selectedProject = find(propEq('id', this.selectedCommittedProject), this.sectionCommittedProjects);
-            if(!isNil(selectedProject)){
-                this.selectedConsequences = selectedProject.consequences;
-            }             
-        }
-    }
+    watch(selectedCpItems, () => {
+        if(selectedCpItems.value.length > 1)
+           selectedCpItems.value.splice(0,1);
+        if(selectedCpItems.value.length === 1)
+           selectedCommittedProject.value = selectedCpItems.value[0].id;
+    });
 
-    @Watch('sectionCommittedProjects')
-    onSectionCommittedProjectsChanged() {  
-        this.setCpItems();  
-    }
-
-    @Watch('selectedCpItems')
-    onSelectedCpItemsChanged(){
-        if(this.selectedCpItems.length > 1)
-            this.selectedCpItems.splice(0,1);
-        if(this.selectedCpItems.length === 1)
-            this.selectedCommittedProject = this.selectedCpItems[0].id;
-    }
-
-    @Watch('projectPagination')
-    async onPaginationChanged() {
-        if(this.isRunning)
+    async function onPaginationChanged() {
+        if(isRunning)
+        {
             return;
-        this.isRunning = true
-        this.checkHasUnsavedChanges();
-        const { sortBy, descending, page, rowsPerPage } = this.projectPagination;
+        }
+        missingTreatments.value = [];
+        isRunning = true
+        checkHasUnsavedChanges();
+        const { sort, descending, page, rowsPerPage } = projectPagination;
 
         const request: PagingRequest<SectionCommittedProject>= {
             page: page,
             rowsPerPage: rowsPerPage,
             syncModel: {
                 libraryId: null,
-                updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-                rowsForDeletion: this.deletionIds,
-                addedRows: this.addedRows,
+                updateRows: Array.from(updatedRowsMap.values()).map(r => r[1]),
+                rowsForDeletion: deletionIds.value,
+                addedRows: addedRows.value,
                 isModified: false
             },           
-            sortColumn: sortBy,
+            sortColumn: sort != null && !isNil(sort[0]) ? sort[0].key : '',
             isDescending: descending != null ? descending : false,
-            search: this.currentSearch
+            search: currentSearch.value
         };
-        if(this.scenarioId !== this.uuidNIL)
-            CommittedProjectsService.getCommittedProjectsPage(this.scenarioId, request).then(response => {
+        if(scenarioId !== uuidNIL)
+            CommittedProjectsService.getCommittedProjectsPage(scenarioId, request).then(response => {
                 if(response.data){
-                    this.isRunning = false;
+                    isRunning = false;
                     let data = response.data as PagingPage<SectionCommittedProject>;
-                    this.sectionCommittedProjects = data.items;
-                    this.rowCache = clone(this.sectionCommittedProjects)
-                    this.totalItems = data.totalItems;
-                    const row = data.items.find(scp => scp.id == this.selectedCommittedProject);
+                    sectionCommittedProjects.value = data.items;
+                    rowCache.value = clone(sectionCommittedProjects.value)
+                    totalItems.value = data.totalItems;
+                    const row = data.items.find(scp => scp.id == selectedCommittedProject.value);
+                    allImportedTreatments = data.items;
 
-                    // Updated existing data with no factor set to 1.2
-                    this.sectionCommittedProjects.forEach(element => {
-                        if (element.consequences !=null){
-                            element.consequences.forEach(consequence => {
-                            if (consequence.performanceFactor === 0) {
-                                consequence.performanceFactor = 1.2;
-                                this.updateCommittedProject(row ? row : emptySectionCommittedProject, "1.2", "performanceFactor");
-                            }
-                        });
+                    //Check to see if any imported treatments are missing from the treatment list
+                    for(let i = 0; i < data.items.length; i++)
+                    {
+                        selectedCommittedProject.value;
+                        importedProjectTreatmentName.value = data.items[i].treatment;
+                        if(!treatmentSelectItems.value.includes(importedProjectTreatmentName.value))
+                        {
+                            importedProjectTreatmentBoolean.value = true;
+                            missingTreatments.value.push(importedProjectTreatmentName.value);
                         }
-                        
-                    });
+                    }
+
+                    //If there are mmissing treatments sort them with the missing at the top
+                    if(missingTreatments.value.length === 0)
+                        {
+                            importedProjectTreatmentBoolean.value = false;
+                        }
+                        else
+                        {
+                            missingTreatmentsValue.value = missingTreatments.value;
+
+                            const n = data.items.length;
+
+                            for (let i = 0; i < n - 1; i++) {
+                                for (let j = 0; j < n - i - 1; j++) {
+                                    const treatmentA = allImportedTreatments[j].treatment;
+                                    const treatmentB = allImportedTreatments[j + 1].treatment;
+
+                                    const isInMissingTreatmentsA = missingTreatments.value.includes(treatmentA);
+                                    const isInMissingTreatmentsB = missingTreatments.value.includes(treatmentB);
+
+                                    if (!isInMissingTreatmentsA && isInMissingTreatmentsB) {
+                                    const temp = allImportedTreatments[j];
+                                    allImportedTreatments[j] = allImportedTreatments[j + 1];
+                                    allImportedTreatments[j + 1] = temp;
+                                    }
+                                }
+                            }
+                            data.items = allImportedTreatments;
+                        }
+
+
                     if(isNil(row)) {
-                        this.selectedCommittedProject = '';
+                        selectedCommittedProject.value = '';
                     }
                 } 
             }); 
         else
-            this.isRunning = false;
+            isRunning = false;
     }
 
-     @Watch('deletionIds')
-    onDeletionIdsChanged(){
-        this.checkHasUnsavedChanges();
-    }
+     watch(deletionIds, () => {
+        checkHasUnsavedChanges();
+     });
 
-    @Watch('addedRows')
-    onAddedRowsChanged(){
-        this.checkHasUnsavedChanges();
-    }
+    watch(addedRows, () =>{
+        checkHasUnsavedChanges();
+    });
 
     //Events
-    onCancelClick() {
-        this.clearChanges()
-        this.selectedCommittedProject = '';
-        this.selectedCpItems = [];
-        this.isNoTreatmentBefore = this.isNoTreatmentBeforeCache
-        this.resetPage();
+    function onCancelClick() {
+
+        clearChanges()
+        selectedCommittedProject.value = '';
+        selectedCpItems.value = [];
+        isNoTreatmentBefore.value = isNoTreatmentBeforeCache.value
+        resetPage();
     }
 
-    OnExportProjectsClick(){
-        CommittedProjectsService.exportCommittedProjects(this.scenarioId)
+    function OnExportProjectsClick(){
+        CommittedProjectsService.exportCommittedProjects(scenarioId)
             .then((response: AxiosResponse) => {
                 if (hasValue(response, 'data')) {
                     const fileInfo: FileInfo = response.data as FileInfo;
                     FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
                 }
             });
-     }
+        }
 
-     OnGetTemplateClick(){
-        CommittedProjectsService.getCommittedProjectTemplate(this.networkId)
+    async function OnGetTemplateClick(){
+       await CommittedProjectsService.getUploadedCommittedProjectTemplate()
             .then((response: AxiosResponse) => {
-                if (hasValue(response, 'data')) {
-                    const fileInfo: FileInfo = response.data as FileInfo;  
-                    FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
-                }
+                    if(response.data.toString() != ""){
+                        FileDownload(convertBase64ToArrayBuffer(response.data), 'Committed Project Template', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                        isAdminTemplateUploaded = true;
+                    }
+                    else{
+                         CommittedProjectsService.getCommittedProjectTemplate(networkId)
+                            .then((response: AxiosResponse) => {
+                        if (hasValue(response, 'data')) {
+                          const fileInfo: FileInfo = response.data as FileInfo;  
+                          FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
+                        }
+                });
+                    }
             });
-     }
+        }
 
-     OnAddCommittedProjectClick(){
+     function OnAddCommittedProjectClick(){
         const newRow: SectionCommittedProject = clone(emptySectionCommittedProject)
         newRow.id = getNewGuid();
         newRow.name = '';
-        newRow.locationKeys[this.keyattr] = '';
+        newRow.locationKeys[keyattr] = '';
         newRow.locationKeys['ID'] = getNewGuid();
-        newRow.simulationId = this.scenarioId;
-        this.addedRows.push(newRow)
-        this.onPaginationChanged();
-     }
-     
-     OnAddConsequenceClick(){
-        const newRow: CommittedProjectConsequence = clone(emptyCommittedProjectConsequence)
-        newRow.id = getNewGuid();
-        newRow.committedProjectId = this.selectedCommittedProject;
-        newRow.attribute = '';
-        newRow.changeValue = '';
-        newRow.performanceFactor = 1.2;
-        this.selectedConsequences.push(newRow);
+        newRow.simulationId = scenarioId;
+        newRow.projectSource = 'None';
+        addedRows.value.push(newRow)
+        onPaginationChanged();   
      }
 
-     OnSaveClick(){
+     function OnSaveClick(){
         const upsertRequest = {
                     libraryId: null,
-                    rowsForDeletion: this.deletionIds,
-                    updateRows: Array.from(this.updatedRowsMap.values()).map(r => r[1]),
-                    addedRows: this.addedRows,
+                    rowsForDeletion: deletionIds.value,
+                    updateRows: Array.from(updatedRowsMap.values()).map(r => r[1]),
+                    addedRows: addedRows.value,
                     isModified: false    
                 }
-        if(!this.committedProjectsAreChanged())
+        if(!committedProjectsAreChanged())
         {
-            this.updateNoTreatment();
+            updateNoTreatment();
         }
-        else if(this.deletionIds.length > 0){
-            CommittedProjectsService.deleteSpecificCommittedProjects(this.deletionIds).then((response: AxiosResponse) => {
+        else if(deletionIds.value.length > 0){
+            CommittedProjectsService.deleteSpecificCommittedProjects(deletionIds.value).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                    this.deletionIds = [];
-                    this.addSuccessNotificationAction({message:'Deleted committed projects'})              
+                    deletionIds.value = [];
+                    addSuccessNotificationAction({message:'Deleted committed projects'})              
                 }
-                CommittedProjectsService.upsertCommittedProjects(this.scenarioId, upsertRequest).then((response: AxiosResponse) => {
+                CommittedProjectsService.upsertCommittedProjects(scenarioId, upsertRequest).then((response: AxiosResponse) => {
                     if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                        this.addSuccessNotificationAction({message:'Committed Projects Updated Successfully'}) 
-                        this.addedRows = [];
-                        this.updatedRowsMap.clear();
+                        addSuccessNotificationAction({message:'Committed Projects Updated Successfully'}) 
+                        addedRows.value = [];
+                        updatedRowsMap.clear();
                     }
-                    if(this.isNoTreatmentBefore != this.isNoTreatmentBeforeCache)
-                        this.updateNoTreatment()
+                    if(isNoTreatmentBefore.value != isNoTreatmentBeforeCache.value)
+                        updateNoTreatment()
                     else
-                        this.resetPage()
-                })
-            })         
+                        resetPage()
+                });
+            });         
         }
         else
-            CommittedProjectsService.upsertCommittedProjects(this.scenarioId, upsertRequest).then((response: AxiosResponse) => {
+            CommittedProjectsService.upsertCommittedProjects(scenarioId, upsertRequest).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                    this.addSuccessNotificationAction({message:'Committed Projects Updated Successfully'}) 
-                    this.addedRows = [];
-                    this.updatedRowsMap.clear();
+                    addSuccessNotificationAction({message:'Committed Projects Updated Successfully'}) 
+                    addedRows.value = [];
+                    updatedRowsMap.clear();
                 }
-                if(this.isNoTreatmentBefore != this.isNoTreatmentBeforeCache)
-                        this.updateNoTreatment()
+                if(isNoTreatmentBefore.value != isNoTreatmentBeforeCache.value)
+                        updateNoTreatment()
                 else
-                    this.resetPage()
+                    resetPage()
             })   
      }
 
-     updateNoTreatment(){
-        if(this.isNoTreatmentBefore)
-                ScenarioService.setNoTreatmentBeforeCommitted(this.scenarioId).then((response: AxiosResponse) => {
+    function handleTreatmentChange(scp: SectionCommittedProjectTableData, treatmentName: string, row: SectionCommittedProject){
+        row.treatment = treatmentName;
+        updateCommittedProject(row, treatmentName, 'treatment')  
+        CommittedProjectsService.FillTreatmentValues({
+            committedProjectId: row.id,
+            treatmentLibraryId: librarySelectItemValue.value ? librarySelectItemValue.value : getBlankGuid(),
+            treatmentName: treatmentName,
+            KeyAttributeValue: row.locationKeys[keyattr],
+            networkId: networkId
+        })
+        .then((response: AxiosResponse) => {
+            if (hasValue(response, 'data')) {
+                var values = response.data as CommittedProjectFillTreatmentReturnValues;
+                row.cost = values.treatmentCost;
+                row.category = values.treatmentCategory;
+                scp.cost = row.cost;
+                let cat = reverseCatMap.get(row.category);
+                if (!isNil(cat))
+                    scp.category = row.category;
+                updateCommittedProject(row, row.cost, 'cost')  
+                onPaginationChanged();
+            }
+        });
+    }
+
+     function updateNoTreatment(){
+        if(isNoTreatmentBefore.value)
+                ScenarioService.setNoTreatmentBeforeCommitted(scenarioId).then((response: AxiosResponse) => {
                     if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                        this.isNoTreatmentBeforeCache = this.isNoTreatmentBefore
+                        isNoTreatmentBeforeCache.value = isNoTreatmentBefore.value
                     }
-                    this.resetPage()
-                })
+                    resetPage()
+                });
             else
-                ScenarioService.removeNoTreatmentBeforeCommitted(this.scenarioId).then((response: AxiosResponse) => {
+                ScenarioService.removeNoTreatmentBeforeCommitted(scenarioId).then((response: AxiosResponse) => {
                     if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                        this.isNoTreatmentBeforeCache = this.isNoTreatmentBefore
+                        isNoTreatmentBeforeCache.value = isNoTreatmentBefore.value
                     }
-                    this.resetPage()
-                })
+                    resetPage()
+                });
      }
 
-     OnDeleteAllClick(){
-        this.alertDataForDeletingCommittedProjects = {
+     function OnDeleteAllClick(){
+        alertDataForDeletingCommittedProjects.value = {
             showDialog: true,
             heading: 'Are you sure?',
             message:
@@ -921,81 +920,54 @@ export default class CommittedProjectsEditor extends Vue  {
         };
      }
 
-     OnDeleteClick(id: string){
-        if(isNil(this.addedRows.find(_ => _.id === id)))
-            this.deletionIds.push(id);
+     function OnDeleteClick(id: string){
+        if(isNil(addedRows.value.find(_ => _.id === id)))
+            deletionIds.value.push(id);
         else
-            this.addedRows = this.addedRows.filter((scp: SectionCommittedProject) => scp.id !== id)
+            addedRows.value = addedRows.value.filter((scp: SectionCommittedProject) => scp.id !== id)
 
-        this.onPaginationChanged();
+        onPaginationChanged();
      }
 
-      onEditCommittedProjectProperty(scp: SectionCommittedProjectTableData, property: string, value: any) {
-       let row = this.sectionCommittedProjects.find(o => o.id === scp.id)
+      function onEditCommittedProjectProperty(scp: SectionCommittedProjectTableData, property: string, value: any) {
+       let row = sectionCommittedProjects.value.find(o => o.id === scp.id)
         if(!isNil(row))
         {
             if(property === 'treatment'){
-                this.handleTreatmentChange(scp, value, row)             
+                handleTreatmentChange(scp, value, row)             
             }
             else if(property === 'keyAttr'){
-                this.handleKeyAttrChange(row, scp, value);               
-            }
-            else if(property === 'performanceFactor') {
-                this.handleFactorChange(row, scp, value);
+                handleKeyAttrChange(row, scp, value);               
             }
             else if(property === 'budget'){
-                this.handleBudgetChange(row, scp, value)
+                handleBudgetChange(row, scp, value)
+            }
+            else if(property === 'projectSource') {
+                handleProjectSourceChange(row, scp, value)
             }
             else{
-                if(property === 'category')
-                    value = this.catMap.get(value);
-                this.updateCommittedProject(row, value, property)
-                this.onPaginationChanged()
+                updateCommittedProject(row, value, property)
+                onPaginationChanged()
             }
         }
-    }
-
-    //Consequence Funtions
-    OnDeleteConsequence(id: string){
-        this.selectedConsequences = this.selectedConsequences.filter((cpc: CommittedProjectConsequence) => cpc.id !== id)
-        this.updateSelectedProjectConsequences()
-    }
-
-     onAddCommittedProjectConsequenc(newConsequence: CommittedProjectConsequence) {
-        this.showCreateCommittedProjectConsequenceDialog = false;     
-        if (!isNil(newConsequence)) {
-            newConsequence.committedProjectId = this.selectedCommittedProject;
-            this.selectedConsequences.push(newConsequence);
-            this.updateSelectedProjectConsequences();  
-        }
-    }
-
-    onEditConsequenceProperty(consequence: CommittedProjectConsequence, property: string, value: any) {
-        this.selectedConsequences = update(
-            findIndex(propEq('id', consequence.id), this.selectedConsequences),
-            setItemPropertyValue(property, value, consequence),
-            this.selectedConsequences,
-        );
-        this.updateSelectedProjectConsequences()
     }
 
     //Dialog functions
-    onSubmitImportExportCommittedProjectsDialogResult(
+    function onSubmitImportExportCommittedProjectsDialogResult(
         result: ImportExportCommittedProjectsDialogResult,
     ) {
-        this.showImportExportCommittedProjectsDialog = false;
+        showImportExportCommittedProjectsDialog.value = false;
 
         if (hasValue(result)) {         
             if (hasValue(result.file)) {
                 CommittedProjectsService.importCommittedProjects(
                     result.file,
-                    result.applyNoTreatment,
-                    this.scenarioId,
-                ).then((response: any) =>{
-                    this.setAlertMessageAction("Committed project import has been added to the work queue")
-                })
+                    scenarioId,
+                    ).then((response: any) =>{
+                        setAlertMessageAction("Committed project import has been added to the work queue");                        
+                    })
             } else {
-                this.addErrorNotificationAction({
+                addErrorNotificationAction({
                     message: 'No file selected.',
                     longMessage:
                         'No file selected to upload the committed projects.',
@@ -1004,110 +976,112 @@ export default class CommittedProjectsEditor extends Vue  {
         }
     }
 
-    onDeleteCommittedProjects() {
-        this.alertDataForDeletingCommittedProjects = {
+    function onDeleteCommittedProjects() {
+        alertDataForDeletingCommittedProjects.value = {
             showDialog: true,
             heading: 'Are you sure?',
             message:
                 "You are about to delete all of this scenario's committed projects.",
             choice: true,
         };
-    }   
+    }
 
-    onDeleteCommittedProjectsSubmit(doDelete: boolean) {
-        this.alertDataForDeletingCommittedProjects = { ...emptyAlertData };
+    function handleAddCommittedProjectTemplateUpload(event: { target: { files: any[]; }; }){
+             const file = event.target.files[0];
+             CommittedProjectsService.addCommittedProjectTemplate(file).then((response: AxiosResponse) => {
+                if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
+                    addSuccessNotificationAction({message:'Uploaded Template'})      
+                }
+            });
+    }
+
+    function onAddSelectedTemplate(){
+        document.getElementById("addCommittedProjectTemplate")?.click();
+    }
+    
+    function onDownloadSelectedTemplate(){
+        CommittedProjectsService.getSelectedCommittedProjectTemplate(templateItemSelected.value)
+            .then((response: AxiosResponse) => {
+                if (hasValue(response, 'data')) {
+                    FileDownload(convertBase64ToArrayBuffer(response.data), templateItemSelected.value, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                    isAdminTemplateUploaded = true;
+                }
+            });
+    }
+
+    function onDeleteCommittedProjectsSubmit(doDelete: boolean) {
+        alertDataForDeletingCommittedProjects.value = { ...emptyAlertData };
 
         if (doDelete) {
-            this.deleteSimulationCommittedProjectsAction(this.scenarioId);
-            CommittedProjectsService.deleteSimulationCommittedProjects(this.scenarioId).then((response: AxiosResponse) => {
+            deleteSimulationCommittedProjectsAction(scenarioId);
+            CommittedProjectsService.deleteSimulationCommittedProjects(scenarioId).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                    this.onCancelClick();
+                    onCancelClick();
                 }
             })
         }
     }
 
-    onSelectCommittedProject(id: string){
-        this.selectedCommittedProject = id;
-    }
-
     //Subroutines
-    formatAsCurrency(value: any) {
+    function formatAsCurrency(value: any) {
         if (hasValue(value)) {
             return formatAsCurrency(value);
         }
 
         return null;
     }
-    disableCrudButtons() {
-        const rowChanges = this.addedRows.concat(Array.from(this.updatedRowsMap.values()).map(r => r[1]));
+    function disableCrudButtons() {
+    const rowChanges = addedRows.value.concat(Array.from(updatedRowsMap.values()).map(r => r[1]));
         const dataIsValid: boolean = rowChanges.every(
-            (scp: SectionCommittedProject) => {
-                if (isNullOrUndefined( scp.consequences )) scp.consequences = [];
-                return (
-                    this.rules['generalRules'].valueIsNotEmpty(
-                        scp.simulationId,
-                    ) === true &&
-                    this.rules['generalRules'].valueIsNotEmpty(
-                        scp.year,
-                    ) === true &&
-                    this.rules['generalRules'].valueIsNotEmpty(
-                        scp.cost,
-                    ) === true &&
-                    this.rules['generalRules'].valueIsNotEmpty(
-                        scp.treatment
-                    ) == true &&
-                    this.rules['generalRules'].valueIsNotEmpty(
-                        scp.locationKeys[this.keyattr]
-                    ) == true &&
-                    scp.consequences.every(consequence => 
-                        this.rules['generalRules'].valueIsNotEmpty(
-                        consequence.attribute,
-                    ) === true &&
-                    this.rules['generalRules'].valueIsNotEmpty(
-                        consequence.changeValue,
-                    ) === true &&
-                    this.rules['generalRules'].valueIsNotEmpty(
-                        consequence.performanceFactor,
-                    ) === true ) &&
-                    this.rules['generalRules'].valueIsWithinRange(
-                        scp.year, [this.firstYear, this.lastYear],
-                    ) === true
-                );
-            },
-        );
-        this.disableCrudButtonsResult = !dataIsValid;
+        (scp: SectionCommittedProject) => {
+            return (
+                rules['generalRules'].valueIsNotEmpty(
+                    scp.simulationId,
+                ) === true &&
+                rules['generalRules'].valueIsNotEmpty(
+                    scp.year,
+                ) === true &&
+                rules['generalRules'].valueIsNotEmpty(
+                    scp.cost,
+                ) === true &&
+                rules['generalRules'].valueIsNotEmpty(
+                    scp.treatment
+                ) == true &&
+                rules['generalRules'].valueIsNotEmpty(
+                    scp.locationKeys[keyattr]
+                ) == true &&
+                rules['generalRules'].valueIsWithinRange(
+                    scp.year, [firstYear, lastYear],
+                ) === true &&
+                scp.projectSource !== ""
+                
+            );
+        });
+        disableCrudButtonsResult = !dataIsValid;
         return !dataIsValid;
-    }
+}
 
-    updateSelectedProjectConsequences(){
-        let row = this.sectionCommittedProjects.find(o => o.id == this.selectedCommittedProject)
-        if(!isNil(row)){
-            row.consequences = this.selectedConsequences;
-            this.updateCommittedProjects(row, this.selectedConsequences, 'consequences')
-        }
-    }
 
-    setCpItems(){
-        this.currentPage = this.sectionCommittedProjects.map(o => 
+    function setCpItems(){
+        currentPage.value = sectionCommittedProjects.value.map(o => 
         {          
-            const row: SectionCommittedProjectTableData = this.cpItemFactory(o);
+            const row: SectionCommittedProjectTableData = cpItemFactory(o);
             return row
         })
-        this.checkExistenceOfAssets();
-        this.checkYears();
+        checkExistenceOfAssets();
+        checkYears();
     }
 
-    cpItemFactory(scp: SectionCommittedProject): SectionCommittedProjectTableData {
+    function cpItemFactory(scp: SectionCommittedProject): SectionCommittedProjectTableData {
         const budget: SimpleBudgetDetail = find(
-            propEq('id', scp.scenarioBudgetId), this.stateScenarioSimpleBudgetDetails,
+            propEq('id', scp.scenarioBudgetId), stateScenarioSimpleBudgetDetails.value,
         ) as SimpleBudgetDetail;
-        let cat = this.reverseCatMap.get(scp.category);
+        let cat = reverseCatMap.get(scp.category);
         let value = '';
         if(!isNil(cat))
             value = cat;
         const row: SectionCommittedProjectTableData = {
-            keyAttr: scp.locationKeys[this.keyattr],
+            keyAttr: scp.locationKeys[keyattr],
             year: scp.year,
             cost: scp.cost,
             scenarioBudgetId: scp.scenarioBudgetId? scp.scenarioBudgetId : '',
@@ -1117,41 +1091,15 @@ export default class CommittedProjectsEditor extends Vue  {
             id: scp.id,
             errors: [],
             yearErrors: [],
-            category: value
+            category: scp.category,
+            projectSource: projectSourceMap.get(+scp.projectSource) || scp.projectSource
         }
         return row
     }
 
-    handleTreatmentChange(scp: SectionCommittedProjectTableData, treatmentName: string, row: SectionCommittedProject){
-        row.treatment = treatmentName;
-        this.updateCommittedProject(row, treatmentName, 'treatment')  
-        CommittedProjectsService.FillTreatmentValues({
-            committedProjectId: row.id,
-            treatmentLibraryId: this.librarySelectItemValue ? this.librarySelectItemValue : getBlankGuid(),
-            treatmentName: treatmentName,
-            KeyAttributeValue: row.locationKeys[this.keyattr],
-            networkId: this.networkId
-        })
-        .then((response: AxiosResponse) => {
-            if (hasValue(response, 'data')) {
-                var values = response.data as CommittedProjectFillTreatmentReturnValues
-                row.cost = values.treatmentCost;
-                row.consequences = values.validTreatmentConsequences;
-                row.category = values.treatmentCategory;
-                scp.cost = row.cost;
-                let cat = this.reverseCatMap.get(row.category);
-                if(!isNil(cat))
-                    scp.category = cat;           
-                this.updateCommittedProject(row, row.cost, 'cost')  
-                this.updateCommittedProject(row, row.consequences, 'consequences')  
-                this.onSelectedCommittedProject();
-                this.onPaginationChanged();
-            }                            
-        });                                                
-    }
-    handleBudgetChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, budgetName: string){
+    function handleBudgetChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, budgetName: string){
         const budget: SimpleBudgetDetail = find(
-            propEq('name', budgetName), this.stateScenarioSimpleBudgetDetails,
+            propEq('name', budgetName), stateScenarioSimpleBudgetDetails.value,
         ) as SimpleBudgetDetail;
         if(!isNil(budget)){
             row.scenarioBudgetId = budget.id;
@@ -1159,189 +1107,260 @@ export default class CommittedProjectsEditor extends Vue  {
         }  
         else
             row.scenarioBudgetId = null;
-        this.updateCommittedProject(row, row.scenarioBudgetId, 'scenarioBudgetId') 
-        this.onPaginationChanged();       
+        updateCommittedProject(row, row.scenarioBudgetId, 'scenarioBudgetId') 
+        onPaginationChanged();       
     }
 
-    handleKeyAttrChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, keyAttr: string){
-        row.locationKeys[this.keyattr] = keyAttr;
-        this.updateCommittedProject(row, keyAttr, 'keyAttr');
-        this.onPaginationChanged();
+    function handleKeyAttrChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, keyAttr: string){
+        row.locationKeys[keyattr] = keyAttr;
+        updateCommittedProject(row, keyAttr, 'keyAttr');
+        onPaginationChanged();
     }
 
-    handleFactorChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, factor: number) {
-        this.updateCommittedProject(row, factor, 'performanceFactor');
-        this.onPaginationChanged();
+    function handleFactorChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, factor: number) {
+        updateCommittedProject(row, factor, 'performanceFactor');
+        onPaginationChanged();
     }
 
-    checkAssetExistence(scp: SectionCommittedProjectTableData, keyAttr: string){
-        CommittedProjectsService.validateAssetExistence(this.network, keyAttr).then((response: AxiosResponse) => {
+    function handleProjectSourceChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, projectSource: string) {
+        row.projectSource = projectSource;
+    updateCommittedProject(row, projectSource, 'projectSource');
+    onPaginationChanged();
+    }
+
+    function onUploadCommittedProjectTemplate(){
+      document.getElementById("committedProjectTemplateUpload")?.click();
+   }
+
+   function handleCommittedProjectTemplateUpload(event: { target: { files: any[]; }; }){
+      const file = event.target.files[0];
+      CommittedProjectsService.importCommittedProjectTemplate(file).then((response: AxiosResponse) => {
+                if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
+                    addSuccessNotificationAction({message:'Updated Default Template'})      
+                }
+            });
+   }
+
+   function checkAssetExistence(scp: SectionCommittedProjectTableData, keyAttr: string){
+        CommittedProjectsService.validateAssetExistence(network, keyAttr).then((response: AxiosResponse) => {
             if (hasValue(response, 'data')) {
                 if(!response.data)
-                    scp.errors = [this.keyattr + ' does not exist'];
+                    scp.errors = [keyattr + ' does not exist'];
                 else
                     scp.errors = [];
             }
         });
     }
 
-    checkExistenceOfAssets(){//todo: refine this
-        const uncheckKeys = this.currentPage.map(scp => scp.keyAttr).filter(key => isNil(this.isKeyAttributeValidMap.get(key)))
-        if(uncheckKeys.length > 0){
-            CommittedProjectsService.validateExistenceOfAssets(uncheckKeys, this.network.id).then((response: AxiosResponse) => {
-                if (hasValue(response, 'data')) {
-                    for(let i = 0; i < this.currentPage.length; i++)
-                    {
-                        const check = response.data[this.currentPage[i].keyAttr]
-                        if(!isNil(check)){
-                            if(!response.data[this.currentPage[i].keyAttr])
-                                this.currentPage[i].errors = [this.keyattr + ' does not exist'];
-                            else
-                                this.currentPage[i].errors = [];
+    function fetchProjectSources() {
+    CommittedProjectsService.getProjectSources().then((response: AxiosResponse) => {
+        if (hasValue(response, 'data')) {
 
-                            this.isKeyAttributeValidMap.set(this.currentPage[i].keyAttr,response.data[this.currentPage[i].keyAttr] )
+            projectSourceOptions.value = response.data.filter(
+                (option: string) => option !== "None" && option !== "ProjectPick"
+                );
+        }
+    });
+}
+
+    function checkExistenceOfAssets(){//todo: refine this
+        const uncheckKeys = currentPage.value.map(scp => scp.keyAttr).filter(key => isNil(isKeyAttributeValidMap.get(key)))
+        if(uncheckKeys.length > 0){
+            CommittedProjectsService.validateExistenceOfAssets(uncheckKeys, network.id).then((response: AxiosResponse) => {
+                if (hasValue(response, 'data')) {
+                    for(let i = 0; i < currentPage.value.length; i++)
+                    {
+                        const check = response.data[currentPage.value[i].keyAttr]
+                        if(!isNil(check)){
+                            if(!response.data[currentPage.value[i].keyAttr])
+                                currentPage.value[i].errors = [keyattr + ' does not exist'];
+                            else
+                                currentPage.value[i].errors = [];
+
+                            isKeyAttributeValidMap.set(currentPage.value[i].keyAttr,response.data[currentPage.value[i].keyAttr] )
                         }
                     }                  
                 }
             }); 
         }
-        for(let i = 0; i < this.currentPage.length; i++)
+        for(let i = 0; i < currentPage.value.length; i++)
         {
-            if(!this.isKeyAttributeValidMap.get(this.currentPage[i].keyAttr))
-                this.currentPage[i].errors = [this.keyattr + ' does not exist'];
+            if(!isKeyAttributeValidMap.get(currentPage.value[i].keyAttr))
+                currentPage.value[i].errors = [keyattr + ' does not exist'];
             else
-                this.currentPage[i].errors = [];
+                currentPage.value[i].errors = [];
         }
                           
     }
 
-    checkYear(scp:SectionCommittedProjectTableData){
+    function checkYear(scp:SectionCommittedProjectTableData){
         if(!hasValue(scp.year))
             scp.yearErrors = ['Value cannot be empty'];
-        else if (this.investmentYears.length === 0)
+        else if (investmentYears.value.length === 0)
             scp.yearErrors = ['There are no years in the investment settings']
-        else if(scp.year < this.firstYear )
-            scp.yearErrors = ['Year is outside of Analysis period'];      
+        else if(scp.year.toString().length < 4 || scp.year < 1900)
+            scp.yearErrors = ['Invalid Year value'];      
         else
             scp.yearErrors = [];
     }
 
-    checkYears()
+    function checkYears()
     {
-        this.currentPage.forEach(scp => {
-            this.checkYear(scp);
-        })
+        currentPage.value.forEach(scp => {
+            checkYear(scp);
+        });
     }
 
-    updateCommittedProject(row: SectionCommittedProject, value: any, property: string){
+    function updateCommittedProject(row: SectionCommittedProject, value: any, property: string){
         const updatedRow = setItemPropertyValue(
                     property,
                     value,
                     row
                 ) as SectionCommittedProject
-        this.onUpdateRow(row.id, updatedRow);
+        onUpdateRow(row.id, updatedRow);
     }
 
-    updateCommittedProjects(row: SectionCommittedProject, value: any, property: string){
+    function updateCommittedProjects(row: SectionCommittedProject, value: any, property: string){
         const updatedRow = setItemPropertyValue(
                     property,
                     value,
                     row
                 ) as SectionCommittedProject
-        this.onUpdateRow(row.id, updatedRow);
-        this.sectionCommittedProjects = update(
+        onUpdateRow(row.id, updatedRow);
+        sectionCommittedProjects.value = update(
             findIndex(
                 propEq('id', row.id),
-                this.sectionCommittedProjects,
+                sectionCommittedProjects.value,
             ),
             updatedRow,
-            this.sectionCommittedProjects,
+            sectionCommittedProjects.value,
         );
     }
 
-    updateCommittedProjectTableData(row: SectionCommittedProjectTableData, value: any, property: string ){
-        this.currentPage = update(
+    function updateCommittedProjectTableData(row: SectionCommittedProjectTableData, value: any, property: string ){
+        currentPage.value = update(
             findIndex(
                 propEq('id', row.id),
-                this.currentPage,
+                currentPage.value,
             ),
             setItemPropertyValue(
                 property,
                 value,
                 row,
             ) as SectionCommittedProjectTableData,
-            this.currentPage,
+            currentPage.value,
         );
     }
 
-    onSearchClick(){
-        this.currentSearch = this.gridSearchTerm;
-        this.resetPage();
+    function onSearchClick(){
+        currentSearch.value = gridSearchTerm.value;
+        resetPage();
     }
 
-    onClearClick(){
-        this.gridSearchTerm = '';
-        this.onSearchClick();
+    function onClearClick(){
+        gridSearchTerm.value = '';
+        onSearchClick();
     }
 
-    onUpdateRow(rowId: string, updatedRow: SectionCommittedProject){
+    function onUpdateRow(rowId: string, updatedRow: SectionCommittedProject){
         updatedRow.cost = +updatedRow.cost.toString().replace(/(\$*)(\,*)/g, '')
-        if(any(propEq('id', rowId), this.addedRows)){
-            const index = this.addedRows.findIndex(item => item.id == updatedRow.id)
-            this.addedRows[index] = updatedRow;
+        if(any(propEq('id', rowId), addedRows.value)){
+            const index = addedRows.value.findIndex(item => item.id == updatedRow.id)
+            addedRows.value[index] = updatedRow;
             return;
         }
 
-        let mapEntry = this.updatedRowsMap.get(rowId)
+        let mapEntry = updatedRowsMap.get(rowId)
 
         if(isNil(mapEntry)){
-            const row = this.rowCache.find(r => r.id === rowId);
+            const row = rowCache.value.find(r => r.id === rowId);
             if(!isNil(row) && hasUnsavedChangesCore('', updatedRow, row))
-                this.updatedRowsMap.set(rowId, [row , updatedRow])
+                updatedRowsMap.set(rowId, [row , updatedRow])
         }
         else if(hasUnsavedChangesCore('', updatedRow, mapEntry[0])){
             mapEntry[1] = updatedRow;
         }
         else
-            this.updatedRowsMap.delete(rowId)
+            updatedRowsMap.delete(rowId)
 
-        this.checkHasUnsavedChanges();
+        checkHasUnsavedChanges();
     }
 
-    clearChanges(){
-        this.updatedRowsMap.clear();
-        this.addedRows = [];
-        this.deletionIds = [];
+    function clearChanges(){
+        updatedRowsMap.clear();
+        addedRows.value = [];
+        deletionIds.value = [];
     }
 
-    resetPage(){
-        this.projectPagination.page = 1;
-        this.onPaginationChanged();
+    function resetPage(){
+        projectPagination.page = 1;
+        onPaginationChanged();
     }
 
-    checkHasUnsavedChanges(){
-        const hasUnsavedChanges: boolean = this.committedProjectsAreChanged() || this.isNoTreatmentBeforeCache != this.isNoTreatmentBefore
-        this.setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+    function checkHasUnsavedChanges(){
+        const hasUnsavedChanges: boolean = committedProjectsAreChanged() || isNoTreatmentBeforeCache.value != isNoTreatmentBefore.value
+        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
     }
 
-    committedProjectsAreChanged() : boolean{
-        return  this.deletionIds.length > 0 || 
-            this.addedRows.length > 0 ||
-            this.updatedRowsMap.size > 0 || (this.hasScenario && this.hasSelectedLibrary)
+    function committedProjectsAreChanged() : boolean{
+        return  deletionIds.value.length > 0 || 
+            addedRows.value.length > 0 ||
+            updatedRowsMap.size > 0 
     }
 
-    importCompleted(data: any){
+    function importCompleted(data: any){
         var importComp = data.importComp as importCompletion
-        if(importComp.id === this.scenarioId && importComp.workType == WorkType.ImportCommittedProject){
-            this.projectPagination.page = 1
-            this.clearChanges();
-            this.onPaginationChanged().then(() => {
-                this.setAlertMessageAction('');
+        if(importComp.id === scenarioId && importComp.workType == WorkType.ImportCommittedProject){
+            projectPagination.page = 1
+            clearChanges();
+            onPaginationChanged().then(() => {
+                setAlertMessageAction('');
             })
-        }        
+        } 
     }
 
-    async initializePages(){
+    async function fetchTreatmentLibrary(simulationId: string) {
+        try {
+            await TreatmentService.getTreatmentLibraryBySimulationId(simulationId).then(response => {
+                if (hasValue(response, 'data')) {
+                    const treatmentLibrary = response.data as TreatmentLibrary;
+                    store.commit('scenarioTreatmentLibraryMutator', treatmentLibrary);
+                    handleLibrarySelectChange(treatmentLibrary.id);
+                }
+            });
+            
+        } catch (error) {
+            addErrorNotificationAction({
+                message: 'Error fetching treatment library.',
+                longMessage: 'There was an issue fetching the treatment library. Please try again.'
+            });
+        }
+    }
+
+    async function handleLibrarySelectChange(libraryId: string) {
+        selectTreatmentLibraryAction(libraryId);
+        hasSelectedLibrary = true;
+        const library = stateTreatmentLibraries.value.find((o) => o.id === libraryId);
+        librarySelectItemValue.value = libraryId;
+
+        if (!isNil(library)) {
+            await TreatmentService.getSimpleTreatmentsByLibraryId(libraryId).then(response => {
+                if (hasValue(response, 'data')) {
+                    let treatments = response.data as SimpleTreatment[]
+                    selectedLibraryTreatments.value = clone(treatments);
+                    onSelectedLibraryTreatmentsChanged();
+                }
+            })         
+        } 
+    }   
+
+    //Add red boxesa round missing treatments
+    const getTreatmentStyle = (treatment: string) => {
+    const isInMissingTreatments = missingTreatmentsValue.value.includes(treatment);
+    return isInMissingTreatments ? { border: '1px solid red', padding: '3px' } : {};
+    };
+
+    async function initializePages(){
         const request: PagingRequest<SectionCommittedProject>= {
             page: 1,
             rowsPerPage: 5,
@@ -1356,17 +1375,16 @@ export default class CommittedProjectsEditor extends Vue  {
             isDescending: false,
             search: ''
         };
-        await CommittedProjectsService.getCommittedProjectsPage(this.scenarioId,request).then(response => {
-            this.isRunning = false
+        await CommittedProjectsService.getCommittedProjectsPage(scenarioId,request).then(response => {
+            isRunning = false
             if(response.data){
                 let data = response.data as PagingPage<SectionCommittedProject>;
-                this.sectionCommittedProjects = data.items;
-                this.rowCache = clone(this.sectionCommittedProjects)
-                this.totalItems = data.totalItems;
+                sectionCommittedProjects.value = data.items;
+                rowCache.value = clone(sectionCommittedProjects.value)
+                totalItems.value = data.totalItems;
             }
         }); 
     }
-}
 </script>
 <style scoped>
 .sel-style {

@@ -151,7 +151,7 @@ namespace BridgeCareCoreTests.Tests
 
             // Assert
             Assert.IsType<OkResult>(result);
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<bool>(), null, null), Times.Once());
+            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null), Times.Once());
         }
 
         [Fact(Skip ="Authorization handled via claims, can we delete?")]
@@ -177,7 +177,7 @@ namespace BridgeCareCoreTests.Tests
 
             // Assert
             Assert.IsType<UnauthorizedResult>(result);
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<bool>(), null, null), Times.Never());
+            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null), Times.Never());
         }
 
         [Fact]
@@ -201,7 +201,7 @@ namespace BridgeCareCoreTests.Tests
 
             await Assert.ThrowsAsync<ConstraintException>(() => controller.ImportCommittedProjects());
             // Assert
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<bool>(), null, null), Times.Never());
+            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null), Times.Never());
         }
 
         [Fact]
@@ -223,7 +223,7 @@ namespace BridgeCareCoreTests.Tests
             await Assert.ThrowsAsync<ConstraintException>(() => controller.ImportCommittedProjects());
 
             // Assert
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<bool>(), null, null), Times.Never());
+            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null), Times.Never());
         }
 
         [Fact]
@@ -253,7 +253,7 @@ namespace BridgeCareCoreTests.Tests
             mockContextAccessor.Setup(_ => _.HttpContext)
                 .Returns(CreateLoadedContextForSimulation(_badScenario));
             
-            _mockService.Setup(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<bool>(), null, null))
+            _mockService.Setup(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null))
                 .Throws<ArgumentException>();
             var hubService = HubServiceMocks.Default();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
@@ -358,8 +358,8 @@ namespace BridgeCareCoreTests.Tests
                 accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
             var deleteList = new List<Guid>()
             {
-                Guid.Parse("2e9e66df-4436-49b1-ae68-9f5c10656b1b"),
-                Guid.Parse("091001e2-c1f0-4af6-90e7-e998bbea5d00")
+                TestDataForCommittedProjects.CommittedProjectId1,
+                TestDataForCommittedProjects.CommittedProjectId2,
             };
 
             // Act
@@ -389,8 +389,8 @@ namespace BridgeCareCoreTests.Tests
                 accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
             var deleteList = new List<Guid>()
             {
-                Guid.Parse("2e9e66df-4436-49b1-ae68-9f5c10656b1b"),
-                Guid.Parse("091001e2-c1f0-4af6-90e7-e998bbea5d00")
+                TestDataForCommittedProjects.CommittedProjectId1,
+                TestDataForCommittedProjects.CommittedProjectId2,
             };
 
             // Act

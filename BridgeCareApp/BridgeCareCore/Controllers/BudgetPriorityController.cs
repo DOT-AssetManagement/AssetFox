@@ -18,6 +18,7 @@ using BridgeCareCore.Models;
 using BridgeCareCore.Interfaces;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
+using BridgeCareCore.Services;
 
 namespace BridgeCareCore.Controllers
 {
@@ -77,6 +78,35 @@ namespace BridgeCareCore.Controllers
                 throw;
             }
         }
+
+     
+        [HttpGet]
+        [Route("GetBudgetPriorityLibraryModifiedDate/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyInvestmentFromLibrary)]
+        public async Task<IActionResult> GetBudgetPriorityLibraryDate(Guid libraryId)
+        {
+            try
+            {
+                var users = new DateTime();
+                await Task.Factory.StartNew(() =>
+                {
+                    users = UnitOfWork.BudgetPriorityRepo.GetLibraryModifiedDate(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                throw;
+            }
+        }
+
+
 
         [HttpGet]
         [Route("GetBudgetPriorityLibraries")]
@@ -216,8 +246,8 @@ namespace BridgeCareCore.Controllers
                 {
                     var dtos = _budgetPriortyService.GetSyncedScenarioDataSet(simulationId, pagingSync);
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
-                    UnitOfWork.BudgetPriorityRepo.AddLibraryIdToScenarioBudgetPriority(dtos, pagingSync.LibraryId);
-                    UnitOfWork.BudgetPriorityRepo.AddModifiedToScenarioBudgetPriority(dtos, pagingSync.IsModified);
+                    BudgetPriorityDtoListService.AddLibraryIdToScenarioBudgetPriority(dtos, pagingSync.LibraryId);
+                    BudgetPriorityDtoListService.AddModifiedToScenarioBudgetPriority(dtos, pagingSync.IsModified);
                     UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(dtos, simulationId);
                 });
 

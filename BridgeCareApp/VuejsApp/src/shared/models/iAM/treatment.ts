@@ -44,6 +44,17 @@ export interface TreatmentConsequence {
     criterionLibrary: CriterionLibrary;
 }
 
+export interface SimpleTreatment {
+    id: string;
+    name: string;
+}
+
+export interface TreatmentSupersedeRule {
+    id: string;
+    treatment: SimpleTreatment;
+    criterionLibrary: CriterionLibrary;
+}
+
 export interface Treatment {
     id: string;
     name: string;
@@ -60,11 +71,8 @@ export interface Treatment {
     assetType: AssetType;
     isModified: boolean;
     libraryId: string;
-}
-
-export interface SimpleTreatment {
-    id: string;
-    name: string;
+    isUnselectable: boolean;
+    supersedeRules: TreatmentSupersedeRule[]
 }
 
 export interface TreatmentLibraryUser {
@@ -91,6 +99,7 @@ export interface TreatmentDetails {
     criterionLibrary: CriterionLibrary;
     category: TreatmentCategory;
     assetType: AssetType;
+    isUnselectable: boolean;
 }
 
 export interface BudgetGridRow {
@@ -128,6 +137,8 @@ export const emptyTreatment: Treatment = {
     performanceFactors: [],
     isModified: false,
     libraryId:  getBlankGuid(),
+    isUnselectable: false,
+    supersedeRules: []
 };
 
 export const emptyTreatmentLibrary: TreatmentLibrary = {
@@ -154,6 +165,7 @@ export const emptyTreatmentDetails: TreatmentDetails = {
     criterionLibrary: clone(emptyCriterionLibrary),
     category: TreatmentCategory.preservation,
     assetType: AssetType.bridge,
+    isUnselectable: false,
 };
 
 export const assetTypeMap: Map<string, AssetType> = new Map([
@@ -183,6 +195,21 @@ export const treatmentCategoryReverseMap: Map<TreatmentCategory, string> = new M
     [5, 'Other'],
 ]);
 
+export const emptySimpleTreatment: SimpleTreatment = {
+    id: getBlankGuid(),
+    name: '',
+}
+
 export interface TreatmentsFileImport {
     file: File;
 }
+
+export interface SupersedeFileImport {
+    file: File;
+}
+
+export const emptySupersedeRule: TreatmentSupersedeRule = {
+    id: getBlankGuid(),
+    treatment: clone(emptySimpleTreatment),
+    criterionLibrary: clone(emptyCriterionLibrary),
+};

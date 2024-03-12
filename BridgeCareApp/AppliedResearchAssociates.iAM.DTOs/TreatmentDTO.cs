@@ -89,5 +89,15 @@ namespace AppliedResearchAssociates.iAM.DTOs
         /// the asset must meet the critiera specified at the budget level
         /// </summary>
         public List<TreatmentBudgetDTO> Budgets { get; set; }
+
+        /// <summary>
+        /// Indicates whether this treatment is unselectable. 
+        /// </summary>
+        public bool IsUnselectable { get; set; }
+
+        /// <summary>
+        /// List of SupersedeRules for a Treatment
+        /// </summary>
+        public List<TreatmentSupersedeRuleDTO> SupersedeRules { get; set; }
     }
 }

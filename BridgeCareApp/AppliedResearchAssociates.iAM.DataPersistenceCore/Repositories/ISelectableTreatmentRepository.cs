@@ -8,9 +8,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
     public interface ISelectableTreatmentRepository
     {
-        void CreateScenarioSelectableTreatments(List<SelectableTreatment> selectableTreatments, Guid simulationId);
-
         void GetScenarioSelectableTreatments(Simulation simulation);
+
+        DateTime GetLibraryModifiedDate(Guid treatmentLibraryId);
 
         List<TreatmentLibraryDTO> GetAllTreatmentLibraries();
 
@@ -35,7 +35,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 
         public void DeleteScenarioSelectableTreatment(TreatmentDTO scenarioSelectableTreatment, Guid simulationId);
 
-        public void GetScenarioSelectableTreatmentsNoChildren(Simulation simulation);
+        public void GetScenarioSelectableTreatmentsNoChildren(Simulation simulation);   // unused as of 12/21/23, but was called from 5 different places as of 4/2023. Might be a candidate for deletion if uses do not re-appear.
 
         TreatmentLibraryDTO GetSingleTreatmentLibaryNoChildren(Guid libraryId);
 
@@ -46,15 +46,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         List<SimpleTreatmentDTO> GetSimpleTreatmentsBySimulationId(Guid simulationId);
         List<SimpleTreatmentDTO> GetSimpleTreatmentsByLibraryId(Guid simulationId);
         TreatmentDTOWithSimulationId GetScenarioSelectableTreatmentById(Guid id);
-        TreatmentDTO GetSelectableTreatmentById(Guid id);
-
+        
         ScenarioSelectableTreatmentEntity GetDefaultTreatment(Guid simulationId);
         TreatmentDTO GetDefaultNoTreatment(Guid simulationId);
         TreatmentLibraryDTO GetTreatmentLibraryWithSingleTreatmentByTreatmentId(Guid treatmentId);
         TreatmentDTO GetSelectableTreatmentByLibraryIdAndName(Guid treatmentLibraryId, string treatmentName);
         void UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers(TreatmentLibraryDTO dto, bool isNewLibrary, Guid userId);
-        public void AddLibraryIdToScenarioSelectableTreatments(List<TreatmentDTO> treatmentDTOs, Guid? libraryId);
-        public void AddModifiedToScenarioSelectableTreatments(List<TreatmentDTO> treatmentDTOs, bool IsModified);
         void AddDefaultPerformanceFactors(Guid scenarioId, List<TreatmentDTO> treatments);
+
+        LibraryUserAccessModel GetLibraryAccess(Guid libraryId, Guid userId);
+
+        public List<TreatmentDTO> GetScenarioSelectableTreatmentsWithCriterionLibrary(Guid simulationId);
+
+        public void GetScenarioSelectableTreatmentsForReport(Simulation simulation);
     }
 }

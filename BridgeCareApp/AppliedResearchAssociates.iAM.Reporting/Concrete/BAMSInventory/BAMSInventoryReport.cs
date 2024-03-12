@@ -33,15 +33,15 @@ namespace AppliedResearchAssociates.iAM.Reporting
         public string Suffix {  get; private set; }
         public Guid ID { get; set; }
         public Guid? SimulationID { get => null; set { } }
+        public Guid? NetworkID { get; set; }
         public string Results { get; private set; }
         public ReportType Type => ReportType.HTML;
         public string ReportTypeName { get; private set; }
         public List<string> Errors { get; private set; }
         public bool IsComplete { get; private set; }
         public string Status { get; private set; }
-
+        public string Criteria { get; set; }
         private InventoryParameters _failedQuery = new InventoryParameters { BMSID = string.Empty, BRKEY_ = -1 };
-
         private List<SegmentAttributeDatum> segmentData;
         private InventoryParameters segmentIds;
 

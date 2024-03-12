@@ -24,6 +24,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfDataPersistenceWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
+        public DateTime GetLibraryModifiedDate(Guid calculatedLibraryId)
+        {
+            var dtos = _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.Where(_ => _.Id == calculatedLibraryId).FirstOrDefault().LastModifiedDate;
+            return dtos;
+        }
+
         public ICollection<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibraries() =>
             _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
                 .Include(_ => _.CalculatedAttributes)
@@ -549,24 +555,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var users = GetAccessForUser(libraryId, userId);
             var user = users.FirstOrDefault();
             return LibraryAccessModels.LibraryExistsWithUsers(userId, user);
-        }
-
-
-        public void AddLibraryIdToScenarioCalculatedAttributes(List<CalculatedAttributeDTO> calculatedAttributesDTOs, Guid? libraryId)
-        {
-            if (libraryId == null) return;
-            foreach (var dto in calculatedAttributesDTOs)
-            {
-                dto.LibraryId = (Guid)libraryId;
-            }
-        }
-
-        public void AddModifiedToScenarioCalculatedAttributes(List<CalculatedAttributeDTO> calculatedAttributesDTOs, bool IsModified)
-        {
-            foreach (var dto in calculatedAttributesDTOs)
-            {
-                dto.IsModified = IsModified;
-            }
         }
     }
 }

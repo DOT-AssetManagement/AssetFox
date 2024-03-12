@@ -28,7 +28,7 @@ public enum TreatmentRejectionReason
     NotFeasible,
 
     /// <summary>
-    ///     Indicates a treatment rejected due to a user-defined treatment "supersession".
+    ///     Indicates a treatment rejected due to a user-defined treatment "supersedeRule".
     /// </summary>
     Superseded,
 
@@ -43,4 +43,10 @@ public enum TreatmentRejectionReason
     ///     limit. See <see cref="InvestmentPlan.MinimumProjectCostLimit"/>.
     /// </summary>
     CostIsBelowMinimumProjectCostLimit,
+
+    /// <summary>
+    ///     Indicates a treatment whose corresponding <see
+    ///     cref="TreatmentOption.WeightedObjectiveValue"/> value is zero or less.
+    /// </summary>
+    NonPositiveObjectiveValue,
 }

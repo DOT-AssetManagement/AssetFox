@@ -8,9 +8,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using MoreLinq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using Microsoft.Extensions.DependencyModel;
-using MathNet.Numerics.Statistics.Mcmc;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums;
+using AppliedResearchAssociates.iAM.DTOs.Static;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -26,11 +24,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShadowForSameTreatment = dto.ShadowForSameTreatment,
                 Description = dto.Description,
                 Category = (Enums.TreatmentEnum.TreatmentCategory)dto.Category,
-                AssetType = (Enums.TreatmentEnum.AssetCategory)dto.AssetType
+                AssetType = (Enums.TreatmentEnum.AssetCategory)dto.AssetType,
+                IsUnselectable = dto.IsUnselectable
             };
 
-        public static ScenarioSelectableTreatmentEntity ToScenarioEntity(this TreatmentDTO dto, Guid simulationId) =>
-            new ScenarioSelectableTreatmentEntity
+        public static ScenarioSelectableTreatmentEntity ToScenarioEntity(this TreatmentDTO dto, Guid simulationId, BaseEntityProperties baseEntityProperties=null)
+        {
+            var treatment = new ScenarioSelectableTreatmentEntity
             {
                 Id = dto.Id,
                 SimulationId = simulationId,
@@ -41,12 +41,69 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
                 IsModified = dto.IsModified,
                 LibraryId = dto.LibraryId,
+                IsUnselectable = dto.IsUnselectable,
 
                 Category = (Enums.TreatmentEnum.TreatmentCategory)dto.Category,
-                AssetType = (Enums.TreatmentEnum.AssetCategory)dto.AssetType,
-                ScenarioTreatmentPerformanceFactors = dto.ToScenarioSelectableTreatmentPerformanceFactorEntity(),
+                AssetType = (Enums.TreatmentEnum.AssetCategory)dto.AssetType,                
+                ScenarioTreatmentPerformanceFactors = dto.ToScenarioSelectableTreatmentPerformanceFactorEntity(baseEntityProperties),
+           
             };
-            
+            BaseEntityPropertySetter.SetBaseEntityProperties(treatment, baseEntityProperties);
+            return treatment;
+        }
+
+        public static ScenarioSelectableTreatmentEntity ToScenarioEntityWithCriterionLibraryWithChildren(this TreatmentDTO dto, Guid simulationId, IEnumerable<AttributeEntity> attributes, BaseEntityProperties baseEntityProperties = null)
+        {
+            var entity = ToScenarioEntity(dto, simulationId);
+            var criterionLibraryDto = dto.CriterionLibrary;
+            var isvalid = criterionLibraryDto.IsValid();
+            if (isvalid)
+            {
+                var criterionLibrary = criterionLibraryDto.ToSingleUseEntity(baseEntityProperties);
+                var join = new CriterionLibraryScenarioSelectableTreatmentEntity
+                {
+                    ScenarioSelectableTreatmentId = entity.Id,
+                    CriterionLibrary = criterionLibrary,
+                };
+                BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
+                BaseEntityPropertySetter.SetBaseEntityProperties(join, baseEntityProperties);
+                entity.CriterionLibraryScenarioSelectableTreatmentJoin = join;
+            }
+            var costEntities = new List<ScenarioTreatmentCostEntity>();
+            foreach (var cost in dto.Costs)
+            {
+                var costEntity = cost.ToScenarioEntityWithCriterionLibraryJoin(dto.Id, baseEntityProperties);
+                costEntities.Add(costEntity);
+            }
+            BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
+            entity.ScenarioTreatmentCosts = costEntities;
+
+            var consequencetEntities = new List<ScenarioConditionalTreatmentConsequenceEntity>();
+            foreach (var consequence in dto.Consequences)
+            {
+                var attributeName = consequence.Attribute;
+                var attribute = attributes.FirstOrDefault(a => a.Name == attributeName);
+                var consequenceEntity = consequence.ToScenarioEntityWithCriterionLibraryJoin(dto.Id, attribute.Id, baseEntityProperties);
+                consequencetEntities.Add(consequenceEntity);
+            }
+            BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
+            entity.ScenarioTreatmentConsequences = consequencetEntities;
+
+            var supersedeRuleEntities = new List<ScenarioTreatmentSupersedeRuleEntity>();
+            if (dto.SupersedeRules != null)
+            {
+                foreach (var supersedeRule in dto.SupersedeRules)
+                {
+                    var supersedeRuleEntity = supersedeRule.ToScenarioTreatmentSupersedeRuleEntity(dto.Id, baseEntityProperties);
+                    supersedeRuleEntities.Add(supersedeRuleEntity);
+                }                
+            }
+            BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
+            entity.ScenarioTreatmentSupersedeRules = supersedeRuleEntities;
+
+            return entity;
+        }
+
         public static ScenarioSelectableTreatmentEntity ToScenarioEntity(this Treatment domain, Guid simulationId) =>
             new ScenarioSelectableTreatmentEntity
             {
@@ -60,10 +117,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static TreatmentLibraryEntity ToEntity(this TreatmentLibraryDTO dto) =>
             new TreatmentLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
-        public static SelectableTreatment CreateSelectableTreatment(this ScenarioSelectableTreatmentEntity entity, Simulation simulation)
+        public static SelectableTreatment CreateSelectableTreatment(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
         {
             var selectableTreatment = simulation.AddTreatment();
-            PopulateSelectableTreatment(entity, selectableTreatment, simulation);
+            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments);
 
             if (selectableTreatment.Name == "No Treatment")
             {
@@ -72,28 +129,36 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return selectableTreatment;
         }
 
-        public static SelectableTreatment ToDomain(this ScenarioSelectableTreatmentEntity entity, Simulation simulation)
+        public static SelectableTreatment ToDomain(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
         {
             var selectableTreatment = new SelectableTreatment(simulation);
-            PopulateSelectableTreatment(entity, selectableTreatment, simulation);
+            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments);
             return selectableTreatment;
         }
 
-        private static void PopulateSelectableTreatment(ScenarioSelectableTreatmentEntity entity, SelectableTreatment selectableTreatment, Simulation simulation)
+        private static void PopulateSelectableTreatment(ScenarioSelectableTreatmentEntity entity, SelectableTreatment selectableTreatment, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
         {
             selectableTreatment.Id = entity.Id;
             selectableTreatment.Name = entity.Name;
-            selectableTreatment.ShadowForAnyTreatment = entity.ShadowForAnyTreatment;
-            selectableTreatment.ShadowForSameTreatment = entity.ShadowForSameTreatment;
+            selectableTreatment.SetShadowForAnyTreatment(entity.ShadowForAnyTreatment);
+            selectableTreatment.SetShadowForSameTreatment(entity.ShadowForSameTreatment);
             selectableTreatment.Description = entity.Description;
             selectableTreatment.Category = (TreatmentCategory)entity.Category;
             selectableTreatment.AssetCategory = (AssetCategory)(AssetCategories)entity.AssetType;
+            selectableTreatment.ForCommittedProjectsOnly = entity.IsUnselectable;
+
             if (entity.ScenarioSelectableTreatmentScenarioBudgetJoins.Any())
             {
-                var budgetIds = entity.ScenarioSelectableTreatmentScenarioBudgetJoins.Select(_ => _.ScenarioBudget.Id).ToList();
-                simulation.InvestmentPlan.Budgets.Where(_ => budgetIds.Contains(_.Id)).ToList()
+                var budgetIds = entity.ScenarioSelectableTreatmentScenarioBudgetJoins
+                    .Select(_ => _.ScenarioBudget.Id)
+                    .ToList();
+
+                simulation.InvestmentPlan.Budgets
+                    .Where(_ => budgetIds.Contains(_.Id))
+                    .ToList()
                     .ForEach(budget => selectableTreatment.Budgets.Add(budget));
             }
+
             if (entity.ScenarioTreatmentPerformanceFactors.Any())
             {
                 entity.ScenarioTreatmentPerformanceFactors.ForEach(_ =>
@@ -103,11 +168,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                     {
                         if (attribute.Name == _.Attribute)
                         {
-                        selectableTreatment.PerformanceCurveAdjustmentFactors.Add(attribute, _.PerformanceFactor);
+                            selectableTreatment.PerformanceCurveAdjustmentFactors.Add(attribute, _.PerformanceFactor);
                         }
                     }
                 });
             }
+
             if (entity.ScenarioTreatmentConsequences.Any())
             {
                 entity.ScenarioTreatmentConsequences.ForEach(_ => _.CreateConditionalTreatmentConsequence(selectableTreatment, simulation.Network.Explorer.AllAttributes));
@@ -117,6 +183,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 entity.ScenarioTreatmentCosts.ForEach(_ => _.CreateTreatmentCost(selectableTreatment));
             }
+
             var feasibility = selectableTreatment.AddFeasibilityCriterion();
             feasibility.Expression = entity.CriterionLibraryScenarioSelectableTreatmentJoin?.CriterionLibrary.MergedCriteriaExpression ?? string.Empty;
 
@@ -125,14 +192,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 entity.ScenarioTreatmentSchedulings.ForEach(_ => _.CreateTreatmentScheduling(selectableTreatment));
             }
 
-            if (entity.ScenarioTreatmentSupersessions.Any())
+            if (entity.ScenarioTreatmentSupersedeRules.Any())
             {
-                entity.ScenarioTreatmentSupersessions.ForEach(_ => _.CreateTreatmentSupersession(selectableTreatment));
+                entity.ScenarioTreatmentSupersedeRules.ForEach(_ => _.CreateTreatmentSupersedeRule(selectableTreatment, simulation, simpleTreatments));
             }
         }
 
-        public static TreatmentDTO ToDto(this SelectableTreatmentEntity entity) =>
-            new TreatmentDTO
+        public static TreatmentDTO ToDto(this SelectableTreatmentEntity entity, List<TreatmentDTO> treatmentList = null)
+        {
+            var result = new TreatmentDTO
             {
                 Id = entity.Id,
                 Name = entity.Name,
@@ -141,24 +209,36 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShadowForSameTreatment = entity.ShadowForSameTreatment,
                 BudgetIds = new List<Guid>(),
                 PerformanceFactors = entity.TreatmentPerformanceFactors.Any()
-                    ? entity.TreatmentPerformanceFactors.Select(_ => _.ToDto()).ToList()
-                    : new List<TreatmentPerformanceFactorDTO>(),
+                     ? entity.TreatmentPerformanceFactors.Select(_ => _.ToDto()).ToList()
+                     : new List<TreatmentPerformanceFactorDTO>(),
                 Costs = entity.TreatmentCosts.Any()
-                    ? entity.TreatmentCosts.Select(_ => _.ToDto()).ToList()
-                    : new List<TreatmentCostDTO>(),
+                     ? entity.TreatmentCosts.Select(_ => _.ToDto()).ToList()
+                     : new List<TreatmentCostDTO>(),
                 Consequences = entity.TreatmentConsequences.Any()
-                    ? entity.TreatmentConsequences.Select(_ => _.ToDto()).ToList()
-                    : new List<TreatmentConsequenceDTO>(),
+                     ? entity.TreatmentConsequences.Select(_ => _.ToDto()).ToList()
+                     : new List<TreatmentConsequenceDTO>(),
                 CriterionLibrary = entity.CriterionLibrarySelectableTreatmentJoin != null
-                    ? entity.CriterionLibrarySelectableTreatmentJoin.CriterionLibrary.ToDto()
-                    : new CriterionLibraryDTO(),
+                     ? entity.CriterionLibrarySelectableTreatmentJoin.CriterionLibrary.ToDto()
+                     : new CriterionLibraryDTO(),
                 Category = (TreatmentCategory)entity.Category,
-                AssetType = (AssetCategories)entity.AssetType
+                AssetType = (AssetCategories)entity.AssetType,
+                IsUnselectable = entity.IsUnselectable,
+                SupersedeRules = new List<TreatmentSupersedeRuleDTO>()
             };
 
-        public static TreatmentDTOWithSimulationId ToDtoWithSimulationId(this ScenarioSelectableTreatmentEntity entity)
+            if (treatmentList != null)
+            {
+                result.SupersedeRules = entity.TreatmentSupersedeRules.Any()
+                                ? entity.TreatmentSupersedeRules.Select(_ => _.ToDto(treatmentList)).ToList()
+                                : new List<TreatmentSupersedeRuleDTO>();
+            }
+
+            return result;
+        }
+
+        public static TreatmentDTOWithSimulationId ToDtoWithSimulationId(this ScenarioSelectableTreatmentEntity entity, List<TreatmentDTO> treatmentList = null)
         {
-            var treatmentDto = entity.ToDto();
+            var treatmentDto = entity.ToDto(treatmentList);
             return new TreatmentDTOWithSimulationId
             {
                 SimulationId
@@ -166,22 +246,26 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Treatment = treatmentDto,
             };
         }
-        public static List<ScenarioTreatmentPerformanceFactorEntity> ToScenarioSelectableTreatmentPerformanceFactorEntity(this TreatmentDTO dto)
+
+        public static List<ScenarioTreatmentPerformanceFactorEntity> ToScenarioSelectableTreatmentPerformanceFactorEntity(this TreatmentDTO dto, BaseEntityProperties baseEntityProperties)
         {
             List<ScenarioTreatmentPerformanceFactorEntity> treatmentPerformanceFactors = new List<ScenarioTreatmentPerformanceFactorEntity>();
             // need to return a list of scenariotretmentperformancefactorentities
             // how do i get the attribute from the dto?
             dto.PerformanceFactors.ForEach(p =>
             {
-                treatmentPerformanceFactors.Add(new ScenarioTreatmentPerformanceFactorEntity()
+                var treatmentPerformanceFactor = new ScenarioTreatmentPerformanceFactorEntity()
                 {
                     Attribute = p.Attribute,
                     PerformanceFactor = p.PerformanceFactor
-                });
+                };
+                BaseEntityPropertySetter.SetBaseEntityProperties(treatmentPerformanceFactor, baseEntityProperties);
+                treatmentPerformanceFactors.Add(treatmentPerformanceFactor);
             });
             return treatmentPerformanceFactors;
         }
-        public static TreatmentLibraryDTO ToDto(this TreatmentLibraryEntity entity) =>
+
+        public static TreatmentLibraryDTO ToDto(this TreatmentLibraryEntity entity, List<TreatmentDTO> treatmentList = null) =>
             new TreatmentLibraryDTO
             {
                 Id = entity.Id,
@@ -190,7 +274,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Owner = entity.CreatedBy,
                 IsShared = entity.IsShared,
                 Treatments = entity.Treatments.Any()
-                    ? entity.Treatments.Select(_ => _.ToDto()).OrderBy(t => t.Name).ToList()
+                    ? entity.Treatments.Select(_ => _.ToDto(treatmentList)).OrderBy(t => t.Name).ToList()
                     : new List<TreatmentDTO>()
             };
 
@@ -203,39 +287,50 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return entity.ToDto();
         }
 
-        public static TreatmentDTO ToDto(this ScenarioSelectableTreatmentEntity entity) =>
-            new TreatmentDTO
+        public static TreatmentDTO ToDto(this ScenarioSelectableTreatmentEntity entity, List<TreatmentDTO> treatmentList = null)
+        {
+            var result = new TreatmentDTO
             {
                 Id = entity.Id,
                 Name = entity.Name,
                 Description = entity.Description,
                 BudgetIds = entity.ScenarioSelectableTreatmentScenarioBudgetJoins.Any()
-                        ? entity.ScenarioSelectableTreatmentScenarioBudgetJoins.Select(_ => _.ScenarioBudgetId).ToList()
-                        : new List<Guid>(),
+                         ? entity.ScenarioSelectableTreatmentScenarioBudgetJoins.Select(_ => _.ScenarioBudgetId).ToList()
+                         : new List<Guid>(),
                 Budgets = entity.ScenarioSelectableTreatmentScenarioBudgetJoins.Any()
-                        ? entity.ScenarioSelectableTreatmentScenarioBudgetJoins.Select(_ => new TreatmentBudgetDTO
-                        { Id = _.ScenarioBudgetId, Name = _.ScenarioBudget.Name }).ToList()
-                        : new List<TreatmentBudgetDTO>(),
+                         ? entity.ScenarioSelectableTreatmentScenarioBudgetJoins.Select(_ => new TreatmentBudgetDTO
+                         { Id = _.ScenarioBudgetId, Name = _.ScenarioBudget?.Name }).ToList()
+                         : new List<TreatmentBudgetDTO>(),
                 Consequences = entity.ScenarioTreatmentConsequences.Any()
-                        ? entity.ScenarioTreatmentConsequences.Select(_ => _.ToDto()).ToList()
-                        : new List<TreatmentConsequenceDTO>(),
+                         ? entity.ScenarioTreatmentConsequences.Select(_ => _.ToDto()).ToList()
+                         : new List<TreatmentConsequenceDTO>(),
                 Costs = entity.ScenarioTreatmentCosts.Any()
-                        ? entity.ScenarioTreatmentCosts.Select(_ => _.ToDto()).ToList()
-                        : new List<TreatmentCostDTO>(),
+                         ? entity.ScenarioTreatmentCosts.Select(_ => _.ToDto()).ToList()
+                         : new List<TreatmentCostDTO>(),
                 PerformanceFactors = entity.ScenarioTreatmentPerformanceFactors.Any()
-                        ? entity.ScenarioTreatmentPerformanceFactors.Select(_ => _.ToDto()).ToList()
-                        : new List<TreatmentPerformanceFactorDTO>(),
+                         ? entity.ScenarioTreatmentPerformanceFactors.Select(_ => _.ToDto()).ToList()
+                         : new List<TreatmentPerformanceFactorDTO>(),
                 CriterionLibrary = entity.CriterionLibraryScenarioSelectableTreatmentJoin != null
-                        ? entity.CriterionLibraryScenarioSelectableTreatmentJoin.CriterionLibrary.ToDto()
-                        : new CriterionLibraryDTO(),
+                         ? entity.CriterionLibraryScenarioSelectableTreatmentJoin.CriterionLibrary?.ToDto()
+                         : new CriterionLibraryDTO(),
                 ShadowForAnyTreatment = entity.ShadowForAnyTreatment,
                 ShadowForSameTreatment = entity.ShadowForSameTreatment,
                 Category = (TreatmentCategory)entity.Category,
-
                 IsModified = entity.IsModified,
                 LibraryId = entity.LibraryId,
-
-                AssetType = (AssetCategories)entity.AssetType
+                AssetType = (AssetCategories)entity.AssetType,
+                IsUnselectable = entity.IsUnselectable,
+                SupersedeRules = new List<TreatmentSupersedeRuleDTO>()
             };
+
+            if (treatmentList != null)
+            {
+                result.SupersedeRules = entity.ScenarioTreatmentSupersedeRules.Any()
+                                ? entity.ScenarioTreatmentSupersedeRules.Select(_ => _.ToDto(treatmentList)).ToList()
+                                : new List<TreatmentSupersedeRuleDTO>();
+            }
+
+            return result;
+        }
     }
 }

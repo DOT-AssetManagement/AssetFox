@@ -16,6 +16,7 @@ using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
 using BridgeCareCore.Models;
 using BridgeCareCore.Interfaces;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using BridgeCareCore.Services;
 
 namespace BridgeCareCore.Controllers
 {
@@ -39,6 +40,31 @@ namespace BridgeCareCore.Controllers
             _remainingLifeLimitService = remainingLifeService ?? throw new ArgumentNullException(nameof(remainingLifeService));
         }
 
+        [HttpGet]
+        [Route("GetRemainingLibraryModifiedDate/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyInvestmentFromLibrary)]
+        public async Task<IActionResult> GetRemainingLibraryDate(Guid libraryId)
+        {
+            try
+            {
+                var users = new DateTime();
+                await Task.Factory.StartNew(() =>
+                {
+                    users = UnitOfWork.RemainingLifeLimitRepo.GetLibraryModifiedDate(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                throw;
+            }
+        }
 
         [HttpPost]
         [Route("GetScenarioRemainingLifeLimitPage/{simulationId}")]
@@ -203,8 +229,8 @@ namespace BridgeCareCore.Controllers
                 {
                     var dtos = _remainingLifeLimitService.GetSyncedScenarioDataSet(simulationId, pagingSync);
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
-                    UnitOfWork.RemainingLifeLimitRepo.AddLibraryIdToScenarioRemainingLifeLimit(dtos, pagingSync.LibraryId);
-                    UnitOfWork.RemainingLifeLimitRepo.AddModifiedToScenarioRemainingLifeLimit(dtos, pagingSync.IsModified);
+                    RemainingLifeLimitDtoListService.AddLibraryIdToScenarioRemainingLifeLimit(dtos, pagingSync.LibraryId);
+                    RemainingLifeLimitDtoListService.AddModifiedToScenarioRemainingLifeLimit(dtos, pagingSync.IsModified);
                     UnitOfWork.RemainingLifeLimitRepo.UpsertOrDeleteScenarioRemainingLifeLimits(dtos, simulationId);
                 });
 

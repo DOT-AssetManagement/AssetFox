@@ -30,9 +30,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
             ReportTypeName = name;
-            _reportHelper = new ReportHelper();
-            _treatmentTab = new TreatmentTab();
-            _masTab = new MASTab();
+            _reportHelper = new ReportHelper(_unitOfWork);
+            _treatmentTab = new TreatmentTab(_unitOfWork);
+            _masTab = new MASTab(_unitOfWork);
 
             // Check for existing report id
             var reportId = results?.Id; if (reportId == null) { reportId = Guid.NewGuid(); }
@@ -50,6 +50,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         public Guid? SimulationID { get; set; }
 
+        public Guid? NetworkID { get; set; }
+
         public string Results { get; private set; }
 
         public ReportType Type => ReportType.File;
@@ -65,6 +67,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
         public string Status { get; private set; }
 
         public string Suffix => throw new NotImplementedException();
+        
+        public string Criteria { get; set; }
 
         public async Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null)
         {
@@ -78,7 +82,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             }
 
             // Set simulation id
-            if (!Guid.TryParse(parameters, out Guid _simulationId))
+            string simulationId = ReportHelper.GetSimulationId(parameters);
+            if (!Guid.TryParse(simulationId, out Guid _simulationId))
             {
                 Errors.Add("Provided simulation ID is not a GUID");
                 IndicateError();
@@ -156,12 +161,16 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var explorer = _unitOfWork.AttributeRepo.GetExplorer();
             var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
             _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
-            var simulation = network.Simulations.First();                
+            var simulation = network.Simulations.First();
+            _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
+            _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
             var networkMaintainableAssets = _unitOfWork.MaintainableAssetRepo.GetAllInNetworkWithLocations(_networkId);
-            var networkMaintainableAssetIds = networkMaintainableAssets.Select(x => x.Id);
+            var networkMaintainableAssetIds = networkMaintainableAssets.Select(x => x.Id);            
             var attributeDTOs = _unitOfWork.AttributeRepo.GetAttributes();
             var requiredAttributeIds = GetRequiredAttributeIds(attributeDTOs);
             var attributeDatumDTOs = _unitOfWork.AttributeDatumRepo.GetAllInNetwork(networkMaintainableAssetIds, requiredAttributeIds);
+            //Include treatments in simulation
+            _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulation);
 
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSPBExportReportData.xlsx"));
@@ -178,7 +187,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.TreatmentTab);
-            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets);
+            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments);
 
             checkCancelled(cancellationToken, simulationId);
             // Check and generate folder

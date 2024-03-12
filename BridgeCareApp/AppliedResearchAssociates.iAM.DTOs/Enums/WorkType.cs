@@ -14,6 +14,8 @@ namespace AppliedResearchAssociates.iAM.DTOs.Enums
         ImportScenarioInvestment,
         ImportScenarioPerformanceCurve,
         ImportScenarioTreatment,
+        ImportScenarioTreatmentSupersedeRule,
+        ImportLibraryTreatmentSupersedeRule,
         ImportCommittedProject,
     }
 }

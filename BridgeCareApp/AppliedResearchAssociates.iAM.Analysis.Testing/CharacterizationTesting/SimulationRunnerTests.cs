@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using VerifyXunit;
 using Xunit;
@@ -22,19 +23,39 @@ public class SimulationRunnerTests
         {
             AssetID = scenario.Network.MaintainableAssets.Find(asset => asset.Name == "LA 1").ID,
             Year = 2018,
-            ShadowForAnyTreatment = 5,
-            ShadowForSameTreatment = 10,
             NameOfUsableBudget = scenario.InvestmentPlan.Budgets.First().Name,
             Cost = 100,
             Name = "Lovecraftian Horror",
-            Consequences =
-            {
-                new()
-                {
-                    AttributeName = "HEALTH",
-                    ChangeExpression = "+50",
-                },
-            },
+            NameOfTemplateTreatment = scenario.SelectableTreatments.First(t => t.ForCommittedProjectsOnly).Name,
+        });
+
+        return RunTest(scenario);
+    }
+
+    [Fact]
+    public Task MultipleCommittedProjectsForOneAssetYear()
+    {
+        var scenario = InputCreation.CreateExtremelyMinimalInput();
+
+        scenario.CommittedProjects.Add(new()
+        {
+            AssetID = scenario.Network.MaintainableAssets.Find(asset => asset.Name == "LA 1").ID,
+            Year = 2020,
+            NameOfUsableBudget = scenario.InvestmentPlan.Budgets.First().Name,
+            Cost = 100,
+            Name = "Lovecraftian Horror #1",
+            NameOfTemplateTreatment = scenario.SelectableTreatments.First(t => t.ForCommittedProjectsOnly).Name,
+        });
+
+        scenario.CommittedProjects.Add(new()
+        {
+            AssetID = scenario.Network.MaintainableAssets.Find(asset => asset.Name == "LA 1").ID,
+            Year = 2020,
+            NameOfUsableBudget = scenario.InvestmentPlan.Budgets.First().Name,
+            Cost = 100,
+            Name = "Lovecraftian Horror #2",
+            NameOfTemplateTreatment = scenario.SelectableTreatments
+                .First(t => !t.ForCommittedProjectsOnly && t.Name != scenario.NameOfPassiveTreatment).Name,
         });
 
         return RunTest(scenario);

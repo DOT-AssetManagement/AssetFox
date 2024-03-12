@@ -17,7 +17,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.5")
+                .HasAnnotation("ProductVersion", "6.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -163,6 +163,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<int>("SpendingStrategy")
                         .HasColumnType("int");
+
+                    b.Property<bool>("shouldAllowMultipleTreatments")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -788,6 +791,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ProjectSource")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid?>("ScenarioBudgetId")
                         .HasColumnType("uniqueidentifier");
 
@@ -863,6 +869,40 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .IsUnique();
 
                     b.ToTable("CommittedProjectLocation");
+                });
+
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CommittedProjectSettingsEntity", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Key");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("CommittedProjectSettings");
+                });
+
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CommittedProjectTreatmentEntity", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Key");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("CommittedProjectTemplates");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CriterionLibraryAnalysisMethodEntity", b =>
@@ -2531,12 +2571,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.ToTable("CriterionLibrary_TreatmentCost", (string)null);
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.CriterionLibraryTreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.CriterionLibraryTreatmentSupersedeRuleEntity", b =>
                 {
                     b.Property<Guid>("CriterionLibraryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("TreatmentSupersessionId")
+                    b.Property<Guid>("TreatmentSupersedeRuleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CreatedBy")
@@ -2551,14 +2591,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("CriterionLibraryId", "TreatmentSupersessionId");
+                    b.HasKey("CriterionLibraryId", "TreatmentSupersedeRuleId");
 
                     b.HasIndex("CriterionLibraryId");
 
-                    b.HasIndex("TreatmentSupersessionId")
+                    b.HasIndex("TreatmentSupersedeRuleId")
                         .IsUnique();
 
-                    b.ToTable("CriterionLibrary_TreatmentSupersession", (string)null);
+                    b.ToTable("CriterionLibrary_TreatmentSupersedeRule", (string)null);
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.SelectableTreatmentEntity", b =>
@@ -2587,6 +2627,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsUnselectable")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
@@ -2771,7 +2814,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.ToTable("TreatmentScheduling");
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersedeRuleEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -2783,17 +2826,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("CriterionLibraryScenarioTreatmentSupersessionJoinCriterionLibraryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("CriterionLibraryScenarioTreatmentSupersessionJoinTreatmentSupersessionId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PreventTreatmentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("TreatmentId")
                         .HasColumnType("uniqueidentifier");
@@ -2802,9 +2842,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.HasIndex("TreatmentId");
 
-                    b.HasIndex("CriterionLibraryScenarioTreatmentSupersessionJoinCriterionLibraryId", "CriterionLibraryScenarioTreatmentSupersessionJoinTreatmentSupersessionId");
-
-                    b.ToTable("TreatmentSupersession");
+                    b.ToTable("TreatmentSupersedeRule");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.MaintainableAssetEntity", b =>
@@ -3031,6 +3069,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("NetworkID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ReportTypeName")
                         .IsRequired()
@@ -3890,12 +3931,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.ToTable("CriterionLibrary_ScenarioTreatmentCost", (string)null);
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.CriterionLibraryScenarioTreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.CriterionLibraryScenarioTreatmentSupersedeRuleEntity", b =>
                 {
                     b.Property<Guid>("CriterionLibraryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("TreatmentSupersessionId")
+                    b.Property<Guid>("ScenarioTreatmentSupersedeRuleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CreatedBy")
@@ -3910,14 +3951,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("CriterionLibraryId", "TreatmentSupersessionId");
+                    b.HasKey("CriterionLibraryId", "ScenarioTreatmentSupersedeRuleId");
 
                     b.HasIndex("CriterionLibraryId");
 
-                    b.HasIndex("TreatmentSupersessionId")
+                    b.HasIndex("ScenarioTreatmentSupersedeRuleId")
                         .IsUnique();
 
-                    b.ToTable("CriterionLibrary_ScenarioTreatmentSupersession", (string)null);
+                    b.ToTable("CriterionLibrary_ScenarioTreatmentSupersedeRule", (string)null);
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioConditionalTreatmentConsequenceEntity", b =>
@@ -4015,6 +4056,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsModified")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUnselectable")
                         .HasColumnType("bit");
 
                     b.Property<Guid>("LastModifiedBy")
@@ -4170,7 +4214,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.ToTable("ScenarioTreatmentScheduling");
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersedeRuleEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -4188,6 +4232,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("PreventTreatmentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("TreatmentId")
                         .HasColumnType("uniqueidentifier");
 
@@ -4195,7 +4242,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.HasIndex("TreatmentId");
 
-                    b.ToTable("ScenarioTreatmentSupersession");
+                    b.ToTable("ScenarioTreatmentSupersedeRule");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioSelectableTreatmentScenarioBudgetEntity", b =>
@@ -5087,7 +5134,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .IsRequired();
 
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CommittedProjectEntity", "CommittedProject")
-                        .WithMany("CommittedProjectConsequences")
+                        .WithMany()
                         .HasForeignKey("CommittedProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -5815,23 +5862,23 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Navigation("TreatmentCost");
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.CriterionLibraryTreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.CriterionLibraryTreatmentSupersedeRuleEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CriterionLibraryEntity", "CriterionLibrary")
-                        .WithMany("CriterionLibraryTreatmentSupersessionJoins")
+                        .WithMany("CriterionLibraryTreatmentSupersedeRuleJoins")
                         .HasForeignKey("CriterionLibraryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersessionEntity", "TreatmentSupersession")
-                        .WithOne("CriterionLibraryTreatmentSupersessionJoin")
-                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.CriterionLibraryTreatmentSupersessionEntity", "TreatmentSupersessionId")
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersedeRuleEntity", "TreatmentSupersedeRule")
+                        .WithOne("CriterionLibraryTreatmentSupersedeRuleJoin")
+                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.CriterionLibraryTreatmentSupersedeRuleEntity", "TreatmentSupersedeRuleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CriterionLibrary");
 
-                    b.Navigation("TreatmentSupersession");
+                    b.Navigation("TreatmentSupersedeRule");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.SelectableTreatmentEntity", b =>
@@ -5897,19 +5944,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Navigation("SelectableTreatment");
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersedeRuleEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.SelectableTreatmentEntity", "SelectableTreatment")
-                        .WithMany("TreatmentSupersessions")
+                        .WithMany("TreatmentSupersedeRules")
                         .HasForeignKey("TreatmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.CriterionLibraryScenarioTreatmentSupersessionEntity", "CriterionLibraryScenarioTreatmentSupersessionJoin")
-                        .WithMany()
-                        .HasForeignKey("CriterionLibraryScenarioTreatmentSupersessionJoinCriterionLibraryId", "CriterionLibraryScenarioTreatmentSupersessionJoinTreatmentSupersessionId");
-
-                    b.Navigation("CriterionLibraryScenarioTreatmentSupersessionJoin");
 
                     b.Navigation("SelectableTreatment");
                 });
@@ -6395,23 +6436,23 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Navigation("ScenarioTreatmentCost");
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.CriterionLibraryScenarioTreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.CriterionLibraryScenarioTreatmentSupersedeRuleEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CriterionLibraryEntity", "CriterionLibrary")
-                        .WithMany("CriterionLibraryScenarioTreatmentSupersessionJoins")
+                        .WithMany("CriterionLibraryScenarioTreatmentSupersedeRuleJoins")
                         .HasForeignKey("CriterionLibraryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersessionEntity", "ScenarioTreatmentSupersession")
-                        .WithOne("CriterionLibraryScenarioTreatmentSupersessionJoin")
-                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.CriterionLibraryScenarioTreatmentSupersessionEntity", "TreatmentSupersessionId")
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersedeRuleEntity", "ScenarioTreatmentSupersedeRule")
+                        .WithOne("CriterionLibraryScenarioTreatmentSupersedeRuleJoin")
+                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.CriterionLibraryScenarioTreatmentSupersedeRuleEntity", "ScenarioTreatmentSupersedeRuleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CriterionLibrary");
 
-                    b.Navigation("ScenarioTreatmentSupersession");
+                    b.Navigation("ScenarioTreatmentSupersedeRule");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioConditionalTreatmentConsequenceEntity", b =>
@@ -6515,10 +6556,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Navigation("ScenarioSelectableTreatment");
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersedeRuleEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioSelectableTreatmentEntity", "ScenarioSelectableTreatment")
-                        .WithMany("ScenarioTreatmentSupersessions")
+                        .WithMany("ScenarioTreatmentSupersedeRules")
                         .HasForeignKey("TreatmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -6845,8 +6886,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CommittedProjectEntity", b =>
                 {
-                    b.Navigation("CommittedProjectConsequences");
-
                     b.Navigation("CommittedProjectLocation");
                 });
 
@@ -6892,7 +6931,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Navigation("CriterionLibraryScenarioTreatmentCostJoins");
 
-                    b.Navigation("CriterionLibraryScenarioTreatmentSupersessionJoins");
+                    b.Navigation("CriterionLibraryScenarioTreatmentSupersedeRuleJoins");
 
                     b.Navigation("CriterionLibrarySelectableTreatmentJoins");
 
@@ -6902,7 +6941,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Navigation("CriterionLibraryTreatmentCostJoins");
 
-                    b.Navigation("CriterionLibraryTreatmentSupersessionJoins");
+                    b.Navigation("CriterionLibraryTreatmentSupersedeRuleJoins");
 
                     b.Navigation("CriterionLibraryUserJoins");
                 });
@@ -7063,7 +7102,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Navigation("TreatmentSchedulings");
 
-                    b.Navigation("TreatmentSupersessions");
+                    b.Navigation("TreatmentSupersedeRules");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentCostEntity", b =>
@@ -7080,9 +7119,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersedeRuleEntity", b =>
                 {
-                    b.Navigation("CriterionLibraryTreatmentSupersessionJoin");
+                    b.Navigation("CriterionLibraryTreatmentSupersedeRuleJoin");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.MaintainableAssetEntity", b =>
@@ -7197,7 +7236,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Navigation("ScenarioTreatmentSchedulings");
 
-                    b.Navigation("ScenarioTreatmentSupersessions");
+                    b.Navigation("ScenarioTreatmentSupersedeRules");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentCostEntity", b =>
@@ -7207,9 +7246,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Navigation("ScenarioTreatmentCostEquationJoin");
                 });
 
-            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersessionEntity", b =>
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersedeRuleEntity", b =>
                 {
-                    b.Navigation("CriterionLibraryScenarioTreatmentSupersessionJoin");
+                    b.Navigation("CriterionLibraryScenarioTreatmentSupersedeRuleJoin");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationEntity", b =>

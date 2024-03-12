@@ -7,8 +7,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
     public interface IDeficientConditionGoalRepository
     {
-        void CreateDeficientConditionGoals(List<DeficientConditionGoal> deficientConditionGoals, Guid simulationId);
-
         List<DeficientConditionGoalLibraryDTO> GetDeficientConditionGoalLibrariesWithDeficientConditionGoals();
         List<DeficientConditionGoalLibraryDTO> GetDeficientConditionGoalLibrariesNoChildren();
 
@@ -17,6 +15,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void UpsertOrDeleteDeficientConditionGoals(List<DeficientConditionGoalDTO> deficientConditionGoals, Guid libraryId);
 
         void DeleteDeficientConditionGoalLibrary(Guid libraryId);
+
+        DateTime GetLibraryModifiedDate(Guid deficientLibraryId);
 
         List<DeficientConditionGoalDTO> GetScenarioDeficientConditionGoals(Guid simulationId);
 
@@ -31,10 +31,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void UpsertOrDeleteUsers(Guid deficientConditionGoalLibraryId, IList<LibraryUserDTO> libraryUsers);
 
         List<LibraryUserDTO> GetLibraryUsers(Guid deficientConditionGoalLibraryId);
-
-        void AddLibraryIdToScenarioDeficientConditionGoal(List<DeficientConditionGoalDTO> deficientConditionGoalDTOs, Guid? libraryId);
-
-        void AddModifiedToScenarioDeficientConditionGoal(List<DeficientConditionGoalDTO> deficientConditionGoalDTOs, bool IsModified);
         void UpsertDeficientConditionGoalLibraryAndGoals(DeficientConditionGoalLibraryDTO dto);
     }
 }

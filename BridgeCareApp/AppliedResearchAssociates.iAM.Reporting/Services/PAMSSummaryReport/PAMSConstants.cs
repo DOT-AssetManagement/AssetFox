@@ -63,6 +63,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport
         public const string AsphaltTotal = "PAMS Full Depth Asphalt Total";
         public const string CompositeTotal = "PAMS Composite Total";
         public const string ConcreteTotal = "PAMS Concrete Total";
+        public const string CommittedTotal = "Committed Total";
 
         //Data Variables
         public const string Work = "Work";
@@ -76,11 +77,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport
         public const string PercentBudgetSpentMPMS = "% of Budget - MPMS";
         public const string PercentBudgetSpentPAMS = "% of Budget - PAMS";
         public const string PercentBudgetSpentSAP = "% of Budget - SAP";
+        public const string PercentBudgetSpentProjectBuilder = "% of Budget - Project Builder";
         public const string RemainingBudget = "Remaining Budget";
 
         public const string Poor = "Poor";
         public const string Fair = "Fair";
         public const string Good = "Good";        
         public const string Excellent = "Excellent";
+
+        public const string Bundled = "Bundled";
+        public const string BundledTreatments = "Bundled Treatments";
     }
 }

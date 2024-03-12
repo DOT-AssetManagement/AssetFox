@@ -16,6 +16,7 @@ using BridgeCareCore.Interfaces;
 using BridgeCareCore.Interfaces.DefaultData;
 using BridgeCareCore.Models;
 using BridgeCareCore.Security.Interfaces;
+using BridgeCareCore.Services;
 using BridgeCareCore.Services.General_Work_Queue.WorkItems;
 using BridgeCareCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -137,8 +138,8 @@ namespace BridgeCareCore.Controllers
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
 
                     var dtos = _investmentPagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);
-                    UnitOfWork.BudgetRepo.AddModifiedToScenarioBudget(dtos, pagingSync.IsModified);
-                    UnitOfWork.BudgetRepo.AddLibraryIdToScenarioBudget(dtos, pagingSync.LibraryId);
+                    BudgetDtoListService.AddModifiedToScenarioBudget(dtos, pagingSync.IsModified);
+                    BudgetDtoListService.AddLibraryIdToScenarioBudget(dtos, pagingSync.LibraryId);
 
                     InvestmentDTO investment = new InvestmentDTO();
                     var investmentPlan = pagingSync.Investment;
@@ -271,6 +272,32 @@ namespace BridgeCareCore.Controllers
                     var accessModel = UnitOfWork.BudgetRepo.GetLibraryAccess(libraryId, UserId);
                     _claimHelper.CheckGetLibraryUsersValidity(accessModel, UserId);
                     users = UnitOfWork.BudgetRepo.GetLibraryUsers(libraryId);
+                });
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Investment error::{e.Message}");
+                throw;
+            }
+        }
+
+        [HttpGet]
+        [Route("GetBudgetLibraryModifiedDate/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyInvestmentFromLibrary)]
+        public async Task<IActionResult> GetBudgetLibraryDate(Guid libraryId)
+        {
+            try
+            {
+                var users = new DateTime();
+                await Task.Factory.StartNew(() =>
+                {
+                    users = UnitOfWork.BudgetRepo.GetLibraryModifiedDate(libraryId);
                 });
                 return Ok(users);
             }

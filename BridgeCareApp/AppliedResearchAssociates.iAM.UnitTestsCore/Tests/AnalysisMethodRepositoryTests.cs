@@ -14,18 +14,19 @@ using Xunit;
 using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public class AnalysisMethodRepositoryTests
     {
         [Fact]
-        public void ShouldReturnOkResultOnGet()
+        public void GetAnalysisMethod_AnalysisMethodInDb_Gets()
         {
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
-            var simulation = SimulationTestSetup.CreateSimulation(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var entity = AnalysisMethodEntities.TestAnalysis(simulation.Id);
             TestHelper.UnitOfWork.Context.AnalysisMethod.Add(entity);
             TestHelper.UnitOfWork.Context.SaveChanges();
@@ -37,49 +38,33 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 
 
         [Fact]
-        public void ShouldCreateAnalysisMethod()
+        public void UpsertAnalysisMethod_AnalysisMethodAlreadyInDb_UpdatesBenefit()
         {
             // Arrange
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
-            var simulation = SimulationTestSetup.CreateSimulation(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var repo = unitOfWork.AnalysisMethodRepo;
             var analysisMethodDto = repo.GetAnalysisMethod(simulation.Id);
-            analysisMethodDto.Benefit = new BenefitDTO
-            {
-                Id = Guid.NewGuid(),
-                Limit = 0.0,
-                Attribute = TestHelper.UnitOfWork.Context.Attribute.First().Name
-            };
+            analysisMethodDto.Benefit = BenefitDtos.Dto(TestAttributeNames.Age);
 
             // Act
             repo.UpsertAnalysisMethod(simulation.Id, analysisMethodDto);
+
             // Assert
             var upsertedAnalysisMethodDto = repo.GetAnalysisMethod(simulation.Id);
             Assert.Equal(analysisMethodDto.Id, upsertedAnalysisMethodDto.Id);
             Assert.Equal(analysisMethodDto.Benefit.Id, upsertedAnalysisMethodDto.Benefit.Id);
         }
 
-        private BenefitEntity TestBenefit(Guid analysisMethodId, Guid? benefitId = null)
-        {
-            var resolveId = benefitId ?? Guid.NewGuid();
-            var returnValue = new BenefitEntity
-            {
-                Id = resolveId,
-                AnalysisMethodId = analysisMethodId,
-                Limit = 1
-            };
-            return returnValue;
-        }
-
         [Fact]
-        public void ShouldUpdateAnalysisMethod()
+        public void UpsertAnalysisMethod_AnalysisMethodInDb_Updates()
         {
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
-            var simulation = SimulationTestSetup.CreateSimulation(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var criterionLibrary = CriterionLibraryTestSetup.TestCriterionLibraryInDb(TestHelper.UnitOfWork);
             var repo = unitOfWork.AnalysisMethodRepo;
 
@@ -88,10 +73,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             analysisMethodDto.Attribute = attributeEntity.Name;
             analysisMethodDto.CriterionLibrary = criterionLibrary;
             var analysisMethod = AnalysisMethodEntities.TestAnalysis(simulation.Id);
-            var benefit = TestBenefit(analysisMethod.Id);
-            benefit.Attribute = attributeEntity;
-            analysisMethodDto.Benefit = benefit.ToDto();
-            analysisMethodDto.Benefit.Attribute = attributeEntity.Name;
+            var benefitDto = BenefitDtos.Dto(attributeEntity.Name);
+            analysisMethodDto.Benefit = benefitDto;
 
             // Act
             repo.UpsertAnalysisMethod(simulation.Id, analysisMethodDto);

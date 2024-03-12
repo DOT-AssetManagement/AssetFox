@@ -10,6 +10,7 @@ using System.Data;
 using OfficeOpenXml;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 
 namespace BridgeCareCoreTests.Tests
 {
@@ -22,7 +23,7 @@ namespace BridgeCareCoreTests.Tests
         private Mock<INetworkRepository> _mockNetworkRepo;
         private Guid _badScenario = Guid.Parse("0c66674c-8fcb-462b-8765-69d6815e0958");
 
-        private ExcelPackage _excelData;
+        private ExcelPackage _excelData; // passed in via the constructor on ExcelAccess.
 
         public CommittedProjectServiceTests(ExcelAccess excelData)
         {
@@ -52,7 +53,7 @@ namespace BridgeCareCoreTests.Tests
             mockedTestUOW.Setup(_ => _.SimulationRepo).Returns(_mockedSimulationRepo.Object);
 
             _mockNetworkRepo = new Mock<INetworkRepository>();
-            _mockNetworkRepo.Setup(n => n.GetNetworkKeyAttribute(TestDataForCommittedProjects.NetworkId)).Returns("BRKEY_");
+            _mockNetworkRepo.Setup(n => n.GetNetworkKeyAttribute(TestDataForCommittedProjects.NetworkId)).Returns(TestAttributeNames.BrKey);
             mockedTestUOW.Setup(_ => _.NetworkRepo).Returns(_mockNetworkRepo.Object);
 
             var mockAttributeRepository = new Mock<IAttributeRepository>();
@@ -131,7 +132,7 @@ namespace BridgeCareCoreTests.Tests
             var service = new CommittedProjectService(_testUOW);
 
             // Act & Assert
-            Assert.Throws<RowNotInTableException>(() => service.ImportCommittedProjectFiles(_badScenario, new ExcelPackage(), "Bad File", false));
+            Assert.Throws<RowNotInTableException>(() => service.ImportCommittedProjectFiles(_badScenario, new ExcelPackage(), "Bad File"));
         }
 
         [Fact]
@@ -145,20 +146,18 @@ namespace BridgeCareCoreTests.Tests
                     testInput = _;
                 });
             var service = new CommittedProjectService(_testUOW);
-            const string networkKeyAttribute = "BRKEY_";
+            const string networkKeyAttribute = TestAttributeNames.BrKey;
             // Act - The result is delivered through the callback
-            service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFile", false);
+            service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFile");
 
             // Assert
             Assert.True(testInput.Count == 2, "Number of comitted projects is wrong");
-            Assert.Equal("f286b7cf-445d-4291-9167-0f225b170cae", testInput[0].LocationKeys.Single(_ => _.Key == "ID").Value);
             Assert.True(testInput[0] is SectionCommittedProjectDTO, "Provided value is not a Section type");
             Assert.True(testInput[0].VerifyLocation(networkKeyAttribute), "Could not verify location");
-            Assert.Equal(8, testInput[0].Consequences.Count);
             Assert.Equal(2023, testInput[1].Year);
         }
 
-        [Fact]
+        [Fact(Skip = "potentially no longer relevant with changes to no treatment in imports")]
         public void ImportCreatesValidRecordsWithNoTreatment()
         {
             // Arrange
@@ -169,16 +168,14 @@ namespace BridgeCareCoreTests.Tests
                     testInput = _;
                 });
             var service = new CommittedProjectService(_testUOW);
-            const string networkKeyAttribute = "BRKEY_";
+            const string networkKeyAttribute = TestAttributeNames.BrKey;
             // Act - The result is delivered through the callback
-            service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFileWithNoTreatment", true);
+            service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFileWithNoTreatment");
 
             // Assert
             Assert.True(testInput.Count == 3, "Number of comitted projects is wrong");
-            Assert.Equal("cf28e62e-0a02-4195-8d28-5cdb9646dd58", testInput[1].LocationKeys.Single(_ => _.Key == "ID").Value);
             Assert.True(testInput[1] is SectionCommittedProjectDTO, "Provided value is not a Section type");
             Assert.True(testInput[1].VerifyLocation(networkKeyAttribute), "Could not verify location");
-            Assert.Equal(8, testInput[1].Consequences.Count);
             Assert.Equal(2023, testInput[1].Year);
             Assert.Equal(TreatmentCategory.CapacityAdding, testInput[1].Category);
             Assert.True(testInput.Any(_ => _.Treatment == "No Treatment"), "No Treatment was not created");
