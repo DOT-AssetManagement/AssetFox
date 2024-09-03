@@ -22,12 +22,12 @@
                                      variant="outlined" style="margin-bottom: -15px;"
                                      type="number" v-maska:[mask]
                                      v-model="selectedValue"></v-text-field>
-                                <v-select v-if="queryRule!.type === 'select'" density="compact" variant="outlined" style="margin-bottom: -15px; "
+                                <v-combobox v-if="queryRule!.type === 'select'" density="compact" variant="outlined" style="margin-bottom: -15px; "
                                     :items='queryRule!.choices'
                                     item-title="text"
                                     item-value="value"
                                     v-model="selectedValue"
-                                    bg-color="white"></v-select>
+                                    bg-color="white"></v-combobox>
                             </div>
                             
                             <v-btn @click="onDeleteClick" style="padding-left: 0;" class="ghd-blue" variant="text">
