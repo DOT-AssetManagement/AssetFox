@@ -20,12 +20,12 @@
                                     style="margin-bottom: -15px;"></v-text-field>
                                 <v-text-field v-if="queryRule!.type === 'NUMBER'" density="compact" bg-color="white" 
                                      variant="outlined" style="margin-bottom: -15px;"
-                                     type="number" v-maska:[mask]
+                                     type="number" v-mask:[mask]
                                      v-model="selectedValue"></v-text-field>
                                 <v-combobox v-if="queryRule!.type === 'select'" density="compact" variant="outlined" style="margin-bottom: -15px; "
-                                    :items='queryRule!.choices'
-                                    item-title="text"
-                                    item-value="value"
+                                    :items='queryRule!.choices.reduce((acc, choice) => [...acc, choice.text], [])'
+                                    
+                                    auto-select-first="exact"
                                     v-model="selectedValue"
                                     bg-color="white"></v-combobox>
                             </div>
@@ -60,7 +60,7 @@ import { hasValue } from '@/shared/utils/has-value-util';
     const emit = defineEmits(['update:criteriaRule', 'delete'])
     let selectedOperator = ref<string | null>('=');
     let selectedValue = ref<string | null>(null);
-    let queryRule = ref<any>({})
+    let queryRule = ref<any>({});
     const props = defineProps<{
         criteriaRule: CriteriaRule,
         depth: number,

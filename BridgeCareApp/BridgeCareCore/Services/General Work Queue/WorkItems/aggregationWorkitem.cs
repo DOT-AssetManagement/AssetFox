@@ -56,7 +56,7 @@ namespace BridgeCareCore.Services
             catch (Exception e)
             {
                 state.Status = "Aggregation failed";
-                _unitOfWork.NetworkRepo.UpsertNetworkRollupDetail(NetworkId, state.Status);
+                //_unitOfWork.NetworkRepo.UpsertNetworkRollupDetail(NetworkId, state.Status);
                 _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastAssignDataStatus,
                     new NetworkRollupDetailDTO { NetworkId = NetworkId, Status = state.Status }, 0.0);
                 _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{AggregationError}::AggregateNetworkData - {e.Message}");

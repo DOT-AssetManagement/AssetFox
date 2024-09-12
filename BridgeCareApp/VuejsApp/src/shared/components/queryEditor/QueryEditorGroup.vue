@@ -24,6 +24,7 @@
                                 <v-combobox bg-color="white" density="compact" variant="outlined"
                                 :items='queryRules'
                                 v-model="selectedQueryRule"
+                                auto-select-first="exact"
                                 item-title="label"
                                 item-value="label"
                                 return-object></v-combobox>

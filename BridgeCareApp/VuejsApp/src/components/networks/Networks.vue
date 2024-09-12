@@ -103,7 +103,7 @@
                                 </v-row>
                             </v-row>
                     </v-row>
-                    <v-row v-show="hasStartedAggregation">
+                    <!--<v-row v-show="hasStartedAggregation">
                         <v-col>
                             <v-subheader class="ghd-control-label ara-black" v-text="networkDataAssignmentStatus" ></v-subheader>
                             <v-progress-linear
@@ -120,7 +120,7 @@
                                             >
                                         </v-progress-linear>
                         </v-col>
-                    </v-row>
+                    </v-row>-->
                 </v-col>
                 <v-col cols = "5">
                     <v-row column>
@@ -298,17 +298,17 @@ import { text } from 'stream/consumers';
     }
     onMounted(() => mounted); 
     function mounted() {
-        $emitter.on(
+        /*$emitter.on(
             Hub.BroadcastEventType.BroadcastAssignDataStatusEvent,
             getDataAggregationStatus,
-        );
+        );*/
     }
     onBeforeUnmount(() => beforeDestroy)
     function beforeDestroy() {
-        $emitter.off(
+        /*$emitter.off(
             Hub.BroadcastEventType.BroadcastAssignDataStatusEvent,
             getDataAggregationStatus,
-        );
+        );*/
     }
     
     watch(stateNetworks, () =>  {
