@@ -20,7 +20,8 @@ namespace BridgeCareCoreTests.Tests.Integration
     {
         private AttributeController CreateController()
         {
-            var attributeService = new AttributeService(TestHelper.UnitOfWork);
+            var cache = new AggregatedSelectValuesResultDtoCache(-1);
+            var attributeService = new AttributeService(TestHelper.UnitOfWork, cache);
             var security = EsecSecurityMocks.Admin;
             var hubService = HubServiceMocks.Default();
             var contextAccessor = HttpContextAccessorMocks.Default();

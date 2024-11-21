@@ -62,7 +62,8 @@ namespace BridgeCareCore
 
             services.AddSecurityConfig(Configuration);
             services.AddSingleton<IClaimsTransformation, ClaimsTransformation>();
-            services.AddSingleton<IAggregatedSelectValuesResultDtoCache, AggregatedSelectValuesResultDtoCache>();
+            var cache = new AggregatedSelectValuesResultDtoCache(2000000);
+            services.AddSingleton<IAggregatedSelectValuesResultDtoCache>(cache);
 
             services.AddSingleton(Configuration);
             services.AddControllers().AddNewtonsoftJson();

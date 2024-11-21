@@ -21,7 +21,8 @@ namespace BridgeCareCoreTests.Tests.Integration
     {
         private CommittedProjectService CreateCommittedProjectService()
         {
-            var service = new CommittedProjectService(TestHelper.UnitOfWork);
+            var hubService = HubServiceMocks.Default();
+            var service = new CommittedProjectService(TestHelper.UnitOfWork, hubService);
             return service;
         }
 
@@ -198,7 +199,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Empty(committedProjects2);
 
             //second act
-            service.ImportCommittedProjectFiles(simulationId, excelPackage, fileInfo.FileName);
+            service.ImportCommittedProjectFiles(simulationId, excelPackage, fileInfo.FileName, "Ignored user id");
             var committedProjects3 = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             var id1 = committedProjects1[0].LocationKeys["ID"];
             var id3 = committedProjects3[0].LocationKeys["ID"];
@@ -214,6 +215,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
             var assetKeyData = "key";
             var treatmentName = "treatment";
+            var userId = "ignored user id";
             var keyAttributeId = Guid.NewGuid();
             var maintainableAssets = new List<MaintainableAsset>();
             var assetId = Guid.NewGuid();
@@ -303,7 +305,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Empty(committedProjects2);
 
             //second act
-            service.ImportCommittedProjectFiles(simulationId, excelPackage, fileInfo.FileName);
+            service.ImportCommittedProjectFiles(simulationId, excelPackage, fileInfo.FileName, userId);
             var committedProjects3 = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             var id1 = committedProjects1[0].LocationKeys["ID"];
             var id3 = committedProjects3[0].LocationKeys["ID"];

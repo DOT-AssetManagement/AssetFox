@@ -23,10 +23,10 @@ namespace BridgeCareCoreTests.Tests.Integration
     {
         private CommittedProjectController CreateController()
         {
-            var service = new CommittedProjectService(TestHelper.UnitOfWork);
+            var hubService = HubServiceMocks.Default();
+            var service = new CommittedProjectService(TestHelper.UnitOfWork, hubService);
             var pagingService = new CommittedProjectPagingService(TestHelper.UnitOfWork);
             var security = EsecSecurityMocks.Admin;
-            var hubService = HubServiceMocks.Default();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var claimHelper = ClaimHelperMocks.New();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();

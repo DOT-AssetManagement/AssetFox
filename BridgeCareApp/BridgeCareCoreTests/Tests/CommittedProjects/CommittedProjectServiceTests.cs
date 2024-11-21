@@ -77,7 +77,8 @@ namespace BridgeCareCoreTests.Tests
         public void ExportValidWithGoodData()
         {
             // Arrange
-            var service = new CommittedProjectService(_testUOW);
+            var hubService = HubServiceMocks.Default();
+            var service = new CommittedProjectService(_testUOW, hubService);
 
             // Act
             var result = service.ExportCommittedProjectsFile(TestDataForCommittedProjects.SimulationId);
@@ -100,7 +101,8 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             _mockCommittedProjectRepo.Setup(_ => _.GetCommittedProjectsForExport(It.IsAny<Guid>())).Throws<RowNotInTableException>();
-            var service = new CommittedProjectService(_testUOW);
+            var hubService = HubServiceMocks.Default();
+            var service = new CommittedProjectService(_testUOW, hubService);
 
             // Act & Assert
             Assert.Throws<RowNotInTableException>(() => service.ExportCommittedProjectsFile(_badScenario));
@@ -110,7 +112,8 @@ namespace BridgeCareCoreTests.Tests
         public void ExportProvidesATemplateWhenNoCommittedProjectsExist()
         {
             // Arrange
-            var service = new CommittedProjectService(_testUOW);
+            var hubService = HubServiceMocks.Default();
+            var service = new CommittedProjectService(_testUOW, hubService);
 
             // Act
             var result = service.ExportCommittedProjectsFile(TestDataForCommittedProjects.NoCommitSimulationId);
@@ -129,26 +132,30 @@ namespace BridgeCareCoreTests.Tests
         public void ImportHandlesBadSimulationId()
         {
             // Arrange
-            var service = new CommittedProjectService(_testUOW);
+            var hubService = HubServiceMocks.Default();
+            var service = new CommittedProjectService(_testUOW, hubService);
+            var userId = "Ignored user id";
 
             // Act & Assert
-            Assert.Throws<RowNotInTableException>(() => service.ImportCommittedProjectFiles(_badScenario, new ExcelPackage(), "Bad File"));
+            Assert.Throws<RowNotInTableException>(() => service.ImportCommittedProjectFiles(_badScenario, new ExcelPackage(), "Bad File", userId));
         }
 
         [Fact]
         public void ImportCreatesValidRecordsWithoutNoTreatment()
         {
             // Arrange
+            var userId = "ignored user id";
             List<SectionCommittedProjectDTO> testInput = new List<SectionCommittedProjectDTO>();
             _mockCommittedProjectRepo.Setup(_ => _.UpsertCommittedProjects(It.IsAny<List<SectionCommittedProjectDTO>>()))
                 .Callback<List<SectionCommittedProjectDTO>>(_ =>
                 {
                     testInput = _;
                 });
-            var service = new CommittedProjectService(_testUOW);
+            var hubService = HubServiceMocks.Default();
+            var service = new CommittedProjectService(_testUOW, hubService);
             const string networkKeyAttribute = TestAttributeNames.BrKey;
             // Act - The result is delivered through the callback
-            service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFile");
+            service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFile", userId);
 
             // Assert
             Assert.True(testInput.Count == 2, "Number of comitted projects is wrong");
@@ -161,16 +168,18 @@ namespace BridgeCareCoreTests.Tests
         public void ImportCreatesValidRecordsWithNoTreatment()
         {
             // Arrange
+            var userId = "ignored user id";
             List<SectionCommittedProjectDTO> testInput = new List<SectionCommittedProjectDTO>();
             _mockCommittedProjectRepo.Setup(_ => _.UpsertCommittedProjects(It.IsAny<List<SectionCommittedProjectDTO>>()))
                 .Callback<List<SectionCommittedProjectDTO>>(_ =>
                 {
                     testInput = _;
                 });
-            var service = new CommittedProjectService(_testUOW);
+            var hubService = HubServiceMocks.Default();
+            var service = new CommittedProjectService(_testUOW, hubService);
             const string networkKeyAttribute = TestAttributeNames.BrKey;
             // Act - The result is delivered through the callback
-            service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFileWithNoTreatment");
+            service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFileWithNoTreatment", userId);
 
             // Assert
             Assert.True(testInput.Count == 3, "Number of comitted projects is wrong");

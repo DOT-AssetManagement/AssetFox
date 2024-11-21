@@ -25,7 +25,8 @@ namespace BridgeCareCoreTests.Tests.Integration
     {
         private AttributeService CreateAttributeService(UnitOfDataPersistenceWork unitOfWork)
         {
-            return new AttributeService(unitOfWork);
+            var cache = new AggregatedSelectValuesResultDtoCache(-1);
+            return new AttributeService(unitOfWork, cache);
         }
 
         [Fact]
