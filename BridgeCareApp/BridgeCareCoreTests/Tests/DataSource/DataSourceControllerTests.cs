@@ -93,7 +93,8 @@ namespace BridgeCareCoreTests.Tests
             };
             _mockDataSource.Setup(_ => _.UpsertDatasource(It.IsAny<BaseDataSourceDTO>()))
                 .Throws(new ArgumentException(errorMessage));
-            var hubService = HubServiceMocks.Default();
+            var hubServiceMock = HubServiceMocks.DefaultMock();
+            var hubService = hubServiceMock.Object;
             var accessor = HttpContextAccessorMocks.Default();
             var controller = new DataSourceController(
                 EsecSecurityMocks.Admin,
@@ -102,8 +103,11 @@ namespace BridgeCareCoreTests.Tests
                 accessor);
 
             // Act & Assert
-            var result = await Assert.ThrowsAsync<ArgumentException>(() => controller.UpsertSqlDataSource(newValue));
-            Assert.Equal(errorMessage, result.Message);
+            var result = await controller.UpsertSqlDataSource(newValue);
+            ActionResultAssertions.Ok(result);
+            var messages = hubServiceMock.GetErrorMessages();
+            var message = messages.Single();
+            Assert.Contains(errorMessage, message);
         }
 
         [Fact]
