@@ -77,7 +77,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Setup a simulation based on network
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, Guid.Parse("dcdacfde-02da-4109-b8aa-add932756dee"), "Test Simulation", user.Id, networkId);
             simulation.NetworkId = network.Id;
-            var ip = InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulation.Id);
+            var ip = InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulation.Id, null, 2023, 2);
             // Set up a selectable treatment for the test with sample budgets
             var treatmentbudget = TreatmentBudgetDtos.Dto();
             var libraryId = Guid.NewGuid();
@@ -166,6 +166,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Setup a simulation based on network
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, TestDataForCommittedProjects.NoCommitSimulationId, "Test Simulation", user.Id, networkId);
+            InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulation.Id, null, 2023);
             simulation.NetworkId = network.Id;
 
             // Set up a selectable treatment for the test with sample budgets

@@ -56,6 +56,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .ToList() ?? throw new Exception($"No investment plan found for simulation {simulation.Id}");
             int investmentStartYear = investmentPlans.Min(_ => _.FirstYearOfAnalysisPeriod);
             int investmentEndYear = investmentPlans.Max(_ => _.FirstYearOfAnalysisPeriod + _.NumberOfYearsInAnalysisPeriod - 1);
+            // WJWJWJ resume here on the test GetForSimulationWorksWithCommittedProjects.
+            // Why is the first year of the analysis period set to 2022??
 
             var projects = _unitOfWork.Context.CommittedProject
                 .Include(_ => _.CommittedProjectLocation)
