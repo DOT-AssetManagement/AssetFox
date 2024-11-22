@@ -105,7 +105,7 @@ namespace BridgeCareCoreTests.Tests
             // Act & Assert
             var result = await controller.UpsertSqlDataSource(newValue);
             ActionResultAssertions.Ok(result);
-            var messages = hubServiceMock.GetErrorMessages();
+            var messages = hubServiceMock.GetThreeArgumentErrorMessages();
             var message = messages.Single();
             Assert.Contains(errorMessage, message);
         }
@@ -162,16 +162,19 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.Default();
+            var hubService = HubServiceMocks.DefaultMock();
             var controller = new DataSourceController(
                 EsecSecurityMocks.Admin,
                 _mockUOW.Object,
-                hubService,
+                hubService.Object,
                 accessor);
             _mockDataSource.Setup(_ => _.DeleteDataSource(It.IsAny<Guid>())).Throws<RowNotInTableException>();
 
             // Act & Assert
-            await Assert.ThrowsAsync<RowNotInTableException>(() => controller.DeleteDataSource(_badSource));
+            await controller.DeleteDataSource(_badSource);
+            var messages = hubService.GetThreeArgumentErrorMessages();
+            var message = messages.Single();
+            Assert.Contains("Row not found in table.", message);
         }
 
         [Fact]

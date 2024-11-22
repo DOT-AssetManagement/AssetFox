@@ -5,6 +5,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.Reporting.Logging;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
@@ -18,6 +19,7 @@ using BridgeCareCore.Services.Paging;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.General_Work_Queue;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Primitives;
 using Moq;
 using MoreLinq;
@@ -42,11 +44,14 @@ namespace BridgeCareCoreTests.Tests
         }
 
         private InvestmentController CreateController(
-            Mock<IUnitOfWork> mockUnitOfWork, Mock<IHttpContextAccessor> accessor = null)
+            Mock<IUnitOfWork> mockUnitOfWork,
+            Mock<IHttpContextAccessor> accessor = null,
+            Mock<IHubService> hubServiceMock = null
+            )
         {
             var service = CreateService(mockUnitOfWork);
             var resolveAccessor = accessor ?? HttpContextAccessorMocks.DefaultMock();
-            var hubService = HubServiceMocks.DefaultMock();
+            hubServiceMock ??= HubServiceMocks.DefaultMock();
             var dataService = new InvestmentDefaultDataService();
             var security = EsecSecurityMocks.Admin;
             var pagingService = new InvestmentPagingService(mockUnitOfWork.Object, dataService);
@@ -57,7 +62,7 @@ namespace BridgeCareCoreTests.Tests
                 pagingService,
                 security,
                 mockUnitOfWork.Object,
-                hubService.Object,
+                hubServiceMock.Object,
                 resolveAccessor.Object,
                 dataService,
                 claimHelper.Object,
@@ -315,12 +320,14 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
             var service = CreateService(unitOfWork);
-            var controller = CreateController(unitOfWork);
+            var hubServiceMock = HubServiceMocks.DefaultMock();
+            var controller = CreateController(unitOfWork, hubServiceMock: hubServiceMock); ;
 
             // Act + Asset
-            var exception = await Assert.ThrowsAsync<ConstraintException>(async () =>
-                await controller.ImportLibraryInvestmentBudgetsExcelFile());
-            Assert.Equal("Request MIME type is invalid.", exception.Message);
+                await controller.ImportLibraryInvestmentBudgetsExcelFile();
+            var messages = hubServiceMock.GetThreeArgumentErrorMessages();
+            var message = messages.Single();
+            Assert.Contains("Request MIME type is invalid.", message);
         }
 
         [Fact]

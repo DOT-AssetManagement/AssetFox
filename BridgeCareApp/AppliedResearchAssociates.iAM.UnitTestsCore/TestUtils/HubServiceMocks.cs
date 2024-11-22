@@ -32,21 +32,5 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
             var mock = DefaultMock();
             return mock.Object;
         }
-
-        public static List<string> ThreeArgumentUserMessages(this Mock<IHubService> mock)
-        {
-            var invocations = mock.Invocations.ToList();
-            var realTimeMessageInvocations = invocations.Where(i => i.Method.Name == nameof(IHubService.SendRealTimeMessage)).ToList();
-            var threeArgumentInvocations = realTimeMessageInvocations.Where(i => i.Arguments.Count == 3).ToList();
-            var threeArgumentInvocationFinalArguments = threeArgumentInvocations.Select(i => i.Arguments[2].ToString()).ToList();
-            return threeArgumentInvocationFinalArguments;
-        }
-
-        public static string SingleThreeArgumentUserMessage(this Mock<IHubService> mock)
-        {
-            var messages = mock.ThreeArgumentUserMessages();
-            var message = messages.Single();
-            return message;
-        }
     }
 }
