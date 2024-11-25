@@ -4,6 +4,7 @@ using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -12,24 +13,25 @@ using BridgeCareCore.Controllers;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
 using Microsoft.Data.SqlClient;
+using Moq;
 using Xunit;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
     public class AttributeControllerIntegrationTests
     {
-        private AttributeController CreateController()
+        private AttributeController CreateController(Mock<IHubService> hubServiceMock)
         {
             var cache = new AggregatedSelectValuesResultDtoCache(-1);
             var attributeService = new AttributeService(TestHelper.UnitOfWork, cache);
             var security = EsecSecurityMocks.Admin;
-            var hubService = HubServiceMocks.Default();
+            var hubService = HubServiceMocks.DefaultMock();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var controller = new AttributeController(
                 attributeService,
                 security,
                 TestHelper.UnitOfWork,
-                hubService,
+                hubServiceMock.Object,
                 contextAccessor);
             return controller;
         }
@@ -50,10 +52,12 @@ namespace BridgeCareCoreTests.Tests.Integration
             allAttribute2.Maximum = double.NaN;
             allAttribute2.Minimum = double.Epsilon;
             var allAttributes = new List<AllAttributeDTO> { allAttribute1, allAttribute2 };
-            var controller = CreateController();
+            var hubService = HubServiceMocks.DefaultMock();
+            var controller = CreateController(hubService);
 
-            var exception = await Assert.ThrowsAsync<SqlException>(async () => await controller.CreateAttributes(allAttributes));
+            await controller.CreateAttributes(allAttributes);
 
+            var _ = hubService.GetSingleThreeArgumentErrorMessage();
             var attributeNames = new List<string> { attributeName1 };
             var attributeAfter = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(attributeId1);
             Assert.Equal(0, attributeAfter.Minimum);

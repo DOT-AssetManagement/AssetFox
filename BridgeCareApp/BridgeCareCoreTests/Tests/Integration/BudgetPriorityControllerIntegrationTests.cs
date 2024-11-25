@@ -1,4 +1,5 @@
 ﻿using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -8,23 +9,24 @@ using BridgeCareCore.Models;
 using BridgeCareCore.Services;
 using BridgeCareCoreTests.Tests.BudgetPriority;
 using Microsoft.Data.SqlClient;
+using Moq;
 using Xunit;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
     public class BudgetPriorityControllerIntegrationTests
     {
-        public BudgetPriorityController CreateController()
+        public BudgetPriorityController CreateController(Mock<IHubService> hubServiceMock)
         {
             var security = EsecSecurityMocks.Admin;
-            var hubService = HubServiceMocks.Default();
+            hubServiceMock ??= HubServiceMocks.DefaultMock();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var claimHelper = ClaimHelperMocks.New();
             var service = new BudgetPriorityPagingService(TestHelper.UnitOfWork);
             var controller = new BudgetPriorityController(
                 security,
                 TestHelper.UnitOfWork,
-                hubService,
+                hubServiceMock.Object,
                 contextAccessor,
                 claimHelper.Object,
                 service
@@ -51,16 +53,17 @@ namespace BridgeCareCoreTests.Tests.Integration
             childDto.CriterionLibrary = criterionLibrary;
             TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertBudgetPriorityLibrary(library);
             var budgetPriorities = new List<BudgetPriorityDTO> { childDto, childDto2 };
+            var hubServiceMock = HubServiceMocks.DefaultMock();
 
-            var controller = CreateController();
+            var controller = CreateController(hubServiceMock);
             var upsertRequest = new LibraryUpsertPagingRequestModel<BudgetPriorityLibraryDTO, BudgetPriorityDTO>();
             upsertRequest.Library = library2;
             var syncModel = new PagingSyncModel<BudgetPriorityDTO> { AddedRows = budgetPriorities };
             upsertRequest.SyncModel = syncModel;
 
-            var exception = await Assert.ThrowsAsync<SqlException>(async () =>
-            await controller.UpsertBudgetPriorityLibrary(upsertRequest));
+            await controller.UpsertBudgetPriorityLibrary(upsertRequest);
 
+            var _ = hubServiceMock.GetSingleThreeArgumentErrorMessage();
             var librariesAfter = TestHelper.UnitOfWork.BudgetPriorityRepo.GetBudgetPriorityLibraries();
             var libraryAfter = librariesAfter.Single(
                 lib => lib.Id == libraryId);

@@ -1,4 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
+﻿using AppliedResearchAssociates.iAM.DataPersistenceCore;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.DeficientConditionGoal;
@@ -8,23 +10,23 @@ using BridgeCareCore.Controllers;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
 using Microsoft.Data.SqlClient;
+using Moq;
 using Xunit;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
     public class DeficientConditionGoalControllerIntegrationTests
     {
-        private DeficientConditionGoalController CreateController()
+        private DeficientConditionGoalController CreateController(Mock<IHubService> hubServiceMock)
         {
             var security = EsecSecurityMocks.Admin;
-            var hubService = HubServiceMocks.Default();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var claimHelper = ClaimHelperMocks.New();
             var service = new DeficientConditionGoalPagingService(TestHelper.UnitOfWork);
             var controller = new DeficientConditionGoalController(
                 security,
                 TestHelper.UnitOfWork,
-                hubService,
+                hubServiceMock.Object,
                 contextAccessor,
                 claimHelper.Object,
                 service);
@@ -53,11 +55,13 @@ namespace BridgeCareCoreTests.Tests.Integration
                 IsNewLibrary = false,
                 SyncModel = syncModel,
             };
+            var hubService = HubServiceMocks.DefaultMock();
+            var controller = CreateController(hubService);
 
-            var controller = CreateController();
-            var exception = await Assert.ThrowsAnyAsync<Exception>(async () => await controller.UpsertDeficientConditionGoalLibrary(
-                upsertRequest));
+            await controller.UpsertDeficientConditionGoalLibrary(upsertRequest);
 
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains(ErrorMessageConstants.NoAttributeFoundHavingName, message);
             var libraryAfter = TestHelper.UnitOfWork.DeficientConditionGoalRepo
                 .GetDeficientConditionGoalLibrariesWithDeficientConditionGoals()
                 .Single(lib => lib.Id == library.Id);
@@ -89,7 +93,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             goalToUpdate.CriterionLibrary = criterionLibrary;
             goalToUpdate.DeficientLimit = double.NaN;
             var goalsBefore = TestHelper.UnitOfWork.DeficientConditionGoalRepo.GetScenarioDeficientConditionGoals(simulationId);
-            var controller = CreateController();
+            var hubServiceMock = HubServiceMocks.DefaultMock();
+            var controller = CreateController(hubServiceMock);
             var pagingSync = new PagingSyncModel<DeficientConditionGoalDTO>
             {
                 UpdateRows = new List<DeficientConditionGoalDTO> { goalToUpdate },
@@ -97,9 +102,10 @@ namespace BridgeCareCoreTests.Tests.Integration
             };
 
             // Act
-            var exception = await Assert.ThrowsAsync<SqlException>(async () => await controller.UpsertScenarioDeficientConditionGoals(simulationId, pagingSync));
+            await controller.UpsertScenarioDeficientConditionGoals(simulationId, pagingSync);
 
             // Assert
+            var _ = hubServiceMock.GetSingleThreeArgumentErrorMessage();
             var goalsAfter = TestHelper.UnitOfWork.DeficientConditionGoalRepo.GetScenarioDeficientConditionGoals(simulationId);
             ObjectAssertions.Equivalent(goalsBefore, goalsAfter);
             Assert.Equal(2, goalsAfter.Count);
