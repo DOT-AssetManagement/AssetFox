@@ -154,7 +154,7 @@ namespace BridgeCareCoreTests.Tests
             var hubService = HubServiceMocks.Default();
             var service = new CommittedProjectService(_testUOW, hubService);
             const string networkKeyAttribute = TestAttributeNames.BrKey;
-            // Act - The result is delivered through the callback
+
             service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFile", userId);
 
             // Assert

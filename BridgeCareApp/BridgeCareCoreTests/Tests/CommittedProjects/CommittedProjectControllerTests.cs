@@ -180,21 +180,25 @@ namespace BridgeCareCoreTests.Tests
             var mockContextAccessor = new Mock<IHttpContextAccessor>();
             mockContextAccessor.Setup(_ => _.HttpContext)
                 .Returns(CreateContextWithNoFile(TestDataForCommittedProjects.SimulationId));
-            var hubService = HubServiceMocks.Default();
+            var hubService = HubServiceMocks.DefaultMock();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,
                 _mockPagingService.Object,
                 EsecSecurityMocks.Admin,
                 _mockUOW.Object,
-                hubService,
+                hubService.Object,
                 mockContextAccessor.Object, _mockClaimHelper.Object, generalWorkQueue.Object);
 
             // Act
 
-            await Assert.ThrowsAsync<ConstraintException>(() => controller.ImportCommittedProjects());
+            await controller.ImportCommittedProjects();
+
             // Assert
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains("Committed project file not found.", message);
             _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never());
+
         }
 
         [Fact]
@@ -202,21 +206,23 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.Default();
+            var hubService = HubServiceMocks.DefaultMock();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,
                 _mockPagingService.Object,
                 EsecSecurityMocks.Dbe,
                 _mockUOW.Object,
-                hubService,
+                hubService.Object,
                 accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
 
             // Act
-            await Assert.ThrowsAsync<ConstraintException>(() => controller.ImportCommittedProjects());
+            await controller.ImportCommittedProjects();
 
             // Assert
             _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never());
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains(CommittedProjectController.RequestMimeTypeIsInvalid, message);
         }
 
         [Fact]
@@ -224,18 +230,21 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.Default();
+            var hubService = HubServiceMocks.DefaultMock();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,
                 _mockPagingService.Object,
                 EsecSecurityMocks.Admin,
                 _mockUOW.Object,
-                hubService,
+                hubService.Object,
                 accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
 
-            // Act + Asset
-            await Assert.ThrowsAsync<ConstraintException>(() => controller.ImportCommittedProjects());
+            // Act + Assert
+            await controller.ImportCommittedProjects();
+
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains(CommittedProjectController.RequestMimeTypeIsInvalid, message);
         }
 
         [Fact(Skip = "Will Need to be changed to accommodate general work queue")]
