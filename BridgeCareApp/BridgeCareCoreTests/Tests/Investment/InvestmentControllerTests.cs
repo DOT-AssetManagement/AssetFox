@@ -323,8 +323,9 @@ namespace BridgeCareCoreTests.Tests
             var hubServiceMock = HubServiceMocks.DefaultMock();
             var controller = CreateController(unitOfWork, hubServiceMock: hubServiceMock); ;
 
-            // Act + Asset
-                await controller.ImportLibraryInvestmentBudgetsExcelFile();
+            // Act + Assert
+            await controller.ImportLibraryInvestmentBudgetsExcelFile();
+
             var messages = hubServiceMock.GetThreeArgumentErrorMessages();
             var message = messages.Single();
             Assert.Contains("Request MIME type is invalid.", message);
@@ -336,12 +337,14 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
             var accessor = CreateRequestForExceptionTesting();
-            var controller = CreateController(unitOfWork, accessor);
+            var hubService = HubServiceMocks.DefaultMock();
+            var controller = CreateController(unitOfWork, accessor, hubService);
 
-            // Act + Asset
-            var exception = await Assert.ThrowsAsync<ConstraintException>(async () =>
-                await controller.ImportLibraryInvestmentBudgetsExcelFile());
-            Assert.Equal("Investment budgets file not found.", exception.Message);
+            // Act + Assert
+            await controller.ImportLibraryInvestmentBudgetsExcelFile();
+
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains("Investment budgets file not found.", message);
         }
 
         [Fact]
@@ -352,12 +355,13 @@ namespace BridgeCareCoreTests.Tests
             var file = new FormFile(new MemoryStream(Encoding.UTF8.GetBytes("This is a dummy file")), 0, 0, "Data",
                 "dummy.txt");
             var accessor = CreateRequestForExceptionTesting(file);
-            var controller = CreateController(unitOfWork, accessor);
+            var hubService = HubServiceMocks.DefaultMock();
+            var controller = CreateController(unitOfWork, accessor, hubService);
 
-            // Act + Asset
-            var exception = await Assert.ThrowsAsync<ConstraintException>(async () =>
-                await controller.ImportLibraryInvestmentBudgetsExcelFile());
-            Assert.Equal("Request contained no budget library id.", exception.Message);
+            // Act + Assert
+            await controller.ImportLibraryInvestmentBudgetsExcelFile();
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains("Request contained no budget library id.", message);
         }
 
         [Fact]
@@ -366,12 +370,14 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
             var accessor = CreateRequestForExceptionTesting();
-            var controller = CreateController(unitOfWork, accessor);
+            var hubserviceMock = HubServiceMocks.DefaultMock();
+            var controller = CreateController(unitOfWork, accessor, hubserviceMock);
 
-            // Act + Asset
-            var exception = await Assert.ThrowsAsync<ConstraintException>(async () =>
-                await controller.ImportScenarioInvestmentBudgetsExcelFile());
-            Assert.Equal("Investment budgets file not found.", exception.Message);
+            // Act + Assert
+            await controller.ImportScenarioInvestmentBudgetsExcelFile();
+
+            var message = hubserviceMock.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains("Investment budgets file not found.", message);
         }
 
         [Fact]
@@ -382,12 +388,14 @@ namespace BridgeCareCoreTests.Tests
             var file = new FormFile(new MemoryStream(Encoding.UTF8.GetBytes("This is a dummy file")), 0, 0, "Data",
                 "dummy.txt");
             var accessor = CreateRequestForExceptionTesting(file);
-            var controller = CreateController(unitOfWork, accessor);
+            var hubService = HubServiceMocks.DefaultMock();
+            var controller = CreateController(unitOfWork, accessor, hubService);
 
-            // Act + Asset
-            var exception = await Assert.ThrowsAsync<ConstraintException>(async () =>
-                await controller.ImportScenarioInvestmentBudgetsExcelFile());
-            Assert.Equal("Request contained no simulation id.", exception.Message);
+            // Act + Assert
+            await controller.ImportScenarioInvestmentBudgetsExcelFile();
+
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains("Request contained no simulation id.", message);
         }
 
         [Fact]

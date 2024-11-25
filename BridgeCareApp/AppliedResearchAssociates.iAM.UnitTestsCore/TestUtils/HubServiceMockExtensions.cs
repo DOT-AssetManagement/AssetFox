@@ -25,6 +25,12 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
             return messages;
         }
 
+        public static string GetSingleThreeArgumentErrorMessage(this Mock<IHubService> mock)
+        {
+            var messages = mock.GetThreeArgumentErrorMessages();
+            var message = messages.Single();
+            return message;
+        }
 
         public static List<string> ThreeArgumentUserMessages(this Mock<IHubService> mock)
         {
