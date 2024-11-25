@@ -69,6 +69,9 @@ namespace BridgeCareCoreTests.Tests
             mockBudgetRepository.Setup(_ => _.GetScenarioBudgets(It.IsAny<Guid>())).Returns(TestDataForCommittedProjects.ScenarioBudgets);
             mockedTestUOW.Setup(_ => _.BudgetRepo).Returns(mockBudgetRepository.Object);
 
+            var adminSettingsRepo = AdminSettingsRepositoryMocks.New(mockedTestUOW);
+            adminSettingsRepo.Setup(a => a.GetKeyFields()).Returns(new List<string>{TestAttributeNames.BrKey, TestAttributeNames.BmsId});
+
             //_testUOW = new UnitOfDataPersistenceWork(new Mock<IConfiguration>().Object, _mockedContext.Object);
             _testUOW = mockedTestUOW.Object;
         }

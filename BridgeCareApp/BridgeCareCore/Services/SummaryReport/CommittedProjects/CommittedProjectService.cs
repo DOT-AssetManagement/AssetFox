@@ -322,7 +322,7 @@ namespace BridgeCareCore.Services
                 throw new RowNotInTableException($"Unable to find a column in the committed project sheet named {_networkKeyField}.  This is a required column for the network associated with the specified scenario");
             }
             var locationColumnNames = new Dictionary<int, string>();
-            var keyColumn = 0;
+            var keyColumn = 0;//
 
             var primaryKeyFieldNames = _unitOfWork.AdminSettingsRepo.GetKeyFields();
 

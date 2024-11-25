@@ -23,6 +23,7 @@ namespace BridgeCareCore.Controllers
     public class AnalysisMethodController : BridgeCareCoreBaseController
     {
         public const string AnalysisMethodError = "Analysis Method Error";
+        public const string AnalysisMethodSuccessfullyUpdated = "Analysis Method successfully updated";
         public readonly IAnalysisDefaultDataService _analysisDefaultDataService;
         private readonly IClaimHelper _claimHelper;
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
@@ -120,7 +121,7 @@ namespace BridgeCareCore.Controllers
                     UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulationId, dto);                    
                 });
 
-                return Ok("Analysis Method successfully updated");
+                return Ok(AnalysisMethodSuccessfullyUpdated);
             }
             catch (UnauthorizedAccessException e)
             {
