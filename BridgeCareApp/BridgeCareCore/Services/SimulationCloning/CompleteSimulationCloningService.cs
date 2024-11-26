@@ -76,9 +76,13 @@ namespace BridgeCareCore.Services
                 }
             }
 
-            // do the clone
+            // do the clone //
             var ownerId = _unitOfWork.CurrentUser?.Id ?? Guid.Empty;
-            var creatorId = _unitOfWork.UserRepo.GetUserByUserName(sourceSimulation.Creator).Result.Id;
+            var creatorId =
+                //ownerId;
+            _unitOfWork.UserRepo.GetUserByUserName(sourceSimulation.Creator).Result.Id;
+            // Not sure which version of creatorId we want. Tests pass if we
+            // use ownerId. But that might or might not be what the app requires.
             var baseEntityProperties = new BaseEntityProperties { CreatedBy = creatorId, LastModifiedBy = ownerId };
             var ownerName = _unitOfWork.CurrentUser?.Username;
             var cloneSimulation = CompleteSimulationCloner.Clone(sourceSimulation, dto, ownerId, ownerName);
