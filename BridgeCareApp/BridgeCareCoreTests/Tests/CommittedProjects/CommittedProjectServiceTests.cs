@@ -18,10 +18,10 @@ namespace BridgeCareCoreTests.Tests
     public class CommittedProjectServiceTests : IClassFixture<ExcelAccess>
     {
         private IUnitOfWork _testUOW;
-        private Mock<IAMContext> _mockedContext;
         private Mock<ISimulationRepository> _mockedSimulationRepo;
         private Mock<ICommittedProjectRepository> _mockCommittedProjectRepo;
         private Mock<INetworkRepository> _mockNetworkRepo;
+        private Mock<ISelectableTreatmentRepository> _mockSelectableTreatmentRepo;
         private Guid _badScenario = Guid.Parse("0c66674c-8fcb-462b-8765-69d6815e0958");
 
         private ExcelPackage _excelData; // passed in via the constructor on ExcelAccess.
@@ -37,6 +37,8 @@ namespace BridgeCareCoreTests.Tests
             var mockAssetDataRepository = new Mock<IAssetData>();
             mockAssetDataRepository.Setup(_ => _.KeyProperties).Returns(TestDataForCommittedProjects.KeyProperties);
             mockedTestUOW.Setup(_ => _.AssetDataRepository).Returns(mockAssetDataRepository.Object);
+            _mockSelectableTreatmentRepo = new Mock<ISelectableTreatmentRepository>();
+            mockedTestUOW.Setup(_ => _.SelectableTreatmentRepo).Returns(_mockSelectableTreatmentRepo.Object);
             _mockCommittedProjectRepo = new Mock<ICommittedProjectRepository>();
             _mockCommittedProjectRepo.Setup(_ => _.GetCommittedProjectsForExport(It.IsAny<Guid>()))
                 .Returns<Guid>(_ => TestDataForCommittedProjects.ValidCommittedProjects
@@ -158,6 +160,13 @@ namespace BridgeCareCoreTests.Tests
             var hubService = HubServiceMocks.Default();
             var service = new CommittedProjectService(_testUOW, hubService);
             const string networkKeyAttribute = TestAttributeNames.BrKey;
+            var treatmentNames = new List<string>
+            {
+                "Rehabilitation",
+                "Maintenance"
+            };
+            _mockSelectableTreatmentRepo.Setup(m => m.GetScenarioSelectableTreatmentNames(TestDataForCommittedProjects.SimulationId))
+                .Returns(treatmentNames);
 
             service.ImportCommittedProjectFiles(TestDataForCommittedProjects.SimulationId, _excelData, "GoodFile", userId);
 
