@@ -12,8 +12,6 @@
                     accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                     ref="committedProjectTemplateInput"
                     hidden/>
-                <v-btn @click="onUploadCommittedProjectTemplate" style="margin-right: auto;" variant="outlined"
-                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" outline>Change Default Template</v-btn>
             </v-col>
             <v-col>
                 <v-btn @click='showImportExportCommittedProjectsDialog = true' 
@@ -145,7 +143,9 @@
                                                 class="sm-txt"
                                                 density="compact"
                                                 variant="underlined"
-                                                :model-value="item.item[header.key]"/>
+                                                :model-value="item.item[header.key]"
+                                                :style="getBudgetStyle(item.item[header.key])"
+                                                :error-messages="item.item.budgetErrors"/>
 
                                             <v-text-field v-if="header.key === 'keyAttr'"
                                                 readonly
@@ -153,6 +153,7 @@
                                                 density="compact"
                                                 variant="underlined"
                                                 :model-value="item.item[header.key]"
+                                                :style="getKeyAttrStyle(item.item.errors)"
                                                 :rules="[inputRules['generalRules'].valueIsNotEmpty]"
                                                 :error-messages="item.item.errors"/>
 
@@ -177,7 +178,7 @@
                                                 readonly
                                                 class="sm-txt"
                                                 density="compact"
-                                                variant="underlined"
+                                                variant="underlined"                                                
                                                 :model-value="item.item[header.key]"/>
 
                                             <template v-slot:input>
@@ -266,7 +267,7 @@
                 />
                 <SaveButton 
                     @save="OnSaveClick"
-                    :disabled="!hasUnsavedChanges || disableCrudButtons()"
+                    :disabled="!hasUnsavedChanges || disableCrudButtons"
                 />
             </v-row>
         </v-col> 
@@ -294,23 +295,10 @@
         />
         <ConfirmDialog></ConfirmDialog>
     </v-div>
-    <SuccessfulUploadDialog 
-        v-model="showSuccessPopup"
-        message="Successfully uploaded committed projects."
+    <UploadDialog 
+        v-model="showUploadCompleteDialog"
+        :message="dialogMessage"
     />
-    <!-- <v-dialog v-model="showSuccessPopup" max-width="400px">
-        <v-card>
-            <v-card-text class="text-center">
-                Successfully uploaded committed projects.
-            </v-card-text>
-            <v-card-actions>
-                <v-row justify="center" class="w-100">
-                    <v-btn color="primary" variant="text" 
-                    class='ghd-white-bg ghd-blue ghd-button-text' @click="showSuccessPopup = false">OK</v-btn>
-                </v-row>
-            </v-card-actions>
-        </v-card>
-    </v-dialog> -->
 </v-card>
 </template>
 <script setup lang="ts">
@@ -362,7 +350,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
-import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUploadDialog.vue';
+import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 
 
     let store = useStore();
@@ -370,15 +358,11 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     created();
 
-    let searchItems = '';
-    let dataPerPage = 0;
-    let totalDataFound = 0;
     let hasScenario: boolean = false;
     let librarySelectItemValue = ref<string>("");
     const templateSelectItems = ref<string[]>([]);
     const templateItemSelected = ref<string>("");
     let hasSelectedLibrary: boolean = false;
-    let librarySelectItems: SelectItem[] = [];
     let attributeSelectItems: SelectItem[] = [];
     const treatmentSelectItems = ref< string[] >([]);
     const projectSourceOptions = ref< string [] >([]);
@@ -386,20 +370,20 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
     const categorySelectItems = ref<SelectItem[]>([]);
     let importedProjectTreatmentName = ref<string>("");
     let importedProjectTreatmentBoolean = ref(false);
-    let categories: string[] = [];
     const missingTreatments = ref< string[] >([]);
     const missingTreatmentsValue = ref< string[] >([]);
     const invalidProjectSources = ref<number[]>([]);
+    //const invalidProjectSourceId = ref<string[]>([]);
     const invalidCosts = ref<number[]>([]);
     const invalidYears = ref<number[]>([]);
     const invalidTreatments = ref<string[]>([]);
+    const invalidBudgets = ref<string[]>([]);
     let allImportedTreatments;
     let scenarioId: string = getBlankGuid();
     let networkId: string = getBlankGuid();
     let inputRules: InputValidationRules = rules;
     let network: Network = clone(emptyNetwork);
     let isAdminTemplateUploaded: Boolean;
-    let fileData: AxiosResponse;
     
     const projectSourceMap = new Map<number, string>([
         [0, "None"],
@@ -410,7 +394,8 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         [5, "ProjectBuilder"]
     ]);
 
-    const showSuccessPopup = ref(false);
+    const showUploadCompleteDialog = ref(false);
+    const dialogMessage = ref('');
 
     const uuidNIL: string = getBlankGuid();
     let addedRows = ref<SectionCommittedProject[]>([]);
@@ -427,6 +412,8 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
     let isKeyAttributeValidMap: Map<string, boolean> = new Map<string, boolean>();
 
     let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
+    
+
 
     const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
     const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
@@ -437,7 +424,7 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
     const selectedStateTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     const stateSimpleScenarioSelectableTreatments = computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
 
-    async function getTreatmentLibrariesAction(payload?: any): Promise<any> { await store.dispatch('getTreatmentLibraries', payload); }
+    //async function getTreatmentLibrariesAction(payload?: any): Promise<any> { await store.dispatch('getTreatmentLibraries', payload); }
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
     async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any> { await store.dispatch('getScenarioSimpleBudgetDetails', payload); }
     async function getAttributesAction(payload?: any): Promise<any> { await store.dispatch('getAttributes', payload); }
@@ -451,19 +438,12 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
     function selectScenarioAction(payload?: any){  store.dispatch('selectScenario', payload); }
     function setAlertMessageAction(payload?: any){ store.dispatch('setAlertMessage', payload); }
     
-    let getUserNameByIdGetter: any = store.getters.getUserNameByIdGetter;
-    
-    let cpItems: SectionCommittedProjectTableData[] = [];
     let selectedCpItems = ref<SectionCommittedProjectTableData[]>([]);
     let sectionCommittedProjects = ref<SectionCommittedProject[]>([]);
-    let committedProjectsCount: number = 0;
     const showImportExportCommittedProjectsDialog = ref< boolean > (false);
     let selectedCommittedProject = ref<string>('');
-    let showCreateCommittedProjectConsequenceDialog: boolean = false;
-    let disableCrudButtonsResult: boolean = true;
     const alertDataForDeletingCommittedProjects = ref<AlertData>({ ...emptyAlertData });
     let reverseCatMap = clone(treatmentCategoryReverseMap);
-    let catMap = clone(treatmentCategoryMap);
     
     let keyattr: string = '';
 
@@ -597,7 +577,7 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         await selectScenarioAction({ scenarioId: scenarioId });
         await ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
             if(response.data){
-                setAlertMessageAction("Committed project import has been added to the work queue");
+                setAlertMessageAction("Committed project import has been added to the queue");
             }
         });
         await initializePages();
@@ -623,10 +603,10 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         setAlertMessageAction('');
     }
 
-        //Watch
-        watch(isNoTreatmentBefore, () => {
-            checkHasUnsavedChanges();
-        });
+    //Watch
+    watch(isNoTreatmentBefore, () => {
+        checkHasUnsavedChanges();
+    });
 
     watch(investmentYears, (newYears) => {
         if (newYears.length > 0) {
@@ -773,17 +753,22 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         arraysToReset.forEach(arr => arr.value = []);
     }
 
-    function validateImportedData(items: SectionCommittedProject[]) {
-        const treatmentSet = new Set(treatmentSelectItems.value); // Optimize includes check
+    function validateImportedData(items: SectionCommittedProject[]) {        
         items.forEach(item => {
-            importedProjectTreatmentName.value = item.treatment;
-
-            if (!treatmentSet.has(importedProjectTreatmentName.value)) {
+            if (!validTreatmentName(item.treatment)) {
                 missingTreatments.value.push(importedProjectTreatmentName.value);
             }
 
             if (!validProjectSource(item.projectSource)) {
                 invalidProjectSources.value.push(item.projectSource);
+            }
+
+            // if (!validProjectSourceId(item.projectId)) {
+            //     invalidProjectSourceId.value = invalidProjectSourceId.value.map((id) => id.trim());
+            // }
+
+            if (!validBudgetId(item.scenarioBudgetId)) {
+                invalidBudgets.value.push(item.scenarioBudgetId);
             }
 
             if (!validCost(item.cost)) {
@@ -811,9 +796,9 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         });
     }
 
-     watch(deletionIds, () => {
+    watch(deletionIds, () => {
         checkHasUnsavedChanges();
-     });
+    });
 
     watch(addedRows, () =>{
         checkHasUnsavedChanges();
@@ -838,27 +823,38 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
                 }
             });
         }
-
+    
     async function OnGetTemplateClick(){
-       await CommittedProjectsService.getUploadedCommittedProjectTemplate()
+        await CommittedProjectsService.getCommittedProjectTemplate(networkId)
             .then((response: AxiosResponse) => {
-                    if(response.data.toString() != ""){
-                        FileDownload(convertBase64ToArrayBuffer(response.data), 'Committed Project Template', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-                        isAdminTemplateUploaded = true;
-                    }
-                    else{
-                         CommittedProjectsService.getCommittedProjectTemplate(networkId)
-                            .then((response: AxiosResponse) => {
-                        if (hasValue(response, 'data')) {
-                          const fileInfo: FileInfo = response.data as FileInfo;  
-                          FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
-                        }
-                });
-                    }
+                if (hasValue(response, 'data')) {
+                    const fileInfo: FileInfo = response.data as FileInfo;
+                    FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
+                }
             });
-        }
+    }
+    // async function OnGetTemplateClick(){
+    //    await CommittedProjectsService.getUploadedCommittedProjectTemplate()
+    //         .then((response: AxiosResponse) => {
+    //                 if(response.data.toString() != ""){
+    //                     FileDownload(convertBase64ToArrayBuffer(response.data), 'Committed Project Template', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    //                     isAdminTemplateUploaded = true;
+    //                 }
+    //                 else{
+    //                      CommittedProjectsService.getCommittedProjectTemplate(networkId)
+    //                         .then((response: AxiosResponse) => {
+    //                     if (hasValue(response, 'data')) {
+    //                       const fileInfo: FileInfo = response.data as FileInfo;  
+    //                       FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
+    //                     }
+    //             });
+    //                 }
+    //         });
+    //     }
 
-     function OnAddCommittedProjectClick(){
+    
+
+    function OnAddCommittedProjectClick(){
         const newRow: SectionCommittedProject = clone(emptySectionCommittedProject)
         newRow.id = getNewGuid();
         newRow.name = '';
@@ -869,9 +865,9 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         newRow.projectId = '';
         addedRows.value.push(newRow)
         onPaginationChanged();   
-     }
+    }
 
-     function OnSaveClick() {
+    function OnSaveClick() {
         const upsertRequest = {
             libraryId: null,
             rowsForDeletion: deletionIds.value,
@@ -893,6 +889,7 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
             CommittedProjectsService.deleteSpecificCommittedProjects(deletionIds.value).then((response: AxiosResponse) => {
                 if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
                     deletionIds.value = [];
+                    $emitter.emit('AllCommittedProjectsDeleted');
                     addSuccessNotificationAction({ message: 'Deleted committed projects' });
                 }
                 performUpsert();
@@ -900,12 +897,17 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         } else {
             performUpsert();
         }
-        $emitter.emit('CommittedProjectsUpdated');
     }
 
-     function handleUpsertResponse(response: AxiosResponse) {
+    function handleUpsertResponse(response: AxiosResponse) {
         if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
             addSuccessNotificationAction({ message: 'Committed Projects Updated Successfully' });
+            console.log(selectedCpItems.value);
+            console.log(totalItems.value);
+            if(totalItems.value !== 0)
+            {
+                $emitter.emit('CommittedProjectsUpdated');
+            }
             addedRows.value = [];
             updatedRowsMap.clear();
             if (isNoTreatmentBefore.value !== isNoTreatmentBeforeCache.value) {
@@ -943,22 +945,22 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         });
     }
 
-     function updateNoTreatment(){
+    function updateNoTreatment(){
         if(isNoTreatmentBefore.value)
-                ScenarioService.setNoTreatmentBeforeCommitted(scenarioId).then((response: AxiosResponse) => {
-                    if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                        isNoTreatmentBeforeCache.value = isNoTreatmentBefore.value
-                    }
-                    resetPage()
-                });
-            else
-                ScenarioService.removeNoTreatmentBeforeCommitted(scenarioId).then((response: AxiosResponse) => {
-                    if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                        isNoTreatmentBeforeCache.value = isNoTreatmentBefore.value
-                    }
-                    resetPage()
-                });
-     }
+            ScenarioService.setNoTreatmentBeforeCommitted(scenarioId).then((response: AxiosResponse) => {
+                if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
+                    isNoTreatmentBeforeCache.value = isNoTreatmentBefore.value
+                }
+                resetPage()
+            });
+        else
+            ScenarioService.removeNoTreatmentBeforeCommitted(scenarioId).then((response: AxiosResponse) => {
+                if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
+                    isNoTreatmentBeforeCache.value = isNoTreatmentBefore.value
+                }
+                resetPage()
+            });
+    }
 
      function OnDeleteAllClick(){
         alertDataForDeletingCommittedProjects.value = {
@@ -998,6 +1000,9 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
                 case 'projectSource':
                     handleProjectSourceChange(row, scp, value);
                     break;
+                case 'cost':
+                    handleCostChange(row, scp, value);
+                    break;
                 default:
                     updateCommittedProject(row, value, property);
                     onPaginationChanged();
@@ -1018,7 +1023,7 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
                     result.file,
                     scenarioId,
                     ).then((response: any) =>{
-                        setAlertMessageAction("Committed project import has been added to the work queue");                        
+                        setAlertMessageAction("Committed project import has been added to the queue");                        
                     })
             } else {
                 addErrorNotificationAction({
@@ -1068,6 +1073,7 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
 
         if (doDelete) {
             deleteSimulationCommittedProjectsAction(scenarioId);
+            $emitter.emit('AllCommittedProjectsDeleted');
             CommittedProjectsService.deleteSimulationCommittedProjects(scenarioId).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
                     onCancelClick();
@@ -1077,42 +1083,9 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
     }
 
     //Subroutines
-    function formatAsCurrency(value: any) {
-        if (hasValue(value)) {
-            return formatAsCurrency(value);
-        }
-
-        return null;
-    }
-    function disableCrudButtons() {
-    const rowChanges = addedRows.value.concat(Array.from(updatedRowsMap.values()).map(r => r[1]));
-        const dataIsValid: boolean = rowChanges.every(
-        (scp: SectionCommittedProject) => {
-            return (
-                rules['generalRules'].valueIsNotEmpty(
-                    scp.simulationId,
-                ) === true &&
-                rules['generalRules'].valueIsNotEmpty(
-                    scp.year,
-                ) === true &&
-                rules['generalRules'].valueIsNotEmpty(
-                    scp.cost,
-                ) === true &&
-                rules['generalRules'].valueIsNotEmpty(
-                    scp.treatment
-                ) == true &&
-                rules['generalRules'].valueIsNotEmpty(
-                    scp.locationKeys[keyattr]
-                ) == true &&
-                rules['generalRules'].valueIsWithinRange(
-                    scp.year, [firstYear, lastYear],
-                ) === true
-                
-            );
-        });
-        disableCrudButtonsResult = !dataIsValid;
-        return !dataIsValid;
-}
+    const disableCrudButtons = computed(() => {
+        return hasValidationErrors.value;
+    });
 
 
     function setCpItems() {
@@ -1135,12 +1108,13 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
             year: scp.year,
             cost: scp.cost,
             scenarioBudgetId: scp.scenarioBudgetId? scp.scenarioBudgetId : '',
-            budget: budget? budget.name : '',
+            budget: budget? budget.name : 'Empty budget',
             treatment: scp.treatment,
             treatmentId: '',
             id: scp.id,
             errors: [],
             projectSourceErrors: [],
+            //projectSourceIdErrors: [],
             treatmentErrors: [],
             costErrors: [],
             budgetErrors: [],
@@ -1158,10 +1132,11 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         ) as SimpleBudgetDetail;
         if(!isNil(budget)){
             row.scenarioBudgetId = budget.id;
-            scp.budget = 'None'           
+            scp.budget = budget.name           
         }  
         else
-            row.scenarioBudgetId = null;
+            row.scenarioBudgetId = getBlankGuid(); // Invalid budget fallback
+            scp.budget = 'Empty budget'; 
         updateCommittedProject(row, row.scenarioBudgetId, 'scenarioBudgetId') 
         onPaginationChanged();       
     }
@@ -1175,6 +1150,18 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
     function handleFactorChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, factor: number) {
         updateCommittedProject(row, factor, 'performanceFactor');
         onPaginationChanged();
+    }
+
+    function handleCostChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, value: string) {
+        const parsedValue = parseFloat(value); 
+        if (isNaN(parsedValue)) {
+            scp.costErrors = ['Enter a valid numeric cost.'];
+            return;
+        }
+
+        row.cost = parsedValue; 
+        scp.costErrors = checkCost(parsedValue); 
+        updateCommittedProject(row, parsedValue, 'cost');
     }
 
     function handleProjectSourceChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, projectSource: string) {
@@ -1214,15 +1201,35 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
     }
 
     function fetchProjectSources() {
-    CommittedProjectsService.getProjectSources().then((response: AxiosResponse) => {
-        if (hasValue(response, 'data')) {
+        CommittedProjectsService.getProjectSources().then((response: AxiosResponse) => {
+            if (hasValue(response, 'data')) {
 
-            projectSourceOptions.value = response.data.filter(
-                (option: string) => option !== "None" && option !== "ProjectPick"
-                );
-        }
+                projectSourceOptions.value = response.data.filter(
+                    (option: string) => option !== "None" && option !== "ProjectPick"
+                    );
+            }
+        });
+    }
+
+    const hasValidationErrors = computed(() => {
+        return missingTreatments.value.length > 0 ||
+            invalidProjectSources.value.length > 0 ||
+            //invalidProjectSourceId.value.length > 0 ||
+            invalidCosts.value.length > 0 ||
+            invalidYears.value.length > 0 ||
+            invalidTreatments.value.length > 0 ||
+            invalidBudgets.value.length > 0 ||
+            currentPage.value.some((scp) => {
+                return (scp.errors && scp.errors.length > 0) ||
+                    (scp.yearErrors && scp.yearErrors.length > 0) ||
+                    (scp.treatmentErrors && scp.treatmentErrors.length > 0) ||
+                    (scp.costErrors && scp.costErrors.length > 0) ||
+                    (scp.projectSourceErrors && scp.projectSourceErrors.length > 0) ||
+                    //(scp.projectSourceIdErrors && scp.projectSourceIdErrors.length > 0) ||
+                    (scp.budgetErrors && scp.budgetErrors.length > 0);
+            });
     });
-}
+
 
     function checkExistenceOfAssets(){//todo: refine this
         const uncheckKeys = currentPage.value.map(scp => scp.keyAttr).filter(key => isNil(isKeyAttributeValidMap.get(key)))
@@ -1256,14 +1263,30 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
 
     //Add red boxes round missing treatments
     const getTreatmentStyle = (treatment: string) => {
-        const isInMissingTreatments = missingTreatmentsValue.value.includes(treatment);
-        return isInMissingTreatments ? { border: '1px solid red', padding: '3px' } : {};
+        const treatmentNormalized = treatment.trim().toLowerCase();
+
+        const isInMissingTreatments = missingTreatments.value.some(
+            (item: string) => item.trim().toLowerCase() === treatmentNormalized
+        );
+
+        return isInMissingTreatments
+            ? { border: '1px solid red', padding: '3px' }
+            : {};
     };
+
 
     const getYearStyle = (year: number) => {
         const isInInvalidYears = invalidYears.value.includes(year);
         return isInInvalidYears ? { border: '1px solid red', padding: '3px' } : {};
     };
+
+    // const getProjectSourceIdStyle = (projectSourceId: string) => {
+    //     const trimmedProjectSourceId = projectSourceId.trim();
+    //     const isInInvalidProjectSourceId =
+    //         invalidProjectSourceId.value.includes(trimmedProjectSourceId) ||
+    //         trimmedProjectSourceId === 'None';
+    //     return isInInvalidProjectSourceId ? { border: '1px solid red', padding: '3px' } : {};
+    // };
 
     const getProjectSourceStyle = (projectSource: string) => {
         let source = getProjectSourceKeyFromValueMap(projectSourceMap, projectSource);
@@ -1279,25 +1302,41 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         return undefined;
     }
 
-    const getCostStyle = (cost: number) => {
-        const isInInvalidCosts = invalidCosts.value.includes(cost);
-        return isInInvalidCosts ? { border: '1px solid red', padding: '3px' } : {};
+    const getBudgetStyle = (budgetId: string) => {
+        const isInvalid = !budgetId || budgetId === "Empty budget";
+        return isInvalid ? { border: '1px solid red', padding: '3px' } : {};
     };
 
-    function validYear(year: number) {
+    const getKeyAttrStyle = (errors: string[]) => {
+        const hasErrors = Array.isArray(errors) && errors.length > 0; 
+        return hasErrors ? { border: '1px solid red', padding: '3px' } : {};
+    };
 
-    }
+    const getCostStyle = (cost: number) => {
+        const isInvalidCost = cost === null || cost === undefined || cost <= 0;
+        return isInvalidCost ? { border: '1px solid red', padding: '3px' } : {};
+    };
 
     function validTreatmentName(treatment: string) {
-        return treatmentSelectItems.value.includes(treatment);
+        return treatmentSelectItems.value.some(
+            (item: string) => item.trim().toLowerCase() === treatment.trim().toLowerCase()
+        );
     }
 
-    function validProjectSource(source: number | string) {
-        return source !== 0 && source !== 'None'
+    function validProjectSource(source: string) {
+        return source !== 'None'
     }
+
+    // function validProjectSourceId(sourceId: string) {
+    //     return sourceId !== 'None'.trim();
+    // }
 
     function validCost(cost: number) {
-        return cost !== -1.0 || cost !== -1;
+        return cost > 0 && cost !== 0 && cost !== null && cost !== undefined;
+    }
+
+    function validBudgetId(budgetId: string) {
+        return budgetId !== getBlankGuid() || budgetId !== "Empty budget";
     }
 
     function validateCommittedProjects() {
@@ -1308,12 +1347,16 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
                 treatmentErrors: checkTreatment(scp.treatment),
                 costErrors: checkCost(scp.cost),
                 projectSourceErrors: checkProjectSource(scp.projectSource),
+                //projectSourceIdErrors: checkProjectSourceId(scp.projectId),
+                budgetErrors: checkBudgetId(scp.scenarioBudgetId)
             };
 
             scp.yearErrors = errors.yearErrors;
             scp.treatmentErrors = errors.treatmentErrors;
             scp.costErrors = errors.costErrors;
             scp.projectSourceErrors = errors.projectSourceErrors;
+            //scp.projectSourceIdErrors = errors.projectSourceIdErrors;
+            scp.budgetErrors = errors.budgetErrors;
         });
     }
 
@@ -1351,8 +1394,11 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
 
     function checkCost(cost: number) {
         const errors = [];
-        if (!validCost(cost)) {
-            errors.push('Fix project cost');
+        if (cost === 0) {
+            errors.push('Cost cannot be zero.');
+        }
+        if (cost === null || cost === undefined || cost < 0) {
+            errors.push('Enter a valid cost.');
         }
         return errors;
     }
@@ -1361,6 +1407,23 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
         const errors = [];
         if (!validProjectSource(source)) {
             errors.push('Select a valid project source');
+        }
+        return errors;
+    }
+
+    // function checkProjectSourceId(sourceId: string) {
+    //     const errors = [];
+    //     const trimmedSourceId = sourceId.trim();
+    //     if (!validProjectSourceId(trimmedSourceId)) {
+    //         errors.push('Enter a valid project Id')
+    //     }
+    //     return errors;
+    // }
+
+    function checkBudgetId(budgetId: string) {
+        const errors = [];
+        if (!budgetId || budgetId === getBlankGuid()) {
+            errors.push('Select a valid budget.');
         }
         return errors;
     }
@@ -1469,8 +1532,13 @@ import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUpload
             clearChanges();
             onPaginationChanged().then(() => {
                 setAlertMessageAction('');
-            })
-            showSuccessPopup.value = true; 
+                if (totalItems.value > 0) {
+                    dialogMessage.value = 'Committed projects were imported. See alerts for further details.';
+                } else {
+                    dialogMessage.value = 'No committed projects were imported. See alerts for further details.';
+                }                
+                    showUploadCompleteDialog.value = true;
+                })
         } 
     }
 

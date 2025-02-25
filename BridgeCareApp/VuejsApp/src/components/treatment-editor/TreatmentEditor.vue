@@ -1,5 +1,5 @@
 <template>
-    <v-card height="1000px" class="elevation-0 vcard-main-layout" style="margin-top: -20px;">    
+    <v-card height="1000px" class="elevation-0 vcard-main-layout" style="margin-top: -10px;">    
     <v-row style="margin-top: 5px;">
         <v-col>
             <v-select
@@ -279,7 +279,7 @@
                 </v-col>
             </v-row>
     </v-col>
-    <SuccessfulUploadDialog 
+    <UploadDialog 
         v-model="showSuccessPopup"
         :message="importSuccessMessage"
     />
@@ -419,7 +419,7 @@ import UpdateLibraryButton from '@/shared/components/buttons/UpdateLibraryButton
 import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton.vue';
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
-import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUploadDialog.vue';
+import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
@@ -657,7 +657,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
               
             await ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioTreatment}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("A treatment curve has been added to the work queue")
+                    setAlertMessageAction("A treatment curve has been added to the queue")
                 }
             })
         }
@@ -772,7 +772,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             getDateModified();
             ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedTreatmentLibrary.value.id, workType: WorkType.ImportLibraryTreatment}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("A treatment import has been added to the work queue")
+                    setAlertMessageAction("A treatment import has been added to the queue")
                 }
                 else
                     setAlertMessageAction("");
@@ -1473,14 +1473,17 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
                 if(hasScenario.value){
                     await getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId);
                     onDiscardChanges();
+                    
                 } else {
+                    
                     await getSimpleSelectableTreatmentsAction(selectedTreatmentLibrary.value.id);
                 }
                 setAlertMessageAction('');
+                // Set the success message and show the popup
+                importSuccessMessage.value = message;
+                showSuccessPopup.value = true;
             });
-            // Set the success message and show the popup
-            importSuccessMessage.value = message;
-            showSuccessPopup.value = true;
+            
             $emitter.emit('TreatmentSettingsUpdated');                 
         }        
     }

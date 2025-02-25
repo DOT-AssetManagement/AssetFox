@@ -10,7 +10,7 @@
                         class="tab-theme"
                         bg-color="primary"
                     >
-                        <GhdQueueSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'General work queue'"/> 
+                        <GhdQueueSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'Queue'"/> 
                         <GhdShareSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'Shared with me'"/>  
                         <GhdStarSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'My scenarios'"/>  
                         {{ item.name }} ( {{ item.count }} )
@@ -118,6 +118,17 @@
                                 >
                                     <template slot="items" slot-scope="props" v-slot:item="props">
                                         <tr>
+                                            <td style="text-align: center;">
+                                                <v-btn
+                                                    @click="onNavigateToEditScenarioView(props.item)"
+                                                    class="no-background-btn"
+                                                    style="color: #2A578D"
+                                                    elevation="0"
+                                                    text
+                                                >
+                                                    <i class="fas fa-play-circle" style="font-size: 25px;"></i>
+                                                </v-btn>
+                                            </td>
                                         <td>
                                         
                                             <editScenarioNameDialog
@@ -135,6 +146,7 @@
                                                 @open="prepareForNameEdit( props.item.name,)"
                                             >
                                                 {{ props.item.name }}
+
                                                 <template v-slot:input>
                                                     <v-text-field
                                                         label="Edit"
@@ -229,6 +241,20 @@
                                                 </v-list>
                                             </v-menu>
                                         </td>
+                                        <td>
+                                            <i
+                                                v-if="checkIfReportExists(props.item.id)"
+                                                class="fas fa-check-circle"
+                                                style="color: green; margin-left: 8px;"
+                                                title="Scenario has been successfully run"
+                                            ></i>
+                                            <i
+                                                v-else
+                                                class="fas fa-exclamation-circle"
+                                                style="color: #ffd32c; margin-left: 8px;"
+                                                title="Scenario has not been run"
+                                            ></i>
+                                        </td>
                                     </tr>
                                     </template>
                                     <!-- <v-alert
@@ -321,6 +347,17 @@
                                 >
                                     <template slot="items" slot-scope="props" v-slot:item="props">
                                     <tr>
+                                        <td style="text-align: center;">
+                                                <v-btn
+                                                    @click="onNavigateToEditScenarioView(props.item)"
+                                                    class="no-background-btn"
+                                                    style="color: #2A578D"
+                                                    elevation="0"
+                                                    text
+                                                >
+                                                    <i class="fas fa-play-circle" style="font-size: 25px;"></i>
+                                                </v-btn>
+                                        </td>
                                         <td>
                                             <editScenarioNameDialog
                                                 size="large"
@@ -429,18 +466,32 @@
                                                 </v-list>
                                             </v-menu>
                                         </td>
+                                        <td>
+                                            <i
+                                                v-if="checkIfReportExists(props.item.id)"
+                                                class="fas fa-check-circle"
+                                                style="color: green; margin-left: 8px;"
+                                                title="Scenario has been successfully run"
+                                            ></i>
+                                            <i
+                                                v-else
+                                                class="fas fa-exclamation-circle"
+                                                style="color: #ffd32c; margin-left: 8px;"
+                                                title="Scenario has not been run"
+                                            ></i>
+                                        </td>
                                         </tr>
                                     </template>                                                                 
                                 </v-data-table-server>
                             </v-card>
                         </v-col>
                     </v-window-item>
-                    <v-window-item value="General work queue">
+                    <v-window-item value="Queue">
                         <v-col cols = "12">
                             <v-card elevation="5">
                                 <v-card-title class="ghd-dialog-padding-top-title">
                                     <v-row justify-start>
-                                    <div class="dialog-header"><h5>Work Queue</h5></div>
+                                    <div class="dialog-header"><h5>Queue</h5></div>
                                     </v-row>
 
                                 </v-card-title>
@@ -462,6 +513,7 @@
                                     v-model:items-per-page="workQueuePagination.rowsPerPage"
                                     item-value="name"
                                     @update:options="onWorkQueuePagination"
+                                    style="table-layout: fixed; width: 100%;"
                                 >                           
                                     <template slot="items" slot-scope="props" v-slot:item="props">
                                         <tr>
@@ -488,11 +540,7 @@
                                         <td>{{ props.item.status }}</td>  
                                         <td>
                                             <v-menu location="left">
-                                                <template
-                                                    v-slot:activator="{
-                                                        props
-                                                    }"
-                                                >
+                                                <template v-slot:activator="{ props }">
                                                     <v-btn
                                                         color="text-green darken-1"
                                                         flat
@@ -503,13 +551,21 @@
                                                 </template>
 
                                                 <v-list>
-                                                    <v-list-tile v-for="(item,i) in actionItemsForWorkQueue"
+                                                    <v-list-tile 
+                                                        v-for="(item, i) in actionItemsForWorkQueue"
                                                         :key="i"
-                                                        @click="OnWorkQueueActionTaken(item.action,props.item)"
-                                                        class="menu-style">
-                                                        <v-list-tile-title flat>                                                        
-                                                            <img style="padding-right:5px" v-bind:src="item.icon"/>
-                                                            {{item.title}}
+                                                        @click="OnWorkQueueActionTaken(item.action, props.item)"
+                                                        class="menu-style"
+                                                    >
+                                                        <v-list-tile-title 
+                                                            flat 
+                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                                        >                                                        
+                                                            <img 
+                                                                style="padding-right:5px;" 
+                                                                v-bind:src="item.icon" 
+                                                            />
+                                                            {{ item.title }}
                                                         </v-list-tile-title>
                                                     </v-list-tile>
                                                 </v-list>
@@ -523,7 +579,7 @@
                                 </v-data-table-server>
                                 <v-card-title class="ghd-dialog-padding-top-title">
                                     <v-row justify-start>
-                                    <div class="dialog-header"><h5>Fast Queue</h5></div>
+                                    <div class="dialog-header"><h5>Reports/Uploads Queue</h5></div>
                                     </v-row>
 
                                 </v-card-title>
@@ -827,6 +883,14 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     let networks: Network[] = [];
     let scenarioGridHeaders: any = [
         {
+            title: '',
+            key: 'name',
+            align: 'left',
+            sortable: true,
+            class: 'header-border',
+            width: '',
+        },
+        {
             title: 'Scenario',
             key: 'name',
             align: 'left',
@@ -978,7 +1042,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
             align: 'left',
             sortable: false,
             class: 'header-border',
-            width: '',
+            width: '200px',
         },
         {
             title: '',
@@ -1444,7 +1508,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
         tabItems.push(
             { name: 'My scenarios', icon: getUrl("assets/icons/star-empty.svg"), count: totalUserScenarios.value },
             { name: 'Shared with me', icon: getUrl("assets/icons/share-empty.svg"), count: totalSharedScenarios.value },
-            { name: 'General work queue', icon: getUrl("assets/icons/queue.svg"), count: totalQueuedSimulations.value },
+            { name: 'Queue', icon: getUrl("assets/icons/queue.svg"), count: totalQueuedSimulations.value },
         );
         tab.value = 'My scenarios';
 
@@ -1676,7 +1740,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
             
             //Add a small delay to avoid adding two items to the queue at the same time
             await new Promise(resolve => setTimeout(resolve, 500));
-            tab.value = 'General work queue';
+            tab.value = 'Queue';
         }
     }
 
@@ -1738,7 +1802,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
 
         //Add a small delay to avoid adding two items to the queue at the same time
         await new Promise(resolve => setTimeout(resolve, 500));
-        tab.value = 'General work queue';
+        tab.value = 'Queue';
     }
 
     function onShowConfirmConvertJsonToRelationalAlert(scenario: Scenario) {

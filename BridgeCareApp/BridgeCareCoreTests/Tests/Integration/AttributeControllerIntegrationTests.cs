@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing.Text;
 using System.Linq;
@@ -22,13 +22,14 @@ namespace BridgeCareCoreTests.Tests.Integration
     {
         private AttributeController CreateController(Mock<IHubService> hubServiceMock)
         {
-            var cache = new AggregatedSelectValuesResultDtoCache(-1);
-            var attributeService = new AttributeService(TestHelper.UnitOfWork, cache);
+            var attributeService = new AttributeService(TestHelper.UnitOfWork);
+            var excelDataLoadService = new ExcelRawDataLoadService(TestHelper.UnitOfWork);
             var security = EsecSecurityMocks.Admin;
             var hubService = HubServiceMocks.DefaultMock();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var controller = new AttributeController(
                 attributeService,
+                excelDataLoadService,
                 security,
                 TestHelper.UnitOfWork,
                 hubServiceMock.Object,

@@ -585,6 +585,15 @@ import CashFlowService from '@/services/cash-flow.service';
                 });
         });
 
+        $emitter.on('AllCommittedProjectsDeleted', () => {
+            // Update the icon of the Committed Projects tab
+            navigationTabs.value.forEach((tab) => {
+                    if (tab.tabName === 'Committed Projects') {
+                        tab.validationIcon = 'fas fa-exclamation-circle';
+                    }
+                });
+        });
+
         $emitter.on('SimulationRunSettingUpdated', () => {
             if(String(selectedScenarioId) === String(simulationRunSettingId.value))
             {
@@ -680,7 +689,7 @@ import CashFlowService from '@/services/cash-flow.service';
                     scenarioId: selectedScenarioId,
                 }).then(() => (selectedScenario = clone(emptyScenario)));
             }
-            router.push({ path: '/Scenarios/', query: { tab: 'General work queue' } }).catch(() => {});
+            router.push({ path: '/Scenarios/', query: { tab: 'Queue' } }).catch(() => {});
         }
 
     }
@@ -740,7 +749,7 @@ import CashFlowService from '@/services/cash-flow.service';
                 networkId: networkId,
                 scenarioId: selectedScenarioId,
             }).then(() => (selectedScenario = clone(emptyScenario)));
-            router.push({ path: '/Scenarios/', query: { tab: 'General work queue' } }).catch(() => {});
+            router.push({ path: '/Scenarios/', query: { tab: 'Queue' } }).catch(() => {});
         }
     }
 
@@ -889,6 +898,8 @@ import CashFlowService from '@/services/cash-flow.service';
             if(response.data)
             {
                 isTreatmentSet.value = response.data.length == 0;
+
+                store.commit('simpleScenarioSelectableTreatmentsMutator', response.data);
 
                 navigationTabs.value.forEach((tab) => {
                     if (tab.tabName === 'Treatment') {

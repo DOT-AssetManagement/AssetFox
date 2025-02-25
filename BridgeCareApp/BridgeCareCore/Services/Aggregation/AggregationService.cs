@@ -43,7 +43,7 @@ namespace BridgeCareCore.Services.Aggregation
                     var maintainableAssets = new List<MaintainableAsset>();
                     var attributeData = new List<IAttributeDatum>();
                     var attributeIdsToBeUpdatedWithAssignedData = new List<Guid>();
-                    if(cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                    if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                     {
                         _unitOfWork.Rollback();
                         return;
@@ -133,7 +133,7 @@ namespace BridgeCareCore.Services.Aggregation
                     {
                         _unitOfWork.Rollback();
                         return;
-                    } 
+                    }
                     state.Status = "Aggregating";
                     _unitOfWork.NetworkRepo.UpsertNetworkRollupDetail(networkId, state.Status);
                     // loop over maintainable assets and remove assigned data that has an attribute id
@@ -155,18 +155,6 @@ namespace BridgeCareCore.Services.Aggregation
                             attributeIdsToBeUpdatedWithAssignedData.Contains(_.Attribute.Id));
                         //List<DatumLog> unmatchedDatum = maintainableAsset.AssignAttributeData(attributeData);
                         maintainableAsset.AssignAttributeData(attributeData);
-                        //if (unmatchedDatum.Count > 0)
-                        //{
-                        //    isUnmatchedDatum = true;
-                        //    foreach(var datum in unmatchedDatum)
-                        //    {
-                        //        stringBuilder.AppendLine(datum.ToString());
-                        //    }
-                        //    streamWriter.WriteLine(stringBuilder);
-                        //    stringBuilder.Clear();
-                        //}
-
-                        //maintainableAsset.AssignSpatialWeighting(benefitQuantifierEquation.Equation.Expression);
                         try
                         {
                             // aggregate numeric data
@@ -193,7 +181,7 @@ namespace BridgeCareCore.Services.Aggregation
                         }
                         catch (Exception e)
                         {
-                        var networkName = _unitOfWork.NetworkRepo.GetNetworkNameOrId(networkId);
+                            var networkName = _unitOfWork.NetworkRepo.GetNetworkNameOrId(networkId);
                             var broadcastError = $"Error: Creating aggregation rule(s) for the attributes for {networkName}:: {e.Message}";
                             WriteError(writer, broadcastError);
                             throw;

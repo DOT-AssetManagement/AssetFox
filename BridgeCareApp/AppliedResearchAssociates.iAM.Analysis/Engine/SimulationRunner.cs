@@ -1,6 +1,10 @@
 //#define dump_analysis_input
 //#define dump_analysis_output
 
+#if !DEBUG
+#define use_parallelism
+#endif
+
 #if dump_analysis_input || dump_analysis_output
 using System.IO;
 using System.Text.Json;
@@ -27,7 +31,7 @@ public sealed class SimulationRunner
 
     public event EventHandler<SimulationLogEventArgs> SimulationLog;
 
-#if !DEBUG
+#if use_parallelism
     private static readonly int MaxThreadsForSimulation = GetMaxThreadsForSimulation();
 
     private static int GetMaxThreadsForSimulation()
@@ -119,6 +123,10 @@ public sealed class SimulationRunner
 
         ActiveTreatments = Simulation.GetActiveTreatments();
 
+        CalculatedFieldsWithoutPreDeteriorationTiming = Simulation.Network.Explorer.CalculatedFields.Where(cf => cf.Timing != CalculatedFieldTiming.PreDeterioration).ToList();
+        CalculatedFieldsWithPostDeteriorationTiming = Simulation.Network.Explorer.CalculatedFields.Where(cf => cf.Timing == CalculatedFieldTiming.PostDeterioration).ToList();
+        CalculatedFieldsWithPreDeteriorationTiming = Simulation.Network.Explorer.CalculatedFields.Where(cf => cf.Timing == CalculatedFieldTiming.PreDeterioration).ToList();
+
         try
         {
             BudgetContexts = Simulation.GetBudgetContextsWithCostAllocationsForCommittedProjects();
@@ -143,14 +151,14 @@ public sealed class SimulationRunner
             }
 
             applicablePriorities.Sort(BudgetPriorityComparer);
-            return applicablePriorities.AsEnumerable();
+            return applicablePriorities;
         });
 
-        CommittedProjectsPerAsset = Simulation.CommittedProjects.ToLookup(committedProject => committedProject.Asset);
+        CommittedProjectsPerAsset = Simulation.CommittedProjects.ToLookupAsDictionary(committedProject => committedProject.Asset);
         ConfigureCashFlowCommittedProjects();
 
-        ConditionsPerBudget = Simulation.InvestmentPlan.BudgetConditions.ToLookup(budgetCondition => budgetCondition.Budget);
-        CurvesPerAttribute = Simulation.PerformanceCurves.ToLookup(curve => curve.Attribute);
+        ConditionsPerBudget = Simulation.InvestmentPlan.BudgetConditions.ToLookupAsDictionary(budgetCondition => budgetCondition.Budget);
+        CurvesPerAttribute = Simulation.PerformanceCurves.ToLookupAsDictionary(curve => curve.Attribute);
         NumberAttributeByName = Simulation.Network.Explorer.NumberAttributes.ToDictionary(attribute => attribute.Name, StringComparer.OrdinalIgnoreCase);
 
         SortedDistributionRulesPerCashFlowRule = Simulation.InvestmentPlan.CashFlowRules.ToDictionary(
@@ -163,7 +171,7 @@ public sealed class SimulationRunner
         }
 
         AssetContexts = Simulation.Network.Assets
-#if !DEBUG
+#if use_parallelism
             .AsParallel()
             .WithDegreeOfParallelism(MaxThreadsForSimulation)
 #endif
@@ -187,7 +195,6 @@ public sealed class SimulationRunner
         InParallel(AssetContexts, context =>
         {
             context.RollForward(rollForwardEvents);
-            context.Asset.HistoryProvider.ClearHistory();
         });
 
         SpendingLimit = Simulation.AnalysisMethod.SpendingLimit;
@@ -210,12 +217,6 @@ public sealed class SimulationRunner
         SimulationOutput output = new();
         output.RollForwardEvents.AddRange(rollForwardEvents.OrderBy(e => e.Year).ThenBy(e => e.AssetId));
 
-        output.InitialConditionOfNetwork = Simulation.AnalysisMethod.Benefit.GetNetworkCondition(AssetContexts);
-        output.InitialAssetSummaries.AddRange(AssetContexts.Select(context => context.SummaryDetail));
-
-        Simulation.ResultsOnDisk.Initialize(output);
-        output = null;
-
         foreach (var year in Simulation.InvestmentPlan.YearsOfAnalysis)
         {
             if (CheckCanceled(cancellationToken))
@@ -225,6 +226,22 @@ public sealed class SimulationRunner
 
             var percentComplete = (double)(year - Simulation.InvestmentPlan.FirstYearOfAnalysisPeriod) / Simulation.InvestmentPlan.NumberOfYearsInAnalysisPeriod * 100;
             ReportProgress(ProgressStatus.Running, percentComplete, year);
+
+            ApplyDeteriorationAsNeeded(year);
+
+            if (year == Simulation.InvestmentPlan.FirstYearOfAnalysisPeriod)
+            {
+                InParallel(AssetContexts, context =>
+                {
+                    context.Asset.HistoryProvider.ClearHistory();
+                });
+
+                output.InitialConditionOfNetwork = Simulation.AnalysisMethod.Benefit.GetNetworkCondition(AssetContexts);
+                output.InitialAssetSummaries.AddRange(AssetContexts.Select(context => context.SummaryDetail));
+
+                Simulation.ResultsOnDisk.Initialize(output);
+                output = null;
+            }
 
             var unhandledContexts = ApplyRequiredEvents(year);
 
@@ -311,17 +328,18 @@ public sealed class SimulationRunner
         return simulationValidationResults;
     }
 
-    internal ILookup<AnalysisMaintainableAsset, CommittedProject> CommittedProjectsPerAsset { get; private set; }
+    internal Dictionary<AnalysisMaintainableAsset, CommittedProject[]> CommittedProjectsPerAsset { get; private set; }
 
-    internal ILookup<NumberAttribute, PerformanceCurve> CurvesPerAttribute { get; private set; }
+    internal Dictionary<NumberAttribute, PerformanceCurve[]> CurvesPerAttribute { get; private set; }
 
-    internal IReadOnlyDictionary<string, NumberAttribute> NumberAttributeByName { get; private set; }
+    internal Dictionary<string, NumberAttribute> NumberAttributeByName { get; private set; }
 
     internal Func<TreatmentOption, double> ObjectiveFunction { get; private set; }
 
     internal double GetInflationFactor(int year) => Simulation.InvestmentPlan.GetInflationFactor(year);
 
-    internal void ReportProgress(ProgressStatus progressStatus, double percentComplete = 0, int? year = null) => OnProgress(new ProgressEventArgs(progressStatus, percentComplete, year));
+    internal void ReportProgress(ProgressStatus progressStatus, double percentComplete = 0, int? year = null)
+        => OnProgress(new ProgressEventArgs(progressStatus, percentComplete, year));
 
     internal void Send(SimulationLogMessageBuilder message, bool throwOnFatal = true)
     {
@@ -339,29 +357,35 @@ public sealed class SimulationRunner
 
     private static readonly IComparer<BudgetPriority> BudgetPriorityComparer = SelectionComparer<BudgetPriority>.Create(priority => priority.PriorityLevel);
 
-    private IReadOnlyCollection<SelectableTreatment> ActiveTreatments;
+    private List<SelectableTreatment> ActiveTreatments;
 
-    private IReadOnlyList<BudgetContext> BudgetContexts;
+    private BudgetContext[] BudgetContexts;
 
-    private IReadOnlyDictionary<int, IEnumerable<BudgetPriority>> BudgetPrioritiesPerYear;
+    private Dictionary<int, List<BudgetPriority>> BudgetPrioritiesPerYear;
 
     private Func<bool> ConditionGoalsEvaluator;
 
-    private ILookup<Budget, BudgetCondition> ConditionsPerBudget;
+    private Dictionary<Budget, BudgetCondition[]> ConditionsPerBudget;
 
-    private IReadOnlyCollection<ConditionActual> DeficientConditionActuals = Array.Empty<ConditionActual>();
+    private List<ConditionActual> DeficientConditionActuals = new();
 
     internal SimulationMessageBuilder MessageBuilder;
 
-    private ICollection<AssetContext> AssetContexts;
+    private SortedSet<AssetContext> AssetContexts;
 
-    private IReadOnlyDictionary<CashFlowRule, SortedDictionary<decimal, CashFlowDistributionRule>> SortedDistributionRulesPerCashFlowRule;
+    private Dictionary<CashFlowRule, SortedDictionary<decimal, CashFlowDistributionRule>> SortedDistributionRulesPerCashFlowRule;
 
     private SpendingLimit SpendingLimit;
 
     private int StatusCode;
 
-    private IReadOnlyCollection<ConditionActual> TargetConditionActuals = Array.Empty<ConditionActual>();
+    private List<ConditionActual> TargetConditionActuals = new();
+
+    internal List<CalculatedField> CalculatedFieldsWithoutPreDeteriorationTiming;
+
+    internal List<CalculatedField> CalculatedFieldsWithPreDeteriorationTiming;
+
+    internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
 
     private enum CostCoverage
     {
@@ -374,13 +398,13 @@ public sealed class SimulationRunner
 
     private static void InParallel<T>(IEnumerable<T> items, Action<T> action)
     {
-#if DEBUG
+#if use_parallelism
+        _ = System.Threading.Tasks.Parallel.ForEach(items, new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = MaxThreadsForSimulation }, action);
+#else
         foreach (var item in items)
         {
             action(item);
         }
-#else
-        _ = System.Threading.Tasks.Parallel.ForEach(items, new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = MaxThreadsForSimulation }, action);
 #endif
     }
 
@@ -398,6 +422,23 @@ public sealed class SimulationRunner
         }
     }
 
+    private void ApplyDeteriorationAsNeeded(int year) => InParallel(AssetContexts, context =>
+    {
+        var yearIsScheduled = context.EventSchedule.TryGetValue(year, out var scheduledEvent);
+
+        if (yearIsScheduled && scheduledEvent.IsT2(out _))
+        {
+            if (Simulation.AnalysisMethod.ShouldDeteriorateDuringCashFlow)
+            {
+                context.ApplyPerformanceCurves();
+            }
+        }
+        else
+        {
+            context.PrepareForTreatment(year);
+        }
+    });
+
     private ICollection<AssetContext> ApplyRequiredEvents(int year)
     {
         var unhandledContexts = new List<AssetContext>();
@@ -408,11 +449,6 @@ public sealed class SimulationRunner
 
             if (yearIsScheduled && scheduledEvent.IsT2(out var progress))
             {
-                if (Simulation.AnalysisMethod.ShouldDeteriorateDuringCashFlow)
-                {
-                    context.ApplyPerformanceCurves();
-                }
-
                 if (progress.IsComplete)
                 {
                     context.ApplyTreatment(progress.Treatment, year);
@@ -424,64 +460,59 @@ public sealed class SimulationRunner
 
                 context.Detail.TreatmentCause = TreatmentCause.CashFlowProject;
             }
-            else
+            else if (yearIsScheduled && scheduledEvent.IsT1(out var treatment))
             {
-                context.PrepareForTreatment();
+                var costCoverage = TryToPayForTreatment(context, treatment, year, budgetContext => budgetContext.CurrentAmount);
 
-                if (yearIsScheduled && scheduledEvent.IsT1(out var treatment))
+                if (costCoverage == CostCoverage.None)
                 {
-                    var costCoverage = TryToPayForTreatment(context, treatment, year, budgetContext => budgetContext.CurrentAmount);
-
-                    if (costCoverage == CostCoverage.None)
+                    MessageBuilder = new SimulationMessageBuilder($"Treatment scheduled for year {year} cannot be funded normally. Spending limits will be temporarily removed to fund this treatment.")
                     {
-                        MessageBuilder = new SimulationMessageBuilder($"Treatment scheduled for year {year} cannot be funded normally. Spending limits will be temporarily removed to fund this treatment.")
-                        {
-                            ItemName = treatment.Name,
-                            ItemId = treatment.Id,
-                        };
+                        ItemName = treatment.Name,
+                        ItemId = treatment.Id,
+                    };
 
-                        var warning = SimulationLogMessageBuilders.RuntimeWarning(MessageBuilder, Simulation.Id);
-                        Send(warning);
+                    var warning = SimulationLogMessageBuilders.RuntimeWarning(MessageBuilder, Simulation.Id);
+                    Send(warning);
 
-                        var actualSpendingLimit = SpendingLimit;
-                        SpendingLimit = SpendingLimit.NoLimit;
-                        costCoverage = TryToPayForTreatment(context, treatment, year, budgetContext => budgetContext.CurrentAmount);
-                        SpendingLimit = actualSpendingLimit;
+                    var actualSpendingLimit = SpendingLimit;
+                    SpendingLimit = SpendingLimit.NoLimit;
+                    costCoverage = TryToPayForTreatment(context, treatment, year, budgetContext => budgetContext.CurrentAmount);
+                    SpendingLimit = actualSpendingLimit;
 
-                        context.Detail.TreatmentFundingIgnoresSpendingLimit = true;
-                    }
+                    context.Detail.TreatmentFundingIgnoresSpendingLimit = true;
+                }
 
-                    if (costCoverage == CostCoverage.Full)
-                    {
-                        context.ApplyTreatment(treatment, year);
-                    }
-                    else if (costCoverage == CostCoverage.CashFlow)
-                    {
-                        context.MarkTreatmentProgress(treatment);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Analysis failed to fund scheduled event.");
-                    }
-
-                    if (treatment is CommittedProject committedProject)
-                    {
-                        context.Detail.ProjectSource = committedProject.ProjectSource.ToString();
-
-                        if (!committedProject.ShouldApplyConsequences)
-                        {
-                            context.Detail.TreatmentStatus = TreatmentStatus.Progressed;
-                        }
-                    }
-
-                    context.Detail.TreatmentCause = treatment is CommittedProject or CommittedProjectBundle
-                        ? TreatmentCause.CommittedProject
-                        : TreatmentCause.ScheduledTreatment;
+                if (costCoverage == CostCoverage.Full)
+                {
+                    context.ApplyTreatment(treatment, year);
+                }
+                else if (costCoverage == CostCoverage.CashFlow)
+                {
+                    context.MarkTreatmentProgress(treatment);
                 }
                 else
                 {
-                    unhandledContexts.Add(context);
+                    throw new InvalidOperationException("Analysis failed to fund scheduled event.");
                 }
+
+                if (treatment is CommittedProject committedProject)
+                {
+                    context.Detail.ProjectSource = committedProject.ProjectSource.ToString();
+
+                    if (!committedProject.ShouldApplyConsequences)
+                    {
+                        context.Detail.TreatmentStatus = TreatmentStatus.Progressed;
+                    }
+                }
+
+                context.Detail.TreatmentCause = treatment is CommittedProject or CommittedProjectBundle
+                    ? TreatmentCause.CommittedProject
+                    : TreatmentCause.ScheduledTreatment;
+            }
+            else
+            {
+                unhandledContexts.Add(context);
             }
         }
 
@@ -856,14 +887,14 @@ public sealed class SimulationRunner
         }
     }
 
-    private IReadOnlyCollection<ConditionActual> GetDeficientConditionActuals()
+    private List<ConditionActual> GetDeficientConditionActuals()
     {
         var results = new List<ConditionActual>();
 
         foreach (var goal in Simulation.AnalysisMethod.DeficientConditionGoals)
         {
             var goalContexts = AssetContexts
-#if !DEBUG
+#if use_parallelism
                 .AsParallel()
                 .WithDegreeOfParallelism(MaxThreadsForSimulation)
 #endif
@@ -881,7 +912,7 @@ public sealed class SimulationRunner
         return results;
     }
 
-    private IReadOnlyCollection<ConditionActual> GetTargetConditionActuals(int year)
+    private List<ConditionActual> GetTargetConditionActuals(int year)
     {
         var results = new List<ConditionActual>();
 
@@ -893,7 +924,7 @@ public sealed class SimulationRunner
             }
 
             var goalContexts = AssetContexts
-#if !DEBUG
+#if use_parallelism
                 .AsParallel()
                 .WithDegreeOfParallelism(MaxThreadsForSimulation)
 #endif
@@ -1048,11 +1079,11 @@ public sealed class SimulationRunner
             .Select(t => t.Cost)
             .ToArray();
 
-        var amountPerBudgetOfCurrentYear = new decimal[BudgetContexts.Count];
+        var amountPerBudgetOfCurrentYear = new decimal[BudgetContexts.Length];
 
-        var allocationIsAllowedPerBudgetAndTreatment = new bool[BudgetContexts.Count, treatmentsToFund.Count];
+        var allocationIsAllowedPerBudgetAndTreatment = new bool[BudgetContexts.Length, treatmentsToFund.Count];
 
-        for (var b = 0; b < BudgetContexts.Count; ++b)
+        for (var b = 0; b < BudgetContexts.Length; ++b)
         {
             var budgetContext = BudgetContexts[b];
 
@@ -1063,9 +1094,8 @@ public sealed class SimulationRunner
             treatmentConsideration.FundingCalculationInput.CurrentBudgetsToSpend.Add(
                 new(budgetContext.Budget.Name, amount, year));
 
-            var budgetConditions = ConditionsPerBudget[budgetContext.Budget];
             var budgetConditionIsMet =
-                !budgetConditions.Any() ||
+                !ConditionsPerBudget.TryGetValue(budgetContext.Budget, out var budgetConditions) ||
                 budgetConditions.Any(condition => condition.Criterion.EvaluateOrDefault(assetContext));
 
             for (var t = 0; t < treatmentsToFund.Count; ++t)
@@ -1196,10 +1226,10 @@ public sealed class SimulationRunner
 
             for (var y = 1; y < costPercentagePerYear.Length; ++y)
             {
-                var amountPerBudget = new decimal[BudgetContexts.Count];
+                var amountPerBudget = new decimal[BudgetContexts.Length];
                 var futureYear = year + y;
 
-                for (var b = 0; b < BudgetContexts.Count; ++b)
+                for (var b = 0; b < BudgetContexts.Length; ++b)
                 {
                     var budgetContext = BudgetContexts[b];
                     var amount = budgetContext.GetAmount(futureYear);
@@ -1272,7 +1302,7 @@ public sealed class SimulationRunner
         FundingCalculationOutput output,
         List<Action> costAllocators)
     {
-        for (var b = 0; b < BudgetContexts.Count; ++b)
+        for (var b = 0; b < BudgetContexts.Length; ++b)
         {
             var budgetContext = BudgetContexts[b];
 

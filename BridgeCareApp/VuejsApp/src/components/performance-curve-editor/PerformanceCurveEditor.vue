@@ -382,9 +382,9 @@
             />
         </v-row>
 
-        <SuccessfulUploadDialog 
+        <UploadDialog 
             v-model="showSuccessPopup"
-            message="Successfully uploaded performance curves."
+            :message="dialogMessage"
         />
         <Alert
             :dialogData="confirmDeleteAlertData"
@@ -515,7 +515,7 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import SuccessfulUploadDialog from '@/shared/components/dialogs/SuccessfulUploadDialog.vue';
+import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 
 const emit = defineEmits(['submit'])
 let store = useStore();
@@ -573,6 +573,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
     let librarySelectItems  = ref<SelectItem[]>([]);
     let modifiedDate = ref<string>(''); 
     const showSuccessPopup = ref(false);
+    const dialogMessage = ref('');
     
     let performanceCurveGridHeaders: any[] = [
         {
@@ -676,7 +677,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             hasScenario.value = true;
             await ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioPerformanceCurve}).then(async response => {
                 if(response.data){
-                    setAlertMessageAction("A performance curve import has been added to the work queue")
+                    setAlertMessageAction("A performance curve import has been added to the queue")
                 }
                 await initializePages()
                 hasScenario.value = true;
@@ -823,7 +824,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             hasCreatedLibrary = false;
             ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedPerformanceCurveLibrary.value.id, workType: WorkType.ImportLibraryPerformanceCurve}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("A performance curve import has been added to the work queue")
+                    setAlertMessageAction("A performance curve import has been added to the queue")
                 }
                 else
                     setAlertMessageAction("");
@@ -1363,8 +1364,10 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             onPaginationChanged().then(() => {
                 setAlertMessageAction('');
             })
+            dialogMessage.value = "Successfully uploaded performance curves.";
+            showSuccessPopup.value = true;
         }    
-        showSuccessPopup.value = true;
+        
         $emitter.emit('DeteriorationModelSettingsUpdated');                  
     }
 
