@@ -12,6 +12,7 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Controllers;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
+using HotChocolate.Utilities;
 using Microsoft.Data.SqlClient;
 using Moq;
 using Xunit;
@@ -22,7 +23,8 @@ namespace BridgeCareCoreTests.Tests.Integration
     {
         private AttributeController CreateController(Mock<IHubService> hubServiceMock)
         {
-            var attributeService = new AttributeService(TestHelper.UnitOfWork);
+            var cache = new AggregatedSelectValuesResultDtoCache(-1);
+            var attributeService = new AttributeService(TestHelper.UnitOfWork, cache);
             var excelDataLoadService = new ExcelRawDataLoadService(TestHelper.UnitOfWork);
             var security = EsecSecurityMocks.Admin;
             var hubService = HubServiceMocks.DefaultMock();

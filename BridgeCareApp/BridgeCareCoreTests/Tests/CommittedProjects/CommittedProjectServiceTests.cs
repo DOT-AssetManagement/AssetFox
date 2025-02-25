@@ -11,6 +11,7 @@ using OfficeOpenXml;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using BridgeCareCore.Services.SummaryReport.CommittedProjects;
 
 namespace BridgeCareCoreTests.Tests
 {

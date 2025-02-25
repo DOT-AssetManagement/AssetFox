@@ -11,6 +11,7 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Controllers;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
+using BridgeCareCore.Services.SummaryReport.CommittedProjects;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.General_Work_Queue;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
