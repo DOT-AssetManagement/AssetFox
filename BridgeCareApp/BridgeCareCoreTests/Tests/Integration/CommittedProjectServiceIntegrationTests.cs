@@ -1,11 +1,14 @@
 using AppliedResearchAssociates.CalculateEvaluate;
+using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Data;
+using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
@@ -210,20 +213,20 @@ namespace BridgeCareCoreTests.Tests.Integration
         [Fact (Skip ="Conflict")]
         public void DownloadSpreadsheetWithTwoCommittedProjects_ThenReupload_Ok()
         {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var networkId = Guid.NewGuid();
             var treatmentLibraryId = Guid.NewGuid();
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
             var assetKeyData = "key";
             var treatmentName = "treatment";
             var userId = "ignored user id";
-            var keyAttributeId = Guid.NewGuid();
+            var keyAttributeId = TestAttributeIds.BrKeyId;
             var maintainableAssets = new List<MaintainableAsset>();
             var assetId = Guid.NewGuid();
-            var locationIdentifier = RandomStrings.WithPrefix("Location");
+            var locationIdentifier = TestAttributeNames.BrKey;
             var location = Locations.Section(locationIdentifier);
             var maintainableAsset = new MaintainableAsset(assetId, networkId, location, "[Deck_Area]");
-            var keyAttributeName = RandomStrings.WithPrefix("locationAttribute");
-            var keyAttribute = AttributeTestSetup.Text(keyAttributeId, keyAttributeName, ConnectionType.EXCEL);
+            var keyAttributeName = TestAttributeNames.BrKey;
             var resultAttributeName = RandomStrings.WithPrefix("result");
             var resultAttributeId = Guid.NewGuid();
             var resultAttribute = AttributeTestSetup.Text(resultAttributeId, resultAttributeName, ConnectionType.EXCEL);
@@ -233,6 +236,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             var network = NetworkTestSetup.ModelForEntityInDbWithNewKeyTextAttribute(
                 TestHelper.UnitOfWork, maintainableAssets, networkId, keyAttributeId, keyAttributeName);
             AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, network.Name, keyAttributeName, keyAttributeName);
+            var keyAttributeDto = TestHelper.UnitOfWork.AttributeRepo.GetSingleByName(keyAttributeName);
+            var keyAttribute = AttributeDtoDomainMapper.ToDomain(keyAttributeDto, "");
             var attributes = new List<IamAttribute> { keyAttribute, resultAttribute };
             AggregatedResultTestSetup.SetTextAggregatedResultsInDb(TestHelper.UnitOfWork,
                 maintainableAssets, attributes, assetKeyData);
@@ -316,15 +321,16 @@ namespace BridgeCareCoreTests.Tests.Integration
         [Fact]
         public void DownloadTemplate_IsValidExcelPackage()
         {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var networkId = Guid.NewGuid();
-            var keyAttributeId = Guid.NewGuid();
+            var keyAttributeId = TestAttributeIds.BrKeyId;
             var maintainableAssets = new List<MaintainableAsset>();
             var assetId = Guid.NewGuid();
             var locationIdentifier = RandomStrings.WithPrefix("Location");
             var location = Locations.Section(locationIdentifier);
             var maintainableAsset = new MaintainableAsset(assetId, networkId, location, "[Deck_Area]");
-            var keyAttributeName = RandomStrings.WithPrefix("locationAttribute");
-            var keyAttribute = AttributeTestSetup.Text(keyAttributeId, keyAttributeName, ConnectionType.EXCEL);
+            var keyAttributeName = TestAttributeNames.BrKey;
+
             maintainableAssets.Add(maintainableAsset);
             var network = NetworkTestSetup.ModelForEntityInDbWithNewKeyTextAttribute(
                 TestHelper.UnitOfWork, maintainableAssets, networkId, keyAttributeId, keyAttributeName);
