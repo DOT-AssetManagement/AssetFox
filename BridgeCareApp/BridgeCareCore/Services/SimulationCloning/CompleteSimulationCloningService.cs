@@ -57,7 +57,7 @@ namespace BridgeCareCore.Services
             var sourceSimulationId = dto.ScenarioId.ToString();
             var sourceSimulation = this.GetSimulation(sourceSimulationId);
             var simulationCloningCommittedProjectErrors = new SimulationCloningCommittedProjectErrors();
-            if(sourceSimulation.CommittedProjects.Any(_ => _.ScenarioBudgetId == null))
+            if (sourceSimulation.CommittedProjects.Any(_ => _.ScenarioBudgetId == null))
             {
                 throw new Exception("Unable to clone committed projects with empty budgets");
             }
@@ -76,28 +76,24 @@ namespace BridgeCareCore.Services
                 }
             }
 
-            // do the clone //
+            // do the clone
             var ownerId = _unitOfWork.CurrentUser?.Id ?? Guid.Empty;
-            var creatorId =
-                //ownerId;
-            _unitOfWork.UserRepo.GetUserByUserName(sourceSimulation.Creator).Result.Id;
-            // Not sure which version of creatorId we want. Tests pass if we
-            // use ownerId. But that might or might not be what the app requires.
+            var creatorId = _unitOfWork.UserRepo.GetUserByUserName(sourceSimulation.Creator).Result.Id;
             var baseEntityProperties = new BaseEntityProperties { CreatedBy = creatorId, LastModifiedBy = ownerId };
             var ownerName = _unitOfWork.CurrentUser?.Username;
             var cloneSimulation = CompleteSimulationCloner.Clone(sourceSimulation, dto, ownerId, ownerName);
             //Make sure the destination Network Id is not empty
             if (dto.DestinationNetworkId != Guid.Empty)
+            {
+                //If the destination Network is different than the current network, change the network id to the destination id
+                if (dto.DestinationNetworkId != dto.NetworkId)
                 {
-                   //If the destination Network is different than the current network, change the network id to the destination id
-                   if (dto.DestinationNetworkId != dto.NetworkId)
-                    {
-                        cloneSimulation.NetworkId = dto.DestinationNetworkId;
-                    }
+                    cloneSimulation.NetworkId = dto.DestinationNetworkId;
                 }
+            }
 
             // save it
-            var keyAttribute = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(dto.NetworkId);           
+            var keyAttribute = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(dto.NetworkId);
             var clone = _unitOfWork.SimulationRepo.CreateSimulation(cloneSimulation, keyAttribute, simulationCloningCommittedProjectErrors, baseEntityProperties);
             return clone;
         }
@@ -113,7 +109,7 @@ namespace BridgeCareCore.Services
             else
             {
                 return true;
-            }           
+            }
         }
 
     }
