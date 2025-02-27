@@ -117,24 +117,27 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Equal(12345, cost);
         }
 
-        [Fact(Skip = "Conflict")]
+        [Fact]
+        // Fails because when we delete our committed projects, then re-upload from a spreadsheet, they are not re-created.
         public void DownloadSpreadsheet_ThenReupload_Ok()
         {
             // failing as a part of a test run because MaintainableAssetDataRepository
             // caches KeyProperties.
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var keyAttributeName = TestAttributeNames.BrKey;
             var networkId = Guid.NewGuid();
             var treatmentLibraryId = Guid.NewGuid();
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
             var assetKeyData = "key";
             var treatmentName = "treatment";
-            var keyAttributeId = Guid.NewGuid();
+            var keyAttributeId = TestAttributeIds.BrKeyId;
+            var keyAttributeDto = AttributeDtos.BrKey;
+            var keyAttribute = AttributeDtoDomainMapper.ToDomain(keyAttributeDto, "");
             var maintainableAssets = new List<MaintainableAsset>();
             var assetId = Guid.NewGuid();
             var locationIdentifier = RandomStrings.WithPrefix("Location");
             var location = Locations.Section(locationIdentifier);
             var maintainableAsset = new MaintainableAsset(assetId, networkId, location, "[Deck_Area]");
-            var keyAttributeName = RandomStrings.WithPrefix("locationAttribute");
-            var keyAttribute = AttributeTestSetup.Text(keyAttributeId, keyAttributeName, ConnectionType.EXCEL);
             var resultAttributeName = RandomStrings.WithPrefix("result");
             var resultAttributeId = Guid.NewGuid();
             var resultAttribute = AttributeTestSetup.Text(resultAttributeId, resultAttributeName, ConnectionType.EXCEL);

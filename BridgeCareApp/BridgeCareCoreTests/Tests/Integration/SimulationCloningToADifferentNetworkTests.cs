@@ -180,8 +180,10 @@ namespace BridgeCareCoreTests.Tests.Integration
         }
 
         [Fact]
-        public void CloningToADifferentScenarioWithSelectableTreatmentWithConsequences()
+        public async Task CloningToADifferentScenarioWithSelectableTreatmentWithConsequences()
         {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            TestHelper.UnitOfWork.SetUser(user.Username);
             var networkId = SimulationCloningTestSetup.TestNetworkIdInDatabase();
             var destinationNetworkId = SimulationCloningTestSetup.TestDestinationNetworkIdInDatabase();
             var simulationEntity = SimulationTestSetup.EntityInDb(TestHelper.UnitOfWork, destinationNetworkId);
@@ -229,8 +231,10 @@ namespace BridgeCareCoreTests.Tests.Integration
         }
 
         [Fact]
-        public void CloningToADifferentScenarioWithSelectableTreatmentWithSupersedeRules()
+        public async Task CloningToADifferentScenarioWithSelectableTreatmentWithSupersedeRules()
         {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            TestHelper.UnitOfWork.SetUser(user.Username);
             var networkId = SimulationCloningTestSetup.TestNetworkIdInDatabase();
             var destinationNetworkId = SimulationCloningTestSetup.TestDestinationNetworkIdInDatabase();
             var simulationEntity = SimulationTestSetup.EntityInDb(TestHelper.UnitOfWork, destinationNetworkId);
@@ -329,8 +333,10 @@ namespace BridgeCareCoreTests.Tests.Integration
         }
 
         [Fact]
-        public void CloningToADifferentScenarioWithRemainingLifeLimitWithCriterionLibrary()
+        public async Task CloningToADifferentScenarioWithRemainingLifeLimitWithCriterionLibrary()
         {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            TestHelper.UnitOfWork.SetUser(user.Username);
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var limitId = Guid.NewGuid();
             var limit = RemainingLifeLimitDtos.DtoWithCriterionLibrary(TestAttributeNames.CulvDurationN, limitId, 1);
@@ -358,10 +364,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Equal(newSimulationName, clonedSimulation.Name);
             Assert.Equal(destinationNetworkId, clonedSimulation.NetworkId);
             Assert.Equal(simulation.NetworkName, clonedSimulation.NetworkName);
-            ObjectAssertions.EquivalentExcluding(lifeLimitBefore.CriterionLibrary, clonedLifeLimit.CriterionLibrary, c => c.Id, c => c.MergedCriteriaExpression, c => c.IsSingleUse, c => c.Name);
-            Assert.NotEqual(Guid.Empty, clonedLifeLimit.CriterionLibrary.Id);
+            SimulationCloningCriterionLibraryDtoAssertions.AssertValidLibraryClone(lifeLimitBefore.CriterionLibrary, clonedLifeLimit.CriterionLibrary, null);
             Assert.NotEqual(lifeLimitBefore.Id, clonedLifeLimit.Id);
-            Assert.NotEqual(lifeLimitBefore.CriterionLibrary.Id, clonedLifeLimit.CriterionLibrary.Id);
         }
 
         [Fact]
@@ -439,10 +443,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Equal(newSimulationName, clonedSimulation.Name);
             Assert.Equal(destinationNetworkId, clonedSimulation.NetworkId);
             Assert.Equal(simulation.NetworkName, clonedSimulation.NetworkName);
-            ObjectAssertions.EquivalentExcluding(deficientConditionGoalBefore.CriterionLibrary, clonedDeficientConditionGoal.CriterionLibrary, c => c.Id, c => c.MergedCriteriaExpression, c => c.IsSingleUse, c => c.Name, c => c.Owner);
+            SimulationCloningCriterionLibraryDtoAssertions.AssertValidLibraryClone(deficientConditionGoalBefore.CriterionLibrary, clonedDeficientConditionGoal.CriterionLibrary, null);
             Assert.NotEqual(deficientConditionGoalBefore.Id, clonedDeficientConditionGoal.Id);
-            Assert.NotEqual(deficientConditionGoalBefore.CriterionLibrary.Id, clonedDeficientConditionGoal.CriterionLibrary.Id);
-            Assert.Equal(cloningUser.Id, clonedDeficientConditionGoal.CriterionLibrary.Owner);
         }
 
         [Fact]
@@ -569,9 +571,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Equal(newSimulationName, clonedSimulation.Name);
             Assert.Equal(destinationNetworkId, clonedSimulation.NetworkId);
             Assert.Equal(simulation.NetworkName, clonedSimulation.NetworkName);
-            ObjectAssertions.EquivalentExcluding(targetconditionalgoalBefore.CriterionLibrary, clonedTargetConditionalGoal.CriterionLibrary, c => c.Id, c => c.MergedCriteriaExpression, c => c.IsSingleUse, c => c.Name);
+            SimulationCloningCriterionLibraryDtoAssertions.AssertValidLibraryClone(targetconditionalgoalBefore.CriterionLibrary, clonedTargetConditionalGoal.CriterionLibrary, null);
             Assert.NotEqual(targetconditionalgoalBefore.Id, clonedTargetConditionalGoal.Id);
-            Assert.NotEqual(targetconditionalgoalBefore.CriterionLibrary.Id, clonedTargetConditionalGoal.CriterionLibrary.Id);
         }
 
         [Fact]
@@ -651,14 +652,13 @@ namespace BridgeCareCoreTests.Tests.Integration
             var calculatedAttribute = CalculatedAttributeTestSetup.TestCalculatedAttributeDtoWithEquationCriterionLibrary(calculatedAttributeId, TestAttributeNames.Age, "");
             var calculatedAttributes = new List<CalculatedAttributeDTO> { calculatedAttribute };
             TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertScenarioCalculatedAttributes(calculatedAttributes, simulationId);
-
             var calculatedAttributeCriterionLibrary = await TestHelper.UnitOfWork.CriterionLibraryRepo.CriteriaLibrary(calculatedAttribute.Equations[0].CriteriaLibrary.Id);
             calculatedAttributeCriterionLibrary.MergedCriteriaExpression = "MergedCriteriaExpression";
             TestHelper.UnitOfWork.CriterionLibraryRepo.UpsertCriterionLibrary(calculatedAttributeCriterionLibrary);
-
             var cloneSimulationDto = CloneSimulationDtos.Create(simulationId, networkId, newSimulationName);
             cloneSimulationDto.DestinationNetworkId = destinationNetworkId;
             var cloningService = CreateCompleteSimulationCloningService();
+
             var cloningResult = cloningService.Clone(cloneSimulationDto);
 
             var clonedSimulationId = cloningResult.Simulation.Id;
@@ -669,13 +669,13 @@ namespace BridgeCareCoreTests.Tests.Integration
             var allAttributes = TestHelper.UnitOfWork.AttributeRepo.GetAttributes();
             var ageAttribute = allAttributes.Single(a => a.Name == TestAttributeNames.Age);
             var clonedAttribute = TestHelper.UnitOfWork.CalculatedAttributeRepo.GetScenarioCalulatedAttributesByScenarioAndAttributeId(clonedSimulationId, ageAttribute.Id);
-            calculatedAttribute.Equations[0].CriteriaLibrary = calculatedAttributeCriterionLibrary;
-            ObjectAssertions.EquivalentExcluding(calculatedAttribute, clonedAttribute, c => c.Id, c => c.Equations[0].Id, c => c.Equations[0].Equation.Id, c => c.Equations[0].CriteriaLibrary.Id, c => c.Equations[0].CriteriaLibrary.Owner);
+            ObjectAssertions.EquivalentExcluding(calculatedAttribute, clonedAttribute, c => c.Id, c => c.Equations[0].Id, c => c.Equations[0].Equation.Id, c => c.Equations[0].CriteriaLibrary);
+            var originalLibrary = calculatedAttributeCriterionLibrary;
+            var clonedLibrary = clonedAttribute.Equations[0].CriteriaLibrary;
+            SimulationCloningCriterionLibraryDtoAssertions.AssertValidLibraryClone(originalLibrary, clonedLibrary, null);
             Assert.NotEqual(calculatedAttribute.Id, clonedAttribute.Id);
             Assert.NotEqual(calculatedAttribute.Equations[0].Id, clonedAttribute.Equations[0].Id);
             Assert.NotEqual(calculatedAttribute.Equations[0].Equation.Id, clonedAttribute.Equations[0].Equation.Id);
-            Assert.NotEqual(calculatedAttribute.Equations[0].CriteriaLibrary.Id, clonedAttribute.Equations[0].CriteriaLibrary.Id);
-            Assert.Equal(user.Id, clonedAttribute.Equations[0].CriteriaLibrary.Owner);
         }
 
         [Fact]
