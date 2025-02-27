@@ -11,6 +11,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
                 AttributeDtos.ActionType,
                 AttributeDtos.AdtTotal,
                 AttributeDtos.Age,
+                AttributeDtos.BmsId,
                 AttributeDtos.BrKey,
                 AttributeDtos.CulvSeeded,
                 AttributeDtos.DeckSeeded,

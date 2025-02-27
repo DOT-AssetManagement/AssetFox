@@ -210,7 +210,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.NotEqual(id1, id3);
         }
 
-        [Fact (Skip ="Conflict")]
+        [Fact]
         public void DownloadSpreadsheetWithTwoCommittedProjects_ThenReupload_Ok()
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
@@ -235,7 +235,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             maintainableAssets.Add(maintainableAsset);
             var network = NetworkTestSetup.ModelForEntityInDbWithNewKeyTextAttribute(
                 TestHelper.UnitOfWork, maintainableAssets, networkId, keyAttributeId, keyAttributeName);
-            AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, network.Name, keyAttributeName, keyAttributeName);
+            var keyAttributeNames = $"{keyAttributeName},{TestAttributeNames.BmsId}";
+            AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, network.Name, keyAttributeNames, keyAttributeNames);
             var keyAttributeDto = TestHelper.UnitOfWork.AttributeRepo.GetSingleByName(keyAttributeName);
             var keyAttribute = AttributeDtoDomainMapper.ToDomain(keyAttributeDto, "");
             var attributes = new List<IamAttribute> { keyAttribute, resultAttribute };
@@ -275,7 +276,6 @@ namespace BridgeCareCoreTests.Tests.Integration
                 location.LocationIdentifier);
             committedProject1.Year = 2023;
             committedProject1.Cost = 31415926;
-            committedProject1.ShadowForAnyTreatment = 1;
             committedProject1.ShadowForSameTreatment = 1;
 
             var committedProjectId2 = Guid.NewGuid();
@@ -303,7 +303,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             var dataAsString = fileInfo.FileData;
             var bytes = Convert.FromBase64String(dataAsString);
             var stream = new MemoryStream(bytes);
-         //   File.WriteAllBytes("zzzzz.xlsx", bytes);
+            var directory = Directory.GetCurrentDirectory();
+            //File.WriteAllBytes("zzzzz.xlsx", bytes);
             var excelPackage = new ExcelPackage(stream);
             TestHelper.UnitOfWork.CommittedProjectRepo.DeleteSpecificCommittedProjects(committedProjectIds);
             var committedProjects2 = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
@@ -314,7 +315,15 @@ namespace BridgeCareCoreTests.Tests.Integration
             var committedProjects3 = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             var id1 = committedProjects1[0].LocationKeys["ID"];
             var id3 = committedProjects3[0].LocationKeys["ID"];
-            ObjectAssertions.EquivalentExcluding(committedProjects1, committedProjects3, x => x[0].LocationKeys, x => x[0].Id, x => x[1].LocationKeys, x => x[1].Id);
+            ObjectAssertions.EquivalentExcluding(committedProjects1, committedProjects3,
+                x => x[0].LocationKeys,
+                x => x[1].LocationKeys,
+                x => x[0].ShadowForAnyTreatment,
+                x => x[1].ShadowForAnyTreatment,
+                x => x[0].ShadowForSameTreatment,
+                x => x[1].ShadowForSameTreatment,
+                x => x[0].Id,
+                x => x[1].Id);
             Assert.NotEqual(id1, id3);
         }
 

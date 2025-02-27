@@ -14,5 +14,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
         public const string BrKeyIdString = "547CE06B-08E4-4D5D-9215-D5A22EDD5DC7";
         public static Guid BrKeyId = Guid.Parse(BrKeyIdString);
 
+        public const string BmsIdString = "24C42A9F-3E80-4D3A-9E95-CB60063F3CAA";
+        public static Guid BmsidId = Guid.Parse(BmsIdString);
     }
 }

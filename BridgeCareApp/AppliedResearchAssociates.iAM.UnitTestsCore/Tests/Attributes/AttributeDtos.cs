@@ -151,6 +151,18 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
             IsAscending = true
         };
 
+        public static AttributeDTO BmsId => new()
+        {
+            Id = TestAttributeIds.BmsidId,
+            Name = TestAttributeNames.BmsId,
+            DefaultValue = "0",
+            Type = "STRING",
+            AggregationRuleType = "PREDOMINANT",
+            IsAscending = true,
+            IsCalculated = false,
+            Command = "BRIDGE_ID",
+        };
+
         public static AttributeDTO BrKey
            => new()
            {

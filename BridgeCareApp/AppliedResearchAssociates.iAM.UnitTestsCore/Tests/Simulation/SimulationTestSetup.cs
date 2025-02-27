@@ -13,13 +13,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class SimulationTestSetup { 
 
-        public static SimulationEntity EntityInDb(UnitOfDataPersistenceWork unitOfWork, Guid networkId)
+        public static SimulationEntity EntityInDb(UnitOfDataPersistenceWork unitOfWork, Guid networkId, Guid creatingUserId = new())
         {
             var name = RandomStrings.WithPrefix("Simulation");
             var entity = new SimulationEntity
             {
                 NetworkId = networkId,
                 Name = name,
+                CreatedBy = creatingUserId,
             };
             unitOfWork.Context.Add(entity);
             unitOfWork.Context.SaveChanges();

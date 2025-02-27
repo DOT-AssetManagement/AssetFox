@@ -404,8 +404,13 @@ namespace BridgeCareCoreTests.Tests.Integration
         [Fact]
         public async Task CloningToADifferentScenarioWithScenarioDeficientConditionGoalsWithCriterionLibrary()
         {
-            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, false);
-            TestHelper.UnitOfWork.SetUser(user.Username);
+            var creatingUsername = RandomStrings.WithPrefix("creatingUser");
+            var cloningUsername = RandomStrings.WithPrefix("cloningUser");
+            var originalCreatingUser = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, false, creatingUsername);
+            var cloningUser = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, false, cloningUsername);
+            var creatingUserId = originalCreatingUser.Id;
+            var cloningUserId = cloningUser.Id;
+            TestHelper.UnitOfWork.SetUser(cloningUser.Username);
 
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var deficientconditiongoalId = Guid.NewGuid();
@@ -413,7 +418,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             var deficientconditiongoals = new List<DeficientConditionGoalDTO> { deficientconditiongoal };
             var networkId = SimulationCloningTestSetup.TestNetworkIdInDatabase();
             var destinationNetworkId = SimulationCloningTestSetup.TestDestinationNetworkIdInDatabase();
-            var simulationEntity = SimulationTestSetup.EntityInDb(TestHelper.UnitOfWork, destinationNetworkId);
+            var simulationEntity = SimulationTestSetup.EntityInDb(TestHelper.UnitOfWork, destinationNetworkId, originalCreatingUser.Id);
             var simulationId = simulationEntity.Id;
             var newSimulationName = RandomStrings.WithPrefix("cloned");
             var simulation = TestHelper.UnitOfWork.SimulationRepo.GetSimulation(simulationId);
@@ -434,9 +439,10 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Equal(newSimulationName, clonedSimulation.Name);
             Assert.Equal(destinationNetworkId, clonedSimulation.NetworkId);
             Assert.Equal(simulation.NetworkName, clonedSimulation.NetworkName);
-            ObjectAssertions.EquivalentExcluding(deficientConditionGoalBefore.CriterionLibrary, clonedDeficientConditionGoal.CriterionLibrary, c => c.Id, c => c.MergedCriteriaExpression, c => c.IsSingleUse, c => c.Name);
+            ObjectAssertions.EquivalentExcluding(deficientConditionGoalBefore.CriterionLibrary, clonedDeficientConditionGoal.CriterionLibrary, c => c.Id, c => c.MergedCriteriaExpression, c => c.IsSingleUse, c => c.Name, c => c.Owner);
             Assert.NotEqual(deficientConditionGoalBefore.Id, clonedDeficientConditionGoal.Id);
             Assert.NotEqual(deficientConditionGoalBefore.CriterionLibrary.Id, clonedDeficientConditionGoal.CriterionLibrary.Id);
+            Assert.Equal(cloningUser.Id, clonedDeficientConditionGoal.CriterionLibrary.Owner);
         }
 
         [Fact]
@@ -912,9 +918,10 @@ namespace BridgeCareCoreTests.Tests.Integration
         }
 
         [Fact]
-        public void SimulationInDbWithCashFlowRule_Clone_Clones()
+        public async Task SimulationInDbWithCashFlowRule_Clone_Clones()
         {
-
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            TestHelper.UnitOfWork.SetUser(user.Username);
             var networkId = SimulationCloningTestSetup.TestNetworkIdInDatabase();
             var destinationNetworkId = SimulationCloningTestSetup.TestDestinationNetworkIdInDatabase();
             var simulationEntity = SimulationTestSetup.EntityInDb(TestHelper.UnitOfWork, networkId);
