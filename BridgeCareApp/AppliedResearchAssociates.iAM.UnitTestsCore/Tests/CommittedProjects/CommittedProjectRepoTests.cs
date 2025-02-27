@@ -115,28 +115,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         }
 
 
-        [Fact(Skip = "Test is not dependent on the No Treatment Before Committed Project Flag")]
-        public void NoTreatmentBeforeCommittedProjects_GetSimulationCommittedProjects_Expected()
-        {
-            // Arrange
-            var repo = new CommittedProjectRepository(_testUOW);
-            var inputSimulationEntity = TestEntitiesForCommittedProjects.Simulations.Single(_ => _.Name == "FourYearTest");
-            var simulationDomain = CreateSimulation(inputSimulationEntity.Id, _testUOW);
-            var simulationEntity = _testUOW.Context.Simulation.Single(s => s.Id == simulationDomain.Id);
-            simulationEntity.NoTreatmentBeforeCommittedProjects = true;
-            _testUOW.Context.Simulation.Update(simulationEntity);
-            _testUOW.Context.SaveChanges();
-
-            // Act
-            repo.GetSimulationCommittedProjects(simulationDomain);
-
-            // Assert
-            var committedProjectNames = simulationDomain.CommittedProjects.Select(cp => cp.Name).ToList();
-            Assert.Equal(4, simulationDomain.CommittedProjects.Count);
-            Assert.Equal(10000, simulationDomain.CommittedProjects.Sum(_ => _.Cost));
-            Assert.Equal(3, simulationDomain.CommittedProjects.Count(_ => _.Name != "Something"));
-        }
-
         [Fact]
         public async Task GetForSimulationWorksWithoutCommittedProjects()
         {
@@ -297,7 +275,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             repo.UpsertCommittedProjects(newProjects);
         }
 
-        [Fact(Skip = "Unable to run with BulkExtensions")]
+        [Fact]
         public void DeleteSimulationWorksWithValidSimulation()
         {
             // Arrange

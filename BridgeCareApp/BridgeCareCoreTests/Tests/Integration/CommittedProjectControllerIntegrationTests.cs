@@ -2,6 +2,7 @@ using AppliedResearchAssociates.iAM.Data;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
@@ -14,6 +15,7 @@ using BridgeCareCore.Services;
 using BridgeCareCore.Services.SummaryReport.CommittedProjects;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.General_Work_Queue;
+using Microsoft.AspNetCore.Http;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Xunit;
 using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
@@ -22,6 +24,57 @@ namespace BridgeCareCoreTests.Tests.Integration
 {
     public class CommittedProjectControllerIntegrationTests
     {
+
+        [Fact]
+        public async Task ExportCommittedProjects_ThenImport_Expected()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork);
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId, treatmentId, treatmentName);
+            var scenarioBudgetId = Guid.NewGuid();
+            var budget = BudgetDtos.New(scenarioBudgetId);
+            var budgets = new List<BudgetDTO> { budget };
+            ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, budgets, simulationId);
+            var controller = CreateController();
+            var locationKey = TestAttributeNames.BrKey;
+            var locationInteger = RandomIntegers.PositiveNotRepeated();
+            var locationValue = locationInteger.ToString();
+            var assetId = Guid.NewGuid();
+            var sectionLocation = Locations.Section(locationValue);
+            var maintainableAsset = MaintainableAssets.InNetwork(NetworkTestSetup.NetworkId, TestAttributeNames.BrKey, assetId, sectionLocation); ;
+            var maintainableAssets = new List<MaintainableAsset> { maintainableAsset };
+            TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(maintainableAssets, NetworkTestSetup.NetworkId);
+            var committedProject = CommittedProjectTestSetup.ModelForEntityInDb(scenarioBudgetId, simulationId, locationKey, locationValue, treatmentName);
+            var committedProjectsBefore = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
+            Assert.NotEmpty(committedProjectsBefore);
+
+            // act 1
+            var exportResult = await controller.ExportCommittedProjects(simulationId);
+
+            TestHelper.UnitOfWork.CommittedProjectRepo.DeleteSimulationCommittedProjects(simulationId);
+            var fileInfo = ActionResultAssertions.OkObject<FileInfoDTO>(exportResult);
+            var bytes = Convert.FromBase64String(fileInfo.FileData);
+            var stream = new MemoryStream(bytes);
+            var formFile = new FormFile(stream, 0, stream.Length, fileInfo.FileName, fileInfo.FileName);
+            var serviceProvider = ServiceProviders.AdminControllersWithSimulationIdAndFiles(simulationId, formFile);
+            var controller2 = CreateController(serviceProvider);
+
+            // act 2
+            var importResult = await controller2.ImportCommittedProjects();
+            ActionResultAssertions.Ok(importResult);
+
+            // act 3
+            var workStarter = await serviceProvider.DequeueAndCompleteFastWorkQueueTask();
+
+            var committedProjectsAfter = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
+            Assert.NotEmpty(committedProjectsAfter);
+        }
+
         private CommittedProjectController CreateController()
         {
             var hubService = HubServiceMocks.Default();
