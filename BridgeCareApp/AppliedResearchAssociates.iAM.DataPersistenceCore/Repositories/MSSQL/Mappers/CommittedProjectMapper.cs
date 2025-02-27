@@ -265,7 +265,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                         projectToAdd.Id = Guid.NewGuid();
                         projectToAdd.Name = noTreatmentEntity.Name;
                         projectToAdd.Cost = noTreatmentDefaultCost;
-                        projectToAdd.Budget = entity.ScenarioBudget != null ? simulation.InvestmentPlan.Budgets.Single(_ => _.Name == entity.ScenarioBudget.Name) : null; ; // TODO: fix
+                        projectToAdd.Budget = entity.ScenarioBudget != null ? simulation.InvestmentPlan.Budgets.Single(_ => _.Name == entity.ScenarioBudget.Name) : null; // TODO: fix
                         //projectToAdd.Budget = null;  // This would be the better way, but it fails vaildation
                         projectToAdd.ProjectSource = projectSource;  // Replicate project source
                         projectToAdd.LastModifiedDate = noTreatmentEntity.LastModifiedDate;
