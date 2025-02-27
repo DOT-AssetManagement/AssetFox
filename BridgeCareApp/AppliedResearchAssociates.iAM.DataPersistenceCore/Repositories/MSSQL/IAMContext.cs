@@ -332,6 +332,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public virtual DbSet<TreatmentSchedulingCollisionDetailEntity> TreatmentSchedulingCollisionDetail { get; set; }
 
+        public virtual DbSet<FundingCalculationInput> FundingCalculationInput { get; set; }
+
+        public virtual DbSet<BudgetToSpend> BudgetToSpend { get; set; }
+
+        public virtual DbSet<FundingCalculationOutput> FundingCalculationOutput { get; set; }
+
+        public virtual DbSet<Allocation> Allocation { get; set; }
+
         private class MigrationConnection
         {
             public string BridgeCareConnex { get; set; }

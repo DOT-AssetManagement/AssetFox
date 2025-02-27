@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
 {
@@ -18,13 +14,28 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public Guid MaintainableAssetId { get; set; }
 
-        public virtual MaintainableAssetEntity MaintainableAsset { get; set; }
+        public virtual MaintainableAssetEntity MaintainableAsset { get; set; } // analysis obj AssetSummaryDetail.AssetName can be traslated to MaintainableAsset.AssetName, Note: it is always null in DB
 
         public virtual SimulationOutputEntity SimulationOutput { get; set; }
 
         public Guid SimulationOutputId { get; set; }
 
         public virtual ICollection<AssetSummaryDetailValueEntityIntId> AssetSummaryDetailValuesIntId { get; set; }
+
+        // TODO check if data populating correctly in AssetSummaryDetailValuesIntId, if so, don't worry abt changing the structure to match to ValuePerNumericAttribute & ValuePerTextAttribute
+        // Reports will need re-work to utilize this info
+
+        // ** Below 2 are configured in AssetSummaryDetailValuesIntId
+
+        ///// <summary>
+        /////     List the current values of each numeric attribute for the asset.
+        ///// </summary>
+        //public Dictionary<string, double> ValuePerNumericAttribute { get; } = new();
+
+        ///// <summary>
+        /////     List the current values of each text attribute for the asset.
+        ///// </summary>
+        //public Dictionary<string, string> ValuePerTextAttribute { get; } = new();
 
     }
 }
