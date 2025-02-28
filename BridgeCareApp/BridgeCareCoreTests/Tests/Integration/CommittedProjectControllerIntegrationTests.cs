@@ -96,10 +96,18 @@ namespace BridgeCareCoreTests.Tests.Integration
                 );
         }
 
+        private CommittedProjectController CreateController(
+            IServiceProvider serviceProvider
+        )
+        {
+            var controller = serviceProvider.GetControllerWithUnifiedHttpContext<CommittedProjectController>();
+            return controller;
+        }
+
         [Fact]
         public async Task FillTreatmentValues_Does()
         {
-            var networkId = Guid.NewGuid();            
+            var networkId = Guid.NewGuid();
             var assetKeyData = "key";
             var treatmentName = "treatment";
             var keyAttributeId = Guid.NewGuid();
@@ -119,7 +127,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             AggregatedResultTestSetup.SetTextAggregatedResultsInDb(TestHelper.UnitOfWork,
                 maintainableAssets, attributes, assetKeyData);
             var treatmentId = Guid.NewGuid();
-            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork,scenarioId ,treatmentId,  name: treatmentName);
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, scenarioId, treatmentId, name: treatmentName);
             var treatmentCost = ScenarioTreatmentCostTestSetup.CostForTreatmentInDb(TestHelper.UnitOfWork, treatmentId, scenarioId,
                 mergedCriteriaExpression: $"[{resultAttributeName}]='ok'", equation: "12345");
             var keyAttributes = new List<IamAttribute> { keyAttribute };

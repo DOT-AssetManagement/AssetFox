@@ -16,6 +16,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
     public static class NetworkTestSetup
     {
         public static readonly Guid NetworkId = Guid.Parse("7f4ea3ba-6082-4e1e-91a4-b80578aeb0ed");
+        public const string TestNetworkName = "Test Network";
 
         public static TNetwork ModelForEntityInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, Guid? networkId = null, Guid? keyAttributeId = null, string name = "")
         {

@@ -125,6 +125,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             // caches KeyProperties.
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var keyAttributeName = TestAttributeNames.BrKey;
+            var unusedKeyAttributeName = TestAttributeNames.BmsId;
             var networkId = Guid.NewGuid();
             var treatmentLibraryId = Guid.NewGuid();
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
@@ -146,7 +147,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             maintainableAssets.Add(maintainableAsset);
             var network = NetworkTestSetup.ModelForEntityInDbWithNewKeyTextAttribute(
                 TestHelper.UnitOfWork, maintainableAssets, networkId, keyAttributeId, keyAttributeName);
-            AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, network.Name, keyAttributeName, keyAttributeName);
+            var attributeNames = $"{keyAttributeName},{unusedKeyAttributeName}";
+            AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, network.Name, attributeNames, attributeNames);
             var attributes = new List<IamAttribute> { keyAttribute, resultAttribute };
             AggregatedResultTestSetup.SetTextAggregatedResultsInDb(TestHelper.UnitOfWork,
                 maintainableAssets, attributes, assetKeyData);
@@ -172,6 +174,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, null, 2023);
             ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(
                TestHelper.UnitOfWork, new List<BudgetDTO> { budget }, simulationId);
+            var treatments = new List<TreatmentDTO> { treatment };
+            TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulationId);
 
             var committedProjectId = Guid.NewGuid();
             var committedProject = SectionCommittedProjectDtos.Dto(

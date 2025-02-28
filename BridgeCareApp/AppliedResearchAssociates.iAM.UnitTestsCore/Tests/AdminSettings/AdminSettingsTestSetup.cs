@@ -18,5 +18,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             unitOfWork.AdminSettingsRepo.SetKeyFields(keyFields);
             unitOfWork.AdminSettingsRepo.SetRawDataKeyFields(rawKeyFields);
         }
+
+        public static void SetupBamsAdminSettingsForTestNetwork(IUnitOfWork unitOfWork)
+        {
+            var networkName = NetworkTestSetup.TestNetworkName;
+            var keyAttributeName = TestAttributeNames.BrKey;
+            SetupBamsAdminSettings(unitOfWork, networkName, keyAttributeName, keyAttributeName);
+        }
     }
 }
+
