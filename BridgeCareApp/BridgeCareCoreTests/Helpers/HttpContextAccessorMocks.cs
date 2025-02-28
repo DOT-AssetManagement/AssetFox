@@ -9,6 +9,7 @@ using Moq;
 
 namespace BridgeCareCoreTests
 {
+    // This class contains some hasty merges. It may need refactoring.
     public static class HttpContextAccessorMocks
     {
         public static Mock<IHttpContextAccessor> DefaultMock(
@@ -52,6 +53,30 @@ namespace BridgeCareCoreTests
         {
             var mock = MockWithAdminClaims(queryStore);
             return mock.Object;
+        }
+
+        public static void AddClaims(this Mock<IHttpContextAccessor> mock, List<Claim> claims)
+        {
+            var context = new DefaultHttpContext();
+            HttpContextSetup.AddAuthorizationHeader(context);
+
+            var claimsPrincipal = ClaimsPrincipals.WithClaims(claims);
+            context.User = claimsPrincipal;
+
+            mock.Setup(_ => _.HttpContext).Returns(context);
+        }
+
+        public static IHttpContextAccessor WithClaims(List<Claim> claims)
+        {
+            var mock = MockWithClaims(claims);
+            return mock.Object;
+        }
+
+        public static Mock<IHttpContextAccessor> MockWithClaims(List<Claim> claims)
+        {
+            var mock = new Mock<IHttpContextAccessor>();
+            mock.AddClaims(claims);
+            return mock;
         }
     }
 }
