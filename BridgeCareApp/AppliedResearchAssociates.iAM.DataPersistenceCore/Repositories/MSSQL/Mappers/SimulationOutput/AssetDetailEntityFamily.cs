@@ -11,7 +11,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public List<TreatmentRejectionDetailEntity> TreatmentRejectionDetails { get; set; } = new List<TreatmentRejectionDetailEntity>();
         public List<TreatmentSchedulingCollisionDetailEntity> TreatmentSchedulingCollisionDetails { get; set; } = new List<TreatmentSchedulingCollisionDetailEntity>();
         public List<TreatmentConsiderationDetailEntity> TreatmentConsiderationDetails { get; set; } = new List<TreatmentConsiderationDetailEntity>();
-        public List<BudgetUsageDetailEntity> BudgetUsageDetails { get; set; } = new List<BudgetUsageDetailEntity>();
         public List<CashFlowConsiderationDetailEntity> CashFlowConsiderationDetails { get; set; } = new List<CashFlowConsiderationDetailEntity>();
     }
 }

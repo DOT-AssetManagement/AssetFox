@@ -314,8 +314,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public virtual DbSet<BudgetDetailEntity> BudgetDetail { get; set; }
 
-        public virtual DbSet<BudgetUsageDetailEntity> BudgetUsageDetail { get; set; }
-
         public virtual DbSet<CashFlowConsiderationDetailEntity> CashFlowConsiderationDetail { get; set; }
 
         public virtual DbSet<DeficientConditionGoalDetailEntity> DeficientConditionGoalDetail { get; set; }
@@ -2516,22 +2514,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .HasForeignKey(e => e.MaintainableAssetId)
                 .OnDelete(DeleteBehavior.ClientCascade);
             });
-
-            modelBuilder.Entity<BudgetUsageDetailEntity>(entity =>
-            {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-
-                entity.Property(e => e.CoveredCost).IsRequired();
-
-                entity.Property(e => e.Status).IsRequired();
-
-                entity.HasOne(e => e.TreatmentConsiderationDetail)
-                .WithMany(tc => tc.BudgetUsageDetails)
-                .HasForeignKey(e => e.TreatmentConsiderationDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
-            });
-
+                       
             modelBuilder.Entity<CashFlowConsiderationDetailEntity>(entity =>
             {
                 entity.Property(e => e.Id).IsRequired();

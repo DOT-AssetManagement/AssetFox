@@ -13,8 +13,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public int? BudgetPriorityLevel { get; set; }
 
-        public ICollection<BudgetUsageDetailEntity> BudgetUsageDetails { get; set; } = new HashSet<BudgetUsageDetailEntity>();
-
         public ICollection<CashFlowConsiderationDetailEntity> CashFlowConsiderationDetails { get; set; } = new HashSet<CashFlowConsiderationDetailEntity>();
 
         public string TreatmentName { get; set; }
