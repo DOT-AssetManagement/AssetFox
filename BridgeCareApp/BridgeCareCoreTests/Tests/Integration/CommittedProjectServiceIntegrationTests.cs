@@ -12,6 +12,7 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using BridgeCareCore.Interfaces;
 using BridgeCareCore.Services.SummaryReport.CommittedProjects;
 using BridgeCareCoreTests.Helpers;
 using Microsoft.AspNetCore.Mvc;
@@ -122,7 +123,7 @@ namespace BridgeCareCoreTests.Tests.Integration
 
         [Fact]
         // Fails because when we delete our committed projects, then re-upload from a spreadsheet, they are not re-created.
-        public async Task DownloadSpreadsheet_ThenReupload_Ok()
+        public void DownloadSpreadsheet_ThenReupload_Ok()
         {
             // failing as a part of a test run because MaintainableAssetDataRepository
             // caches KeyProperties.
@@ -208,11 +209,12 @@ namespace BridgeCareCoreTests.Tests.Integration
             TestHelper.UnitOfWork.CommittedProjectRepo.DeleteSpecificCommittedProjects(committedProjectIds);
             var committedProjects2 = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             Assert.Empty(committedProjects2);
+            var formFile = FormFiles.FromFileInfo(fileInfo);
 
             //second act
-            var serviceProvider = ServiceProviders.AdminControllers();
-            var workStarter = await serviceProvider.DequeueAndCompleteSequentialWorkQueueTask();
-            service.ImportCommittedProjectFiles(simulationId, excelPackage, fileInfo.FileName, "Ignored user id");
+            var serviceProvider = ServiceProviders.AdminControllersWithSimulationIdAndFiles(simulationId, formFile);
+            var service2 = serviceProvider.GetService<ICommittedProjectService>();
+            service2.ImportCommittedProjectFiles(simulationId, excelPackage, fileInfo.FileName, "Ignored user id");
             var committedProjects3 = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             var id1 = committedProjects1[0].LocationKeys["ID"];
             var id3 = committedProjects3[0].LocationKeys["ID"];

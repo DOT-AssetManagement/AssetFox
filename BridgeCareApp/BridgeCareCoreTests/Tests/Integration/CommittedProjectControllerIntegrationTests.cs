@@ -55,12 +55,9 @@ namespace BridgeCareCoreTests.Tests.Integration
 
             // act 1
             var exportResult = await controller.ExportCommittedProjects(simulationId);
-
             TestHelper.UnitOfWork.CommittedProjectRepo.DeleteSimulationCommittedProjects(simulationId);
             var fileInfo = ActionResultAssertions.OkObject<FileInfoDTO>(exportResult);
-            var bytes = Convert.FromBase64String(fileInfo.FileData);
-            var stream = new MemoryStream(bytes);
-            var formFile = new FormFile(stream, 0, stream.Length, fileInfo.FileName, fileInfo.FileName);
+            var formFile = FormFiles.FromFileInfo(fileInfo);
             var serviceProvider = ServiceProviders.AdminControllersWithSimulationIdAndFiles(simulationId, formFile);
             var controller2 = CreateController(serviceProvider);
 
@@ -70,7 +67,6 @@ namespace BridgeCareCoreTests.Tests.Integration
 
             // act 3
             var workStarter = await serviceProvider.DequeueAndCompleteFastWorkQueueTask();
-
             var committedProjectsAfter = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             Assert.NotEmpty(committedProjectsAfter);
         }
