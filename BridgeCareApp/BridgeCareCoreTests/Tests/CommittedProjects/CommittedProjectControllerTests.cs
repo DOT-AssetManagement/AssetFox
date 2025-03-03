@@ -321,29 +321,6 @@ namespace BridgeCareCoreTests.Tests
             _mockCommittedProjectRepo.Verify(_ => _.DeleteSimulationCommittedProjects(It.IsAny<Guid>()), Times.Never());
         }
 
-        [Fact (Skip = "Authorization handled via claims, todo: revisit")]
-        public async Task DeleteSimulationFailsOnBadSimulation()
-        {
-            // Arrange
-            var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Dbe,
-                _mockUOW.Object,
-                hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            // Act
-            var result = await controller.DeleteSimulationCommittedProjects(_badScenario);
-
-            // Assert
-            Assert.IsType<BadRequestObjectResult>(result);
-            _mockCommittedProjectRepo.Verify(_ => _.DeleteSimulationCommittedProjects(It.IsAny<Guid>()), Times.Never());
-        }
-
         [Fact]
         public async Task DeleteSpecificWorksWithValidProject()
         {

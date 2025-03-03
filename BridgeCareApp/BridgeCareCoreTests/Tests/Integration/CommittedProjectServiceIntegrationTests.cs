@@ -122,7 +122,6 @@ namespace BridgeCareCoreTests.Tests.Integration
         }
 
         [Fact]
-        // Fails because when we delete our committed projects, then re-upload from a spreadsheet, they are not re-created.
         public void DownloadSpreadsheet_ThenReupload_Ok()
         {
             // failing as a part of a test run because MaintainableAssetDataRepository
