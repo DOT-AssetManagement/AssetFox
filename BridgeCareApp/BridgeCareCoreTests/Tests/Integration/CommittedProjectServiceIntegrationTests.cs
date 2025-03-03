@@ -13,6 +13,9 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Services.SummaryReport.CommittedProjects;
+using BridgeCareCoreTests.Helpers;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using Xunit;
 using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
@@ -119,7 +122,7 @@ namespace BridgeCareCoreTests.Tests.Integration
 
         [Fact]
         // Fails because when we delete our committed projects, then re-upload from a spreadsheet, they are not re-created.
-        public void DownloadSpreadsheet_ThenReupload_Ok()
+        public async Task DownloadSpreadsheet_ThenReupload_Ok()
         {
             // failing as a part of a test run because MaintainableAssetDataRepository
             // caches KeyProperties.
@@ -207,6 +210,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Empty(committedProjects2);
 
             //second act
+            var serviceProvider = ServiceProviders.AdminControllers();
+            var workStarter = await serviceProvider.DequeueAndCompleteSequentialWorkQueueTask();
             service.ImportCommittedProjectFiles(simulationId, excelPackage, fileInfo.FileName, "Ignored user id");
             var committedProjects3 = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             var id1 = committedProjects1[0].LocationKeys["ID"];

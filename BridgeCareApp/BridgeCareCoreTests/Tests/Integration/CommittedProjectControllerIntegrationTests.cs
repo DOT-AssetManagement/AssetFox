@@ -30,7 +30,7 @@ namespace BridgeCareCoreTests.Tests.Integration
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
-            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, true);
             var simulationId = Guid.NewGuid();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
             var treatmentId = Guid.NewGuid();
