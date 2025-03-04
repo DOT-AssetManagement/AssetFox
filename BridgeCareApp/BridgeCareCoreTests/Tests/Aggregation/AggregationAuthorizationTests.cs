@@ -10,7 +10,8 @@ namespace BridgeCareCoreTests.Tests
 {
     public class AggregationAuthorizationTests
     {
-
+        // All authorization tests are effectively testing the contents of the file
+        // rolesToClaimsMapping.json.
         [Fact]
         public async Task UserIsAggregateNetworkDataAuthorized()
         {
