@@ -35,7 +35,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
             AssetDetailValuesIntId = new HashSet<AssetDetailValueEntityIntId>();
             AssetSummaryDetailValuesIntId = new HashSet<AssetSummaryDetailValueEntityIntId>();
             DeficientConditionGoalDetails = new HashSet<DeficientConditionGoalDetailEntity>();
-            TargetConditionGoalDetails = new HashSet<TargetConditionGoalDetailEntity>();
+            TargetConditionGoals = new HashSet<TargetConditionGoalDetailEntity>();
         }
 
         public Guid Id { get; set; }
@@ -104,6 +104,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public virtual ICollection<DeficientConditionGoalDetailEntity> DeficientConditionGoalDetails { get; set; }
 
-        public virtual ICollection<TargetConditionGoalDetailEntity> TargetConditionGoalDetails { get; set; }
+        public virtual ICollection<TargetConditionGoalDetailEntity> TargetConditionGoals { get; set; }
     }
 }

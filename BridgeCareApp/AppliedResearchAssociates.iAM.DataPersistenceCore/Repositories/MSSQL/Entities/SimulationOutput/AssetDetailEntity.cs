@@ -21,15 +21,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public ICollection<AssetDetailValueEntityIntId> AssetDetailValuesIntId { get; set; } = new HashSet<AssetDetailValueEntityIntId>();
 
-        public ICollection<TreatmentConsiderationDetailEntity> TreatmentConsiderationDetails { get; set; } = new HashSet<TreatmentConsiderationDetailEntity>();
+        public ICollection<TreatmentConsiderationDetailEntity> TreatmentConsiderations { get; set; } = new HashSet<TreatmentConsiderationDetailEntity>();
 
         public bool TreatmentFundingIgnoresSpendingLimit { get; set; }
 
-        public ICollection<TreatmentOptionDetailEntity> TreatmentOptionDetails { get; set; } = new HashSet<TreatmentOptionDetailEntity>();
+        public ICollection<TreatmentOptionDetailEntity> TreatmentOptions { get; set; } = new HashSet<TreatmentOptionDetailEntity>();
 
-        public ICollection<TreatmentRejectionDetailEntity> TreatmentRejectionDetails { get; set; } = new HashSet<TreatmentRejectionDetailEntity>();
+        public ICollection<TreatmentRejectionDetailEntity> TreatmentRejections { get; set; } = new HashSet<TreatmentRejectionDetailEntity>();
 
-        public ICollection<TreatmentSchedulingCollisionDetailEntity> TreatmentSchedulingCollisionDetails { get; set; } = new HashSet<TreatmentSchedulingCollisionDetailEntity>();
+        public ICollection<TreatmentSchedulingCollisionDetailEntity> TreatmentSchedulingCollisions { get; set; } = new HashSet<TreatmentSchedulingCollisionDetailEntity>();
 
         public int TreatmentStatus { get; set; }
 

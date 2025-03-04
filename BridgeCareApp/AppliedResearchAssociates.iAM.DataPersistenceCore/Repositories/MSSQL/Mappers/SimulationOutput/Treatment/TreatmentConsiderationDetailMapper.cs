@@ -35,19 +35,26 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return entityList;
         }
 
-        // TODO
         private static TreatmentConsiderationDetail ToDomain(TreatmentConsiderationDetailEntity entity)
         {
             var domain = new TreatmentConsiderationDetail(entity.TreatmentName)
             {
                 BudgetPriorityLevel = entity.BudgetPriorityLevel,
             };
-            var cashFlowConsiderationDetails = CashFlowConsiderationDetailMapper.ToDomainList(entity.CashFlowConsiderationDetails);
-            domain.CashFlowConsiderations.AddRange(cashFlowConsiderationDetails);
+            var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToDomainList(entity.CashFlowConsiderations);
+            domain.CashFlowConsiderations.AddRange(cashFlowConsiderations);
+
+            // TODO for reports
+            // FundingCalculationInput
+
+
+            // FundingCalculationOutput
+
+
             return domain;
         }
 
-        internal static List<TreatmentConsiderationDetail> ToDomainList(ICollection<TreatmentConsiderationDetailEntity> entityCollection)
+        public static List<TreatmentConsiderationDetail> ToDomainList(ICollection<TreatmentConsiderationDetailEntity> entityCollection)
         {
             var domainList = new List<TreatmentConsiderationDetail>();
             foreach (var entity in entityCollection)
@@ -67,9 +74,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             foreach (var consideration in treatmentConsiderations)
             {
                 var entity = ToEntityWithoutChildren(consideration, assetDetailId);
-                family.TreatmentConsiderationDetails.Add(entity);
-                var cashFlowConsiderationDetails = CashFlowConsiderationDetailMapper.ToEntityList(consideration.CashFlowConsiderations, entity.Id);
-                family.CashFlowConsiderationDetails.AddRange(cashFlowConsiderationDetails);
+                family.TreatmentConsiderations.Add(entity);
+
+                var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToEntityList(consideration.CashFlowConsiderations, entity.Id);
+                family.CashFlowConsiderations.AddRange(cashFlowConsiderations);
+
+                // FundingCalculationInput
+                var fundingCalculationInput = FundingCalculationInputMapper.ToEntity(consideration.FundingCalculationInput, entity.Id, family);
+                family.FundingCalculationInputs.Add(fundingCalculationInput);
+
+                // FundingCalculationOutput
+                var fundingCalculationOutput = FundingCalculationOutputMapper.ToEntity(consideration.FundingCalculationOutput, entity.Id, family);
+                family.FundingCalculationOutputs.Add(fundingCalculationOutput);
             }
         }
     }

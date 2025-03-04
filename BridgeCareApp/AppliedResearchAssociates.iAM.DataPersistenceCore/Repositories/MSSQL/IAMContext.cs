@@ -2466,7 +2466,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.SimulationYearDetail)
-                .WithMany(sy => sy.DeficientConditionGoalDetails)
+                .WithMany(sy => sy.DeficientConditionGoals)
                 .HasForeignKey(e => e.SimulationYearDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -2484,12 +2484,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 entity.Property(e => e.TargetValue).IsRequired();
 
                 entity.HasOne(e => e.SimulationYearDetail)
-                .WithMany(sy => sy.TargetConditionGoalDetails)
+                .WithMany(sy => sy.TargetConditionGoals)
                 .HasForeignKey(e => e.SimulationYearDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.Attribute)
-                .WithMany(a => a.TargetConditionGoalDetails)
+                .WithMany(a => a.TargetConditionGoals)
                 .HasForeignKey(e => e.AttributeId)
                 .OnDelete(DeleteBehavior.Cascade);
             });
@@ -2523,7 +2523,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 entity.Property(e => e.ReasonAgainstCashFlow).IsRequired();
 
                 entity.HasOne(e => e.TreatmentConsiderationDetail)
-                .WithMany(tc => tc.CashFlowConsiderationDetails)
+                .WithMany(tc => tc.CashFlowConsiderations)
                 .HasForeignKey(e => e.TreatmentConsiderationDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
             });
@@ -2534,7 +2534,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 entity.HasIndex(e => e.Id).IsUnique();
 
                 entity.HasOne(e => e.AssetDetail)
-                .WithMany(ad => ad.TreatmentConsiderationDetails)
+                .WithMany(ad => ad.TreatmentConsiderations)
                 .HasForeignKey(e => e.AssetDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
             });
@@ -2550,7 +2550,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 entity.Property(e => e.Cost).IsRequired();
 
                 entity.HasOne(e => e.AssetDetail)
-                .WithMany(ad => ad.TreatmentOptionDetails)
+                .WithMany(ad => ad.TreatmentOptions)
                 .HasForeignKey(e => e.AssetDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
             });
@@ -2564,7 +2564,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 entity.Property(e => e.PotentialConditionChange).IsRequired();
 
                 entity.HasOne(e => e.AssetDetail)
-                .WithMany(ad => ad.TreatmentRejectionDetails)
+                .WithMany(ad => ad.TreatmentRejections)
                 .HasForeignKey(e => e.AssetDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
             });
@@ -2575,7 +2575,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 entity.HasIndex(e => e.Id).IsUnique();
 
                 entity.HasOne(e => e.AssetDetail)
-                .WithMany(ad => ad.TreatmentSchedulingCollisionDetails)
+                .WithMany(ad => ad.TreatmentSchedulingCollisions)
                 .HasForeignKey(e => e.AssetDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
             });

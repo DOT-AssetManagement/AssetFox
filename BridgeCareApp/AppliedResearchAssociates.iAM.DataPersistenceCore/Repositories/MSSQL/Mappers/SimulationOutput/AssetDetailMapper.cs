@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 
@@ -25,6 +22,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 TreatmentCause = (int)domain.TreatmentCause,
                 TreatmentFundingIgnoresSpendingLimit = domain.TreatmentFundingIgnoresSpendingLimit,
                 TreatmentStatus = (int)domain.TreatmentStatus,
+                ProjectSource = domain.ProjectSource
             };
             return entity;
         }
@@ -55,17 +53,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 AppliedTreatment = entity.AppliedTreatment,
                 TreatmentCause = (TreatmentCause)entity.TreatmentCause,
                 TreatmentFundingIgnoresSpendingLimit = entity.TreatmentFundingIgnoresSpendingLimit,
-                TreatmentStatus = (TreatmentStatus)entity.TreatmentStatus,                
+                TreatmentStatus = (TreatmentStatus)entity.TreatmentStatus,
+                ProjectSource = entity.ProjectSource
             };
             AssetDetailValueMapper.AddToDictionaries(entity.AssetDetailValuesIntId, domain.ValuePerTextAttribute, domain.ValuePerNumericAttribute, attributeNameLookup);
-            var treatmentConsiderationDetails = TreatmentConsiderationDetailMapper.ToDomainList(entity.TreatmentConsiderationDetails);
-            domain.TreatmentConsiderations.AddRange(treatmentConsiderationDetails);
-            var treatmentOptionDetails = TreatmentOptionDetailMapper.ToDomainList(entity.TreatmentOptionDetails);
-            domain.TreatmentOptions.AddRange(treatmentOptionDetails);
-            var treatmentRejectionDetails = TreatmentRejectionDetailMapper.ToDomainList(entity.TreatmentRejectionDetails);
-            domain.TreatmentRejections.AddRange(treatmentRejectionDetails);
-            var treatmentSchedulingCollisionDetails = TreatmentSchedulingCollisionDetailMapper.ToDomainList(entity.TreatmentSchedulingCollisionDetails, year);
-            domain.TreatmentSchedulingCollisions.AddRange(treatmentSchedulingCollisionDetails);
+            var treatmentConsiderations = TreatmentConsiderationDetailMapper.ToDomainList(entity.TreatmentConsiderations);
+            domain.TreatmentConsiderations.AddRange(treatmentConsiderations);
+            var treatmentOptions = TreatmentOptionDetailMapper.ToDomainList(entity.TreatmentOptions);
+            domain.TreatmentOptions.AddRange(treatmentOptions);
+            var treatmentRejections = TreatmentRejectionDetailMapper.ToDomainList(entity.TreatmentRejections);
+            domain.TreatmentRejections.AddRange(treatmentRejections);
+            var treatmentSchedulingCollisions = TreatmentSchedulingCollisionDetailMapper.ToDomainList(entity.TreatmentSchedulingCollisions, year);
+            domain.TreatmentSchedulingCollisions.AddRange(treatmentSchedulingCollisions);
             return domain;
         }
 
@@ -125,16 +124,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             family.AssetDetails.Add(entity);
             var mapNumericValues = AssetDetailValueMapper.ToNumericEntityList(entity.Id, domain.ValuePerNumericAttribute, attributeIdLookup);
             var mapTextValues = AssetDetailValueMapper.ToTextEntityList(entity.Id, domain.ValuePerTextAttribute, attributeIdLookup);
-            var treatmentOptionDetails = TreatmentOptionDetailMapper.ToEntityList(domain.TreatmentOptions, entity.Id);
-            var treatmentRejectionDetails = TreatmentRejectionDetailMapper.ToEntityList(domain.TreatmentRejections, entity.Id);
+            var treatmentOptions = TreatmentOptionDetailMapper.ToEntityList(domain.TreatmentOptions, entity.Id);
+            var treatmentRejections = TreatmentRejectionDetailMapper.ToEntityList(domain.TreatmentRejections, entity.Id);
             TreatmentConsiderationDetailMapper.AddToFamily(entity.Id, family, domain.TreatmentConsiderations); 
-            var treatmentSchedulingCollisionDetails = TreatmentSchedulingCollisionDetailMapper.ToEntityList(domain.TreatmentSchedulingCollisions, entity.Id);
+            var treatmentSchedulingCollisions = TreatmentSchedulingCollisionDetailMapper.ToEntityList(domain.TreatmentSchedulingCollisions, entity.Id);
 
             family.AssetDetailValues.AddRange(mapNumericValues);
             family.AssetDetailValues.AddRange(mapTextValues);
-            family.TreatmentOptionDetails.AddRange(treatmentOptionDetails);
-            family.TreatmentRejectionDetails.AddRange(treatmentRejectionDetails);
-            family.TreatmentSchedulingCollisionDetails.AddRange(treatmentSchedulingCollisionDetails);
+            family.TreatmentOptions.AddRange(treatmentOptions);
+            family.TreatmentRejections.AddRange(treatmentRejections);
+            family.TreatmentSchedulingCollisions.AddRange(treatmentSchedulingCollisions);
         }
     }
 }

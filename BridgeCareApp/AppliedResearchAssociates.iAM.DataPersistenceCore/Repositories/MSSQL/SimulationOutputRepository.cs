@@ -131,20 +131,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     _unitOfWork.Context.AddAll(assetFamily.AssetDetailValues, batchSize: batchSize);
                     _ =saveMemos.Mark($" {assetFamily.AssetDetailValues.Count} assetDetailValues batchSize: {batchSize}");
 
-                    _unitOfWork.Context.AddAll(assetFamily.TreatmentOptionDetails, batchSize: batchSize);
-                    _ = saveMemos.Mark($" {assetFamily.TreatmentOptionDetails.Count} treatmentOptionDetails");
+                    _unitOfWork.Context.AddAll(assetFamily.TreatmentOptions, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.TreatmentOptions.Count} treatmentOptions");
 
-                    _unitOfWork.Context.AddAll(assetFamily.TreatmentRejectionDetails, batchSize: batchSize);
-                    _ = saveMemos.Mark($" {assetFamily.TreatmentRejectionDetails.Count} treatmentRejectionDetails");
+                    _unitOfWork.Context.AddAll(assetFamily.TreatmentRejections, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.TreatmentRejections.Count} treatmentRejections");
 
-                    _unitOfWork.Context.AddAll(assetFamily.TreatmentSchedulingCollisionDetails, batchSize: batchSize);
-                    _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisionDetails.Count} treatmentSchedulingCollisionDetails");
+                    _unitOfWork.Context.AddAll(assetFamily.TreatmentSchedulingCollisions, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisions.Count} treatmentSchedulingCollisions");
 
-                    _unitOfWork.Context.AddAll(assetFamily.TreatmentConsiderationDetails, batchSize: batchSize);
-                    _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisionDetails.Count} treatmentConsiderationDetails");
+                    _unitOfWork.Context.AddAll(assetFamily.TreatmentConsiderations, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisions.Count} treatmentConsiderations");
 
-                    _unitOfWork.Context.AddAll(assetFamily.CashFlowConsiderationDetails, batchSize: batchSize);
-                    _ = saveMemos.Mark($" {assetFamily.CashFlowConsiderationDetails.Count} cashFlowConsiderationDetails");
+                    _unitOfWork.Context.AddAll(assetFamily.CashFlowConsiderations, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.CashFlowConsiderations.Count} cashFlowConsiderations");
 
                     _unitOfWork.Commit();
                     _ = saveMemos.Mark(" Committed");
@@ -321,7 +321,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Where(a => a.SimulationOutputId == simulationOutputId)
                 .AsNoTracking()
                 .ToList();
-            memos.Mark("assetSummaryDetails");
+            _ = memos.Mark("assetSummaryDetails");
             foreach (var assetSummary in assetSummaryDetails)
             {
                 assetNameLookup[assetSummary.MaintainableAssetId] = assetSummary.MaintainableAsset.AssetName;
@@ -364,8 +364,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var year = cacheYear.Year;
                 var loadedYearWithoutAssets = _unitOfWork.Context.SimulationYearDetail
                 .Include(y => y.Budgets)
-                .Include(y => y.DeficientConditionGoalDetails)
-                .Include(y => y.TargetConditionGoalDetails)
+                .Include(y => y.DeficientConditionGoals)
+                .Include(y => y.TargetConditionGoals)
                 .Where(y => y.Id == yearId)
                 .AsNoTracking()
                 .ToList();
@@ -381,18 +381,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                            .Where(a => a.SimulationYearDetailId == yearId)
                            .OrderBy(a => a.Id)
                    .AsNoTracking()
-                   .Include(a => a.TreatmentConsiderationDetails)
-                   .ThenInclude(tc => tc.CashFlowConsiderationDetails)
-                   .Include(a => a.TreatmentConsiderationDetails)
-                   .Include(a => a.TreatmentOptionDetails)
-                   .Include(a => a.TreatmentRejectionDetails)
-                   .Include(a => a.TreatmentSchedulingCollisionDetails)
+                   .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.CashFlowConsiderations)
+                   .Include(a => a.TreatmentConsiderations)
+                   .Include(a => a.TreatmentOptions)
+                   .Include(a => a.TreatmentRejections)
+                   .Include(a => a.TreatmentSchedulingCollisions)
                    .Include(a => a.AssetDetailValuesIntId)
                    .AsSplitQuery()
                    .Skip(assetLoadBatchSize * batchIndex)
                    .Take(assetLoadBatchSize)
                    .ToList();
-                    memos.Mark("  assetEntities");
+                    _ = memos.Mark("assetEntities");
                     if (assetEntities.Any())
                     {
                         AssetDetailMapper.AppendToDomainDictionaryWithValues(assets, assetEntities, year, attributeNameLookup, assetNameLookup);
@@ -409,7 +409,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 }
             }
             domain.Years.Sort((y1, y2) => y1.Year.CompareTo(y2.Year));
-            memos.MarkInformation("Load done", loggerForTechinalInfo);
+            _ = memos.MarkInformation("Load done", loggerForTechinalInfo);
             loggerForUserInfo.Information($"Simulation output load completed");
 
             if (ShouldHackSaveTimingsToFile)

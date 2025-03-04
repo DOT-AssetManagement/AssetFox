@@ -21,10 +21,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public ICollection<BudgetDetailEntity> Budgets { get; set; } = new HashSet<BudgetDetailEntity>();
 
-        public ICollection<DeficientConditionGoalDetailEntity> DeficientConditionGoalDetails { get; set; } = new HashSet<DeficientConditionGoalDetailEntity>();
+        public ICollection<DeficientConditionGoalDetailEntity> DeficientConditionGoals { get; set; } = new HashSet<DeficientConditionGoalDetailEntity>();
 
         public ICollection<AssetDetailEntity> Assets { get; set; } = new HashSet<AssetDetailEntity>();
 
-        public ICollection<TargetConditionGoalDetailEntity> TargetConditionGoalDetails { get; set; } = new List<TargetConditionGoalDetailEntity>();
+        public ICollection<TargetConditionGoalDetailEntity> TargetConditionGoals { get; set; } = new List<TargetConditionGoalDetailEntity>();
     }
 }
