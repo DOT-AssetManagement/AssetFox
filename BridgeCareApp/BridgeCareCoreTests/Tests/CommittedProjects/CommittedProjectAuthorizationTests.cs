@@ -11,6 +11,8 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
 {
     public class CommittedProjectAuthorizationTests
     {
+        private const string PolicyName = "TestCommittedProjectsPolicy";
+
         [Fact]
         public async Task UserIsEditor_ModifyCommittedProjects_Unauthorized()
         {
@@ -18,7 +20,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ModifyCommittedProjects,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectModifyAnyAccess
                         ));
@@ -28,7 +30,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Editor });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ModifyCommittedProjects);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.False(allowed.Succeeded);
         }
@@ -36,11 +38,11 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
         [Fact]
         public async Task UserIsAdmin_ModifyCommittedProjects_Unauthorized()
         {
-            var authorizationService = BuildAuthorizationServiceMocks.BuildAuthorizationService(services =>
+             var authorizationService = BuildAuthorizationServiceMocks.BuildAuthorizationService(services =>
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ModifyCommittedProjects,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectModifyAnyAccess
                         ));
@@ -50,7 +52,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ModifyCommittedProjects);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -62,7 +64,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewCommittedProjects,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectViewPermittedAccess,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectViewAnyAccess
@@ -73,7 +75,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Editor });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewCommittedProjects);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -81,12 +83,11 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
         [Fact]
         public async Task ImportCommittedProjects_UserIsAdmin_Allowed()
         {
-            var policy = Policy.ImportCommittedProjects;
             var authorizationService = BuildAuthorizationServiceMocks.BuildAuthorizationService(services =>
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(policy,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectImportAnyAccess,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectImportPermittedAccess
@@ -97,7 +98,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, policy);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
 

@@ -16,6 +16,8 @@ namespace BridgeCareCoreTests.Tests
 {
     public class BudgetPriorityAuthorizationTests
     {
+        private const string PolicyName = "TestBudgetPriorityPolicy";
+
         [Fact]
         public async Task UserIsViewBudgetPriorityFromLibraryAuthorized()
         {
@@ -24,7 +26,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewBudgetPriorityFromLibrary,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name, BridgeCareCore.Security.SecurityConstants.Claim.BudgetPriorityViewAnyFromLibraryAccess));
                 });
             });
@@ -32,7 +34,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewBudgetPriorityFromLibrary);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -45,7 +47,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ModifyBudgetPriorityFromScenario,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.BudgetPriorityModifyAnyFromScenarioAccess,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.BudgetPriorityModifyPermittedFromScenarioAccess));
@@ -55,7 +57,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ModifyBudgetPriorityFromScenario);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -68,7 +70,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.DeleteBudgetPriorityFromLibrary,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.AnnouncementModifyAccess,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.AttributesUpdateAccess));
@@ -78,7 +80,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Editor });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.DeleteBudgetPriorityFromLibrary);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.False(allowed.Succeeded);
         }
@@ -91,7 +93,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewBudgetPriorityFromLibrary,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name, BridgeCareCore.Security.SecurityConstants.Claim.BudgetPriorityViewAnyFromLibraryAccess));
                 });
             });
@@ -99,7 +101,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.B2C, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewBudgetPriorityFromLibrary);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }

@@ -11,6 +11,8 @@ namespace BridgeCareCoreTests.Tests.Treatment
 {
     public class TreatmentAuthorizationTests
     {
+        private const string PolicyName = "TestTreatmentPolicy";
+
         [Fact]
         public async Task UserIsViewTreatmentFromLibraryAuthorized()
         {
@@ -20,7 +22,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewTreatmentFromLibrary,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TreatmentViewAnyFromLibraryAccess));
                 });
@@ -29,7 +31,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewTreatmentFromLibrary);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -42,7 +44,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ModifyTreatmentFromScenario,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TreatmentModifyAnyFromScenarioAccess,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TreatmentModifyPermittedFromScenarioAccess));
@@ -51,7 +53,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
             var roleClaimsMapper = new RoleClaimsMapper();
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Editor });
             var user = ClaimsPrincipals.WithNameClaims(claims);            // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ModifyTreatmentFromScenario);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -64,7 +66,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.DeleteTreatmentFromLibrary,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TreatmentDeletePermittedFromLibraryAccess,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TreatmentDeleteAnyFromLibraryAccess));
@@ -73,7 +75,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
             var roleClaimsMapper = new RoleClaimsMapper();
             var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { Role.ReadOnly });
             var user = ClaimsPrincipals.WithNameClaims(claims);            // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.DeleteTreatmentFromLibrary);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.False(allowed.Succeeded);
         }
@@ -85,7 +87,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewTreatmentFromLibrary,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TreatmentViewAnyFromLibraryAccess));
                 });
@@ -94,7 +96,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
             var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewTreatmentFromLibrary);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }

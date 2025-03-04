@@ -198,7 +198,7 @@ namespace BridgeCareCoreTests.Tests
             Assert.Contains(CommittedProjectController.RequestMimeTypeIsInvalid, message);
         }
 
-        [Fact(Skip = "Will Need to be changed to accommodate general work queue")]
+        [Fact]
         public async Task ImportFailsOnNoSimulation()
         {
             // Arrange
@@ -262,7 +262,9 @@ namespace BridgeCareCoreTests.Tests
                 EsecSecurityMocks.Admin,
                 _mockUOW.Object,
                 hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
+                accessor,
+                _mockClaimHelper.Object,
+                generalWorkQueue.Object);
             var deleteList = new List<Guid>()
             {
                 TestDataForCommittedProjects.CommittedProjectId1,
@@ -354,6 +356,7 @@ namespace BridgeCareCoreTests.Tests
             Assert.IsType<BadRequestObjectResult>(result);
         }
 
+        [Fact]
         public async Task UpsertSectionWorksWithValidProjects()
         {
             // Arrange

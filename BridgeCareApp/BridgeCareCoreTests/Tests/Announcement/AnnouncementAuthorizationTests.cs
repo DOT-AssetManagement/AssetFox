@@ -15,6 +15,8 @@ namespace BridgeCareCoreTests.Tests
 {
     public class AnnouncementAuthorizationTests
     {
+        private const string PolicyName = "TestAnnouncementPolicy";
+
         [Fact]
         public async Task UserIsViewAnnouncementAuthorized()
         {
@@ -24,7 +26,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy("ViewAnnouncementClaim",
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.AnnouncementViewAccess));
                 });
@@ -33,7 +35,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, "ViewAnnouncementClaim");
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }

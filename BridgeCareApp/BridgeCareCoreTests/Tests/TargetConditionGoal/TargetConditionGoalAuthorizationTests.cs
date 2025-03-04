@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Drawing.Text;
+using System.Security.Claims;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Utils;
 using BridgeCareCoreTests.Helpers;
@@ -11,6 +12,8 @@ namespace BridgeCareCoreTests.Tests
 {
     public class TargetConditionGoalAuthorizationTests
     {
+        private const string PolicyName = "TestTargetConditionGoalPolicy";
+
         [Fact]
         public async Task UserIsViewTargetConditionGoalFromScenarioAuthorized()
         {
@@ -20,7 +23,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewTargetConditionGoalFromScenario,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TargetConditionGoalViewPermittedFromScenarioAccess));
                 });
@@ -29,7 +32,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Editor });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewTargetConditionGoalFromScenario);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -42,7 +45,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ModifyTargetConditionGoalFromLibrary,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TargetConditionGoalUpdateAnyFromLibraryAccess));
                 });
@@ -51,7 +54,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ModifyTargetConditionGoalFromLibrary);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -64,7 +67,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.DeleteTargetConditionGoalFromLibrary,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TargetConditionGoalDeleteAnyFromLibraryAccess,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TargetConditionGoalDeletePermittedFromLibraryAccess));
@@ -74,7 +77,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.ReadOnly });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.DeleteTargetConditionGoalFromLibrary);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.False(allowed.Succeeded);
         }
@@ -86,7 +89,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewTargetConditionGoalFromScenario,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TargetConditionGoalViewAnyFromScenarioAccess,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.TargetConditionGoalViewPermittedFromScenarioAccess));
@@ -96,7 +99,7 @@ namespace BridgeCareCoreTests.Tests
             var claims = roleClaimsMapper.GetClaims(SecurityTypes.B2C, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewTargetConditionGoalFromScenario);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
