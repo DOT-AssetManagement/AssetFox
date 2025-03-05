@@ -1,6 +1,7 @@
 using System.Data;
 using System.Security.Claims;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
@@ -229,6 +230,10 @@ namespace BridgeCareCoreTests.Tests
             // Assert
             var castWorkStarter = workStarter as IQueuedWorkHandle<WorkQueueMetadata>;
             Assert.Equal(TaskStatus.Faulted, castWorkStarter.WorkCompletion.Status);
+            var exception = castWorkStarter.WorkCompletion.Exception;
+            var innerException = exception.InnerException;
+            var message = innerException.Message;
+            Assert.Equal(SimulationRepository.NoSimulationWasFoundForTheGivenScenario, message);
             _mockCommittedProjectRepo.Verify(_ => _.DeleteSimulationCommittedProjects(It.IsAny<Guid>()), Times.Never());
         }
 
