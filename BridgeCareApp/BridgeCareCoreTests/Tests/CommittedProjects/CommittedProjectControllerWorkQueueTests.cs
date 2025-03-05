@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data.Networking;
+﻿using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
@@ -18,8 +12,6 @@ using BridgeCareCore.Models;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.Integration;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using NuGet.ContentModel;
 using Xunit;
 
 namespace BridgeCareCoreTests.Tests.CommittedProjects
@@ -60,17 +52,6 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             Assert.Equal(TaskStatus.RanToCompletion, castWorkStarter.WorkCompletion.Status);
         }
 
-        private static FormFile FormFileFromGoodData()
-        {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "TestUtils\\Files",
-                "TestCommittedProjects_Good.xlsx");
-            var stream = File.OpenRead(filePath);
-            var memStream = new MemoryStream();
-            stream.CopyTo(memStream);
-            var formFile = new FormFile(memStream, 0, memStream.Length, null, "TestCommittedProjects_Good.xlsx");
-            return formFile;
-        }
-
         [Fact]
         public async Task ImportFailsOnNoSimulation()
         {
@@ -101,6 +82,17 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
         {
             var controller = serviceProvider.GetControllerWithUnifiedHttpContext<CommittedProjectController>();
             return controller;
+        }
+
+        private static FormFile FormFileFromGoodData()
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "TestUtils\\Files",
+                "TestCommittedProjects_Good.xlsx");
+            var stream = File.OpenRead(filePath);
+            var memStream = new MemoryStream();
+            stream.CopyTo(memStream);
+            var formFile = new FormFile(memStream, 0, memStream.Length, null, "TestCommittedProjects_Good.xlsx");
+            return formFile;
         }
 
     }

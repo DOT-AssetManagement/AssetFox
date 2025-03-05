@@ -60,36 +60,6 @@ namespace BridgeCareCoreTests.Tests
             return serviceCollection;
         }
 
-        public static IServiceCollection AdminControllers()
-        {
-            var serviceCollection = Default();
-            var security = EsecSecurityMocks.Admin;
-            var contextAccessor = HttpContextAccessorMocks.Admin();
-            serviceCollection.AddSingleton(security);
-            serviceCollection.AddSingleton(contextAccessor);
-            ManuallyAddControllers(serviceCollection);
-            return serviceCollection;
-        }
-
-        public static IServiceCollection AdminControllersWithFormFiles(params IFormFile[] formFiles)
-        {
-            var formCollection = FormCollectionMocks.FormWithFiles(formFiles);
-            var serviceCollection = AdminControllersWithRequestForm(formCollection);
-            return serviceCollection;
-        }
-
-
-        public static IServiceCollection DbeControllers()
-        {
-            var serviceCollection = Default();
-            var security = EsecSecurityMocks.Dbe;
-            var contextAccessor = HttpContextAccessorMocks.Default();
-            serviceCollection.AddSingleton(security);
-            serviceCollection.AddSingleton(contextAccessor);
-            ManuallyAddControllers(serviceCollection);
-            return serviceCollection;
-        }
-
         private static void ManuallyAddControllers(ServiceCollection serviceCollection)
         {
             serviceCollection.AddScoped<AdminDataController>();
