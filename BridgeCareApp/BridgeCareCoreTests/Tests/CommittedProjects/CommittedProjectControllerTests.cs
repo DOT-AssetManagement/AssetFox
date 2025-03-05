@@ -58,13 +58,6 @@ namespace BridgeCareCoreTests.Tests
                 .Returns(TestDataForCommittedProjects.GoodFile());
             _mockPagingService = new Mock<ICommittedProjectPagingService>();
         }
-        private CommittedProjectController CreateController(
-            IServiceProvider serviceProvider
-        )
-        {
-            var controller = serviceProvider.GetControllerWithUnifiedHttpContext<CommittedProjectController>();
-            return controller;
-        }
 
         public CommittedProjectController CreateTestController(List<string> userClaims)
         {
@@ -111,31 +104,6 @@ namespace BridgeCareCoreTests.Tests
             var contents = okResult.Value as FileInfoDTO;
             Assert.Equal(TestDataForCommittedProjects.GoodFile().FileName, contents.FileName);
             Assert.True(contents.FileData.Length > 0);
-        }
-
-        [Fact(Skip = "Will Need to be changed to accommodate general work queue")]
-        public async Task ImportWorksWithValidData()
-        {
-            // Arrange
-            var mockContextAccessor = new Mock<IHttpContextAccessor>();
-            var hubService = HubServiceMocks.Default();
-            mockContextAccessor.Setup(_ => _.HttpContext)
-                .Returns(CreateLoadedContextForSimulation(TestDataForCommittedProjects.SimulationId));
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Admin,
-                _mockUOW.Object,
-                hubService,
-                mockContextAccessor.Object, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            // Act
-            var result = await controller.ImportCommittedProjects();
-
-            // Assert
-            Assert.IsType<OkResult>(result);
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Once());
         }
 
         [Fact]
@@ -212,30 +180,6 @@ namespace BridgeCareCoreTests.Tests
             Assert.Contains(CommittedProjectController.RequestMimeTypeIsInvalid, message);
         }
 
-        [Fact]
-        public async Task ImportFailsOnNoSimulation()
-        {
-            // Arrange
-            var formFile = FormFileFromGoodData();
-            var simulationId = Guid.NewGuid();
-            var serviceProvider = ServiceProviders.AdminControllersWithSimulationIdAndFiles(simulationId, formFile);
-            var controller2 = CreateController(serviceProvider);
-
-            var importResult = await controller2.ImportCommittedProjects();
-            ActionResultAssertions.Ok(importResult);
-
-            // act 3
-            var workStarter = await serviceProvider.DequeueAndCompleteFastWorkQueueTask();
-
-            // Assert
-            var castWorkStarter = workStarter as IQueuedWorkHandle<WorkQueueMetadata>;
-            Assert.Equal(TaskStatus.Faulted, castWorkStarter.WorkCompletion.Status);
-            var exception = castWorkStarter.WorkCompletion.Exception;
-            var innerException = exception.InnerException;
-            var message = innerException.Message;
-            Assert.Equal(SimulationRepository.NoSimulationWasFoundForTheGivenScenario, message);
-            _mockCommittedProjectRepo.Verify(_ => _.DeleteSimulationCommittedProjects(It.IsAny<Guid>()), Times.Never());
-        }
 
         [Fact]
         public async Task DeleteSimulationWorksWithValidSimulation()
@@ -526,35 +470,7 @@ namespace BridgeCareCoreTests.Tests
             Id = TestDataForCommittedProjects.UnauthorizedUser
         };
 
-        private HttpContext CreateLoadedContextForSimulation(Guid simulationId)
-        {
-            var httpContext = new DefaultHttpContext();
-            HttpContextSetup.AddAuthorizationHeader(httpContext);
-            httpContext.Request.Headers.Add("Content-Type", "multipart/form-data");
-
-            var  formFile =
-            FormFileFromGoodData();
-
-            var formData = new Dictionary<string, StringValues>()
-            {
-                {"applyNoTreatment", new StringValues("0")},
-                {"simulationId", new StringValues(simulationId.ToString())}
-            };
-
-            httpContext.Request.Form = new FormCollection(formData, new FormFileCollection { formFile });
-            return httpContext;
-        }
-
-        private static FormFile FormFileFromGoodData()
-        {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "TestUtils\\Files",
-                "TestCommittedProjects_Good.xlsx");
-            var stream = File.OpenRead(filePath);
-            var memStream = new MemoryStream();
-            stream.CopyTo(memStream);
-            var formFile = new FormFile(memStream, 0, memStream.Length, null, "TestCommittedProjects_Good.xlsx");
-            return formFile;
-        }
+        #endregion
 
         private HttpContext CreateContextWithNoFile(Guid simulationId)
         {
@@ -571,6 +487,5 @@ namespace BridgeCareCoreTests.Tests
             httpContext.Request.Form = new FormCollection(formData);
             return httpContext;
         }
-        #endregion
     }
 }

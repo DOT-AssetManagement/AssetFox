@@ -5,7 +5,6 @@ using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -41,7 +40,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 
         private static readonly object NetworkCreationLock = new object();
         private static NetworkEntity CacheNetworkEntity = null;
-
 
         public static NetworkEntity CreateNetwork(UnitOfDataPersistenceWork unitOfWork)
         {
