@@ -73,7 +73,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { Role.ReadOnly });
+            var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.ReadOnly });
             var user = ClaimsPrincipals.WithNameClaims(claims);            // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
@@ -93,7 +93,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
+            var claims = roleClaimsMapper.GetClaims(SecurityTypes.B2C, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
