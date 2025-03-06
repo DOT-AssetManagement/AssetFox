@@ -160,16 +160,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // No assert required as long as it works
         }
 
-        [Fact(Skip = "Unable to run with BulkExtensions")]
-        public void DeleteSpecificWorksWithValidProject()
-        {
-            // Arrange
-            var repo = new CommittedProjectRepository(_testUOW);
-            var projectsToDelete = TestDataForCommittedProjects.ValidCommittedProjects.Select(_ => _.Id).ToList();
 
-            // Act
-            repo.DeleteSpecificCommittedProjects(projectsToDelete);
-        }
 
         [Fact]
         public void DeleteSpecificHandlesInvalidProject()
