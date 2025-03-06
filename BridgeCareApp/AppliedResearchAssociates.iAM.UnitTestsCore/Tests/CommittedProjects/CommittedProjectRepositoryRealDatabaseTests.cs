@@ -24,27 +24,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
 {
     public class CommittedProjectRepositoryRealDatabaseTests
     {
-        [Fact(Skip = "Test is not dependent on the No Treatment Before Committed Project Flag")]
-        public void NoTreatmentBeforeCommittedProjects_GetSimulationCommittedProjects_Expected()
-        {
-            // Arrange
-            var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
-            var inputSimulationEntity = TestEntitiesForCommittedProjects.Simulations.Single(_ => _.Name == "FourYearTest");
-            //var simulationDomain = CreateSimulation(inputSimulationEntity.Id, _testUOW);
-            //var simulationEntity = _testUOW.Context.Simulation.Single(s => s.Id == simulationDomain.Id);
-            //simulationEntity.NoTreatmentBeforeCommittedProjects = true;
-            //_testUOW.Context.Simulation.Update(simulationEntity);
-            //_testUOW.Context.SaveChanges();
-
-            //// Act
-            //repo.GetSimulationCommittedProjects(simulationDomain);
-
-            //// Assert
-            //var committedProjectNames = simulationDomain.CommittedProjects.Select(cp => cp.Name).ToList();
-            //Assert.Equal(4, simulationDomain.CommittedProjects.Count);
-            //Assert.Equal(10000, simulationDomain.CommittedProjects.Sum(_ => _.Cost));
-            //Assert.Equal(3, simulationDomain.CommittedProjects.Count(_ => _.Name != "Something"));
-        }
 
         [Fact]
         public async Task DeleteSpecificWorksWithValidProject()
@@ -55,7 +34,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Set up a network with maintainable assets
             Guid networkId = Guid.NewGuid();
             var maintainableAssets = new List<MaintainableAsset>();
-            var assetId = TestDataForCommittedProjects.MaintainableAssetId1;
+            var assetId = Guid.NewGuid();
             var locationIdentifier = RandomStrings.WithPrefix("Location");
             var location = Locations.Section(locationIdentifier);
             var maintainableAsset = new MaintainableAsset(assetId, networkId, location, "[Deck_Area]");
@@ -63,7 +42,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var maintainableAssetLocation = new MaintainableAssetLocationEntity()
             {
                 Id = Guid.NewGuid(),
-                LocationIdentifier = "3",
+                LocationIdentifier = "353",
                 Discriminator = DataPersistenceConstants.SectionLocation,
             };
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
@@ -92,7 +71,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulation.Id);
 
             // Set up committed projects for the test
-            List<SectionCommittedProjectDTO> sectionCommittedProjects = CreateTestCommittedProjects(simulation.Id);
+            var committedProjectId1 = Guid.NewGuid();
+            var committedProjectId2 = Guid.NewGuid();
+            List<SectionCommittedProjectDTO> sectionCommittedProjects = CreateTestCommittedProjects(simulation.Id, committedProjectId1, committedProjectId2);
             var budgetName = RandomStrings.WithPrefix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.New(budgetId, budgetName);
@@ -139,7 +120,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, maintainableAssets, networkId, TestAttributeIds.CulvDurationNId);
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             // Setup a simulation based on network
-            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, Guid.Parse("dcdacfde-02da-4109-b8aa-add932756dee"), "Test Simulation", user.Id, networkId);
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, "Test Simulation", user.Id, networkId);
             simulation.NetworkId = network.Id;
             var ip = InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulation.Id, null, 2023, 2);
             // Set up a selectable treatment for the test with sample budgets
@@ -158,7 +140,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulation.Id);
 
             // Set up committed projects for the test
-            List<SectionCommittedProjectDTO> sectionCommittedProjects = CreateTestCommittedProjects(simulation.Id);
+            var committedProjectId1 = Guid.NewGuid();
+            var committedProjectId2 = Guid.NewGuid();
+            List<SectionCommittedProjectDTO> sectionCommittedProjects = CreateTestCommittedProjects(simulation.Id, committedProjectId1, committedProjectId2);
             var budgetName = RandomStrings.WithPrefix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.New(budgetId, budgetName);
@@ -248,11 +232,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             Assert.Throws<RowNotInTableException>(() => repo.DeleteSimulationCommittedProjects(nonexistentSimulationId));
         }
 
-        private List<SectionCommittedProjectDTO> CreateTestCommittedProjects(Guid simulationId)
+        private List<SectionCommittedProjectDTO> CreateTestCommittedProjects(Guid simulationId, Guid committedProjectId1, Guid committedProjectId2)
         {
             List<SectionCommittedProjectDTO> testCommittedProjects = new List<SectionCommittedProjectDTO>();
-            var committedProject = SectionCommittedProjectDtos.Dto1(TestDataForCommittedProjects.CommittedProjectId2, simulationId);
-            var committedProject2 = SectionCommittedProjectDtos.Dto2(Guid.Parse("c6fd501b-83f3-49e0-a728-8444c14b6262"), simulationId);
+            var committedProject = SectionCommittedProjectDtos.Dto1(committedProjectId1, simulationId);
+            var committedProject2 = SectionCommittedProjectDtos.Dto2(committedProjectId2, simulationId);
             testCommittedProjects.Add(committedProject);
             testCommittedProjects.Add(committedProject2);
             return testCommittedProjects;
