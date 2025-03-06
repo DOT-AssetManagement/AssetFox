@@ -88,7 +88,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     return;
                 }
 
-                _unitOfWork.Context.DeleteAll<SimulationOutputEntity>(_ => _.SimulationId == simulationId);
+                // Getting exception
+                // TODO need to write method for DeleteSimulationOutput which will delete using stored proc call with param for simulationOutputId. See how simulation delete works.
+                //_unitOfWork.Context.DeleteAll<SimulationOutputEntity>(_ => _.SimulationId == simulationId);
 
                 var simulationOutputEntity = SimulationOutputMapper.ToEntityWithoutAssetsOrYearDetails(simulationOutput, simulationId, attributeIdLookup);
                 _ = _unitOfWork.Context.Add(simulationOutputEntity);
@@ -122,7 +124,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     _ = _unitOfWork.Context.Add(yearDetail);
 
                     var assets = year.Assets;
-                    // TODO add data per new updates to DB wherever applicable
                     var assetFamily = AssetDetailMapper.ToEntityFamily(assets, yearDetail.Id, attributeIdLookup);
 
                     _unitOfWork.Context.AddAll(assetFamily.AssetDetails, batchSize: batchSize);
@@ -141,7 +142,19 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisions.Count} treatmentSchedulingCollisions");
 
                     _unitOfWork.Context.AddAll(assetFamily.TreatmentConsiderations, batchSize: batchSize);
-                    _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisions.Count} treatmentConsiderations");
+                    _ = saveMemos.Mark($" {assetFamily.TreatmentConsiderations.Count} treatmentConsiderations");
+                                        
+                    _unitOfWork.Context.AddAll(assetFamily.FundingCalculationInputs, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.FundingCalculationInputs.Count} fundingCalculationInputs");
+
+                    _unitOfWork.Context.AddAll(assetFamily.CurrentBudgetsToSpend, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.CurrentBudgetsToSpend.Count} currentBudgetsToSpend");
+
+                    _unitOfWork.Context.AddAll(assetFamily.FundingCalculationOutputs, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.FundingCalculationOutputs.Count} fundingCalculationOutputs");
+
+                    _unitOfWork.Context.AddAll(assetFamily.AllocationMatrix, batchSize: batchSize);
+                    _ = saveMemos.Mark($" {assetFamily.AllocationMatrix.Count} allocationMatrix");
 
                     _unitOfWork.Context.AddAll(assetFamily.CashFlowConsiderations, batchSize: batchSize);
                     _ = saveMemos.Mark($" {assetFamily.CashFlowConsiderations.Count} cashFlowConsiderations");
@@ -153,7 +166,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     _ = saveMemos.Mark(" Cleared ChangeTracker");
                 }
 
-                saveMemos.MarkInformation("Save complete", loggerForTechnicalInfo);
+                _ = saveMemos.MarkInformation("Save complete", loggerForTechnicalInfo);
                 _ = simulationMemos.Mark("Save complete");
 
                 if (ShouldHackSaveTimingsToFile)
@@ -405,7 +418,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 domainYear.Assets.AddRange(assets.Values);
                 foreach (var asset in domainYear.Assets)
                 {
-                    AssetDetailValueMapper.FillArea(asset.ValuePerNumericAttribute);
+                    AssetDetailValueMapper.FillArea(asset.ValuePerNumericAttribute);// TODO check if needed and what alternative?
                 }
             }
             domain.Years.Sort((y1, y2) => y1.Year.CompareTo(y2.Year));

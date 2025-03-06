@@ -71,21 +71,24 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             List<TreatmentConsiderationDetail> treatmentConsiderations
             )
         {
-            foreach (var consideration in treatmentConsiderations)
+            foreach (var treatmentConsideration in treatmentConsiderations)
             {
-                var entity = ToEntityWithoutChildren(consideration, assetDetailId);
-                family.TreatmentConsiderations.Add(entity);
-
-                var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToEntityList(consideration.CashFlowConsiderations, entity.Id);
+                var entity = ToEntityWithoutChildren(treatmentConsideration, assetDetailId);
+                
+                var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToEntityList(treatmentConsideration.CashFlowConsiderations, entity.Id);
                 family.CashFlowConsiderations.AddRange(cashFlowConsiderations);
 
                 // FundingCalculationInput
-                var fundingCalculationInput = FundingCalculationInputMapper.ToEntity(consideration.FundingCalculationInput, entity.Id, family);
+                var fundingCalculationInput = FundingCalculationInputMapper.ToEntity(treatmentConsideration.FundingCalculationInput, entity.Id, family);
+                entity.FundingCalculationInputId = fundingCalculationInput.Id;
                 family.FundingCalculationInputs.Add(fundingCalculationInput);
 
                 // FundingCalculationOutput
-                var fundingCalculationOutput = FundingCalculationOutputMapper.ToEntity(consideration.FundingCalculationOutput, entity.Id, family);
+                var fundingCalculationOutput = FundingCalculationOutputMapper.ToEntity(treatmentConsideration.FundingCalculationOutput, entity.Id, family);
+                entity.FundingCalculationOutputId = fundingCalculationOutput.Id;
                 family.FundingCalculationOutputs.Add(fundingCalculationOutput);
+
+                family.TreatmentConsiderations.Add(entity);
             }
         }
     }

@@ -19,7 +19,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var entity = ToEntityWithoutChildren(treatmentConsiderationDetailEntityId);
 
             // CurrentBudgetsToSpend
-            var currentBudgetsToSpend = BudgetToSpendMapper.ToEntityList(fundingCalculationInput.CurrentBudgetsToSpend, entity.Id);
+            var currentBudgetsToSpend = BudgetToSpendMapper.ToEntityList(fundingCalculationInput?.CurrentBudgetsToSpend ?? new(), entity.Id);
             family.CurrentBudgetsToSpend.AddRange(currentBudgetsToSpend);
 
             return entity;

@@ -19,7 +19,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var entity = ToEntityWithoutChildren(treatmentConsiderationDetailEntityId);
 
             // AllocationMatrix
-            var allocationMatrix = AllocationMapper.ToEntityList(fundingCalculationOutput.AllocationMatrix, entity.Id);
+            var allocationMatrix = AllocationMapper.ToEntityList(fundingCalculationOutput?.AllocationMatrix ?? new(), entity.Id);
             family.AllocationMatrix.AddRange(allocationMatrix);
 
             return entity;
