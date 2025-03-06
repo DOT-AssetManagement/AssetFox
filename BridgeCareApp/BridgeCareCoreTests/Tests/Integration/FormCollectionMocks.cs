@@ -6,15 +6,6 @@ namespace BridgeCareCoreTests.Tests.Integration
 {
     public static class FormCollectionMocks
     {
-        public static IFormCollection FormWithFiles(IFormFile[] files)
-        {
-            var mock = new Mock<IFormCollection>();
-            var formFileCollection = new FormFileCollection();
-            formFileCollection.AddRange(files);
-            mock.Setup(m => m.Files).Returns(formFileCollection);
-            return mock.Object;
-        }
-
         public static IFormCollection FormWithSimulationIdAndFiles(Guid simulationId, params IFormFile[] files)
         {
             var mock = FormWithIdAndFiles("simulationId", simulationId, files);

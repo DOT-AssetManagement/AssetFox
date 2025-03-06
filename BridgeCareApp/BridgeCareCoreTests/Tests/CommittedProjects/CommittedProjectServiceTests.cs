@@ -177,7 +177,6 @@ namespace BridgeCareCoreTests.Tests
             Assert.Equal(2023, testInput[1].Year);
         }
 
-        [Fact(Skip = "potentially no longer relevant with changes to no treatment in imports")]
         public void ImportCreatesValidRecordsWithNoTreatment()
         {
             // Arrange
