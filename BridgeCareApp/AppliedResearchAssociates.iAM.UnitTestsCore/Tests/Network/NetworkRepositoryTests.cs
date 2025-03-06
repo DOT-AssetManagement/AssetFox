@@ -79,7 +79,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Null(simulationEntityAfter);
         }
 
-        [Fact (Skip ="Unskip before PR")]
+        [Fact]
         public async Task DeleteNetwork_NetworkInDbWithBenefitQuantifier_Deletes()
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -91,6 +91,66 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var committedProjectsAfter = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulation.Id);
             Assert.Equal(committedProjectsBefore.Count - 1, committedProjectsAfter.Count);
             ObjectAssertions.Equivalent(committedProjectsBefore[1], committedProjectsAfter[0]);
+        }
+
+        [Fact]
+        public async Task UpsertWorksForValidCommittedProjects()
+        {
+            // Arrange
+            var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
+
+            // Set up a network with maintainable assets
+            Guid networkId = Guid.NewGuid();
+            var maintainableAssets = new List<MaintainableAsset>();
+            var assetId = Guid.NewGuid();
+            var locationIdentifier = RandomStrings.WithPrefix("Location");
+            var location = Locations.Section(locationIdentifier);
+            var maintainableAsset = new MaintainableAsset(assetId, networkId, location, "[Deck_Area]");
+            var maintainableAssetEntity = maintainableAsset.ToEntity(networkId);
+            var maintainableAssetLocation = new MaintainableAssetLocationEntity()
+            {
+                Id = Guid.NewGuid(),
+                LocationIdentifier = "3",
+                Discriminator = DataPersistenceConstants.SectionLocation,
+            };
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            maintainableAssetEntity.MaintainableAssetLocation = maintainableAssetLocation;
+            var testMaintainableAsset = maintainableAssetEntity.ToDomain(locationIdentifier);
+            maintainableAssets.Add(testMaintainableAsset);
+            var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, maintainableAssets, networkId, TestAttributeIds.CulvDurationNId);
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            // Setup a simulation based on network
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, "Test Simulation", user.Id, networkId);
+            simulation.NetworkId = network.Id;
+            var ip = InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulation.Id, null, 2023, 2);
+            // Set up a selectable treatment for the test with sample budgets
+            var treatmentbudget = TreatmentBudgetDtos.Dto();
+            var libraryId = Guid.NewGuid();
+            var treatmentId = Guid.NewGuid();
+            var treatment = TreatmentDtos.DtoWithEmptyCostsAndConsequencesLists(treatmentId);
+            var costId = Guid.NewGuid();
+            var costLibraryId = Guid.NewGuid();
+            var insertCostEquationId = Guid.NewGuid();
+            var cost = TreatmentCostDtos.WithEquationAndCriterionLibrary(costId, insertCostEquationId, costLibraryId, "equation", "mergedCriteriaExpression");
+            treatment.Costs.Add(cost);
+            treatment.Budgets = new List<TreatmentBudgetDTO>() { treatmentbudget };
+            treatment.BudgetIds = new List<Guid> { };
+            var treatments = new List<TreatmentDTO> { treatment };
+            TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulation.Id);
+
+            // Set up committed projects for the test
+            var committedProjectId1 = Guid.NewGuid();
+            var committedProjectId2 = Guid.NewGuid();
+            List<SectionCommittedProjectDTO> sectionCommittedProjects = CreateTestCommittedProjects(simulation.Id, committedProjectId1, committedProjectId2);
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.New(budgetId, budgetName);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, budgetDtos, simulation.Id);
+
+            sectionCommittedProjects.ForEach(_ => _.ScenarioBudgetId = budgetId);
+            TestHelper.UnitOfWork.CommittedProjectRepo.UpsertCommittedProjects(sectionCommittedProjects);
         }
 
         [Fact]

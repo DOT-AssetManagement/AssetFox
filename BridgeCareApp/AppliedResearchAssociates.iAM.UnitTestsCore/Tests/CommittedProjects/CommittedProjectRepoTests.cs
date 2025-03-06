@@ -98,18 +98,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             Assert.Throws<RowNotInTableException>(() => repo.GetCommittedProjectsForExport(_badScenario));
         }
 
-        [Fact(Skip = "Unable to run with BulkExtensions")]
-        public void UpsertWorksForValidCommittedProjectData()
-        {
-            // Arrange
-            var repo = new CommittedProjectRepository(_testUOW);
-            var newProjects = TestDataForCommittedProjects.ValidCommittedProjects;
-            newProjects.ForEach(_ => _.SimulationId = TestDataForCommittedProjects.NoCommitSimulationId);
-
-            // Act
-            repo.UpsertCommittedProjects(newProjects);
-        }
-
         [Fact]
         public void UpsertHandlesBadSimulationId()
         {
