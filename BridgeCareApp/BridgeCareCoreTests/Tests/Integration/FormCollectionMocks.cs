@@ -4,6 +4,7 @@ using Moq;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
+    // WJPRQ from the rejected branch
     public static class FormCollectionMocks
     {
         public static IFormCollection FormWithSimulationIdAndFiles(Guid simulationId, params IFormFile[] files)
@@ -11,7 +12,6 @@ namespace BridgeCareCoreTests.Tests.Integration
             var mock = FormWithIdAndFiles("simulationId", simulationId, files);
             return mock;
         }
-
         /// <summary>Puts the passed-in files into the a form collection. Sets up
         /// the mock to return the form collection. Also sets it up to return the given id
         /// for the requested key when TryGetValue is called.</summary> 

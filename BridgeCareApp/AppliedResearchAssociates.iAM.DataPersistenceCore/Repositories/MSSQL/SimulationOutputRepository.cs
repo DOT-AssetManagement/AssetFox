@@ -259,6 +259,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return null;
         }
 
+        // WJPRQ -- I wrote this method. It was a lot of work to get it reasonably optimized.
+        // But currently the relational form of the simulation output is
+        // write only. So now this method is called only from tests.
+        // Should we delete it and the tests?
         public SimulationOutput GetSimulationOutputViaRelation(Guid simulationId, ILog loggerForUserInfo = null, ILog loggerForTechinalInfo = null)
         {
             loggerForUserInfo ??= new DoNotLog();

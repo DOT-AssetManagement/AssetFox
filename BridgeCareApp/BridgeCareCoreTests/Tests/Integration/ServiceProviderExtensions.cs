@@ -23,6 +23,10 @@ namespace BridgeCareCoreTests.Tests.Integration
             return workStarter;
         }
 
+        // WJPRQ This method was taken from the branch that was rejected by
+        // both Jake and Lax. It does allow some tests to pass that
+        // otherwise would not. If y'all don't want it, it might be possible
+        // to test a different portion of the code in those tests. I could look into that.
         public static async Task<IWorkStarter> DequeueAndCompleteFastWorkQueueTask(this IServiceProvider serviceProvider)
         {
             var workQueue = serviceProvider.GetService(typeof(FastSequentialworkQueue<WorkQueueMetadata>)) as FastSequentialworkQueue<WorkQueueMetadata>;
