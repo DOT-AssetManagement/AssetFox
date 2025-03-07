@@ -68,20 +68,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return domain;
         }
 
-        internal static void AppendToDomainDictionary(
-            Dictionary<Guid, AssetDetail> dictionary,
-            ICollection<AssetDetailEntity> entityCollection,
-            int year,
-            Dictionary<Guid, string> attributeNameLookup,
-            Dictionary<Guid, string> assetNameLookup)
-        {
-            foreach (var entity in entityCollection)
-            {
-                var domain = ToDomain(entity, year, attributeNameLookup, assetNameLookup);
-                dictionary[entity.Id] = domain;
-            }
-        }
-
         internal static void AppendToDomainDictionaryWithValues(
             Dictionary<Guid, AssetDetail> dictionary,
             ICollection<AssetDetailEntity> entityCollection,

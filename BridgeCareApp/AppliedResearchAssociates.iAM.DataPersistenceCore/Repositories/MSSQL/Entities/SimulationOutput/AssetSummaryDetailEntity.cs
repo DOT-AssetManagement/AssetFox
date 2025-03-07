@@ -21,21 +21,5 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public virtual SimulationOutputEntity SimulationOutput { get; set; }        
 
         public virtual ICollection<AssetSummaryDetailValueEntityIntId> AssetSummaryDetailValuesIntId { get; set; }
-
-        // TODO check if data populating correctly in AssetSummaryDetailValuesIntId, if so, don't worry abt changing the structure to match to ValuePerNumericAttribute & ValuePerTextAttribute
-        // Reports will need re-work to utilize this info
-
-        // ** Below 2 are configured in AssetSummaryDetailValuesIntId
-
-        ///// <summary>
-        /////     List the current values of each numeric attribute for the asset.
-        ///// </summary>
-        //public Dictionary<string, double> ValuePerNumericAttribute { get; } = new();
-
-        ///// <summary>
-        /////     List the current values of each text attribute for the asset.
-        ///// </summary>
-        //public Dictionary<string, string> ValuePerTextAttribute { get; } = new();
-
     }
 }
