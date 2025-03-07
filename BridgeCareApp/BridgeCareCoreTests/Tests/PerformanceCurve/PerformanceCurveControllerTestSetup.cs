@@ -71,8 +71,8 @@ namespace BridgeCareCoreTests.Tests {
             Mock<IPerformanceCurvesService> performanceCurveServiceMock = null
             )
         {
-            var accessor = HttpContextAccessorMocks.WithClaims(contextAccessorClaims);
-            return CreateController(unitOfWork, accessor, hubServiceMock, performanceCurveServiceMock);
+            var accessor = HttpContextAccessorMocks.MockWithClaims(contextAccessorClaims);
+            return CreateController(unitOfWork, accessor.Object, hubServiceMock, performanceCurveServiceMock);
         }
         public static PerformanceCurveController CreateNonAdminController(
             Mock<IUnitOfWork> unitOfWork,

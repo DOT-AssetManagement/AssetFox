@@ -16,6 +16,7 @@ namespace BridgeCareCoreTests.Helpers
         public static void AddAuthorizationHeader(DefaultHttpContext context) =>
             context.Request.Headers.Add("Authorization", "Bearer abc123");
 
+        // WJPRQ Method is from rejected branch
         public static DefaultHttpContext WithAuthorizationHeader(Dictionary<string, StringValues> queryStore = null)
         {
             var context = new DefaultHttpContext();

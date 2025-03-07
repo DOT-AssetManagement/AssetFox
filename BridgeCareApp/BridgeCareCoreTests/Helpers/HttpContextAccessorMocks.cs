@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Security.Claims;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+﻿using System.Security.Claims;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.SecurityUtilsClasses;
 using Microsoft.AspNetCore.Http;
@@ -9,7 +7,6 @@ using Moq;
 
 namespace BridgeCareCoreTests
 {
-    // This class contains some hasty merges. It may need refactoring.
     public static class HttpContextAccessorMocks
     {
         public static Mock<IHttpContextAccessor> DefaultMock(
@@ -27,32 +24,17 @@ namespace BridgeCareCoreTests
             return mock;
         }
 
-        public static Mock<IHttpContextAccessor> MockWithAdminClaims(
-            Dictionary<string, StringValues> queryStore = null)
-        {
-            var claims = SystemSecurityClaimLists.Admin();
-            var mock = DefaultMock(claims, queryStore);
-            return mock;
-        }
-
-        public static Mock<IHttpContextAccessor> AdminWithFormCollection(IFormCollection requestFormCollection)
-        {
-            var mock = MockWithAdminClaims();
-            var httpContext = mock.Object.HttpContext;
-            httpContext.Request.Form = requestFormCollection;
-            return mock;
-        }
-
         public static IHttpContextAccessor Default(List<Claim> claims = null, Dictionary<string, StringValues> queryStore = null)
         {
             var mock = DefaultMock(claims, queryStore);
             return mock.Object;
         }
 
-        public static IHttpContextAccessor Admin(Dictionary<string, StringValues> queryStore = null)
+        public static Mock<IHttpContextAccessor> MockWithClaims(List<Claim> claims)
         {
-            var mock = MockWithAdminClaims(queryStore);
-            return mock.Object;
+            var mock = new Mock<IHttpContextAccessor>();
+            mock.AddClaims(claims);
+            return mock;
         }
 
         public static void AddClaims(this Mock<IHttpContextAccessor> mock, List<Claim> claims)
@@ -66,16 +48,12 @@ namespace BridgeCareCoreTests
             mock.Setup(_ => _.HttpContext).Returns(context);
         }
 
-        public static IHttpContextAccessor WithClaims(List<Claim> claims)
+        public static Mock<IHttpContextAccessor> AdminWithFormCollection(IFormCollection requestFormCollection)
         {
-            var mock = MockWithClaims(claims);
-            return mock.Object;
-        }
-
-        public static Mock<IHttpContextAccessor> MockWithClaims(List<Claim> claims)
-        {
-            var mock = new Mock<IHttpContextAccessor>();
-            mock.AddClaims(claims);
+            var claims = SystemSecurityClaimLists.Admin();
+            var mock = DefaultMock(claims);
+            var httpContext = mock.Object.HttpContext;
+            httpContext.Request.Form = requestFormCollection;
             return mock;
         }
     }
