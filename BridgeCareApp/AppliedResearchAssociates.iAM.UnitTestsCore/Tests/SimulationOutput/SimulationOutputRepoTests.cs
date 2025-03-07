@@ -50,7 +50,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             ObjectAssertions.EquivalentExcluding(simulationOutput, loadedOutput, so => so.LastModifiedDate);
         }
 
-        [Fact (Skip = "May be slow, depending on the batch size")]
+        [Fact]
         public void SaveSimulationOutputWithMoreAssetsThanBatchSize_ThenLoad_Same()
         {
             var numberOfAssets = 25 + SimulationOutputRepository.AssetLoadBatchSize;

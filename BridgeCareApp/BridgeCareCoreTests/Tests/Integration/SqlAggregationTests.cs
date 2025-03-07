@@ -18,6 +18,7 @@ using Xunit;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using BridgeCareCoreTests.Helpers;
 using AppliedResearchAssociates.iAM.Data.Mappers;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
@@ -26,6 +27,9 @@ namespace BridgeCareCoreTests.Tests.Integration
         [Fact]
         public async Task Aggregate_SqlDataSourceInDb_AttributesInDb_Aggregates()
         {
+            // WJPRQ -- what do we think of this test? It was skipped because at one point
+            // there was a push to remove the db from tests. That said, it still passes, and it actually
+            // runs a mini sql-based aggregation. The command for it is a bit weird.
             var config = TestConfiguration.Get();
             var connectionString = TestConnectionStrings.BridgeCare(config);
             var dataSourceDto = DataSourceTestSetup.DtoForSqlDataSourceInDb(TestHelper.UnitOfWork, connectionString);
@@ -53,14 +57,21 @@ namespace BridgeCareCoreTests.Tests.Integration
             var newAsset = new MaintainableAsset(maintainableAssetId, networkId, location, spatialWeightingValue);
             var assetList = new List<MaintainableAsset> { newAsset };
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
-
             var aggregationService = new AggregationService(TestHelper.UnitOfWork);
-
             var channel = Channel.CreateUnbounded<AggregationStatusMemo>();
             var aggregationState = new AggregationState();
             var attributes = new List<AttributeDTO> { districtAttribute };
+
             var aggregationResult = await aggregationService.AggregateNetworkData(channel.Writer, networkId, aggregationState, attributes);
+
             Assert.True(aggregationResult);
+            var attributeNames = new List<string> { districtAttribute.Name };
+            var aggregatedValues = TestHelper.UnitOfWork.AggregatedResultRepo.GetAggregatedResultsForAttributeNames(networkId, attributeNames);
+            var aggregatedValue = aggregatedValues.Single();
+            var textValue = aggregatedValue.TextValue;
+            var textValues = new List<string> { textValue };
+            var attributeWithMatchingName = TestHelper.UnitOfWork.AttributeRepo.GetAttributesWithNames(textValues);
+            Assert.Single(attributeWithMatchingName); // This passes because of the attribute's command. If the command changes, this will need to change too.
         }
     }
 }
