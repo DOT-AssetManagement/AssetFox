@@ -262,30 +262,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Null(investmentPlanEntityAfter);
         }
 
-        // [Fact]
-        [Fact(Skip = "Fails. Keeping around until related discussion is complete.")]
-        public async Task FailureInASingleTest()
-        {
-            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
-            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
-            // Set up a network with maintainable assets
-            Guid networkId = Guid.NewGuid();
-            var maintainableAssets = new List<MaintainableAsset>();
-            var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, maintainableAssets, networkId, TestAttributeIds.CulvDurationNId);
-            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            // Issue here is that the code lets us create a simulation owned by a nonexistent user.
-            var nonexistentUserId = Guid.NewGuid();
-            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, Guid.Parse("dcdacfde-02da-4109-b8aa-add932756dee"), "Test Simulation", nonexistentUserId, networkId);
-            // changing the owner Id to user.Id above causes this to pass.
-
-            // Arrange
-            var simulation2 = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-
-            // Act
-            //  TestHelper.UnitOfWork.SimulationRepo.DeleteSimulation(simulation.Id);
-            TestHelper.UnitOfWork.SimulationRepo.DeleteSimulation(simulation2.Id);
-        }
-
         [Fact]
         public void GetSimulationInNetwork_Does()
         {

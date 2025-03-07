@@ -124,18 +124,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             Assert.Contains("budget IDs", exception.Message);
         }
 
-        [Fact(Skip = "Unable to run with BulkExtensions")]
-        public void UpsertWorksWithNullBudgets()
-        {
-            // Arrange
-            var repo = new CommittedProjectRepository(_testUOW);
-            var newProjects = TestDataForCommittedProjects.ValidCommittedProjects;
-            newProjects.ForEach(_ => _.ScenarioBudgetId = null);
-
-            // Act
-            repo.UpsertCommittedProjects(newProjects);
-        }
-
         [Fact]
         public void DeleteSimulationHandlesSimulationWithNoCommitts()
         {
