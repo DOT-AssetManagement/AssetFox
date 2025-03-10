@@ -44,7 +44,6 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
 
         public FileInfoDTO ExportCommittedProjectsFile(Guid simulationId)
         {
-
             var simulation = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
             var keyProperties = _unitOfWork.AssetDataRepository.KeyProperties;
             var keyFields = keyProperties.Keys.Where(_ => _ != "ID").ToList();
@@ -58,7 +57,6 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                 keyFields,
                 keyProperties,
                 primaryKeyFieldNames.ToList());
-
 
             var fileInfo = exporter.ExportCommittedProjectsFile(simulationId);
             return fileInfo;

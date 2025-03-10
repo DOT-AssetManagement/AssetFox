@@ -1,5 +1,4 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Common;
+﻿using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
@@ -7,15 +6,12 @@ using BridgeCareCore.Controllers;
 using BridgeCareCore.StartupExtension;
 using BridgeCareCore.Utils;
 using BridgeCareCore.Utils.Interfaces;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.Integration;
 using BridgeCareCoreTests.Tests.Report;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BridgeCareCoreTests.Tests
 {
-
     public static class ServiceCollections
     {
         private static void AddTestUnitOfWork(this IServiceCollection serviceCollection)
