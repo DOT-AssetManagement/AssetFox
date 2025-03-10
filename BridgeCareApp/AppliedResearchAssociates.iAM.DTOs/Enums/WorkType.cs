@@ -17,5 +17,6 @@ namespace AppliedResearchAssociates.iAM.DTOs.Enums
         ImportScenarioTreatmentSupersedeRule,
         ImportLibraryTreatmentSupersedeRule,
         ImportCommittedProject,
+        DeleteSimulationOutput
     }
 }

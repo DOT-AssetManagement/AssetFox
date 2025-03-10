@@ -19,7 +19,8 @@
                             <template v-slot:prepend>
                                 <AttributesSvg id="EditAdmin-security-btn" style="height: 38px; width: 34px"  class="raw-data-icon" v-if="navigationTab.tabName === 'Security'"/>    
                                     <DataSourceSvg id="EditAdmin-site-btn" style="height: 30px; width: 36px" class="raw-data-icon" v-if="navigationTab.tabName === 'Site'"/>
-                                    <NetworksSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Data'"/>                            
+                                    <NetworksSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Data'"/>    
+                                    <NetworksSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Storage'"/>                          
                             </template>
                             <v-list-item-title style="width: auto; padding-left: 5px;" v-text="navigationTab.tabName"></v-list-item-title>
                         </v-list-item>
@@ -77,6 +78,13 @@ import { createDecipheriv } from 'crypto';
                 path: '/AdminData/',
             },
         },
+        {
+            tabName: 'Storage',
+            tabIcon: "",
+            navigation: {
+                path: '/AdminStorage/',
+            },
+        },
     ];
     created();
     function created(){
@@ -92,11 +100,9 @@ import { createDecipheriv } from 'crypto';
                             },
                         };
 
-                        if (navigationTab.tabName === 'DataSource' 
-                            || navigationTab.tabName === 'Networks' 
-                            || navigationTab.tabName === 'Attributes') {
-                            navigationTab['visible'] =hasAdminAccess.value;
-                        }
+                        
+                        navigationTab['visible'] =hasAdminAccess.value;
+                        
 
                         return navigationTab;
                     },

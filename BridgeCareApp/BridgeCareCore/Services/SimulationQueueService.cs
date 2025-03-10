@@ -191,6 +191,31 @@ namespace BridgeCareCore.Services
         {
             return domainId.ToString() + workType.ToString();
         }
+
+        public QueuedWorkDTO GetQueuedWorkByWorkType( WorkType workType)
+        {
+            var workQueue = _sequentialWorkQueue.Snapshot;
+
+            var work = workQueue.FirstOrDefault(_ => _.Metadata.WorkType == workType);
+
+            if (work != null)
+            {
+                return work.ToQueuedWorkDTO();
+            }
+            return null;
+        }
+        public QueuedWorkDTO GetFastQueuedWorkByWorkType(WorkType workType)
+        {
+            var workQueue = _fastSequentialWorkQueue.Snapshot;
+
+            var work = workQueue.FirstOrDefault(_ => _.Metadata.WorkType == workType);
+
+            if (work != null)
+            {
+                return work.ToQueuedWorkDTO();
+            }
+            return null;
+        }
     }
 
     public static class QueuedWorkTransform
