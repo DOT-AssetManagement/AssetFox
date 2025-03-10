@@ -51,15 +51,12 @@ namespace BridgeCareCoreTests.Tests.Integration
             var fileInfo = service.ExportCommittedProjectsFile(simulationId);
 
             var formFile = FormFiles.FromFileInfo(fileInfo);
-            var dataAsString = fileInfo.FileData;
-            var bytes = Convert.FromBase64String(dataAsString);
-            var stream = new MemoryStream(bytes);
-            var excelPackage = new ExcelPackage(stream);
-            var username = EsecSecurityMocks.AdminUsername;
+            var stream = formFile.OpenReadStream();
+            var excelPackage = new ExcelPackage(stream); // WJPRQ controller code
+            var username = TestUsernames.Admin;
             var workItem = new ImportCommittedProjectWorkItem(
                 simulationId, excelPackage, fileInfo.FileName,
-                username, simulation.Name);
-            // WJPRQ -- the lines above leading up to the creation of the work item duplicate controller code.
+                username, simulation.Name);  // WJPRQ controller code
             var serviceProvider = ServiceProviders.AdminControllersWithSimulationIdAndFiles(simulationId, formFile);
             var cancellationToken = new CancellationToken();
             workItem.DoWork(serviceProvider, (string str) => { }, cancellationToken);
