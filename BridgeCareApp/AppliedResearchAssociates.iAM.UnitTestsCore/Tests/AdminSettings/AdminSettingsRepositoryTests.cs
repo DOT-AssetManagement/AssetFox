@@ -25,6 +25,30 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
         }
 
         [Fact]
+        public void SetAssetType_ThenGet_Same()
+        {
+            var assetType = RandomStrings.WithPrefixAnd2CharSuffix("AssetType");
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetAssetType(assetType);
+            var assetTypeAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetAssetType();
+            var firstAssetTypeAfter = assetTypeAfter.Single();
+            Assert.Equal(assetType, firstAssetTypeAfter);
+        }
+
+        [Fact]
+        public void SetTwoAssetTypes_ThenGet_Same()
+        {
+            var assetType1 = RandomStrings.WithPrefixAnd2CharSuffix("AssetType1");
+            var assetType2 = RandomStrings.WithPrefixAnd2CharSuffix("AssetType2");
+            var assetTypes = new List<string> { assetType1, assetType2 };
+            var assetTypesString = $"{assetType1},{assetType2}";
+
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetAssetType(assetTypesString);
+            var assetTypesAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetAssetType();
+
+            Assert.Equivalent(assetTypes, assetTypesAfter);
+        }
+
+        [Fact]
         public void CreateAgencyLogo_Does()
         {
             var logoString = "agenlogo"; // length has to be a multiple of 4
