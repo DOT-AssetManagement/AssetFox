@@ -34,7 +34,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         public static NetworkEntity TestNetwork() => new NetworkEntity
         {
             Id = NetworkId,
-            Name = "Test Network",
+            Name = TestNetworkName,
             KeyAttributeId = TestAttributeIds.BrKeyId,
         };
 

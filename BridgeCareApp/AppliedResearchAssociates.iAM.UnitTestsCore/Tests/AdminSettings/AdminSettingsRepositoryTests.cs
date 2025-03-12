@@ -49,6 +49,55 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
         }
 
         [Fact]
+        public void SetSimulationReports_ThenGet_Same()
+        {
+            var reportName1 = RandomStrings.WithPrefixAnd2CharSuffix("Report1");
+            var reportName2 = RandomStrings.WithPrefixAnd2CharSuffix("Report2");
+            var reportNamesString = $"{reportName1},{reportName2}";
+
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetSimulationReports(reportNamesString);
+            var reportNamesAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetSimulationReportNames();
+
+            var expected = new List<string>{reportName1, reportName2};
+            ObjectAssertions.Equivalent(expected, reportNamesAfter);
+        }
+
+        [Fact]
+        public void SetImplementationName_ThenGet_Same()
+        {
+            var implementationName = RandomStrings.WithPrefixAnd2CharSuffix("ImplementationName");
+
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetImplementationName(implementationName);
+            var implementationNameAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetImplementationName();
+
+            Assert.Equal(implementationName, implementationNameAfter);
+        }
+
+        [Fact]
+        public void SetPrimaryNetwork_ThenGetPrimaryNetworkId_Expected()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetPrimaryNetwork(NetworkTestSetup.TestNetworkName);
+
+            var primaryNetworkId = TestHelper.UnitOfWork.AdminSettingsRepo.GetPrimaryNetworkId();
+            Assert.Equal(NetworkTestSetup.NetworkId, primaryNetworkId);
+        }
+
+        [Fact]
+        public void SetRawDataNetwork_ThenGetPrimaryNetworkId_Expected()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetRawDataNetwork(NetworkTestSetup.TestNetworkName);
+
+            var primaryNetworkId = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawDataNetworkId();
+            Assert.Equal(NetworkTestSetup.NetworkId, primaryNetworkId);
+        }
+
+        [Fact]
         public void CreateAgencyLogo_Does()
         {
             var logoString = "agenlogo"; // length has to be a multiple of 4
@@ -59,7 +108,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
             var fetchedLogo = TestHelper.UnitOfWork.AdminSettingsRepo.GetAgencyLogo();
             Assert.EndsWith(logoString, fetchedLogo);
         }
-
 
         [Fact]
         public void ChangeAgencyLogo_Does()

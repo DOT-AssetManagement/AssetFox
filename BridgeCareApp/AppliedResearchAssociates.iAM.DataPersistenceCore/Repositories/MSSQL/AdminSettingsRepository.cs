@@ -300,6 +300,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.SaveChanges();
         }
 
+        //WJPRQ -- delete this?
         public IList<string> GetAvailableReports()
         {
 
