@@ -16,6 +16,15 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
     public class AdminSettingsRepositoryTests
     {
         [Fact]
+        public void SetConstraintType_ThenGet_Same()
+        {
+            var constraintType = RandomStrings.WithPrefix("constraintType");
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetConstraintType(constraintType);
+            var constraintTypeAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetConstraintType();
+            Assert.Equal(constraintTypeAfter, constraintType);
+        }
+
+        [Fact]
         public void CreateAgencyLogo_Does()
         {
             var logoString = "agenlogo"; // length has to be a multiple of 4
