@@ -15,6 +15,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappe
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using EFCore.BulkExtensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -88,9 +89,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     return;
                 }
 
-                // Getting exception
-                // TODO need to write method for DeleteSimulationOutput which will delete using stored proc call with param for simulationOutputId. See how simulation delete works.
-                //_unitOfWork.Context.DeleteAll<SimulationOutputEntity>(_ => _.SimulationId == simulationId);
+                // delete existing simulation outputs
+                var toDelete = _unitOfWork.Context.SimulationOutput.Where(_ => _.SimulationId == simulationId).Select(_ => _.Id).ToList();
+                DeleteSimulationOutputs(toDelete);
+                _ = _unitOfWork.Context.SaveChanges();
 
                 var simulationOutputEntity = SimulationOutputMapper.ToEntityWithoutAssetsOrYearDetails(simulationOutput, simulationId, attributeIdLookup);
                 _ = _unitOfWork.Context.Add(simulationOutputEntity);
@@ -185,6 +187,31 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 _unitOfWork.Rollback();
                 throw;
             }
+        }
+
+        public void DeleteSimulationOutputs(List<Guid> simulationOutputIds)
+        {
+            if (!simulationOutputIds.Any())
+            {
+                return;
+            }
+
+            _unitOfWork.Context.Database.SetCommandTimeout(TimeSpan.FromSeconds(3600));
+
+            var simulationOutputIdsStr = string.Join(",", simulationOutputIds.Select(_ => _.ToString()));
+            // RegEx Explained: \s means "match any whitespace token", and + means "match one or more of the proceeding token
+            simulationOutputIdsStr = System.Text.RegularExpressions.Regex.Replace(simulationOutputIdsStr, @"\s+", string.Empty);
+
+            // Create parameters for the stored procedure
+            var retMessageParam = new SqlParameter("@RetMessage", SqlDbType.VarChar, 250);
+            retMessageParam.Direction = ParameterDirection.Output;
+            var simGuidListParam = new SqlParameter("@SimGuidList", simulationOutputIdsStr);
+
+            // Execute the stored procedure
+            var result = _unitOfWork.Context.Database.ExecuteSqlRaw("EXEC usp_delete_simulationoutput @SimGuidList, @RetMessage OUTPUT", simGuidListParam, retMessageParam);
+
+            // Capture the success output value
+            var retMessage = retMessageParam.Value as string;
         }
 
         public void CreateSimulationOutputViaJson(Guid simulationId, SimulationOutput simulationOutput)
@@ -432,7 +459,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             }
             return domain;
         }
-
 
         public SimulationOutput GetSimulationOutputViaJson(Guid simulationId)
         {

@@ -10,6 +10,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public ICollection<Allocation> AllocationMatrix { get; set; } = new HashSet<Allocation>();
 
         public Guid TreatmentConsiderationDetailId { get; set; }
+
+        public virtual TreatmentConsiderationDetailEntity TreatmentConsiderationDetail { get; set; }
     }
 
     public class Allocation

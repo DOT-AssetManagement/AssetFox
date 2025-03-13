@@ -10,6 +10,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public ICollection<BudgetToSpend> CurrentBudgetsToSpend { get; set; } = new HashSet<BudgetToSpend>();
 
         public Guid TreatmentConsiderationDetailId { get; set; }
+
+        public virtual TreatmentConsiderationDetailEntity TreatmentConsiderationDetail { get; set; }
     }
 
     public class BudgetToSpend

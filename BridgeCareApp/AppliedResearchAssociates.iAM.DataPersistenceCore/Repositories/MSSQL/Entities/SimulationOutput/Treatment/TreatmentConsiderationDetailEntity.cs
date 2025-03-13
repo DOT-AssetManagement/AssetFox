@@ -17,11 +17,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public string TreatmentName { get; set; }
 
-        public Guid FundingCalculationInputId { get; set; }
-
         public virtual FundingCalculationInput FundingCalculationInput { get; set; }
-
-        public Guid FundingCalculationOutputId {  get; set; }
 
         public virtual FundingCalculationOutput FundingCalculationOutput { get; set; }
     }

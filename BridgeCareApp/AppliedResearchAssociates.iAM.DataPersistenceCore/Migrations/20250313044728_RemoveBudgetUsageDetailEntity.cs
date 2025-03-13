@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 {
-    public partial class RemoveUnusedBudgetUsageDetailEntity : Migration
+    public partial class RemoveBudgetUsageDetailEntity : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

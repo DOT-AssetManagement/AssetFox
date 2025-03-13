@@ -80,12 +80,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
                 // FundingCalculationInput
                 var fundingCalculationInput = FundingCalculationInputMapper.ToEntity(treatmentConsideration.FundingCalculationInput, entity.Id, family);
-                entity.FundingCalculationInputId = fundingCalculationInput.Id;
                 family.FundingCalculationInputs.Add(fundingCalculationInput);
 
                 // FundingCalculationOutput
                 var fundingCalculationOutput = FundingCalculationOutputMapper.ToEntity(treatmentConsideration.FundingCalculationOutput, entity.Id, family);
-                entity.FundingCalculationOutputId = fundingCalculationOutput.Id;
                 family.FundingCalculationOutputs.Add(fundingCalculationOutput);
 
                 family.TreatmentConsiderations.Add(entity);

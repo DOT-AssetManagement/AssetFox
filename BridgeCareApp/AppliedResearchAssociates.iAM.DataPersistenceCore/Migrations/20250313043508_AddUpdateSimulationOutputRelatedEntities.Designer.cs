@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 {
     [DbContext(typeof(IAMContext))]
-    [Migration("20250228181639_RemoveUnusedBudgetUsageDetailEntity")]
-    partial class RemoveUnusedBudgetUsageDetailEntity
+    [Migration("20250313043508_AddUpdateSimulationOutputRelatedEntities")]
+    partial class AddUpdateSimulationOutputRelatedEntities
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -723,6 +723,35 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.ToTable("BudgetToSpend");
                 });
 
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.BudgetUsageDetailEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BudgetName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("CoveredCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TreatmentConsiderationDetailId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id")
+                        .IsUnique();
+
+                    b.HasIndex("TreatmentConsiderationDetailId");
+
+                    b.ToTable("BudgetUsageDetail");
+                });
+
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CashFlowConsiderationDetailEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1178,6 +1207,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TreatmentConsiderationDetailId")
+                        .IsUnique();
+
                     b.ToTable("FundingCalculationInput");
                 });
 
@@ -1191,6 +1223,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TreatmentConsiderationDetailId")
+                        .IsUnique();
 
                     b.ToTable("FundingCalculationOutput");
                 });
@@ -4694,22 +4729,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<int?>("BudgetPriorityLevel")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("FundingCalculationInputId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("FundingCalculationOutputId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AssetDetailId");
-
-                    b.HasIndex("FundingCalculationInputId");
-
-                    b.HasIndex("FundingCalculationOutputId");
 
                     b.HasIndex("Id")
                         .IsUnique();
@@ -5193,10 +5218,21 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.BudgetUsageDetailEntity", b =>
+                {
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", "TreatmentConsiderationDetail")
+                        .WithMany("BudgetUsageDetails")
+                        .HasForeignKey("TreatmentConsiderationDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TreatmentConsiderationDetail");
+                });
+
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CashFlowConsiderationDetailEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", "TreatmentConsiderationDetail")
-                        .WithMany("CashFlowConsiderationDetails")
+                        .WithMany("CashFlowConsiderations")
                         .HasForeignKey("TreatmentConsiderationDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -5307,7 +5343,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .IsRequired();
 
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationYearDetailEntity", "SimulationYearDetail")
-                        .WithMany("DeficientConditionGoalDetails")
+                        .WithMany("DeficientConditionGoals")
                         .HasForeignKey("SimulationYearDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -5326,6 +5362,28 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .IsRequired();
 
                     b.Navigation("DataSource");
+                });
+
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput", b =>
+                {
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", "TreatmentConsiderationDetail")
+                        .WithOne("FundingCalculationInput")
+                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput", "TreatmentConsiderationDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TreatmentConsiderationDetail");
+                });
+
+            modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput", b =>
+                {
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", "TreatmentConsiderationDetail")
+                        .WithOne("FundingCalculationOutput")
+                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput", "TreatmentConsiderationDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TreatmentConsiderationDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.InvestmentPlanEntity", b =>
@@ -6770,13 +6828,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TargetConditionGoalDetailEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AttributeEntity", "Attribute")
-                        .WithMany("TargetConditionGoalDetails")
+                        .WithMany("TargetConditionGoals")
                         .HasForeignKey("AttributeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationYearDetailEntity", "SimulationYearDetail")
-                        .WithMany("TargetConditionGoalDetails")
+                        .WithMany("TargetConditionGoals")
                         .HasForeignKey("SimulationYearDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -6808,28 +6866,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
-                        .WithMany("TreatmentConsiderationDetails")
+                        .WithMany("TreatmentConsiderations")
                         .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput", "FundingCalculationInput")
-                        .WithMany()
-                        .HasForeignKey("FundingCalculationInputId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput", "FundingCalculationOutput")
-                        .WithMany()
-                        .HasForeignKey("FundingCalculationOutputId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("AssetDetail");
-
-                    b.Navigation("FundingCalculationInput");
-
-                    b.Navigation("FundingCalculationOutput");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentLibraryUserEntity", b =>
@@ -6854,7 +6896,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentOptionDetailEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
-                        .WithMany("TreatmentOptionDetails")
+                        .WithMany("TreatmentOptions")
                         .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -6865,7 +6907,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentRejectionDetailEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
-                        .WithMany("TreatmentRejectionDetails")
+                        .WithMany("TreatmentRejections")
                         .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -6876,7 +6918,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentSchedulingCollisionDetailEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
-                        .WithMany("TreatmentSchedulingCollisionDetails")
+                        .WithMany("TreatmentSchedulingCollisions")
                         .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -6915,13 +6957,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 {
                     b.Navigation("AssetDetailValuesIntId");
 
-                    b.Navigation("TreatmentConsiderationDetails");
+                    b.Navigation("TreatmentConsiderations");
 
-                    b.Navigation("TreatmentOptionDetails");
+                    b.Navigation("TreatmentOptions");
 
-                    b.Navigation("TreatmentRejectionDetails");
+                    b.Navigation("TreatmentRejections");
 
-                    b.Navigation("TreatmentSchedulingCollisionDetails");
+                    b.Navigation("TreatmentSchedulingCollisions");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetSummaryDetailEntity", b =>
@@ -6972,7 +7014,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Navigation("ScenarioTreatmentConsequences");
 
-                    b.Navigation("TargetConditionGoalDetails");
+                    b.Navigation("TargetConditionGoals");
 
                     b.Navigation("TextAttributeValueHistories");
 
@@ -7412,14 +7454,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Navigation("Budgets");
 
-                    b.Navigation("DeficientConditionGoalDetails");
+                    b.Navigation("DeficientConditionGoals");
 
-                    b.Navigation("TargetConditionGoalDetails");
+                    b.Navigation("TargetConditionGoals");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", b =>
                 {
-                    b.Navigation("CashFlowConsiderationDetails");
+                    b.Navigation("BudgetUsageDetails");
+
+                    b.Navigation("CashFlowConsiderations");
+
+                    b.Navigation("FundingCalculationInput");
+
+                    b.Navigation("FundingCalculationOutput");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.UserEntity", b =>
