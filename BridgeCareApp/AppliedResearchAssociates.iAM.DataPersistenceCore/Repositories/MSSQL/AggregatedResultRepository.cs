@@ -64,6 +64,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.SaveChanges();
         }
 
+        /// WJPRQ -- method is not called anywhere. Delete?
         public void CreateAggregatedResults<T>(
             Dictionary<(Guid maintainableAssetId, Guid attributeId), IAttributeValueHistory<T>>
                 attributeValueHistoryPerMaintainableAssetIdAttributeIdTuple)

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+﻿using System.Threading.Channels;
 using AppliedResearchAssociates.iAM.Data;
+using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
@@ -13,12 +10,7 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services.Aggregation;
-using OfficeOpenXml;
 using Xunit;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using BridgeCareCoreTests.Helpers;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
@@ -30,6 +22,8 @@ namespace BridgeCareCoreTests.Tests.Integration
             // WJPRQ -- what do we think of this test? It was skipped because at one point
             // there was a push to remove the db from tests. That said, it still passes, and it actually
             // runs a mini sql-based aggregation. The command for it is a bit weird.
+            // Depending on the answer to the above, may want to do additional tests on AggregatedResultRepository.
+            // There are several untested methods.
             var config = TestConfiguration.Get();
             var connectionString = TestConnectionStrings.BridgeCare(config);
             var dataSourceDto = DataSourceTestSetup.DtoForSqlDataSourceInDb(TestHelper.UnitOfWork, connectionString);
