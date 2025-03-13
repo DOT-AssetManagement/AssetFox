@@ -12539,11 +12539,11 @@ BEGIN
 
                     INSERT INTO #SimOutputTempGuids (Guid)
     	            SELECT LEFT(LTRIM(RTRIM(value)), 36)
-                    FROM STRING_SPLIT(@SimOutputGuidList, ',');
+                    FROM STRING_SPLIT(@SimOutputGuidList, '','');
 
     	            UPDATE #SimOutputTempGuids
     	            SET Guid = ''00000000-0000-0000-0000-000000000000''
-    	            WHERE TRY_CAST(Guid AS UNIQUEIDENTIFIER) IS NULL OR Guid = '';
+    	            WHERE TRY_CAST(Guid AS UNIQUEIDENTIFIER) IS NULL OR Guid = '''';
     	
     	            Begin Transaction
     	            BEGIN TRY
@@ -12882,8 +12882,8 @@ BEGIN
                                        ,ERROR_MESSAGE() AS ErrorMessage;
 
      		                     SELECT @CustomErrorMessage = ''Query Error in TreatmentConsiderationDetail''
-								 Set @RetMessage = @CustomErrorMessage;
-    		                     RAISERROR (@CustomErrorMessage, 16, 1);    				             
+                                 RAISERROR (@CustomErrorMessage, 16, 1);
+								 Set @RetMessage = @CustomErrorMessage;    		                         				             
 
                             END CATCH
     	
