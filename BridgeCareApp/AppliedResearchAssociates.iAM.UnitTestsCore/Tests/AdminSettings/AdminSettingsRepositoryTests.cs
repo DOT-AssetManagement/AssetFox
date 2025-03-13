@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Data;
 using AppliedResearchAssociates.iAM.Data.Networking;
@@ -305,6 +306,16 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
 
             var singleInventoryReportsAfter = inventoryReportsAfter.Single();
             Assert.Equal(inventoryReport, singleInventoryReportsAfter);
+        }
+
+        [Fact]
+        public void SetImplementationLogoImage_ThenGet_ExpectedInitialSubstring()
+        {
+            using var image = Images.Image(50, 1, Color.AliceBlue);
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetImplementationLogo(image, "image/png");
+
+            var imageAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetImplementationLogo();
+            Assert.StartsWith("data:image/png;base64", imageAfter);
         }
 
         [Fact]
