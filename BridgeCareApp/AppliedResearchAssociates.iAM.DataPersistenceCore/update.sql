@@ -12639,7 +12639,36 @@ BEGIN
 
     			            -----Start SimulationYearDetail Path-----------------------------------------
 
-    			            ----SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentConsiderationDetail --> BudgetUsageDetail -- REMOVED PER SCHEMA UPDATES
+    			            --SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentConsiderationDetail --> BudgetUsageDetail 
+
+    			            BEGIN TRY
+
+                            ALTER TABLE BudgetUsageDetail NOCHECK CONSTRAINT all
+
+    			            Delete l5 
+    			            FROM SimulationOutput AS l1
+    			            JOIN SimulationYearDetail AS l2 ON l2.SimulationOutputId = l1.Id
+    			            JOIN AssetDetail AS l3 ON l3.SimulationYearDetailId = l2.Id
+    			            JOIN TreatmentConsiderationDetail AS l4 ON l4.AssetDetailId = l3.Id
+    			            JOIN BudgetUsageDetail AS l5 ON l5.TreatmentConsiderationDetailId = l4.Id
+    			            WHERE l1.Id IN (SELECT Guid FROM #SimOutputTempGuids);
+
+                            ALTER TABLE BudgetUsageDetail WITH CHECK CHECK CONSTRAINT all
+
+                            END TRY 
+    			            BEGIN CATCH
+                                 SELECT ERROR_NUMBER() AS ErrorNumber
+                                       ,ERROR_SEVERITY() AS ErrorSeverity
+                                       ,ERROR_STATE() AS ErrorState
+                                       ,ERROR_PROCEDURE() AS ErrorProcedure
+                                       ,ERROR_LINE() AS ErrorLine
+                                       ,ERROR_MESSAGE() AS ErrorMessage;
+
+     		                     SELECT @CustomErrorMessage = ''Query Error in BudgetUsageDetail''
+    		                     RAISERROR (@CustomErrorMessage, 16, 1);
+    				             Set @RetMessage = @CustomErrorMessage;
+
+                            END CATCH
     	
     	            ------------------------------------------------------------------
 
@@ -12673,189 +12702,8 @@ BEGIN
     				             Set @RetMessage = @CustomErrorMessage;
 
                             END CATCH
-
-					------------------------------------------------------------------
-
-    						--SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentConsiderationDetail --> FundingCalculationOutput --> Allocation  
-						
-						BEGIN TRY
-
-							ALTER TABLE Allocation NOCHECK CONSTRAINT all
-
-    						SET @RowsDeleted = 1;
-
-							WHILE @RowsDeleted > 0
-    							BEGIN
-    								BEGIN TRY
-    									Begin Transaction
-
-    									Delete TOP (@BatchSize) l6
-    									FROM SimulationOutput AS l1
-    									JOIN SimulationYearDetail AS l2 ON l2.SimulationOutputId = l1.Id
-    									JOIN AssetDetail AS l3 ON l3.SimulationYearDetailId = l2.Id
-    									JOIN TreatmentConsiderationDetail AS l4 ON l4.AssetDetailId = l3.Id    										
-										JOIN FundingCalculationOutput AS l5 ON l5.TreatmentConsiderationDetailId = l4.Id
-										JOIN Allocation AS l6 ON l6.FundingCalculationOutputId = l5.Id
-    									WHERE l1.Id IN (SELECT Guid FROM #SimOutputTempGuids);
-
-     									SET @RowsDeleted = @@ROWCOUNT;
-    									COMMIT TRANSACTION
-    									Print ''Rows Affected Allocation: '' +  convert(NVARCHAR(50), @RowsDeleted);
-    								END TRY
-    								BEGIN CATCH
-    										ALTER TABLE Allocation WITH CHECK CHECK CONSTRAINT all
-      										Set @RetMessage = ''Failed'';
-    										Set @ErrorMessage =  ERROR_PROCEDURE() + '' (Error At Line: '' + cast( ERROR_LINE() as Varchar(5)) + '' ): '' + char(13) + char(10)  + ERROR_MESSAGE()  -- AS ErrorMessage;
-    										Print ''Rolled Back Allocation Delete Transaction in SimulationOutput SP:  '' + @ErrorMessage;
-    										ROLLBACK TRANSACTION;
-    										RAISERROR  (@RetMessage, 16, 1); 
-    										Return -1;
-    								END CATCH;
-    							END
-
-							ALTER TABLE Allocation WITH CHECK CHECK CONSTRAINT all
-
-                        END TRY 
-    			        BEGIN CATCH
-
-                                SELECT ERROR_NUMBER() AS ErrorNumber
-                                    ,ERROR_SEVERITY() AS ErrorSeverity
-                                    ,ERROR_STATE() AS ErrorState
-                                    ,ERROR_PROCEDURE() AS ErrorProcedure
-                                    ,ERROR_LINE() AS ErrorLine
-                                    ,ERROR_MESSAGE() AS ErrorMessage;
-
-     		                    SELECT @CustomErrorMessage = ''Query Error in Allocation''
-								Set @RetMessage = @CustomErrorMessage;
-    		                    RAISERROR (@CustomErrorMessage, 16, 1);    				             
-
-                        END CATCH
-						
-					------------------------------------------------------------------
-
-    					--SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentConsiderationDetail --> FundingCalculationInput --> BudgetToSpend
-							
-						BEGIN TRY
-
-							ALTER TABLE BudgetToSpend NOCHECK CONSTRAINT all
-
-    						SET @RowsDeleted = 1;
-
-							WHILE @RowsDeleted > 0
-    							BEGIN
-    								BEGIN TRY
-    									Begin Transaction
-
-    									Delete TOP (@BatchSize) l6
-    									FROM SimulationOutput AS l1
-    									JOIN SimulationYearDetail AS l2 ON l2.SimulationOutputId = l1.Id
-    									JOIN AssetDetail AS l3 ON l3.SimulationYearDetailId = l2.Id
-    									JOIN TreatmentConsiderationDetail AS l4 ON l4.AssetDetailId = l3.Id
-    									JOIN FundingCalculationInput AS l5 ON l5.TreatmentConsiderationDetailId = l4.Id
-										JOIN BudgetToSpend AS l6 ON l6.FundingCalculationInputId = l5.Id
-    									WHERE l1.Id IN (SELECT Guid FROM #SimOutputTempGuids);
-
-     									SET @RowsDeleted = @@ROWCOUNT;
-    									COMMIT TRANSACTION
-    									Print ''Rows Affected BudgetToSpend: '' +  convert(NVARCHAR(50), @RowsDeleted);
-    								END TRY
-    								BEGIN CATCH
-    										ALTER TABLE BudgetToSpend WITH CHECK CHECK CONSTRAINT all
-      										Set @RetMessage = ''Failed'';
-    										Set @ErrorMessage =  ERROR_PROCEDURE() + '' (Error At Line: '' + cast( ERROR_LINE() as Varchar(5)) + '' ): '' + char(13) + char(10)  + ERROR_MESSAGE()  -- AS ErrorMessage;
-    										Print ''Rolled Back BudgetToSpend Delete Transaction in SimulationOutput SP:  '' + @ErrorMessage;
-    										ROLLBACK TRANSACTION;
-    										RAISERROR  (@RetMessage, 16, 1); 
-    										Return -1;
-    								END CATCH;
-    							END
-
-							ALTER TABLE BudgetToSpend WITH CHECK CHECK CONSTRAINT all
-
-                        END TRY
-    			        BEGIN CATCH
-
-                                SELECT ERROR_NUMBER() AS ErrorNumber
-                                    ,ERROR_SEVERITY() AS ErrorSeverity
-                                    ,ERROR_STATE() AS ErrorState
-                                    ,ERROR_PROCEDURE() AS ErrorProcedure
-                                    ,ERROR_LINE() AS ErrorLine
-                                    ,ERROR_MESSAGE() AS ErrorMessage;
-
-     		                    SELECT @CustomErrorMessage = ''Query Error in BudgetToSpend''
-								Set @RetMessage = @CustomErrorMessage;
-    		                    RAISERROR (@CustomErrorMessage, 16, 1);    				             
-
-                        END CATCH
-    						
-					------------------------------------------------------------------
-					--SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentConsiderationDetail --> FundingCalculationOutput
-
-    					BEGIN TRY
-
-                        ALTER TABLE FundingCalculationOutput NOCHECK CONSTRAINT all
-
-    			        Delete l5 
-    			        FROM SimulationOutput AS l1
-    			        JOIN SimulationYearDetail AS l2 ON l2.SimulationOutputId = l1.Id
-    			        JOIN AssetDetail AS l3 ON l3.SimulationYearDetailId = l2.Id
-    			        JOIN TreatmentConsiderationDetail AS l4 ON l4.AssetDetailId = l3.Id
-    			        JOIN FundingCalculationOutput AS l5 ON l5.TreatmentConsiderationDetailId = l4.Id
-    			        WHERE l1.Id IN (SELECT Guid FROM #SimOutputTempGuids);
-
-                        ALTER TABLE FundingCalculationOutput WITH CHECK CHECK CONSTRAINT all
-
-                        END TRY 
-    			        BEGIN CATCH
-
-                                SELECT ERROR_NUMBER() AS ErrorNumber
-                                    ,ERROR_SEVERITY() AS ErrorSeverity
-                                    ,ERROR_STATE() AS ErrorState
-                                    ,ERROR_PROCEDURE() AS ErrorProcedure
-                                    ,ERROR_LINE() AS ErrorLine
-                                    ,ERROR_MESSAGE() AS ErrorMessage;
-
-     		                    SELECT @CustomErrorMessage = ''Query Error in FundingCalculationOutput''
-								Set @RetMessage = @CustomErrorMessage;
-    		                    RAISERROR (@CustomErrorMessage, 16, 1);    				             
-
-                        END CATCH
-
+    	
     	            ------------------------------------------------------------------
-
-    					--SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentConsiderationDetail --> FundingCalculationInput
-    						
-						BEGIN TRY
-
-						ALTER TABLE FundingCalculationInput NOCHECK CONSTRAINT all
-
-    					Delete l5 
-    					FROM SimulationOutput AS l1
-    					JOIN SimulationYearDetail AS l2 ON l2.SimulationOutputId = l1.Id
-    					JOIN AssetDetail AS l3 ON l3.SimulationYearDetailId = l2.Id
-    					JOIN TreatmentConsiderationDetail AS l4 ON l4.AssetDetailId = l3.Id
-    					JOIN FundingCalculationInput AS l5 ON l5.TreatmentConsiderationDetailId = l4.Id
-    					WHERE l1.Id IN (SELECT Guid FROM #SimOutputTempGuids);
-
-						ALTER TABLE FundingCalculationInput WITH CHECK CHECK CONSTRAINT all
-
-						END TRY 
-    					BEGIN CATCH
-
-								SELECT ERROR_NUMBER() AS ErrorNumber
-									,ERROR_SEVERITY() AS ErrorSeverity
-									,ERROR_STATE() AS ErrorState
-									,ERROR_PROCEDURE() AS ErrorProcedure
-									,ERROR_LINE() AS ErrorLine
-									,ERROR_MESSAGE() AS ErrorMessage;
-
-     							SELECT @CustomErrorMessage = ''Query Error in FundingCalculationInput''
-								Set @RetMessage = @CustomErrorMessage;
-    							RAISERROR (@CustomErrorMessage, 16, 1);    				             
-
-						END CATCH
-
-					------------------------------------------------------------------    						    					
     	
     		            --SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentConsiderationDetail 
 
@@ -12882,8 +12730,8 @@ BEGIN
                                        ,ERROR_MESSAGE() AS ErrorMessage;
 
      		                     SELECT @CustomErrorMessage = ''Query Error in TreatmentConsiderationDetail''
-                                 RAISERROR (@CustomErrorMessage, 16, 1);
-								 Set @RetMessage = @CustomErrorMessage;    		                         				             
+    		                     RAISERROR (@CustomErrorMessage, 16, 1);
+    				             Set @RetMessage = @CustomErrorMessage;
 
                             END CATCH
     	
@@ -12975,7 +12823,7 @@ BEGIN
     	
     		            -----------------------------------------------------------------
 
-    		            --SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentRejectionDetail -->  -->  -->  -->  -->  --> 
+    		            --SimulationOutput --> SimulationYearDetail --> AssetDetail --> TreatmentSchedulingCollisionDetail -->  -->  -->  -->  -->  --> 
 
     			            BEGIN TRY
 
