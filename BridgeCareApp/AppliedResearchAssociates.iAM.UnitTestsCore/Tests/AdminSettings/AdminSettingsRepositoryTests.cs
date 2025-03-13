@@ -290,8 +290,21 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
             TestHelper.UnitOfWork.AdminSettingsRepo.SetRawDataKeyFields(keyFields);
 
             var keyFieldsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawKeyFields();
+            var keyFieldsAfter2 = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawDataKeyFields();
             var expectedKeyFieldsAfter = new List<string> { attributeName1, attributeName2 };
             Assert.Equal(expectedKeyFieldsAfter,keyFieldsAfter);
+        }
+
+        [Fact]
+        public void SetInventoryReports_ThenGet_Same()
+        {
+            var inventoryReport = RandomStrings.WithPrefixAnd2CharSuffix("InventoryReports");
+
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetInventoryReports(inventoryReport);
+            var inventoryReportsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetInventoryReports();
+
+            var singleInventoryReportsAfter = inventoryReportsAfter.Single();
+            Assert.Equal(inventoryReport, singleInventoryReportsAfter);
         }
 
         [Fact]
@@ -310,6 +323,20 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
             var keyFieldsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawKeyFields();
             var expectedKeyFieldsAfter = new List<string> { attributeName2 };
             Assert.Equal(expectedKeyFieldsAfter, keyFieldsAfter);
+        }
+
+        [Fact]
+        // WJPRQ -- There are two code paths in the method under test here.
+        // This brings up the question of multiple tests on the method.
+        // This applies to many methods in AdminSettingsRepository.
+        public void SetAdminContactEmail_ThenGet_Same()
+        {
+            var email = RandomStrings.WithPrefixAnd2CharSuffix("email");
+
+            TestHelper.UnitOfWork.AdminSettingsRepo.SetAdminContactEmail(email);
+            var emailAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetAdminContactEmail();
+
+            Assert.Equal(email, emailAfter);
         }
     }
 }

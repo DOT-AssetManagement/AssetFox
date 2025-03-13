@@ -113,6 +113,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         }
 
         //Reads in KeyFields record as a string but places values in a list to return.
+        // WJPRQ This method is the same as the method GetRawKeyFields().
+        // OK to delete one of them?
         public IList<string> GetRawDataKeyFields()
         {
             var existingKeyFields = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == rawDataFieldKey).FirstOrDefault();
@@ -339,6 +341,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return getSimulationReportNames;
         }
 
+        // This method appears in the interface but is unused. OK to delete?
         public string GetAttributeName(Guid attributeId)
         {
             var attributeName = _unitOfWork.Context.Attribute.AsNoTracking().FirstOrDefault(a => a.Id == attributeId)?.Name;
