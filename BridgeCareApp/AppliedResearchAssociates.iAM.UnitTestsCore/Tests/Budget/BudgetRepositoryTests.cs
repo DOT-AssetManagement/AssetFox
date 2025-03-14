@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
+using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
@@ -249,6 +250,23 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         }
 
         [Fact]
+        public void GetLibraryBudgets_LibraryInDbWithBudgets_Gets()
+        {
+            var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
+            var libraryId = library.Id;
+            library.Name = "Updated name";
+            var budgetId = Guid.NewGuid();
+            var budget = BudgetDtos.New(budgetId);
+            library.Budgets.Add(budget);
+            TestHelper.UnitOfWork.BudgetRepo.UpdateBudgetLibraryAndUpsertOrDeleteBudgets(library);
+
+            var libraryBudgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetLibraryBudgets(libraryId);
+
+            var libraryBudgetAfter = libraryBudgetsAfter.Single();
+            ObjectAssertions.EquivalentExcluding(budget, libraryBudgetAfter, b => b.CriterionLibrary);
+        }
+
+        [Fact]
         public void GetScenarioBudgets_SimulationInDbWithScenarioBudget_Gets()
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
@@ -298,6 +316,45 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         }
 
         [Fact]
+        public void GetScenarioBudgetDictionary_SimulationInDbWithBudget_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
+            var investmentPlanDto = TestHelper.UnitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulation.Id);
+            investmentPlanDto.NumberOfYearsInAnalysisPeriod = 1;
+            TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulation.Id);
+            TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.New(budgetId, budgetName);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, budgetDtos, simulation.Id);
+            var budgetIds = new List<Guid> { budgetId };
+
+            var budgetDictionary = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgetDictionary(budgetIds);
+
+            var expected = new Dictionary<Guid, string>
+            {
+                { budgetId, budgetName },
+            };
+            ObjectAssertions.Equivalent(expected, budgetDictionary);
+        }
+
+        [Fact]
+        public void GetLibaryModifiedDate_LibaryInDb_GetsModifiedDate()
+        {
+            var beforeDate = DateTime.Now;
+            var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
+            var libraryId = library.Id;
+
+            var date = TestHelper.UnitOfWork.BudgetRepo.GetLibraryModifiedDate(libraryId);
+
+            var afterDate = DateTime.Now;
+            DateTimeAssertions.Between(beforeDate, afterDate, date, TimeSpan.FromSeconds(1));
+        }
+
+        [Fact]
         public void GetScenarioBudgets_SimulationInDbWithScenarioBudgetWithCriterionLibrary_GetsTheLibrary()
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
@@ -314,6 +371,89 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var actualBudgets = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
             var actualBudget = actualBudgets.Single();
             Assert.Equal(criterionLibrary.MergedCriteriaExpression, actualBudget.CriterionLibrary.MergedCriteriaExpression);
+        }
+
+        [Fact]
+        public void GetBudgetYearsBySimulationId_SimulationInDbWithBudget_GetsYear()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m); ;
+            var criterionLibrary = CriterionLibraryDtos.Dto();
+            budgetDto.CriterionLibrary = criterionLibrary;
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, budgetDtos, simulation.Id);
+
+            var years = TestHelper.UnitOfWork.BudgetRepo.GetBudgetYearsBySimulationId(simulation.Id);
+
+            var year = years.Single();
+            Assert.Equal(2025, year);
+        }
+
+        [Fact]
+        public void GetCriteriaPerBudgetNameForSimulation_BudgetInDbWithCriteria_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m); ;
+            var criterionLibrary = CriterionLibraryDtos.Dto();
+            budgetDto.CriterionLibrary = criterionLibrary;
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, budgetDtos, simulation.Id);
+
+            var criteria = TestHelper.UnitOfWork.BudgetRepo.GetCriteriaPerBudgetNameForSimulation(simulation.Id);
+
+            var expected = new Dictionary<string, string> { {budgetName, "mergedCriteriaExpression" } };
+            ObjectAssertions.Equivalent(expected, criteria);
+        }
+
+        [Fact]
+        public void GetCriteriaPerBudgetNameForBudgetLibrary_LibraryInDbWithBudget_Gets()
+        {
+            var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
+            var libraryId = library.Id;
+            library.Name = "Updated name";
+            var budgetId = Guid.NewGuid();
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("budgetName");
+            var budget = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 1234);
+            var criterionLibrary = CriterionLibraryDtos.Dto();
+            budget.CriterionLibrary = criterionLibrary;
+            library.Budgets.Add(budget);
+            TestHelper.UnitOfWork.BudgetRepo.UpdateBudgetLibraryAndUpsertOrDeleteBudgets(library);
+
+            var criteria = TestHelper.UnitOfWork.BudgetRepo.GetCriteriaPerBudgetNameForBudgetLibrary(libraryId);
+
+            var expected = new Dictionary<string, string>
+            {
+                { budgetName, "mergedCriteriaExpression" }
+            };
+            ObjectAssertions.Equivalent(expected, criteria);
+        }
+
+        [Fact]
+        public void GetBudgetLibraryName_LibraryInDb_GetsName()
+        {
+            var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
+            var libraryId = library.Id;
+            
+            library.Name = "Updated name";
+            var budgetId = Guid.NewGuid();
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("budgetName");
+            var budget = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 1234);
+            var criterionLibrary = CriterionLibraryDtos.Dto();
+            budget.CriterionLibrary = criterionLibrary;
+            library.Budgets.Add(budget);
+            TestHelper.UnitOfWork.BudgetRepo.UpdateBudgetLibraryAndUpsertOrDeleteBudgets(library);
+
+            var name = TestHelper.UnitOfWork.BudgetRepo.GetBudgetLibraryName(libraryId);
+
+
         }
 
         [Fact]

@@ -60,7 +60,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var libraryName = RandomStrings.WithPrefix("BudgetLibrary");
             var budgetLibrary = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryName);
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            BudgetLibraryUserTestSetup.SetUsersOfBudgetLibrary(TestHelper.UnitOfWork, budgetLibrary.Id, DTOs.Enums.LibraryAccessLevel.Read, user.Id);
+            BudgetLibraryUserTestSetup.SetUsersOfBudgetLibrary(TestHelper.UnitOfWork, budgetLibrary.Id, LibraryAccessLevel.Read, user.Id);
             var usersBefore = TestHelper.UnitOfWork.BudgetRepo.GetLibraryAccess(budgetLibrary.Id, user.Id);
             var userBefore = usersBefore.Access;
             Assert.Equal(user.Id, userBefore.UserId);
