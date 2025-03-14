@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 
@@ -44,15 +41,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 BudgetPriorityLevel = entity.BudgetPriorityLevel,
             };
-            //var budgetUsageDetails = BudgetUsageDetailMapper.ToDomainList(entity.BudgetUsageDetails);
-            //domain.BudgetUsages.AddRange(budgetUsageDetails);
-            var cashFlowConsiderationDetails = CashFlowConsiderationDetailMapper.ToDomainList(entity.CashFlowConsiderationDetails);
-            domain.CashFlowConsiderations.AddRange(cashFlowConsiderationDetails);
+            var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToDomainList(entity.CashFlowConsiderations);
+            domain.CashFlowConsiderations.AddRange(cashFlowConsiderations);
+
+            // TODO for reports
+            // FundingCalculationInput
+
+
+            // FundingCalculationOutput
+
+
             return domain;
         }
 
-
-        internal static List<TreatmentConsiderationDetail> ToDomainList(ICollection<TreatmentConsiderationDetailEntity> entityCollection)
+        public static List<TreatmentConsiderationDetail> ToDomainList(ICollection<TreatmentConsiderationDetailEntity> entityCollection)
         {
             var domainList = new List<TreatmentConsiderationDetail>();
             foreach (var entity in entityCollection)
@@ -69,14 +71,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             List<TreatmentConsiderationDetail> treatmentConsiderations
             )
         {
-            foreach (var consideration in treatmentConsiderations)
+            foreach (var treatmentConsideration in treatmentConsiderations)
             {
-                var entity = ToEntityWithoutChildren(consideration, assetDetailId);
-                family.TreatmentConsiderationDetails.Add(entity);
-                //var budgetUsageDetails = BudgetUsageDetailMapper.ToEntityList(consideration.BudgetUsages, entity.Id);
-                //family.BudgetUsageDetails.AddRange(budgetUsageDetails);
-                var cashFlowConsiderationDetails = CashFlowConsiderationDetailMapper.ToEntityList(consideration.CashFlowConsiderations, entity.Id);
-                family.CashFlowConsiderationDetails.AddRange(cashFlowConsiderationDetails);
+                var entity = ToEntityWithoutChildren(treatmentConsideration, assetDetailId);
+                
+                var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToEntityList(treatmentConsideration.CashFlowConsiderations, entity.Id);
+                family.CashFlowConsiderations.AddRange(cashFlowConsiderations);
+
+                // FundingCalculationInput
+                var fundingCalculationInput = FundingCalculationInputMapper.ToEntity(treatmentConsideration.FundingCalculationInput, entity.Id, family);
+                family.FundingCalculationInputs.Add(fundingCalculationInput);
+
+                // FundingCalculationOutput
+                var fundingCalculationOutput = FundingCalculationOutputMapper.ToEntity(treatmentConsideration.FundingCalculationOutput, entity.Id, family);
+                family.FundingCalculationOutputs.Add(fundingCalculationOutput);
+
+                family.TreatmentConsiderations.Add(entity);
             }
         }
     }
