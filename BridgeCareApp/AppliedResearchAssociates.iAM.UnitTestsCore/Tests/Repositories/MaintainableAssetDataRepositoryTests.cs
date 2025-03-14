@@ -95,7 +95,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
             Setup();
             var failedRepo = new MaintainableAssetDataRepository(_failedRepo);
 
-            Assert.Equal(0, failedRepo.KeyProperties.Count());
+            Assert.Empty(failedRepo.KeyProperties);
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
             var testSegment = repo.GetAssetAttributes(TestAttributeNames.BmsId, "13401256");
 
             // Assert
-            Assert.Equal(1, testSegment.Where(_ => _.Name == TestAttributeNames.BrKey).Count());            
+            Assert.Single(testSegment.Where(_ => _.Name == TestAttributeNames.BrKey));            
             Assert.Equal("13401256", testSegment.First(_ => _.Name == TestAttributeNames.BrKey).Value);
             Assert.Equal("15.4", testSegment.First(_ => _.Name == "Length").TextValue);
             Assert.Equal("First B", testSegment.First(_ => _.Name == "Name").TextValue);
