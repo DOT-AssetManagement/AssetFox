@@ -49,7 +49,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 AddToDictionary(summary, valuePerNumericAttribute, valuePerTextAttribute, attributeNameLookup);
             }
-            FillAreaAttributeValue(valuePerNumericAttribute);
+            // TODO guessing it is not required, double check
+            //FillAreaAttributeValue(valuePerNumericAttribute);
         }
 
         public static void FillAreaAttributeValue(Dictionary<string, double> valuePerNumericAttribute)

@@ -44,12 +44,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToDomainList(entity.CashFlowConsiderations);
             domain.CashFlowConsiderations.AddRange(cashFlowConsiderations);
 
-            // TODO for reports
             // FundingCalculationInput
-
+            var fundingCalculationInput = FundingCalculationInputMapper.ToDomain(entity.FundingCalculationInput);
+            domain.FundingCalculationInput = fundingCalculationInput;
 
             // FundingCalculationOutput
-
+            var fundingCalculationOutput = FundingCalculationOutputMapper.ToDomain(entity.FundingCalculationOutput);
+            domain.FundingCalculationOutput = fundingCalculationOutput;
 
             return domain;
         }

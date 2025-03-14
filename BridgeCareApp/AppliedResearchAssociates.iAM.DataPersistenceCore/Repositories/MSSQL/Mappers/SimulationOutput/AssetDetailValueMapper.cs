@@ -81,8 +81,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 AddToDictionary(entity, valuePerTextAttribute, valuePerNumericAttribute, attributeNameLookup);
             }
-            // TODO check if needed and what alternative?
-            FillArea(valuePerNumericAttribute);
+            // TODO guessing it is not required, double check
+            //FillArea(valuePerNumericAttribute);
         }
 
         public static void FillArea(Dictionary<string, double> valuePerNumericAttribute)

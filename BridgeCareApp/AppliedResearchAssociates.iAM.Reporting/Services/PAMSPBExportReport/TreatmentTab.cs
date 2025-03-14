@@ -144,6 +144,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             treatmentDataModel.Interstate = CheckGetTextValue(valuePerTextAttribute, "INTERSTATE");
 
             var treatmentOption = section.TreatmentOptions.FirstOrDefault(_ => _.TreatmentName == appliedTreatment);
+            // TODO use cost from treatmentConsideration.FundingCalculationOutput.AllocationMatrix as discussion with Tyler
             treatmentDataModel.Cost = treatmentOption != null ? treatmentOption.Cost : 0;
             treatmentDataModel.Benefit = treatmentOption != null ? treatmentOption.Benefit : 0;
             // TODO remove infinity condition once fix is available for such edge cases

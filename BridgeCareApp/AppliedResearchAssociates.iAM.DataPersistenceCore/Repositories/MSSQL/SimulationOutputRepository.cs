@@ -323,7 +323,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             loggerForTechinalInfo ??= new DoNotLog();
             _unitOfWork.Context.Database.SetCommandTimeout(TimeSpan.FromSeconds(3600));
             var memos = EventMemoModelLists.GetFreshInstance("Load");
-            var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize; ;
+            var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
             var startMemo = memos.MarkInformation($"Starting load batchSize {assetLoadBatchSize}", loggerForTechinalInfo);
             loggerForUserInfo.Information("Loading SimulationOutput");
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
@@ -391,10 +391,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var summary = assetSummaryDomainDictionary[assetSummaryDetailValueEntity.AssetSummaryDetailId];
                 AssetSummaryDetailValueMapper.AddToDictionary(assetSummaryDetailValueEntity, summary.ValuePerNumericAttribute, summary.ValuePerTextAttribute, attributeNameLookup);
             }
-            foreach (var summaryValue in assetSummaryDomainDictionary.Values)
-            {
-                AssetSummaryDetailValueMapper.FillAreaAttributeValue(summaryValue.ValuePerNumericAttribute);
-            }
+            // TODO guessing it is not required, double check
+            //foreach (var summaryValue in assetSummaryDomainDictionary.Values)
+            //{
+            //    AssetSummaryDetailValueMapper.FillAreaAttributeValue(summaryValue.ValuePerNumericAttribute);
+            //}
             var summariesDoneMemo = memos.MarkInformation("assetSummaries done", loggerForTechinalInfo);
             foreach (var cacheYear in cacheYears)
             {
@@ -424,6 +425,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                    .Include(a => a.TreatmentConsiderations)
                    .ThenInclude(tc => tc.CashFlowConsiderations)
                    .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.FundingCalculationInput)
+                   .ThenInclude(fci=>fci.CurrentBudgetsToSpend)
+                   .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.FundingCalculationOutput)
+                   .ThenInclude(fco=>fco.AllocationMatrix)
                    .Include(a => a.TreatmentOptions)
                    .Include(a => a.TreatmentRejections)
                    .Include(a => a.TreatmentSchedulingCollisions)
@@ -443,10 +449,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     shouldContinueLoadingAssets = assetEntities.Count() == assetLoadBatchSize;
                 }
                 domainYear.Assets.AddRange(assets.Values);
-                foreach (var asset in domainYear.Assets)
-                {
-                    AssetDetailValueMapper.FillArea(asset.ValuePerNumericAttribute);// TODO check if needed and what alternative?
-                }
+                // TODO guessing it is not required, double check
+                //foreach (var asset in domainYear.Assets)
+                //{
+                //    AssetDetailValueMapper.FillArea(asset.ValuePerNumericAttribute);
+                //}
             }
             domain.Years.Sort((y1, y2) => y1.Year.CompareTo(y2.Year));
             _ = memos.MarkInformation("Load done", loggerForTechinalInfo);

@@ -14,15 +14,24 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             };
         }
 
-        public static Entities.FundingCalculationInput ToEntity(Analysis.Engine.FundingCalculationInput fundingCalculationInput, Guid treatmentConsiderationDetailEntityId, AssetDetailEntityFamily family)
+        public static Entities.FundingCalculationInput ToEntity(Analysis.Engine.FundingCalculationInput fundingCalculationInputDomain, Guid treatmentConsiderationDetailEntityId, AssetDetailEntityFamily family)
         {
             var entity = ToEntityWithoutChildren(treatmentConsiderationDetailEntityId);
 
             // CurrentBudgetsToSpend
-            var currentBudgetsToSpend = BudgetToSpendMapper.ToEntityList(fundingCalculationInput?.CurrentBudgetsToSpend ?? new(), entity.Id);
+            var currentBudgetsToSpend = BudgetToSpendMapper.ToEntityList(fundingCalculationInputDomain?.CurrentBudgetsToSpend ?? new(), entity.Id);
             family.CurrentBudgetsToSpend.AddRange(currentBudgetsToSpend);
 
             return entity;
+        }
+
+        public static Analysis.Engine.FundingCalculationInput ToDomain(Entities.FundingCalculationInput fundingCalculationInputEntity)
+        {
+            var domain = new Analysis.Engine.FundingCalculationInput();
+            var currentBudgetsToSpend = BudgetToSpendMapper.ToDomainList(fundingCalculationInputEntity?.CurrentBudgetsToSpend);
+            domain.CurrentBudgetsToSpend.AddRange(currentBudgetsToSpend);
+
+            return domain;
         }
     }
 }
