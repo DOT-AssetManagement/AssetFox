@@ -381,7 +381,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
             var budgetName = RandomStrings.WithPrefix("Budget");
             var budgetId = Guid.NewGuid();
-            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m); ;
+            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m);
             var criterionLibrary = CriterionLibraryDtos.Dto();
             budgetDto.CriterionLibrary = criterionLibrary;
             var budgetDtos = new List<BudgetDTO> { budgetDto };
@@ -401,7 +401,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
             var budgetName = RandomStrings.WithPrefix("Budget");
             var budgetId = Guid.NewGuid();
-            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m); ;
+            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m);
             var criterionLibrary = CriterionLibraryDtos.Dto();
             budgetDto.CriterionLibrary = criterionLibrary;
             var budgetDtos = new List<BudgetDTO> { budgetDto };
@@ -529,6 +529,67 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var user2After = libraryUsersAfter.Single(u => u.UserId == user2.Id);
             Assert.Equal(LibraryAccessLevel.Modify, user1After.AccessLevel);
             Assert.Equal(LibraryAccessLevel.Read, user2After.AccessLevel);
+        }
+
+        [Fact]
+        public void DeleteAllScenarioBudgetsForSimulation_SimulationInDbWithBudget_Deletes()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m);
+            var criterionLibrary = CriterionLibraryDtos.Dto();
+            budgetDto.CriterionLibrary = criterionLibrary;
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, budgetDtos, simulation.Id);
+            var budgetsBefore = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
+            Assert.NotEmpty(budgetsBefore);
+
+            TestHelper.UnitOfWork.BudgetRepo.DeleteAllScenarioBudgetsForSimulation(simulation.Id);
+
+            var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
+            Assert.Empty(budgetsAfter);
+        }
+
+        [Fact]
+        public void DeleteAllBudgetsForLibrary_LibraryInDbWithBudgets_DeletesBudgets()
+        {
+            var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
+            var libraryId = library.Id;
+            library.Name = "Updated name";
+            var budgetId = Guid.NewGuid();
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("budgetName");
+            var budget = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 1234);
+            var criterionLibrary = CriterionLibraryDtos.Dto();
+            budget.CriterionLibrary = criterionLibrary;
+            library.Budgets.Add(budget);
+            TestHelper.UnitOfWork.BudgetRepo.UpdateBudgetLibraryAndUpsertOrDeleteBudgets(library);
+            var libraryBudgetsBefore = TestHelper.UnitOfWork.BudgetRepo.GetLibraryBudgets(libraryId);
+            Assert.NotEmpty(libraryBudgetsBefore);
+
+            TestHelper.UnitOfWork.BudgetRepo.DeleteAllBudgetsForLibrary(libraryId);
+
+            var libraryBudgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetLibraryBudgets(libraryId);
+            Assert.Empty(libraryBudgetsAfter);
+        }
+
+        [Fact]
+        public void AddScenarioBudgets_SimulationInDb_AddsBudgets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.New(budgetId, budgetName);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+
+            TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgets(simulation.Id, budgetDtos);
+
+            var scenarioBudgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
+            ObjectAssertions.EquivalentExcluding(budgetDtos, scenarioBudgetsAfter, a => a[0].CriterionLibrary);
         }
     }
 }

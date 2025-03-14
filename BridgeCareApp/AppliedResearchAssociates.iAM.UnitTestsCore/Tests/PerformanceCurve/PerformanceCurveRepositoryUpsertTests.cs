@@ -272,7 +272,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Empty(performanceCurveLibraryDto.PerformanceCurves);
             var performanceCurves = new List<PerformanceCurveDTO> { performanceCurveDto };
 
-            TestHelper.UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurves(performanceCurves, libraryId); ;
+            TestHelper.UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurves(performanceCurves, libraryId);
 
             var performanceCurveLibraryDtoAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(libraryId);
             var performanceCurveAfter = performanceCurveLibraryDtoAfter.PerformanceCurves.Single();

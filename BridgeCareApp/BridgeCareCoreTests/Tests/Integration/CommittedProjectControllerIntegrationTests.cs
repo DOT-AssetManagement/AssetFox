@@ -46,7 +46,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             var locationValue = locationInteger.ToString();
             var assetId = Guid.NewGuid();
             var sectionLocation = Locations.Section(locationValue);
-            var maintainableAsset = MaintainableAssets.InNetwork(NetworkTestSetup.NetworkId, TestAttributeNames.BrKey, assetId, sectionLocation); ;
+            var maintainableAsset = MaintainableAssets.InNetwork(NetworkTestSetup.NetworkId, TestAttributeNames.BrKey, assetId, sectionLocation);
             var maintainableAssets = new List<MaintainableAsset> { maintainableAsset };
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(maintainableAssets, NetworkTestSetup.NetworkId);
             var committedProject = CommittedProjectTestSetup.ModelForEntityInDb(scenarioBudgetId, simulationId, locationKey, locationValue, treatmentName);

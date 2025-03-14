@@ -367,8 +367,8 @@ namespace BridgeCareCoreTests.Tests
             var ruleId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
             var distributionRuleId = Guid.NewGuid();
-            var rowToAdd = CashFlowRuleDtos.Rule(ruleId, distributionRuleId, criterionLibraryId); ;
-            var rowToAddClone = CashFlowRuleDtos.Rule(ruleId, distributionRuleId, criterionLibraryId); ;
+            var rowToAdd = CashFlowRuleDtos.Rule(ruleId, distributionRuleId, criterionLibraryId);
+            var rowToAddClone = CashFlowRuleDtos.Rule(ruleId, distributionRuleId, criterionLibraryId);
             var syncModel = new PagingSyncModel<CashFlowRuleDTO>
             {
                 AddedRows = new List<CashFlowRuleDTO> { rowToAdd },
@@ -445,7 +445,7 @@ namespace BridgeCareCoreTests.Tests
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
-            var rule = CashFlowRuleDtos.Rule(Guid.Empty, Guid.Empty, Guid.Empty); ;
+            var rule = CashFlowRuleDtos.Rule(Guid.Empty, Guid.Empty, Guid.Empty);
             var ruleName = rule.Name;
             var syncModel = new PagingSyncModel<CashFlowRuleDTO>
             {

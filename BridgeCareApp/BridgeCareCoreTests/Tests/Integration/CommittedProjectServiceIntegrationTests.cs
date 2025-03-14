@@ -87,7 +87,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             var keyAttribute = AttributeTestSetup.Text(keyAttributeId, keyAttributeName);
             var resultAttributeName = RandomStrings.WithPrefix("result");
             var resultAttributeId = Guid.NewGuid();
-            var resultAttribute = AttributeTestSetup.Text(resultAttributeId, resultAttributeName); ;
+            var resultAttribute = AttributeTestSetup.Text(resultAttributeId, resultAttributeName);
             AttributeTestSetup.CreateSingleTextAttribute(TestHelper.UnitOfWork,
                 resultAttributeId, resultAttributeName, ConnectionType.EXCEL, keyAttributeName);
             maintainableAssets.Add(maintainableAsset);

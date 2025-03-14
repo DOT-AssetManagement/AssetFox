@@ -82,7 +82,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentSupersedeRu
 
             var dtos = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSelectableTreatments(_testTreatmentLibrary.Id);
             // 2nd rule
-            var supersedeRuleDto = _testTreatmentSupersedeRule.ToDto(dtos); ;
+            var supersedeRuleDto = _testTreatmentSupersedeRule.ToDto(dtos);
             var supersedeRuleDto2 = new TreatmentSupersedeRuleDTO { CriterionLibrary = new CriterionLibraryDTO(), Id = Guid.NewGuid(), treatment = new TreatmentDTO() };
             dtos[0].SupersedeRules = new List<TreatmentSupersedeRuleDTO>() { supersedeRuleDto, supersedeRuleDto2 };
             dtos[0].SupersedeRules[0].Id = Guid.NewGuid();

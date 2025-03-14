@@ -321,7 +321,7 @@ namespace BridgeCareCoreTests.Tests
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
             var service = CreateService(unitOfWork);
             var hubServiceMock = HubServiceMocks.DefaultMock();
-            var controller = CreateController(unitOfWork, hubServiceMock: hubServiceMock); ;
+            var controller = CreateController(unitOfWork, hubServiceMock: hubServiceMock);
 
             // Act + Assert
             await controller.ImportLibraryInvestmentBudgetsExcelFile();
