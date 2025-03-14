@@ -8,10 +8,14 @@ using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.FileSystem
 {
+    // WJPRQ -- This class allows one to update attributes from a json file.
+    // That is how the attributes used to be stored. I'm wondering if this
+    // class should still exist. There is one ref to it that is not called unless
+    // one changes the constant UpdateAttributes to true in AggregationController.
     public class AttributeMetaDataRepository : IAttributeMetaDataRepository
     {
          public List<Attribute> GetAllAttributes(Guid dataSourceId)
-        {
+         {
             // set the attribute meta data json file path
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ?? string.Empty,
                 "MetaData//AttributeMetaData", "metaData.json");

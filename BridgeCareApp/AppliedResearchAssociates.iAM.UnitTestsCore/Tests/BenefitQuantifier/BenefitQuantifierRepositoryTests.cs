@@ -11,10 +11,10 @@ using Xunit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BenefitQuantifier
 {
-    public static class BenefitQuantifierRepositoryTests
+    public class BenefitQuantifierRepositoryTests
     {
         [Fact]
-        public static void DeleteBenefitQuantifier_BenefitQuantifierInDbWithEquation_Deletes()
+        public void DeleteBenefitQuantifier_BenefitQuantifierInDbWithEquation_Deletes()
         {
             var networkId = Guid.NewGuid();
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
@@ -36,7 +36,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BenefitQuantifier
 
 
         [Fact]
-        public static void DeleteBenefitQuantifier_BenefitQuantifierInDbWithoutEquation_Deletes()
+        public void DeleteBenefitQuantifier_BenefitQuantifierInDbWithoutEquation_Deletes()
         {
             var networkId = Guid.NewGuid();
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
@@ -65,6 +65,21 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BenefitQuantifier
             var equationInDbAfter = TestHelper.UnitOfWork.Context.Equation
                  .SingleOrDefault(e => e.BenefitQuantifier.NetworkId == networkId);
             Assert.Null(equationInDbAfter);
+        }
+
+        [Fact]
+        public async Task GetBenefitQuantifier_BenefitQuantifierInDb_Gets()
+        {
+            var networkId = Guid.NewGuid();
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var network = NetworkTestSetup.ModelForEntityInDb(
+                TestHelper.UnitOfWork, new List<MaintainableAsset>(), networkId);
+            var dto = BenefitQuantifierDtos.Dto(networkId);
+            TestHelper.UnitOfWork.BenefitQuantifierRepo.UpsertBenefitQuantifierNonAtomic(dto);
+
+            var benefitQuantifier = TestHelper.UnitOfWork.BenefitQuantifierRepo.GetBenefitQuantifier(networkId);
+
+            Assert.Equivalent(dto, benefitQuantifier);
         }
     }
 }
