@@ -591,5 +591,45 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var scenarioBudgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
             ObjectAssertions.EquivalentExcluding(budgetDtos, scenarioBudgetsAfter, a => a[0].CriterionLibrary);
         }
+
+        [Fact]
+        public void UpdateScenarioBudgetAmounts_ScenarioInDbWithBudgetAmounts_Updates()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
+            var investmentPlanDto = TestHelper.UnitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulation.Id);
+            investmentPlanDto.NumberOfYearsInAnalysisPeriod = 1;
+            TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulation.Id);
+            TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetId = Guid.NewGuid();
+            var amountId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2023, 1234, amountId);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, budgetDtos, simulation.Id);
+            var oldBudgetAmount = budgetDto.BudgetAmounts.Single();
+            var updatedBudgetAmount = new BudgetAmountDTO
+            {
+                BudgetName = budgetName,
+                Id = oldBudgetAmount.Id,
+                Value = 314m,
+                Year = oldBudgetAmount.Year,
+            };
+            var budgetAmountWithBudgetIdDto = new BudgetAmountDTOWithBudgetId
+            {
+                BudgetId = budgetId,
+                BudgetAmount = updatedBudgetAmount,
+            };
+            var budgetAmountWithBudgetIdDtos = new List<BudgetAmountDTOWithBudgetId> { budgetAmountWithBudgetIdDto };
+
+            TestHelper.UnitOfWork.BudgetRepo.UpdateScenarioBudgetAmounts(simulation.Id,
+                budgetAmountWithBudgetIdDtos);
+
+            var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
+            var budgetAfter = budgetsAfter.Single();
+            var amountAfter = budgetAfter.BudgetAmounts.Single();
+            ObjectAssertions.Equivalent(updatedBudgetAmount, amountAfter);
+        }
     }
 }
