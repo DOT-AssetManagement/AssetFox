@@ -631,5 +631,69 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var amountAfter = budgetAfter.BudgetAmounts.Single();
             ObjectAssertions.Equivalent(updatedBudgetAmount, amountAfter);
         }
+
+        [Fact]
+        public void AddScenarioBudgetAmounts_ScenarioInDbWithBudget_AddsAmounts()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.New(budgetId, budgetName);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgets(simulation.Id, budgetDtos);
+            var budgetAmountDto = BudgetAmountDtos.ForBudgetAndYear(
+                budgetDto, 2025, 314159.26m);
+            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
+            {
+                BudgetAmount = budgetAmountDto,
+                BudgetId = budgetId,
+            };
+            var budgetAmountDtoWithBudgetIds = new List<BudgetAmountDTOWithBudgetId>
+            {
+                budgetAmountDtoWithBudgetId,
+            };
+
+            TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgetAmounts(budgetAmountDtoWithBudgetIds);
+
+            var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.
+                GetScenarioBudgets(simulation.Id);
+            var budgetAfter = budgetsAfter.Single();
+            var budgetAmountAfter = budgetAfter.BudgetAmounts.Single();
+            ObjectAssertions.Equivalent(budgetAmountDto, budgetAmountAfter);
+        }
+
+        [Fact]
+        public void AddLibraryBudgetAmounts_LibraryInDbWithBudget_AddsAmounts()
+        {
+            var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
+            var libraryId = library.Id;
+            library.Name = "Updated name";
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.New(budgetId);
+            library.Budgets.Add(budgetDto);
+
+            TestHelper.UnitOfWork.BudgetRepo.UpdateBudgetLibraryAndUpsertOrDeleteBudgets(library);
+            var budgetAmountDto = BudgetAmountDtos.ForBudgetAndYear(
+                budgetDto, 2025, 314159.26m);
+            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
+            {
+                BudgetAmount = budgetAmountDto,
+                BudgetId = budgetId,
+            };
+            var budgetAmountDtoWithBudgetIds = new List<BudgetAmountDTOWithBudgetId>
+            {
+                budgetAmountDtoWithBudgetId,
+            };
+
+            TestHelper.UnitOfWork.BudgetRepo.AddLibraryBudgetAmounts(budgetAmountDtoWithBudgetIds); ;
+
+            var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.
+                GetLibraryBudgets(libraryId);
+            var budgetAfter = budgetsAfter.Single();
+            var budgetAmountAfter = budgetAfter.BudgetAmounts.Single();
+            ObjectAssertions.Equivalent(budgetAmountDto, budgetAmountAfter);
+        }
     }
 }
