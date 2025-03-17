@@ -45,8 +45,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             var libraryId = library.Id;
             var budgetId = Guid.NewGuid();
             var amountId = Guid.NewGuid();
-            var budgetDto = BudgetDtos.WithSingleAmount(
-                budgetId, "Budget", 2025, 655.36m, amountId);
+            var budgetDto = BudgetDtos.New(
+                budgetId, "Budget");
             var budgetDtoWithLibraryId = new BudgetDTOWithLibraryId
             {
                 Budget = budgetDto,
@@ -54,6 +54,16 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             };
             var budgetDtoWithLibraryIds = new List<BudgetDTOWithLibraryId> { budgetDtoWithLibraryId };
             TestHelper.UnitOfWork.BudgetRepo.AddBudgets(budgetDtoWithLibraryIds);
+            var amountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 655.36m, amountId);
+            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
+            {
+                BudgetAmount = amountDto,
+                BudgetId = budgetId,
+            };
+            var budgetDtosWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountDtoWithBudgetId };
+            TestHelper.UnitOfWork.BudgetRepo.AddLibraryBudgetAmounts(budgetDtosWithBudgetIds);
+            var amountsBefore = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
+            Assert.Single(amountsBefore);
             var updatedBudgetAmountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 2718.28m, amountId);
             var budgetAmountList = new List<BudgetAmountDTO> { updatedBudgetAmountDto };
             var budgetAmountDictionary = new Dictionary<Guid, List<BudgetAmountDTO>> { { budgetId, budgetAmountList } };
@@ -74,8 +84,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             var libraryId = library.Id;
             var budgetId = Guid.NewGuid();
             var amountId = Guid.NewGuid();
-            var budgetDto = BudgetDtos.WithSingleAmount(
-                budgetId, "Budget", 2025, 655.36m, amountId);
+            var budgetDto = BudgetDtos.New(
+                budgetId, "Budget");
             var budgetDtoWithLibraryId = new BudgetDTOWithLibraryId
             {
                 Budget = budgetDto,
@@ -83,6 +93,16 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             };
             var budgetDtoWithLibraryIds = new List<BudgetDTOWithLibraryId> { budgetDtoWithLibraryId };
             TestHelper.UnitOfWork.BudgetRepo.AddBudgets(budgetDtoWithLibraryIds);
+            var amountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 655.36m, amountId);
+            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
+            {
+                BudgetAmount = amountDto,
+                BudgetId = budgetId,
+            };
+            var budgetDtosWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountDtoWithBudgetId };
+            TestHelper.UnitOfWork.BudgetRepo.AddLibraryBudgetAmounts(budgetDtosWithBudgetIds);
+            var amountsBefore = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
+            Assert.Single(amountsBefore);
             var budgetAmountList = new List<BudgetAmountDTO> { };
             var budgetAmountDictionary = new Dictionary<Guid, List<BudgetAmountDTO>> { { budgetId, budgetAmountList } };
 
@@ -162,6 +182,36 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
             var budgetAfter = budgetsAfter.Single();
             Assert.Empty(budgetAfter.BudgetAmounts);
+        }
+
+        [Fact]
+        public void GetLibraryBudgetAmounts_LibraryInDbWithAmount_Gets()
+        {
+            var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
+            var libraryId = library.Id;
+            var budgetId = Guid.NewGuid();
+            var amountId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.New(
+                budgetId, "Budget");
+            var budgetDtoWithLibraryId = new BudgetDTOWithLibraryId
+            {
+                Budget = budgetDto,
+                BudgetLibraryId = libraryId,
+            };
+            var budgetDtoWithLibraryIds = new List<BudgetDTOWithLibraryId> { budgetDtoWithLibraryId };
+            TestHelper.UnitOfWork.BudgetRepo.AddBudgets(budgetDtoWithLibraryIds);
+            var amountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 655.36m, amountId);
+            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
+            {
+                BudgetAmount = amountDto,
+                BudgetId = budgetId,
+            };
+            var budgetDtosWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountDtoWithBudgetId };
+            TestHelper.UnitOfWork.BudgetRepo.AddLibraryBudgetAmounts(budgetDtosWithBudgetIds);
+
+            var amountsAfter = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
+
+            Assert.Single(amountsAfter);
         }
     }
 }
