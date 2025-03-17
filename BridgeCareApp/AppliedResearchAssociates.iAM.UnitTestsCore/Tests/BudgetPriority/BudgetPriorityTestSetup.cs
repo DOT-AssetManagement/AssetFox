@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 
@@ -24,6 +25,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetPriority
             var budgetPriority = BudgetPriorityDtos.WithCriterionLibrary();
             var budgetPriorities = new List<BudgetPriorityDTO> { budgetPriority };
             TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(budgetPriorities, simulationId);
+            return budgetPriority;
+        }
+
+        public static BudgetPriorityDTO ModelForLibraryInDb(IUnitOfWork unitOfWork, Guid libraryId, Guid? id = null)
+        {
+            var budgetPriority = BudgetPriorityDtos.New(id);
+            var budgetPriorities = new List<BudgetPriorityDTO> { budgetPriority };
+            unitOfWork.BudgetPriorityRepo.UpsertOrDeleteBudgetPriorities(budgetPriorities, libraryId);
             return budgetPriority;
         }
     }

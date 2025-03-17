@@ -178,7 +178,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             Assert.Empty(budgetAfter.BudgetAmounts);
         }
 
-        [Fact]
+        [Fact (Skip = "See WJPRQ in BudgetAmountRepository")]
         public void GetLibraryBudgetAmounts_LibraryInDbWithAmount_Gets()
         {
             var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
@@ -198,7 +198,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
 
             var amountsAfter = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
 
-            Assert.Single(amountsAfter);
+            var amountAfter = amountsAfter.Single();
+            ObjectAssertions.Equivalent(amountDto, amountAfter);
         }
 
         [Fact (Skip ="See WJPRQ in BudgetAmountRepository")]

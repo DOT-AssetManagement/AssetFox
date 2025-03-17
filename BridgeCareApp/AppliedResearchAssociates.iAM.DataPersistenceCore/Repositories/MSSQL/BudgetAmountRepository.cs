@@ -116,6 +116,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Where(_ => _.Budget.BudgetLibrary.Id == libraryId)
                 .Select(budgetAmount => new BudgetAmountDTO
                 {
+                    // WJPRQ -- this does not map the id. Is that really what we want?
                     Year = budgetAmount.Year,
                     Value = budgetAmount.Value,
                     BudgetName = budgetAmount.Budget.Name,
