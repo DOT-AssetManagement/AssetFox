@@ -145,9 +145,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var budgetId = Guid.NewGuid();
             var amountId = Guid.NewGuid();
-            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, "Budget", 2025, 99999m, amountId);
+            var budgetDto = BudgetDtos.New(budgetId, "Budget");
             var budgetDtos = new List<BudgetDTO> { budgetDto };
             TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(budgetDtos, simulation.Id);
+            var oldBudgetAmountDto = BudgetAmountTestSetup.SetupSingleScenarioAmountForBudget(TestHelper.UnitOfWork,
+                 simulation.Id, "Budget", budgetId, amountId);
+            var budgetAmountsBefore = TestHelper.UnitOfWork.BudgetAmountRepo.GetScenarioBudgetAmounts(simulation.Id);
+            Assert.Single(budgetAmountsBefore);
             var budgetAmountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 11111m, amountId);
             var budgetAmountList = new List<BudgetAmountDTO> { budgetAmountDto };
             var budgetAmountDictionary = new Dictionary<Guid, List<BudgetAmountDTO>> { { budgetId, budgetAmountList } };
@@ -170,9 +174,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var budgetId = Guid.NewGuid();
             var amountId = Guid.NewGuid();
-            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, "Budget", 2025, 99999m, amountId);
+            var budgetDto = BudgetDtos.New(budgetId, "Budget");
             var budgetDtos = new List<BudgetDTO> { budgetDto };
             TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(budgetDtos, simulation.Id);
+            var oldBudgetAmountDto = BudgetAmountTestSetup.SetupSingleScenarioAmountForBudget(TestHelper.UnitOfWork,
+                simulation.Id, "Budget", budgetId, amountId);
+            var budgetAmountsBefore = TestHelper.UnitOfWork.BudgetAmountRepo.GetScenarioBudgetAmounts(simulation.Id);
+            Assert.Single(budgetAmountsBefore);
             var budgetAmountList = new List<BudgetAmountDTO> { };
             var budgetAmountDictionary = new Dictionary<Guid, List<BudgetAmountDTO>> { { budgetId, budgetAmountList } };
 

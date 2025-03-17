@@ -218,7 +218,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var budgetDtos = new List<BudgetDTO> { budgetDto };
             ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, budgetDtos, simulation.Id);
             var budgetAmountId = Guid.NewGuid();
-            BudgetAmountTestSetup.SetupSingleAmountForBudget(unitOfWork, simulationId, budgetName, budgetId, budgetAmountId);
+            BudgetAmountTestSetup.SetupSingleScenarioAmountForBudget(unitOfWork, simulationId, budgetName, budgetId, budgetAmountId);
             var budgetPercentagePairId = Guid.NewGuid();
             var budgetPriorityId = Guid.NewGuid();
             var percentagePair =
