@@ -55,7 +55,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
-            // Arrange
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var budgetDto = BudgetDtos.New();
             var budgetDtos = new List<BudgetDTO> { budgetDto };

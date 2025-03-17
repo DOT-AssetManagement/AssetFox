@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using Xunit;
 
@@ -89,6 +90,76 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
                 budgetAmountDictionary, libraryId);
 
             var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetLibraryBudgets(libraryId);
+            var budgetAfter = budgetsAfter.Single();
+            Assert.Empty(budgetAfter.BudgetAmounts);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteScenarioBudgetAmounts_LibraryInDbWithBudgets_Adds()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var budgetId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.New(budgetId);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(budgetDtos, simulation.Id);
+            var budgetAmountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 2718.28m);
+            var budgetAmountList = new List<BudgetAmountDTO> { budgetAmountDto };
+            var budgetAmountDictionary = new Dictionary<Guid, List<BudgetAmountDTO>> { { budgetId, budgetAmountList } };
+
+            TestHelper.UnitOfWork.BudgetAmountRepo.UpsertOrDeleteScenarioBudgetAmounts(
+                budgetAmountDictionary, simulation.Id);
+
+            var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
+            var budgetAfter = budgetsAfter.Single();
+            var amountAfter = budgetAfter.BudgetAmounts.Single();
+            ObjectAssertions.Equivalent(budgetAmountDto, amountAfter);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteScenarioBudgetAmounts_AmountAlreadyExists_Updates()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var budgetId = Guid.NewGuid();
+            var amountId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, "Budget", 2025, 99999m, amountId);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(budgetDtos, simulation.Id);
+            var budgetAmountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 11111m, amountId);
+            var budgetAmountList = new List<BudgetAmountDTO> { budgetAmountDto };
+            var budgetAmountDictionary = new Dictionary<Guid, List<BudgetAmountDTO>> { { budgetId, budgetAmountList } };
+
+            TestHelper.UnitOfWork.BudgetAmountRepo.UpsertOrDeleteScenarioBudgetAmounts(
+                budgetAmountDictionary, simulation.Id);
+
+            var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
+            var budgetAfter = budgetsAfter.Single();
+            var amountAfter = budgetAfter.BudgetAmounts.Single();
+            ObjectAssertions.Equivalent(budgetAmountDto, amountAfter);
+        }
+
+
+        [Fact]
+        public void UpsertOrDeleteScenarioBudgetAmounts_AmountNotInDictionary_Deletes()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var budgetId = Guid.NewGuid();
+            var amountId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.WithSingleAmount(budgetId, "Budget", 2025, 99999m, amountId);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(budgetDtos, simulation.Id);
+            var budgetAmountList = new List<BudgetAmountDTO> { };
+            var budgetAmountDictionary = new Dictionary<Guid, List<BudgetAmountDTO>> { { budgetId, budgetAmountList } };
+
+            TestHelper.UnitOfWork.BudgetAmountRepo.UpsertOrDeleteScenarioBudgetAmounts(
+                budgetAmountDictionary, simulation.Id);
+
+            var budgetsAfter = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id);
             var budgetAfter = budgetsAfter.Single();
             Assert.Empty(budgetAfter.BudgetAmounts);
         }
