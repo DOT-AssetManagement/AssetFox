@@ -54,14 +54,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             };
             var budgetDtoWithLibraryIds = new List<BudgetDTOWithLibraryId> { budgetDtoWithLibraryId };
             TestHelper.UnitOfWork.BudgetRepo.AddBudgets(budgetDtoWithLibraryIds);
-            var amountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 655.36m, amountId);
-            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
-            {
-                BudgetAmount = amountDto,
-                BudgetId = budgetId,
-            };
-            var budgetDtosWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountDtoWithBudgetId };
-            TestHelper.UnitOfWork.BudgetRepo.AddLibraryBudgetAmounts(budgetDtosWithBudgetIds);
+            BudgetAmountTestSetup.LibraryAmountInDb(budgetId, amountId, budgetDto);
             var amountsBefore = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
             Assert.Single(amountsBefore);
             var updatedBudgetAmountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 2718.28m, amountId);
@@ -93,14 +86,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             };
             var budgetDtoWithLibraryIds = new List<BudgetDTOWithLibraryId> { budgetDtoWithLibraryId };
             TestHelper.UnitOfWork.BudgetRepo.AddBudgets(budgetDtoWithLibraryIds);
-            var amountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 655.36m, amountId);
-            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
-            {
-                BudgetAmount = amountDto,
-                BudgetId = budgetId,
-            };
-            var budgetDtosWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountDtoWithBudgetId };
-            TestHelper.UnitOfWork.BudgetRepo.AddLibraryBudgetAmounts(budgetDtosWithBudgetIds);
+            BudgetAmountTestSetup.LibraryAmountInDb(budgetId, amountId, budgetDto);
             var amountsBefore = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
             Assert.Single(amountsBefore);
             var budgetAmountList = new List<BudgetAmountDTO> { };
@@ -208,15 +194,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             };
             var budgetDtoWithLibraryIds = new List<BudgetDTOWithLibraryId> { budgetDtoWithLibraryId };
             TestHelper.UnitOfWork.BudgetRepo.AddBudgets(budgetDtoWithLibraryIds);
-            var amountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 655.36m, amountId);
-            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
-            {
-                BudgetAmount = amountDto,
-                BudgetId = budgetId,
-            };
-            var budgetDtosWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountDtoWithBudgetId };
-            TestHelper.UnitOfWork.BudgetRepo.AddLibraryBudgetAmounts(budgetDtosWithBudgetIds);
-
+            var amountDto = BudgetAmountTestSetup.LibraryAmountInDb(budgetId, amountId, budgetDto);
             var amountsAfter = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
 
             Assert.Single(amountsAfter);

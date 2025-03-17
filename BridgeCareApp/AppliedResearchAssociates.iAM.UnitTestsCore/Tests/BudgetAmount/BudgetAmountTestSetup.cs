@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
@@ -16,6 +17,19 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             };
             unitOfWork.BudgetAmountRepo.UpsertOrDeleteScenarioBudgetAmounts(budgetAmountsPerBudgetId, simulationId);
             return budgetAmount;
+        }
+
+        public static BudgetAmountDTO LibraryAmountInDb(Guid budgetId, Guid amountId, BudgetDTO budgetDto)
+        {
+            var amountDto = BudgetAmountDtos.ForBudgetAndYear(budgetDto, 2025, 655.36m, amountId);
+            var budgetAmountDtoWithBudgetId = new BudgetAmountDTOWithBudgetId
+            {
+                BudgetAmount = amountDto,
+                BudgetId = budgetId,
+            };
+            var budgetDtosWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountDtoWithBudgetId };
+            TestHelper.UnitOfWork.BudgetRepo.AddLibraryBudgetAmounts(budgetDtosWithBudgetIds);
+            return amountDto;
         }
     }
 }
