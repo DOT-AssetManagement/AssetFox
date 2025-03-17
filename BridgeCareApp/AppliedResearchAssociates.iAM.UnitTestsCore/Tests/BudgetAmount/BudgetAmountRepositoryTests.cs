@@ -195,9 +195,29 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             var budgetDtoWithLibraryIds = new List<BudgetDTOWithLibraryId> { budgetDtoWithLibraryId };
             TestHelper.UnitOfWork.BudgetRepo.AddBudgets(budgetDtoWithLibraryIds);
             var amountDto = BudgetAmountTestSetup.LibraryAmountInDb(budgetId, amountId, budgetDto);
+
             var amountsAfter = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
 
             Assert.Single(amountsAfter);
+        }
+
+        [Fact (Skip ="See WJPRQ in BudgetAmountRepository")]
+        public void GetScenarioBudgetAmounts_AmountInDb_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var budgetId = Guid.NewGuid();
+            var amountId = Guid.NewGuid();
+            var budgetDto = BudgetDtos.New(budgetId, "Budget");
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(budgetDtos, simulation.Id);
+            var oldBudgetAmountDto = BudgetAmountTestSetup.SetupSingleScenarioAmountForBudget(TestHelper.UnitOfWork,
+                 simulation.Id, "Budget", budgetId, amountId);
+
+            var amountsInDb = TestHelper.UnitOfWork.BudgetAmountRepo.GetScenarioBudgetAmounts(simulation.Id);
+            var amountInDb = amountsInDb.Single();
+            ObjectAssertions.Equivalent(oldBudgetAmountDto, amountInDb);
         }
     }
 }

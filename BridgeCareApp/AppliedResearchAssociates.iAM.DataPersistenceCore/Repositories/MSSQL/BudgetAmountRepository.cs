@@ -135,6 +135,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Include(sb => sb.ScenarioBudget)
                 .Select(budgetAmount => new BudgetAmountDTO
                 {
+                    // WJPRQ -- this does not map the id. Is that really what we want?
                     Year = budgetAmount.Year,
                     Value = budgetAmount.Value,
                     BudgetName = budgetAmount.ScenarioBudget.Name,
