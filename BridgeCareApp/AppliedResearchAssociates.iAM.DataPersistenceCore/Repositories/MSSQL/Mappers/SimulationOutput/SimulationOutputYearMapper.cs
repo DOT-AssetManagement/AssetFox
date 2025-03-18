@@ -14,16 +14,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         {
             var id = Guid.NewGuid();
             var budgets = BudgetDetailMapper.ToEntityList(domain.Budgets, id);
-            var deficientConditionGoalDetails = DeficientConditionGoalDetailMapper.ToEntityList(domain.DeficientConditionGoals, id, attributeIdLookup);
-            var targetConditionGoalDetails = TargetConditionGoalDetailMapper.ToEntityList(domain.TargetConditionGoals, id, attributeIdLookup);
+            var deficientConditionGoals = DeficientConditionGoalDetailMapper.ToEntityList(domain.DeficientConditionGoals, id, attributeIdLookup);
+            var targetConditionGoals = TargetConditionGoalDetailMapper.ToEntityList(domain.TargetConditionGoals, id, attributeIdLookup);
             var entity = new SimulationYearDetailEntity
             {
                 Id = id,
                 Budgets = budgets,
                 ConditionOfNetwork = domain.ConditionOfNetwork,
-                DeficientConditionGoalDetails = deficientConditionGoalDetails,
+                DeficientConditionGoals = deficientConditionGoals,
                 SimulationOutputId = simulationOutputId,
-                TargetConditionGoalDetails = targetConditionGoalDetails,
+                TargetConditionGoals = targetConditionGoals,
                 Year = domain.Year,
             };
             return entity;
@@ -40,9 +40,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             };
             var budgets = BudgetDetailMapper.ToDomainList(entity.Budgets);
             domain.Budgets.AddRange(budgets);
-            var deficientConditionGoals = DeficientConditionGoalDetailMapper.ToDomainList(entity.DeficientConditionGoalDetails, attributeNameLookup);
+            var deficientConditionGoals = DeficientConditionGoalDetailMapper.ToDomainList(entity.DeficientConditionGoals, attributeNameLookup);
             domain.DeficientConditionGoals.AddRange(deficientConditionGoals);
-            var targetConditionGoals = TargetConditionGoalDetailMapper.ToDomainList(entity.TargetConditionGoalDetails, attributeNameLookup);
+            var targetConditionGoals = TargetConditionGoalDetailMapper.ToDomainList(entity.TargetConditionGoals, attributeNameLookup);
             domain.TargetConditionGoals.AddRange(targetConditionGoals);
             return domain;
         }
