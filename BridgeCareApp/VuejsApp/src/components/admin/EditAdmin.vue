@@ -20,7 +20,8 @@
                                 <AttributesSvg id="EditAdmin-security-btn" style="height: 38px; width: 34px"  class="raw-data-icon" v-if="navigationTab.tabName === 'Security'"/>    
                                     <DataSourceSvg id="EditAdmin-site-btn" style="height: 30px; width: 36px" class="raw-data-icon" v-if="navigationTab.tabName === 'Site'"/>
                                     <NetworksSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Data'"/>    
-                                    <NetworksSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Storage'"/>                          
+                                    <!-- <NetworksSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Storage'"/>        -->
+                                    <font-awesome-icon :icon="faHdd"  v-if="navigationTab.tabName === 'Storage'" size="lg" style="color: #cbcbcb; height: 26px;"/>              
                             </template>
                             <v-list-item-title style="width: auto; padding-left: 5px;" v-text="navigationTab.tabName"></v-list-item-title>
                         </v-list-item>
@@ -50,6 +51,8 @@ import DataSourceSvg from '@/shared/icons/DataSourceSvg.vue';
 import NetworksSvg from '@/shared/icons/NetworksSvg.vue';
 
 import { createDecipheriv } from 'crypto';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import {faHdd} from '@fortawesome/free-regular-svg-icons'
 
     let store = useStore();
     let hasAdminAccess = ref<boolean>(store.state.authenticationModule.hasAdminAccess);
