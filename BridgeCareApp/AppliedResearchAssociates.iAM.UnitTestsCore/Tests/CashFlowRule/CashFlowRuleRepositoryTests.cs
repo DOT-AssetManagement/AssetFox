@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.CashFlow;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
@@ -9,6 +10,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappe
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
+using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CashFlowRule;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -213,6 +215,18 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
         }
 
         [Fact]
+        public void GetLibraryModifiedDate_LibraryInDb_GetsModifiedDate()
+        {
+            var before = DateTime.Now;
+            var library = CashFlowRuleLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var after = DateTime.Now;
+
+            var modifiedDate = TestHelper.UnitOfWork.CashFlowRuleRepo.GetLibraryModifiedDate(library.Id);
+
+            DateTimeAssertions.Between(before, after, modifiedDate, TimeSpan.FromSeconds(1));
+        }
+
+        [Fact]
         public void UpsertOrDeleteScenarioCashFlowRules_RuleInDb_Modifies()
         {
             // Arrange
@@ -261,6 +275,56 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             Assert.False(TestHelper.UnitOfWork.Context.CashFlowDistributionRule.Any(_ =>
                     _.Id == rule.CashFlowDistributionRules[0].Id));
         }
+
+        [Fact]
+        public async Task GetCashFlowRuleLibrariesNoChildrenAccessibleToUser_LibraryInDbAccessibleToUser_Gets()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var library = CashFlowRuleLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            CashFlowRuleLibraryUserTestSetup.SetUsersOfCashFlowRuleLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
+
+            var accessibleLibraries = TestHelper.UnitOfWork.CashFlowRuleRepo.GetCashFlowRuleLibrariesNoChildrenAccessibleToUser(user.Id);
+
+            var accessibleLibrary = accessibleLibraries.Single(l => l.Id == library.Id);
+            ObjectAssertions.EquivalentExcluding(library, accessibleLibrary);
+        }
+
+        [Fact]
+        public async Task GetLibraryAccess_LibraryInDbWithUserAccess_GetsAccess()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var library = CashFlowRuleLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            CashFlowRuleLibraryUserTestSetup.SetUsersOfCashFlowRuleLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
+
+            var libraryAccess = TestHelper.UnitOfWork.CashFlowRuleRepo.GetLibraryAccess(library.Id, user.Id);
+
+            var expected = new LibraryUserAccessModel
+            {
+                LibraryExists = true,
+                UserId = user.Id,
+                Access = new LibraryUserDTO
+                {
+                    AccessLevel = LibraryAccessLevel.Modify,
+                    UserId = user.Id,
+                    UserName = user.Username,
+                }
+            };
+            ObjectAssertions.Equivalent(expected, libraryAccess);
+        }
+
+        [Fact]
+        public void UpsertCashFlowRuleLibraryAndRules_Does()
+        {
+            var libraryDto = CashFlowRuleLibraryDtos.WithSingleRule();
+
+            TestHelper.UnitOfWork.CashFlowRuleRepo.UpsertCashFlowRuleLibraryAndRules(libraryDto);
+
+            var rulesAfter = TestHelper.UnitOfWork.CashFlowRuleRepo.GetCashFlowRulesByLibraryId(libraryDto.Id);
+            var ruleAfter = rulesAfter.Single();
+            var ruleBefore = libraryDto.CashFlowRules.Single();
+            ObjectAssertions.EquivalentExcluding(ruleBefore, ruleAfter, r => r.CriterionLibrary);
+        }
+
         [Fact]
         public async Task UpdateCashFlowRuleLibraryWithUserAccessChange_Does()
         {

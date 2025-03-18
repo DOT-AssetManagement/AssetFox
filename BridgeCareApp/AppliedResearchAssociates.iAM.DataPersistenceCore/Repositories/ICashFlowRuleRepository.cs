@@ -7,6 +7,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
     public interface ICashFlowRuleRepository
     {
+        // WJPRQ called in one place, but the caller is dead code. Delete both?
         void CreateCashFlowRules(List<CashFlowRule> cashFlowRules, Guid simulationId);
 
         List<CashFlowRuleLibraryDTO> GetCashFlowRuleLibraries();
