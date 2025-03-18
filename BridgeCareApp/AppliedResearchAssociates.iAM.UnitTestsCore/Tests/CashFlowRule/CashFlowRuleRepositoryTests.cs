@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
@@ -380,6 +382,37 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             var user2After = libraryUsersAfter.Single(u => u.UserId == user2.Id);
             Assert.Equal(LibraryAccessLevel.Modify, user1After.AccessLevel);
             Assert.Equal(LibraryAccessLevel.Read, user2After.AccessLevel);
+        }
+
+        [Fact]
+        public void SetCommittedProjectTemplate_ThenGet_SameIfLengthIsMultipleOf4()
+        {
+            var templateStringInvalidLength = RandomStrings.WithPrefix("CommittedProjectTemplate");
+            var templateString = templateStringInvalidLength[..(templateStringInvalidLength.Length / 4 * 4)];
+            var bytes = Convert.FromBase64String(templateString);
+            var stream = new MemoryStream(bytes);
+
+            TestHelper.UnitOfWork.CommittedProjectRepo.SetCommittedProjectTemplate(stream);
+
+            var templateAfter = TestHelper.UnitOfWork.CommittedProjectRepo.DownloadCommittedProjectTemplate();
+            Assert.Equal(templateString, templateAfter);
+        }
+
+        [Fact]
+        public void AddCommittedProjectTemplate_ThenGet_RoundTrips()
+        {
+            var templateStringInvalidLength = RandomStrings.WithPrefix("CommittedProjectTemplate");
+            var templateString = templateStringInvalidLength[..(templateStringInvalidLength.Length / 4 * 4)];
+            var bytes = Convert.FromBase64String(templateString);
+            var stream = new MemoryStream(bytes);
+            var filename = RandomStrings.WithPrefix("filename");
+
+            TestHelper.UnitOfWork.CommittedProjectRepo.AddCommittedProjectTemplate(stream, filename);
+
+            var templates = TestHelper.UnitOfWork.CommittedProjectRepo.getUploadedCommittedProjectTemplates();
+            Assert.Contains(filename, templates);
+            var selectedTemplate = TestHelper.UnitOfWork.CommittedProjectRepo.DownloadSelectedCommittedProjectTemplate(filename);
+            Assert.Equal(templateString, selectedTemplate);
         }
     }
 }

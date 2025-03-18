@@ -410,6 +410,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             if (dto.Id == Guid.Empty) dto.Id = Guid.NewGuid();
         }
 
+        // WJPRQ -- make this private and remove from the interface?
         public string GetNetworkKeyAttribute(Guid simulationId)
         {
             var simulation = _unitOfWork.Context.Simulation.AsNoTracking().Include(_ => _.Network).FirstOrDefault(_ => _.Id == simulationId);
