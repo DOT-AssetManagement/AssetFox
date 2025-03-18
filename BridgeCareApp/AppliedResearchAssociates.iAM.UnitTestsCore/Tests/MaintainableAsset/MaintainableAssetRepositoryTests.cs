@@ -236,5 +236,23 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var attributeId = attributeIds.Single();
             Assert.Equal(keyAttributeDto.Id, attributeId);
         }
+
+        [Fact]
+        public void CreateMaintainableAssets_Does()
+        {
+            var dataSource = AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var attributeNames = new List<string> { };
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var attribute = AttributeDtos.BrKey;
+            var networkId = NetworkTestSetup.NetworkId;
+            var assetList = MaintainableAssetLists.SingleInNetwork(networkId, CommonTestParameterValues.DefaultEquation);
+
+            TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
+
+            var assetsAfter = TestHelper.UnitOfWork.MaintainableAssetRepo.GetAllInNetworkWithLocations(networkId);
+            var assetBefore = assetList.Single();
+            var assetAfter = assetsAfter.Single(a => a.Id == assetBefore.Id);
+            ObjectAssertions.Equivalent(assetBefore, assetAfter);
+        }
     }
 }
