@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Data;
+using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
@@ -195,6 +199,23 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 
             Assert.Equal(networkName, mainNetwork.Name);
             Assert.Equal(networkId, mainNetwork.Id);
+        }
+        [Fact]
+        public async Task GetSimulationAnalysisNetwork_Does()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            TestHelper.UnitOfWork.SetUser(user.Username);
+            var networkName = RandomStrings.WithPrefix("Network");
+            var assetList = new List<MaintainableAsset>();
+            var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, assetList, name: networkName);
+            var explorer = TestHelper.UnitOfWork.AttributeRepo.GetExplorer();
+
+            var analysisNetwork = TestHelper.UnitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(
+                network.Id, explorer);
+
+            Assert.Equal(networkName, analysisNetwork.Name);
+            Assert.Equal(network.Id, analysisNetwork.Id);
         }
     }
 }
