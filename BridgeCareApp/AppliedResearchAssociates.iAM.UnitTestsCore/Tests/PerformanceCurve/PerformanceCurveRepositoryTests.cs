@@ -68,39 +68,38 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             var noTreatmentDto = TreatmentDtos.NoTreatment();
             var treatments = new List<TreatmentDTO> { noTreatmentDto };
             TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulationId);
-            var budgetId = Guid.NewGuid();
-            var budgetName = RandomStrings.WithPrefix("Budget");
-            var budget = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2024, 1000000m);
-            var budgets = new List<BudgetDTO> { budget };
-            TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgets(simulationId, budgets);
-            var budgetAmountWithBudgetId = new BudgetAmountDTOWithBudgetId
-            {
-                BudgetAmount = budget.BudgetAmounts.Single(),
-                BudgetId = budgetId,
-            };
-            var budgetAmountsWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountWithBudgetId };
-            TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgetAmounts(budgetAmountsWithBudgetIds);
-            var budgetPriority = BudgetPriorityDtos.WithPercentagePair(budgetName, budgetId, null, 0, 2024);
-            var budgetPriorities = new List<BudgetPriorityDTO> { budgetPriority };
-            TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(budgetPriorities, simulationId);
-            var conditionIndexAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.ConditionIndexId);
-            var ageAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.AgeId);
-            var ageAttributeAsList = new List<AttributeDTO> { ageAttribute };
-            var mappedAttributeList = AttributeDtoDomainMapper.ToDomainList(ageAttributeAsList, "");
-         //   AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
-            var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
-            var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
-            calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";
-            var calculatedAttributes = new List<CalculatedAttributeDTO> { calculatedAttribute };
-            TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertScenarioCalculatedAttributesNonAtomic(calculatedAttributes, simulationId);
+            var curveId = Guid.NewGuid();
+            var performanceCurve = ScenarioPerformanceCurveTestSetup.DtoForEntityInDb(TestHelper.UnitOfWork, simulationId, curveId);
+            //var budgetId = Guid.NewGuid();
+            //var budgetName = RandomStrings.WithPrefix("Budget");
+            ////var budget = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2024, 1000000m);
+            //var budgets = new List<BudgetDTO> { budget };
+            //TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgets(simulationId, budgets);
+            //var budgetAmountWithBudgetId = new BudgetAmountDTOWithBudgetId
+            //{
+            //    BudgetAmount = budget.BudgetAmounts.Single(),
+            //    BudgetId = budgetId,
+            //};
+            //var budgetAmountsWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountWithBudgetId };
+            //TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgetAmounts(budgetAmountsWithBudgetIds);
+            //var budgetPriority = BudgetPriorityDtos.WithPercentagePair(budgetName, budgetId, null, 0, 2024);
+            //var budgetPriorities = new List<BudgetPriorityDTO> { budgetPriority };
+            //TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(budgetPriorities, simulationId);
+            //var conditionIndexAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.ConditionIndexId);
+            //var ageAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.AgeId);
+            //var ageAttributeAsList = new List<AttributeDTO> { ageAttribute };
+            //var mappedAttributeList = AttributeDtoDomainMapper.ToDomainList(ageAttributeAsList, "");
+            //   AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
+            //var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
+            //var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
+            //calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";
+            //var calculatedAttributes = new List<CalculatedAttributeDTO> { calculatedAttribute };
+            //TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertScenarioCalculatedAttributesNonAtomic(calculatedAttributes, simulationId);
             var network = TestHelper.UnitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer, true, simulationId);
             TestHelper.UnitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
 
-
             var simulation = network.Simulations.Single(_ => _.Id == simulationId);
-            var curveId = Guid.NewGuid();
 
-            var performanceCurve = ScenarioPerformanceCurveTestSetup.DtoForEntityInDb(TestHelper.UnitOfWork, simulationId, curveId);
             var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
 
             TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
