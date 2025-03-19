@@ -89,6 +89,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         {
             var performanceCurve = simulation.AddPerformanceCurve();
             performanceCurve.Id = entity.Id;
+            var numberAttributeNames = simulation.Network.Explorer.NumberAttributes.Select(a => a.Name).ToList();
+            var stringAttributeNames = simulation.Network.Explorer.TextAttributes.Select(a => a.Name).ToList();
             performanceCurve.Attribute = simulation.Network.Explorer.NumberAttributes
                 .Single(_ => _.Name == attributeNameLookupDictionary[entity.AttributeId]);
             performanceCurve.Name = entity.Name;

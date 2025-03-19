@@ -2,14 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+using AppliedResearchAssociates.iAM.Data.Mappers;
+using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using BridgeCareCoreTests.Tests;
 using MoreLinq;
 using Xunit;
 using Assert = Xunit.Assert;
+using DataNetworkingNetwork = AppliedResearchAssociates.iAM.Data.Networking.Network;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore
 {
@@ -24,10 +37,85 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
         }
 
         [Fact]
+        public async Task GetScenarioPerformanceCurvesWithAttributeNameLookup_SimulationInDbWithCurves_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, true);
+            var userId = user.Id;
+            var userInfo = UserInfoDtos.ForUser(user);
+            TestHelper.UnitOfWork.UserCriteriaRepo.GetOwnUserCriteria(userInfo);
+            TestHelper.UnitOfWork.SetUser(user.Username);
+            var dataSource = AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var explorer = TestHelper.UnitOfWork.AttributeRepo.GetExplorer();
+            var networkName = RandomStrings.WithPrefix("minimalInputNetwork");
+            var networkId = Guid.NewGuid();
+            var assetId = Guid.NewGuid();
+            var keyAttributeName = TestAttributeNames.BrKey;
+            var asset = MaintainableAssets.InNetwork(networkId, keyAttributeName, assetId);
+            var assets = new List<Data.Networking.MaintainableAsset> { asset };
+            var dataNetwork = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, assets, networkId, TestAttributeIds.BrKeyId, networkName);
+            var assetIds = assets.Select(a => a.Id).ToList();
+            var requiredAttributeIds = new List<Guid> { TestAttributeIds.AgeId };
+            var simulationId = Guid.NewGuid();
+            var simulationName = RandomStrings.WithPrefix("ExtremelyMinimalInput");
+            var simulationModel = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, simulationName, userId, networkId);
+            var simulationAnalysisDetail = SimulationAnalysisDetailDtos.ForSimulation(simulationId);
+            TestHelper.UnitOfWork.SimulationAnalysisDetailRepo.UpsertSimulationAnalysisDetail(simulationAnalysisDetail);
+            var analysisMethod = AnalysisMethodDtos.RiskScore();
+            TestHelper.UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulationId, analysisMethod);
+            var investmentPlanDto = InvestmentPlanDtos.Dto(simulationId, 2024);
+            TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulationId);
+            var noTreatmentDto = TreatmentDtos.NoTreatment();
+            var treatments = new List<TreatmentDTO> { noTreatmentDto };
+            TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulationId);
+            var budgetId = Guid.NewGuid();
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budget = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2024, 1000000m);
+            var budgets = new List<BudgetDTO> { budget };
+            TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgets(simulationId, budgets);
+            var budgetAmountWithBudgetId = new BudgetAmountDTOWithBudgetId
+            {
+                BudgetAmount = budget.BudgetAmounts.Single(),
+                BudgetId = budgetId,
+            };
+            var budgetAmountsWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountWithBudgetId };
+            TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgetAmounts(budgetAmountsWithBudgetIds);
+            var budgetPriority = BudgetPriorityDtos.WithPercentagePair(budgetName, budgetId, null, 0, 2024);
+            var budgetPriorities = new List<BudgetPriorityDTO> { budgetPriority };
+            TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(budgetPriorities, simulationId);
+            var conditionIndexAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.ConditionIndexId);
+            var ageAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.AgeId);
+            var ageAttributeAsList = new List<AttributeDTO> { ageAttribute };
+            var mappedAttributeList = AttributeDtoDomainMapper.ToDomainList(ageAttributeAsList, "");
+         //   AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
+            var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
+            var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
+            calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";
+            var calculatedAttributes = new List<CalculatedAttributeDTO> { calculatedAttribute };
+            TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertScenarioCalculatedAttributesNonAtomic(calculatedAttributes, simulationId);
+            var network = TestHelper.UnitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer, true, simulationId);
+            TestHelper.UnitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
+
+
+            var simulation = network.Simulations.Single(_ => _.Id == simulationId);
+            var curveId = Guid.NewGuid();
+
+            var performanceCurve = ScenarioPerformanceCurveTestSetup.DtoForEntityInDb(TestHelper.UnitOfWork, simulationId, curveId);
+            var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+
+            TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
+
+            var curvesAfter = simulation.PerformanceCurves.ToList();
+            var curveAfter = curvesAfter.Single();
+            Assert.Equal(performanceCurve.Name, curveAfter.Name);
+            Assert.Equal(curveId, curveAfter.Id);
+            Assert.Equal(performanceCurve.Attribute, curveAfter.Attribute.Name);
+        }
+
+        [Fact]
         public void UpsertOrDeleteScenarioPerformanceCurves_CurveInDb_UpdatesShift()
         {
             Setup();
-            // Arrange
             var simulationId = Guid.NewGuid();
             var curveId = Guid.NewGuid();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
