@@ -48,6 +48,18 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         }
 
         [Fact]
+        public void UpsertOrDeletePerformanceCurveLibraryAndCurves_Does()
+        {
+            // TODO as of 3/20/25: finish this test
+            Setup();
+            var libraryId = Guid.NewGuid();
+            var curveId = Guid.NewGuid();
+            var libraryDto = PerformanceCurveLibraryDtos.Empty(libraryId);
+            var curve = PerformanceCurveDtos.Dto(curveId, attribute: TestAttributeNames.DeckSeeded);
+            libraryDto.PerformanceCurves.Add(curve);
+        }
+
+        [Fact]
         public void UpsertPerformanceCurveLibrary_CurveInDb_Description()
         {
             Setup();

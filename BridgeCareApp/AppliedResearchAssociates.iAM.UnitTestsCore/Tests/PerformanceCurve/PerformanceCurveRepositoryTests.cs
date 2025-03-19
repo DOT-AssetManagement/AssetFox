@@ -39,6 +39,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
         [Fact]
         public async Task GetScenarioPerformanceCurvesWithAttributeNameLookup_SimulationInDbWithCurves_Gets()
         {
+            // The version of this test in commit d9c661 in the history
+            // shows how to setup a Simulation for load/run
+            // (but without actually running it).
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, true);
             var userId = user.Id;
@@ -59,47 +62,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             var simulationId = Guid.NewGuid();
             var simulationName = RandomStrings.WithPrefix("ExtremelyMinimalInput");
             var simulationModel = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, simulationName, userId, networkId);
-            var simulationAnalysisDetail = SimulationAnalysisDetailDtos.ForSimulation(simulationId);
-            TestHelper.UnitOfWork.SimulationAnalysisDetailRepo.UpsertSimulationAnalysisDetail(simulationAnalysisDetail);
-            var analysisMethod = AnalysisMethodDtos.RiskScore();
-            TestHelper.UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulationId, analysisMethod);
-            var investmentPlanDto = InvestmentPlanDtos.Dto(simulationId, 2024);
-            TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulationId);
-            var noTreatmentDto = TreatmentDtos.NoTreatment();
-            var treatments = new List<TreatmentDTO> { noTreatmentDto };
-            TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulationId);
             var curveId = Guid.NewGuid();
             var performanceCurve = ScenarioPerformanceCurveTestSetup.DtoForEntityInDb(TestHelper.UnitOfWork, simulationId, curveId);
-            //var budgetId = Guid.NewGuid();
-            //var budgetName = RandomStrings.WithPrefix("Budget");
-            ////var budget = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2024, 1000000m);
-            //var budgets = new List<BudgetDTO> { budget };
-            //TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgets(simulationId, budgets);
-            //var budgetAmountWithBudgetId = new BudgetAmountDTOWithBudgetId
-            //{
-            //    BudgetAmount = budget.BudgetAmounts.Single(),
-            //    BudgetId = budgetId,
-            //};
-            //var budgetAmountsWithBudgetIds = new List<BudgetAmountDTOWithBudgetId> { budgetAmountWithBudgetId };
-            //TestHelper.UnitOfWork.BudgetRepo.AddScenarioBudgetAmounts(budgetAmountsWithBudgetIds);
-            //var budgetPriority = BudgetPriorityDtos.WithPercentagePair(budgetName, budgetId, null, 0, 2024);
-            //var budgetPriorities = new List<BudgetPriorityDTO> { budgetPriority };
-            //TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(budgetPriorities, simulationId);
-            //var conditionIndexAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.ConditionIndexId);
-            //var ageAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.AgeId);
-            //var ageAttributeAsList = new List<AttributeDTO> { ageAttribute };
-            //var mappedAttributeList = AttributeDtoDomainMapper.ToDomainList(ageAttributeAsList, "");
-            //   AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
-            //var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
-            //var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
-            //calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";
-            //var calculatedAttributes = new List<CalculatedAttributeDTO> { calculatedAttribute };
-            //TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertScenarioCalculatedAttributesNonAtomic(calculatedAttributes, simulationId);
             var network = TestHelper.UnitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer, true, simulationId);
             TestHelper.UnitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
-
             var simulation = network.Simulations.Single(_ => _.Id == simulationId);
-
             var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
 
             TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
@@ -454,6 +421,33 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
 
             var message = exception.Message;
             Assert.Contains(ErrorMessageConstants.NoAttributeFoundHavingName, message);
+        }
+
+        [Fact]
+        public void GetPerformanceCurveLibraries_LibraryInDbWithCurve_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var library = PerformanceCurveLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var curveId = Guid.NewGuid();
+            var curve = PerformanceCurveTestSetup.TestLibraryPerformanceCurveInDb(TestHelper.UnitOfWork, library.Id,
+                curveId, TestAttributeNames.DeckSeeded);
+            library.PerformanceCurves.Add(curve);
+
+            var libraries = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibraries();
+
+            var foundLibrary = libraries.Single(l => l.Id == library.Id);
+            ObjectAssertions.Equivalent(library, foundLibrary);
+        }
+
+        [Fact]
+        public void GetPerformanceCurveLibrariesNoPerformanceCurves_LibraryInDb_Gets()
+        {
+            var library = PerformanceCurveLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+
+            var libraries = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibraries();
+
+            var foundLibrary = libraries.Single(l => l.Id == library.Id);
+            ObjectAssertions.Equivalent(library, foundLibrary);
         }
     }
 }
