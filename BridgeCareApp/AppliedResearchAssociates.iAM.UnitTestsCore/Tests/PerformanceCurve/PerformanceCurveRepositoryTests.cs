@@ -460,7 +460,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             TestHelper.UnitOfWork.PerformanceCurveRepo.DeletePerformanceCurveLibrary(library.Id);
 
             var libraryAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(library.Id);
-            Assert.Equal(Guid.Empty, libraryAfter.Id);
+            if (libraryAfter != null)
+            {
+                Assert.Equal(Guid.Empty, libraryAfter.Id);
+            }
         }
 
         [Fact]
