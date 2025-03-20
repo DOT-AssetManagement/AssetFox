@@ -10,6 +10,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
     {
         void AddAggregatedResults(List<IAggregatedResult> aggregatedResults);
 
+        /// <summary> May not be trustable as of 3/20/25. Not called anywhere.</summary>
         IEnumerable<IAggregatedResult> GetAggregatedResults(Guid networkId);
 
         void CreateAggregatedResults<T>(

@@ -31,10 +31,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.AddAll(entities);
         }
 
-        // WJPRQ -- Delete this method and the corresponding interface method?
-        // I don't think it makes much sense. Tracing where it came from
-        // would be possible if that matters but would take some work.
-        // It did not come from the commit my VS says it came from.
         public IEnumerable<IAggregatedResult> GetAggregatedResults(Guid networkId)
         {
             if (!_unitOfWork.Context.Network.Any(_ => _.Id == networkId))
