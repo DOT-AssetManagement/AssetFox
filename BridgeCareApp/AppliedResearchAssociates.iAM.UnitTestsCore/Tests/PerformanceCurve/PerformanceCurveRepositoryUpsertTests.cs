@@ -8,6 +8,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using Xunit;
 
@@ -48,15 +49,20 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         }
 
         [Fact]
-        public void UpsertOrDeletePerformanceCurveLibraryAndCurves_Does()
+        public async Task UpsertOrDeletePerformanceCurveLibraryAndCurves_Does()
         {
-            // TODO as of 3/20/25: finish this test
             Setup();
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var libraryId = Guid.NewGuid();
             var curveId = Guid.NewGuid();
             var libraryDto = PerformanceCurveLibraryDtos.Empty(libraryId);
             var curve = PerformanceCurveDtos.Dto(curveId, attribute: TestAttributeNames.DeckSeeded);
             libraryDto.PerformanceCurves.Add(curve);
+
+            TestHelper.UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurveLibraryAndCurves(libraryDto, true, user.Id);
+
+            var libraryAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(libraryId);
+            ObjectAssertions.EquivalentExcluding(libraryDto, libraryAfter, l => l.Owner, l => l.PerformanceCurves[0].CriterionLibrary);
         }
 
         [Fact]
