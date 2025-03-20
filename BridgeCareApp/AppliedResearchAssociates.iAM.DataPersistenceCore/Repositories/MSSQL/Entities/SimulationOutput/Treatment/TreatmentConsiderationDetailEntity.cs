@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
 {
@@ -17,10 +13,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public int? BudgetPriorityLevel { get; set; }
 
-        public ICollection<BudgetUsageDetailEntity> BudgetUsageDetails { get; set; } = new HashSet<BudgetUsageDetailEntity>();
-
-        public ICollection<CashFlowConsiderationDetailEntity> CashFlowConsiderationDetails { get; set; } = new HashSet<CashFlowConsiderationDetailEntity>();
+        public ICollection<CashFlowConsiderationDetailEntity> CashFlowConsiderations { get; set; } = new HashSet<CashFlowConsiderationDetailEntity>();
 
         public string TreatmentName { get; set; }
+
+        public virtual FundingCalculationInput FundingCalculationInput { get; set; }
+
+        public virtual FundingCalculationOutput FundingCalculationOutput { get; set; }
     }
 }

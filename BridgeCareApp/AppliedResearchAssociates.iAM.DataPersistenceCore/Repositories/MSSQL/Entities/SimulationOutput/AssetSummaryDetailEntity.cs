@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
 {
@@ -18,13 +14,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public Guid MaintainableAssetId { get; set; }
 
-        public virtual MaintainableAssetEntity MaintainableAsset { get; set; }
-
-        public virtual SimulationOutputEntity SimulationOutput { get; set; }
+        public virtual MaintainableAssetEntity MaintainableAsset { get; set; } // analysis obj AssetSummaryDetail.AssetName can be traslated to MaintainableAsset.AssetName, Note: it is always null in DB
 
         public Guid SimulationOutputId { get; set; }
 
-        public virtual ICollection<AssetSummaryDetailValueEntityIntId> AssetSummaryDetailValuesIntId { get; set; }
+        public virtual SimulationOutputEntity SimulationOutput { get; set; }        
 
+        public virtual ICollection<AssetSummaryDetailValueEntityIntId> AssetSummaryDetailValuesIntId { get; set; }
     }
 }

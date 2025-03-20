@@ -1,7 +1,5 @@
 ﻿using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.Analysis;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -25,6 +23,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Years = years,
                 InitialAssetSummaries = summaryEntities,
             };
+
             return entity;
         }
 
@@ -41,6 +40,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             };
             var years = SimulationYearDetailMapper.ToDomainListWithoutAssets(entity.Years, attributeNameLookup);
             domain.Years.AddRange(years);
+
             return domain;
         }
     }

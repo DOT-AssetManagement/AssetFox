@@ -8,10 +8,8 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entit
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.PerformanceCurve;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.CalculatedAttribute;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Deficient;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.RemainingLifeLimit;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Deficient;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.RemainingLifeLimit;
 
@@ -37,7 +35,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
             AssetDetailValuesIntId = new HashSet<AssetDetailValueEntityIntId>();
             AssetSummaryDetailValuesIntId = new HashSet<AssetSummaryDetailValueEntityIntId>();
             DeficientConditionGoalDetails = new HashSet<DeficientConditionGoalDetailEntity>();
-            TargetConditionGoalDetails = new HashSet<TargetConditionGoalDetailEntity>();
+            TargetConditionGoals = new HashSet<TargetConditionGoalDetailEntity>();
         }
 
         public Guid Id { get; set; }
@@ -106,6 +104,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public virtual ICollection<DeficientConditionGoalDetailEntity> DeficientConditionGoalDetails { get; set; }
 
-        public virtual ICollection<TargetConditionGoalDetailEntity> TargetConditionGoalDetails { get; set; }
+        public virtual ICollection<TargetConditionGoalDetailEntity> TargetConditionGoals { get; set; }
     }
 }

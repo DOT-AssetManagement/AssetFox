@@ -45,36 +45,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             Dictionary<string, Guid> attributeIdLookup)
         {
             var entities = new List<AssetDetailValueEntityIntId>();
-            var areaKey = Network.DefaultSpatialWeightingIdentifier;
-            var deckAreaKey = AttributeNameConstants.DeckArea;
-            var containsAreaKey = assetSummaryDetailValues.ContainsKey(areaKey);
-            var containsDeckAreaKey = assetSummaryDetailValues.ContainsKey(deckAreaKey);
-            if (containsAreaKey && !containsDeckAreaKey)
-            {
-                var message = $"Unable to save simulation results. We have a value for {areaKey} but no value for {deckAreaKey}.";
-                throw new Exception(message);
-            }
-            else if (containsDeckAreaKey && !containsAreaKey)
-            {
-                var message = $"Unable to save simulation results. We have a value for {deckAreaKey} but no value for {areaKey}.";
-                throw new Exception(message);
-            }
-            else if (containsDeckAreaKey && assetSummaryDetailValues[deckAreaKey] != assetSummaryDetailValues[areaKey])
-            {
-                var message = $"Unable to save simulation results. We expect the value for {deckAreaKey} to match the value for {areaKey}. But the value for {deckAreaKey} is {assetSummaryDetailValues[deckAreaKey]} and the value for {areaKey} is {assetSummaryDetailValues[areaKey]},";
-                throw new Exception(message);
-            }
+
             foreach (var keyValuePair in assetSummaryDetailValues)
             {
                 if (attributeIdLookup.ContainsKey(keyValuePair.Key))
                 {
                     var entity = ToNumericEntity(assetDetailId, keyValuePair, attributeIdLookup);
                     entities.Add(entity);
-                }
-                else if (keyValuePair.Key != areaKey)
-                {
-                    var message = $"Unable to save simulation results. We have a value for {keyValuePair.Key}, but no corresponding attribute.";
-                    throw new Exception(message);
                 }
             }
             return entities;
@@ -104,6 +81,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 AddToDictionary(entity, valuePerTextAttribute, valuePerNumericAttribute, attributeNameLookup);
             }
+            // TODO check if needed and what alternative?
             FillArea(valuePerNumericAttribute);
         }
 
