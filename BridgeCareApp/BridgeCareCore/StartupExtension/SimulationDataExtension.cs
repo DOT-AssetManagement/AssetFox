@@ -1,5 +1,4 @@
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.FileSystem;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.WorkQueue;
@@ -16,8 +15,6 @@ namespace BridgeCareCore.StartupExtension
     {
         public static void AddSimulationData(this IServiceCollection services)
         {
-            services.AddScoped<IAttributeMetaDataRepository, AttributeMetaDataRepository>();
-
             services.AddSingleton<SequentialWorkQueue<WorkQueueMetadata>>();
             services.AddSingleton<FastSequentialworkQueue<WorkQueueMetadata>>();
             services.AddHostedService<SequentialWorkBackgroundService>();
