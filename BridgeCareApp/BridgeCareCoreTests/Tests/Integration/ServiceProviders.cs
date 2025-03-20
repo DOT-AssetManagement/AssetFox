@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
-    // WJPRQ from the rejected branch
     public static class ServiceProviders
     {
         private static IServiceProvider _adminControllers { get; set; }

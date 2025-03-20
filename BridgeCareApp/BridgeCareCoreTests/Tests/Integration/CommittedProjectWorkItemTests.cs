@@ -21,6 +21,10 @@ namespace BridgeCareCoreTests.Tests.Integration
         [Fact]
         public void ExportCommittedProjects_ThenImport_Expected_WorkItemLevelVersion()
         {
+            // WJPRQ This is an alternate version of the test ExportCommittedProjects_ThenImport_Expected.
+            // The other version uses the queues. It therefore tests more code but is more complicated.
+            // This version has the drawback that it duplicates some controller code.
+            // Which do we prefer?
             var hubService = HubServiceMocks.Default();
             var service = new CommittedProjectService(TestHelper.UnitOfWork, hubService);
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);

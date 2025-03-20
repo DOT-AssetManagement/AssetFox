@@ -1,7 +1,6 @@
 ﻿
 namespace AppliedResearchAssociates.iAM.TestHelpers
 {
-    // WJPRQ class is from rejected branch
     public static class RandomIntegers
     {
         private static Random _random = new Random();

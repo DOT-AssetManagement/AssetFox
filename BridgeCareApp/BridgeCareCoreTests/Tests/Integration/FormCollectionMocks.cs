@@ -4,7 +4,6 @@ using Moq;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
-    // WJPRQ from the rejected branch
     public static class FormCollectionMocks
     {
         public static IFormCollection FormWithSimulationIdAndFiles(Guid simulationId, params IFormFile[] files)
