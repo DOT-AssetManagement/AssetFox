@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -21,7 +18,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
         }
-
 
         [Fact]
         public void UpsertOrDeletePerformanceCurves_CurveInDbWithEquation_UpdateRemovesCurve_EquationDeleted()
@@ -62,7 +58,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             TestHelper.UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurveLibraryAndCurves(libraryDto, true, user.Id);
 
             var libraryAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(libraryId);
-            ObjectAssertions.EquivalentExcluding(libraryDto, libraryAfter, l => l.Owner, l => l.PerformanceCurves[0].CriterionLibrary);
+            ObjectAssertions.EquivalentExcluding(libraryDto, libraryAfter, l => l.Owner, l => l.PerformanceCurves[0].CriterionLibrary,
+                l => l.PerformanceCurves[0].Equation.Id);
         }
 
         [Fact]

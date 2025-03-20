@@ -449,5 +449,33 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             var foundLibrary = libraries.Single(l => l.Id == library.Id);
             ObjectAssertions.Equivalent(library, foundLibrary);
         }
+
+        [Fact]
+        public void DeletePerformanceCurveLibrary_LibraryExists_Deletes()
+        {
+            var library = PerformanceCurveLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var libraryBefore = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(library.Id);
+            Assert.Equal(library.Id, libraryBefore.Id);
+
+            TestHelper.UnitOfWork.PerformanceCurveRepo.DeletePerformanceCurveLibrary(library.Id);
+
+            var libraryAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(library.Id);
+            Assert.Equal(Guid.Empty, libraryAfter.Id);
+        }
+
+        [Fact]
+        public void GetScenarioPerformanceCurvesOrderedById_CurveInDb_Gets()
+        {
+            Setup();
+            var simulationId = Guid.NewGuid();
+            var curveId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
+            var performanceCurve = ScenarioPerformanceCurveTestSetup.DtoForEntityInDb(TestHelper.UnitOfWork, simulationId, curveId);
+
+            var scenarioCurves = TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurvesOrderedById(simulationId);
+
+            var scenarioCurve = scenarioCurves.Single();
+            ObjectAssertions.EquivalentExcluding(performanceCurve, scenarioCurve, c => c.CriterionLibrary);
+        }
     }
 }
