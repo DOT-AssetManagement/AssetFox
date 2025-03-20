@@ -60,7 +60,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.SaveChanges();
         }
 
-        /// WJPRQ -- method is not called anywhere. Delete?
         public void CreateAggregatedResults<T>(
             Dictionary<(Guid maintainableAssetId, Guid attributeId), IAttributeValueHistory<T>>
                 attributeValueHistoryPerMaintainableAssetIdAttributeIdTuple)
@@ -158,21 +157,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return entities.Select(AggregatedResultMapper.ToDto).ToList();
         }
 
+        // WJWJ keep this method, but delete the other uncalled methods in this repo.
         public List<AggregatedResultDTO> GetAllAggregatedResultsForMaintainableAsset(Guid assetId)
         {
             var entities = _unitOfWork.Context.AggregatedResult.AsSplitQuery().AsNoTracking().Include(_ => _.Attribute)
                     .Where(_ => _.MaintainableAssetId == assetId).ToList();
             return entities.Select(AggregatedResultMapper.ToDto).ToList();
-        }
-
-        public List<AggregatedResultDTO> GetAllAggregatedResultsForNetwork(Guid networkId)
-        {
-            return _unitOfWork.Context.AggregatedResult
-                .Include(_ => _.MaintainableAsset)
-                .Include(_ => _.Attribute)
-                .Where(_ => _.MaintainableAsset.NetworkId == networkId)
-                .Select(e => AggregatedResultMapper.ToDto(e))
-                .AsNoTracking().AsSplitQuery().ToList();
         }
 
         /// <summary>

@@ -21,46 +21,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public BudgetAmountRepository(UnitOfDataPersistenceWork unitOfWork) => _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
-        // WJPRQ -- This method is not called anywhere. Delete?
-        public void CreateScenarioBudgetAmounts(Dictionary<Guid, List<BudgetAmount>> budgetAmountsPerBudgetEntityId, Guid simulationId)
-        {
-            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
-            {
-                throw new RowNotInTableException("No simulation was found for the given scenario.");
-            }
-
-            var simulationEntity = _unitOfWork.Context.Simulation.AsNoTracking()
-                .Where(_ => _.Id == simulationId)
-                .Select(simulation => new SimulationEntity
-                {
-                    InvestmentPlan = simulation.InvestmentPlan != null
-                        ? new InvestmentPlanEntity
-                            {
-                                FirstYearOfAnalysisPeriod = simulation.InvestmentPlan.FirstYearOfAnalysisPeriod
-                            }
-                        : null
-                }).Single();
-
-            if (simulationEntity.InvestmentPlan == null)
-            {
-                throw new RowNotInTableException("No investment plan found for given scenario.");
-            }
-
-            var budgetAmountEntities = new List<ScenarioBudgetAmountEntity>();
-
-            budgetAmountsPerBudgetEntityId.Keys.ForEach(budgetEntityId =>
-            {
-                var year = simulationEntity.InvestmentPlan.FirstYearOfAnalysisPeriod;
-                budgetAmountsPerBudgetEntityId[budgetEntityId].ForEach(_ =>
-                {
-                    budgetAmountEntities.Add(_.ToScenarioEntity(budgetEntityId, year));
-                    year++;
-                });
-            });
-
-            _unitOfWork.Context.AddAll(budgetAmountEntities);
-        }
-
         public void UpsertOrDeleteBudgetAmounts(Dictionary<Guid, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid libraryId)
         {
             var budgetAmountEntities = budgetAmountsPerBudgetId
@@ -116,7 +76,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Where(_ => _.Budget.BudgetLibrary.Id == libraryId)
                 .Select(budgetAmount => new BudgetAmountDTO
                 {
-                    // WJPRQ -- this does not map the id. Is that really what we want?
                     Year = budgetAmount.Year,
                     Value = budgetAmount.Value,
                     BudgetName = budgetAmount.Budget.Name,
@@ -136,7 +95,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Include(sb => sb.ScenarioBudget)
                 .Select(budgetAmount => new BudgetAmountDTO
                 {
-                    // WJPRQ -- this does not map the id. Is that really what we want?
                     Year = budgetAmount.Year,
                     Value = budgetAmount.Value,
                     BudgetName = budgetAmount.ScenarioBudget.Name,

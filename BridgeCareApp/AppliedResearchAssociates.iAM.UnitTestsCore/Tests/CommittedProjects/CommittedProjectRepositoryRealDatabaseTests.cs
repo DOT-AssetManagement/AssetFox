@@ -144,7 +144,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             List<SectionCommittedProjectDTO> sectionCommittedProjects = CreateTestCommittedProjects(simulation.Id, committedProjectId1, committedProjectId2);
 
             sectionCommittedProjects.ForEach(_ => _.ScenarioBudgetId = null);
-            // WJPRQ -- do we really want to be throwing "Exception" here?
+            
             var exception = Assert.Throws<Exception>(() => 
             TestHelper.UnitOfWork.CommittedProjectRepo.UpsertCommittedProjects(sectionCommittedProjects));
         }

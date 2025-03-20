@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.Data.Aggregation;
 using AppliedResearchAssociates.iAM.Analysis;
@@ -21,7 +21,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         List<AggregatedResultDTO> GetAggregatedResultsForMaintainableAsset(Guid assetId, List<Guid> attributeIds);
         List<AggregatedSelectValuesResultDTO> GetAggregatedResultsForAttributeNames(List<string> attributeNames);
         List<AggregatedResultDTO> GetAllAggregatedResultsForMaintainableAsset(Guid assetId);
-        List<AggregatedResultDTO> GetAllAggregatedResultsForNetwork(Guid networkId);
         Dictionary<Guid, List<AssetAttributeValuePair>> GetAssetAttributeValuePairDictionary(Guid networkId);
     }
 }

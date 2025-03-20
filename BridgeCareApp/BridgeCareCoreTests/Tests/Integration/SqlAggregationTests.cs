@@ -19,11 +19,8 @@ namespace BridgeCareCoreTests.Tests.Integration
         [Fact]
         public async Task Aggregate_SqlDataSourceInDb_AttributesInDb_Aggregates()
         {
-            // WJPRQ -- what do we think of this test? It was skipped because at one point
-            // there was a push to remove the db from tests. That said, it still passes, and it actually
-            // runs a mini sql-based aggregation. The command for it is a bit weird.
-            // Depending on the answer to the above, may want to do additional tests on AggregatedResultRepository.
-            // There are several untested methods.
+            // We may at some point drop sql aggregation entirely.
+            // Until then, keep this around.
             var config = TestConfiguration.Get();
             var connectionString = TestConnectionStrings.BridgeCare(config);
             var dataSourceDto = DataSourceTestSetup.DtoForSqlDataSourceInDb(TestHelper.UnitOfWork, connectionString);

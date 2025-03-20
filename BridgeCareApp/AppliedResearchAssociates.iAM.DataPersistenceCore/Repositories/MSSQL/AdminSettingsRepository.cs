@@ -45,22 +45,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             }
         }
 
-        public IList<string> GetRawKeyFields()
-        {
-            var existingRawKeyFields = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == rawDataFieldKey).FirstOrDefault();
-            if (existingRawKeyFields == null)
-            {
-                return null;
-            }
-            else
-            {
-                var rawKeyFields = existingRawKeyFields.Value;
-                IList<string> RawKeyFieldsList = rawKeyFields.Split(',').ToList();
-                return RawKeyFieldsList;
-            }
-
-        }
-
         //String is to be passed in as parameter. Sets the KeyFields in the AdminSettings table. 
         public void SetKeyFields(string keyFields)
         {
@@ -112,9 +96,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         }
 
-        //Reads in KeyFields record as a string but places values in a list to return.
-        // WJPRQ This method is the same as the method GetRawKeyFields().
-        // OK to delete one of them?
         public IList<string> GetRawDataKeyFields()
         {
             var existingKeyFields = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == rawDataFieldKey).FirstOrDefault();
@@ -302,13 +283,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.SaveChanges();
         }
 
-        //WJPRQ -- delete this?
-        public IList<string> GetAvailableReports()
-        {
-
-            return null;
-
-        }
         public IList<string> GetSimulationReportNames()
         {
             var existingSimulationReports = _unitOfWork.Context.AdminSettings.SingleOrDefault(_ => _.Key == simulationReportKey);

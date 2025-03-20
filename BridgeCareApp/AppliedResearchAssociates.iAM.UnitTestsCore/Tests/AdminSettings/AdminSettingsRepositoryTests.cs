@@ -274,7 +274,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
             var keyFields = attributeName;
             TestHelper.UnitOfWork.AdminSettingsRepo.SetRawDataKeyFields(keyFields);
 
-            var keyFieldsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawKeyFields();
+            var keyFieldsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawDataKeyFields();
             var keyFieldAfter = keyFieldsAfter.Single();
 
             Assert.Equal(keyFields, keyFieldAfter);
@@ -290,7 +290,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
             var keyFields = $"{attributeName1},{attributeName2}";
             TestHelper.UnitOfWork.AdminSettingsRepo.SetRawDataKeyFields(keyFields);
 
-            var keyFieldsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawKeyFields();
+            var keyFieldsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawDataKeyFields();
             var keyFieldsAfter2 = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawDataKeyFields();
             var expectedKeyFieldsAfter = new List<string> { attributeName1, attributeName2 };
             Assert.Equal(expectedKeyFieldsAfter,keyFieldsAfter);
@@ -331,15 +331,15 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
 
             TestHelper.UnitOfWork.AdminSettingsRepo.SetRawDataKeyFields(keyFields2);
 
-            var keyFieldsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawKeyFields();
+            var keyFieldsAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetRawDataKeyFields();
             var expectedKeyFieldsAfter = new List<string> { attributeName2 };
             Assert.Equal(expectedKeyFieldsAfter, keyFieldsAfter);
         }
 
         [Fact]
-        // WJPRQ -- There are two code paths in the method under test here.
-        // This brings up the question of multiple tests on the method.
-        // This applies to many methods in AdminSettingsRepository.
+        // There are two code paths in the method under test here.
+        // Per Tyler, where it's easy, going forward, yes. Hunch is not to go
+        // back and do it retroactively
         public void SetAdminContactEmail_ThenGet_Same()
         {
             var email = RandomStrings.WithPrefixAnd2CharSuffix("email");

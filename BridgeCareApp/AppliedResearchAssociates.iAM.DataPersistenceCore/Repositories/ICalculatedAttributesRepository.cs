@@ -13,7 +13,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 
         DateTime GetLibraryModifiedDate(Guid calculatedLibraryId);
 
-        List<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibrariesNoChildren(); // WJPRQ -- dead code. Delete?
+        List<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibrariesNoChildren();
 
         public List<CalculatedAttributeDTO> GetCalcuatedAttributesByLibraryIdNoChildren(Guid libraryid);
 
@@ -37,7 +37,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 
         CalculatedAttributeDTO GetLibraryCalulatedAttributesByLibraryAndAttributeId(Guid libraryId, Guid attributeId);
 
-        List<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibrariesNoChildrenAccessibleToUser(Guid userId);  // WJPRQ -- unused. Delete?
+        List<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibrariesNoChildrenAccessibleToUser(Guid userId);
 
         LibraryUserAccessModel GetLibraryAccess(Guid libraryId, Guid userId);
 

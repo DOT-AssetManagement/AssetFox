@@ -178,7 +178,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             Assert.Empty(budgetAfter.BudgetAmounts);
         }
 
-        [Fact (Skip = "See WJPRQ in BudgetAmountRepository")]
+        [Fact]
         public void GetLibraryBudgetAmounts_LibraryInDbWithAmount_Gets()
         {
             var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, "Old name");
@@ -199,10 +199,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
             var amountsAfter = TestHelper.UnitOfWork.BudgetAmountRepo.GetLibraryBudgetAmounts(libraryId);
 
             var amountAfter = amountsAfter.Single();
-            ObjectAssertions.Equivalent(amountDto, amountAfter);
+            ObjectAssertions.EquivalentExcluding(amountDto, amountAfter, a => a.Id);
         }
 
-        [Fact (Skip ="See WJPRQ in BudgetAmountRepository")]
+        [Fact]
         public void GetScenarioBudgetAmounts_AmountInDb_Gets()
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
@@ -218,7 +218,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetAmount
 
             var amountsInDb = TestHelper.UnitOfWork.BudgetAmountRepo.GetScenarioBudgetAmounts(simulation.Id);
             var amountInDb = amountsInDb.Single();
-            ObjectAssertions.Equivalent(oldBudgetAmountDto, amountInDb);
+            ObjectAssertions.EquivalentExcluding(oldBudgetAmountDto, amountInDb, a => a.Id);
         }
     }
 }

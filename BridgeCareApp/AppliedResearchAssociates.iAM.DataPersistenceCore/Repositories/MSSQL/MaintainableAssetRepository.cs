@@ -103,12 +103,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return assets.Select(_ => _.ToDomain(_unitOfWork.EncryptionKey)).ToList();
         }
 
-        public MaintainableAsset GetAssetAtLocation(Location location)
-        {
-            var asset = _unitOfWork.Context.MaintainableAsset.FirstOrDefault(_ => location.MatchOn(_.MaintainableAssetLocation.ToDomain()));
-            return asset.ToDomain(_unitOfWork.EncryptionKey);
-        }
-
         public void UpdateMaintainableAssetsSpatialWeighting(List<Data.Networking.MaintainableAsset> maintainableAssets)
         {
             var networkId = maintainableAssets.First().NetworkId;
