@@ -480,5 +480,41 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             var scenarioCurve = scenarioCurves.Single();
             ObjectAssertions.EquivalentExcluding(performanceCurve, scenarioCurve, c => c.CriterionLibrary);
         }
+
+        [Fact]
+        public void GetPerformanceCurvesForLibraryOrderedById_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var library = PerformanceCurveLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var curveId = Guid.NewGuid();
+            var curve = PerformanceCurveTestSetup.TestLibraryPerformanceCurveInDb(TestHelper.UnitOfWork, library.Id,
+                curveId, TestAttributeNames.DeckSeeded);
+
+            var result = TestHelper.UnitOfWork.PerformanceCurveRepo
+                         .GetPerformanceCurvesForLibraryOrderedById(library.Id);
+
+            var returnedCurve = result.Single();
+
+            ObjectAssertions.Equivalent(curve, returnedCurve);
+        }
+
+        [Fact]
+        public void GetDistinctScenarioPerformanceFactorAttributeNames_Behaves()
+        {
+            Setup();
+            // Arrange
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = Guid.NewGuid();
+            var treatment = TreatmentDtos.DtoWithEmptyCostsAndConsequencesLists(simulationId);
+            var performanceFactor = TreatmentPerformanceFactorDtos.Dto(TestAttributeNames.SubSeeded);
+            treatment.PerformanceFactors.Add(performanceFactor);
+            var treatments = new List<TreatmentDTO> { treatment };
+            TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulationId);
+
+            var attributeNames = TestHelper.UnitOfWork.PerformanceCurveRepo.GetDistinctScenarioPerformanceFactorAttributeNames();
+
+            Assert.Contains(TestAttributeNames.SubSeeded, attributeNames);
+        }
     }
 }
