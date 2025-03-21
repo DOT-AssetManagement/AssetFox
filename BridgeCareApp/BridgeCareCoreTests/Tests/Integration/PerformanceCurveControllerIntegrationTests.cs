@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -15,26 +16,27 @@ using BridgeCareCore.Services;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.General_Work_Queue;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
 using Xunit;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
     public class PerformanceCurveControllerIntegrationTests
     {
-        public PerformanceCurveController CreateController()
+        public PerformanceCurveController CreateController(Mock<IHubService> hubserviceMock = null)
         {
             var security = EsecSecurityMocks.Admin;
-            var hubService = HubServiceMocks.Default();
+            hubserviceMock ??= HubServiceMocks.DefaultMock();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var claimHelper = ClaimHelperMocks.New();
             var expressionValidationService = ExpressionValidationServiceMocks.EverythingIsValid();
-            var service = new PerformanceCurvesService(TestHelper.UnitOfWork, hubService, expressionValidationService.Object);
+            var service = new PerformanceCurvesService(TestHelper.UnitOfWork, hubserviceMock.Object, expressionValidationService.Object);
             var pagingService = new PerformanceCurvesPagingService(TestHelper.UnitOfWork);
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new PerformanceCurveController(
                 security,
                 TestHelper.UnitOfWork,
-                hubService,
+                hubserviceMock.Object,
                 contextAccessor,
                 service,
                 pagingService,
@@ -46,10 +48,11 @@ namespace BridgeCareCoreTests.Tests.Integration
         [Fact]
         public async void UpsertPerformanceCurveLibrary_CurveUpsertThrows_LibraryIsNotChanged()
         {
-            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var attributeName = TestAttributeNames.CulvDurationN;
-            var controller = CreateController();
+            var hubService = HubServiceMocks.DefaultMock();
+            var controller = CreateController(hubService);
             var libraryId = Guid.NewGuid();
             var library = PerformanceCurveLibraryDtos.Empty(libraryId);
             TestHelper.UnitOfWork.PerformanceCurveRepo.UpsertPerformanceCurveLibrary(library);
@@ -72,8 +75,9 @@ namespace BridgeCareCoreTests.Tests.Integration
             };
             var libraryBefore = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(libraryId);
 
-            var exception = await Assert.ThrowsAsync<RowNotInTableException>(async () => await controller.UpsertPerformanceCurveLibrary(upsertRequest));
+            await controller.UpsertPerformanceCurveLibrary(upsertRequest);
 
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
             var libraryAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(libraryId);
             ObjectAssertions.Equivalent(libraryBefore, libraryAfter);
         }

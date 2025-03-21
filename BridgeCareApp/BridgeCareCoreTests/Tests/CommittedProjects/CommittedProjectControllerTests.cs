@@ -1,32 +1,31 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Data;
-using System.IO;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
-using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using BridgeCareCore.Interfaces;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Controllers;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using BridgeCareCore.Models;
-using BridgeCareCore.Utils.Interfaces;
 using System.Security.Claims;
-using Microsoft.Extensions.DependencyInjection;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AppliedResearchAssociates.iAM.WorkQueue;
+using BridgeCareCore.Controllers;
+using BridgeCareCore.Interfaces;
+using BridgeCareCore.Models;
+using BridgeCareCore.Services;
+using BridgeCareCore.Services.General_Work_Queue.WorkItems;
 using BridgeCareCore.Utils;
-
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
-using Microsoft.AspNetCore.Authorization;
+using BridgeCareCore.Utils.Interfaces;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.General_Work_Queue;
-using AppliedResearchAssociates.iAM.Analysis;
+using BridgeCareCoreTests.Tests.Integration;
+using Castle.Core.Logging;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
+using Moq;
+using OfficeOpenXml;
+using Xunit;
+using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
 
 namespace BridgeCareCoreTests.Tests
 {
@@ -59,6 +58,7 @@ namespace BridgeCareCoreTests.Tests
                 .Returns(TestDataForCommittedProjects.GoodFile());
             _mockPagingService = new Mock<ICommittedProjectPagingService>();
         }
+
         public CommittedProjectController CreateTestController(List<string> userClaims)
         {
             var accessor = HttpContextAccessorMocks.Default();
@@ -106,80 +106,6 @@ namespace BridgeCareCoreTests.Tests
             Assert.True(contents.FileData.Length > 0);
         }
 
-        [Fact(Skip ="Authorization handled via claims, can we delete?")]
-        public async Task ExportFailsOnUnauthorized()
-        {
-            // Arrange
-            var accessor = HttpContextAccessorMocks.Default();
-            _mockUOW.Setup(_ => _.CurrentUser).Returns(UnauthorizedUser);
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Dbe,
-                _mockUOW.Object,
-                hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            // Act
-            var result = await controller.ExportCommittedProjects(TestDataForCommittedProjects.SimulationId);
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result);
-        }
-
-        [Fact(Skip = "Will Need to be changed to accommodate general work queue")]
-        public async Task ImportWorksWithValidData()
-        {
-            // Arrange
-            var mockContextAccessor = new Mock<IHttpContextAccessor>();
-            var hubService = HubServiceMocks.Default();
-            mockContextAccessor.Setup(_ => _.HttpContext)
-                .Returns(CreateLoadedContextForSimulation(TestDataForCommittedProjects.SimulationId));
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Admin,
-                _mockUOW.Object,
-                hubService,
-                mockContextAccessor.Object, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            // Act
-            var result = await controller.ImportCommittedProjects();
-
-            // Assert
-            Assert.IsType<OkResult>(result);
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null), Times.Once());
-        }
-
-        [Fact(Skip ="Authorization handled via claims, can we delete?")]
-        public async Task ImportFailsIfUserUnauthorized()
-        {
-            // Arrange
-            var mockContextAccessor = new Mock<IHttpContextAccessor>();
-            mockContextAccessor.Setup(_ => _.HttpContext)
-                .Returns(CreateLoadedContextForSimulation(TestDataForCommittedProjects.SimulationId));
-            _mockUOW.Setup(_ => _.CurrentUser).Returns(UnauthorizedUser);
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Dbe,
-                _mockUOW.Object,
-                hubService,
-                mockContextAccessor.Object, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            // Act
-            var result = await controller.ImportCommittedProjects();
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result);
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null), Times.Never());
-        }
-
         [Fact]
         public async Task ImportFailsWithNoFile()
         {
@@ -187,21 +113,25 @@ namespace BridgeCareCoreTests.Tests
             var mockContextAccessor = new Mock<IHttpContextAccessor>();
             mockContextAccessor.Setup(_ => _.HttpContext)
                 .Returns(CreateContextWithNoFile(TestDataForCommittedProjects.SimulationId));
-            var hubService = HubServiceMocks.Default();
+            var hubService = HubServiceMocks.DefaultMock();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,
                 _mockPagingService.Object,
                 EsecSecurityMocks.Admin,
                 _mockUOW.Object,
-                hubService,
+                hubService.Object,
                 mockContextAccessor.Object, _mockClaimHelper.Object, generalWorkQueue.Object);
 
             // Act
 
-            await Assert.ThrowsAsync<ConstraintException>(() => controller.ImportCommittedProjects());
+            await controller.ImportCommittedProjects();
+
             // Assert
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null), Times.Never());
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains("Committed project file not found.", message);
+            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never());
+
         }
 
         [Fact]
@@ -209,21 +139,23 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.Default();
+            var hubService = HubServiceMocks.DefaultMock();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,
                 _mockPagingService.Object,
                 EsecSecurityMocks.Dbe,
                 _mockUOW.Object,
-                hubService,
+                hubService.Object,
                 accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
 
             // Act
-            await Assert.ThrowsAsync<ConstraintException>(() => controller.ImportCommittedProjects());
+            await controller.ImportCommittedProjects();
 
             // Assert
-            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null), Times.Never());
+            _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never());
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains(CommittedProjectController.RequestMimeTypeIsInvalid, message);
         }
 
         [Fact]
@@ -231,47 +163,23 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.Default();
+            var hubService = HubServiceMocks.DefaultMock();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,
                 _mockPagingService.Object,
                 EsecSecurityMocks.Admin,
                 _mockUOW.Object,
-                hubService,
+                hubService.Object,
                 accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
 
-            // Act + Asset
-            await Assert.ThrowsAsync<ConstraintException>(() => controller.ImportCommittedProjects());
+            // Act + Assert
+            await controller.ImportCommittedProjects();
+
+            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            Assert.Contains(CommittedProjectController.RequestMimeTypeIsInvalid, message);
         }
 
-        [Fact(Skip = "Will Need to be changed to accommodate general work queue")]
-        public async Task ImportFailsOnNoSimulation()
-        {
-            // Arrange
-            var mockContextAccessor = new Mock<IHttpContextAccessor>();
-            mockContextAccessor.Setup(_ => _.HttpContext)
-                .Returns(CreateLoadedContextForSimulation(_badScenario));
-            
-            _mockService.Setup(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), null, null))
-                .Throws<ArgumentException>();
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Admin,
-                _mockUOW.Object,
-                hubService,
-                mockContextAccessor.Object, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            // Act
-            await Assert.ThrowsAsync<ArgumentException>(() => controller.ImportCommittedProjects());
-
-            // Assert
-            _mockCommittedProjectRepo.Verify(_ => _.DeleteSimulationCommittedProjects(It.IsAny<Guid>()), Times.Never());
-            
-        }
 
         [Fact]
         public async Task DeleteSimulationWorksWithValidSimulation()
@@ -296,52 +204,6 @@ namespace BridgeCareCoreTests.Tests
             _mockCommittedProjectRepo.Verify(_ => _.DeleteSimulationCommittedProjects(It.IsAny<Guid>()), Times.Once());
         }
 
-        [Fact(Skip = "Authorization handled via claims, can we delete?") ]
-        public async Task DeleteSimulationFailsOnUnauthorizedUser()
-        {
-            // Arrange
-            var accessor = HttpContextAccessorMocks.Default();
-            _mockUOW.Setup(_ => _.CurrentUser).Returns(UnauthorizedUser);
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Dbe,
-                _mockUOW.Object,
-                hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
-            // Act
-            var result = await controller.DeleteSimulationCommittedProjects(TestDataForCommittedProjects.SimulationId);
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result);
-            _mockCommittedProjectRepo.Verify(_ => _.DeleteSimulationCommittedProjects(It.IsAny<Guid>()), Times.Never());
-        }
-
-        [Fact (Skip = "Authorization handled via claims, todo: revisit")]
-        public async Task DeleteSimulationFailsOnBadSimulation()
-        {
-            // Arrange
-            var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Dbe,
-                _mockUOW.Object,
-                hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            // Act
-            var result = await controller.DeleteSimulationCommittedProjects(_badScenario);
-
-            // Assert
-            Assert.IsType<BadRequestObjectResult>(result);
-            _mockCommittedProjectRepo.Verify(_ => _.DeleteSimulationCommittedProjects(It.IsAny<Guid>()), Times.Never());
-        }
-
         [Fact]
         public async Task DeleteSpecificWorksWithValidProject()
         {
@@ -355,7 +217,9 @@ namespace BridgeCareCoreTests.Tests
                 EsecSecurityMocks.Admin,
                 _mockUOW.Object,
                 hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
+                accessor,
+                _mockClaimHelper.Object,
+                generalWorkQueue.Object);
             var deleteList = new List<Guid>()
             {
                 TestDataForCommittedProjects.CommittedProjectId1,
@@ -368,37 +232,6 @@ namespace BridgeCareCoreTests.Tests
             // Assert
             Assert.IsType<OkResult>(result);
             _mockCommittedProjectRepo.Verify(_ => _.DeleteSpecificCommittedProjects(It.IsAny<List<Guid>>()), Times.Once());
-        }
-
-        [Fact(Skip = "Authorization handled via claims, can we delete?") ]
-        public async Task DeleteSpecificFailsOnUnauthorized()
-        {
-            // Arrange
-            var accessor = HttpContextAccessorMocks.Default();
-            _mockUOW.Setup(_ => _.CurrentUser).Returns(UnauthorizedUser);
-            _mockCommittedProjectRepo.Setup(_ => _.GetSimulationId(It.IsAny<Guid>()))
-                .Returns(TestDataForCommittedProjects.SimulationId);
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Dbe,
-                _mockUOW.Object,
-                hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
-            var deleteList = new List<Guid>()
-            {
-                TestDataForCommittedProjects.CommittedProjectId1,
-                TestDataForCommittedProjects.CommittedProjectId2,
-            };
-
-            // Act
-            var result = await controller.DeleteSpecificCommittedProjects(deleteList);
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result);
-            _mockCommittedProjectRepo.Verify(_ => _.DeleteSpecificCommittedProjects(It.IsAny<List<Guid>>()), Times.Never());
         }
 
         [Fact]
@@ -454,29 +287,6 @@ namespace BridgeCareCoreTests.Tests
             Assert.Equal(3, contents.Count);
         }
 
-        [Fact(Skip ="Authorization handled via claims, can we delete?")]
-        public async Task GetSectionFailsOnUnauthorized()
-        {
-            // Arrange
-            var accessor = HttpContextAccessorMocks.Default();
-            _mockUOW.Setup(_ => _.CurrentUser).Returns(UnauthorizedUser);
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Dbe,
-                _mockUOW.Object,
-                hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            // Act
-            var result = await controller.GetCommittedProjects(TestDataForCommittedProjects.SimulationId);
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result);
-        }
-
         [Fact]
         public async Task GetSectionHandlesBadScenario()
         {
@@ -501,6 +311,7 @@ namespace BridgeCareCoreTests.Tests
             Assert.IsType<BadRequestObjectResult>(result);
         }
 
+        [Fact]
         public async Task UpsertSectionWorksWithValidProjects()
         {
             // Arrange
@@ -529,39 +340,6 @@ namespace BridgeCareCoreTests.Tests
             // Assert
             Assert.IsType<OkResult>(result);
             _mockCommittedProjectRepo.Verify(_ => _.UpsertCommittedProjects(It.IsAny<List<SectionCommittedProjectDTO>>()), Times.Once());
-        }
-
-        [Fact(Skip ="Verification testing handled with claims, can we delete?")]
-        public async Task UpsertFailsOnUnauthorized()
-        {
-            // Arrange
-            var accessor = HttpContextAccessorMocks.Default();
-            _mockUOW.Setup(_ => _.CurrentUser).Returns(UnauthorizedUser);
-            var hubService = HubServiceMocks.Default();
-            var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
-            var controller = new CommittedProjectController(
-                _mockService.Object,
-                _mockPagingService.Object,
-                EsecSecurityMocks.Dbe,
-                _mockUOW.Object,
-                hubService,
-                accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
-
-            var sync = new PagingSyncModel<SectionCommittedProjectDTO>()
-            {
-                LibraryId = null,
-                AddedRows = TestDataForCommittedProjects.ValidCommittedProjects,
-                UpdateRows = new List<SectionCommittedProjectDTO>(),
-                RowsForDeletion = new List<Guid>()
-            };
-            _mockPagingService.Setup(_ => _.GetSyncedDataset(TestDataForCommittedProjects.ValidCommittedProjects[0].SimulationId, sync)).Returns(TestDataForCommittedProjects.ValidCommittedProjects);
-
-            // Act
-            var result = await controller.UpsertCommittedProjects(TestDataForCommittedProjects.ValidCommittedProjects[0].SimulationId, sync);
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result);
-            _mockCommittedProjectRepo.Verify(_ => _.UpsertCommittedProjects(It.IsAny<List<SectionCommittedProjectDTO>>()), Times.Never());
         }
 
         [Fact]
@@ -692,28 +470,7 @@ namespace BridgeCareCoreTests.Tests
             Id = TestDataForCommittedProjects.UnauthorizedUser
         };
 
-        private HttpContext CreateLoadedContextForSimulation(Guid simulationId)
-        {
-            var httpContext = new DefaultHttpContext();
-            HttpContextSetup.AddAuthorizationHeader(httpContext);
-            httpContext.Request.Headers.Add("Content-Type", "multipart/form-data");
-
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "TestUtils\\Files",
-                "TestCommittedProjects_Good.xlsx");
-            using var stream = File.OpenRead(filePath);
-            var memStream = new MemoryStream();
-            stream.CopyTo(memStream);
-            var formFile = new FormFile(memStream, 0, memStream.Length, null, "TestCommittedProjects_Good.xlsx");
-
-            var formData = new Dictionary<string, StringValues>()
-            {
-                {"applyNoTreatment", new StringValues("0")},
-                {"simulationId", new StringValues(simulationId.ToString())}
-            };
-
-            httpContext.Request.Form = new FormCollection(formData, new FormFileCollection { formFile });
-            return httpContext;
-        }
+        #endregion
 
         private HttpContext CreateContextWithNoFile(Guid simulationId)
         {
@@ -730,6 +487,5 @@ namespace BridgeCareCoreTests.Tests
             httpContext.Request.Form = new FormCollection(formData);
             return httpContext;
         }
-        #endregion
     }
 }

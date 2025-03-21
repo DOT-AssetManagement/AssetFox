@@ -11,22 +11,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetPriority
 {
     public static class BudgetPriorityLibraryTestSetup
     {
-        private static BudgetPriorityDTO CreateBudgetPriorityDto()
-        {
-            return new BudgetPriorityDTO()
-            {
-                Id = Guid.NewGuid(),
-                PriorityLevel= 1,
-                Year = 2023,
-            };
-        }
         public static BudgetPriorityLibraryDTO CreateBudgetPriorityLibraryDto(string name)
         {
-            //setup
             var dto = BudgetPriorityDtos.New(null, 1, 2023);
             var budgetPriorityList = new List<BudgetPriorityDTO> { dto };
 
-            //create budget priority library
             return new BudgetPriorityLibraryDTO()
             {
                 Id = Guid.NewGuid(),

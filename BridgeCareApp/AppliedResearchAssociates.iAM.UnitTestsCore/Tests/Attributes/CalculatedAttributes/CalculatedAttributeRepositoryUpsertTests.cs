@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using Xunit;
@@ -167,6 +168,18 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
             Assert.Equal(2, actual.CalculatedAttributes.Count);
             Assert.Equal(1, actual.CalculatedAttributes.First(_ => _.Id == calcAttrId).CalculationTiming);
             Assert.Equal(0, actual.CalculatedAttributes.First(_ => _.Id == calcAttr2Id).CalculationTiming);
+        }
+
+        [Fact]
+        public void LibraryInDb_GetModifiedDate_Gets()
+        {
+            var beforeDate = DateTime.Now;
+            var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var afterDate = DateTime.Now;
+
+            var modifiedDate = TestHelper.UnitOfWork.CalculatedAttributeRepo.GetLibraryModifiedDate(library.Id);
+
+            DateTimeAssertions.Between(beforeDate, afterDate, modifiedDate, TimeSpan.FromSeconds(1));
         }
     }
 }

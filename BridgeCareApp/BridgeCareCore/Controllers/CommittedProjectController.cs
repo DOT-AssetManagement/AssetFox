@@ -31,6 +31,7 @@ namespace BridgeCareCore.Controllers
     public class CommittedProjectController : BridgeCareCoreBaseController
     {
         public const string CommittedProjectError = "Committed Project Error";
+        public const string RequestMimeTypeIsInvalid = "Request MIME type is invalid.";
         private static ICommittedProjectService _committedProjectService;
         private static ICommittedProjectPagingService _committedProjectPagingService;
         private readonly IClaimHelper _claimHelper;
@@ -59,7 +60,7 @@ namespace BridgeCareCore.Controllers
             {
                 if (!ContextAccessor.HttpContext.Request.HasFormContentType)
                 {
-                    throw new ConstraintException("Request MIME type is invalid.");
+                    throw new ConstraintException(RequestMimeTypeIsInvalid);
                 }
 
                 if (ContextAccessor.HttpContext.Request.Form.Files.Count < 1)

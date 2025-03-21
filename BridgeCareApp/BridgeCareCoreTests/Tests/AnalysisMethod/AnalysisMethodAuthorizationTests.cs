@@ -16,6 +16,7 @@ namespace BridgeCareCoreTests.Tests.AnalysisMethod
 {
     public class AnalysisMethodAuthorizationTests
     {
+        private const string PolicyName = "TestAnalysisMethodPolicy";
 
         [Fact]
         public async Task UserIsViewAnalysisMethodAuthorized()
@@ -26,16 +27,16 @@ namespace BridgeCareCoreTests.Tests.AnalysisMethod
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewAnalysisMethod,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.AnalysisMethodViewAnyAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
+            var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewAnalysisMethod);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -48,16 +49,16 @@ namespace BridgeCareCoreTests.Tests.AnalysisMethod
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ModifyAnalysisMethod,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.AnalysisMethodModifyPermittedAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Editor });
+            var claims = roleClaimsMapper.GetClaims(SecurityTypes.Esec, new List<string> { Role.Editor });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ModifyAnalysisMethod);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }
@@ -69,7 +70,7 @@ namespace BridgeCareCoreTests.Tests.AnalysisMethod
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Policy.ViewAnalysisMethod,
+                    options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
                                                       BridgeCareCore.Security.SecurityConstants.Claim.AnalysisMethodViewAnyAccess));
                 });
@@ -78,7 +79,7 @@ namespace BridgeCareCoreTests.Tests.AnalysisMethod
             var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
-            var allowed = await authorizationService.AuthorizeAsync(user, Policy.ViewAnalysisMethod);
+            var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
             // Assert
             Assert.True(allowed.Succeeded);
         }

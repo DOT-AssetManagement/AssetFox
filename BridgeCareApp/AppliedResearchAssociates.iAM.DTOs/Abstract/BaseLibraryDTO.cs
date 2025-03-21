@@ -27,7 +27,6 @@ namespace AppliedResearchAssociates.iAM.DTOs.Abstract
         /// <summary>
         /// The ID of the user who owns the library.
         /// </summary>
-        [Obsolete("This should go away. Instead, we will have a LibraryUserDto with an AccessLevel of Owner.")]
         public Guid Owner { get; set; }
 
         /// <summary>

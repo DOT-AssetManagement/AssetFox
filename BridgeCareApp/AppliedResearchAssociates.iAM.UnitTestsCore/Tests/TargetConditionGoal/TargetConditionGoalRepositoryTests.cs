@@ -89,7 +89,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         {
             SetupAttributesAndNetwork();
             // Act
-            TestHelper.UnitOfWork.TargetConditionGoalRepo.DeleteTargetConditionGoalLibrary(Guid.NewGuid()); ;
+            TestHelper.UnitOfWork.TargetConditionGoalRepo.DeleteTargetConditionGoalLibrary(Guid.NewGuid());
         }
 
         [Fact]

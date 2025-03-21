@@ -13,6 +13,14 @@ namespace BridgeCareCoreTests.Helpers
             return castResult.Value;
         }
 
+        /// <summary>Asserts that the result is an OkObjectResult with a value of type T. Returns its value.</summary> 
+        public static T OkObject<T>(IActionResult result)
+        {
+            var value = OkObject(result);
+            var t = (T)value;
+            return t;
+        }
+
         public static void Ok(IActionResult result)
         {
             Assert.IsType<OkResult>(result);

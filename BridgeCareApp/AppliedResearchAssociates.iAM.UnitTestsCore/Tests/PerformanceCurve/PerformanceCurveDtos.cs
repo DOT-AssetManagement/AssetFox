@@ -17,12 +17,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests {
         {
             var resolveCurveId = performanceCurveId ?? Guid.NewGuid();
             var resolveLibraryId = criterionLibraryId ?? Guid.NewGuid();
+            var equationId = Guid.NewGuid();
             var dto = new PerformanceCurveDTO
             {
                 Attribute = attribute,
                 Equation = new EquationDTO
                 {
                     Expression = equation,
+                    Id = equationId,
                 },
                 Id = resolveCurveId,
                 Name = "Performance curve",

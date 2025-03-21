@@ -11,17 +11,17 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User
 {
     public static class UserTestSetup
     {
-        public static string NameForEntityInDb(IUnitOfWork unitOfWork, bool isAdmin = false)
+        public static string NameForEntityInDb(IUnitOfWork unitOfWork, bool isAdmin, string? username = null)
         {
-            var userName = RandomStrings.WithPrefix("user");
-            unitOfWork.UserRepo.AddUser(userName, isAdmin);
-            return userName;
+            var resolveUsername = username ?? RandomStrings.WithPrefix("user");
+            unitOfWork.UserRepo.AddUser(resolveUsername, isAdmin);
+            return resolveUsername;
         }
 
-        public static async Task<UserDTO> ModelForEntityInDb(IUnitOfWork unitOfWork, bool isAdmin = false)
+        public static async Task<UserDTO> ModelForEntityInDb(IUnitOfWork unitOfWork, bool isAdmin = false, string username = null)
         {
-            var userName = NameForEntityInDb(unitOfWork, isAdmin);
-            var userDto = await unitOfWork.UserRepo.GetUserByUserName(userName);
+            var resolveUsername = NameForEntityInDb(unitOfWork, isAdmin, username);
+            var userDto = await unitOfWork.UserRepo.GetUserByUserName(resolveUsername);
             return userDto;
         }
     }

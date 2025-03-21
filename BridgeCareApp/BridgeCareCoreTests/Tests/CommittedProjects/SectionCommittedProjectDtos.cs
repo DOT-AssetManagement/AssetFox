@@ -35,6 +35,7 @@ namespace BridgeCareCoreTests.Tests
                 ProjectSource = projectSource,
                 Treatment = treatment,
                 LocationKeys = locationKeys,
+                ProjectId = "",
             };
             return dto;
         }

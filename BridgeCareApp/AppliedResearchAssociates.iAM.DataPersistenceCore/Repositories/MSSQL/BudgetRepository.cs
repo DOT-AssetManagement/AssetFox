@@ -138,8 +138,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public DateTime GetLibraryModifiedDate(Guid budgetLibraryId)
         {
-            var dtos = _unitOfWork.Context.BudgetLibrary.Where(_ => _.Id == budgetLibraryId).FirstOrDefault().LastModifiedDate;
-            return dtos;
+            var libraryModifiedDate = _unitOfWork.Context.BudgetLibrary.Where(_ => _.Id == budgetLibraryId).FirstOrDefault().LastModifiedDate;
+            return libraryModifiedDate;
         }
 
         public void UpsertBudgetLibrary(BudgetLibraryDTO dto) {

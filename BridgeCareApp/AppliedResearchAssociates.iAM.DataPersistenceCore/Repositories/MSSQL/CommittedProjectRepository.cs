@@ -408,7 +408,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             if (dto.Id == Guid.Empty) dto.Id = Guid.NewGuid();
         }
 
-        public string GetNetworkKeyAttribute(Guid simulationId)
+        private string GetNetworkKeyAttribute(Guid simulationId)
         {
             var simulation = _unitOfWork.Context.Simulation.AsNoTracking().Include(_ => _.Network).FirstOrDefault(_ => _.Id == simulationId);
             return _unitOfWork.AttributeRepo.GetAttributeName(simulation.Network.KeyAttributeId);

@@ -62,7 +62,7 @@ namespace BridgeCareCoreTests.Tests
 
             var result = await controller.UpsertAnalysisMethod(simulationId, dto);
 
-            ActionResultAssertions.Ok(result);
+            var message = ActionResultAssertions.OkObject(result);
             var invocation = repository.Invocations.Single();
             Assert.Equal(nameof(IAnalysisMethodRepository.UpsertAnalysisMethod), invocation.Method.Name);
             Assert.Equal(simulationId, invocation.Arguments[0]);

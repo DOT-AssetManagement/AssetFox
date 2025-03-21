@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Models;
 using BridgeCareCore.Security.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +14,6 @@ namespace BridgeCareCoreTests
 {
     public static class EsecSecurityMocks
     {
-        public const string AdminUsername = "pdsystbamsusr01";
         public const string AdminRole = "PD-BAMS-Administrator";
         public const string AdminEmail = "pdstseseca5@pa.gov";
 
@@ -28,7 +29,7 @@ namespace BridgeCareCoreTests
                 mock.Setup(_ => _.GetUserInformation(It.IsAny<HttpRequest>()))
                 .Returns(new UserInfo
                 {
-                    Name = AdminUsername,
+                    Name = TestUsernames.Admin,
                     HasAdminAccess = true,
                     HasSimulationAccess = true,
                     Email = AdminEmail,
@@ -69,6 +70,28 @@ namespace BridgeCareCoreTests
             {
                 return DbeMock.Object;
             }
+        }
+
+
+        public static IEsecSecurity DbeForUser(UserDTO user)
+        {
+            var userInfo = new UserInfo
+            {
+                Name = user.Username,
+                HasAdminAccess = false,
+                HasSimulationAccess = false,
+                Email = "random@gmail.com",
+            };
+            var mock = ForUserInfo(userInfo);
+            return mock.Object;
+        }
+
+        public static Mock<IEsecSecurity> ForUserInfo(UserInfo userInfo)
+        {
+            var mock = new Mock<IEsecSecurity>();
+            mock.Setup(_ => _.GetUserInformation(It.IsAny<HttpRequest>()))
+            .Returns(userInfo);
+            return mock;
         }
     }
 }

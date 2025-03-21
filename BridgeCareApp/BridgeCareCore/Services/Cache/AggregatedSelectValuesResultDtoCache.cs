@@ -12,16 +12,19 @@ namespace BridgeCareCore.Services
     public class AggregatedSelectValuesResultDtoCache : IAggregatedSelectValuesResultDtoCache
     {
         public static TimeSpan ValidityDuration = TimeSpan.FromHours(12) + TimeSpan.FromMinutes(30);
-        public const int CacheEntryLengthLimit = 2000000; // approx. size in bytes
+        private int _cacheEntryApproximateSizeLimit = 2000000;
         public int InstanceIndex;
         public static int InstanceCount = 0;
 
         private ConcurrentDictionary<string, AggregatedSelectValuesResultDtoCacheEntry> Cache { get; set; } = new();
 
-        public AggregatedSelectValuesResultDtoCache()
+        /// <summary>cacheEntryApproximateSizeLimit is a limit on the approximate size of a cache entry,
+        /// in bytes. The size measurement is approximate. Pass in -1 to not cache anything.</summary> 
+        public AggregatedSelectValuesResultDtoCache(int cacheEntryApproximateSizeLimit)
         {
             InstanceCount++;
             InstanceIndex = InstanceCount;
+            _cacheEntryApproximateSizeLimit = cacheEntryApproximateSizeLimit;
         }
 
         public void ClearInvalid()
@@ -65,7 +68,7 @@ namespace BridgeCareCore.Services
         {
             var now = DateTime.Now;
             var approximateSize = 26 * dto.Values.Count + 2 * dto.Values.Sum(str => str.Length);  //https://codeblog.jonskeet.uk/2011/04/05/of-memory-and-strings/
-            if (approximateSize < CacheEntryLengthLimit)
+            if (approximateSize < _cacheEntryApproximateSizeLimit)
             {
                 var cacheEntry = new AggregatedSelectValuesResultDtoCacheEntry
                 {

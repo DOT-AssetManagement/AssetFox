@@ -15,6 +15,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             {
                 SimulationId = simulationId,
                 Status = "Simulation report status",
+                ReportType = "Report type",
             };
             return dto;
         }

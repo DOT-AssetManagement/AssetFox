@@ -5,7 +5,6 @@ using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -16,6 +15,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
     public static class NetworkTestSetup
     {
         public static readonly Guid NetworkId = Guid.Parse("7f4ea3ba-6082-4e1e-91a4-b80578aeb0ed");
+        public const string TestNetworkName = "Test Network";
 
         public static TNetwork ModelForEntityInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, Guid? networkId = null, Guid? keyAttributeId = null, string name = "")
         {
@@ -34,13 +34,12 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         public static NetworkEntity TestNetwork() => new NetworkEntity
         {
             Id = NetworkId,
-            Name = "Test Network",
+            Name = TestNetworkName,
             KeyAttributeId = TestAttributeIds.BrKeyId,
         };
 
         private static readonly object NetworkCreationLock = new object();
         private static NetworkEntity CacheNetworkEntity = null;
-
 
         public static NetworkEntity CreateNetwork(UnitOfDataPersistenceWork unitOfWork)
         {

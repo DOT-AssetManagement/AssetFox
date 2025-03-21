@@ -20,5 +20,17 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit
             };
             return dto;
         }
+
+        public static BenefitDTO ConditionIndex()
+        {
+            var id = Guid.NewGuid();
+            var dto = new BenefitDTO
+            {
+                Attribute = TestAttributeNames.ConditionIndex,
+                Id = id,
+                Limit = 0,
+            };
+            return dto;
+        }
     }
 }

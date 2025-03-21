@@ -164,16 +164,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return entities.Select(AggregatedResultMapper.ToDto).ToList();
         }
 
-        public List<AggregatedResultDTO> GetAllAggregatedResultsForNetwork(Guid networkId)
-        {
-            return _unitOfWork.Context.AggregatedResult
-                .Include(_ => _.MaintainableAsset)
-                .Include(_ => _.Attribute)
-                .Where(_ => _.MaintainableAsset.NetworkId == networkId)
-                .Select(e => AggregatedResultMapper.ToDto(e))
-                .AsNoTracking().AsSplitQuery().ToList();
-        }
-
         /// <summary>
         /// Gets a dictionary of AssetAttributeValuePair lists for each MaintainableAsset in a given network
         /// </summary>

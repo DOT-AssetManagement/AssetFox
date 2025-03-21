@@ -23,12 +23,13 @@ namespace BridgeCareCore.Controllers
     public class AnalysisMethodController : BridgeCareCoreBaseController
     {
         public const string AnalysisMethodError = "Analysis Method Error";
+        public const string AnalysisMethodSuccessfullyUpdated = "Analysis Method successfully updated";
         public readonly IAnalysisDefaultDataService _analysisDefaultDataService;
         private readonly IClaimHelper _claimHelper;
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
-        private readonly UnitOfDataPersistenceWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AnalysisMethodController(IEsecSecurity esecSecurity, UnitOfDataPersistenceWork unitOfWork, IHubService hubService,
+        public AnalysisMethodController(IEsecSecurity esecSecurity, IUnitOfWork unitOfWork, IHubService hubService,
             IHttpContextAccessor httpContextAccessor, IAnalysisDefaultDataService analysisDefaultDataService, IClaimHelper claimHelper) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {            
             _analysisDefaultDataService = analysisDefaultDataService ?? throw new ArgumentNullException(nameof(analysisDefaultDataService));
@@ -120,7 +121,7 @@ namespace BridgeCareCore.Controllers
                     UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulationId, dto);                    
                 });
 
-                return Ok("Analysis Method successfully updated");
+                return Ok(AnalysisMethodSuccessfullyUpdated);
             }
             catch (UnauthorizedAccessException e)
             {

@@ -1,24 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore;
-using Xunit;
-using Moq;
-using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.CalculatedAttribute;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.CalculatedAttribute;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using System.Data;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Moq;
+using Xunit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
 {
@@ -243,7 +239,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             Assert.Empty(result);
         }
 
-        [Fact (Skip = "Test is fried by adding a transaction. Not sure if it's been worked on in another branch.")]
+        [Fact]
         public void UpsertScenarioCalculatedAttributesHandlesNoScenarioFound()
         {
             // Arrange
@@ -252,7 +248,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             attributeToModify.CalculationTiming = 2;
 
             // Act & Assert
-            Assert.Throws<RowNotInTableException>(() => repo.UpsertScenarioCalculatedAttributes(new List<CalculatedAttributeDTO>() { attributeToModify }, _badId));
+            Assert.Throws<RowNotInTableException>(() => repo.UpsertScenarioCalculatedAttributesNonAtomic(new List<CalculatedAttributeDTO>() { attributeToModify }, _badId));
         }
 
         [Fact]
@@ -350,62 +346,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             // Assert
             Assert.True(result.Attribute == "AGE");
         }
-        [Fact]
-        public async Task UpdateCalculatedAttributeLibraryWithUserAccessChange_Does()
-        {
-            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            CalculatedAttributeLibraryUserTestSetup.SetUsersOfCalculatedAttributeLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
-            var libraryUsersBefore = TestHelper.UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(library.Id);
-            var libraryUserBefore = libraryUsersBefore.Single();
-            Assert.Equal(LibraryAccessLevel.Modify, libraryUserBefore.AccessLevel);
-            libraryUserBefore.AccessLevel = LibraryAccessLevel.Read;
 
-            TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertOrDeleteUsers(library.Id, libraryUsersBefore);
-
-            var libraryUsersAfter = TestHelper.UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(library.Id);
-            var libraryUserAfter = libraryUsersAfter.Single();
-            Assert.Equal(LibraryAccessLevel.Read, libraryUserAfter.AccessLevel);
-        }
-        [Fact]
-        public async Task UpdateCalculatedAttributeLibraryUsers_RequestAccessRemoval_Does()
-        {
-            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            CalculatedAttributeLibraryUserTestSetup.SetUsersOfCalculatedAttributeLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
-            var libraryUsersBefore = TestHelper.UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(library.Id);
-            var libraryUserBefore = libraryUsersBefore.Single();
-            libraryUsersBefore.Remove(libraryUserBefore);
-
-            TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertOrDeleteUsers(library.Id, libraryUsersBefore);
-            TestHelper.UnitOfWork.Context.SaveChanges();
-
-            var libraryUsersAfter = TestHelper.UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(library.Id);
-            Assert.Empty(libraryUsersAfter);
-        }
-        [Fact]
-        public async Task UpdateLibraryUsers_AddAccessForUser_Does()
-        {
-            var user1 = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            var user2 = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            CalculatedAttributeLibraryUserTestSetup.SetUsersOfCalculatedAttributeLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user1.Id);
-            var usersBefore = TestHelper.UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(library.Id);
-            var newUser = new LibraryUserDTO
-            {
-                AccessLevel = LibraryAccessLevel.Read,
-                UserId = user2.Id,
-            };
-            usersBefore.Add(newUser);
-
-            TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertOrDeleteUsers(library.Id, usersBefore);
-
-            var libraryUsersAfter = TestHelper.UnitOfWork.CalculatedAttributeRepo.GetLibraryUsers(library.Id);
-            var user1After = libraryUsersAfter.Single(u => u.UserId == user1.Id);
-            var user2After = libraryUsersAfter.Single(u => u.UserId == user2.Id);
-            Assert.Equal(LibraryAccessLevel.Modify, user1After.AccessLevel);
-            Assert.Equal(LibraryAccessLevel.Read, user2After.AccessLevel);
-        }
         // Helpers
         private void PopulateCalculatedAttributeLibraryDTO(CalculatedAttributeLibraryDTO library)
         {

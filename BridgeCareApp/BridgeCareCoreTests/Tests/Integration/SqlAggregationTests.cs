@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+﻿using System.Threading.Channels;
 using AppliedResearchAssociates.iAM.Data;
+using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
@@ -13,19 +10,17 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services.Aggregation;
-using OfficeOpenXml;
 using Xunit;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using BridgeCareCoreTests.Helpers;
-using AppliedResearchAssociates.iAM.Data.Mappers;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
     public class SqlAggregationTests
     {
-        [Fact (Skip ="WJ is skeptical that he can remove the database from this one")]
+        [Fact]
         public async Task Aggregate_SqlDataSourceInDb_AttributesInDb_Aggregates()
         {
+            // We may at some point drop sql aggregation entirely.
+            // Until then, keep this around.
             var config = TestConfiguration.Get();
             var connectionString = TestConnectionStrings.BridgeCare(config);
             var dataSourceDto = DataSourceTestSetup.DtoForSqlDataSourceInDb(TestHelper.UnitOfWork, connectionString);
@@ -53,14 +48,21 @@ namespace BridgeCareCoreTests.Tests.Integration
             var newAsset = new MaintainableAsset(maintainableAssetId, networkId, location, spatialWeightingValue);
             var assetList = new List<MaintainableAsset> { newAsset };
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
-
             var aggregationService = new AggregationService(TestHelper.UnitOfWork);
-
             var channel = Channel.CreateUnbounded<AggregationStatusMemo>();
             var aggregationState = new AggregationState();
             var attributes = new List<AttributeDTO> { districtAttribute };
+
             var aggregationResult = await aggregationService.AggregateNetworkData(channel.Writer, networkId, aggregationState, attributes);
+
             Assert.True(aggregationResult);
+            var attributeNames = new List<string> { districtAttribute.Name };
+            var aggregatedValues = TestHelper.UnitOfWork.AggregatedResultRepo.GetAggregatedResultsForAttributeNames(networkId, attributeNames);
+            var aggregatedValue = aggregatedValues.Single();
+            var textValue = aggregatedValue.TextValue;
+            var textValues = new List<string> { textValue };
+            var attributeWithMatchingName = TestHelper.UnitOfWork.AttributeRepo.GetAttributesWithNames(textValues);
+            Assert.Single(attributeWithMatchingName); // This passes because of the attribute's command. If the command changes, this will need to change too.
         }
     }
 }

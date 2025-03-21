@@ -33,7 +33,5 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void DeleteSimulationCommittedProjects(Guid simulationId);
 
         void DeleteSpecificCommittedProjects(List<Guid> projectIds);
-
-        string GetNetworkKeyAttribute(Guid simulationId);
     }
 }

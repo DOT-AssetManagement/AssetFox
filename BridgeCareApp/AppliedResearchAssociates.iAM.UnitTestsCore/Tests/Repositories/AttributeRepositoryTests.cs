@@ -156,7 +156,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
             Setup();
             var repo = attributeRepository;
             var randomName = AttributeTestSetup.ValidAttributeName();
-            var attribute = AttributeTestSetup.Numeric(name: randomName); ;
+            var attribute = AttributeTestSetup.Numeric(name: randomName);
             repo.UpsertAttributes(attribute);
             var attributesBefore = await repo.GetAttributesAsync();
             var attributeBefore = attributesBefore.Single(a => a.Id == attribute.Id);

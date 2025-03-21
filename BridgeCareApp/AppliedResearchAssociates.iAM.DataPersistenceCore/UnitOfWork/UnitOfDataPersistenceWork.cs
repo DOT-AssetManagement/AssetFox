@@ -2,7 +2,6 @@
 using System.Data.SqlClient;
 using System.Linq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.FileSystem;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
@@ -84,7 +83,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
         public IAttributeDatumRepository AttributeDatumRepo => _attributeDatumRepo ??= new AttributeDatumRepository(this);
 
         public IAttributeRepository AttributeRepo => _attributeRepo ??= new AttributeRepository(this);
-        public IAttributeMetaDataRepository AttributeMetaDataRepo => _attributeMetaDataRepo ?? new AttributeMetaDataRepository();
         public IAttributeValueHistoryRepository AttributeValueHistoryRepo => _attributeValueHistoryRepo ??= new AttributeValueHistoryRepository(this);
 
         public IBenefitRepository BenefitRepo => _benefitRepo ??= new BenefitRepository(this);

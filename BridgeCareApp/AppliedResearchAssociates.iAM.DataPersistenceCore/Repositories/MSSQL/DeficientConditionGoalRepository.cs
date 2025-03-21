@@ -152,7 +152,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     deficientConditionGoals.Select(_ => _.Attribute).Except(attributeNames).ToList();
                 if (missingAttributes.Count == 1)
                 {
-                    throw new RowNotInTableException($"No attribute found having name {missingAttributes[0]}.");
+                    throw new RowNotInTableException($"{ErrorMessageConstants.NoAttributeFoundHavingName} {missingAttributes[0]}.");
                 }
 
                 throw new RowNotInTableException(
@@ -291,7 +291,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                         .Except(attributeNames).ToList();
                     if (missingAttributes.Count == 1)
                     {
-                        throw new RowNotInTableException($"No attribute found having name {missingAttributes[0]}.");
+                        throw new RowNotInTableException($"{ErrorMessageConstants.NoAttributeFoundHavingName} {missingAttributes[0]}.");
                     }
 
                     throw new RowNotInTableException(
