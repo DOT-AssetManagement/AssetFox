@@ -45,7 +45,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Reporting
             var newReport = new ReportIndexDTO
             {
                 Id = new Guid("5ef4090a-77d6-4ed9-9fe1-6a938e043137"),
-                SimulationId = new Guid("0951aaad-eddd-462d-ab8d-99ed3829019f"),
+                SimulationId = TestDataForReportIndex.SimulationIdB,
                 Type = "Test Report File",
                 Result = "C:\\fakepath\\report.xlsx",
                 ExpirationDate = DateTime.Now.AddDays(2)
@@ -66,8 +66,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Reporting
             // Arrange
             var newReport = new ReportIndexDTO()
             {
-                Id = new Guid("7a406cd1-6857-4288-9d93-9cc7ebd38fdf"),
-                SimulationId = new Guid("be82f095-c108-4ab7-af7e-cb7ecd18ede2"),
+                Id = TestDataForReportIndex.ReportId2,
+                SimulationId = TestDataForReportIndex.SimulationIdA,
                 Type = "Test Report File",
                 Result = "C:\\fakepath\\report.xlsx",
                 ExpirationDate = DateTime.Now.AddDays(2)
@@ -81,6 +81,27 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Reporting
             _mockedReportIndexSet.Verify(_ => _.Remove(It.IsAny<ReportIndexEntity>()), Times.Once());
             _mockedReportIndexSet.Verify(_ => _.Add(It.IsAny<ReportIndexEntity>()), Times.Once());
             _mockedContext.Verify(_ => _.SaveChanges(), Times.Exactly(2));
+        }
+
+        [Fact]
+        public void Get_ReportExists_Gets()
+        {
+            var repo = new ReportIndexRepository(_testRepo);
+            var reportId = TestDataForReportIndex.ReportId1;
+
+            var result = repo.Get(reportId);
+
+            Assert.Equal("Test HTML File", result.Type);
+        }
+
+        [Fact]
+        public void GetAllForScenario_ReportsExist_Gets()
+        {
+            var repo = new ReportIndexRepository(_testRepo);
+
+            var reports = repo.GetAllForScenario(TestDataForReportIndex.SimulationIdA);
+
+            Assert.Equal(2, reports.Count);
         }
 
         [Fact]
@@ -108,7 +129,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Reporting
             var newReport = new ReportIndexDTO()
             {
                 Id = new Guid("5ef4090a-77d6-4ed9-9fe1-6a938e043137"),
-                SimulationId = new Guid("0951aaad-eddd-462d-ab8d-99ed3829019f"),
+                SimulationId = TestDataForReportIndex.SimulationIdB,
                 Type = "",
                 Result = "C:\\fakepath\\report.xlsx",
                 ExpirationDate = DateTime.Now.AddDays(2)
@@ -173,7 +194,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Reporting
         {
             // Arrange
             var repo = new ReportIndexRepository(_testRepo);
-            var testReport = new Guid("7a406cd1-6857-4288-9d93-9cc7ebd38fdf");
+            var testReport = TestDataForReportIndex.ReportId2;
 
             // Act
             var returnVal = repo.DeleteReport(testReport);

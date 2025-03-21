@@ -10,7 +10,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         bool Add(ReportIndexDTO report);
         ReportIndexDTO Get(Guid reportId);
         List<ReportIndexDTO> GetAllForScenario(Guid scenarioId);
-        List<ReportIndexDTO> GetAllForNetwork(Guid? networkId);
         bool DeleteReport(Guid reportId);
         bool DeleteAllSimulationReports(Guid scenarioId);
         /// <summary>

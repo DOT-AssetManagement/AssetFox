@@ -69,7 +69,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Reporting
         public void GeneratorReturnsAllScenarioReports()
         {
             // Arrange
-            Guid scenarioId = new Guid("be82f095-c108-4ab7-af7e-cb7ecd18ede2");
+            Guid scenarioId = TestDataForReportIndex.SimulationIdA;
 
             // Act
             var reportList = _generator.GetAllReportsForScenario(scenarioId);
@@ -95,13 +95,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Reporting
         public async Task GeneratorSuccessfullyReturnsASpecificReport()
         {
             // Arrange
-            Guid reportId = new Guid("b32ecb1e-297f-4caa-9608-f28ab61cbd91");
+            Guid reportId = TestDataForReportIndex.ReportId3;
 
             // Act
             var report = await _generator.GetExisting(reportId);
 
             // Assert
-            Assert.Equal("0951aaad-eddd-462d-ab8d-99ed3829019f", report.SimulationID.ToString());
+            Assert.Equal(TestDataForReportIndex.SimulationIdB, report.SimulationID);
         }
 
         [Fact]
