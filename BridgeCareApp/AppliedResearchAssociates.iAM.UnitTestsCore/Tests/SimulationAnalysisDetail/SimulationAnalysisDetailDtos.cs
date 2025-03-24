@@ -9,14 +9,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class SimulationAnalysisDetailDtos
     {
-        public static SimulationAnalysisDetailDTO ForSimulation(Guid simulationId)
+        public static SimulationAnalysisDetailDTO ForSimulation(Guid simulationId, string status = "Completed")
         {
             var dto = new SimulationAnalysisDetailDTO
             {
                 LastRun = DateTime.Now,
                 RunTime = "1 minute",
                 SimulationId = simulationId,
-                Status = "Completed",
+                Status = status,
             };
             return dto;
         }

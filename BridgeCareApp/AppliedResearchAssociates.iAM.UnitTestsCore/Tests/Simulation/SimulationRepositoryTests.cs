@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
@@ -372,6 +373,37 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
                s => s.Id == simulationId);
             var dateAfter = entityAfter.LastModifiedDate;
             DateTimeAssertions.Between(dateLowerBound, dateUpperBound, dateAfter, TimeSpan.FromSeconds(1));
+        }
+
+        [Fact]
+        public void GetAllScenario_SimulationInDb_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulationId = Guid.NewGuid();
+            var simulationName = RandomStrings.WithPrefix("Simulation");
+            var simulationDto = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, simulationName);
+
+            var actual = TestHelper.UnitOfWork.SimulationRepo.GetAllScenario();
+
+            var returnedSimulation = actual.Single(s => s.Id == simulationId);
+            ObjectAssertions.EquivalentExcluding(simulationDto, returnedSimulation,
+                s => s.NetworkName, s => s.CreatedDate, s => s.LastModifiedDate, s => s.Owner, s => s.Creator);
+        }
+
+        [Fact]
+        public void GetScenariosReportSettings_SimulationInDbWithReportSettings_GetsReportSettings()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulationId = Guid.NewGuid();
+            var simulationName = RandomStrings.WithPrefix("Simulation");
+            var simulationDto = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, simulationName);
+            SimulationAnalysisDetailTestSetup.CreateAnalysisDetail(TestHelper.UnitOfWork, simulationId, SimulationUserMessages.SimulationOutputSavedToDatabase);
+
+            var reportSettings = TestHelper.UnitOfWork.SimulationRepo.GetScenariosReportSettings();
+
+            Assert.Single(reportSettings, rs => rs.SimulationId == simulationDto.Id);
         }
 
         [Fact]
