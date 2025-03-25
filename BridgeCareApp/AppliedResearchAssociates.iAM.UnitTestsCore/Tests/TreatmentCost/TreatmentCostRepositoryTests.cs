@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -17,7 +15,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost
         [Fact]
         public void GetTreatmentCostsWithEquationJoinsByLibraryIdAndTreatmentName_ObjectsInDb_GetsTheCost()
         {
-            var networkId = Guid.NewGuid();
             var treatmentLibraryId = Guid.NewGuid();
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
             var treatmentId = Guid.NewGuid();
@@ -36,7 +33,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost
         [Fact]
         public void UpsertOrDeleteTreatmentCosts_TreatmentInDbWithLibrary_Does()
         {
-            var networkId = Guid.NewGuid();
             var treatmentLibraryId = Guid.NewGuid();
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
             var treatmentId = Guid.NewGuid();
@@ -58,7 +54,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost
         [Fact]
         public void UpsertOrDeleteTreatmentCosts_CostHasChildren_TreatmentInDbWithLibrary_Does()
         {
-            var networkId = Guid.NewGuid();
             var treatmentLibraryId = Guid.NewGuid();
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
             var treatmentId = Guid.NewGuid();
@@ -95,5 +90,75 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost
                 tc => tc.CriterionLibrary.Owner,
                 tc => tc.Equation.Id);
         }
+
+        [Fact]
+        public void UpsertOrDeleteScenarioTreatmentCosts_SimulationInDbWithTreatment_AddsCost()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, networkId: NetworkTestSetup.NetworkId);
+            var costId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = treatment.Id;
+            var cost = TreatmentCostDtos.Dto(costId);
+            var costList = new List<TreatmentCostDTO> { cost };
+            var dictionary = new Dictionary<Guid, List<TreatmentCostDTO>> { { treatmentId, costList } };
+
+            TestHelper.UnitOfWork.TreatmentCostRepo.UpsertOrDeleteScenarioTreatmentCosts(dictionary, simulationId);
+
+            var treatmentAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentById(treatmentId);
+            var costsAfter = treatmentAfter.Treatment.Costs;
+            var costAfter = costsAfter.Single();
+            ObjectAssertions.EquivalentExcluding(cost, costAfter, c => c.CriterionLibrary);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteScenarioTreatmentCosts_CostInDbNotInList_Removes()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, networkId: NetworkTestSetup.NetworkId);
+            var costId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = treatment.Id;
+            var cost = ScenarioTreatmentCostTestSetup.CostForTreatmentInDb(TestHelper.UnitOfWork, treatmentId, simulationId, costId);
+            var emptyCostList = new List<TreatmentCostDTO> { };
+            var dictionary = new Dictionary<Guid, List<TreatmentCostDTO>> { { treatmentId, emptyCostList } };
+
+            TestHelper.UnitOfWork.TreatmentCostRepo.UpsertOrDeleteScenarioTreatmentCosts(dictionary, simulationId);
+
+            var treatmentAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentById(treatmentId);
+            var costsAfter = treatmentAfter.Treatment.Costs;
+            Assert.Empty(costsAfter);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteScenarioTreatmentCosts_CostInDbAndList_Updates()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, networkId: NetworkTestSetup.NetworkId);
+            var costId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = treatment.Id;
+            var costToUpdate = ScenarioTreatmentCostTestSetup.CostForTreatmentInDb(TestHelper.UnitOfWork, treatmentId, simulationId, costId);
+            costToUpdate.Equation.Expression = "[AGE] + 1";
+            var costList = new List<TreatmentCostDTO> { costToUpdate};
+            var dictionary = new Dictionary<Guid, List<TreatmentCostDTO>> { { treatmentId, costList } };
+
+            TestHelper.UnitOfWork.TreatmentCostRepo.UpsertOrDeleteScenarioTreatmentCosts(dictionary, simulationId);
+
+            var treatmentAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentById(treatmentId);
+            var costsAfter = treatmentAfter.Treatment.Costs;
+            var costAfter = costsAfter.Single();
+            ObjectAssertions.EquivalentExcluding(costToUpdate, costAfter, c => c.CriterionLibrary, c => c.Equation.Id);
+        }
+
     }
 }

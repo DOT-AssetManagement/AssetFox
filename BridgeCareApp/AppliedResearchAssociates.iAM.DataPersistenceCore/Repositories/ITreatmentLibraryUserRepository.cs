@@ -9,6 +9,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
     public interface ITreatmentLibraryUserRepository
     {
+        /// WJPRQ -- Unused. But other repositories have similar methods that are used. Keep or delete? 
         void UpsertTreatmentLibraryUser(TreatmentLibraryDTO dto, Guid userId);
 
         LibraryUserAccessModel GetLibraryAccess(Guid libraryId, Guid userId);
