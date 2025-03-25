@@ -199,5 +199,81 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var consequenceAfter = consequencesAfter.Single();
             ObjectAssertions.Equivalent(consequenceToUpdate, consequenceAfter);
         }
+
+        [Fact]
+        public void UpsertOrDeleteTreatmentConsequences_ConsequenceDoesNotExist_Adds()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var attributeName = TestAttributeNames.CulvDurationN;
+            var libraryId = Guid.NewGuid();
+            var library = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryId);
+            var consequenceId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, libraryId);
+            var consequence = TreatmentConsequenceDtos.Dto(consequenceId, attributeName);
+            var consequenceList = new List<TreatmentConsequenceDTO> { consequence };
+            var dictionary = new Dictionary<Guid, List<TreatmentConsequenceDTO>> { { treatment.Id, consequenceList } };
+
+            TestHelper.UnitOfWork.TreatmentConsequenceRepo.UpsertOrDeleteTreatmentConsequences(dictionary, libraryId);
+
+            var libraryAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(libraryId);
+            var consequencesAfter = libraryAfter.Treatments[0].Consequences;
+            var consequenceAfter = consequencesAfter.Single();
+            ObjectAssertions.EquivalentExcluding(consequence, consequenceAfter, c => c.CriterionLibrary);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteTreatmentConsequences_ConsequenceNotInList_Deletes()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var libraryId = Guid.NewGuid();
+            var library = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryId);
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, libraryId);
+            var consequenceId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            LibraryTreatmentConsequenceTestSetup.ModelForEntityInDb(
+                TestHelper.UnitOfWork, libraryId, treatment.Id,
+                consequenceId, TestAttributeNames.CulvDurationN);
+            var consequencesBefore = TestHelper.UnitOfWork.TreatmentConsequenceRepo.GetTreatmentConsequencesByTreatmentId(treatment.Id);
+            Assert.NotEmpty(consequencesBefore);
+            var emptyConsequenceList = new List<TreatmentConsequenceDTO> {  };
+            var dictionary = new Dictionary<Guid, List<TreatmentConsequenceDTO>> { { treatment.Id, emptyConsequenceList } };
+
+            TestHelper.UnitOfWork.TreatmentConsequenceRepo.UpsertOrDeleteTreatmentConsequences(dictionary, libraryId);
+
+            var libraryAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(libraryId);
+            var consequencesAfter = libraryAfter.Treatments[0].Consequences;
+            Assert.Empty(consequencesAfter);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteTreatmentConsequences_ConsequenceExists_Updates()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var libraryId = Guid.NewGuid();
+            var library = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryId);
+            var consequenceId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, libraryId);
+            LibraryTreatmentConsequenceTestSetup.ModelForEntityInDb(
+                TestHelper.UnitOfWork, libraryId, treatment.Id,
+                consequenceId, TestAttributeNames.CulvDurationN);
+            var treatmentId = treatment.Id;
+            var libraryBefore = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(libraryId);
+            var treatmentBefore = libraryBefore.Treatments.Single();
+            var consequencesBefore = treatmentBefore.Consequences;
+            var consequenceToUpdate = consequencesBefore.Single();
+            consequenceToUpdate.ChangeValue = "1423";
+            var updateConsequenceList = new List<TreatmentConsequenceDTO> { consequenceToUpdate };
+            var dictionary = new Dictionary<Guid, List<TreatmentConsequenceDTO>> { { treatmentId, updateConsequenceList } };
+
+            TestHelper.UnitOfWork.TreatmentConsequenceRepo.UpsertOrDeleteTreatmentConsequences(dictionary, libraryId);
+
+            var libraryAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(libraryId);
+            var consequencesAfter = libraryAfter.Treatments.Single().Consequences;
+            var consequenceAfter = consequencesAfter.Single();
+            ObjectAssertions.EquivalentExcluding(consequenceToUpdate, consequenceAfter,
+                c => c.Equation.Id, c => c.CriterionLibrary.Id);
+        }
     }
 }
