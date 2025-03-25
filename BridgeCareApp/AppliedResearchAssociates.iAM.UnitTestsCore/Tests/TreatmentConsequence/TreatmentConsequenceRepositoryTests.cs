@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Assertions;
@@ -41,12 +43,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             CriterionLibraryDtoAssertions.AssertValidUpsertResult(consequence.CriterionLibrary, returnedConsequence.CriterionLibrary);
         }
 
-
         [Fact]
         public void GetTreatmentConsequencesByLibraryIdAndTreatmentName_DoesNotGetEquation()
         {
-            var attributeName = RandomStrings.WithPrefix("attribute");
-            AttributeTestSetup.CreateSingleNumericAttribute(TestHelper.UnitOfWork, null, attributeName);
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var attributeName = TestAttributeNames.CulvDurationN;
             var treatmentLibraryId = Guid.NewGuid();
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
             var treatmentId = Guid.NewGuid();
@@ -71,8 +72,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public void GetTreatmentConsequencesByTreatmentId_ConsequenceInDbWithTreatment_Gets()
         {
-            var attributeName = RandomStrings.WithPrefix("attribute");
-            AttributeTestSetup.CreateSingleNumericAttribute(TestHelper.UnitOfWork, null, attributeName);
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var attributeName = TestAttributeNames.CulvDurationN;
             var treatmentLibraryId = Guid.NewGuid();
             var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
             var treatmentId = Guid.NewGuid();
@@ -95,10 +96,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public void GetScenarioTreatmentConsequencesByTreatmentId_ConsequenceInDbWithTreatment_Gets()
         {
-            var attributeName = RandomStrings.WithPrefix("attribute");
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
-            AttributeTestSetup.CreateSingleNumericAttribute(TestHelper.UnitOfWork, null, attributeName);
+            var attributeName = TestAttributeNames.CulvDurationN;
             var simulationId = Guid.NewGuid();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, networkId: NetworkTestSetup.NetworkId);
             var consequenceId = Guid.NewGuid();
@@ -114,6 +114,90 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var actualConsequence = actual.Single();
             ObjectAssertions.EquivalentExcluding(consequence, actualConsequence, c => c.CriterionLibrary, c => c.Equation);
             CriterionLibraryDtoAssertions.AssertValidUpsertResult(consequence.CriterionLibrary, actualConsequence.CriterionLibrary);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteScenarioTreatmentConsequences_ConsequenceDoesNotExist_Adds()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var attributeName = TestAttributeNames.CulvDurationN;
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, networkId: NetworkTestSetup.NetworkId);
+            var consequenceId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = treatment.Id;
+            var consequence = TreatmentConsequenceDtos.Dto(consequenceId, attributeName);
+            var consequenceList = new List<TreatmentConsequenceDTO> { consequence };
+            var dictionary = new Dictionary<Guid, List<TreatmentConsequenceDTO>> { { treatmentId, consequenceList } };
+
+            TestHelper.UnitOfWork.TreatmentConsequenceRepo.UpsertOrDeleteScenarioTreatmentConsequences(dictionary, simulationId);
+
+            var treatmentAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentById(treatmentId);
+            var consequencesAfter = treatmentAfter.Treatment.Consequences;
+            var consequenceAfter = consequencesAfter.Single();
+            ObjectAssertions.EquivalentExcluding(consequence, consequenceAfter, c => c.CriterionLibrary);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteScenarioTreatmentConsequences_ConsequenceNotInList_Deletes()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var attributeName = TestAttributeNames.CulvDurationN;
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, networkId: NetworkTestSetup.NetworkId);
+            var consequenceId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = treatment.Id;
+            var consequence = ScenarioTreatmentConsequenceTestSetup.ModelForEntityInDb(
+                TestHelper.UnitOfWork, simulationId, treatmentId,
+                consequenceId, attributeName);
+            var treatmentBefore = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentById(treatmentId);
+            var consequencesBefore = treatmentBefore.Treatment.Consequences;
+            var consequenceBefore = consequencesBefore.Single();
+            ObjectAssertions.EquivalentExcluding(consequence, consequenceBefore, c => c.CriterionLibrary);
+            var emptyConsequenceList = new List<TreatmentConsequenceDTO> { };
+            var dictionary = new Dictionary<Guid, List<TreatmentConsequenceDTO>> { { treatmentId, emptyConsequenceList } };
+
+            TestHelper.UnitOfWork.TreatmentConsequenceRepo.UpsertOrDeleteScenarioTreatmentConsequences(dictionary, simulationId);
+
+            var treatmentAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentById(treatmentId);
+            var consequencesAfter = treatmentAfter.Treatment.Consequences;
+            Assert.Empty(consequencesAfter);
+        }
+
+        [Fact]
+        public void UpsertOrDeleteScenarioTreatmentConsequences_ConsequenceExists_Updates()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var attributeName = TestAttributeNames.CulvDurationN;
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, networkId: NetworkTestSetup.NetworkId);
+            var consequenceId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefix("treatment");
+            var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = treatment.Id;
+            var consequence = ScenarioTreatmentConsequenceTestSetup.ModelForEntityInDb(
+                TestHelper.UnitOfWork, simulationId, treatmentId,
+                consequenceId, attributeName);
+            var treatmentBefore = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentById(treatmentId);
+            var consequencesBefore = treatmentBefore.Treatment.Consequences;
+            var consequenceToUpdate = consequencesBefore.Single();
+            ObjectAssertions.EquivalentExcluding(consequence, consequenceToUpdate, c => c.CriterionLibrary);
+            consequenceToUpdate.ChangeValue = "1423";
+            var updateConsequenceList = new List<TreatmentConsequenceDTO> { consequenceToUpdate };
+            var dictionary = new Dictionary<Guid, List<TreatmentConsequenceDTO>> { { treatmentId, updateConsequenceList } };
+
+            TestHelper.UnitOfWork.TreatmentConsequenceRepo.UpsertOrDeleteScenarioTreatmentConsequences(dictionary, simulationId);
+
+            var treatmentAfter = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentById(treatmentId);
+            var consequencesAfter = treatmentAfter.Treatment.Consequences;
+            var consequenceAfter = consequencesAfter.Single();
+            ObjectAssertions.Equivalent(consequenceToUpdate, consequenceAfter);
         }
     }
 }
