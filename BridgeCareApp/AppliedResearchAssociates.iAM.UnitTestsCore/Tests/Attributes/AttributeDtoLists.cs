@@ -11,7 +11,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
                 AttributeDtos.ActionType,
                 AttributeDtos.AdtTotal,
                 AttributeDtos.Age,
+                AttributeDtos.BmsId,
                 AttributeDtos.BrKey,
+                AttributeDtos.ConditionIndex,
                 AttributeDtos.CulvSeeded,
                 AttributeDtos.DeckSeeded,
                 AttributeDtos.InternetReport,
@@ -20,6 +22,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
                 AttributeDtos.SupSeeded,
                 AttributeDtos.CulvDurationN,
                 AttributeDtos.DeckDurationN,
+                AttributeDtos.RiskScore,
                 AttributeDtos.SubDurationN,
                 AttributeDtos.SupDurationN,
             };

@@ -1,30 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.DataPersistenceCore;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.BudgetPriority;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.BudgetPriority;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
-using Xunit;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
-using AppliedResearchAssociates.iAM.Analysis;
-using Microsoft.SqlServer.Management.Smo;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using Microsoft.Data.SqlClient;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
+using AppliedResearchAssociates.iAM.TestHelpers;
+using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.BudgetPriority;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using Microsoft.Data.SqlClient;
+using Xunit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
@@ -190,6 +184,20 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         }
 
         [Fact]
+        public void GetBudgetPrioritiesByLibraryId_LibraryInDbWithPriority_Gets()
+        {
+            var libraryName = RandomStrings.WithPrefix("BudgetPriorityLibrary");
+            var library = BudgetPriorityLibraryTestSetup.ModelForEntityInDb(
+                TestHelper.UnitOfWork, libraryName);
+            var budgetPriority = BudgetPriorityTestSetup.ModelForLibraryInDb(TestHelper.UnitOfWork, library.Id);
+
+            var prioritiesInDb = TestHelper.UnitOfWork.BudgetPriorityRepo.GetBudgetPrioritiesByLibraryId(library.Id);
+
+            var priorityInDb = prioritiesInDb.Single();
+            ObjectAssertions.EquivalentExcluding(budgetPriority, priorityInDb, bp => bp.CriterionLibrary);
+        }
+
+        [Fact]
         public void GetBudgetPriorityLibraries_LibraryInDb_Gets()
         {
             // Arrange
@@ -202,6 +210,60 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             // Assert
             Assert.Contains(dtos, b => b.Name == BudgetPriorityLibraryEntityName);
             var budgetPriorityLibraryDTO = dtos.Single(b => b.Name == BudgetPriorityLibraryEntityName && b.Id == _testBudgetPriorityLibrary.Id);
+        }
+
+        [Fact]
+        public async Task GetBudgetPriorityLibrariesNoChildrenAccessibleToUser_UserInDbWithLibrary_Gets()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, true);
+            TestHelper.UnitOfWork.SetUser(user.Username);
+            var library = BudgetPriorityLibraryDtos.New();
+            TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertBudgetPriorityLibrary(library);
+            var libraryUserDto = new LibraryUserDTO
+            {
+                AccessLevel = LibraryAccessLevel.Modify,
+                UserId = user.Id,
+                UserName = user.Username,
+            };
+            var libraryUserDtos = new List<LibraryUserDTO> { libraryUserDto };
+            TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteUsers(library.Id, libraryUserDtos);
+
+            var libraries = TestHelper.UnitOfWork.BudgetPriorityRepo.GetBudgetPriorityLibrariesNoChildrenAccessibleToUser(user.Id);
+
+            var foundLibrary = libraries.Single(l => l.Id == library.Id);
+            ObjectAssertions.EquivalentExcluding(library, foundLibrary, l => l.Owner);
+        }
+
+        [Fact]
+        public async Task GetLibraryAccess_UserHasAccess_Gets()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, false);
+            TestHelper.UnitOfWork.SetUser(user.Username);
+            var library = BudgetPriorityLibraryDtos.New();
+            TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertBudgetPriorityLibrary(library);
+            var libraryUserDto = new LibraryUserDTO
+            {
+                AccessLevel = LibraryAccessLevel.Modify,
+                UserId = user.Id,
+                UserName = user.Username,
+            };
+            var libraryUserDtos = new List<LibraryUserDTO> { libraryUserDto };
+            TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteUsers(library.Id, libraryUserDtos);
+
+            var access = TestHelper.UnitOfWork.BudgetPriorityRepo.GetLibraryAccess(
+                library.Id, user.Id);
+            var expected = new LibraryUserAccessModel
+            {
+                Access = new LibraryUserDTO
+                {
+                    AccessLevel = LibraryAccessLevel.Modify,
+                    UserId = user.Id,
+                    UserName = user.Username,
+                },
+                UserId = user.Id,
+                LibraryExists = true,
+            };
+            ObjectAssertions.Equivalent(expected, access);
         }
 
         [Fact]
@@ -393,6 +455,19 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var libraryAfter = librariesAfter.Single(
                 lib => lib.Id == libraryId);
             Assert.Equal(library.Description, libraryAfter.Description);
+        }
+
+        [Fact]
+        public void GetLibraryModifiedDate_LibraryExists_GetsDate()
+        {
+            var libraryName = RandomStrings.WithPrefix("BudgetPriorityLibrary");
+            var beforeDate = DateTime.Now;
+            var library = BudgetPriorityLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var afterDate = DateTime.Now;
+
+            var lastModifiedDate = TestHelper.UnitOfWork.BudgetPriorityRepo.GetLibraryModifiedDate(library.Id);
+
+            DateTimeAssertions.Between(beforeDate, afterDate, lastModifiedDate, TimeSpan.FromSeconds(1));
         }
     }
 }

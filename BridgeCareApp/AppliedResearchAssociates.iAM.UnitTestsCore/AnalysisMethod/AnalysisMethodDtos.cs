@@ -7,6 +7,7 @@ using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore
 {
@@ -26,5 +27,22 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             };
             return dto;
         }
+
+        public static AnalysisMethodDTO RiskScore()
+        {
+            var id = Guid.NewGuid();
+            var criterionLibrary = new CriterionLibraryDTO();
+            var dto = new AnalysisMethodDTO
+            {
+                Attribute = TestAttributeNames.RiskScore,
+                Benefit = BenefitDtos.ConditionIndex(),
+                CriterionLibrary = criterionLibrary,
+                Id = id,
+                OptimizationStrategy = OptimizationStrategy.Benefit,
+                SpendingStrategy = SpendingStrategy.AsBudgetPermits,
+            };
+            return dto;
+        }
+
     }
 }

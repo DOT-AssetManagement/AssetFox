@@ -18,6 +18,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             {
                 Id = id ?? Guid.NewGuid(),
                 Name = BudgetPriorityLibraryName,
+                BudgetPriorities = new List<BudgetPriorityDTO>(),
             };
             return dto;
         }

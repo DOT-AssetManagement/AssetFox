@@ -13,10 +13,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         public static InvestmentPlanDTO ModelForEntityInDb(
             UnitOfDataPersistenceWork unitOfWork,
             Guid simulationId,
-            Guid? id = null,
-            int firstYearOfAnalysisPeriod = 2022)
+            Guid? id,
+            int firstYearOfAnalysisPeriod,
+            int numberOfYearsInAnalysisPeriod = 1)
         {
-            var dto = InvestmentPlanDtos.Dto(id, firstYearOfAnalysisPeriod);
+            var dto = InvestmentPlanDtos.Dto(id, firstYearOfAnalysisPeriod, numberOfYearsInAnalysisPeriod);
             unitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(dto, simulationId);
             return dto;
         }

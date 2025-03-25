@@ -8,6 +8,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entit
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
 using System.Collections.Generic;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
@@ -94,7 +95,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
             Setup();
             var failedRepo = new MaintainableAssetDataRepository(_failedRepo);
 
-            Assert.Equal(0, failedRepo.KeyProperties.Count());
+            Assert.Empty(failedRepo.KeyProperties);
         }
 
         [Fact]
@@ -126,7 +127,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
             var testSegment = repo.GetAssetAttributes(TestAttributeNames.BmsId, "13401256");
 
             // Assert
-            Assert.Equal(1, testSegment.Where(_ => _.Name == TestAttributeNames.BrKey).Count());            
+            Assert.Single(testSegment.Where(_ => _.Name == TestAttributeNames.BrKey));            
             Assert.Equal("13401256", testSegment.First(_ => _.Name == TestAttributeNames.BrKey).Value);
             Assert.Equal("15.4", testSegment.First(_ => _.Name == "Length").TextValue);
             Assert.Equal("First B", testSegment.First(_ => _.Name == "Name").TextValue);
@@ -157,6 +158,45 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
 
             // Assert
             Assert.Equal(0, testSegment.Count());
+        }
+
+        [Fact]
+        public void GetAttributeValueHistory_AttributeValueInDb_Gets()
+        {
+            Setup();
+            var checkGuid = new Guid("8f80c690-3088-4084-b0e5-a8e070000a06");
+            var repo = new MaintainableAssetDataRepository(_testRepo);
+            var rawRepo = new MaintainableAssetDataRepository(_testRawRepo);
+
+            var testSegments = repo.GetAttributeValueHistory(TestAttributeNames.BrKey, "98451298", TestAttributeNames.BrKey);
+
+            var testSegment = testSegments.Values.Single();
+            var expectedSegment = new SegmentAttributeDatum(TestAttributeNames.BrKey, "98451298");
+            Assert.Equivalent(expectedSegment, testSegment);
+        }
+
+        [Fact]
+        public void GetKeyPropertiesTable_PropertiesInDb_Gets()
+        {
+            Setup();
+            var checkGuid = new Guid("8f80c690-3088-4084-b0e5-a8e070000a06");
+            var repo = new MaintainableAssetDataRepository(_testRepo);
+            var rawRepo = new MaintainableAssetDataRepository(_testRawRepo);
+            var keyFieldNames = new List<string> { TestAttributeNames.BrKey };
+
+            var keyPropertiesTable = repo.GetKeyPropertiesTable(keyFieldNames);
+
+            var keyPropertyValues = keyPropertiesTable.Select(
+                list => list.Single()).ToList();
+            var expected = new List<string>
+            {
+                "101256",
+                "13401256",
+                "5983256",
+                "98451298",
+                "56451278"
+            };
+            Assert.Equivalent(expected, keyPropertyValues);
         }
     }
 }

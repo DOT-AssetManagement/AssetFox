@@ -1,20 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
+﻿using System.Linq;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using Microsoft.AspNetCore.Mvc;
 using Xunit;
-using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
@@ -56,6 +44,40 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var upsertedAnalysisMethodDto = repo.GetAnalysisMethod(simulation.Id);
             Assert.Equal(analysisMethodDto.Id, upsertedAnalysisMethodDto.Id);
             Assert.Equal(analysisMethodDto.Benefit.Id, upsertedAnalysisMethodDto.Benefit.Id);
+        }
+
+        [Fact]
+        public void GetAnalysisMethodSetting_AnalysisMethodDoesNotExist_False()
+        {
+            var unitOfWork = TestHelper.UnitOfWork;
+            AttributeTestSetup.CreateAttributes(unitOfWork);
+            NetworkTestSetup.CreateNetwork(unitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var repo = unitOfWork.AnalysisMethodRepo;
+
+            var analysisMethodSetting = unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethodSetting(simulation.Id);
+
+            Assert.False(analysisMethodSetting);
+        }
+
+        [Fact]
+        public void GetAnalysisMethodSetting_AnalysisMethodExists_True()
+        {
+            var unitOfWork = TestHelper.UnitOfWork;
+            AttributeTestSetup.CreateAttributes(unitOfWork);
+            NetworkTestSetup.CreateNetwork(unitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var repo = unitOfWork.AnalysisMethodRepo;
+            var analysisMethodDto = repo.GetAnalysisMethod(simulation.Id);
+            analysisMethodDto.Benefit = BenefitDtos.Dto(TestAttributeNames.Age);
+
+            // Act
+            repo.UpsertAnalysisMethod(simulation.Id, analysisMethodDto);
+
+            var analysisMethodSetting = unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethodSetting(simulation.Id);
+
+            Assert.True(analysisMethodSetting);
+
         }
 
         [Fact]

@@ -76,7 +76,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             SetDecimalFormat(masWorksheet.Cells[row, column]);
             masWorksheet.Cells[row, column++].Value = masDataModel.RiskScore;
 
-            return new CurrentCell { Row = ++row, Column = column - 1 }; ;
+            return new CurrentCell { Row = ++row, Column = column - 1 };
         }
 
         private static void SetDecimalFormat(ExcelRange cell) => ExcelHelper.SetCustomFormat(cell, ExcelHelperCellFormat.DecimalPrecision3);

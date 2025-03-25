@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using AppliedResearchAssociates.iAM.DTOs;
 
 namespace BridgeCareCore.Services
@@ -16,7 +15,6 @@ namespace BridgeCareCore.Services
                 Id = Guid.NewGuid(),
                 CriteriaLibrary = cloneCriterionLibrary,
                 Equation = cloneEquation,
-                
             };
             return clone;
         }
@@ -30,7 +28,6 @@ namespace BridgeCareCore.Services
                 clone.Add(childClone);
             }
             return clone;
-
         }
     }
 }

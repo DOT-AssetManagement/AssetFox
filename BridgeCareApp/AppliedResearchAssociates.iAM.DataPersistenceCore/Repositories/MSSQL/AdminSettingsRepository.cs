@@ -4,19 +4,10 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-
-using AppliedResearchAssociates.iAM.DTOs;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Org.BouncyCastle.Asn1.Cms;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -52,22 +43,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 IList<string> KeyFieldsList = keyFields.Split(',').ToList();
                 return KeyFieldsList;
             }
-        }
-
-        public IList<string> GetRawKeyFields()
-        {
-            var existingRawKeyFields = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == rawDataFieldKey).FirstOrDefault();
-            if (existingRawKeyFields == null)
-            {
-                return null;
-            }
-            else
-            {
-                var rawKeyFields = existingRawKeyFields.Value;
-                IList<string> RawKeyFieldsList = rawKeyFields.Split(',').ToList();
-                return RawKeyFieldsList;
-            }
-
         }
 
         //String is to be passed in as parameter. Sets the KeyFields in the AdminSettings table. 
@@ -121,7 +96,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         }
 
-        //Reads in KeyFields record as a string but places values in a list to return.
         public IList<string> GetRawDataKeyFields()
         {
             var existingKeyFields = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == rawDataFieldKey).FirstOrDefault();
@@ -239,7 +213,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 return null;
             }
             else
-            {               
+            {
                 return existingNetwork.Name;
             }
         }
@@ -309,12 +283,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.SaveChanges();
         }
 
-        public IList<string> GetAvailableReports()
-        {
-
-            return null;
-
-        }
         public IList<string> GetSimulationReportNames()
         {
             var existingSimulationReports = _unitOfWork.Context.AdminSettings.SingleOrDefault(_ => _.Key == simulationReportKey);
@@ -347,6 +315,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return getSimulationReportNames;
         }
 
+        // This method appears in the interface but is unused. OK to delete?
         public string GetAttributeName(Guid attributeId)
         {
             var attributeName = _unitOfWork.Context.Attribute.AsNoTracking().FirstOrDefault(a => a.Id == attributeId)?.Name;
@@ -363,7 +332,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 {
                     Key = inventoryReportKey,
                     Value = InventoryReports
-                }) ;
+                });
             }
             else
             {
@@ -471,7 +440,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var existingAgencyLogo = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == "AgencyLogo").FirstOrDefault();
             if (existingAgencyLogo == null) return "";
             if (!existingAgencyLogo.Value.StartsWith("data:image/")) return "";
-           
+
             return _unitOfWork.Context.AdminSettings.Where(_ => _.Key == "AgencyLogo").FirstOrDefault().Value;
         }
 
@@ -501,13 +470,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 }
             }
 
-            
+
             var implementationLogo = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == "ImplementationLogo").FirstOrDefault();
             if (implementationLogo == null)
                 _unitOfWork.Context.AdminSettings.Add(new AdminSettingsEntity
                 {
                     Key = "ImplementationLogo",
-                    Value = string.Format("data:"+ImageType+";base64,{0}", Convert.ToBase64String(imageBytes))
+                    Value = string.Format("data:" + ImageType + ";base64,{0}", Convert.ToBase64String(imageBytes))
                 });
             else
             {
@@ -534,15 +503,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 {
                     Key = "ImplementationLogo",
                     Value = string.Format("data:image/svg+xml;base64,{0}", Convert.ToBase64String(temp))
-                }) ;
-            }    
+                });
+            }
             else
             {
                 implementationLogo.Value = string.Format("data:image/svg+xml;base64,{0}", Convert.ToBase64String(temp));
                 _unitOfWork.Context.AdminSettings.Update(implementationLogo);
             }
             _unitOfWork.Context.SaveChanges();
-            
+
 
         }
         public void SetAgencyLogo(byte[] bytes)

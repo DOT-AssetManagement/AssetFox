@@ -146,7 +146,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             CriterionLibraryTestSetup.TestCriterionLibraryInDb(TestHelper.UnitOfWork);
             var deficientConditionGoalLibrary = DeficientConditionGoalLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             DeficientConditionGoalLibraryUserTestSetup.SetUsersOfDeficientConditionGoalLibrary(TestHelper.UnitOfWork, deficientConditionGoalLibrary.Id, LibraryAccessLevel.Modify, userId);
-            var investmentPlan = InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
+            var investmentPlan = InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, null, 2024);
             var remainingLifeLimitLibrary = RemainingLifeLimitLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             RemainingLifeLimitLibraryUserTestSetup.SetUsersOfRemainingLifeLimitLibrary(TestHelper.UnitOfWork, remainingLifeLimitLibrary.Id, LibraryAccessLevel.Modify, userId);
             SimulationAnalysisDetailTestSetup.CreateAnalysisDetail(TestHelper.UnitOfWork, simulationId);

@@ -18,7 +18,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         public static Guid NetworkId => Guid.Parse("7940d27c-c9b1-4ef2-b5e7-2f1d8240a064");
 
         public const string NetworkName = "Primary";
-        public const string Username = "pdsystbamsusr01";
         public const string MaintainableAssetIdString1 = "f286b7cf-445d-4291-9167-0f225b170cae";
         public const string MaintainableAssetIdString2 = "46f5da89-5e65-4b8a-9b36-03d9af0302f7";
         public const string CommittedProjectIdString1 = "2e9e66df-4436-49b1-ae68-9f5c10656b1b";
@@ -68,7 +67,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
             var dto = new SimulationUserDTO
             {
                 UserId = AuthorizedUser,
-                Username = Username,
+                Username = TestUsernames.Admin,
                 IsOwner = true,
                 CanModify = true,
             };
@@ -84,7 +83,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
                 CreatedDate = date,
                 NetworkId = NetworkId,
                 NetworkName = NetworkName,
-                Creator = Username,
+                Creator = TestUsernames.Admin,
                 LastModifiedDate = date,
                 Users = new List<SimulationUserDTO>
                 {
@@ -104,7 +103,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
                 CreatedDate = date,
                 NetworkId = NetworkId,
                 NetworkName = NetworkName,
-                Creator = Username,
+                Creator = TestUsernames.Admin,
                 LastModifiedDate = date,
                 Users = new List<SimulationUserDTO>
                 {

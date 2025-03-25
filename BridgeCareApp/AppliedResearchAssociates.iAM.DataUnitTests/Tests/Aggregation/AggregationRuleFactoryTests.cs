@@ -3,6 +3,7 @@ using Moq;
 using System;
 using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
 using AppliedResearchAssociates.iAM.Data.Aggregation;
+using System.Reflection;
 
 namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Aggregation
 {
@@ -51,14 +52,16 @@ namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Aggregation
             Assert.IsType<PredominantNumericAggregationRule>(result);
         }
 
-        [Fact(Skip = "Invalid caught by attribute constructor")]
+        [Fact]
         public void CreateNumericRuleExceptionTest()
         {
             // Arrange
             Init("Number", InvalidAggregationRuleType);
 
             // Act, Assert
-            Assert.Throws<InvalidOperationException>(() => AggregationRuleFactory.CreateNumericRule(mockAttribute.Object));
+            var exception = Assert.Throws<TargetInvocationException>(() => AggregationRuleFactory.CreateNumericRule(mockAttribute.Object));
+            var innerException = exception.InnerException;
+            Assert.True(innerException is InvalidOperationException);
         }
 
         [Fact]
@@ -87,14 +90,16 @@ namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Aggregation
             Assert.IsType<LastTextAggregationRule>(result);
         }
 
-        [Fact(Skip = "Invalid caught by attribute constructor")]
+        [Fact]
         public void CreateTextRuleExceptionTest()
         {
             // Arrange
             Init("String", InvalidAggregationRuleType);
 
             // Act, Assert
-            Assert.Throws<InvalidOperationException>(() => AggregationRuleFactory.CreateTextRule(mockAttribute.Object));
+            var exception = Assert.Throws<TargetInvocationException>(() => AggregationRuleFactory.CreateTextRule(mockAttribute.Object));
+            var innerException = exception.InnerException;
+            Assert.True(innerException is InvalidOperationException);
         }
 
         public void Init(string dataType, string aggregationRuleType)

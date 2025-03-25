@@ -118,6 +118,9 @@ namespace BridgeCareCore.Controllers
         [HttpGet]
         [Route("CalculatedAttrbiuteLibraries")]
         [ClaimAuthorize("CalculatedAttributesViewAccess")]
+        // Should probably be calling GetCalculatedAttributeLibrariesNoChildren or
+        // GetCalculatedAttributeLibrariesNoChildrenAccessibleToUser.
+        // We are pulling too much data here.
         public async Task<IActionResult> GetCalculatedAttributeLibraries() =>
              Ok(calculatedAttributesRepo.GetCalculatedAttributeLibraries().ToList());
 

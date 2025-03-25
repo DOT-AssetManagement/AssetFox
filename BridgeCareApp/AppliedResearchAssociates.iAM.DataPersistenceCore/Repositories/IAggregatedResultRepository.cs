@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.Data.Aggregation;
 using AppliedResearchAssociates.iAM.Analysis;
@@ -10,6 +10,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
     {
         void AddAggregatedResults(List<IAggregatedResult> aggregatedResults);
 
+        /// <summary> May not be trustable as of 3/20/25. Not called anywhere.</summary>
         IEnumerable<IAggregatedResult> GetAggregatedResults(Guid networkId);
 
         void CreateAggregatedResults<T>(
@@ -20,7 +21,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         List<AggregatedResultDTO> GetAggregatedResultsForMaintainableAsset(Guid assetId, List<Guid> attributeIds);
         List<AggregatedSelectValuesResultDTO> GetAggregatedResultsForAttributeNames(List<string> attributeNames);
         List<AggregatedResultDTO> GetAllAggregatedResultsForMaintainableAsset(Guid assetId);
-        List<AggregatedResultDTO> GetAllAggregatedResultsForNetwork(Guid networkId);
         Dictionary<Guid, List<AssetAttributeValuePair>> GetAssetAttributeValuePairDictionary(Guid networkId);
     }
 }

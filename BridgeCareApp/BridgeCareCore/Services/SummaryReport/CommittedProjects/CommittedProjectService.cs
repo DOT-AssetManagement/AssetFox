@@ -33,18 +33,17 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
         // TODO: Determine based on associated network
         private string _networkKeyField;
         private readonly Dictionary<string, List<KeySegmentDatum>> _keyProperties;
-        private readonly List<string> _keyFields;        
+        private readonly List<string> _keyFields;
         private bool newImportFile = false;
 
         public CommittedProjectService(IUnitOfWork unitOfWork, IHubService hubService)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _hubService = hubService;
-        }        
+        }
 
         public FileInfoDTO ExportCommittedProjectsFile(Guid simulationId)
         {
-            
             var simulation = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
             var keyProperties = _unitOfWork.AssetDataRepository.KeyProperties;
             var keyFields = keyProperties.Keys.Where(_ => _ != "ID").ToList();
@@ -59,17 +58,16 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                 keyProperties,
                 primaryKeyFieldNames.ToList());
 
-
             var fileInfo = exporter.ExportCommittedProjectsFile(simulationId);
             return fileInfo;
         }
 
         public FileInfoDTO CreateCommittedProjectTemplate(Guid networkId)
-        {            
+        {
             _networkKeyField = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(networkId);
             var generator = new CommittedProjectsTemplateGenerator(_networkKeyField);
             var template = generator.CreateCommittedProjectTemplate();
-            return template;        
+            return template;
         }
 
         public void ImportCommittedProjectFiles(
@@ -89,7 +87,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
 
             var importer = new CommittedProjectImporter(
                 _unitOfWork,
-                _hubService,                
+                _hubService,
                 networkKeyField,
                 keyFields);
 

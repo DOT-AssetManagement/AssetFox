@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DTOs.Enums;
+
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
 {
@@ -95,5 +97,27 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
                 CriterionLibrary = criterionLibrary
             };
         }
+
+        public static TreatmentDTO NoTreatment()
+        {
+            var id = Guid.NewGuid();
+            var dto = new TreatmentDTO
+            {
+                Id = id,
+                AssetType = "Bridge",
+                BudgetIds = new List<Guid>(),
+                Budgets = new List<TreatmentBudgetDTO>(),
+                IsModified = false,
+                Costs = new List<TreatmentCostDTO>(),
+                Consequences = new List<TreatmentConsequenceDTO>(),
+                Category = TreatmentCategory.Other,
+                Name = "No Treatment",
+                PerformanceFactors = new List<TreatmentPerformanceFactorDTO>(),
+                ShadowForAnyTreatment = 1,
+                ShadowForSameTreatment = 1,
+            };
+            return dto;
+        }
+
     }
 }

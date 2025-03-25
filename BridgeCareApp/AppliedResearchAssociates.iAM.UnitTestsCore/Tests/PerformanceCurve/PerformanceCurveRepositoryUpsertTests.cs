@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using Xunit;
 
@@ -20,7 +18,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
         }
-
 
         [Fact]
         public void UpsertOrDeletePerformanceCurves_CurveInDbWithEquation_UpdateRemovesCurve_EquationDeleted()
@@ -45,6 +42,24 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Empty(performanceCurveLibraryDtoAfter.PerformanceCurves);
             var equationEntityAfter = TestHelper.UnitOfWork.Context.Equation.SingleOrDefault(e => e.Id == equationId);
             Assert.Equal(equationId, equationEntityAfter.Id);
+        }
+
+        [Fact]
+        public async Task UpsertOrDeletePerformanceCurveLibraryAndCurves_Does()
+        {
+            Setup();
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var libraryId = Guid.NewGuid();
+            var curveId = Guid.NewGuid();
+            var libraryDto = PerformanceCurveLibraryDtos.Empty(libraryId);
+            var curve = PerformanceCurveDtos.Dto(curveId, attribute: TestAttributeNames.DeckSeeded);
+            libraryDto.PerformanceCurves.Add(curve);
+
+            TestHelper.UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurveLibraryAndCurves(libraryDto, true, user.Id);
+
+            var libraryAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(libraryId);
+            ObjectAssertions.EquivalentExcluding(libraryDto, libraryAfter, l => l.Owner, l => l.PerformanceCurves[0].CriterionLibrary,
+                l => l.PerformanceCurves[0].Equation.Id);
         }
 
         [Fact]
@@ -272,7 +287,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Empty(performanceCurveLibraryDto.PerformanceCurves);
             var performanceCurves = new List<PerformanceCurveDTO> { performanceCurveDto };
 
-            TestHelper.UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurves(performanceCurves, libraryId); ;
+            TestHelper.UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurves(performanceCurves, libraryId);
 
             var performanceCurveLibraryDtoAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(libraryId);
             var performanceCurveAfter = performanceCurveLibraryDtoAfter.PerformanceCurves.Single();

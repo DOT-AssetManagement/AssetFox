@@ -7,8 +7,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
     public interface ICashFlowRuleRepository
     {
-        void CreateCashFlowRules(List<CashFlowRule> cashFlowRules, Guid simulationId);
-
         List<CashFlowRuleLibraryDTO> GetCashFlowRuleLibraries();
 
         List<CashFlowRuleLibraryDTO> GetCashFlowRuleLibrariesNoChildren();

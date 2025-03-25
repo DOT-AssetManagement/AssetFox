@@ -27,7 +27,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var network = _unitOfWork.NetworkRepo.GetMainNetwork();
             var keyDatumFieldNames = _unitOfWork.AdminSettingsRepo.GetKeyFields();
             var rawNetwork = _unitOfWork.NetworkRepo.GetRawNetwork();
-            var rawKeyDatumFieldNames = _unitOfWork.AdminSettingsRepo.GetRawKeyFields();
+            var rawKeyDatumFieldNames = _unitOfWork.AdminSettingsRepo.GetRawDataKeyFields();
 
             KeyProperties = new Dictionary<string, List<KeySegmentDatum>>();
             if(reportTypeParam != null)

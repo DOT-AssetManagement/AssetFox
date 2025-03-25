@@ -33,7 +33,7 @@ namespace BridgeCareCoreTests.Tests
         public static CalculatedAttributeDTO ForAttribute(AttributeDTO attribute, Guid? id = null, Guid? equationCriterionPairId = null, Guid? equationId = null)
         {
             var resolveId = id ?? Guid.NewGuid();
-            var resolveEquationCriterionPairId = equationCriterionPairId ?? Guid.NewGuid(); ;
+            var resolveEquationCriterionPairId = equationCriterionPairId ?? Guid.NewGuid();
             var equation = new CalculatedAttributeEquationCriteriaPairDTO
             {
                 Id = resolveEquationCriterionPairId,

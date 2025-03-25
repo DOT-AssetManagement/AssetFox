@@ -21,45 +21,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public BudgetAmountRepository(UnitOfDataPersistenceWork unitOfWork) => _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
-        public void CreateScenarioBudgetAmounts(Dictionary<Guid, List<BudgetAmount>> budgetAmountsPerBudgetEntityId, Guid simulationId)
-        {
-            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
-            {
-                throw new RowNotInTableException("No simulation was found for the given scenario.");
-            }
-
-            var simulationEntity = _unitOfWork.Context.Simulation.AsNoTracking()
-                .Where(_ => _.Id == simulationId)
-                .Select(simulation => new SimulationEntity
-                {
-                    InvestmentPlan = simulation.InvestmentPlan != null
-                        ? new InvestmentPlanEntity
-                            {
-                                FirstYearOfAnalysisPeriod = simulation.InvestmentPlan.FirstYearOfAnalysisPeriod
-                            }
-                        : null
-                }).Single();
-
-            if (simulationEntity.InvestmentPlan == null)
-            {
-                throw new RowNotInTableException("No investment plan found for given scenario.");
-            }
-
-            var budgetAmountEntities = new List<ScenarioBudgetAmountEntity>();
-
-            budgetAmountsPerBudgetEntityId.Keys.ForEach(budgetEntityId =>
-            {
-                var year = simulationEntity.InvestmentPlan.FirstYearOfAnalysisPeriod;
-                budgetAmountsPerBudgetEntityId[budgetEntityId].ForEach(_ =>
-                {
-                    budgetAmountEntities.Add(_.ToScenarioEntity(budgetEntityId, year));
-                    year++;
-                });
-            });
-
-            _unitOfWork.Context.AddAll(budgetAmountEntities);
-        }
-
         public void UpsertOrDeleteBudgetAmounts(Dictionary<Guid, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid libraryId)
         {
             var budgetAmountEntities = budgetAmountsPerBudgetId

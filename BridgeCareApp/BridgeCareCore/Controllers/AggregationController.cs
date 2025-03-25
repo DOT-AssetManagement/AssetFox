@@ -12,7 +12,6 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using BridgeCareCore.Controllers.BaseController;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Models;
@@ -31,7 +30,6 @@ namespace BridgeCareCore.Controllers
     public class AggregationController : BridgeCareCoreBaseController
     {
         public const string AggregationError = "Aggregation Error";
-        public const bool UpdateAttributes = false;
         private readonly ILog _log;
         private readonly IAggregationService _aggregationService;
         private readonly IGeneralWorkQueueService _generalWorkQueueService;
@@ -47,9 +45,6 @@ namespace BridgeCareCore.Controllers
             _generalWorkQueueService = generalWorkQueueService ?? throw new ArgumentNullException(nameof(generalWorkQueueService));
         }
 
-        private static bool FalseButCompilerDoesNotKnowThat => Guid.NewGuid() == Guid.Empty;
-
-
         [HttpPost]
         [Route("AggregateNetworkData/{networkId}")]
         [ClaimAuthorize("NetworkAggregateAccess")]
@@ -57,27 +52,6 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
-                if (FalseButCompilerDoesNotKnowThat || UpdateAttributes)
-                {
-                    var dataSources = UnitOfWork.DataSourceRepo.GetDataSources();
-                    var metadataDataSource = dataSources.FirstOrDefault(ds => ds.Name == "MetaData.Json");
-                    var metadataDataSourceId = metadataDataSource.Id;
-                    var metadataAttributes = UnitOfWork.AttributeMetaDataRepo.GetAllAttributes(metadataDataSourceId);
-                    var dbAttributes = UnitOfWork.AttributeRepo.GetAttributes();
-                    UnitOfWork.AttributeRepo.UpsertAttributes(metadataAttributes);
-                    var dbAttributesAfter = UnitOfWork.AttributeRepo.GetAttributes();
-                    var dbAttributeIdsAfter = dbAttributesAfter.Select(a => a.Id).ToList();
-                    var metadataAttributeIds = metadataAttributes.Select(a => a.Id).ToList();
-                    var attributeIdsToDelete = dbAttributeIdsAfter.Except(metadataAttributeIds).ToList();
-                    UnitOfWork.AttributeRepo.DeleteAttributesShouldNeverBeNeededButSometimesIs(attributeIdsToDelete);
-                    var dbAttributesAfterDeletion = UnitOfWork.AttributeRepo.GetAttributes();
-                    var dbAttributeIdsAfterDeletion = dbAttributesAfterDeletion.Select(a => a.Id).ToList();
-                    var attributeIdsNotDeleted = dbAttributeIdsAfterDeletion.Except(metadataAttributeIds).ToList();
-                    if (attributeIdsNotDeleted.Any())
-                    {
-                        throw new Exception("Failed to delete attributes we don't want");
-                    }
-                }
                 var networkName = "";
                 var specificAttributes = new List<AttributeDTO>();
                 await Task.Factory.StartNew(() =>

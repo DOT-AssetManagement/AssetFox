@@ -57,7 +57,7 @@ namespace BridgeCareCore.Services
             var sourceSimulationId = dto.ScenarioId.ToString();
             var sourceSimulation = this.GetSimulation(sourceSimulationId);
             var simulationCloningCommittedProjectErrors = new SimulationCloningCommittedProjectErrors();
-            if(sourceSimulation.CommittedProjects.Any(_ => _.ScenarioBudgetId == null))
+            if (sourceSimulation.CommittedProjects.Any(_ => _.ScenarioBudgetId == null))
             {
                 throw new Exception("Unable to clone committed projects with empty budgets");
             }
@@ -84,16 +84,16 @@ namespace BridgeCareCore.Services
             var cloneSimulation = CompleteSimulationCloner.Clone(sourceSimulation, dto, ownerId, ownerName);
             //Make sure the destination Network Id is not empty
             if (dto.DestinationNetworkId != Guid.Empty)
+            {
+                //If the destination Network is different than the current network, change the network id to the destination id
+                if (dto.DestinationNetworkId != dto.NetworkId)
                 {
-                   //If the destination Network is different than the current network, change the network id to the destination id
-                   if (dto.DestinationNetworkId != dto.NetworkId)
-                    {
-                        cloneSimulation.NetworkId = dto.DestinationNetworkId;
-                    }
+                    cloneSimulation.NetworkId = dto.DestinationNetworkId;
                 }
+            }
 
             // save it
-            var keyAttribute = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(dto.NetworkId);           
+            var keyAttribute = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(dto.NetworkId);
             var clone = _unitOfWork.SimulationRepo.CreateSimulation(cloneSimulation, keyAttribute, simulationCloningCommittedProjectErrors, baseEntityProperties);
             return clone;
         }
@@ -109,7 +109,7 @@ namespace BridgeCareCore.Services
             else
             {
                 return true;
-            }           
+            }
         }
 
     }

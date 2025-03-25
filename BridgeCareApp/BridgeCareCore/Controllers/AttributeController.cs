@@ -276,7 +276,7 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
-                IList<ParseError> errors = null; ;
+                IList<ParseError> errors = null;
                 await Task.Factory.StartNew(() =>
                 {
                     TSql100Parser parser = new TSql100Parser(false);

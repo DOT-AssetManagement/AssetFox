@@ -183,14 +183,14 @@ namespace BridgeCareCore.Controllers
             var result = new List<QueryResponse>();
             if (reportTypeParam[0].Contains("(P)"))
             {
-                foreach (var field in _adminSettingsRepository.GetRawKeyFields())
+                foreach (var field in _adminSettingsRepository.GetRawDataKeyFields())
                 {
                     result.Add(GetUniqueForAttribute(field, queryData));
                 }
             }
             else if (reportTypeParam[0].Contains("(R)"))
             {
-                foreach (var field in _adminSettingsRepository.GetRawKeyFields())
+                foreach (var field in _adminSettingsRepository.GetRawDataKeyFields())
                 {
                     result.Add(GetUniqueForAttribute(field, queryData));
                 }

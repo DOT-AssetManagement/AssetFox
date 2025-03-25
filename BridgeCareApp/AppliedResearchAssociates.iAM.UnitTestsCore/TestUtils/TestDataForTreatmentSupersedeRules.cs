@@ -20,8 +20,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public const string NetworkName = "Primary";
 
-        public const string Username = "pdsystbamsusr01";
-
         public const string InterstateBudgetName = "Interstate";
 
         public const string LocalBudgetName = "Local";

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.CashFlow;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
@@ -9,6 +12,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappe
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
+using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CashFlowRule;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -213,6 +217,18 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
         }
 
         [Fact]
+        public void GetLibraryModifiedDate_LibraryInDb_GetsModifiedDate()
+        {
+            var before = DateTime.Now;
+            var library = CashFlowRuleLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var after = DateTime.Now;
+
+            var modifiedDate = TestHelper.UnitOfWork.CashFlowRuleRepo.GetLibraryModifiedDate(library.Id);
+
+            DateTimeAssertions.Between(before, after, modifiedDate, TimeSpan.FromSeconds(1));
+        }
+
+        [Fact]
         public void UpsertOrDeleteScenarioCashFlowRules_RuleInDb_Modifies()
         {
             // Arrange
@@ -261,6 +277,56 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             Assert.False(TestHelper.UnitOfWork.Context.CashFlowDistributionRule.Any(_ =>
                     _.Id == rule.CashFlowDistributionRules[0].Id));
         }
+
+        [Fact]
+        public async Task GetCashFlowRuleLibrariesNoChildrenAccessibleToUser_LibraryInDbAccessibleToUser_Gets()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var library = CashFlowRuleLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            CashFlowRuleLibraryUserTestSetup.SetUsersOfCashFlowRuleLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
+
+            var accessibleLibraries = TestHelper.UnitOfWork.CashFlowRuleRepo.GetCashFlowRuleLibrariesNoChildrenAccessibleToUser(user.Id);
+
+            var accessibleLibrary = accessibleLibraries.Single(l => l.Id == library.Id);
+            ObjectAssertions.EquivalentExcluding(library, accessibleLibrary);
+        }
+
+        [Fact]
+        public async Task GetLibraryAccess_LibraryInDbWithUserAccess_GetsAccess()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var library = CashFlowRuleLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            CashFlowRuleLibraryUserTestSetup.SetUsersOfCashFlowRuleLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
+
+            var libraryAccess = TestHelper.UnitOfWork.CashFlowRuleRepo.GetLibraryAccess(library.Id, user.Id);
+
+            var expected = new LibraryUserAccessModel
+            {
+                LibraryExists = true,
+                UserId = user.Id,
+                Access = new LibraryUserDTO
+                {
+                    AccessLevel = LibraryAccessLevel.Modify,
+                    UserId = user.Id,
+                    UserName = user.Username,
+                }
+            };
+            ObjectAssertions.Equivalent(expected, libraryAccess);
+        }
+
+        [Fact]
+        public void UpsertCashFlowRuleLibraryAndRules_Does()
+        {
+            var libraryDto = CashFlowRuleLibraryDtos.WithSingleRule();
+
+            TestHelper.UnitOfWork.CashFlowRuleRepo.UpsertCashFlowRuleLibraryAndRules(libraryDto);
+
+            var rulesAfter = TestHelper.UnitOfWork.CashFlowRuleRepo.GetCashFlowRulesByLibraryId(libraryDto.Id);
+            var ruleAfter = rulesAfter.Single();
+            var ruleBefore = libraryDto.CashFlowRules.Single();
+            ObjectAssertions.EquivalentExcluding(ruleBefore, ruleAfter, r => r.CriterionLibrary);
+        }
+
         [Fact]
         public async Task UpdateCashFlowRuleLibraryWithUserAccessChange_Does()
         {
@@ -316,6 +382,37 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             var user2After = libraryUsersAfter.Single(u => u.UserId == user2.Id);
             Assert.Equal(LibraryAccessLevel.Modify, user1After.AccessLevel);
             Assert.Equal(LibraryAccessLevel.Read, user2After.AccessLevel);
+        }
+
+        [Fact]
+        public void SetCommittedProjectTemplate_ThenGet_SameIfLengthIsMultipleOf4()
+        {
+            var templateStringInvalidLength = RandomStrings.WithPrefix("CommittedProjectTemplate");
+            var templateString = templateStringInvalidLength[..(templateStringInvalidLength.Length / 4 * 4)];
+            var bytes = Convert.FromBase64String(templateString);
+            var stream = new MemoryStream(bytes);
+
+            TestHelper.UnitOfWork.CommittedProjectRepo.SetCommittedProjectTemplate(stream);
+
+            var templateAfter = TestHelper.UnitOfWork.CommittedProjectRepo.DownloadCommittedProjectTemplate();
+            Assert.Equal(templateString, templateAfter);
+        }
+
+        [Fact]
+        public void AddCommittedProjectTemplate_ThenGet_RoundTrips()
+        {
+            var templateStringInvalidLength = RandomStrings.WithPrefix("CommittedProjectTemplate");
+            var templateString = templateStringInvalidLength[..(templateStringInvalidLength.Length / 4 * 4)];
+            var bytes = Convert.FromBase64String(templateString);
+            var stream = new MemoryStream(bytes);
+            var filename = RandomStrings.WithPrefix("filename");
+
+            TestHelper.UnitOfWork.CommittedProjectRepo.AddCommittedProjectTemplate(stream, filename);
+
+            var templates = TestHelper.UnitOfWork.CommittedProjectRepo.getUploadedCommittedProjectTemplates();
+            Assert.Contains(filename, templates);
+            var selectedTemplate = TestHelper.UnitOfWork.CommittedProjectRepo.DownloadSelectedCommittedProjectTemplate(filename);
+            Assert.Equal(templateString, selectedTemplate);
         }
     }
 }

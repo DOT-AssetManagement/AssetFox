@@ -53,8 +53,8 @@ namespace BridgeCareCoreTests.Tests
             Mock<IInvestmentBudgetsService> investmentBudgetServiceMock = null
             )
         {
-            var accessor = HttpContextAccessorMocks.WithClaims(contextAccessorClaims);
-            return CreateController(unitOfWork, accessor, hubServiceMock, investmentBudgetServiceMock);
+            var accessorMock = HttpContextAccessorMocks.MockWithClaims(contextAccessorClaims);
+            return CreateController(unitOfWork, accessorMock.Object, hubServiceMock, investmentBudgetServiceMock);
         }
 
         public static InvestmentController CreateAdminController(
