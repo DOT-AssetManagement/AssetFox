@@ -36,13 +36,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             return dto;
         }
 
-        public static Simulation DomainSimulation(UnitOfDataPersistenceWork unitOfWork)
+        public static Simulation DomainSimulation(UnitOfDataPersistenceWork unitOfWork, Guid? networkId = null)
         {
+            var resolveNetworkId = networkId ?? NetworkTestSetup.NetworkId;
             var simulationEntity = EntityInDb(unitOfWork, NetworkTestSetup.NetworkId);
             var simulationDto = unitOfWork.SimulationRepo.GetSimulation(simulationEntity.Id);
-            var networkId = NetworkTestSetup.NetworkId;
             var explorer = unitOfWork.AttributeRepo.GetExplorer();
-            var network = unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
+            var network = unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(resolveNetworkId, explorer);
             var date = new DateTime(2022, 10, 6);
             SimulationMapper.CreateSimulation(simulationEntity, network, date, date);
             var simulationObject = network.Simulations.Single(s => s.Id == simulationDto.Id);

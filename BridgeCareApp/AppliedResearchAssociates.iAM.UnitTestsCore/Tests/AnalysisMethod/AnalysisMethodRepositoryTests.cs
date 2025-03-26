@@ -1,4 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
@@ -109,6 +113,62 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Equal(analysisMethodDtoAfter.CriterionLibrary.Id, analysisMethodDto.CriterionLibrary.Id);
             Assert.Equal(analysisMethodDtoAfter.Benefit.Id, analysisMethodDto.Benefit.Id);
             Assert.Equal(analysisMethodDtoAfter.Benefit.Attribute, analysisMethodDto.Benefit.Attribute);
+        }
+
+        [Fact]
+        public void GetSimulationAnalysisMethod_SimulationInDbWithChildren_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
+            var budgetPriority = BudgetPriorityTestSetup.SetupSingleBudgetPriorityForSimulationInDb(simulation.Id);
+            var description = RandomStrings.WithPrefixAnd2CharSuffix("Description");
+            var criterionLibraryDescription = RandomStrings.WithPrefixAnd2CharSuffix("CriterionLibraryDescription");
+            var analysisMethodId = Guid.NewGuid();
+            var criterionLibraryId = Guid.NewGuid();
+            var benefitId = Guid.NewGuid();
+            var benefit = new BenefitDTO
+            {
+                Attribute = TestAttributeNames.ConditionIndex,
+                Id = benefitId,
+                Limit = 45,
+            };
+            var criterionLibrary = new CriterionLibraryDTO
+            {
+                Id = criterionLibraryId,
+                Description = criterionLibraryDescription,
+                MergedCriteriaExpression = "mergedCriteriaDescription",
+            };
+            var analysisMethodDto = new AnalysisMethodDTO
+            {
+                Benefit = benefit,
+                CriterionLibrary = criterionLibrary,
+                Description = description,
+                Id = analysisMethodId,
+                OptimizationStrategy = OptimizationStrategy.RemainingLife,
+                ShouldAllowMultipleTreatments = true,
+                ShouldApplyMultipleFeasibleCosts = true,
+                ShouldDeteriorateDuringCashFlow = true,
+                ShouldUseExtraFundsAcrossBudgets = true,
+                SpendingStrategy = SpendingStrategy.UnlimitedSpending,                
+            };
+            TestHelper.UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulation.Id, analysisMethodDto);
+
+            TestHelper.UnitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, "");
+
+            var analysisMethodAfter = simulation.AnalysisMethod;
+            Assert.Equal(analysisMethodId, analysisMethodAfter.Id);
+            Assert.Equal(description, analysisMethodAfter.Description);
+            Assert.Equal(OptimizationStrategy.RemainingLife, analysisMethodAfter.OptimizationStrategy);
+            Assert.Equal(SpendingStrategy.UnlimitedSpending, analysisMethodAfter.SpendingStrategy);
+            Assert.True(analysisMethodAfter.ShouldApplyMultipleFeasibleCosts);
+            Assert.True(analysisMethodAfter.ShouldDeteriorateDuringCashFlow);
+            Assert.True(analysisMethodAfter.AllowFundingFromMultipleBudgets);
+            Assert.True(simulation.ShouldBundleFeasibleTreatments);
+            var benefitAfter = analysisMethodAfter.Benefit;
+            Assert.Equal(45, benefitAfter.Limit);
+            Assert.Equal(benefitId, benefitAfter.Id);
+            Assert.Equal(TestAttributeNames.ConditionIndex, benefitAfter.Attribute.Name);
         }
     }
 }
