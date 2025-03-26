@@ -13,6 +13,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using EFCore.BulkExtensions;
 using Humanizer;
@@ -318,7 +319,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return null;
         }
 
-        public SimulationOutput GetSimulationOutputViaRelation(Guid simulationId, ILog loggerForUserInfo = null, ILog loggerForTechinalInfo = null)
+        public SimulationOutput GetSimulationOutputViaRelation(Guid simulationId, ILog loggerForUserInfo = null, ILog loggerForTechinalInfo = null, List<AttributeDTO> attributeDtos = null)
         {
             loggerForUserInfo ??= new DoNotLog();
             loggerForTechinalInfo ??= new DoNotLog();
@@ -327,6 +328,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
             var startMemo = memos.MarkInformation($"Starting load batchSize {assetLoadBatchSize}", loggerForTechinalInfo);
             loggerForUserInfo.Information("Loading SimulationOutput");
+
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
                 throw new RowNotInTableException($"Found no simulation having id {simulationId}");
@@ -342,20 +344,21 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             {
                 throw new Exception($"Expected to find one output for the simulation. Found {simulationOutputObjectCount}."); ;
             }
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
-            var entitiesWithoutAssetSummariesOrYearContents = _unitOfWork.Context.SimulationOutput
+
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary(attributeDtos);
+            var entityWithoutAssetSummariesOrYearContents = _unitOfWork.Context.SimulationOutput
                 .Include(so => so.Years)
                 .Include(so => so.Simulation)
                 .Where(_ => _.SimulationId == simulationId)
                 .AsNoTracking()
-                .ToList();
-            var firstEntity = entitiesWithoutAssetSummariesOrYearContents[0];
-            var simulationOutputId = firstEntity.Id;
-            var cacheYears = firstEntity.Years.OrderBy(y => y.Year).ToList();
-            firstEntity.Years.Clear();
-            var domain = SimulationOutputMapper.ToDomainWithoutAssets(firstEntity, attributeNameLookup);
-            var assetNameLookup = new Dictionary<Guid, string>();
-            var usedAttributeIds = BuildUsedAttributeIdList(simulationOutputId);
+                .FirstOrDefault();
+            var simulationOutputId = entityWithoutAssetSummariesOrYearContents.Id;
+            var cacheYears = entityWithoutAssetSummariesOrYearContents.Years.OrderBy(y => y.Year).ToList();
+            entityWithoutAssetSummariesOrYearContents.Years.Clear();
+            var simulationOutputDomain = SimulationOutputMapper.ToDomainWithoutAssets(entityWithoutAssetSummariesOrYearContents, attributeNameLookup);
+
+            // AssetSummaryDetails
+            #region AssetSummaryDetails
             var assetSummaryDetails = _unitOfWork.Context.AssetSummaryDetail
                 .Include(a => a.MaintainableAsset)
                 .OrderBy(a => a.Id)
@@ -363,17 +366,21 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .AsNoTracking()
                 .ToList();
             _ = memos.Mark("assetSummaryDetails");
+            var assetNameLookup = new Dictionary<Guid, string>();
             foreach (var assetSummary in assetSummaryDetails)
             {
                 assetNameLookup[assetSummary.MaintainableAssetId] = assetSummary.MaintainableAsset.AssetName;
             }
             var assetSummaryDomainDictionary = AssetSummaryDetailMapper.ToDomainDictionaryNullSafe(assetSummaryDetails, attributeNameLookup);
-            domain.InitialAssetSummaries.AddRange(assetSummaryDomainDictionary.Values);
+            simulationOutputDomain.InitialAssetSummaries.AddRange(assetSummaryDomainDictionary.Values);
+
+            // Get and map AssetSummaryDetailValuesIntId
             var assetSummaryDetailValueConfig = new BulkConfig
             {
                 UpdateByProperties = new List<string> { nameof(AssetSummaryDetailValueEntityIntId.AssetSummaryDetailId), nameof(AssetSummaryDetailValueEntityIntId.AttributeId) }
             };
             var assetSummaryDetailValueEntities = new List<AssetSummaryDetailValueEntityIntId>();
+            var usedAttributeIds = BuildUsedAttributeIdList(simulationOutputId);
             foreach (var assetSummaryDetail in assetSummaryDetails)
             {
                 foreach (var usedAttributeId in usedAttributeIds)
@@ -392,12 +399,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var summary = assetSummaryDomainDictionary[assetSummaryDetailValueEntity.AssetSummaryDetailId];
                 AssetSummaryDetailValueMapper.AddToDictionary(assetSummaryDetailValueEntity, summary.ValuePerNumericAttribute, summary.ValuePerTextAttribute, attributeNameLookup);
             }
-            // TODO guessing it is not required, double check
-            //foreach (var summaryValue in assetSummaryDomainDictionary.Values)
-            //{
-            //    AssetSummaryDetailValueMapper.FillAreaAttributeValue(summaryValue.ValuePerNumericAttribute);
-            //}
+            // Done - Get and map AssetSummaryDetailValuesIntId
             var summariesDoneMemo = memos.MarkInformation("assetSummaries done", loggerForTechinalInfo);
+            assetSummaryDetails.Clear();
+            #endregion
+
+            // SimulationYearDetails
+            #region SimulationYearDetails
             foreach (var cacheYear in cacheYears)
             {
                 var yearMemo = memos.MarkInformation($"Y{cacheYear.Year}", loggerForTechinalInfo);
@@ -405,15 +413,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var yearId = cacheYear.Id;
                 var year = cacheYear.Year;
                 var loadedYearWithoutAssets = _unitOfWork.Context.SimulationYearDetail
-                .Include(y => y.Budgets)
-                .Include(y => y.DeficientConditionGoals)
-                .Include(y => y.TargetConditionGoals)
+                .Include(y => y.Budgets) // This can be optional - only summary and audit reports use it
+                .Include(y => y.DeficientConditionGoals) // This can be optional - only general summary using it
+                .Include(y => y.TargetConditionGoals) // This can be optional - only general summary using it
                 .Where(y => y.Id == yearId)
                 .AsNoTracking()
                 .ToList();
                 var loadedYearEntity = loadedYearWithoutAssets[0];
                 var domainYear = SimulationYearDetailMapper.ToDomainWithoutAssets(loadedYearEntity, attributeNameLookup);
-                domain.Years.Add(domainYear);
+                simulationOutputDomain.Years.Add(domainYear);
                 var shouldContinueLoadingAssets = true;
                 var batchIndex = 0;
                 var assets = new Dictionary<Guid, AssetDetail>();
@@ -432,8 +440,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                    .ThenInclude(tc => tc.FundingCalculationOutput)
                    .ThenInclude(fco=>fco.AllocationMatrix)
                    .Include(a => a.TreatmentOptions)
-                   .Include(a => a.TreatmentRejections)
-                   .Include(a => a.TreatmentSchedulingCollisions)
+                   .Include(a => a.TreatmentRejections) // only summary and audit reports use it
+                   //.Include(a => a.TreatmentSchedulingCollisions) // no usage in reports
                    .Include(a => a.AssetDetailValuesIntId)
                    .AsSplitQuery()
                    .Skip(assetLoadBatchSize * batchIndex)
@@ -445,18 +453,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                         AssetDetailMapper.AppendToDomainDictionaryWithValues(assets, assetEntities, year, attributeNameLookup, assetNameLookup);
                         _unitOfWork.Context.ChangeTracker.Clear();
                     }
-                    memos.Mark($" batch {batchIndex} done");
+                    _ = memos.Mark($" batch {batchIndex} done");
                     batchIndex++;
-                    shouldContinueLoadingAssets = assetEntities.Count() == assetLoadBatchSize;
+                    shouldContinueLoadingAssets = assetEntities.Count == assetLoadBatchSize;
                 }
                 domainYear.Assets.AddRange(assets.Values);
-                // TODO guessing it is not required, double check
-                //foreach (var asset in domainYear.Assets)
-                //{
-                //    AssetDetailValueMapper.FillArea(asset.ValuePerNumericAttribute);
-                //}
             }
-            domain.Years.Sort((y1, y2) => y1.Year.CompareTo(y2.Year));
+            cacheYears.Clear();
+            #endregion
+
+            simulationOutputDomain.Years.Sort((y1, y2) => y1.Year.CompareTo(y2.Year));
             _ = memos.MarkInformation("Load done", loggerForTechinalInfo);
             loggerForUserInfo.Information($"Simulation output load completed");
 
@@ -465,7 +471,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var outputFilename = "LoadTimings.txt";
                 WriteTimingsToFile(memos, outputFilename);
             }
-            return domain;
+            return simulationOutputDomain;
         }
 
         public SimulationOutput GetSimulationOutputViaJson(Guid simulationId)

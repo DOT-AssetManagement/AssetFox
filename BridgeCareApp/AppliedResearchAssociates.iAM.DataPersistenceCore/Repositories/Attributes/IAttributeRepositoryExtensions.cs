@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
     public static class IAttributeRepositoryExtensions
     {
-        public static Dictionary<Guid, string> GetAttributeNameLookupDictionary(this IAttributeRepository repository)
+        public static Dictionary<Guid, string> GetAttributeNameLookupDictionary(this IAttributeRepository repository, List<AttributeDTO> attributeDtos = null)
         {
 
-            var allAttributes = repository.GetAttributes();
+            var allAttributes = attributeDtos ?? repository.GetAttributes();
             var attributeNameLookup = new Dictionary<Guid, string>();
             foreach (var attribute in allAttributes)
             {

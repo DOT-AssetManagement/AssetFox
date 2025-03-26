@@ -3,6 +3,8 @@ using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Common;
 using System.Threading;
 using AppliedResearchAssociates.iAM.Common.Logging;
+using AppliedResearchAssociates.iAM.DTOs;
+using System.Collections.Generic;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
@@ -11,7 +13,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void CreateSimulationOutputViaRelational(Guid simulationId, SimulationOutput simulationOutput,
             IWorkQueueLog logerForUserInfo = null, ILog loggerForTechnicalInfo = null, CancellationToken? cancellationToken = null);
 
-        SimulationOutput GetSimulationOutputViaRelation(Guid simulationId, ILog loggerForUserInfo = null, ILog loggerForTechincalInfo = null);
+        SimulationOutput GetSimulationOutputViaRelation(Guid simulationId, ILog loggerForUserInfo = null, ILog loggerForTechincalInfo = null, List<AttributeDTO> attributeDtos = null);
 
         SimulationOutput GetSimulationOutputViaJson(Guid simulationId);
         void CreateSimulationOutputViaJson(Guid simulationId, SimulationOutput simulationOutput);

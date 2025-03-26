@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Models;
@@ -14,26 +12,17 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
 {
     public class MASTab
     {
-        private ReportHelper _reportHelper;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public MASTab(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _reportHelper = new ReportHelper(_unitOfWork);
-        }
-
-        public void Fill(ExcelWorksheet masWorksheet, SimulationOutput simulationOutput, Guid networkId, List<MaintainableAsset> networkMaintainableAssets, List<AttributeDatumDTO> attributeDatumDTOs, List<AttributeDTO> attributeDTOs)
+        public void Fill(ExcelWorksheet masWorksheet, Guid networkId, List<MaintainableAsset> networkMaintainableAssets, List<AttributeDatumDTO> attributeDatumDTOs, List<AttributeDTO> attributeDTOs)
         {
             var currentCell = AddHeadersCells(masWorksheet);
 
-            FillDynamicDataInWorkSheet(simulationOutput, masWorksheet, currentCell, networkId, networkMaintainableAssets, attributeDatumDTOs, attributeDTOs);
+            FillDynamicDataInWorkSheet(masWorksheet, currentCell, networkId, networkMaintainableAssets, attributeDatumDTOs, attributeDTOs);
 
             masWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
             masWorksheet.Cells.AutoFitColumns();
         }
 
-        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, ExcelWorksheet masWorksheet, CurrentCell currentCell, Guid networkId, List<MaintainableAsset> networkMaintainableAssets, List<AttributeDatumDTO> attributeDatumDTOs, List<AttributeDTO> attributeDTOs)
+        private void FillDynamicDataInWorkSheet(ExcelWorksheet masWorksheet, CurrentCell currentCell, Guid networkId, List<MaintainableAsset> networkMaintainableAssets, List<AttributeDatumDTO> attributeDatumDTOs, List<AttributeDTO> attributeDTOs)
         {
             foreach (var networkMaintainableAsset in networkMaintainableAssets)
             {

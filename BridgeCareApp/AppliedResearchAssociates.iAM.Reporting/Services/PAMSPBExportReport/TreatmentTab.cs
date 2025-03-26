@@ -36,6 +36,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
 
         private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, ExcelWorksheet treatmentsWorksheet, CurrentCell currentCell, Guid simulationId, Guid networkId, IReadOnlyCollection<SelectableTreatment> treatments, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments)
         {
+            // years - 
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
                 var assetId = initialAssetSummary.AssetId;
@@ -143,9 +144,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             treatmentDataModel.RiskScore = CheckGetNumericValue(section.ValuePerNumericAttribute, "RISKSCORE");
             treatmentDataModel.Interstate = CheckGetTextValue(valuePerTextAttribute, "INTERSTATE");
 
-            var treatmentOption = section.TreatmentOptions.FirstOrDefault(_ => _.TreatmentName == appliedTreatment);
-            // TODO use cost from treatmentConsideration.FundingCalculationOutput.AllocationMatrix as discussion with Tyler
-            treatmentDataModel.Cost = treatmentOption != null ? treatmentOption.Cost : 0;
+            var treatmentOption = section.TreatmentOptions.FirstOrDefault(_ => _.TreatmentName == appliedTreatment);            
             treatmentDataModel.Benefit = treatmentOption != null ? treatmentOption.Benefit : 0;
             // TODO remove infinity condition once fix is available for such edge cases
             treatmentDataModel.RemainingLife = treatmentOption != null && treatmentOption.RemainingLife?.ToString() != "-∞" ? treatmentOption.RemainingLife : 0;
@@ -165,12 +164,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
                                           section.TreatmentConsiderations ?? new();
 
             var treatmentConsideration = shouldBundleFeasibleTreatments ?
-                                 treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
-                                    _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
-                                    section.AppliedTreatment.Contains(_.TreatmentName)) :
-                                 treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
-                                    _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
-                                    _.TreatmentName == section.AppliedTreatment);
+                                         treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
+                                            _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
+                                            section.AppliedTreatment.Contains(_.TreatmentName)) :
+                                         treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
+                                            _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
+                                            _.TreatmentName == section.AppliedTreatment);
+
+            var cost = treatmentConsideration == null ? 0
+                : Math.Round(treatmentConsideration.FundingCalculationOutput?
+                            .AllocationMatrix.Where(_ => _.Year == year.Year)?.Sum(b => b.AllocatedAmount)
+                            ?? 0, 0);
+            treatmentDataModel.Cost = cost;
 
             treatmentDataModel.PriorityLevel = treatmentConsideration?.BudgetPriorityLevel;
             treatmentDataModel.TreatmentFundingIgnoresSpendingLimit = section.TreatmentFundingIgnoresSpendingLimit ? 1 : 0;
