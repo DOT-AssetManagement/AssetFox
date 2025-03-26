@@ -77,6 +77,7 @@ export enum WorkType {
     ImportScenarioTreatmentSupersedeRule,
     ImportLibraryTreatmentSupersedeRule,
     ImportCommittedProject,
+    DeleteSimulationOutput
 }
 
 export enum DomainType {

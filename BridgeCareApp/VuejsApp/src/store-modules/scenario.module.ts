@@ -299,6 +299,17 @@ const actions = {
             },
         );
     },
+    async deleteScenarioOutput({dispatch, state, commit}: any, dateParams: any) {
+        return await ScenarioService.deleteScenarioOutputsWithingDaterange(dateParams)
+            .then((response: AxiosResponse) => {
+                if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
+                    dispatch('addSuccessNotification', {
+                        message: 'Deleting scenario outputs of from ' + dateParams.startDate + "to " + dateParams.endDate,
+                    });
+                }
+            },
+        );
+    },
     async cancelWorkQueueItem({dispatch, state, commit}: any, payload: any) {
         return await ScenarioService.cancelWorkQueueItem(payload.simulationId)
             .then((response: AxiosResponse) => {

@@ -4,6 +4,8 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
@@ -262,6 +264,41 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
             context.SaveChanges();
         }
+
+        public static async Task DeleteAllAsync<T>(this IAMContext context, Expression<Func<T, bool>> predicate, CancellationToken token = default(CancellationToken)) where T : class
+        {
+            var entities = context.Set<T>();
+
+            var entitiesToDelete = entities.Where(predicate).ToList();
+            if (entitiesToDelete.Any())
+            {
+                await context.BulkDeleteAsync(entitiesToDelete, cancellationToken: token);
+            }
+
+            context.SaveChanges();
+        }
+
+        public static async Task DeleteAllByBatchAsync<T>(this IAMContext context, Expression<Func<T, bool>> predicate, int batchSize, CancellationToken token = default(CancellationToken)) where T : class
+        {
+            var entities = context.Set<T>();
+            int i = 0;
+            var entitiesToDelete = new List<T>();
+            do
+            {
+                entitiesToDelete = entities.Where(predicate).Skip(batchSize * i).Take(batchSize).ToList();
+                if (entitiesToDelete.Any())
+                {
+                    await context.BulkDeleteAsync(entitiesToDelete, cancellationToken: token);
+                }
+                i++;
+            }
+            while (entitiesToDelete.Count == batchSize);
+           
+            
+
+            context.SaveChanges();
+        }
+
 
         public static void UpsertOrDelete<T>(this IAMContext context, List<T> entities,
             Dictionary<string, Expression<Func<T, bool>>> predicatesPerCrudOperation, Guid? userId = null) where T : class

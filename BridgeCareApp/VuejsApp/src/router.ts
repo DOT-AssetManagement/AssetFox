@@ -126,6 +126,10 @@ const AdminData = () =>
 import(
     /*webpackChunkName: "AdminData" */ '@/components/admin-data/AdminData.vue'
 );
+const AdminStorage = () =>
+import(
+    /*webpackChunkName: "AdminStorage" */ '@/components/admin-storage/AdminStorage.vue'
+);
 const AccessDenied = () =>
     import(
         /*webpackChunkName: "AccessDenied" */ '@/components/AccessDenied.vue'
@@ -385,6 +389,10 @@ const router = createRouter({
                     path: '/Site/',
                     component: Site,
                 },
+                {
+                    path: '/AdminStorage/',
+                    component: AdminStorage,
+                },
             ],
         },
         {
@@ -409,6 +417,12 @@ const router = createRouter({
             path: '/AdminData/',
             name: 'AdminData',
             component: AdminData,
+            props: true,
+        },
+        {
+            path: '/AdminStorage/',
+            name: 'AdminStorage',
+            component: AdminStorage,
             props: true,
         },
         {

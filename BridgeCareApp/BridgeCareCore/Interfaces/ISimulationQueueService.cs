@@ -13,5 +13,7 @@ namespace BridgeCareCore.Interfaces
         QueuedWorkDTO GetFastQueuedWorkByWorkId(string workId);
         QueuedWorkDTO GetQueuedWorkByDomainIdAndWorkType(Guid domainId, WorkType workType);
         QueuedWorkDTO GetFastQueuedWorkByDomainIdAndWorkType(Guid domainId, WorkType workType);
+        QueuedWorkDTO GetQueuedWorkByWorkType(WorkType workType);
+        QueuedWorkDTO GetFastQueuedWorkByWorkType(WorkType workType);
     }
 }
