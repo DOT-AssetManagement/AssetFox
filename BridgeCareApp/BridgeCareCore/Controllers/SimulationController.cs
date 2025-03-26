@@ -28,6 +28,7 @@ using AppliedResearchAssociates.Validation;
 using System.Collections.Generic;
 using BridgeCareCore.Models.Validation;
 using ValidationResult = AppliedResearchAssociates.Validation.ValidationResult;
+using static Google.Protobuf.WireFormat;
 
 namespace BridgeCareCore.Controllers
 {
@@ -243,6 +244,40 @@ namespace BridgeCareCore.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Route("GetQueuedWorkByWorkType/{worktype}")]
+        [Authorize]
+        public async Task<IActionResult> GetQueuedWorkByWorkType(string workType)
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() => _workQueueService.GetQueuedWorkByWorkType((WorkType)int.Parse(workType)));
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::GetQueuedWorkByWorkType - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("GetFastQueuedWorkByWorkType/{workType}")]
+        [Authorize]
+        public async Task<IActionResult> GetFastQueuedWorkByWorkType(string workType)
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() => _workQueueService.GetFastQueuedWorkByWorkType((WorkType)int.Parse(workType)));
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::GetFastQueuedWorkByWorkType - {e.Message}", e);
+            }
+            return Ok();
+        }
+
         [HttpPost]
         [Route("CreateScenario/{networkId}")]
         [Authorize]
@@ -356,6 +391,32 @@ namespace BridgeCareCore.Controllers
                 var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, simulationId.ToString());
+
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::DeleteSimulation {simulationName} - {HubService.errorList["Unauthorized"]}", e);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::DeleteSimulation {simulationName} - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("DeleteSimulationOutput")]
+        [Authorize(Policy = Policy.AdminUser)]
+        public async Task<IActionResult> DeleteSimulationOutput([FromBody] SimulationOutputDeletionParameters deletionParameters)
+        {
+            var simulationName = "";
+            try
+            {
+                var workItem = new DeleteSimulationOutputWorkItem(deletionParameters.LowerBoundDate, deletionParameters.UpperBoundDate, UserInfo.Name);
+                var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
+
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, DeleteSimulationOutputWorkItem.DomainId.ToString());
 
                 return Ok();
             }

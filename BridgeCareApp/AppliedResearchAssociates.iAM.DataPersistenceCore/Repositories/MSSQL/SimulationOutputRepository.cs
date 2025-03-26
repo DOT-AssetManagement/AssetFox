@@ -15,6 +15,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappe
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using EFCore.BulkExtensions;
+using Humanizer;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -558,6 +559,48 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 usedAttributeIds.Add(assetSummaryDetailValue.AttributeId);
             }
             return usedAttributeIds;
+        }
+
+        public void DeleteScenarioOutputsWithingDaterange(DateTime? lowerBoundDate, DateTime upperBoundDate, CancellationToken token = default(CancellationToken))
+        {
+            upperBoundDate = upperBoundDate.At(hour: 23, min: 59);
+            try
+            {
+                _unitOfWork.BeginTransaction();
+                _unitOfWork.Context.DeleteAllByBatchAsync<SimulationOutputJsonEntity>(_ => (upperBoundDate == lowerBoundDate && _.CreatedDate == upperBoundDate) ||
+                (lowerBoundDate == null && _.CreatedDate <= upperBoundDate) ||
+                (lowerBoundDate != null && upperBoundDate > lowerBoundDate && _.CreatedDate >= lowerBoundDate && _.CreatedDate <= upperBoundDate), 100, token).Wait();
+                _unitOfWork.Commit();
+            }
+            catch (Exception ex)
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
+            
+            var outputids = _unitOfWork.Context.SimulationOutput.Where(_ => (upperBoundDate == lowerBoundDate && _.CreatedDate == upperBoundDate) ||
+                (lowerBoundDate == null && _.CreatedDate <= upperBoundDate) ||
+                (lowerBoundDate != null && upperBoundDate > lowerBoundDate && _.CreatedDate >= lowerBoundDate && _.CreatedDate <= upperBoundDate)).Select(_ => _.Id.ToString()).ToList();
+            var idChunks =  outputids.Chunk(100).ToList();
+            //this needs to be done because SimOutputGuidList is nvarchar and thus it can only store up to 4000 characters
+            idChunks.ForEach(chunk =>
+            {
+                var param = new SqlParameter[] {
+                        new SqlParameter() {
+                            ParameterName = "@SimOutputGuidList",
+                            SqlDbType =  System.Data.SqlDbType.NVarChar,
+                            Direction = System.Data.ParameterDirection.Input,
+                            Value = String.Join(",", chunk.ToArray())
+                        },
+
+                        new SqlParameter() {
+                            ParameterName = "@RetMessage",
+                            SqlDbType =  System.Data.SqlDbType.VarChar,
+                            Size = 250,
+                            Direction = System.Data.ParameterDirection.Output,
+                        }};
+                _unitOfWork.Context.Database.ExecuteSqlRawAsync("[dbo].[usp_delete_simulationoutput] @SimOutputGuidList, @RetMessage", param, token).Wait();
+            });
         }
     }
 }
