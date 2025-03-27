@@ -129,12 +129,12 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public async Task GetAllBudgetLibraries_BudgetLibraryInDb_Gets()
         {
-            // wjwjwj is this now duplicative?
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var library = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             BudgetLibraryUserTestSetup.SetUsersOfBudgetLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
 
             var libraries = TestHelper.UnitOfWork.BudgetRepo.GetBudgetLibraries();
+
             var actualLibrary = libraries.Single(l => l.Id == library.Id);
             Assert.Equal(library.Name, actualLibrary.Name);
         }

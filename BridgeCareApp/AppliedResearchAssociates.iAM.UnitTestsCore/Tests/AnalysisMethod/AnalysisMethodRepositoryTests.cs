@@ -121,7 +121,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public void GetSimulationAnalysisMethod_SimulationInDbWithChildren_Gets()
         {
-            // wjwjwj working on this test
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
@@ -132,8 +131,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var budgetDtos = new List<BudgetDTO> { budgetDto };
             var simulationAnalysisDetail = SimulationAnalysisDetailDtos.ForSimulation(simulationId);
             TestHelper.UnitOfWork.SimulationAnalysisDetailRepo.UpsertSimulationAnalysisDetail(simulationAnalysisDetail);
-            var analysisMethod = AnalysisMethodDtos.RiskScore();
-            TestHelper.UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulationId, analysisMethod);
             var investmentPlanDto = InvestmentPlanDtos.Dto(simulationId, 2024);
             TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulationId); var curveId = Guid.NewGuid(); TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(budgetDtos, simulation.Id);
 
@@ -145,7 +142,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
                 Id = budgetPercentagePairId,
                 BudgetId = budgetId,
                 BudgetName = budgetName,
-                
             };
             var budgetPriorityDto = new BudgetPriorityDTO
             {
@@ -156,8 +152,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             };
             var budgetPriorityDtos = new List<BudgetPriorityDTO> { budgetPriorityDto };
             TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(budgetPriorityDtos, simulation.Id);
-            var description = RandomStrings.WithPrefixAnd2CharSuffix("Description");
-            var criterionLibraryDescription = RandomStrings.WithPrefixAnd2CharSuffix("CriterionLibraryDescription");
+            var analysisMethodDescription = RandomStrings.WithPrefixAnd2CharSuffix("Description");
             var analysisMethodId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
             var benefitId = Guid.NewGuid();
@@ -170,14 +165,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var criterionLibrary = new CriterionLibraryDTO
             {
                 Id = criterionLibraryId,
-                Description = criterionLibraryDescription,
                 MergedCriteriaExpression = "mergedCriteriaDescription",
             };
             var analysisMethodDto = new AnalysisMethodDTO
             {
                 Benefit = benefit,
                 CriterionLibrary = criterionLibrary,
-                Description = description,
+                Description = analysisMethodDescription,
                 Id = analysisMethodId,
                 OptimizationStrategy = OptimizationStrategy.RemainingLife,
                 ShouldAllowMultipleTreatments = true,
@@ -193,7 +187,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 
             var analysisMethodAfter = simulation.AnalysisMethod;
             Assert.Equal(analysisMethodId, analysisMethodAfter.Id);
-            Assert.Equal(description, analysisMethodAfter.Description);
+            Assert.Equal(analysisMethodDescription, analysisMethodAfter.Description);
             Assert.Equal(OptimizationStrategy.RemainingLife, analysisMethodAfter.OptimizationStrategy);
             Assert.Equal(SpendingStrategy.UnlimitedSpending, analysisMethodAfter.SpendingStrategy);
             Assert.True(analysisMethodAfter.ShouldApplyMultipleFeasibleCosts);
