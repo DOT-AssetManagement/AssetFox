@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using Xunit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
@@ -118,10 +121,41 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public void GetSimulationAnalysisMethod_SimulationInDbWithChildren_Gets()
         {
+            // wjwjwj working on this test
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
-            var budgetPriority = BudgetPriorityTestSetup.SetupSingleBudgetPriorityForSimulationInDb(simulation.Id);
+            var simulationId = simulation.Id;
+            var budgetId = Guid.NewGuid();
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
+            var budgetDto = BudgetDtos.New(budgetId, budgetName);
+            var budgetDtos = new List<BudgetDTO> { budgetDto };
+            var simulationAnalysisDetail = SimulationAnalysisDetailDtos.ForSimulation(simulationId);
+            TestHelper.UnitOfWork.SimulationAnalysisDetailRepo.UpsertSimulationAnalysisDetail(simulationAnalysisDetail);
+            var analysisMethod = AnalysisMethodDtos.RiskScore();
+            TestHelper.UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulationId, analysisMethod);
+            var investmentPlanDto = InvestmentPlanDtos.Dto(simulationId, 2024);
+            TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulationId); var curveId = Guid.NewGuid(); TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(budgetDtos, simulation.Id);
+
+            var budgetPriorityId = Guid.NewGuid();
+            var budgetPercentagePairId = Guid.NewGuid();
+            var budgetPercentagePairDto = new BudgetPercentagePairDTO
+            {
+                Percentage = 33,
+                Id = budgetPercentagePairId,
+                BudgetId = budgetId,
+                BudgetName = budgetName,
+                
+            };
+            var budgetPriorityDto = new BudgetPriorityDTO
+            {
+                Id = budgetPriorityId,
+                BudgetPercentagePairs = new List<BudgetPercentagePairDTO> { budgetPercentagePairDto },
+                PriorityLevel = 0,
+                Year = 2025,
+            };
+            var budgetPriorityDtos = new List<BudgetPriorityDTO> { budgetPriorityDto };
+            TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(budgetPriorityDtos, simulation.Id);
             var description = RandomStrings.WithPrefixAnd2CharSuffix("Description");
             var criterionLibraryDescription = RandomStrings.WithPrefixAnd2CharSuffix("CriterionLibraryDescription");
             var analysisMethodId = Guid.NewGuid();
@@ -153,6 +187,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
                 SpendingStrategy = SpendingStrategy.UnlimitedSpending,                
             };
             TestHelper.UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulation.Id, analysisMethodDto);
+            TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
 
             TestHelper.UnitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, "");
 
@@ -169,6 +204,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Equal(45, benefitAfter.Limit);
             Assert.Equal(benefitId, benefitAfter.Id);
             Assert.Equal(TestAttributeNames.ConditionIndex, benefitAfter.Attribute.Name);
+            var budgetPriorityAfter = analysisMethodAfter.BudgetPriorities.Single();
+            Assert.Equal(budgetPriorityDto.Id, budgetPriorityAfter.Id);
+            var percentagePairAfter = budgetPriorityAfter.BudgetPercentagePairs.Single();
+            Assert.Equal(33m, percentagePairAfter.Percentage);
+            Assert.Equal(budgetPercentagePairId, percentagePairAfter.Id);
+            Assert.Equal(budgetName, percentagePairAfter.Budget.Name);
+            Assert.Equal(budgetId, percentagePairAfter.Budget.Id);
         }
     }
 }

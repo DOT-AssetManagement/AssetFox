@@ -359,7 +359,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
         [Fact]
         public void UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers_LibraryAndTreatmentsInDb_Updates()
         {
-            // WJWJWJ could be a good test to modify for the new repo method?
             SetupAttributesAndNetwork();
             CreateLibraryTestData();
 
