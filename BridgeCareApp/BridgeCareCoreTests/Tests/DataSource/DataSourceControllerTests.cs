@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using BridgeCareCore.Utils;
 using Microsoft.AspNetCore.Authorization;
 using BridgeCareCoreTests.Helpers;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 
 namespace BridgeCareCoreTests.Tests
 {

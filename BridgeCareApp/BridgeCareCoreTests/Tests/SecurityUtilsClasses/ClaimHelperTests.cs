@@ -10,7 +10,6 @@ using BridgeCareCoreTests.Tests.SecurityUtilsClasses;
 using BridgeCareCore.Interfaces;
 using Moq;using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using Microsoft.AspNetCore.Http;
-using BridgeCareCoreTests.Helpers;
 
 namespace BridgeCareCoreTests.Tests
 {

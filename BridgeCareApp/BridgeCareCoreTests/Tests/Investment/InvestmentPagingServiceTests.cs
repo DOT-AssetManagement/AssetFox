@@ -13,7 +13,6 @@ using BridgeCareCore.Models;
 using BridgeCareCore.Models.DefaultData;
 using BridgeCareCore.Services;
 using BridgeCareCore.Services.Paging;
-using BridgeCareCoreTests.Helpers;
 using Moq;
 using Xunit;
 
