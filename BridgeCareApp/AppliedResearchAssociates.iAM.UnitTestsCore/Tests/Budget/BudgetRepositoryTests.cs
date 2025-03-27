@@ -235,7 +235,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
             var investmentPlan = simulation.InvestmentPlan;
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.New(budgetId, budgetName);
             var budgetDtos = new List<BudgetDTO> { budgetDto };
@@ -271,7 +271,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.New(budgetId, budgetName);
             var budgetDtos = new List<BudgetDTO> { budgetDto };
@@ -296,7 +296,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             investmentPlanDto.NumberOfYearsInAnalysisPeriod = 1;
             TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulation.Id);
             TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var amountId = Guid.NewGuid();
             var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2023, 1234, amountId);
@@ -324,7 +324,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             investmentPlanDto.NumberOfYearsInAnalysisPeriod = 1;
             TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulation.Id);
             TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.New(budgetId, budgetName);
             var budgetDtos = new List<BudgetDTO> { budgetDto };
@@ -359,7 +359,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.New(budgetId, budgetName);
             var criterionLibrary = CriterionLibraryDtos.Dto();
@@ -378,7 +378,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m);
             var criterionLibrary = CriterionLibraryDtos.Dto();
@@ -398,7 +398,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m);
             var criterionLibrary = CriterionLibraryDtos.Dto();
@@ -536,7 +536,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2025, 100m);
             var criterionLibrary = CriterionLibraryDtos.Dto();
@@ -580,7 +580,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.New(budgetId, budgetName);
             var budgetDtos = new List<BudgetDTO> { budgetDto };
@@ -601,7 +601,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             investmentPlanDto.NumberOfYearsInAnalysisPeriod = 1;
             TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulation.Id);
             TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var amountId = Guid.NewGuid();
             var budgetDto = BudgetDtos.WithSingleAmount(budgetId, budgetName, 2023, 1234, amountId);
@@ -673,7 +673,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
-            var budgetName = RandomStrings.WithPrefix("Budget");
+            var budgetName = RandomStrings.WithPrefixAnd2CharSuffix("Budget");
             var budgetId = Guid.NewGuid();
             var budgetDto = BudgetDtos.New(budgetId, budgetName);
             var budgetDtos = new List<BudgetDTO> { budgetDto };
