@@ -1,8 +1,9 @@
 import {AxiosPromise} from 'axios';
-import {CloneScenarioData, Scenario, QueuedWork, WorkQueueRequest} from '@/shared/models/iAM/scenario';
+import {CloneScenarioData, Scenario, QueuedWork, WorkQueueRequest, WorkType} from '@/shared/models/iAM/scenario';
 import {API, coreAxiosInstance} from '@/shared/utils/axios-instance';
 import { PagingRequest } from '@/shared/models/iAM/paging';
 import { BlobOptions } from 'buffer';
+import { SimulationOutputDeletionParameters } from '@/shared/models/iAM/simulation-output-deletion-params';
 
 export default class ScenarioService {
     static getScenarios(): AxiosPromise {
@@ -73,6 +74,14 @@ export default class ScenarioService {
         return coreAxiosInstance.post(`${API.Scenario}/GetFastQueuedWorkByDomainIdAndWorkType/`, data);
     }
 
+    static GetQueuedWorkByWorkType(data:WorkType): AxiosPromise {
+        return coreAxiosInstance.get(`${API.Scenario}/GetQueuedWorkByWorkType/${data}`);
+    }
+    
+    static GetFastQueuedWorkByWorkType(data:number): AxiosPromise {
+        return coreAxiosInstance.post(`${API.Scenario}/GetFastQueuedWorkByWorkType/`, data);
+    }
+
     static migrateLegacySimulationData(simulationId: number): AxiosPromise {
         return coreAxiosInstance.post(`/api/LegacySimulationSynchronization/SynchronizeLegacySimulation/${simulationId}`);
     }
@@ -95,5 +104,9 @@ export default class ScenarioService {
 
     static upsertValidateSimulation(networkId: string, simulationId: string | undefined): AxiosPromise {
         return coreAxiosInstance.post(`${API.Scenario}/ValidateSimulation/${networkId}/${simulationId}`);
+    }
+
+    static deleteScenarioOutputsWithingDaterange(data:SimulationOutputDeletionParameters): AxiosPromise {
+        return coreAxiosInstance.post(`${API.Scenario}/DeleteSimulationOutput/`, data);
     }
 }
