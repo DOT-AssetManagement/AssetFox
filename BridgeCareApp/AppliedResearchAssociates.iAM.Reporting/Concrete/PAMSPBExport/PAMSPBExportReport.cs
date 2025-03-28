@@ -198,9 +198,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
-            log("before GetSimulationOutput and GetSimulationOutputViaRelation - " + simulation.Name + " " + DateTime.Now);
+            log("before GetSimulationOutputViaRelation - " + simulation.Name + " " + DateTime.Now);
             var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
-            log("after GetSimulationOutput and GetSimulationOutputViaRelation - " + simulation.Name + " " + DateTime.Now);
+            log("after GetSimulationOutputViaRelation - " + simulation.Name + " " + DateTime.Now);
 
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.TreatmentTab);
             _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments);
