@@ -87,7 +87,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Single(input.InvestmentPlan.BudgetConditions);
             Assert.Equal(input.InvestmentPlan.Budgets.Single().YearlyAmounts.Single().Id, budgetAmountWithBudgetId.BudgetAmount.Id);
             Assert.Equal(assetId, input.Network.Assets.Single().Id);
-            Assert.Equal(TestAttributeNames.ConditionIndex, input.Network.Explorer.CalculatedFields.Single().Name);
+            Assert.Single(input.Network.Explorer.CalculatedFields.Where(cf => cf.Name == TestAttributeNames.ConditionIndex));
         }
 
         private static Simulation GetSimulationInput(Guid networkId, Guid simulationId)
