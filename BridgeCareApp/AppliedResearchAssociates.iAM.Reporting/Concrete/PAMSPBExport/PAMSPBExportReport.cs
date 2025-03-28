@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Common.Logging;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
@@ -142,6 +144,19 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         private string GeneratePAMSPBExportReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
+            // TODO try note timings for viaJson vs viaRelation vs split via relation in steps
+            // We want performance improvements...
+            void log(string message)
+            {
+                var path = "C:\\Users\\aborgaonkar\\Downloads\\reportLog.txt";
+                using (StreamWriter sw = File.AppendText(path))
+                {
+                    sw.WriteLine(message);
+                }
+            }
+            log("------------------------------------------------------------------------------------");
+            log("start GeneratePAMSPBExportReport - " + simulationId + " " + DateTime.Now);
+
             checkCancelled(cancellationToken, simulationId);
             var reportPath = string.Empty;
             var reportDetailDto = new SimulationReportDetailDTO
@@ -175,6 +190,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             //Include treatments in simulation
             _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulation);
 
+            log("before tabs - " + simulation.Name + " " + DateTime.Now);
+
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSPBExportReportData.xlsx"));
 
@@ -186,10 +203,19 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _masTab.Fill(masWorksheet, simulation.Network.Id, networkMaintainableAssets, attributeDatumDtos, attributeDtos);
 
             // Teatments Tab
-            // TODO try note timings for viaJson vs viaRelation vs split GetSimulationOutputViaRelation in steps(separate methods for partial data fetching)
-            // We want performance improvements...            
-            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
-            
+            log("before GetSimulationOutput and SimpleViaRelation - " + simulation.Name + " " + DateTime.Now);
+            //var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
+            //var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
+            var cacheYears = new List<SimulationYearDetailEntity>();
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary(attributeDtos);
+            var entityWithoutAssetSummariesOrYearContents = _unitOfWork.SimulationOutputRepo.GetSimulationOutputWithoutAssetSummariesOrYearContents(simulationId);
+            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputSimpleViaRelation(simulationId, cacheYears, attributeNameLookup, entityWithoutAssetSummariesOrYearContents);
+            log("after GetSimulationOutput and SimpleViaRelation - " + simulation.Name + " " + DateTime.Now);
+            log("before GetSimulationOutputInitialAssetSummariesViaRelation - " + simulation.Name + " " + DateTime.Now);
+            var assetNameLookup = new Dictionary<Guid, string>();
+            var initialAssetSummaries = _unitOfWork.SimulationOutputRepo.GetSimulationOutputInitialAssetSummariesViaRelation(entityWithoutAssetSummariesOrYearContents.Id, attributeNameLookup, assetNameLookup);
+            simulationOutput.InitialAssetSummaries.AddRange(initialAssetSummaries);
+            log("after GetSimulationOutputInitialAssetSummariesViaRelation - " + simulation.Name + " " + DateTime.Now);
 
             // release objs
             networkMaintainableAssetIds = null;
@@ -201,14 +227,17 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.TreatmentTab);
-            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments);
+            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments, attributeNameLookup, assetNameLookup, cacheYears);
+
+            log("after tabs - " + simulation.Name + " " + DateTime.Now);
 
             // release objs
             simulation = null;
             networkMaintainableAssets.Clear();
             simulationOutput = null;
 
-            checkCancelled(cancellationToken, simulationId);
+            checkCancelled(cancellationToken, simulationId);            
+
             // Check and generate folder
             reportDetailDto.Status = $"Creating Report file";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
@@ -224,6 +253,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             reportDetailDto.Status = $"Report generation completed";
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+
+            log("end GeneratePAMSPBExportReport - " + simulationId + " " + DateTime.Now);
+            log("------------------------------------------------------------------------------------");
 
             return reportPath;
         }
