@@ -144,15 +144,12 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         private string GeneratePAMSPBExportReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
-            // TODO try note timings for viaJson vs viaRelation vs split via relation in steps
-            // We want performance improvements...
-            void log(string message)
+            // TODO remove logging later
+            static void log(string message)
             {
                 var path = "C:\\Users\\aborgaonkar\\Downloads\\reportLog.txt";
-                using (StreamWriter sw = File.AppendText(path))
-                {
-                    sw.WriteLine(message);
-                }
+                using var sw = File.AppendText(path);
+                sw.WriteLine(message);
             }
             log("------------------------------------------------------------------------------------");
             log("start GeneratePAMSPBExportReport - " + simulationId + " " + DateTime.Now);
@@ -175,10 +172,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
             _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
             var simulation = network.Simulations.First();
-
-            // release network obj
-            explorer = null;
-            network = null;
 
             _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
             _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
@@ -203,38 +196,18 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _masTab.Fill(masWorksheet, simulation.Network.Id, networkMaintainableAssets, attributeDatumDtos, attributeDtos);
 
             // Teatments Tab
-            log("before GetSimulationOutput and SimpleViaRelation - " + simulation.Name + " " + DateTime.Now);
-            //var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
-            //var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
-            var cacheYears = new List<SimulationYearDetailEntity>();
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary(attributeDtos);
-            var entityWithoutAssetSummariesOrYearContents = _unitOfWork.SimulationOutputRepo.GetSimulationOutputWithoutAssetSummariesOrYearContents(simulationId);
-            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputSimpleViaRelation(simulationId, cacheYears, attributeNameLookup, entityWithoutAssetSummariesOrYearContents);
-            log("after GetSimulationOutput and SimpleViaRelation - " + simulation.Name + " " + DateTime.Now);
-            log("before GetSimulationOutputInitialAssetSummariesViaRelation - " + simulation.Name + " " + DateTime.Now);
-            var assetNameLookup = new Dictionary<Guid, string>();
-            var initialAssetSummaries = _unitOfWork.SimulationOutputRepo.GetSimulationOutputInitialAssetSummariesViaRelation(entityWithoutAssetSummariesOrYearContents.Id, attributeNameLookup, assetNameLookup);
-            simulationOutput.InitialAssetSummaries.AddRange(initialAssetSummaries);
-            log("after GetSimulationOutputInitialAssetSummariesViaRelation - " + simulation.Name + " " + DateTime.Now);
-
-            // release objs
-            networkMaintainableAssetIds = null;
-            requiredAttributeIds.Clear();
-            attributeDtos.Clear();
-            attributeDatumDtos.Clear();
-
             reportDetailDto.Status = $"Creating PAMS Treatments TAB";
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+
+            log("before GetSimulationOutput and GetSimulationOutputViaRelation - " + simulation.Name + " " + DateTime.Now);
+            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
+            log("after GetSimulationOutput and GetSimulationOutputViaRelation - " + simulation.Name + " " + DateTime.Now);
+
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.TreatmentTab);
-            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments, attributeNameLookup, assetNameLookup, cacheYears);
+            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments);
 
             log("after tabs - " + simulation.Name + " " + DateTime.Now);
-
-            // release objs
-            simulation = null;
-            networkMaintainableAssets.Clear();
-            simulationOutput = null;
 
             checkCancelled(cancellationToken, simulationId);            
 
@@ -249,7 +222,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             checkCancelled(cancellationToken, simulationId);
             var bin = excelPackage.GetAsByteArray();
             File.WriteAllBytes(reportPath, bin);
-            
+
             reportDetailDto.Status = $"Report generation completed";
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
