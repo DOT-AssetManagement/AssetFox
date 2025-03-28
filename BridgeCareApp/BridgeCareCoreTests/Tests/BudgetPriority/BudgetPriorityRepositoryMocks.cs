@@ -16,7 +16,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
 {
     public static class BudgetPriorityRepositoryMocks
     {
-        public static Mock<IBudgetPriorityRepository> DefaultMock(Mock<IUnitOfWork> mockUnitOfWork = null)
+        public static Mock<IBudgetPriorityRepository> New(Mock<IUnitOfWork> mockUnitOfWork = null)
         {
             var mockBudgetPriorityRepository = new Mock<IBudgetPriorityRepository>();
             if (mockUnitOfWork != null)

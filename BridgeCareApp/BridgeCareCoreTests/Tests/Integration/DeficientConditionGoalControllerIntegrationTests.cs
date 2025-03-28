@@ -55,7 +55,7 @@ namespace BridgeCareCoreTests.Tests.Integration
                 IsNewLibrary = false,
                 SyncModel = syncModel,
             };
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var controller = CreateController(hubService);
 
             await controller.UpsertDeficientConditionGoalLibrary(upsertRequest);
@@ -93,7 +93,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             goalToUpdate.CriterionLibrary = criterionLibrary;
             goalToUpdate.DeficientLimit = double.NaN;
             var goalsBefore = TestHelper.UnitOfWork.DeficientConditionGoalRepo.GetScenarioDeficientConditionGoals(simulationId);
-            var hubServiceMock = HubServiceMocks.DefaultMock();
+            var hubServiceMock = HubServiceMocks.New();
             var controller = CreateController(hubServiceMock);
             var pagingSync = new PagingSyncModel<DeficientConditionGoalDTO>
             {

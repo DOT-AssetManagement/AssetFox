@@ -25,7 +25,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedScenarioDataset_EverythingIsEmpty_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             repo.Setup(r => r.GetScenarioDeficientConditionGoals(scenarioId)).ReturnsEmptyList();
@@ -43,7 +43,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedScenarioDataset_RowToUpdate_ReturnsUpdatedRow()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var goalId = Guid.NewGuid();
@@ -71,7 +71,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedScenarioDataset_RowToDelete_DeletesRow()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var goalId = Guid.NewGuid();
@@ -93,7 +93,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetScenarioPage_RequestSecondPage_Expected()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var goalId = Guid.NewGuid();
@@ -122,7 +122,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetLibraryPage_NumberOfRowsGoesBeyondPageSize_TruncatesReturnedList()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = DeficientConditionGoalLibraryDtos.Empty(libraryId);
@@ -155,7 +155,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetLibraryPage2_NumberOfRowsGoesBeyondPageSize_TruncatesReturnedList()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = DeficientConditionGoalLibraryDtos.Empty(libraryId);

@@ -26,7 +26,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedScenarioDataset_EverythingIsEmpty_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             repo.Setup(r => r.GetScenarioCashFlowRules(scenarioId)).ReturnsEmptyList();
@@ -43,7 +43,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedScenarioDataset_RowToDeleteNotInDatabase_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             repo.Setup(r => r.GetScenarioCashFlowRules(scenarioId)).ReturnsEmptyList();
@@ -62,7 +62,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedScenarioDataset_RowToUpdate_ReturnsUpdatedRow()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var ruleId = Guid.NewGuid();
@@ -91,7 +91,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedScenarioDataset_RowToDelete_DeletesRow()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var ruleId = Guid.NewGuid();
@@ -113,7 +113,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedScenarioDataset_RepoReturnsRule_ReturnedInResult()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var ruleId = Guid.NewGuid();
@@ -135,7 +135,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetScenarioPage_TooManyRulesForPage_Truncates()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var ruleId = Guid.NewGuid();
@@ -165,7 +165,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetScenarioPage_SortByName_Throws()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var dto1 = CashFlowRuleDtos.Rule();
@@ -193,7 +193,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetScenarioPage_Search_Throws()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var dto1 = CashFlowRuleDtos.Rule();
@@ -221,7 +221,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetScenarioPage_RequestSecondPage_Expected()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var ruleId = Guid.NewGuid();
@@ -251,7 +251,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedLibraryDataset_EverythingIsEmpty_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
@@ -275,7 +275,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedLibraryDataset_EmptyLibraryWithRowForDeletion_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
@@ -300,7 +300,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedLibraryDataset_RowInDbIsRowForDeletion_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
@@ -327,7 +327,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedLibraryDataset_RowInDbIsUpdatedRow_Updates()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
@@ -359,7 +359,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSyncedLibraryDataset_RowToAdd_Adds()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
@@ -495,7 +495,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetLibraryPage_NumberOfRowsGoesBeyondPageSize_TruncatesReturnedList()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
@@ -528,7 +528,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetLibraryPage_Sort_Throws()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
@@ -559,7 +559,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetLibraryPage_Search_Throws()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);
@@ -590,7 +590,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetLibraryPage2_NumberOfRowsGoesBeyondPageSize_SkipsPage1()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var libraryId = Guid.NewGuid();
             var library = CashFlowRuleLibraryDtos.Empty(libraryId);

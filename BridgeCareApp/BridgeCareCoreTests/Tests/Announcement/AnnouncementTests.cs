@@ -20,7 +20,7 @@ namespace BridgeCareCoreTests.Tests
         private AnnouncementController CreateController(Mock<IUnitOfWork> unitOfWork)
         {
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var contextAccessor = HttpContextAccessorMocks.DefaultMock();
             var controller = new AnnouncementController(security.Object,
                 unitOfWork.Object,

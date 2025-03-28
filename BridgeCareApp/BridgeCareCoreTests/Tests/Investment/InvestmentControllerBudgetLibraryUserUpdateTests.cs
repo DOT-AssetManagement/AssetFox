@@ -47,7 +47,7 @@
 //            budgetRepo.SetupGetLibaryUsers(libraryId, currentUserList);
 //            var unitOfWork = UnitOfWorkMocks.WithCurrentUser(user2);
 //            unitOfWork.SetupBudgetRepo(budgetRepo);
-//            var hubService = HubServiceMocks.DefaultMock();
+//            var hubService = HubServiceMocks.New();
 //            var controller = TestInvestmentControllerSetup.CreateNonAdminController(unitOfWork, hubService);
 //            var updatedUserDtos = new List<LibraryUserDTO> { user1Dto, user2DtoModify };
 
@@ -86,7 +86,7 @@
 //            budgetRepo.SetupGetLibaryUsers(libraryId, currentUserList);
 //            var unitOfWork = UnitOfWorkMocks.WithCurrentUser(user1);
 //            unitOfWork.SetupBudgetRepo(budgetRepo);
-//            var hubService = HubServiceMocks.DefaultMock();
+//            var hubService = HubServiceMocks.New();
 //            var controller = TestInvestmentControllerSetup.CreateNonAdminController(unitOfWork, hubService);
 //            var updatedUserDtos = new List<LibraryUserDTO> { user1Dto, user2DtoModify };
 
@@ -129,7 +129,7 @@
 //            budgetRepo.SetupGetLibaryUsers(libraryId, currentUserList);
 //            var unitOfWork = UnitOfWorkMocks.WithCurrentUser(user1);
 //            unitOfWork.SetupBudgetRepo(budgetRepo);
-//            var hubService = HubServiceMocks.DefaultMock();
+//            var hubService = HubServiceMocks.New();
 //            var controller = TestInvestmentControllerSetup.CreateNonAdminController(unitOfWork, hubService);
 //            var updatedUserDtos = new List<LibraryUserDTO> { user1Dto, user2DtoOwner };
 
@@ -172,7 +172,7 @@
 //            budgetRepo.SetupGetLibaryUsers(libraryId, currentUserList);
 //            var unitOfWork = UnitOfWorkMocks.WithCurrentUser(adminUser);
 //            unitOfWork.SetupBudgetRepo(budgetRepo);
-//            var hubService = HubServiceMocks.DefaultMock();
+//            var hubService = HubServiceMocks.New();
 //            var controller = TestInvestmentControllerSetup.CreateAdminController(unitOfWork, hubService);
 //            var updatedUserDtos = new List<LibraryUserDTO> { user1Dto, user2DtoModify };
 
@@ -218,7 +218,7 @@
 //            budgetRepo.SetupGetLibaryUsers(libraryId, currentUserList);
 //            var unitOfWork = UnitOfWorkMocks.WithCurrentUser(adminUser);
 //            unitOfWork.SetupBudgetRepo(budgetRepo);
-//            var hubService = HubServiceMocks.DefaultMock();
+//            var hubService = HubServiceMocks.New();
 //            var controller = TestInvestmentControllerSetup.CreateAdminController(unitOfWork, hubService);
 //            var updatedUserDtos = new List<LibraryUserDTO> { user1DtoModify, user2DtoRead };
 

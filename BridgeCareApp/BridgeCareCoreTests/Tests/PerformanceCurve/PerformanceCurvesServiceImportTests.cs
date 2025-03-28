@@ -27,7 +27,7 @@ namespace BridgeCareCoreTests.Tests
 
         private PerformanceCurvesService CreatePerformanceCurvesService(Mock<IUnitOfWork> unitOfWork, Mock<IExpressionValidationService> expressionValidationService = null)
         {
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             expressionValidationService ??= ExpressionValidationServiceMocks.EverythingIsValid();
             var service = new PerformanceCurvesService(unitOfWork.Object, hubService.Object, expressionValidationService.Object);
             return service;

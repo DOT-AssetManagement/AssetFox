@@ -26,7 +26,7 @@ namespace BridgeCareCoreTests.Tests
             )
         {
             var contextAccessor = HttpContextAccessorMocks.DefaultMock();
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var esecSecurity = EsecSecurityMocks.AdminMock;
             var claimHelper = ClaimHelperMocks.New();
             var logger = new DoNotLog();

@@ -19,7 +19,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
             return dictionary;
         }
 
-        public static Mock<IHubService> DefaultMock()
+        public static Mock<IHubService> New()
         {
             var mock = new Mock<IHubService>();
             var errorList = _createErrorList();
@@ -29,7 +29,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 
         public static IHubService Default()
         {
-            var mock = DefaultMock();
+            var mock = New();
             return mock.Object;
         }
     }

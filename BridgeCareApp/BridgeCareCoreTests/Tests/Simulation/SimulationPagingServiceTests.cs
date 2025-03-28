@@ -23,7 +23,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_EverythingIsEmpty_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             repo.Setup(r => r.GetUserScenarios()).ReturnsEmptyList();
             var syncModel = new PagingSyncModel<SimulationDTO>
@@ -48,7 +48,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSharedScenarioPage_EverythingIsEmpty_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             repo.Setup(r => r.GetSharedScenarios(false, true)).ReturnsEmptyList();
             var syncModel = new PagingSyncModel<SimulationDTO>
@@ -73,7 +73,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSharedScenarioPage_RowToDelete_DeletesRow()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var dto = SimulationDtos.Dto(scenarioId);
@@ -104,7 +104,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_RequestSecondPage_Expected()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
@@ -132,7 +132,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSharedScenarioPage_NumberOfRowsGoesBeyondPageSize_TruncatesReturnedList()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var simulationId1 = Guid.NewGuid();
             var simulationId2 = Guid.NewGuid();
@@ -164,7 +164,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetSharedScenarioPage2_NumberOfRowsGoesBeyondPageSize_TruncatesReturnedList()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var simulationId1 = Guid.NewGuid();
             var simulationId2 = Guid.NewGuid();
@@ -192,7 +192,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_Search_FindsInName()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var simulationId1 = Guid.NewGuid();
             var simulationId2 = Guid.NewGuid();
@@ -221,7 +221,7 @@ namespace BridgeCareCoreTests.Tests
         private void RunGetUserScenarioPage_Search_FindsDate(Action<SimulationDTO, DateTime> dtoModifier)
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var simulationId1 = Guid.NewGuid();
             var simulationId2 = Guid.NewGuid();
@@ -253,7 +253,7 @@ namespace BridgeCareCoreTests.Tests
         private void RunGetUserScenarioPage_Search_FindsString(Action<SimulationDTO, string> dtoModifier)
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var simulationId1 = Guid.NewGuid();
             var simulationId2 = Guid.NewGuid();

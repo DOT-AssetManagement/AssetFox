@@ -12,7 +12,7 @@ namespace BridgeCareCoreTests.Tests
 {
     public static class DeficientConditionGoalRepositoryMocks
     {
-        public static Mock<IDeficientConditionGoalRepository> DefaultMock(Mock<IUnitOfWork> unitOfWorkMock = null)
+        public static Mock<IDeficientConditionGoalRepository> New(Mock<IUnitOfWork> unitOfWorkMock = null)
         {
             var repo = new Mock<IDeficientConditionGoalRepository>();
             if (unitOfWorkMock != null)

@@ -7,7 +7,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class SimulationRepositoryMocks
     {
-        public static Mock<ISimulationRepository> DefaultMock(Mock<IUnitOfWork> unitOfWork = null)
+        public static Mock<ISimulationRepository> New(Mock<IUnitOfWork> unitOfWork = null)
         {
             var repository = new Mock<ISimulationRepository>();
             if (unitOfWork != null)

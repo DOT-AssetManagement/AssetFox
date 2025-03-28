@@ -51,7 +51,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var unitOfWork = UnitOfWorkMocks.New();
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
-            var simulationRepo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var simulationRepo = SimulationRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var simulation = SimulationDtos.Dto(simulationId);
             simulationRepo.SetupGetSimulation(simulation);
@@ -105,7 +105,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var unitOfWork = UnitOfWorkMocks.New();
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
-            var simulationRepo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var simulationRepo = SimulationRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var simulation = SimulationDtos.Dto(simulationId);
             simulationRepo.SetupGetSimulation(simulation);
@@ -157,7 +157,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var unitOfWork = UnitOfWorkMocks.New();
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
-            var simulationRepo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var simulationRepo = SimulationRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var simulation = SimulationDtos.Dto(simulationId);
             simulationRepo.SetupGetSimulation(simulation);
@@ -204,7 +204,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var unitOfWork = UnitOfWorkMocks.New();
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
-            var simulationRepo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var simulationRepo = SimulationRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var simulation = SimulationDtos.Dto(simulationId);
             simulationRepo.SetupGetSimulation(simulation);
@@ -308,7 +308,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var unitOfWork = UnitOfWorkMocks.New();
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
-            var simulationRepo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var simulationRepo = SimulationRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var simulation = SimulationDtos.Dto(simulationId);
             simulationRepo.SetupGetSimulation(simulation);

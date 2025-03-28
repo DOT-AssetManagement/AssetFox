@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using AppliedResearchAssociates.Validation;
@@ -35,11 +33,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var networkRepositoryMock = NetworkRepositoryMocks.New(unitOfWork);
             networkRepositoryMock.Setup(n => n.GetSimulationAnalysisNetwork(networkId, null, false, simulationId))
                 .Throws(new Exception("GetSimulationAnalysisNetwork failed"));
-            var simulationRepository = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var simulationRepository = SimulationRepositoryMocks.New(unitOfWork);
             simulationRepository.Setup(s => s.GetSimulationInNetwork(simulationId, null)).Throws(new Exception("GetSimulationInNetwork failed"));
             var userCriteriaRepository = UserCriteriaRepositoryMocks.New(unitOfWork);
             userCriteriaRepository.Setup(u => u.GetUserCriteria(userId)).Returns("userCriteria");
-            var analysisMethodRepository = AnalysisMethodRepositoryMocks.DefaultMock(unitOfWork);
+            var analysisMethodRepository = AnalysisMethodRepositoryMocks.New(unitOfWork);
             analysisMethodRepository.Setup(a => a.GetSimulationAnalysisMethod(null, "userCriteria")).Throws(new Exception("GetSimulationAnalysisMethod failed"));
             var performanceCurveRepository = PerformanceCurveRepositoryMocks.New(unitOfWork);
             performanceCurveRepository.Setup(p => p.GetScenarioPerformanceCurves(null, It.IsAny<Dictionary<Guid, string>>()))

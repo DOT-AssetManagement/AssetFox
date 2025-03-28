@@ -114,7 +114,7 @@ namespace BridgeCareCoreTests.Tests
             var mockContextAccessor = new Mock<IHttpContextAccessor>();
             mockContextAccessor.Setup(_ => _.HttpContext)
                 .Returns(CreateContextWithNoFile(TestDataForCommittedProjects.SimulationId));
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,
@@ -140,7 +140,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,
@@ -164,7 +164,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var generalWorkQueue = GeneralWorkQueueServiceMocks.New();
             var controller = new CommittedProjectController(
                 _mockService.Object,

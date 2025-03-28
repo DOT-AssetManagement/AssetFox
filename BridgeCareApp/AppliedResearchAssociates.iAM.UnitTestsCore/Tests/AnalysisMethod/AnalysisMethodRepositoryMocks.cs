@@ -11,7 +11,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public class AnalysisMethodRepositoryMocks
     {
-        public static Mock<IAnalysisMethodRepository> DefaultMock(Mock<IUnitOfWork> unitOfWork = null)
+        public static Mock<IAnalysisMethodRepository> New(Mock<IUnitOfWork> unitOfWork = null)
         {
             var mock = new Mock<IAnalysisMethodRepository>();
             if (unitOfWork != null)
