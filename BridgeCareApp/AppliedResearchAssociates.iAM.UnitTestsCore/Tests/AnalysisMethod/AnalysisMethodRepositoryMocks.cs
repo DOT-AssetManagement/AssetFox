@@ -7,9 +7,9 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests.AnalysisMethod
+namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
-    internal class AnalysisMethodRepositoryMocks
+    public class AnalysisMethodRepositoryMocks
     {
         public static Mock<IAnalysisMethodRepository> DefaultMock(Mock<IUnitOfWork> unitOfWork = null)
         {

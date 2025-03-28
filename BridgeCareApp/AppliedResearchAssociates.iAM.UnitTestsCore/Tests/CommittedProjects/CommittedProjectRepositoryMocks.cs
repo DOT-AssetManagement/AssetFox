@@ -7,7 +7,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests
+namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class CommittedProjectRepositoryMocks
     {

@@ -10,6 +10,7 @@ using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Treatment;
 
 namespace BridgeCareCoreTests.Tests.Treatment
 {
