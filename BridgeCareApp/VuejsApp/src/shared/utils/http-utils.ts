@@ -1,10 +1,11 @@
 import { AxiosError, AxiosResponse } from 'axios';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { prop } from 'ramda';
-import { UserTokens } from '@/shared/models/iAM/authentication';
+import { UserInfoLocal, UserTokens } from '@/shared/models/iAM/authentication';
 import authenticationModule from '@/store-modules/authentication.module';
 import { SecurityTypes } from '@/shared/utils/security-types';
-
+import store from '@/store/root-store';
+import { json } from 'stream/consumers';
 export const http2XX = /(2(0|2)[0-8])/;
 
 export const setStatusMessage = (response: AxiosResponse) => {
@@ -69,6 +70,16 @@ export const setAuthHeader = (headers: any) => {
             'access_token',
         ) as string;
         headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    if (
+        headers &&
+        authenticationModule.state.securityType ===
+            authenticationModule.state.localDebugSecurityType 
+    ) {
+        const config = store.getters.getConfig;
+        var userInfo = config.localDegugInfo as UserInfoLocal
+        headers['Authorization'] = `${JSON.stringify(userInfo)}`;
     }
 
     return headers;

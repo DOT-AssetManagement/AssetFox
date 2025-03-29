@@ -199,6 +199,16 @@
                     </v-btn>
                     <v-btn
                         style="background-color: #002E6C;"
+                        v-if="securityType === localDebugSecurityType"
+                        @click="onLocalDebugLogin"
+                        class="mx-2"
+                        icon
+                        color="#FFFFFF"
+                    >
+                        <v-icon size="small" color="white">fas fa-sign-in-alt</v-icon>
+                    </v-btn>
+                    <v-btn
+                        style="background-color: #002E6C;"
                         v-if="securityType === esecSecurityType && currentURL != 'AuthenticationStart'"
                         @click="onNavigate('/AuthenticationStart/')"
                         class="mx-2"
@@ -212,7 +222,7 @@
                     <v-btn
                         style="background-color: #002E6C;"
                         id="App-b2cLogout-vbtn"
-                        v-if="securityType === b2cSecurityType"
+                        v-if="securityType === b2cSecurityType || securityType === localDebugSecurityType"
                         @click="onAzureLogout"
                         class="mx-2"
                         icon
@@ -323,8 +333,10 @@ import router from './router';
 import mitt, { Emitter, EventType } from 'mitt'
 import vuetify from '@/plugins/vuetify';
 import { getUrl } from './shared/utils/get-url';
+import { UserInfoLocal } from './shared/models/iAM/authentication';
 
     let store = useStore();
+    const config = store.getters.getConfig;
     let authenticated = computed(() => store.state.authenticationModule.authenticated);
     let hasRole = computed<boolean>(() => store.state.authenticationModule.hasRole);
     let username = computed<string>(() => store.state.authenticationModule.username);
@@ -363,6 +375,7 @@ import { getUrl } from './shared/utils/get-url';
     async function getUserCriteriaFilterAction(payload?: any): Promise<any> { await store.dispatch('getUserCriteriaFilter', payload);} 
     function loadNotificationsActions(payload?: any) {  store.dispatch('loadNotifications', payload);} 
     async function azureB2CLoginAction(payload?: any): Promise<any> { await store.dispatch('azureB2CLogin', payload);} 
+    async function localDebugLoginAction(payload?: any): Promise<any> { await store.dispatch('localDebugLogin', payload);} 
     async function azureB2CLogoutAction(payload?: any): Promise<any> { await store.dispatch('azureB2CLogout', payload);} 
     async function getCurrentUserByUserNameAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserByUserName', payload);}
     async function updateUserLastNewsAccessDateAction(payload?: any): Promise<any> { await store.dispatch('updateUserLastNewsAccessDate', payload);}
@@ -394,6 +407,7 @@ import { getUrl } from './shared/utils/get-url';
     ];
     let esecSecurityType: string = SecurityTypes.esec;
     let b2cSecurityType: string = SecurityTypes.b2c;
+    let localDebugSecurityType: string = SecurityTypes.localDebug;
     
     let showNewsDialog= ref(false);
     let ConfirmRunAnalysisCompleted = ref(clone(emptyAlertData));
@@ -777,6 +791,11 @@ import { getUrl } from './shared/utils/get-url';
 
     function onAzureLogout() {
         azureB2CLogoutAction().then(() => onLogout());
+    }
+
+    function onLocalDebugLogin() {
+        var payload = config.localDegugInfo as UserInfoLocal
+        localDebugLoginAction(payload).then(() => router.push('/Scenarios/'));
     }
     
     /**

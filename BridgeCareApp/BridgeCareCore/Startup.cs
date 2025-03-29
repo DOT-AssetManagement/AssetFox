@@ -23,6 +23,8 @@ using Microsoft.Extensions.Hosting;
 using BridgeCareCore.Services;
 using AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary;
 using BridgeCareCore.Interfaces;
+using static BridgeCareCore.Security.SecurityConstants;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace BridgeCareCore
 {
@@ -148,7 +150,10 @@ namespace BridgeCareCore
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                var mapControllers = endpoints.MapControllers();
+                var securityType = SecurityConfigurationReader.GetSecurityType(Configuration);
+                if (securityType == SecurityTypes.LocalDebug)
+                    mapControllers.AllowAnonymous();
                 endpoints.MapHub<BridgeCareHub>("/bridgecarehub");
                 endpoints.MapGraphQL();
             });

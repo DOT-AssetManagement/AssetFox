@@ -4,4 +4,10 @@
     "clientId": "dc13cef3-9887-45d3-b273-b94f3f3870cd",
     "redirectUri": "https://pamstest.iam-deploy.com/Authentication/",
     "securityType": "B2C"
+    "localDegugInfo": {
+        "name": "test",
+        "email": "test@test.com",
+        "hasAdminAccess": true,
+        "hasSimulationAccess": true
+    }
 }

@@ -12,6 +12,8 @@ import moment from 'moment';
 import { isNil } from 'ramda';
 import { SecurityTypes } from '@/shared/utils/security-types';
 import router from '@/router';
+import store from '@/store/root-store';
+import { stat } from 'fs';
 
 const state = {
     authenticated: false,
@@ -24,6 +26,7 @@ const state = {
     securityType: 'B2C',
     pennDotSecurityType: 'ESEC',
     azureSecurityType: 'B2C',
+    localDebugSecurityType:'LocalDebug'
 };
 
 const mutations = {
@@ -246,7 +249,17 @@ const actions = {
     },
     setSecurityType({ commit }: any, payload: any) {
         commit('securityTypeMutator', payload);
-    }
+    },
+    localDebugLogin({commit, state}: any, payload: any){
+        commit('hasRoleMutator', true);
+        commit('checkedForRoleMutator', true);
+        commit('adminAccessMutator', payload.hasAdminAccess);
+        commit('usernameMutator', payload.username);
+        commit('authenticatedMutator', true);
+        commit('simulationAccessMutator', payload.hasSimulationAccess);
+        
+        localStorage.setItem('LoggedInUser', payload.username);
+}
 };
 
 async function setCommits({ commit }: any)

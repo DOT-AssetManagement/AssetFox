@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using static BridgeCareCore.Security.SecurityConstants;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace BridgeCareCore.Security
 {
@@ -70,6 +72,12 @@ namespace BridgeCareCore.Security
         /// <returns></returns>
         public UserInfo GetUserInformation(HttpRequest request)
         {
+            if (_securityType == SecurityTypes.LocalDebug)
+            {               
+                var authorizationString = request.Headers["Authorization"].ToString();
+                var user = JsonConvert.DeserializeObject<UserInfo>(authorizationString);
+                return user;
+            }
             var idToken = "";
             try
             {
