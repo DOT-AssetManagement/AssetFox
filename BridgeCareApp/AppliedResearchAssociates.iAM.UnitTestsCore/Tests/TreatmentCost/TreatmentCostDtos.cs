@@ -18,6 +18,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             return new TreatmentCostDTO
             {
                 Id = resolveId,
+                Equation = new EquationDTO(),
             };
         }
 

@@ -12,7 +12,7 @@ namespace BridgeCareCoreTests.Tests
 {
     public static class CashFlowRuleRepositoryMocks
     {
-        public static Mock<ICashFlowRuleRepository> DefaultMock(Mock<IUnitOfWork> unitOfWork = null)
+        public static Mock<ICashFlowRuleRepository> New(Mock<IUnitOfWork> unitOfWork = null)
         {
             var mock = new Mock<ICashFlowRuleRepository>();
             if (unitOfWork != null)

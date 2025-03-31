@@ -67,6 +67,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             var network = TestHelper.UnitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer, true, simulationId);
             TestHelper.UnitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
             var simulation = network.Simulations.Single(_ => _.Id == simulationId);
+            var investmentPlanDto = TestHelper.UnitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulation.Id);
+            investmentPlanDto.NumberOfYearsInAnalysisPeriod = 1;
+            TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulation.Id);
+            TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
             var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
 
             TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
@@ -479,6 +483,42 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
 
             var scenarioCurve = scenarioCurves.Single();
             ObjectAssertions.EquivalentExcluding(performanceCurve, scenarioCurve, c => c.CriterionLibrary);
+        }
+
+        [Fact]
+        public void GetPerformanceCurvesForLibraryOrderedById_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var library = PerformanceCurveLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var curveId = Guid.NewGuid();
+            var curve = PerformanceCurveTestSetup.TestLibraryPerformanceCurveInDb(TestHelper.UnitOfWork, library.Id,
+                curveId, TestAttributeNames.DeckSeeded);
+
+            var result = TestHelper.UnitOfWork.PerformanceCurveRepo
+                         .GetPerformanceCurvesForLibraryOrderedById(library.Id);
+
+            var returnedCurve = result.Single();
+
+            ObjectAssertions.Equivalent(curve, returnedCurve);
+        }
+
+        [Fact]
+        public void GetDistinctScenarioPerformanceFactorAttributeNames_Behaves()
+        {
+            Setup();
+            // Arrange
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
+            var treatmentId = Guid.NewGuid();
+            var treatment = TreatmentDtos.DtoWithEmptyCostsAndConsequencesLists(simulationId);
+            var performanceFactor = TreatmentPerformanceFactorDtos.Dto(TestAttributeNames.SubSeeded);
+            treatment.PerformanceFactors.Add(performanceFactor);
+            var treatments = new List<TreatmentDTO> { treatment };
+            TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(treatments, simulationId);
+
+            var attributeNames = TestHelper.UnitOfWork.PerformanceCurveRepo.GetDistinctScenarioPerformanceFactorAttributeNames();
+
+            Assert.Contains(TestAttributeNames.SubSeeded, attributeNames);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using BridgeCareCore.Services;
-using BridgeCareCoreTests.Helpers;
 using Xunit;
 using Moq;
 using BridgeCareCore.Models;
@@ -10,6 +9,8 @@ using AppliedResearchAssociates.iAM.UnitTestsCore;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Treatment;
 
 namespace BridgeCareCoreTests.Tests.Treatment
 {

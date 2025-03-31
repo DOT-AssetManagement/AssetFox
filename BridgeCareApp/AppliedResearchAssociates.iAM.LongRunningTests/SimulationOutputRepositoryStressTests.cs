@@ -13,21 +13,6 @@ namespace AppliedResearchAssociates.iAM.StressTesting
 {
     public class SimulationOutputRepositoryStressTests
     {
-        //[Fact]
-        [Fact(Skip = "Takes about 30-50 minutes to run, provided the 522MB file exists.")]
-
-        public void SaveSimulationOutput522_ThenLoad_Same()
-        {
-            SaveSimulationOutput_ThenLoad_Same(CannedSimulationOutput.Filename522);
-        }
-
-        //[Fact]
-        [Fact(Skip = "Takes about 10 minutes to run, provided the 525MB file exists.")]
-        public void SaveSimulationOutput525_ThenLoad_Same()
-        {
-            SaveSimulationOutput_ThenLoad_Same(CannedSimulationOutput.Filename525);
-        }
-
         private void SaveSimulationOutput_ThenLoad_Same(string filename, Func<SimulationOutput, SimulationOutput> preTransform = null)
         {
             if (preTransform == null)
@@ -49,29 +34,11 @@ namespace AppliedResearchAssociates.iAM.StressTesting
             SimulationOutputAssertions.SameSimulationOutput(loadedOutput, simulationOutput);
         }
 
-        /// <summary>This test checks a SimulationOutput. It saves it to the database, loads it back from the database,
-        /// then checks that they are the same. For the test to run, you need a json-encoded SimulationOutput saved at the place
-        /// where it tries to load the file. The full path for WJ's case is in the regular comment below this message.</summary> 
-        // C:\Code\Infrastructure Asset Management\BridgeCareApp\AppliedResearchAssociates.iAM.StressTesting\GitIgnored\SimulationOutput.json
-        // [Fact]
-        [Fact (Skip ="Takes about 2-3 minutes to run. Needs the above file.")]
-        public void SaveSimulationOutput176_ThenLoad_Same()
-        {
-            SaveSimulationOutput_ThenLoad_Same(CannedSimulationOutput.Filename176);
-        }
-
         //[Fact]
         [Fact(Skip = "Takes about 2-3 minutes to run. Needs the above file.")]
         public void SaveSimulationOutput221_ThenLoad_Same()
         {
             SaveSimulationOutput_ThenLoad_Same(CannedSimulationOutput.Filename221);
-        }
-
-        [Fact (Skip ="Takes about 30 minutes to run, assuming the 965Mb file exists.")]
-        //[Fact]
-        public void SaveSimulationOutput965_ThenLoad_Same()
-        {
-            SaveSimulationOutput_ThenLoad_Same(CannedSimulationOutput.Filename965);
         }
     }
 }

@@ -8,7 +8,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests.Treatment
+namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class SelectableTreatmentRepositoryMocks
     {

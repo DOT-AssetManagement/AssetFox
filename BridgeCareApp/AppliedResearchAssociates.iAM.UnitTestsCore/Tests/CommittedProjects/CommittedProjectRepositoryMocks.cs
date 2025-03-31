@@ -7,16 +7,16 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests.AnalysisMethod
+namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
-    internal class AnalysisMethodRepositoryMocks
+    public static class CommittedProjectRepositoryMocks
     {
-        public static Mock<IAnalysisMethodRepository> DefaultMock(Mock<IUnitOfWork> unitOfWork = null)
+        public static Mock<ICommittedProjectRepository> New(Mock<IUnitOfWork> unitOfWork = null)
         {
-            var mock = new Mock<IAnalysisMethodRepository>();
+            var mock = new Mock<ICommittedProjectRepository>();
             if (unitOfWork != null)
             {
-                unitOfWork.Setup(u => u.AnalysisMethodRepo).Returns(mock.Object);
+                unitOfWork.Setup(u => u.CommittedProjectRepo).Returns(mock.Object);
             }
             return mock;
         }

@@ -13,7 +13,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User
     public class UserCriteriaRepositoryTests
     {
         [Fact]
-        public async Task GetOwnUserCriteria_UserExists_Expected()
+        public async Task GetOwnUserCriteria_AdminUserExistsWithNoCriteria_GeneratesAndReturnsAdminCriteria()
         {
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, true);
             var userInfo = new UserInfoDTO
@@ -31,6 +31,45 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User
                 UserName = user.Username,
             };
             ObjectAssertions.EquivalentExcluding(expected, userCriteria, x => x.CriteriaId);
+        }
+
+        [Fact]
+        public async Task GetAllUserCriteria_UserExistsWithoutCriteria_UserIsNotInList()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, true);
+            var userInfo = new UserInfoDTO
+            {
+                Sub = user.Username,
+                HasAdminAccess = true,
+            };
+
+            var allUserCriteria = TestHelper.UnitOfWork.UserCriteriaRepo.GetAllUserCriteria();
+
+            var criteriaForUser = allUserCriteria.SingleOrDefault(uc => uc.UserId == user.Id);
+            Assert.Null(criteriaForUser);
+        }
+
+        [Fact]
+        public async Task GetAllUserCriteria_UserExistsWithCriteria_Expected()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, true);
+            var userCriteria = UserCriteriaTestSetup.ModelForEntityInDb(user.Id, user.Username, true);
+            var userInfo = new UserInfoDTO
+            {
+                Sub = user.Username,
+                HasAdminAccess = true,
+            };
+
+            var allUserCriteria = TestHelper.UnitOfWork.UserCriteriaRepo.GetAllUserCriteria();
+
+            var criteriaForUser = allUserCriteria.SingleOrDefault(uc => uc.UserId == user.Id);
+            var expected = new UserCriteriaDTO
+            {
+                UserId = user.Id,
+                UserName = user.Username,
+                HasAccess = true,
+            };
+            ObjectAssertions.EquivalentExcluding(expected, criteriaForUser, c => c.CriteriaId);
         }
 
         [Fact]
@@ -77,17 +116,15 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User
         {
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, false);
             var userId = user.Id;
-            var dto = new UserCriteriaDTO
-            {
-                UserId = userId,
-            };
+            var dto = UserCriteriaDtos.Dto(userId, user.Username);
             var filterBefore = TestHelper.UnitOfWork.Context.UserCriteria.SingleOrDefault(uc => uc.UserId == userId);
             Assert.Null(filterBefore);
 
             TestHelper.UnitOfWork.UserCriteriaRepo
                 .UpsertUserCriteria(dto);
 
-            var filter = TestHelper.UnitOfWork.Context.UserCriteria.Single(uc => uc.UserId == userId);
+            var filterAfter = TestHelper.UnitOfWork.UserCriteriaRepo.GetUserCriteria(userId);
+            Assert.Equal("Criteria", filterAfter);
         }
 
         [Fact]

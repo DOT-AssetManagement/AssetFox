@@ -263,7 +263,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             {
                 result = false;
             }
-            else if(simulation.Status == "Simulation output saved to database")
+            else if(simulation.Status == SimulationUserMessages.SimulationOutputSavedToDatabase)
             {
                 result = true;
             }
@@ -273,7 +273,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public List<SimulationAnalysisDetailEntity> GetScenariosReportSettings()
         {
             var simulations = _unitOfWork.Context.SimulationAnalysisDetail.AsNoTracking()
-                        .Where(simulation => simulation.Status == "Simulation output saved to database")
+                        .Where(simulation => simulation.Status == SimulationUserMessages.SimulationOutputSavedToDatabase)
                         .ToList();
             return simulations;
         }

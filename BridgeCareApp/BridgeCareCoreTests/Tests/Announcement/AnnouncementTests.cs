@@ -4,6 +4,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Controllers;
 using BridgeCareCoreTests.Helpers;
@@ -19,7 +20,7 @@ namespace BridgeCareCoreTests.Tests
         private AnnouncementController CreateController(Mock<IUnitOfWork> unitOfWork)
         {
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var contextAccessor = HttpContextAccessorMocks.DefaultMock();
             var controller = new AnnouncementController(security.Object,
                 unitOfWork.Object,

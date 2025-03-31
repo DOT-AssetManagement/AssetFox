@@ -15,7 +15,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public async Task BudgetLibraryInDb_AddUsers_Does()
         {
-            var libraryName = RandomStrings.WithPrefix("BudgetLibrary");
+            var libraryName = RandomStrings.WithPrefixAnd2CharSuffix("BudgetLibrary");
             var budgetLibrary = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryName);
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var userDto = new LibraryUserDTO
@@ -35,7 +35,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public async Task BudgetLibraryInDbWithUser_GetUsers_Gets()
         {
-            var libraryName = RandomStrings.WithPrefix("BudgetLibrary");
+            var libraryName = RandomStrings.WithPrefixAnd2CharSuffix("BudgetLibrary");
             var budgetLibrary = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryName);
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             BudgetLibraryUserTestSetup.SetUsersOfBudgetLibrary(TestHelper.UnitOfWork, budgetLibrary.Id, DTOs.Enums.LibraryAccessLevel.Read, user.Id);
@@ -55,7 +55,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public async Task BudgetLibraryInDbWithUser_UpsertOrDeleteUsers_UserNotInList_Removes()
         {
-            var libraryName = RandomStrings.WithPrefix("BudgetLibrary");
+            var libraryName = RandomStrings.WithPrefixAnd2CharSuffix("BudgetLibrary");
             var budgetLibrary = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryName);
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             BudgetLibraryUserTestSetup.SetUsersOfBudgetLibrary(TestHelper.UnitOfWork, budgetLibrary.Id, LibraryAccessLevel.Read, user.Id);
@@ -72,7 +72,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public async Task CreateBudgetLibraryWithUser_Does()
         {
-            var libraryName = RandomStrings.WithPrefix("BudgetLibrary");
+            var libraryName = RandomStrings.WithPrefixAnd2CharSuffix("BudgetLibrary");
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var libraryDto = BudgetLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryName);
             var userDto = BudgetLibraryUserTestSetup.CreateLibraryUserDto(user.Id);

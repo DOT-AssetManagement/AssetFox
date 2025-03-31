@@ -41,7 +41,7 @@ namespace BridgeCareCoreTests.Tests
             var simulationId = Guid.NewGuid();
             var dto = AnalysisMethodDtos.Default(analysisMethodId);
             var unitOfWork = UnitOfWorkMocks.New();
-            var analysisMethodRepository = AnalysisMethodRepositoryMocks.DefaultMock(unitOfWork);
+            var analysisMethodRepository = AnalysisMethodRepositoryMocks.New(unitOfWork);
             analysisMethodRepository.Setup(a => a.GetAnalysisMethod(simulationId)).Returns(dto);
             var controller = CreateController(unitOfWork);
 
@@ -55,7 +55,7 @@ namespace BridgeCareCoreTests.Tests
         public async Task UpsertAnalysisMethod_RepositoryDoesNotThrow_Ok()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repository = AnalysisMethodRepositoryMocks.DefaultMock(unitOfWork);
+            var repository = AnalysisMethodRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var dto = AnalysisMethodDtos.Default(Guid.NewGuid());
             var simulationId = Guid.NewGuid();

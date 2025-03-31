@@ -31,7 +31,7 @@ namespace BridgeCareCoreTests.Tests
         private PerformanceCurveController CreateController(Mock<IUnitOfWork> unitOfWork)
         {
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var contextAccessor = HttpContextAccessorMocks.DefaultMock();
             var expressionValidationService = new Mock<IExpressionValidationService>();
             var performanceCurvesService = new PerformanceCurvesService(unitOfWork.Object, hubService.Object, expressionValidationService.Object);

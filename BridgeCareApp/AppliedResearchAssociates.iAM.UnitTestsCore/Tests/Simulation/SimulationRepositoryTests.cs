@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
@@ -274,18 +275,21 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var districtAttribute = AttributeDtoDomainMapper.ToDto(districtAttributeDomain, dataSourceDto);
             UnitTestsCoreAttributeTestSetup.EnsureAttributeExists(districtAttribute);
             var networkName = RandomStrings.WithPrefix("Network");
+            var networkId = Guid.NewGuid();
             var assetList = new List<MaintainableAsset>();
-            var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, assetList);
+            var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, assetList, networkId, TestAttributeIds.BrKeyId, networkName); ;
             var simulationId = Guid.NewGuid();
             var simulationName = RandomStrings.WithPrefix("Simulation");
             var simulationDto = new SimulationDTO
             {
                 Id = simulationId,
-                NetworkId = network.Id,
+                NetworkId = networkId,
                 Name = simulationName,
             };
+            var beforeDate = DateTime.Now;
             TestHelper.UnitOfWork.SimulationRepo.CreateSimulation(network.Id, simulationDto);
             SimulationAnalysisDetailTestSetup.CreateAnalysisDetail(TestHelper.UnitOfWork, simulationId);
+            var afterDate = DateTime.Now;
             var explorer = TestHelper.UnitOfWork.AttributeRepo.GetExplorer();
             var analysisNetwork = TestHelper.UnitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(
                 network.Id, explorer);
@@ -297,6 +301,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var simulationsAfter = analysisNetwork.Simulations.ToList();
             var simulationAfter = simulationsAfter.Single();
             Assert.Equal(simulationId, simulationAfter.Id);
+            Assert.Equal(simulationName, simulationAfter.Name);
+            Assert.Equal(100, simulationAfter.NumberOfYearsOfTreatmentOutlook);
+            Assert.Equal(simulationName, simulationAfter.ShortDescription);
+            DateTimeAssertions.Between(beforeDate, afterDate, simulationAfter.LastModifiedDate, TimeSpan.FromSeconds(1));
+            DateTimeAssertions.Between(beforeDate, afterDate, simulationAfter.LastRun, TimeSpan.FromSeconds(1));
+            var simulationNetwork = simulationAfter.Network;
+            Assert.Equal(networkName, simulationNetwork.Name);
+            Assert.Equal(networkId, simulationNetwork.Id);
         }
 
         [Fact]
@@ -372,6 +384,37 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
                s => s.Id == simulationId);
             var dateAfter = entityAfter.LastModifiedDate;
             DateTimeAssertions.Between(dateLowerBound, dateUpperBound, dateAfter, TimeSpan.FromSeconds(1));
+        }
+
+        [Fact]
+        public void GetAllScenario_SimulationInDb_Gets()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulationId = Guid.NewGuid();
+            var simulationName = RandomStrings.WithPrefix("Simulation");
+            var simulationDto = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, simulationName);
+
+            var actual = TestHelper.UnitOfWork.SimulationRepo.GetAllScenario();
+
+            var returnedSimulation = actual.Single(s => s.Id == simulationId);
+            ObjectAssertions.EquivalentExcluding(simulationDto, returnedSimulation,
+                s => s.NetworkName, s => s.CreatedDate, s => s.LastModifiedDate, s => s.Owner, s => s.Creator);
+        }
+
+        [Fact]
+        public void GetScenariosReportSettings_SimulationInDbWithReportSettings_GetsReportSettings()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulationId = Guid.NewGuid();
+            var simulationName = RandomStrings.WithPrefix("Simulation");
+            var simulationDto = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, simulationName);
+            SimulationAnalysisDetailTestSetup.CreateAnalysisDetail(TestHelper.UnitOfWork, simulationId, SimulationUserMessages.SimulationOutputSavedToDatabase);
+
+            var reportSettings = TestHelper.UnitOfWork.SimulationRepo.GetScenariosReportSettings();
+
+            Assert.Single(reportSettings, rs => rs.SimulationId == simulationDto.Id);
         }
 
         [Fact]
