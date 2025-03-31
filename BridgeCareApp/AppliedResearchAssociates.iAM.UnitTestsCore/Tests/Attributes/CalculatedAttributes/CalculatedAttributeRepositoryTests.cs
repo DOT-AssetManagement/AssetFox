@@ -266,7 +266,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             repo.PopulateScenarioCalculatedFields(simulation);
 
             // Assert
-            Assert.Equal(1, testExplorer.CalculatedFields.Count);
+            Assert.Single(testExplorer.CalculatedFields);
             Assert.Equal(2, testExplorer.CalculatedFields.First().ValueSources.Count);
         }
 

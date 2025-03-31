@@ -44,7 +44,7 @@ namespace BridgeCareCoreTests.Tests {
             Mock<IPerformanceCurvesPagingService> performanceCurvePagingServiceMock = null
             )
         {
-            var resolveHubService = hubServiceMock ?? HubServiceMocks.DefaultMock();
+            var resolveHubService = hubServiceMock ?? HubServiceMocks.New();
             var security = EsecSecurityMocks.Dbe;
             var mockDataService = new Mock<IInvestmentDefaultDataService>();
             var simulationQueueService = new Mock<IWorkQueueService>();

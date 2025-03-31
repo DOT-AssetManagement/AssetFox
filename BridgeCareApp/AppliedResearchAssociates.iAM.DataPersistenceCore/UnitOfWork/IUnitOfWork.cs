@@ -80,8 +80,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 
         ITreatmentCostRepository TreatmentCostRepo { get; }
 
-        ITreatmentSchedulingRepository TreatmentSchedulingRepo { get; }
-
         ITreatmentSupersedeRuleRepository TreatmentSupersedeRuleRepo { get; }
 
         IUserRepository UserRepo { get; }

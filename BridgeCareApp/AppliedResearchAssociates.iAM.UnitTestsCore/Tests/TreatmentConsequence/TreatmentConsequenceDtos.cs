@@ -17,7 +17,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             string criterion = null)
         {
             var resolveId = id ?? Guid.NewGuid();
-            var consequenceEquation = equation == null ? null :
+            var consequenceEquation = equation == null ? new EquationDTO():
                 EquationDtos.WithExpression(Guid.NewGuid(), equation);
             var consequenceCriterion = criterion == null ? null : CriterionLibraryDtos.Dto(
                 null, criterion);

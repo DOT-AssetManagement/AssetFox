@@ -19,7 +19,7 @@ namespace BridgeCareCoreTests.Tests.Integration
         public BudgetPriorityController CreateController(Mock<IHubService> hubServiceMock)
         {
             var security = EsecSecurityMocks.Admin;
-            hubServiceMock ??= HubServiceMocks.DefaultMock();
+            hubServiceMock ??= HubServiceMocks.New();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var claimHelper = ClaimHelperMocks.New();
             var service = new BudgetPriorityPagingService(TestHelper.UnitOfWork);
@@ -53,7 +53,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             childDto.CriterionLibrary = criterionLibrary;
             TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertBudgetPriorityLibrary(library);
             var budgetPriorities = new List<BudgetPriorityDTO> { childDto, childDto2 };
-            var hubServiceMock = HubServiceMocks.DefaultMock();
+            var hubServiceMock = HubServiceMocks.New();
 
             var controller = CreateController(hubServiceMock);
             var upsertRequest = new LibraryUpsertPagingRequestModel<BudgetPriorityLibraryDTO, BudgetPriorityDTO>();

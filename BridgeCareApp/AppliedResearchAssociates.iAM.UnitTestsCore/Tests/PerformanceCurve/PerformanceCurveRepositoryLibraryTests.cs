@@ -297,5 +297,45 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 
             DateTimeAssertions.Between(beforeDate, afterDate, modifiedDate, TimeSpan.FromSeconds(1));
         }
+
+        [Fact]
+        public async Task GetAccessForUser_UserHasAccess_Gets()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var library = PerformanceCurveLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            PerformanceCurveLibraryUserTestSetup.SetUsersOfPerformanceCurveLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
+
+            var libraryAccess = TestHelper.UnitOfWork.PerformanceCurveRepo.GetLibraryAccess(library.Id, user.Id);
+
+            var expected = new LibraryUserAccessModel
+            {
+                UserId = user.Id,
+                LibraryExists = true,
+                Access = new LibraryUserDTO
+                {
+                    UserId = user.Id,
+                    UserName = user.Username,
+                    AccessLevel = LibraryAccessLevel.Modify,
+                }
+            };
+            ObjectAssertions.Equivalent(expected, libraryAccess);
+        }
+
+        [Fact]
+        public async Task GetAccessForUser_UserDoesNotHaveAccess_IdkWhat()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var library = PerformanceCurveLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+
+            var libraryAccess = TestHelper.UnitOfWork.PerformanceCurveRepo.GetLibraryAccess(library.Id, user.Id);
+
+            var expected = new LibraryUserAccessModel
+            {
+                Access = null,
+                LibraryExists = true,
+                UserId = user.Id,
+            };
+            ObjectAssertions.Equivalent(expected, libraryAccess);
+        }
     }
 }

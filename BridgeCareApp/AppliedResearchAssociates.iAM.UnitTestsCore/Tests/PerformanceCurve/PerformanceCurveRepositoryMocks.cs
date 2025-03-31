@@ -10,7 +10,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests
+namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class PerformanceCurveRepositoryMocks
     {

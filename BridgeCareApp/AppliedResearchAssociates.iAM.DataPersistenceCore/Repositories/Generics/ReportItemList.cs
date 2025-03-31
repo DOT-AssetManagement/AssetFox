@@ -8,9 +8,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generic
 {
     public class ReportItemList
     {
-            public Guid ReportId { get; set; }
-            public string ReportName { get; set; }
-        }
-
+        public Guid ReportId { get; set; }
+        public string ReportName { get; set; }
     }
+}
 

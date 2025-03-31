@@ -19,7 +19,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
         [Fact]
         public void SetConstraintType_ThenGet_Same()
         {
-            var constraintType = RandomStrings.WithPrefix("constraintType");
+            var constraintType = RandomStrings.WithPrefixAnd2CharSuffix("constraintType");
             TestHelper.UnitOfWork.AdminSettingsRepo.SetConstraintType(constraintType);
             var constraintTypeAfter = TestHelper.UnitOfWork.AdminSettingsRepo.GetConstraintType();
             Assert.Equal(constraintTypeAfter, constraintType);

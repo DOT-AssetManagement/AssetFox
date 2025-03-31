@@ -25,7 +25,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var service = new BudgetPriorityPagingService(unitOfWork.Object);
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var accessor = HttpContextAccessorMocks.DefaultMock();
             var claimHelper = ClaimHelperMocks.New();
             var controller = new BudgetPriorityController(
@@ -44,7 +44,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
 
             budgetPriorityRepo.Setup(r => r.GetBudgetPriortyLibrariesNoChildren()).Returns(new List<BudgetPriorityLibraryDTO>());
@@ -59,7 +59,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var simulationId = Guid.NewGuid();
 
@@ -75,12 +75,12 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
 
             // Create controller manually to modify the service
-            var service = BudgetPriorityPagingServiceMocks.DefaultMock();
+            var service = BudgetPriorityPagingServiceMocks.New();
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var accessor = HttpContextAccessorMocks.DefaultMock();
             var claimHelper = ClaimHelperMocks.New();
 
@@ -125,7 +125,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             budgetPriorityRepo.Setup(b => b.GetScenarioBudgetPriorities(simulationId)).Returns(new List<BudgetPriorityDTO>());
@@ -148,7 +148,7 @@ namespace BridgeCareCoreTests.Tests
             // Act
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var simulationId = Guid.NewGuid();
             var result = await controller.DeleteBudgetPriorityLibrary(simulationId);
@@ -165,7 +165,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var dto = BudgetPriorityLibraryDtos.New();
             var dtos = new List<BudgetPriorityLibraryDTO> { dto };
             budgetPriorityRepo.Setup(b => b.GetBudgetPriortyLibrariesNoChildren()).Returns(dtos.ToList());
@@ -187,7 +187,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var dto = BudgetPriorityDtos.New();
             var dtos = new List<BudgetPriorityDTO> { dto };
             var simulationId = Guid.NewGuid();
@@ -214,7 +214,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var dto = BudgetPriorityDtos.New();
             var dtos = new List<BudgetPriorityDTO> { dto };
@@ -226,9 +226,9 @@ namespace BridgeCareCoreTests.Tests
             budgetPriorityRepo.Setup(br => br.GetScenarioBudgetPriorities(simulationId)).Returns(dtos);
 
             // Create controller manually to modify the service
-            var service = BudgetPriorityPagingServiceMocks.DefaultMock();
+            var service = BudgetPriorityPagingServiceMocks.New();
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var accessor = HttpContextAccessorMocks.DefaultMock();
             var claimHelper = ClaimHelperMocks.New();
             service.Setup(s => s.GetScenarioPage(simulationId, request)).Returns(response);
@@ -260,7 +260,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var userRepository = UserRepositoryMocks.EveryoneExists(unitOfWork);
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var libraryId = Guid.NewGuid();
             var dto = BudgetPriorityDtos.New();
             var dtos = new List<BudgetPriorityDTO> { dto };
@@ -272,9 +272,9 @@ namespace BridgeCareCoreTests.Tests
             };
 
             // Create controller manually to modify the service
-            var service = BudgetPriorityPagingServiceMocks.DefaultMock();
+            var service = BudgetPriorityPagingServiceMocks.New();
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var accessor = HttpContextAccessorMocks.DefaultMock();
             var claimHelper = ClaimHelperMocks.New();
             service.Setup(s => s.GetLibraryPage(libraryId, request)).Returns(response);
