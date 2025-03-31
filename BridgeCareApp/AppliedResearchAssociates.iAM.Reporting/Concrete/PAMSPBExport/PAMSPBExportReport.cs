@@ -142,16 +142,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         private string GeneratePAMSPBExportReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
-            // TODO remove logging later
-            static void log(string message)
-            {
-                var path = "C:\\Users\\aborgaonkar\\Downloads\\reportLog.txt";
-                using var sw = File.AppendText(path);
-                sw.WriteLine(message);
-            }
-            log("------------------------------------------------------------------------------------");
-            log("start GeneratePAMSPBExportReport - " + simulationId + " " + DateTime.Now);
-
             checkCancelled(cancellationToken, simulationId);
             var reportPath = string.Empty;
             var reportDetailDto = new SimulationReportDetailDTO
@@ -181,8 +171,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             //Include treatments in simulation
             _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulation);
 
-            log("before tabs - " + simulation.Name + " " + DateTime.Now);
-
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSPBExportReportData.xlsx"));
 
@@ -198,14 +186,10 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
-            log("before GetSimulationOutputViaRelation - " + simulation.Name + " " + DateTime.Now);
             var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
-            log("after GetSimulationOutputViaRelation - " + simulation.Name + " " + DateTime.Now);
 
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.TreatmentTab);
             _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments);
-
-            log("after tabs - " + simulation.Name + " " + DateTime.Now);
 
             checkCancelled(cancellationToken, simulationId);            
 
@@ -224,9 +208,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             reportDetailDto.Status = $"Report generation completed";
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
-
-            log("end GeneratePAMSPBExportReport - " + simulationId + " " + DateTime.Now);
-            log("------------------------------------------------------------------------------------");
 
             return reportPath;
         }

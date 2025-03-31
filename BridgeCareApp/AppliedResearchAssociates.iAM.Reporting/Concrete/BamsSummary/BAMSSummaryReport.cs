@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.Hubs;
@@ -26,7 +25,6 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.Reporting.Services;
 using System.Threading;
 using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.WorkQueue;
 
 namespace AppliedResearchAssociates.iAM.Reporting
 {
@@ -220,8 +218,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             };
 
             var logger = new CallbackLogger(str => UpdateSimulationAnalysisDetailWithStatus(reportDetailDto, str));
-            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
-                        
+            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
+
             // reportOutputData will be having all assets data, filter it based on criteria expression
             if (!string.IsNullOrEmpty(Criteria))
             {
@@ -259,8 +257,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             reportDetailDto.Status = $"Checking sections";
 
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-
-            new QueuedWorkStatusUpdateModel() { Id = WorkQueueWorkIdFactory.CreateId(simulationId, DTOs.Enums.WorkType.ReportGeneration), Status = reportDetailDto.Status };
             foreach (var item in requiredSections)
             {
                 checkCancelled(cancellationToken, simulationId);
@@ -471,7 +467,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             //check and generate folder
             var folderPathForSimulation = $"Reports\\{simulationId}";
-            Directory.CreateDirectory(folderPathForSimulation);
+            _ = Directory.CreateDirectory(folderPathForSimulation);
             var filePath = Path.Combine(folderPathForSimulation, "SummaryReport.xlsx");
             checkCancelled(cancellationToken, simulationId);
             var bin = excelPackage.GetAsByteArray();

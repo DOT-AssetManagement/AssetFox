@@ -378,6 +378,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
                     }
                 });
             }
+            keyCashFlowFundingDetails = new();
 
             currentCell.Row += 1; // Data starts here
             currentCell.Column = 1;
