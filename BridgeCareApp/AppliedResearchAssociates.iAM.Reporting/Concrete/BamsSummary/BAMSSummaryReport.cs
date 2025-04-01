@@ -307,10 +307,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var budgetsDtos = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
             var simpleBudgetDetailDtos = _unitOfWork.BudgetRepo.GetScenarioSimpleBudgetDetails(simulationId);
             var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
-            var performanceCurvesDtos = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
             var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
             var committedProjectsDtos = _unitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
-            var BudgetPrioritiesDtos = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
+            var budgetPrioritiesDtos = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
             var cashFlowRulesDtos = _unitOfWork.CashFlowRuleRepo.GetScenarioCashFlowRules(simulationId);            
                         
             var yearlyBudgets = new Dictionary<string, BudgetDTO>();
@@ -400,7 +399,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             checkCancelled(cancellationToken, simulationId);
 
             // Fill Simulation parameters TAB
-            _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulationDto, analysisMethodDto, investmentPlanDto, scenarioSelectableTreatmentsDtos, committedProjectsDtos, BudgetPrioritiesDtos, cashFlowRulesDtos, budgetsDtos, reportOutputData);
+            _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulationDto, analysisMethodDto, investmentPlanDto, scenarioSelectableTreatmentsDtos, committedProjectsDtos, budgetPrioritiesDtos, cashFlowRulesDtos, budgetsDtos, reportOutputData);
             checkCancelled(cancellationToken, simulationId);            
 
             // Funded Treatment List TAB

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
@@ -32,10 +33,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             SimulationOutput reportOutputData,
             List<int> simulationYears,
-            Dictionary<string, Budget> yearlyBudgetAmount,
+            Dictionary<string, BudgetDTO> yearlyBudgetAmount,
             Dictionary<int, Dictionary<string, List<CommittedProjectMetaData>>> yearlyCostCommittedProj,
-            IReadOnlyCollection<SelectableTreatment> selectableTreatments,
-            ICollection<CommittedProject> committedProjects,
+            List<TreatmentDTO> selectableTreatments,
+            List<SectionCommittedProjectDTO> committedProjects,
             Dictionary<string, string> treatmentCategoryLookup,
             List<BaseCommittedProjectDTO> committedProjectList,
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
@@ -50,7 +51,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             foreach (var item in selectableTreatments)
             {
                 var category = SummaryReportHelper.GetCategory(item.Category);
-                simulationTreatments.Add((item.Name, item.AssetCategory, item.Category));
+                simulationTreatments.Add((item.Name, item.AssetType, item.Category));
             }
             simulationTreatments.Sort((a, b) => a.Name.CompareTo(b.Name));
 
@@ -143,7 +144,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             worksheet.Cells.AutoFitColumns();
         }
 
-        private void SetupBudgetModelsAndCommittedTreatments(SimulationOutput reportOutputData, IReadOnlyCollection<SelectableTreatment> selectableTreatments, List<WorkSummaryByBudgetModel> workSummaryByBudgetModels, HashSet<string> committedTreatments, bool shouldBundleFeasibleTreatments)
+        private void SetupBudgetModelsAndCommittedTreatments(SimulationOutput reportOutputData, List<TreatmentDTO> selectableTreatments, List<WorkSummaryByBudgetModel> workSummaryByBudgetModels, HashSet<string> committedTreatments, bool shouldBundleFeasibleTreatments)
         {
             foreach (var summaryModel in workSummaryByBudgetModels)
             {                
@@ -209,7 +210,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                                 selectableTreatments.FirstOrDefault(_ => _.Name == appliedTreatment);
                             var category = section.AppliedTreatment.Contains("Bundle") ? TreatmentCategory.Bundled : treatmentData.Category;
                             category = SummaryReportHelper.GetCategory(category);
-                            var assetCategory = treatmentData.AssetCategory;
+                            var assetCategory = treatmentData.AssetType;
                             summaryModel.YearlyData.Add(new YearsData
                             {
                                 Year = yearData.Year,

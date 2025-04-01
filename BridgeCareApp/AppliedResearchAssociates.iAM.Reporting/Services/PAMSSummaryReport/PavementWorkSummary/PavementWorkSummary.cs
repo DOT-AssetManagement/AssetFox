@@ -7,6 +7,8 @@ using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using CurrentCell = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.CurrentCell;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 {
@@ -33,9 +35,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             SimulationOutput reportOutputData,
             List<int> simulationYears,
-            Dictionary<string, Budget> yearlyBudgetAmount,
-            IReadOnlyCollection<SelectableTreatment> selectableTreatments,
-            ICollection<CommittedProject> committedProjects,
+            Dictionary<string, BudgetDTO> yearlyBudgetAmount,
+            List<TreatmentDTO> scenarioSelectableTreatmentsDtos,
+            List<SectionCommittedProjectDTO> committedProjectsDtos,
             Dictionary<string, string> treatmentCategoryLookup,
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
             bool shouldBundleFeasibleTreatments)
@@ -45,10 +47,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             // Getting list of treatments. It will be used in several places throughout this excel TAB
             var simulationTreatments = new List<(string Name, string AssetType, TreatmentCategory Category)>();
 
-            foreach (var item in selectableTreatments)
+            foreach (var item in scenarioSelectableTreatmentsDtos)
             {
                 var category = SummaryReportHelper.GetCategory(item.Category);
-                simulationTreatments.Add((item.Name, item.AssetCategory, category));
+                simulationTreatments.Add((item.Name, item.AssetType, category));
             }
 
             simulationTreatments.Sort((a, b) => a.Name.CompareTo(b.Name));
@@ -62,7 +64,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             
             _pavementWorkSummaryComputationHelper.FillDataToUseInExcel(reportOutputData, yearlyCostCommittedProj, costLengthPerSurfaceIdPerTreatmentPerYear, costAndLengthPerTreatmentGroupPerYear, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, simulationTreatments, shouldBundleFeasibleTreatments);
             var workTypeTotals = _pavementWorkSummaryComputationHelper.CalculateWorkTypeTotals(costLengthPerSurfaceIdPerTreatmentPerYear, simulationTreatments);
-            var chartRowsModel = _costBudgetsWorkSummary.FillCostBudgetWorkSummarySections(worksheet, currentCell, simulationYears, yearlyBudgetAmount, costLengthPerSurfaceIdPerTreatmentPerYear, yearlyCostCommittedProj, costAndLengthPerTreatmentGroupPerYear, simulationTreatments, workTypeTotals, committedProjects, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
+            var chartRowsModel = _costBudgetsWorkSummary.FillCostBudgetWorkSummarySections(worksheet, currentCell, simulationYears, yearlyBudgetAmount, costLengthPerSurfaceIdPerTreatmentPerYear, yearlyCostCommittedProj, costAndLengthPerTreatmentGroupPerYear, simulationTreatments, workTypeTotals, committedProjectsDtos, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
             chartRowsModel = _treatmentsWorkSummary.FillTreatmentsWorkSummarySections(worksheet, currentCell, simulationYears, costLengthPerSurfaceIdPerTreatmentPerYear, costAndLengthPerTreatmentGroupPerYear, simulationTreatments, workTypeTotals, chartRowsModel, shouldBundleFeasibleTreatments);
             chartRowsModel = _iriConditionSummary.FillIriConditionSummarySection(worksheet, currentCell, reportOutputData, chartRowsModel);
             chartRowsModel = _opiConditionSummary.FillOpiConditionSummarySection(worksheet, currentCell, reportOutputData, chartRowsModel);
