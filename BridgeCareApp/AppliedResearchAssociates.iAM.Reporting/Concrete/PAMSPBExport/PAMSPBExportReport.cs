@@ -154,22 +154,16 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
-            var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));            
+            var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
 
-            var explorer = _unitOfWork.AttributeRepo.GetExplorer();
-            var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
-            _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
-            var simulation = network.Simulations.First();
-
-            _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
             var networkMaintainableAssets = _unitOfWork.MaintainableAssetRepo.GetAllInNetworkWithLocations(networkId);
-            var networkMaintainableAssetIds = networkMaintainableAssets.Select(x => x.Id);            
+            var networkMaintainableAssetIds = networkMaintainableAssets.Select(x => x.Id);
             var attributeDtos = _unitOfWork.AttributeRepo.GetAttributes();
             var requiredAttributeIds = GetRequiredAttributeIds(attributeDtos);
             var attributeDatumDtos = _unitOfWork.AttributeDatumRepo.GetAllInNetwork(networkMaintainableAssetIds, requiredAttributeIds);
-            //Include treatments in simulation
-            _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulation);
+            var simulationDto = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
+            var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);
 
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSPBExportReportData.xlsx"));
@@ -179,17 +173,16 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var masWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.MASTab);
-            _masTab.Fill(masWorksheet, simulation.Network.Id, networkMaintainableAssets, attributeDatumDtos, attributeDtos);
+            _masTab.Fill(masWorksheet, networkId, networkMaintainableAssets, attributeDatumDtos, attributeDtos);
 
             // Teatments Tab
             reportDetailDto.Status = $"Creating PAMS Treatments TAB";
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
-
             var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
-
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.TreatmentTab);
-            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments);
+            var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
+            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, shouldBundleFeasibleTreatments);
 
             checkCancelled(cancellationToken, simulationId);            
 

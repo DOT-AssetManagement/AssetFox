@@ -5,6 +5,7 @@ using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Models.PAMSPBExport;
@@ -25,16 +26,16 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet treatmentsWorksheet, SimulationOutput simulationOutput, Guid simulationId, Guid networkId, IReadOnlyCollection<SelectableTreatment> treatments, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments)
+        public void Fill(ExcelWorksheet treatmentsWorksheet, SimulationOutput simulationOutput, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments)
         {
             var currentCell = AddHeadersCells(treatmentsWorksheet);
 
-            FillDynamicDataInWorkSheet(simulationOutput, treatmentsWorksheet, currentCell, simulationId, networkId, treatments, networkMaintainableAssets, shouldBundleFeasibleTreatments);            
+            FillDynamicDataInWorkSheet(simulationOutput, treatmentsWorksheet, currentCell, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, shouldBundleFeasibleTreatments);            
             treatmentsWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
             treatmentsWorksheet.Cells.AutoFitColumns();
         }
 
-        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, ExcelWorksheet treatmentsWorksheet, CurrentCell currentCell, Guid simulationId, Guid networkId, IReadOnlyCollection<SelectableTreatment> treatments, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments)
+        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, ExcelWorksheet treatmentsWorksheet, CurrentCell currentCell, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments)
         {
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
@@ -50,11 +51,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
                     }
 
                     // Generate data model                    
-                    var treatmentDataModel = GenerateTreatmentDataModel(assetId, year, section, simulationId, networkId, treatments, networkMaintainableAssets, keyCashFlowFundingDetails, shouldBundleFeasibleTreatments);
+                    var treatmentDataModel = GenerateTreatmentDataModel(assetId, year, section, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, keyCashFlowFundingDetails, shouldBundleFeasibleTreatments);
 
                     // Fill in excel
                     currentCell = FillDataInWorksheet(treatmentsWorksheet, treatmentDataModel, currentCell);
                 }
+                keyCashFlowFundingDetails.Clear();
             }
             ExcelHelper.ApplyBorder(treatmentsWorksheet.Cells[1, 1, currentCell.Row - 1, currentCell.Column]);
         }
@@ -105,7 +107,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
 
         private static void SetDecimalFormat(ExcelRange cell) => ExcelHelper.SetCustomFormat(cell, ExcelHelperCellFormat.DecimalPrecision3);
 
-        private TreatmentDataModel GenerateTreatmentDataModel(Guid assetId, SimulationYearDetail year, AssetDetail section, Guid simulationId, Guid networkId, IReadOnlyCollection<SelectableTreatment> treatments, List<MaintainableAsset> networkMaintainableAssets, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, bool shouldBundleFeasibleTreatments)
+        private TreatmentDataModel GenerateTreatmentDataModel(Guid assetId, SimulationYearDetail year, AssetDetail section, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, bool shouldBundleFeasibleTreatments)
         {
             var appliedTreatment = section.AppliedTreatment;
             TreatmentDataModel treatmentDataModel = new TreatmentDataModel
@@ -184,7 +186,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             var budgetsUsed = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix?.Where(_ => _.AllocatedAmount > 0).Select(_ =>
                               _.BudgetName).Distinct().ToList() ?? new();
             treatmentDataModel.Budget = string.Join(", ", budgetsUsed);
-            treatmentDataModel.Category = shouldBundleFeasibleTreatments && appliedTreatment.Contains("Bundle") ? PAMSConstants.Bundled : treatments.FirstOrDefault(_ => _.Name == appliedTreatment)?.Category.ToString();
+            treatmentDataModel.Category = shouldBundleFeasibleTreatments && appliedTreatment.Contains("Bundle") ? PAMSConstants.Bundled : scenarioSelectableTreatmentsDtos.FirstOrDefault(_ => _.Name == appliedTreatment)?.Category.ToString();
 
             // Consequences
             var treatmentAttributeValues = new List<double>();
