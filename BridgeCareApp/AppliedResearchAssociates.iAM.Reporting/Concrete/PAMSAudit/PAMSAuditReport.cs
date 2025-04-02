@@ -144,16 +144,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
         }
         private string GeneratePAMSAuditReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
-            // TODO remove logging later
-            static void log(string message)
-            {
-                var path = "C:\\Users\\aborgaonkar\\Downloads\\reportLog.txt";
-                using var sw = File.AppendText(path);
-                sw.WriteLine(message);
-            }
-            log("------------------------------------------------------------------------------------");
-            log("start GeneratePAMSAuditReport - " + simulationId + " " + DateTime.Now);
-
             if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
             {
                 throw new Exception("Report was cancelled");
@@ -221,9 +211,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-
-            log("end GeneratePAMSAuditReport - " + simulationId + " " + DateTime.Now);
-            log("------------------------------------------------------------------------------------");
 
             return reportPath;
         }
