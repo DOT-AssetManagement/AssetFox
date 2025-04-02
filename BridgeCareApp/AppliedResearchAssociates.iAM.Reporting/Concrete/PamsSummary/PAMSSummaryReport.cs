@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
@@ -183,17 +182,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
         }
 
         private string GenerateSummaryReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
-        {
-            // TODO remove logging later
-            static void log(string message)
-            {
-                var path = "C:\\Users\\aborgaonkar\\Downloads\\reportLog.txt";
-                using var sw = File.AppendText(path);
-                sw.WriteLine(message);
-            }
-            log("------------------------------------------------------------------------------------");
-            log("start PAMS GenerateSummaryReport - " + simulationId + " " + DateTime.Now);
-
+        {            
             checkCancelled(cancellationToken, simulationId);
             var functionReturnValue = "";
 
@@ -389,9 +378,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
-
-            log("end PAMS GenerateSummaryReport - " + simulationId + " " + DateTime.Now);
-            log("------------------------------------------------------------------------------------");
 
             //return value
             return functionReturnValue;

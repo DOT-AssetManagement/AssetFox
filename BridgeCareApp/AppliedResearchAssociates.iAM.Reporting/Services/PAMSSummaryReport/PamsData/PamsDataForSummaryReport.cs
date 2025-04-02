@@ -9,7 +9,6 @@ using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using static System.Collections.Specialized.BitVector32;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PamsData
 {

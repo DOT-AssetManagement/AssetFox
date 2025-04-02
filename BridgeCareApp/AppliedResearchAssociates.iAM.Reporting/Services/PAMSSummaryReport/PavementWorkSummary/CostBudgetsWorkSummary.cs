@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
 using OfficeOpenXml;
 using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
@@ -30,7 +29,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
         private Dictionary<int, decimal> TotalSAPSpent = new();
         private Dictionary<int, decimal> TotalProjectBuilderSpent = new();
         private bool ShouldBundleFeasibleTreatments;
-        private int TotalSpentRow = 0;
 
         public CostBudgetsWorkSummary()
         {
@@ -965,9 +963,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                 foreach (var budgetUsage in consideration.FundingCalculationOutput?.AllocationMatrix.Where(bu => bu.BudgetName.Equals(workSummaryByBudgetModel.BudgetName, StringComparison.OrdinalIgnoreCase) && bu.Year == year))
                                 {
                                     var projectSource = committedProjects.FirstOrDefault(_ => _.Year == year &&
-                                                                                         _.Treatment == budgetUsage.TreatmentName)?.ProjectSource;
-                                                                                         // && _.Budget.Name == budgetUsage.BudgetName)?.ProjectSource;
-                                                                                         // TODO check if scenarioBudgetId is not null and then get it and                                                          compare
+                                                                                         _.Treatment == budgetUsage.TreatmentName &&
+                                                                                         _.ScenarioBudgetName == budgetUsage.BudgetName)?.ProjectSource;
                                     switch (projectSource)
                                     {
                                         case ProjectSourceDTO.Committed:
@@ -1683,9 +1680,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                         bu.Year == year))
                                 {
                                     var projectSource = committedProjects.FirstOrDefault(_ => _.Year == year &&
-                                                                                         _.Treatment == budgetUsage.TreatmentName)?.ProjectSource;
-                                                                                        // && _.Budget.Name == budgetUsage.BudgetName)?.ProjectSource;
-                                                                                        // TODO check if scenarioBudgetId is not null and then get it and                                                          compare
+                                                                                         _.Treatment == budgetUsage.TreatmentName &&
+                                                                                         _.ScenarioBudgetName == budgetUsage.BudgetName)?.ProjectSource;
                                     switch (projectSource)
                                     {
                                         case ProjectSourceDTO.Committed:

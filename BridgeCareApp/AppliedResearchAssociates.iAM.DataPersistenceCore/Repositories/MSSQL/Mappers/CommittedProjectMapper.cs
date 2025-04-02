@@ -65,6 +65,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                     Id = entity.Id,
                     Cost = entity.Cost,
                     ScenarioBudgetId = entity.ScenarioBudgetId,
+                    ScenarioBudgetName = entity.ScenarioBudget?.Name,
                     SimulationId = entity.SimulationId,
                     Treatment = entity.Name,
                     Year = entity.Year,
