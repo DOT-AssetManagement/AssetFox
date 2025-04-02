@@ -14,9 +14,7 @@ using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Logging;
 using Newtonsoft.Json.Linq;
 using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.FlexibileAuditReport;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services
 {
@@ -149,6 +147,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services
             {
                 currentAttributes.Add(performanceCurve.Attribute.Name);
             }
+            return currentAttributes;
+        }
+
+        public HashSet<string> GetPerformanceCurvesAttributes(List<PerformanceCurveDTO> performanceCurvesDtos)
+        {
+            var currentAttributes = new HashSet<string>();
+            // Distinct performance curve attributes
+            foreach (var performanceCurve in performanceCurvesDtos)
+            {
+                _ = currentAttributes.Add(performanceCurve.Attribute);
+            }
+
             return currentAttributes;
         }
 

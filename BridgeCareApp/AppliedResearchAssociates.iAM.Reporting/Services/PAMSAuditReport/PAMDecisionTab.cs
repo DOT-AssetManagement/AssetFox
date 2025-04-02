@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Models.PAMSAuditReport;
@@ -27,22 +27,21 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, Simulation simulation, HashSet<string> performanceCurvesAttributes)
+        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, SimulationDTO simulationDto, HashSet<string> performanceCurvesAttributes, AnalysisMethodDTO analysisMethodDto, List<TreatmentDTO> scenarioSelectableTreatmentsDtos)
         {
             columnNumbersBudgetsUsed = new List<int>();
             // Distinct performance curves' attributes
             var currentAttributes = performanceCurvesAttributes;
 
             // Benefit attribute
-            currentAttributes.Add(_reportHelper.GetBenefitAttribute(simulation));
+            _ = currentAttributes.Add(analysisMethodDto.Benefit.Attribute);
 
             // Distinct budgets            
             var budgets = _reportHelper.GetBudgets(simulationOutput.Years);
 
-            var treatments = new List<string>();
-            treatments = simulation.Treatments.Where(_ => _.Name != "No Treatment")?.OrderBy(_ => _.Name).Select(_ => _.Name).ToList();
+            var treatments = scenarioSelectableTreatmentsDtos.Where(_ => _.Name != "No Treatment")?.OrderBy(_ => _.Name).Select(_ => _.Name).ToList() ?? new();
 
-            ShouldBundleFeasibleTreatments = simulation.ShouldBundleFeasibleTreatments;
+            ShouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
 
             // Add headers to excel
             var currentCell = AddHeadersCells(decisionsWorksheet, currentAttributes, budgets, treatments);
@@ -50,16 +49,19 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             // Fill data in excel
             FillDynamicDataInWorkSheet(simulationOutput, currentAttributes, budgets, treatments, decisionsWorksheet, currentCell);
 
+            performanceCurvesAttributes.Clear();
+            scenarioSelectableTreatmentsDtos.Clear();
+
             decisionsWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
             decisionsWorksheet.Cells.AutoFitColumns();
             PerformPostAutofitAdjustments(decisionsWorksheet, columnNumbersBudgetsUsed);
         }
 
         private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, ExcelWorksheet decisionsWorksheet, CurrentCell currentCell)
-        {
-            Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+        {            
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
+                Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
                 var crs = _reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, "CRS");                
                 var years = simulationOutput.Years.OrderBy(yr => yr.Year);
 
@@ -86,7 +88,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
                     currentCell = FillDataInWorksheet(decisionsWorksheet, decisionsDataModel, budgets.Count, currentAttributes, currentCell);
                 }
                 ExcelHelper.ApplyBorder(decisionsWorksheet.Cells[yearZeroRow, 1, yearZeroRow, currentCell.Column]);
-            }
+                keyCashFlowFundingDetails.Clear();
+            }            
         }
 
         private PAMSDecisionDataModel GenerateDecisionDataModel(HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, string crs, SimulationYearDetail year, AssetDetail section, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)

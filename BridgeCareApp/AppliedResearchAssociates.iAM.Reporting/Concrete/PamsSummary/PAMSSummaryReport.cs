@@ -225,7 +225,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             }
 
             var simulationYearsCount = simulationYears.Count;
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
             var simulationDto = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
             var investmentPlanDto = _unitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulationId);
             var budgetsDtos = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
