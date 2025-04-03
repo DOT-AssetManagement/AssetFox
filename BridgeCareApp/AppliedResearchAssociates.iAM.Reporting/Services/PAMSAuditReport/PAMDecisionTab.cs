@@ -27,7 +27,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, SimulationDTO simulationDto, HashSet<string> performanceCurvesAttributes, AnalysisMethodDTO analysisMethodDto, List<TreatmentDTO> scenarioSelectableTreatmentsDtos)
+        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, HashSet<string> performanceCurvesAttributes, AnalysisMethodDTO analysisMethodDto, List<TreatmentDTO> scenarioSelectableTreatmentsDtos)
         {
             columnNumbersBudgetsUsed = new List<int>();
             // Distinct performance curves' attributes
@@ -58,16 +58,16 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
         }
 
         private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, ExcelWorksheet decisionsWorksheet, CurrentCell currentCell)
-        {            
+        {
+            var years = simulationOutput.Years.OrderBy(yr => yr.Year);
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
                 Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
-                var crs = _reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, "CRS");                
-                var years = simulationOutput.Years.OrderBy(yr => yr.Year);
+                var crs = _reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, "CRS");                                
 
                 // Year 0
                 var PAMSdecisionDataModel = GetInitialDecisionDataModel(currentAttributes, crs, years.FirstOrDefault().Year - 1, initialAssetSummary);
-                FillInitialDataInWorksheet(decisionsWorksheet, PAMSdecisionDataModel, currentAttributes, currentCell.Row, 1);
+                _ = FillInitialDataInWorksheet(decisionsWorksheet, PAMSdecisionDataModel, currentAttributes, currentCell.Row, 1);
 
                 var yearZeroRow = currentCell.Row++;                
                 foreach (var year in years)
@@ -87,8 +87,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
                     // Fill in excel
                     currentCell = FillDataInWorksheet(decisionsWorksheet, decisionsDataModel, budgets.Count, currentAttributes, currentCell);
                 }
+
                 ExcelHelper.ApplyBorder(decisionsWorksheet.Cells[yearZeroRow, 1, yearZeroRow, currentCell.Column]);
-                keyCashFlowFundingDetails.Clear();
             }            
         }
 

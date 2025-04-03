@@ -162,7 +162,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
 
             var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
-            var simulationDto = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
             var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
             var performanceCurvesDtos = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
             var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);
@@ -191,7 +190,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(performanceCurvesDtos);
             performanceCurvesDtos.Clear();
             ValidateSections(simulationOutput, reportDetailDto, simulationId, new HashSet<string>(performanceCurvesAttributes.Except(dataTabRequiredAttributes)));
-            _decisionTab.Fill(decisionsWorksheet, simulationOutput, simulationDto, performanceCurvesAttributes, analysisMethodDto, scenarioSelectableTreatmentsDtos);            
+            _decisionTab.Fill(decisionsWorksheet, simulationOutput, performanceCurvesAttributes, analysisMethodDto, scenarioSelectableTreatmentsDtos);            
 
             checkCancelled(cancellationToken, simulationId);
             // Check and generate folder
