@@ -3,16 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
 using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs.Services;
 using AppliedResearchAssociates.iAM.Reporting.Services;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Newtonsoft.Json;
 
 namespace AppliedResearchAssociates.iAM.Reporting
@@ -112,7 +108,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             try
             {
                 checkCancelled(cancellationToken, simulationGuid);
-                simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationGuid);
+                simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationGuid);
             }
             catch (Exception e)
             {

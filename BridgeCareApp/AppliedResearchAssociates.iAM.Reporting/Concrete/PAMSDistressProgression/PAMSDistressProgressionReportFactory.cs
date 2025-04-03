@@ -11,7 +11,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         public IReport Create(IUnitOfWork uow, ReportIndexDTO results, IHubService hubService, string suffix = "")
         {
-            var report = new PAMSDistressProgressionReport(uow, Name, results);
+            var report = new PAMSDistressProgressionReport(uow, Name, results, hubService);
             return report;
         }
     }

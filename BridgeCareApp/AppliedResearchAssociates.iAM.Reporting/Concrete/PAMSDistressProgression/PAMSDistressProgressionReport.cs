@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.Hubs;
+using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.Reporting.Services;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSDistressProgressionReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
-using BridgeCareCore.Services;
 using OfficeOpenXml;
 
 namespace AppliedResearchAssociates.iAM.Reporting
 {
     public class PAMSDistressProgressionReport : IReport
     {
+        protected readonly IHubService _hubService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly OPICalculations _opiCalculationsTab;
 
@@ -42,10 +43,11 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         public string Criteria { get; set; }
 
-        public PAMSDistressProgressionReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results)
+        public PAMSDistressProgressionReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {
             //store passed parameter   
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
             ReportTypeName = name;
             _opiCalculationsTab = new OPICalculations(_unitOfWork);
 
@@ -149,40 +151,36 @@ namespace AppliedResearchAssociates.iAM.Reporting
         private string GenerateDistressProgressionReport(Guid networkID, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken)
         {
             checkCancelled(cancellationToken, simulationId);
-            
-            var logger = new CallbackLogger((string message) =>
+
+            var reportDetailDto = new SimulationReportDetailDTO
             {
-                var dto = new SimulationReportDetailDTO
-                {
-                    SimulationId = simulationId,
-                    Status = message,
-                    ReportType = ReportTypeName
-                };
-                UpdateSimulationAnalysisDetail(dto);
-            });
-            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
-            var reportDetailDto = new SimulationReportDetailDTO { SimulationId = simulationId };
-            var explorer = _unitOfWork.AttributeRepo.GetExplorer();
-            var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkID, explorer);
-            _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
-            var simulation = network.Simulations.First();
-            _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
+                SimulationId = simulationId,
+                Status = $"Generating...",
+                ReportType = ReportTypeName
+            };
+            UpsertSimulationReportDetail(reportDetailDto);
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+
+            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
+            var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
             
             using var excelPackage = new ExcelPackage(new FileInfo("DistressProgressionReportTestData.xlsx"));
             checkCancelled(cancellationToken, simulationId);
 
             // Condition Data
-            reportDetailDto.Status = $"Creating" + PAMSConstants.OPICalculationsTab + "TAB";
+            reportDetailDto.Status = $"Creating" + PAMSConstants.OPICalculationsTab + "TAB";            
+            UpsertSimulationReportDetail(reportDetailDto);
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
             var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.OPICalculationsTab);
-            _opiCalculationsTab.Fill(worksheet, reportOutputData, simulation.ShouldBundleFeasibleTreatments);
+            _opiCalculationsTab.Fill(worksheet, simulationOutput, analysisMethodDto.ShouldAllowMultipleTreatments);
 
-            // Condition Data
+            // Legend
             reportDetailDto.Status = $"Creating" + PAMSConstants.Legend_Tab + "TAB";
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+            UpsertSimulationReportDetail(reportDetailDto);
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
             var legendWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.Legend_Tab);
             Legend.Fill(legendWorksheet);
 
@@ -199,9 +197,12 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var bin = excelPackage.GetAsByteArray();
             File.WriteAllBytes(filePath, bin);            
             var functionReturnValue = filePath ?? string.Empty;
+
             reportDetailDto.Status = $"Report generation completed";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+
             return functionReturnValue;            
         }
 
@@ -223,9 +224,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 Status = $"",
                 ReportType = ReportTypeName
             };
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
         }
 
-        private void UpdateSimulationAnalysisDetail(SimulationReportDetailDTO dto) => _unitOfWork.SimulationReportDetailRepo.UpsertSimulationReportDetail(dto);
+        private void UpsertSimulationReportDetail(SimulationReportDetailDTO dto) => _unitOfWork.SimulationReportDetailRepo.UpsertSimulationReportDetail(dto);
     }
 }
