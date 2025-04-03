@@ -91,15 +91,21 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             List<AggregatedSelectValuesResultDTO> returnList = new();
             var uniqueAttributeNames = attributeNames.Distinct().ToList();
             var abbreviatedAttributes = _unitOfWork.Context.Attribute.Where(a => uniqueAttributeNames.Contains(a.Name))
+                .AsNoTracking()
                 .Select(AttributeMapper.ToAbbreviatedDto)
                 .ToList();
             var abbreviatedAttributeDtoDictionary = abbreviatedAttributes.ToDictionary(a => a.Name, a => a);
+            var attributeNameIdDictionary = new Dictionary<Guid, string>();
+            foreach (var attribute in abbreviatedAttributeDtoDictionary.Values)
+            {
+                attributeNameIdDictionary[attribute.Id] = attribute.Name;
+            }
+            var attributeIds = attributeNameIdDictionary.Keys.ToList();
             var allAttributeValueDtos = _unitOfWork.Context.AggregatedResult
-                .Include(_ => _.Attribute)
-                .Where(_ => attributeNames.Contains(_.Attribute.Name))
+                .Where(_ => attributeIds.Contains(_.AttributeId))
                 .Select(e => new
                 {
-                    AttributeName = e.Attribute.Name,
+                    AttributeName = attributeNameIdDictionary[e.AttributeId],
                     e.Discriminator,
                     e.TextValue,
                     e.NumericValue,
