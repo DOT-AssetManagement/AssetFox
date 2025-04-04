@@ -285,6 +285,63 @@ namespace BridgeCareCore.Services.Aggregation
 
                     }*/
 
+                    foreach (var maintainableAsset in maintainableAssets)
+                    {
+                        if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                        {
+                            _unitOfWork.Rollback();
+                            return;
+                        }
+                        if (count % 500 == 0)
+                        {
+                            state.Percentage = Math.Round(count / totalAssets * 100, 1);
+                        }
+                        count++;
+                        maintainableAsset.AssignedData.RemoveAll(_ =>
+                            attributeIdsToBeUpdatedWithAssignedData.Contains(_.Attribute.Id));
+                        //List<DatumLog> unmatchedDatum = maintainableAsset.AssignAttributeData(attributeData);
+                        string locationIdentifier = maintainableAsset.Location.LocationIdentifier;
+
+                        // Direct lookup by location identifier
+                        if (attributeDataByLocationIdentifier.TryGetValue(locationIdentifier, out var matchingData))
+                        {
+                            // Filter just to make sure they're the right type
+                            var correctTypeData = matchingData.Where(d => d.Location.GetType() == maintainableAsset.Location.GetType());
+                            maintainableAsset.AssignedData.AddRange(correctTypeData);
+                        }
+                        try
+                        {
+                            // aggregate numeric data
+                            if (maintainableAsset.AssignedData.Any(_ => _.Attribute.DataType == "NUMBER"))
+                            {
+                                aggregatedResults.AddRange(maintainableAsset.AssignedData
+                                    .Where(_ => _.Attribute.DataType == "NUMBER")
+                                    .Select(_ => _.Attribute).Distinct()
+                                    .Select(_ =>
+                                        maintainableAsset.GetAggregatedValuesByYear(_,
+                                            AggregationRuleFactory.CreateNumericRule(_)))
+                                    .ToList());
+                            }
+
+                            //aggregate text data
+                            if (maintainableAsset.AssignedData.Any(_ => _.Attribute.DataType == "STRING"))
+                            {
+                                aggregatedResults.AddRange(maintainableAsset.AssignedData
+                                    .Where(_ => _.Attribute.DataType == "STRING")
+                                    .Select(_ => _.Attribute).Distinct()
+                                    .Select(_ => maintainableAsset.GetAggregatedValuesByYear(_,
+                                        AggregationRuleFactory.CreateTextRule(_))).ToList());
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            var networkName = _unitOfWork.NetworkRepo.GetNetworkNameOrId(networkId);
+                            var broadcastError = $"Error: Creating aggregation rule(s) for the attributes for {networkName}:: {e.Message}";
+                            WriteError(writer, broadcastError);
+                            throw;
+                        }
+                    }
+
                     if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                     {
                         _unitOfWork.Rollback();
@@ -313,7 +370,7 @@ namespace BridgeCareCore.Services.Aggregation
                         throw new Exception(e.StackTrace);
                     }
                     stopwatch.Stop();
-                    _log.Information($"Finished Att datum. {stopwatch.ElapsedMilliseconds}ms");
+                    _log.Information($"Finished Att datum. Start save. {stopwatch.ElapsedMilliseconds}ms");
                     stopwatch.Start();
                     try
                     {
@@ -323,6 +380,19 @@ namespace BridgeCareCore.Services.Aggregation
                     {
                         var networkName = _unitOfWork.NetworkRepo.GetNetworkNameOrId(networkId);
                         var broadcastError = $"Error while Updating MaintainableAssets SpatialWeighting for {networkName} -  {e.Message}";
+                        WriteError(writer, broadcastError);
+                        isError = true;
+                        state.ErrorMessage = e.Message;
+                        throw new Exception(e.StackTrace);
+                    }
+                    try
+                    {
+                        _unitOfWork.AggregatedResultRepo.AddAggregatedResults(aggregatedResults);
+                    }
+                    catch (Exception e)
+                    {
+                        var networkName = _unitOfWork.NetworkRepo.GetNetworkNameOrId(networkId);
+                        var broadcastError = $"Error while adding Aggregated results for {networkName} -  {e.Message}";
                         WriteError(writer, broadcastError);
                         isError = true;
                         state.ErrorMessage = e.Message;
