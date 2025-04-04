@@ -48,6 +48,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.
             // Fill data in excel
             FillDynamicDataInWorkSheet(simulationOutput, currentAttributes, decisionsWorksheet, currentCell);
 
+            performanceCurvesAttributes.Clear();
+
             decisionsWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
             decisionsWorksheet.Cells.AutoFitColumns();
             PerformPostAutofitAdjustments(decisionsWorksheet);

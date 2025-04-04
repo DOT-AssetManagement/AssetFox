@@ -13,7 +13,6 @@ using AppliedResearchAssociates.iAM.Reporting.Services;
 using AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.GeneralBudgetSummary;
 using OfficeOpenXml;
 using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 
 
@@ -235,6 +234,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
             }
 
             var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(performanceCurvesDtos);
+            performanceCurvesDtos.Clear();
             reportDetailDto.Status = $"Generating Work Done Tab";
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, SimulationID);
             UpsertSimulationReportDetail(reportDetailDto);

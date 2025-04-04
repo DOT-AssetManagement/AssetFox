@@ -41,7 +41,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             AddDynamicDataCells(pavementWorksheet, simulationOutput, currentCell);
 
             pavementWorksheet.Cells.AutoFitColumns();
-            //_flexibleUnfundedTreatments.PerformPostAutofitAdjustments(pavementWorksheet);
         }
 
         public CurrentCell AddHeadersCells(ExcelWorksheet worksheet)
@@ -52,7 +51,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             // Row 1
             int headerRow = 1;
             var headersRow1 = GetHeadersRow1();
-            //var headersRow2 = GetHeadersRow2();
 
             var StressesColumn = headersRow1.IndexOf("OPI") + columnNo;
 
@@ -71,7 +69,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             // Autofit before the merges
             worksheet.Cells.AutoFitColumns(0);
             ExcelHelper.ApplyBorder(worksheet.Cells[headerRow, 1, headerRow + 1, worksheet.Dimension.Columns]);
-            //ExcelHelper.ApplyStyle(worksheet.Cells[headerRow + 1, bridgeFundingColumn, headerRow + 1, analysisColumn - 1]);
             worksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
 
             currentCell = new CurrentCell { Row = headerRow + 2, Column = worksheet.Dimension.Columns + 1 };
@@ -84,6 +81,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             {
             };
         }
+
         private void StressHeaders(ExcelWorksheet worksheet, int column, int row, List<string> stressHeaders)
         {
             for (int cell = 0; cell < stressHeaders.Count; cell++)
@@ -92,8 +90,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             }
 
         }
-
-
 
         private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell)
         {
@@ -121,7 +117,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
 
             var row = currentCell.Row;
             var columnNo = currentCell.Column;
-            var assetSummaryDetail = DataModel.AssetSummaryDetail;
 
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
 
