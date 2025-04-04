@@ -13,9 +13,11 @@ using AppliedResearchAssociates.iAM.Data.Attributes;
 using AppliedResearchAssociates.iAM.Data.Helpers;
 using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.ContentModel;
 using Writer = System.Threading.Channels.ChannelWriter<BridgeCareCore.Services.Aggregation.AggregationStatusMemo>;
@@ -100,14 +102,37 @@ namespace BridgeCareCore.Services.Aggregation
                     stopwatch.Stop();
                     _log.Information($"Finished prework agg. {stopwatch.ElapsedMilliseconds}ms");
                     stopwatch.Start();
+
+                    var attributesByDataSource = new Dictionary<BaseDataSourceDTO, List<IAttributeDatum>>();
+
                     try
                     {
-                        foreach (var attribute in configurationAttributes)
+
+                        var uniqueDataSources = attributes
+                            .Where(attr => attr.DataSource != null)
+                            .Select(attr => attr.DataSource)
+                            .DistinctBy(ds => ds.Id)
+                            .ToList();
+
+                        foreach (var dataSource in uniqueDataSources)
                         {
-                            if (attribute.ConnectionType != ConnectionType.NONE)
+                            //var dataSourceAttributes = attributes.Where(_ => _.DataSource == dataSource);
+                            var dataSourceConfigurationAttributes = configurationAttributes.Where(_ => dataSource.Id == _.DataSourceId);
+
+                            if (dataSource.Type == "Excel")
                             {
-                                var dataSource = attributes.FirstOrDefault(_ => _.Id == attribute.Id)?.DataSource;
-                                if (dataSource != null)
+                                var excelSpreadsheet = _unitOfWork.ExcelWorksheetRepository.GetExcelRawDataByDataSourceId(dataSource.Id);
+
+                                foreach (var attribute in dataSourceConfigurationAttributes)
+                                {
+                                    var specificData = AttributeDataBuilder
+                                        .GetData(AttributeConnectionBuilder.Build(attribute, dataSource, _unitOfWork, excelSpreadsheet));
+                                    attributeData.AddRange(specificData);
+                                }
+                            }
+                            else if (dataSource.Type == "SQL")
+                            {
+                                foreach (var attribute in dataSourceConfigurationAttributes)
                                 {
                                     var specificData = AttributeDataBuilder
                                         .GetData(AttributeConnectionBuilder.Build(attribute, dataSource, _unitOfWork));
@@ -164,7 +189,7 @@ namespace BridgeCareCore.Services.Aggregation
                     // loop over maintainable assets and remove assigned data that has an attribute id
                     // in attributeIdsToBeUpdatedWithAssignedData then assign the new attribute data
                     // that was created
-                    const int CHUNK_SIZE = 10000; // Adjust based on your memory constraints
+                    /*const int CHUNK_SIZE = 10000; // Adjust based on your memory constraints
                     var assetCount = maintainableAssets.Count;
 
                     for (int i = 0; i < assetCount; i += CHUNK_SIZE)
@@ -258,7 +283,7 @@ namespace BridgeCareCore.Services.Aggregation
                         state.Percentage = Math.Round((double)i / assetCount * 100, 1);
                         WriteState(writer, state);
 
-                    }
+                    }*/
 
                     if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                     {
@@ -276,7 +301,7 @@ namespace BridgeCareCore.Services.Aggregation
 
                     try
                     {
-                        _unitOfWork.AttributeDatumRepo.AddAssignedData(maintainableAssets, attributes);
+                        //_unitOfWork.AttributeDatumRepo.AddAssignedData(maintainableAssets, attributes);
                     }
                     catch (Exception e)
                     {
