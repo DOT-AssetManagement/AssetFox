@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
@@ -22,7 +21,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
     {        
         protected readonly IHubService _hubService;
         private readonly IUnitOfWork _unitOfWork;
-        private Guid _networkId;
         private readonly PAMSDataTab _dataTab;
         private readonly PAMSDecisionTab _decisionTab;
         private readonly ReportHelper _reportHelper;
@@ -97,7 +95,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             {
                 var simulationObject = _unitOfWork.SimulationRepo.GetSimulation(_simulationId);
                 simulationName = simulationObject.Name;
-                _networkId = simulationObject.NetworkId;
+                var _networkId = simulationObject.NetworkId;
             }
             catch (Exception e)
             {
@@ -119,7 +117,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var reportPath = string.Empty;
             try
             {
-                reportPath = GeneratePAMSAuditReport(_networkId, _simulationId, workQueueLog, cancellationToken);
+                reportPath = GeneratePAMSAuditReport(_simulationId, workQueueLog, cancellationToken);
             }
             catch (Exception e)
             {
@@ -142,7 +140,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             Status = "File generated.";
             return;
         }
-        private string GeneratePAMSAuditReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
+
+        private string GeneratePAMSAuditReport(Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
             if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
             {
@@ -190,7 +189,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(performanceCurvesDtos);
             performanceCurvesDtos.Clear();
             ValidateSections(simulationOutput, reportDetailDto, simulationId, new HashSet<string>(performanceCurvesAttributes.Except(dataTabRequiredAttributes)));
-            _decisionTab.Fill(decisionsWorksheet, simulationOutput, performanceCurvesAttributes, analysisMethodDto, scenarioSelectableTreatmentsDtos);            
+            _decisionTab.Fill(decisionsWorksheet, simulationOutput, performanceCurvesAttributes, analysisMethodDto, scenarioSelectableTreatmentsDtos);  
 
             checkCancelled(cancellationToken, simulationId);
             // Check and generate folder

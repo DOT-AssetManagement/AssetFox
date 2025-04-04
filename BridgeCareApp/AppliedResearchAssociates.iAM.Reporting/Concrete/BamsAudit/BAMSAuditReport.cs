@@ -21,7 +21,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
     {
         protected readonly IHubService _hubService;
         private readonly IUnitOfWork _unitOfWork;
-        private Guid _networkId;       
         private readonly DataTab _dataTab;
         private readonly DecisionTab _decisionTab;
         private readonly ReportHelper _reportHelper;
@@ -97,7 +96,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             {
                 var simulationObject = _unitOfWork.SimulationRepo.GetSimulation(_simulationId);
                 simulationName = simulationObject.Name;
-                _networkId = simulationObject.NetworkId;
+                var _networkId = simulationObject.NetworkId;
             }
             catch (Exception e)
             {
@@ -119,7 +118,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var reportPath = string.Empty;
             try
             {
-                reportPath = GenerateBAMSAuditReport(_networkId, _simulationId, ReportTypeName, workQueueLog, cancellationToken);
+                reportPath = GenerateBAMSAuditReport(_simulationId, ReportTypeName, workQueueLog, cancellationToken);
             }
             catch (Exception e)
             {
@@ -143,7 +142,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             return;
         }
 
-        private string GenerateBAMSAuditReport(Guid networkId, Guid simulationId, string ReportTypeName, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
+        private string GenerateBAMSAuditReport(Guid simulationId, string ReportTypeName, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
             if(cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
             {
