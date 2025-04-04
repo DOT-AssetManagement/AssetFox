@@ -1451,7 +1451,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
         }
      }
 
-    function importCompleted(data: any){
+     async function importCompleted(data: any){
         var importComp = data.importComp as importCompletion
 
         const treatmentSuccessMsg = "Successfully uploaded treatments."
@@ -1477,6 +1477,64 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
                 } else {
                     
                     await getSimpleSelectableTreatmentsAction(selectedTreatmentLibrary.value.id);
+                }
+
+                if(importComp.workType == 11)
+                {
+                    await TreatmentService.getScenarioSelectedTreatments(selectedScenarioId).then((response: AxiosResponse) => {
+                        if (hasValue(response, 'data')) {    
+                            // Extract all budgetIDs
+                            const allBudgetIds = budgets.map(budget => budget.id);
+                            
+                            if (Array.isArray(response.data)) {
+                                // Get Treatment Details
+                                var treatmentsData = response.data as Treatment[];
+
+                                const originalOrder = [...treatmentsData].map(t => t.id);
+                                
+                                // Add all budgetIDs to each treatment
+                                treatmentsData.forEach(treatment => {
+                                    const originalTreatments = JSON.parse(JSON.stringify(treatment)) as Treatment;
+                                    
+                                    treatment.budgetIds = [...allBudgetIds];
+                                    
+                                    // Add to updatedRowsMap with originalTreatments
+                                    updatedRowsMap.set(treatment.id, [originalTreatments, treatment]);
+                                });
+
+                                // Sort treatmentsData
+                                treatmentsData.sort((a, b) => {
+                                    const indexA = originalOrder.indexOf(a.id);
+                                    const indexB = originalOrder.indexOf(b.id);
+                                    return indexA - indexB;
+                                });
+                                
+                                // Update your treatments array with the modified data
+                                treatments.value = treatmentsData;
+                            } else {
+                                // If response data is a single treatment
+                                var data = response.data as Treatment;
+                                
+                                const originalTreatment = JSON.parse(JSON.stringify(data)) as Treatment;
+                                                            
+                                // Add all budgetIDs to this treatment
+                                data.budgetIds = [...allBudgetIds];
+                                
+                                selectedTreatment.value = data;
+                                
+                                // Add to updatedRowsMap with originalTreatment
+                                updatedRowsMap.set(data.id, [originalTreatment, data]);
+                                
+                                if (isNil(treatmentCache.find(_ => _.id === data.id))) {
+                                    treatmentCache.push(data);
+                                }
+                            }
+                            
+                            // Save Changes
+                            onUpsertScenarioTreatments();
+                        }
+                    });
+
                 }
                 setAlertMessageAction('');
                 // Set the success message and show the popup
