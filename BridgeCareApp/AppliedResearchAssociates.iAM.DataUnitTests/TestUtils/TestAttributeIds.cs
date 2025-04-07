@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
+namespace AppliedResearchAssociates.iAM.DataUnitTests
 {
     public class TestAttributeIds
     {
@@ -23,6 +19,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
 
         public const string BmsIdString = "24C42A9F-3E80-4D3A-9E95-CB60063F3CAA";
         public static Guid BmsidId = Guid.Parse(BmsIdString);
+
+        public const string DistrictIdString = "B279B58E-89CC-4662-8874-C87F04ADB60E";
+        public static Guid DistrictId = Guid.Parse(DistrictIdString);
 
         public const string RiskScoreIdString = "F6A260B0-B94D-4737-971B-4DE25EF36DF2";
         public static Guid RiskScoreId => Guid.Parse(RiskScoreIdString);

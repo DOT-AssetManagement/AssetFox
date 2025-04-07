@@ -18,6 +18,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappe
 using Xunit;
 using MaintainableAsset = AppliedResearchAssociates.iAM.Data.Networking.MaintainableAsset;
 using System.Data;
+using AppliedResearchAssociates.iAM.DataUnitTests;
 
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects

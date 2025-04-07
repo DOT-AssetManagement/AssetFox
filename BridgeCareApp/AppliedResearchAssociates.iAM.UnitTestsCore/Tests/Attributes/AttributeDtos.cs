@@ -2,6 +2,7 @@
 using System.Security.Cryptography.X509Certificates;
 using AppliedResearchAssociates.iAM.Data.Attributes;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
+using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 
@@ -114,7 +115,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
         {
             Name = TestAttributeNames.District,
             AggregationRuleType = TextAttributeAggregationRules.Predominant,
-            Id = Guid.NewGuid(),
+            Id = TestAttributeIds.DistrictId,
             Command = "DISTRICT",
             DefaultValue = "Default District",
             Type = "STRING",
