@@ -5,6 +5,8 @@ import router from '@/router';
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import AuthenticationService from '@/services/authentication.service';
 import { useRouter } from 'vue-router';
+import { hasValue } from './has-value-util';
+import { UserInfoLocal } from '../models/iAM/authentication';
 
 const $router = useRouter();
 
@@ -74,13 +76,28 @@ const isAuthenticatedAzureUser = () => {
         });
 };
 
+const isAuthenticatedLocalDebugUserUser = () => {
+    if(hasValue(localStorage.getItem('LoggedInUser'))){
+        var config = store.getters.getConfig
+        var payload = config.localDegugInfo as UserInfoLocal
+        return store.dispatch('localDebugLogin', payload).then(() => {return true}) 
+    }
+    return new Promise<boolean>(() => 
+        {
+            return false
+        }) 
+};
+
 export const isAuthenticatedUser = () => {
     // @ts-ignore
     if (store.state.authenticationModule.securityType === SecurityTypes.esec) {
         return isAuthenticatedEsecUser();
     }
+    if (store.state.authenticationModule.securityType === SecurityTypes.b2c) {
+        return isAuthenticatedAzureUser();
+    }
 
-    return isAuthenticatedAzureUser();
+    return isAuthenticatedLocalDebugUserUser();
 };
 
 const onLogout = () => {

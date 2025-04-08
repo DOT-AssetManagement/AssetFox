@@ -1,6 +1,6 @@
 import AuthenticationService from '../services/authentication.service';
 import { AxiosResponse } from 'axios';
-import { UserInfo, UserTokens } from '@/shared/models/iAM/authentication';
+import { UserInfo, UserInfoLocal, UserTokens } from '@/shared/models/iAM/authentication';
 import { http2XX } from '@/shared/utils/http-utils';
 import {
     checkLDAP,
@@ -251,14 +251,15 @@ const actions = {
         commit('securityTypeMutator', payload);
     },
     localDebugLogin({commit, state}: any, payload: any){
+        var user = payload as UserInfoLocal
         commit('hasRoleMutator', true);
         commit('checkedForRoleMutator', true);
-        commit('adminAccessMutator', payload.hasAdminAccess);
-        commit('usernameMutator', payload.username);
+        commit('adminAccessMutator', user.hasAdminAccess);
+        commit('usernameMutator', user.name);
         commit('authenticatedMutator', true);
-        commit('simulationAccessMutator', payload.hasSimulationAccess);
+        commit('simulationAccessMutator', user.hasSimulationAccess);
         
-        localStorage.setItem('LoggedInUser', payload.username);
+        localStorage.setItem('LoggedInUser', user.name);
 }
 };
 

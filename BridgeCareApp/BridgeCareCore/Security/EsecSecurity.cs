@@ -13,6 +13,9 @@ using Microsoft.IdentityModel.Tokens;
 using static BridgeCareCore.Security.SecurityConstants;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
 
 namespace BridgeCareCore.Security
 {
@@ -76,6 +79,13 @@ namespace BridgeCareCore.Security
             {               
                 var authorizationString = request.Headers["Authorization"].ToString();
                 var user = JsonConvert.DeserializeObject<UserInfo>(authorizationString);
+                var claims = new List<System.Security.Claims.Claim>();
+                if(user.HasAdminAccess)
+                    claims.Add(new System.Security.Claims.Claim(ClaimTypes.Name, SecurityConstants.Claim.AdminAccess));
+                if (user.HasSimulationAccess)
+                    new System.Security.Claims.Claim(ClaimTypes.Name, SecurityConstants.Claim.SimulationAccess);
+                var  claimsIdentity = new ClaimsIdentity(claims, "custom");        
+                request.HttpContext.User = new ClaimsPrincipal(claimsIdentity);
                 return user;
             }
             var idToken = "";
