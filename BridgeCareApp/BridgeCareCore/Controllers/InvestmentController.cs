@@ -465,7 +465,7 @@ namespace BridgeCareCore.Controllers
                 });
               
                 ImportLibraryInvestmentWorkitem workItem = new ImportLibraryInvestmentWorkitem(budgetLibraryId, excelPackage, currentUserCriteriaFilter, overwriteBudgets, UserInfo.Name, budgetLibraryName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, libraryId.ToString());
 
@@ -533,7 +533,7 @@ namespace BridgeCareCore.Controllers
                 });
 
                 ImportScenarioInvestmentWorkitem workItem = new ImportScenarioInvestmentWorkitem(simulationId, excelPackage, currentUserCriteriaFilter, overwriteBudgets, UserInfo.Name, simulationName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, simulationId.ToString());
 

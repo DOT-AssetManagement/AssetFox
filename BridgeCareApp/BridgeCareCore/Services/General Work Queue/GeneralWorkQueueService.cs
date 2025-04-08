@@ -12,11 +12,13 @@ namespace BridgeCareCore.Services
     {
         private readonly SequentialWorkQueue<WorkQueueMetadata> _sequentialWorkQueue;
         private readonly FastSequentialworkQueue<WorkQueueMetadata> _fastQueue;
+        private readonly HiddenUploadQueue<WorkQueueMetadata> _hiddenUploadQueue;
 
-        public GeneralWorkQueueService(SequentialWorkQueue<WorkQueueMetadata> sequentialWorkQueue, FastSequentialworkQueue<WorkQueueMetadata> fastQueue)
+        public GeneralWorkQueueService(SequentialWorkQueue<WorkQueueMetadata> sequentialWorkQueue, FastSequentialworkQueue<WorkQueueMetadata> fastQueue, HiddenUploadQueue<WorkQueueMetadata> hiddenUploadQueue)
         {
             _sequentialWorkQueue = sequentialWorkQueue ?? throw new ArgumentNullException(nameof(sequentialWorkQueue));
             _fastQueue = fastQueue ?? throw new ArgumentNullException(nameof(fastQueue));
+            _hiddenUploadQueue = hiddenUploadQueue ?? throw new ArgumentNullException( nameof(hiddenUploadQueue));
         }
 
         public IQueuedWorkHandle<WorkQueueMetadata> CreateAndRun(IWorkSpecification<WorkQueueMetadata> workItem)
@@ -39,6 +41,17 @@ namespace BridgeCareCore.Services
         public bool CancelInFastQueue(string workId)
         {
             return _fastQueue.Cancel(workId);
+        }
+
+        public IQueuedWorkHandle<WorkQueueMetadata> CreateAndRunInHiddenUploadQueue(IWorkSpecification<WorkQueueMetadata> workItem)
+        {
+            _hiddenUploadQueue.Enqueue(workItem, out var workHandle).Wait();
+            return workHandle;
+        }
+
+        public bool CancelInHiddenUploadQueue(string workId)
+        {
+            return _hiddenUploadQueue.Cancel(workId);
         }
     }
 }

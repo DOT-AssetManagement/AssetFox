@@ -73,6 +73,9 @@ export default class ScenarioService {
     static getFastQueuedWorkByDomainIdAndWorkType(data:WorkQueueRequest): AxiosPromise {
         return coreAxiosInstance.post(`${API.Scenario}/GetFastQueuedWorkByDomainIdAndWorkType/`, data);
     }
+    static getHiddenUploadQueuedWorkByDomainIdAndWorkType(data:WorkQueueRequest): AxiosPromise {
+        return coreAxiosInstance.post(`${API.Scenario}/GetHiddenUploadQueuedWorkByDomainIdAndWorkType/`, data);
+    }
 
     static GetQueuedWorkByWorkType(data:WorkType): AxiosPromise {
         return coreAxiosInstance.get(`${API.Scenario}/GetQueuedWorkByWorkType/${data}`);

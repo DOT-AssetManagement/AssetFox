@@ -22,12 +22,16 @@ namespace BridgeCareCore.Services
         private static ISimulationRepository _simulationRepository;
         private SequentialWorkQueue<WorkQueueMetadata> _sequentialWorkQueue;
         private FastSequentialworkQueue<WorkQueueMetadata> _fastSequentialWorkQueue;
+        private HiddenUploadQueue<WorkQueueMetadata> _hiddenUploadQueue;
 
-        public WorkQueueService(IUnitOfWork unitOfWork, SequentialWorkQueue<WorkQueueMetadata> sequentialWorkQueue, FastSequentialworkQueue<WorkQueueMetadata> fastSequentialworkQueue, ISimulationRepository simulationRepository)
+        public WorkQueueService(IUnitOfWork unitOfWork, SequentialWorkQueue<WorkQueueMetadata> sequentialWorkQueue, FastSequentialworkQueue<WorkQueueMetadata> fastSequentialworkQueue,
+            HiddenUploadQueue<WorkQueueMetadata> hiddenUploadQueue,
+            ISimulationRepository simulationRepository)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _sequentialWorkQueue = sequentialWorkQueue ?? throw new ArgumentNullException(nameof(sequentialWorkQueue));
             _fastSequentialWorkQueue = fastSequentialworkQueue ?? throw new ArgumentNullException(nameof(fastSequentialworkQueue));
+            _hiddenUploadQueue = hiddenUploadQueue ?? throw new ArgumentNullException(nameof(hiddenUploadQueue));
 
             _simulationRepository = simulationRepository ?? throw new ArgumentNullException(nameof(simulationRepository));
         }
@@ -216,6 +220,32 @@ namespace BridgeCareCore.Services
             }
             return null;
         }
+
+        public QueuedWorkDTO GetHiddenUploadQueuedWorkByWorkId(string workId)
+        {
+            var workQueue = _hiddenUploadQueue.Snapshot;
+
+            var work = workQueue.FirstOrDefault(_ => _.WorkId == workId);
+
+            if (work != null)
+            {
+                return work.ToQueuedWorkDTO();
+            }
+            return null;
+        }
+        public QueuedWorkDTO GetHiddenUploadQueuedWorkByDomainIdAndWorkType(Guid domainId, WorkType workType)
+        {
+            var workQueue = _hiddenUploadQueue.Snapshot;
+
+            var work = workQueue.FirstOrDefault(_ => _.Metadata.DomainId == domainId && _.Metadata.WorkType == workType);
+
+            if (work != null)
+            {
+                return work.ToQueuedWorkDTO();
+            }
+            return null;
+        }
+        public QueuedWorkDTO GetHiddeenUploadQueuedWorkByWorkType(WorkType workType) => throw new NotImplementedException();
     }
 
     public static class QueuedWorkTransform
