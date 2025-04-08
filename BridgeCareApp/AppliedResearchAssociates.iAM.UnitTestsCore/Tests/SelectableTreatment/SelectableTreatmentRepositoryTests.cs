@@ -1,28 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using Microsoft.AspNetCore.Mvc;
-using Xunit;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using System.Runtime.InteropServices;
-using Microsoft.EntityFrameworkCore;
-using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Treatment;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
 using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AppliedResearchAssociates.iAM.TestHelpers;
+using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Treatment;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
 {
@@ -364,7 +359,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
         [Fact]
         public void UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers_LibraryAndTreatmentsInDb_Updates()
         {
-            // WJWJWJ could be a good test to modify for the new repo method?
             SetupAttributesAndNetwork();
             CreateLibraryTestData();
 
@@ -744,6 +738,24 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
             var userLibraries = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetTreatmentLibrariesNoChildrenAccessibleToUser(user.Id);
 
             Assert.Contains(userLibraries, l => l.Id == treatmentLibraryId);
+        }
+
+        [Fact]
+        public void GetScenarioSelectableTreatmentNames_ScenarioTreatmentInDb_GetsName()
+        {
+            SetupAttributesAndNetwork();
+            var simulationId = Guid.NewGuid();
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, networkId: NetworkTestSetup.NetworkId);
+            var treatmentId = Guid.NewGuid();
+            var treatmentName = RandomStrings.WithPrefixAnd2CharSuffix("Treatment");
+            var treatmentDto = TreatmentDtos.DtoWithEmptyCostsAndConsequencesLists(treatmentId, treatmentName);
+            var treatmentDtos = new List<TreatmentDTO> { treatmentDto };
+            TestHelper.UnitOfWork.SelectableTreatmentRepo.AddScenarioSelectableTreatment(treatmentDtos, simulationId);
+
+            var treatmentNames = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentNames(simulationId);
+
+            var actualTreatmentName = treatmentNames.Single();
+            Assert.Equal(treatmentName, actualTreatmentName);
         }
     }
 }

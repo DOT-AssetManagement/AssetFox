@@ -52,17 +52,5 @@ namespace BridgeCareCoreTests.Tests.Treatment
         {
             repository.Setup(r => r.GetLibraryUsers(libraryId)).Returns(users);
         }
-
-        public static List<TreatmentLibraryDTO> GetUpsertTreatmentLibraryCalls(this Mock<ITreatmentLibraryUserRepository> mock)
-        {
-            var r = new List<TreatmentLibraryDTO>();
-            var invocations = mock.Invocations.Where(i => i.Method.Name == nameof(ITreatmentLibraryUserRepository.UpsertTreatmentLibraryUser)).ToList();
-            foreach (var invocation in invocations)
-            {
-                var dto = (TreatmentLibraryDTO)invocation.Arguments[0];
-                r.Add(dto);
-            }
-            return r;
-        }
     }
 }

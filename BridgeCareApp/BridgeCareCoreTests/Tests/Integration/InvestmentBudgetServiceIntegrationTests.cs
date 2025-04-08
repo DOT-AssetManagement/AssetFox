@@ -27,7 +27,7 @@ namespace BridgeCareCoreTests.Tests.Integration
         {
             var investmentDefaultDataService = new InvestmentDefaultDataService();
             var expressionValidationService = ExpressionValidationServiceMocks.EverythingIsValid();
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var service = new InvestmentBudgetsService(
                 unitOfWork,
                 expressionValidationService.Object,

@@ -13,7 +13,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
 {
     public static class BudgetPriorityPagingServiceMocks
     {
-        public static Mock<IBudgetPriortyPagingService> DefaultMock()
+        public static Mock<IBudgetPriortyPagingService> New()
             => new Mock<IBudgetPriortyPagingService>();
         public static void SetupGetSyncedLibraryDataset(this Mock<IBudgetPriortyPagingService> mock, LibraryUpsertPagingRequestModel<BudgetPriorityLibraryDTO, BudgetPriorityDTO> upsertRequest)
         {

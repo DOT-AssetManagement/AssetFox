@@ -1,11 +1,10 @@
 ﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
-using BridgeCareCoreTests.Helpers;
 using Moq;
 using Xunit;
 
@@ -23,7 +22,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_SortByName_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
@@ -50,7 +49,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_SortDescendingByName_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
@@ -78,7 +77,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_SortByLastRun_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
@@ -109,7 +108,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_SortDescendingByLastRun_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
@@ -140,7 +139,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_SortByCreateDate_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
@@ -170,7 +169,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_SortDescendingByCreateDate_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
@@ -201,7 +200,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_SortByLastModifiedDate_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();
@@ -231,7 +230,7 @@ namespace BridgeCareCoreTests.Tests
         public void GetUserScenarioPage_SortDescendingByLastModifiedDate_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = SimulationRepositoryMocks.New(unitOfWork);
             var pagingService = CreatePagingService(unitOfWork);
             var scenarioId = Guid.NewGuid();
             var criterionLibraryId = Guid.NewGuid();

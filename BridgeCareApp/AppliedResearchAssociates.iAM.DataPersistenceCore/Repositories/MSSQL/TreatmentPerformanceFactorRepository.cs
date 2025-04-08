@@ -36,25 +36,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.UpdateAll(scenarioTreatmentPerformanceFactorEntities.Where(_ => existingEntityIds.Contains(_.Id)).ToList());
             _unitOfWork.Context.AddAll(scenarioTreatmentPerformanceFactorEntities.Where(_ => !existingEntityIds.Contains(_.Id)).ToList());
         }
-
-        public void DeleteScenarioTreatmentPerformanceFactors(Dictionary<Guid, List<TreatmentPerformanceFactorDTO>> scenarioTreatmentPerformanceFactorsPerTreatmentId,
-            Guid SimulationId)
-        {
-            var scenarioTreatmentPerformanceFactorEntities = scenarioTreatmentPerformanceFactorsPerTreatmentId
-                .SelectMany(_ => _.Value.Select(factor => factor
-                    .ToScenarioEntity(_.Key)))
-                .ToList();
-
-            var entityIds = scenarioTreatmentPerformanceFactorEntities.Select(_ => _.Id).ToList();
-
-            var existingEntityIds = _unitOfWork.Context.ScenarioTreatmentPerformanceFactor.AsNoTracking()
-                .Where(_ => _.ScenarioSelectableTreatment.SimulationId == SimulationId && entityIds.Contains(_.Id))
-                .Select(_ => _.Id).ToList();
-
-            _unitOfWork.Context.DeleteAll<ScenarioTreatmentPerformanceFactorEntity>(_ =>
-                _.ScenarioSelectableTreatment.SimulationId == SimulationId && !entityIds.Contains(_.Id));
-        }
-
+        
         public void UpsertLibraryTreatmentPerformanceFactors(Dictionary<Guid, List<TreatmentPerformanceFactorDTO>> TreatmentPerformanceFactorPerTreatmentId, Guid LibraryId)
         {
             var TreatmentPerformanceFactorEntities = TreatmentPerformanceFactorPerTreatmentId

@@ -27,7 +27,7 @@ namespace BridgeCareCoreTests.Tests
         private static DeficientConditionGoalController CreateController(Mock<IUnitOfWork> mockUnitOfWork = null)
         {
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var contextAccessor = HttpContextAccessorMocks.DefaultMock();
             var claimHelper = ClaimHelperMocks.New();
             var deficientConditionGoalService = new DeficientConditionGoalPagingService(mockUnitOfWork.Object);
@@ -46,7 +46,7 @@ namespace BridgeCareCoreTests.Tests
         public async Task GetDeficientConditionGoalLibrariesNoChildren_GetsFromRepo()
         {
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var library = DeficientConditionGoalLibraryDtos.Empty();
             var libraries = new List<DeficientConditionGoalLibraryDTO> { library };
             repo.Setup(r => r.GetDeficientConditionGoalLibrariesNoChildren()).Returns(libraries);
@@ -63,7 +63,7 @@ namespace BridgeCareCoreTests.Tests
         public async Task UpsertDeficientConditionGoalLibrary_NewLibrary_Ok()
         {
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var library = DeficientConditionGoalLibraryDtos.Empty();
             var request = new LibraryUpsertPagingRequestModel<DeficientConditionGoalLibraryDTO, DeficientConditionGoalDTO>
@@ -88,7 +88,7 @@ namespace BridgeCareCoreTests.Tests
         public async Task DeleteDeficientConditionGoalLibrary_CallsThroughToRepo()
         {
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var libraryId = Guid.NewGuid();
 
@@ -106,7 +106,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var library = DeficientConditionGoalLibraryDtos.Empty();
             var libaries = new List<DeficientConditionGoalLibraryDTO> { library };
@@ -124,7 +124,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var user = UserDtos.Admin();
             var controller = CreateController(unitOfWork);
             var libraryDto = DeficientConditionGoalLibraryDtos.Empty();
@@ -169,7 +169,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange          
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
 
             var deleteId = Guid.NewGuid();
@@ -197,7 +197,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var simulationId = Guid.NewGuid();
             var newGoalId2 = Guid.NewGuid();
@@ -222,7 +222,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var simulationId = Guid.NewGuid();
             var goalId = Guid.NewGuid();
@@ -250,7 +250,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
-            var repo = DeficientConditionGoalRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = DeficientConditionGoalRepositoryMocks.New(unitOfWork);
             var controller = CreateController(unitOfWork);
             var libraryId = Guid.NewGuid();
             var goalId = Guid.NewGuid();

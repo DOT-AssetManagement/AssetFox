@@ -27,7 +27,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             var attributeService = new AttributeService(TestHelper.UnitOfWork, cache);
             var excelDataLoadService = new ExcelRawDataLoadService(TestHelper.UnitOfWork);
             var security = EsecSecurityMocks.Admin;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var controller = new AttributeController(
                 attributeService,
@@ -55,7 +55,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             allAttribute2.Maximum = double.NaN;
             allAttribute2.Minimum = double.Epsilon;
             var allAttributes = new List<AllAttributeDTO> { allAttribute1, allAttribute2 };
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var controller = CreateController(hubService);
 
             await controller.CreateAttributes(allAttributes);

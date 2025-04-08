@@ -5,9 +5,9 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CashFlowRule;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.RemainingLifeLimit;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
-using BridgeCareCoreTests.Helpers;
 using Moq;
 using Xunit;
 

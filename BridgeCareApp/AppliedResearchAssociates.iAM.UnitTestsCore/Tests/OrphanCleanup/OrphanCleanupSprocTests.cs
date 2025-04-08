@@ -123,7 +123,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var budgetId = Guid.NewGuid();
             var budget = BudgetTestSetup.AddBudgetToLibrary(TestHelper.UnitOfWork, budgetLibraryId, budgetId);
             var scenarioBudgetId = Guid.NewGuid();
-            var scenarioBudgetName = RandomStrings.WithPrefix("ScenarioBudget");
+            var scenarioBudgetName = RandomStrings.WithPrefixAnd2CharSuffix("ScenarioBudget");
             var scenarioBudget = BudgetDtos.WithSingleAmount(budgetId, scenarioBudgetName, 2023, 100.1m);
             var scenarioBudgets = new List<BudgetDTO> { scenarioBudget };
             var performanceCurveLibraryId = Guid.NewGuid();

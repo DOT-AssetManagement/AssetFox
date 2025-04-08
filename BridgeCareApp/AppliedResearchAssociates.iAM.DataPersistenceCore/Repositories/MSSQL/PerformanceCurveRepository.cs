@@ -478,8 +478,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
             updateTreatmentPerformanceFactors(scenarioPerformanceCurves, simulationId);
 
-            // wjwjwj probably should not be deleting and re-adding? Instead, keep equations around if poossible, and
-            // the same for criteria? But when making the change, see if we run into trouble.
             _unitOfWork.Context.DeleteAll<EquationEntity>(_ =>
                 equationIdsToDelete.Contains(_.Id));
 

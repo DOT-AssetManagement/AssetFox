@@ -4,9 +4,9 @@ using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CashFlowRule;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
-using BridgeCareCoreTests.Helpers;
 using Moq;
 using Xunit;
 
@@ -24,7 +24,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetSyncedScenarioDataset_EverythingIsEmpty_Empty()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             budgetPriorityRepo.Setup(b => b.GetScenarioBudgetPriorities(simulationId)).Returns(new List<BudgetPriorityDTO>());
@@ -44,7 +44,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetSyncedScenarioDataset_ReposReturnBudgetAndPriority_CreatesPercentagePair()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var budgetId = Guid.NewGuid();
@@ -83,7 +83,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetSyncedScenarioDataset_PercentagePairDoesNotCorrespondToABudget_RemovesPercentagePair()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var budgetId = Guid.NewGuid();
@@ -129,7 +129,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetScenarioPage_Search_ThinDto_DoesNotThrow()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var scenarioBudgetPriorityId = Guid.NewGuid();
@@ -152,7 +152,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetScenarioPage_SearchByYear_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var scenarioBudgetPriorityId = Guid.NewGuid();
@@ -194,7 +194,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetScenarioPage_SearchByPriority_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var scenarioBudgetPriorityId = Guid.NewGuid();
@@ -231,7 +231,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetScenarioPage_SortByPriorityLevel_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var scenarioBudgetPriorityId = Guid.NewGuid();
@@ -264,7 +264,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetScenarioPage_SortByPriorityDescending_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var scenarioBudgetPriorityId = Guid.NewGuid();
@@ -298,7 +298,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetScenarioPage_SortByPercentage_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var scenarioBudgetPriorityId = Guid.NewGuid();
@@ -342,7 +342,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetScenarioPage_SortByPercentageDescending_Does()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var scenarioBudgetPriorityId = Guid.NewGuid();
@@ -387,7 +387,7 @@ namespace BridgeCareCoreTests.Tests.BudgetPriority
         public void GetScenarioPage_Search_SearchesMergedCriteriaExpression()
         {
             var unitOfWork = UnitOfWorkMocks.New();
-            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.DefaultMock(unitOfWork);
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var scenarioBudgetPriorityId = Guid.NewGuid();

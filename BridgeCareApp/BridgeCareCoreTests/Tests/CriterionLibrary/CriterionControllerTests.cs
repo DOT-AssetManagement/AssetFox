@@ -18,7 +18,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var service = new CashFlowPagingService(unitOfWork.Object);
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var accessor = HttpContextAccessorMocks.DefaultMock();
             var claimHelper = ClaimHelperMocks.New();
             var controller = new CriterionLibraryController(

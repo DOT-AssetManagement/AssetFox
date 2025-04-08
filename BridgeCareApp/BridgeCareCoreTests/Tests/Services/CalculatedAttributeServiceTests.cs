@@ -1,8 +1,9 @@
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
-using BridgeCareCoreTests.Helpers;
 using Xunit;
 
 namespace BridgeCareCoreTests.Tests

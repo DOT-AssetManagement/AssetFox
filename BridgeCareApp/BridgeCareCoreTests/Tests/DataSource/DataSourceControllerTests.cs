@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using BridgeCareCore.Utils;
 using Microsoft.AspNetCore.Authorization;
 using BridgeCareCoreTests.Helpers;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 
 namespace BridgeCareCoreTests.Tests
 {
@@ -93,7 +94,7 @@ namespace BridgeCareCoreTests.Tests
             };
             _mockDataSource.Setup(_ => _.UpsertDatasource(It.IsAny<BaseDataSourceDTO>()))
                 .Throws(new ArgumentException(errorMessage));
-            var hubServiceMock = HubServiceMocks.DefaultMock();
+            var hubServiceMock = HubServiceMocks.New();
             var hubService = hubServiceMock.Object;
             var accessor = HttpContextAccessorMocks.Default();
             var controller = new DataSourceController(
@@ -162,7 +163,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var accessor = HttpContextAccessorMocks.Default();
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var controller = new DataSourceController(
                 EsecSecurityMocks.Admin,
                 _mockUOW.Object,

@@ -15,6 +15,12 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 {
     public class TestDataForReportIndex
     {
+        public static Guid ReportId1 = new Guid("e7ddde4b-d8cc-45b4-ab9e-dd513a233734");
+        public static Guid ReportId2 = new Guid("7a406cd1-6857-4288-9d93-9cc7ebd38fdf");
+        public static Guid ReportId3 = new Guid("b32ecb1e-297f-4caa-9608-f28ab61cbd91");
+        public static Guid SimulationIdA = new Guid("be82f095-c108-4ab7-af7e-cb7ecd18ede2");
+        public static Guid SimulationIdB = new Guid("0951aaad-eddd-462d-ab8d-99ed3829019f");
+
         public static List<IReportFactory> SimpleReportLibrary()
         {
             var testReportLibrary = new List<IReportFactory>();
@@ -29,24 +35,24 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
             var simpleRepo = new List<ReportIndexEntity>();
             simpleRepo.Add(new ReportIndexEntity()
             {
-                Id = new Guid("e7ddde4b-d8cc-45b4-ab9e-dd513a233734"),
-                SimulationID = new Guid("be82f095-c108-4ab7-af7e-cb7ecd18ede2"),
+                Id = ReportId1,
+                SimulationID = SimulationIdA,
                 ReportTypeName = "Test HTML File",
                 Result = "<p>Hello workd!</p>",
                 ExpirationDate = DateTime.Now.AddDays(2)
             });
             simpleRepo.Add(new ReportIndexEntity()
             {
-                Id = new Guid("7a406cd1-6857-4288-9d93-9cc7ebd38fdf"),
-                SimulationID = new Guid("be82f095-c108-4ab7-af7e-cb7ecd18ede2"),
+                Id = ReportId2,
+                SimulationID = SimulationIdA,
                 ReportTypeName = "Test Report File",
                 Result = "<p>Hello workd!</p>",
                 ExpirationDate = DateTime.Now.AddDays(2)
             });
             simpleRepo.Add(new ReportIndexEntity()
             {
-                Id = new Guid("b32ecb1e-297f-4caa-9608-f28ab61cbd91"),
-                SimulationID = new Guid("0951aaad-eddd-462d-ab8d-99ed3829019f"),
+                Id = ReportId3,
+                SimulationID = SimulationIdB,
                 ReportTypeName = "Test HTML File",
                 Result = "<p>Hello workd!</p>",
                 ExpirationDate = DateTime.Now.Subtract(new TimeSpan(2, 0, 0, 0))

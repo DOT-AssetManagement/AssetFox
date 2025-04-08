@@ -32,7 +32,7 @@ namespace BridgeCareCoreTests.Tests
         private InvestmentBudgetsService CreateService(Mock<IUnitOfWork> mockUnitOfWork)
         {
             var logger = new LogNLog();
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var expressionValidationService = new ExpressionValidationService(mockUnitOfWork.Object, logger);
             var service = new InvestmentBudgetsService(
                 mockUnitOfWork.Object,
@@ -51,7 +51,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var service = CreateService(mockUnitOfWork);
             var resolveAccessor = accessor ?? HttpContextAccessorMocks.DefaultMock();
-            hubServiceMock ??= HubServiceMocks.DefaultMock();
+            hubServiceMock ??= HubServiceMocks.New();
             var dataService = new InvestmentDefaultDataService();
             var security = EsecSecurityMocks.Admin;
             var pagingService = new InvestmentPagingService(mockUnitOfWork.Object, dataService);
@@ -320,7 +320,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
             var service = CreateService(unitOfWork);
-            var hubServiceMock = HubServiceMocks.DefaultMock();
+            var hubServiceMock = HubServiceMocks.New();
             var controller = CreateController(unitOfWork, hubServiceMock: hubServiceMock);
 
             // Act + Assert
@@ -337,7 +337,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
             var accessor = CreateRequestForExceptionTesting();
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var controller = CreateController(unitOfWork, accessor, hubService);
 
             // Act + Assert
@@ -355,7 +355,7 @@ namespace BridgeCareCoreTests.Tests
             var file = new FormFile(new MemoryStream(Encoding.UTF8.GetBytes("This is a dummy file")), 0, 0, "Data",
                 "dummy.txt");
             var accessor = CreateRequestForExceptionTesting(file);
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var controller = CreateController(unitOfWork, accessor, hubService);
 
             // Act + Assert
@@ -370,7 +370,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
             var accessor = CreateRequestForExceptionTesting();
-            var hubserviceMock = HubServiceMocks.DefaultMock();
+            var hubserviceMock = HubServiceMocks.New();
             var controller = CreateController(unitOfWork, accessor, hubserviceMock);
 
             // Act + Assert
@@ -388,7 +388,7 @@ namespace BridgeCareCoreTests.Tests
             var file = new FormFile(new MemoryStream(Encoding.UTF8.GetBytes("This is a dummy file")), 0, 0, "Data",
                 "dummy.txt");
             var accessor = CreateRequestForExceptionTesting(file);
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var controller = CreateController(unitOfWork, accessor, hubService);
 
             // Act + Assert

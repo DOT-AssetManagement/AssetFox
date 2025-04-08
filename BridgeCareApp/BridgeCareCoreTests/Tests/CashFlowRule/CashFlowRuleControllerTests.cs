@@ -5,6 +5,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CashFlowRule;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Controllers;
@@ -25,7 +26,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var service = new CashFlowPagingService(unitOfWork.Object);
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var accessor = HttpContextAccessorMocks.DefaultMock();
             var claimHelper = ClaimHelperMocks.New();
             var controller = new CashFlowController(
@@ -44,7 +45,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var controller = CreateController(unitOfWork);
 
@@ -62,7 +63,7 @@ namespace BridgeCareCoreTests.Tests
             // Paging service test
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var libraryId = Guid.NewGuid();
             var rule = CashFlowRuleDtos.Rule();
@@ -88,7 +89,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // paging service test
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var controller = CreateController(unitOfWork);
             var simulationId = Guid.NewGuid();
@@ -114,7 +115,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var controller = CreateController(unitOfWork);
             var simulationId = Guid.NewGuid();
@@ -133,7 +134,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var controller = CreateController(unitOfWork);
             var dto = new CashFlowRuleLibraryDTO
@@ -171,7 +172,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var controller = CreateController(unitOfWork);
             var dtos = new List<CashFlowRuleDTO>();
@@ -192,7 +193,7 @@ namespace BridgeCareCoreTests.Tests
         {
 
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var controller = CreateController(unitOfWork);
             var libraryId = Guid.NewGuid();
@@ -211,7 +212,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var controller = CreateController(unitOfWork);
             var simulationId = Guid.NewGuid();
@@ -229,7 +230,7 @@ namespace BridgeCareCoreTests.Tests
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
-            var repo = CashFlowRuleRepositoryMocks.DefaultMock(unitOfWork);
+            var repo = CashFlowRuleRepositoryMocks.New(unitOfWork);
             var userRepo = UserRepositoryMocks.EveryoneExists(unitOfWork);
             var controller = CreateController(unitOfWork);
             var ruleId = Guid.NewGuid();

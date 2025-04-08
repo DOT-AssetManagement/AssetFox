@@ -25,7 +25,7 @@ namespace BridgeCareCoreTests.Tests
         {
             var investmentDefaultDataService = new InvestmentDefaultDataService();
             var expressionValidationService = ExpressionValidationServiceMocks.EverythingIsValid();
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var service = new InvestmentBudgetsService(
                 unitOfWork.Object,
                 expressionValidationService.Object,
@@ -628,7 +628,7 @@ namespace BridgeCareCoreTests.Tests
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
             var budgetAmountRepo = BudgetAmountRepositoryMocks.New(unitOfWork);
             var criterionLibraryRepo = CriterionLibraryRepositoryMocks.New(unitOfWork);
-            var simulationRepo = SimulationRepositoryMocks.DefaultMock(unitOfWork);
+            var simulationRepo = SimulationRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var budgetId = Guid.NewGuid();
             var budget = BudgetDtos.New(budgetId);

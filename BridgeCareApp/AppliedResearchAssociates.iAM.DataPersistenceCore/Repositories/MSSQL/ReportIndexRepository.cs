@@ -51,58 +51,55 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return true;
         }
 
+        public IList<Generics.ReportItemList> GetAllReportsInSystem()
+        {
+            var scenarios = GetAllScenario();
+            var reportList = new List<Generics.ReportItemList>();
 
-       
-            public IList<Generics.ReportItemList> GetAllReportsInSystem()
+            foreach (var scenario in scenarios)
             {
-                var scenarios = GetAllScenario();
-                var reportList = new List<Generics.ReportItemList>();
+                var reports = _unitOfDataPersistenceWork.ReportIndexRepository.GetAllForScenario(scenario.Id);
 
-                foreach (var scenario in scenarios)
+                foreach (var report in reports)
                 {
-                    var reports = _unitOfDataPersistenceWork.ReportIndexRepository.GetAllForScenario(scenario.Id);
-
-                    foreach (var report in reports)
+                    var listEntry = new Generics.ReportItemList
                     {
-                        var listEntry = new Generics.ReportItemList
-                        {
-                            ReportId = report.Id,
-                            ReportName = report.Type
-                        };
-                        reportList.Add(listEntry);
-                    }
+                        ReportId = report.Id,
+                        ReportName = report.Type
+                    };
+                    reportList.Add(listEntry);
                 }
-
-                return reportList;
             }
 
+            return reportList;
+        }
 
-            public List<SimulationDTO> GetAllScenario()
-{
-    if (!_unitOfDataPersistenceWork.Context.Simulation.Any())
-    {
-        return new List<SimulationDTO>();
-    }
+        public List<SimulationDTO> GetAllScenario()
+        {
+            if (!_unitOfDataPersistenceWork.Context.Simulation.Any())
+            {
+                return new List<SimulationDTO>();
+            }
 
-    var users = _unitOfDataPersistenceWork.Context.User.ToList();
+            var users = _unitOfDataPersistenceWork.Context.User.ToList();
 
-    var simulationEntities = _unitOfDataPersistenceWork.Context.Simulation
-        .Include(_ => _.SimulationAnalysisDetail)
-        .Include(_ => _.SimulationReportDetail)
-        .Include(_ => _.SimulationUserJoins)
-        .ThenInclude(_ => _.User)
-        .Include(_ => _.Network)
-        .ToList();
+            var simulationEntities = _unitOfDataPersistenceWork.Context.Simulation
+                .Include(_ => _.SimulationAnalysisDetail)
+                .Include(_ => _.SimulationReportDetail)
+                .Include(_ => _.SimulationUserJoins)
+                .ThenInclude(_ => _.User)
+                .Include(_ => _.Network)
+                .ToList();
 
-    return simulationEntities.Select(_ => _.ToDto(users.FirstOrDefault(__ => __.Id == _.CreatedBy)))
-        .ToList();
-}
+            return simulationEntities.Select(_ => _.ToDto(users.FirstOrDefault(__ => __.Id == _.CreatedBy)))
+                .ToList();
+        }
 
         public bool DeleteAllSimulationReports(Guid simulationId)
         {
             var scenarioReports = _unitOfDataPersistenceWork.Context.ReportIndex.Where(_ => _.SimulationID == simulationId);
             if (scenarioReports.Count() > 0)
-            {                
+            {
                 _unitOfDataPersistenceWork.Context.DeleteAll<ReportIndexEntity>(_ => _.SimulationID == simulationId);
                 return true;
             }
@@ -124,8 +121,5 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public ReportIndexDTO Get(Guid reportId) => _unitOfDataPersistenceWork.Context.ReportIndex.FirstOrDefault(_ => _.Id == reportId).ToDTONullPropagating();
         public List<ReportIndexDTO> GetAllForScenario(Guid simulationId) =>
             _unitOfDataPersistenceWork.Context.ReportIndex.Where(_ => _.SimulationID == simulationId).Select(_ => _.ToDTO()).ToList();
-
-        public List<ReportIndexDTO> GetAllForNetwork(Guid? networkId) =>
-            _unitOfDataPersistenceWork.Context.ReportIndex.Where(_ => _.NetworkID == networkId).Select(_ => _.ToDTO()).ToList();
     }
 }

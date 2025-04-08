@@ -24,7 +24,7 @@ namespace BridgeCareCoreTests.Tests
         private TargetConditionGoalController CreateController(Mock<IUnitOfWork> unitOfWork)
         {
             var security = EsecSecurityMocks.AdminMock;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var accessor = HttpContextAccessorMocks.DefaultMock();
             var claimHelper = ClaimHelperMocks.New();
             var pagingService = new TargetConditionGoalPagingService(unitOfWork.Object);

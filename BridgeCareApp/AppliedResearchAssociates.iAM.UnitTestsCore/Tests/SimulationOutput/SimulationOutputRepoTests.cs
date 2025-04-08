@@ -5,6 +5,8 @@ using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AppliedResearchAssociates.iAM.Common;
+
 using Xunit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
@@ -50,7 +52,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             ObjectAssertions.EquivalentExcluding(simulationOutput, loadedOutput, so => so.LastModifiedDate);
         }
 
-        [Fact (Skip = "Roundtrip test involving unused method. Fails when run in a test run.")]
+        [Fact]
         public void SaveSimulationOutputWithMoreAssetsThanBatchSize_ThenLoad_Same()
         {
             var numberOfAssets = 25 + SimulationOutputRepository.AssetLoadBatchSize;
@@ -68,6 +70,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var simulationOutput = SimulationOutputModels.SimulationOutput(context);
             TestHelper.UnitOfWork.SimulationOutputRepo.CreateSimulationOutputViaRelational(context.SimulationId, simulationOutput);
             var loadedOutput = TestHelper.UnitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(context.SimulationId);
+            simulationOutput.InitialAssetSummaries.Sort(a => a.AssetName);
+            loadedOutput.InitialAssetSummaries.Sort(a => a.AssetName);
             ObjectAssertions.Equivalent(simulationOutput.InitialAssetSummaries, loadedOutput.InitialAssetSummaries);
             SimulationOutputAssertions.SameSimulationOutput(simulationOutput, loadedOutput);
         }

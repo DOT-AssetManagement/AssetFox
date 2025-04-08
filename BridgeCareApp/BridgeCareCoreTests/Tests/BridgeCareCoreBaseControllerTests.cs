@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Controllers.BaseController;
-using BridgeCareCoreTests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;

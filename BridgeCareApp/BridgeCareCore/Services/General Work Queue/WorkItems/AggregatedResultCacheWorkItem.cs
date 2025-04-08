@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Graph.Models;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.Common;
 
 namespace BridgeCareCore.Services
 {
@@ -51,6 +52,8 @@ namespace BridgeCareCore.Services
         private static void DoWorkInner(IServiceScope scope)
         {
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILog>();
+            logger.Information("Starting aggregated result value cache work item");
             var attributeRepository = unitOfWork.AttributeRepo;
             var aggregatedResultRepository = unitOfWork.AggregatedResultRepo;
             var allAttributes = attributeRepository.GetAttributes();
@@ -75,7 +78,6 @@ namespace BridgeCareCore.Services
                     cache.SaveToCache(dto);
                 }
             }
-            int x = 666;
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)
@@ -84,7 +86,8 @@ namespace BridgeCareCore.Services
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
             var message = $"Attribute value cache rebuilt {DateTime.Now}";
             _hubService.SendRealTimeMessage("system", HubConstant.BroadcastTaskCompleted, message);
-            int x = 666;
+            var logger = serviceProvider.GetRequiredService<ILog>();
+            logger.Information(message);
         }
 
         public void OnFault(IServiceProvider serviceProvider, string errorMessage)
@@ -94,6 +97,8 @@ namespace BridgeCareCore.Services
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
 
             _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{cacheRebuildError}::NetworkAggregateAccess - {errorMessage}");
+            var logger = serviceProvider.GetRequiredService<ILog>();
+            logger.Error(errorMessage);
 
         }
         public void OnUpdate(IServiceProvider serviceProvider)

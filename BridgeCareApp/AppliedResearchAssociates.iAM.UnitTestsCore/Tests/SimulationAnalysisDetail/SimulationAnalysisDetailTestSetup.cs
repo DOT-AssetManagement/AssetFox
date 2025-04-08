@@ -9,9 +9,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class SimulationAnalysisDetailTestSetup
     {
-        public static void CreateAnalysisDetail(UnitOfDataPersistenceWork unitOfWork, Guid simulationId)
+        public static void CreateAnalysisDetail(UnitOfDataPersistenceWork unitOfWork, Guid simulationId, string status = "Completed")
         {
-            var analysisDetail = SimulationAnalysisDetailDtos.ForSimulation(simulationId);
+            var analysisDetail = SimulationAnalysisDetailDtos.ForSimulation(simulationId, status);
             unitOfWork.SimulationAnalysisDetailRepo.UpsertSimulationAnalysisDetail(analysisDetail);
         }
     }

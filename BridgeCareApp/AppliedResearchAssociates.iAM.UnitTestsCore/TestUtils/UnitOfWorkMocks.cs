@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
 using Moq;
 
-namespace BridgeCareCoreTests.Helpers
+namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 {
     public static class UnitOfWorkMocks
     {

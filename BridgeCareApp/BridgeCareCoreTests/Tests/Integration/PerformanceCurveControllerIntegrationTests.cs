@@ -26,7 +26,7 @@ namespace BridgeCareCoreTests.Tests.Integration
         public PerformanceCurveController CreateController(Mock<IHubService> hubserviceMock = null)
         {
             var security = EsecSecurityMocks.Admin;
-            hubserviceMock ??= HubServiceMocks.DefaultMock();
+            hubserviceMock ??= HubServiceMocks.New();
             var contextAccessor = HttpContextAccessorMocks.Default();
             var claimHelper = ClaimHelperMocks.New();
             var expressionValidationService = ExpressionValidationServiceMocks.EverythingIsValid();
@@ -51,7 +51,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var attributeName = TestAttributeNames.CulvDurationN;
-            var hubService = HubServiceMocks.DefaultMock();
+            var hubService = HubServiceMocks.New();
             var controller = CreateController(hubService);
             var libraryId = Guid.NewGuid();
             var library = PerformanceCurveLibraryDtos.Empty(libraryId);
