@@ -35,7 +35,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Models.PAMSPBExport
 
         public string Appliedtreatment { get; set; }
 
-        public double Cost { get; set; }
+        public decimal Cost { get; set; }
 
         public double Benefit { get; set; }
 

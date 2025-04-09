@@ -2,19 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Analysis;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
-using System.Reflection.PortableExecutable;
-using OfficeOpenXml.Style;
 using System.Drawing;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
 using CurrentCell = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.CurrentCell;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
-using static System.Collections.Specialized.BitVector32;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.CountySummary
 {
@@ -49,7 +41,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             _uniqueDistrictCountyList = new List<DistrictCounty>();
         }
 
-        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Simulation simulation)
+        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation)
         {
             FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, simulation);
             worksheet.Cells.AutoFitColumns();
@@ -57,7 +49,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
 
         #region Private methods
 
-        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Simulation simulation)
+        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation)
         {
             //fill unique district county list
             BuildUniqueDistrictCountyList(reportOutputData);
@@ -191,7 +183,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
         }
 
 
-        private void FillBudgetByCountyInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Simulation simulation)
+        private void FillBudgetByCountyInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation)
         {
             //Build Budget By County Headers
             var headers = GetHeaders(simulationYears);
@@ -301,7 +293,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             currentCell.Row = rowNo; currentCell.Column = columnNo;
         }
 
-        private void FillBudgetPercentByCountyInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Simulation simulation)
+        private void FillBudgetPercentByCountyInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation)
         {
             //Build Budget By County Headers
             var headers = GetHeaders(simulationYears);

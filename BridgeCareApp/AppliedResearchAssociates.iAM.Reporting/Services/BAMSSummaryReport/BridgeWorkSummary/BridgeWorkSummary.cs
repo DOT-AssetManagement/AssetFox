@@ -222,6 +222,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 }
                 isInitialYear = false;
             }
+            keyCashFlowFundingDetails.Clear();
         }
 
         private void PopulateWorkedOnCostAndCount(int year, AssetDetail section,

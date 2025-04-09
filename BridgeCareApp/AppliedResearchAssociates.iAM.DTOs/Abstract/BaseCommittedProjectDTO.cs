@@ -24,6 +24,11 @@ namespace AppliedResearchAssociates.iAM.DTOs.Abstract
         public Guid? ScenarioBudgetId { get; set; }
 
         /// <summary>
+        /// The budget name in the simulation that this committed project uses to fund its work
+        /// </summary>
+        public string ScenarioBudgetName { get; set; }
+
+        /// <summary>
         /// Stores specific location keys (i.e., asset identifiers, routes, etc.)
         /// </summary>
         public Dictionary<string, string> LocationKeys { get; set; } = new Dictionary<string, string>();

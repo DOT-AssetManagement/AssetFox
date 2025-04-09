@@ -4,9 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
@@ -183,7 +181,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
         }
 
         private string GenerateSummaryReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
-        {
+        {            
             checkCancelled(cancellationToken, simulationId);
             var functionReturnValue = "";
 
@@ -197,7 +195,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 };
                 UpdateSimulationAnalysisDetail(dto);
             });
-            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
+
+            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
+
             var reportDetailDto = new SimulationReportDetailDTO { SimulationId = simulationId, ReportType = ReportTypeName, Status = "Generating..." };
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
@@ -224,20 +224,17 @@ namespace AppliedResearchAssociates.iAM.Reporting
             }
 
             var simulationYearsCount = simulationYears.Count;
-            var explorer = _unitOfWork.AttributeRepo.GetExplorer();
-            var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
-            _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
+            var simulationDto = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
+            var investmentPlanDto = _unitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulationId);
+            var budgetsDtos = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
+            var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);
+            var committedProjectsDtos = _unitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
+            var budgetPrioritiesDtos = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
+            var cashFlowRulesDtos = _unitOfWork.CashFlowRuleRepo.GetScenarioCashFlowRules(simulationId);
 
-            var simulation = network.Simulations.First();
-            _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
-            _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
-            _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulation);
-            _unitOfWork.CommittedProjectRepo.GetSimulationCommittedProjects(simulation);
-
-            var yearlyBudgetAmount = new Dictionary<string, Budget>();
-            foreach (var budget in simulation.InvestmentPlan.Budgets)
+            var yearlyBudgetAmount = new Dictionary<string, BudgetDTO>();
+            foreach (var budget in budgetsDtos)
             {
                 if (!yearlyBudgetAmount.ContainsKey(budget.Name))
                 {
@@ -313,12 +310,13 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
-            var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PAMSData_Tab);            
-            var workSummaryModel = _pamsDataForSummaryReport.Fill(worksheet, reportOutputData, simulation.ShouldBundleFeasibleTreatments, committedProjectList);
+            var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PAMSData_Tab);
+            var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
+            var workSummaryModel = _pamsDataForSummaryReport.Fill(worksheet, reportOutputData, shouldBundleFeasibleTreatments, committedProjectList);
             checkCancelled(cancellationToken, simulationId);
 
             // Filling up parameters tab
-            _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulation);
+            _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulationDto, analysisMethodDto, investmentPlanDto, budgetPrioritiesDtos, cashFlowRulesDtos, budgetsDtos);
             checkCancelled(cancellationToken, simulationId);
 
             // Pavement Work Summary TAB
@@ -327,7 +325,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pamsWorkSummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummary_Tab);            
-            var chartRowModel = _pavementWorkSummary.Fill(pamsWorkSummaryWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, simulation.Treatments, simulation.CommittedProjects, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, simulation.ShouldBundleFeasibleTreatments);
+            var chartRowModel = _pavementWorkSummary.Fill(pamsWorkSummaryWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
             checkCancelled(cancellationToken, simulationId);
 
             // Pavement Work Summary By Budget TAB
@@ -336,7 +334,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pavementWorkSummaryByBudgetWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummaryByBudget_Tab);
-            _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, yearlyCostCommittedProj, simulation.Treatments, simulation.CommittedProjects, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, simulation.ShouldBundleFeasibleTreatments);
+            _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, yearlyCostCommittedProj, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
             checkCancelled(cancellationToken, simulationId);
 
             // Unfunded Pavement Projects TAB
@@ -352,7 +350,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var _countySummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.CountySummary_Tab);
-            _countySummary.Fill(_countySummaryWorksheet, reportOutputData, simulationYears, simulation);
+            _countySummary.Fill(_countySummaryWorksheet, reportOutputData, simulationYears, simulationDto);
             checkCancelled(cancellationToken, simulationId);
 
             //Graph TABs

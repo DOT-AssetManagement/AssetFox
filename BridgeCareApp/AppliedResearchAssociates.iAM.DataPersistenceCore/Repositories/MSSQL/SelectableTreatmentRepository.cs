@@ -484,6 +484,32 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .ToList();
         }
 
+        public List<TreatmentDTO> GetScenarioSelectableTreatmentsForReport(Guid simulationId)
+        {
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException("No simulation was found for the given scenario");
+            }
+            var treatments = _unitOfWork.Context.ScenarioSelectableTreatment.Where(_ => _.SimulationId == simulationId).Select(_ => _.ToDto(null));
+
+            return _unitOfWork.Context.ScenarioSelectableTreatment.AsNoTracking()
+                .Where(_ => _.SimulationId == simulationId)
+                .AsSplitQuery()
+                .Include(_ => _.ScenarioSelectableTreatmentScenarioBudgetJoins)
+                .ThenInclude(_ => _.ScenarioBudget)
+                .ThenInclude(_ => _.ScenarioBudgetAmounts)
+                .Include(_ => _.ScenarioTreatmentCosts)
+                .ThenInclude(_ => _.ScenarioTreatmentCostEquationJoin)
+                .ThenInclude(_ => _.Equation)
+                .Include(_ => _.ScenarioTreatmentCosts)
+                .ThenInclude(_ => _.CriterionLibraryScenarioTreatmentCostJoin)
+                .ThenInclude(_ => _.CriterionLibrary)
+                .Include(_ => _.CriterionLibraryScenarioSelectableTreatmentJoin)
+                .ThenInclude(_ => _.CriterionLibrary)
+                .Select(_ => _.ToDto(treatments.ToList()))
+                .ToList();
+        }
+
         public List<string> GetSelectableTreatmentNames(Guid libraryId)
         {
 

@@ -211,10 +211,8 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
 
                     var hubServiceLogger = new HubServiceLogger(_hubService, HubConstant.BroadcastScenarioStatusUpdate, _unitOfWork.CurrentUser?.Username);
                     var updateSimulationAnalysisDetailLogger = new CallbackLogger(message => UpdateSimulationAnalysisDetailFromString(message));
-                    markAndLog("Before CreateSimulationOutputViaRelational" + DateTime.Now);
-                    // TODO: Uncomment when reports work is done and remove call to CreateSimulationOutputViaJson on the next line
-                    // _unitOfWork.SimulationOutputRepo.CreateSimulationOutputViaRelational(SimulationId, simulation.Results);
-                    _unitOfWork.SimulationOutputRepo.CreateSimulationOutputViaJson(SimulationId, simulation.Results);
+                    markAndLog("Before CreateSimulationOutputViaRelational" + DateTime.Now);                    
+                    _unitOfWork.SimulationOutputRepo.CreateSimulationOutputViaRelational(SimulationId, simulation.Results);
                     markAndLog("After CreateSimulationOutputViaRelational" + DateTime.Now);
                     simulationAnalysisDetail.Status = SimulationUserMessages.SimulationOutputSavedToDatabase;
                     UpdateSimulationAnalysisDetail(simulationAnalysisDetail, DateTime.Now);

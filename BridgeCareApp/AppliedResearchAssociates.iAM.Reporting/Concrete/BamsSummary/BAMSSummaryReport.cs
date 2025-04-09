@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.Hubs;
@@ -26,7 +25,6 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.Reporting.Services;
 using System.Threading;
 using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.WorkQueue;
 
 namespace AppliedResearchAssociates.iAM.Reporting
 {
@@ -220,8 +218,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             };
 
             var logger = new CallbackLogger(str => UpdateSimulationAnalysisDetailWithStatus(reportDetailDto, str));
-            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
-                        
+            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
+
             // reportOutputData will be having all assets data, filter it based on criteria expression
             if (!string.IsNullOrEmpty(Criteria))
             {
@@ -259,8 +257,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
             reportDetailDto.Status = $"Checking sections";
 
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-
-            new QueuedWorkStatusUpdateModel() { Id = WorkQueueWorkIdFactory.CreateId(simulationId, DTOs.Enums.WorkType.ReportGeneration), Status = reportDetailDto.Status };
             foreach (var item in requiredSections)
             {
                 checkCancelled(cancellationToken, simulationId);
@@ -311,10 +307,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var budgetsDtos = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
             var simpleBudgetDetailDtos = _unitOfWork.BudgetRepo.GetScenarioSimpleBudgetDetails(simulationId);
             var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
-            var performanceCurvesDtos = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
             var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
             var committedProjectsDtos = _unitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
-            var BudgetPrioritiesDtos = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
+            var budgetPrioritiesDtos = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
             var cashFlowRulesDtos = _unitOfWork.CashFlowRuleRepo.GetScenarioCashFlowRules(simulationId);            
                         
             var yearlyBudgets = new Dictionary<string, BudgetDTO>();
@@ -404,7 +399,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             checkCancelled(cancellationToken, simulationId);
 
             // Fill Simulation parameters TAB
-            _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulationDto, analysisMethodDto, investmentPlanDto, scenarioSelectableTreatmentsDtos, committedProjectsDtos, BudgetPrioritiesDtos, cashFlowRulesDtos, budgetsDtos, reportOutputData);
+            _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulationDto, analysisMethodDto, investmentPlanDto, scenarioSelectableTreatmentsDtos, committedProjectsDtos, budgetPrioritiesDtos, cashFlowRulesDtos, budgetsDtos, reportOutputData);
             checkCancelled(cancellationToken, simulationId);            
 
             // Funded Treatment List TAB
@@ -471,7 +466,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             //check and generate folder
             var folderPathForSimulation = $"Reports\\{simulationId}";
-            Directory.CreateDirectory(folderPathForSimulation);
+            _ = Directory.CreateDirectory(folderPathForSimulation);
             var filePath = Path.Combine(folderPathForSimulation, "SummaryReport.xlsx");
             checkCancelled(cancellationToken, simulationId);
             var bin = excelPackage.GetAsByteArray();

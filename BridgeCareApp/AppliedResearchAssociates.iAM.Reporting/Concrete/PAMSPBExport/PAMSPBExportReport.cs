@@ -21,7 +21,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
         protected readonly IHubService _hubService;
         private readonly IUnitOfWork _unitOfWork;
         private Guid _networkId;
-        private readonly ReportHelper _reportHelper;
         private readonly TreatmentTab _treatmentTab;
         private readonly MASTab _masTab;
 
@@ -30,9 +29,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
             ReportTypeName = name;
-            _reportHelper = new ReportHelper(_unitOfWork);
             _treatmentTab = new TreatmentTab(_unitOfWork);
-            _masTab = new MASTab(_unitOfWork);
+            _masTab = new MASTab();
 
             // Check for existing report id
             var reportId = results?.Id; if (reportId == null) { reportId = Guid.NewGuid(); }
@@ -83,7 +81,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             // Set simulation id
             string simulationId = ReportHelper.GetSimulationId(parameters);
-            if (!Guid.TryParse(simulationId, out Guid _simulationId))
+            if (!Guid.TryParse(simulationId, out var _simulationId))
             {
                 Errors.Add("Provided simulation ID is not a GUID");
                 IndicateError();
@@ -157,21 +155,15 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
             var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
-            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
 
-            var explorer = _unitOfWork.AttributeRepo.GetExplorer();
-            var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
-            _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
-            var simulation = network.Simulations.First();
-            _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
-            var networkMaintainableAssets = _unitOfWork.MaintainableAssetRepo.GetAllInNetworkWithLocations(_networkId);
-            var networkMaintainableAssetIds = networkMaintainableAssets.Select(x => x.Id);            
-            var attributeDTOs = _unitOfWork.AttributeRepo.GetAttributes();
-            var requiredAttributeIds = GetRequiredAttributeIds(attributeDTOs);
-            var attributeDatumDTOs = _unitOfWork.AttributeDatumRepo.GetAllInNetwork(networkMaintainableAssetIds, requiredAttributeIds);
-            //Include treatments in simulation
-            _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulation);
+            var networkMaintainableAssets = _unitOfWork.MaintainableAssetRepo.GetAllInNetworkWithLocations(networkId);
+            var networkMaintainableAssetIds = networkMaintainableAssets.Select(x => x.Id);
+            var attributeDtos = _unitOfWork.AttributeRepo.GetAttributes();
+            var requiredAttributeIds = GetRequiredAttributeIds(attributeDtos);
+            var attributeDatumDtos = _unitOfWork.AttributeDatumRepo.GetAllInNetwork(networkMaintainableAssetIds, requiredAttributeIds);
+            var simulationDto = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
+            var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);
 
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSPBExportReportData.xlsx"));
@@ -181,23 +173,26 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var masWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.MASTab);
-            _masTab.Fill(masWorksheet, simulationOutput, simulation.Network.Id, networkMaintainableAssets, attributeDatumDTOs, attributeDTOs);
+            _masTab.Fill(masWorksheet, networkId, networkMaintainableAssets, attributeDatumDtos, attributeDtos);
 
             // Teatments Tab
             reportDetailDto.Status = $"Creating PAMS Treatments TAB";
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.TreatmentTab);
-            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, simulation.Network.Id, simulation.Treatments, networkMaintainableAssets, simulation.ShouldBundleFeasibleTreatments);
+            var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
+            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, shouldBundleFeasibleTreatments);
 
-            checkCancelled(cancellationToken, simulationId);
+            checkCancelled(cancellationToken, simulationId);            
+
             // Check and generate folder
             reportDetailDto.Status = $"Creating Report file";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var folderPathForSimulation = $"Reports\\{simulationId}";
-            Directory.CreateDirectory(folderPathForSimulation);
+            _ = Directory.CreateDirectory(folderPathForSimulation);
             reportPath = Path.Combine(folderPathForSimulation, "PAMSPBExportReport.xlsx");
             checkCancelled(cancellationToken, simulationId);
             var bin = excelPackage.GetAsByteArray();

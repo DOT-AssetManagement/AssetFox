@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport
+﻿namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport
 {
     public static class PAMSConstants
     {
@@ -39,8 +33,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport
         public const string IRI_BPN4_Tab = "PennDOT IRI BPN 4";
         public const string IRI_BPN4_Tab_Title = "PennDOT IRI BPN 4";
 
-        public const string IRI_Statewide_Tab = "PennDOT IRI Statewide";
-        public const string IRI_Statewide_Tab_Title = "PennDOT IRI Statewide";
+        public const string IRI_Statewide_Tab = "PennDOT IRI Combined";
+        public const string IRI_Statewide_Tab_Title = "PennDOT IRI Combined";
 
         public const string OPI_BPN1_Tab = "PennDOT OPI BPN 1";
         public const string OPI_BPN1_Tab_Title = "PennDOT OPI BPN 1";
@@ -54,8 +48,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport
         public const string OPI_BPN4_Tab = "PennDOT OPI BPN 4";
         public const string OPI_BPN4_Tab_Title = "PennDOT OPI BPN 4";
 
-        public const string OPI_Statewide_Tab = "PennDOT OPI Statewide";
-        public const string OPI_Statewide_Tab_Title = "PennDOT OPI Statewide";
+        public const string OPI_Statewide_Tab = "PennDOT OPI Combined";
+        public const string OPI_Statewide_Tab_Title = "PennDOT OPI Combined";
 
         public const string Graph_Tabs_YAxisTitle = "Miles";
         public const string Graph_Tabs_XAxisTitle = "Year";

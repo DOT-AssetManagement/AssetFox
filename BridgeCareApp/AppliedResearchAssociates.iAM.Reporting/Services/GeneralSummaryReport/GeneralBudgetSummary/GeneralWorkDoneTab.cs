@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
@@ -32,14 +32,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, Simulation simulation, HashSet<string> performanceCurvesAttributes)
+        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, AnalysisMethodDTO analysisMethodDto, HashSet<string> performanceCurvesAttributes)
         {            
             // Distinct performance curves' attributes
             var currentAttributes = performanceCurvesAttributes;
             // Benefit attribute
-            currentAttributes.Add(_reportHelper.GetBenefitAttribute(simulation));
+            _ = currentAttributes.Add(analysisMethodDto.Benefit.Attribute);
 
-            ShouldBundleFeasibleTreatments = simulation.ShouldBundleFeasibleTreatments;
+            ShouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
 
             simulationOutput.Years.ForEach(_ => _simulationYears.Add(_.Year));
             // Add headers to excel
@@ -48,19 +48,20 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.
             // Fill data in excel
             FillDynamicDataInWorkSheet(simulationOutput, currentAttributes, decisionsWorksheet, currentCell);
 
+            performanceCurvesAttributes.Clear();
+
             decisionsWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
             decisionsWorksheet.Cells.AutoFitColumns();
             PerformPostAutofitAdjustments(decisionsWorksheet);
         }
 
         private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, ExcelWorksheet worksheet, CurrentCell currentCell)
-        {
-            Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+        {           
             var primaryKey = _unitOfWork.AdminSettingsRepo.GetKeyFields();
-            var firstPrimaryKey = primaryKey[0];            
             var initialRow = currentCell.Row; // should be 4
             var isInitialYear = true;
             var row = initialRow; // Data starts here
+            Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
 
             // Initial data columns
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
