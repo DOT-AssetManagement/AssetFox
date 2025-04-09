@@ -3,6 +3,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entit
 using AppliedResearchAssociates.iAM.DTOs;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -47,8 +48,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public static SimulationOutputDTO ToDto(this SimulationOutputEntity entity)
         {
-            // TODO
-            return new SimulationOutputDTO();
+            var simulationOutput = new SimulationOutputDTO
+            {
+                Id = entity.Id,
+                InitialConditionOfNetwork = entity.InitialConditionOfNetwork,
+                InitialAssetSummaries = entity.InitialAssetSummaries.Select(_ => _.ToDto()).ToList(),
+                Years = entity.Years.Select(_ => _.ToDto()).ToList()
+            };
+
+            return simulationOutput;
         }
     }
 }

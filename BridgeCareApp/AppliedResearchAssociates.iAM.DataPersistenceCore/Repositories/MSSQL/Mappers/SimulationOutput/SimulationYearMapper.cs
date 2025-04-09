@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -58,6 +60,23 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static SimulationYearDetailDTO ToDto(this SimulationYearDetailEntity entity)
+        {
+            var dto = new SimulationYearDetailDTO
+            {
+                Id = entity.Id,
+                Year = entity.Year,
+                ConditionOfNetwork = entity.ConditionOfNetwork,
+                SimulationOutputId = entity.SimulationOutputId,
+                Budgets = entity.Budgets.Select(_ => _.ToDto()).ToList(),
+                DeficientConditionGoals = entity.DeficientConditionGoals.Select(_ => _.ToDto()).ToList(),
+                TargetConditionGoals = entity.TargetConditionGoals.Select(_ => _.ToDto()).ToList(),
+                Assets = entity.Assets.Select(_ => _.ToDto()).ToList()
+            };
+
+            return dto;
         }
     }
 }

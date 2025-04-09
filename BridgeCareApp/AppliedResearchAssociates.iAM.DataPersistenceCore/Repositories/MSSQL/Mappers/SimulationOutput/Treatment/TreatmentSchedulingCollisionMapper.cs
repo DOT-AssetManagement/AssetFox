@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -52,6 +50,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static TreatmentSchedulingCollisionDetailDTO ToDto(this TreatmentSchedulingCollisionDetailEntity entity)
+        {
+            var dto = new TreatmentSchedulingCollisionDetailDTO
+            {
+                Id = entity.Id,
+                AssetDetailId = entity.AssetDetailId,
+                NameOfUnscheduledTreatment= entity.NameOfUnscheduledTreatment
+            };
+
+            return dto;
         }
     }
 }

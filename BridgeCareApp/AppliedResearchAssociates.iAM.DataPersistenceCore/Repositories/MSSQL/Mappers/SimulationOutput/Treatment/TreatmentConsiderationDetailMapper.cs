@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -89,6 +91,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
                 family.TreatmentConsiderations.Add(entity);
             }
+        }
+
+        public static TreatmentConsiderationDetailDTO ToDto(this TreatmentConsiderationDetailEntity entity)
+        {
+            var dto = new TreatmentConsiderationDetailDTO
+            {
+                Id = entity.Id,
+                AssetDetailId = entity.AssetDetailId,
+                BudgetPriorityLevel = entity.BudgetPriorityLevel,
+                TreatmentName = entity.TreatmentName,
+                CashFlowConsiderations = entity.CashFlowConsiderations.Select(_ => _.ToDto()).ToList(),
+                FundingCalculationInput = entity.FundingCalculationInput.ToDto(),
+                FundingCalculationOutput = entity.FundingCalculationOutput.ToDto()
+            };
+
+            return dto;
         }
     }
 }

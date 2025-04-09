@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AnalysisEngine = AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -28,6 +29,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         private static AnalysisEngine.FundingCalculationInput.Budget ToDomain(BudgetToSpend budgetToSpendEntity)
         {
             return new AnalysisEngine.FundingCalculationInput.Budget(budgetToSpendEntity.Name, budgetToSpendEntity.Amount, budgetToSpendEntity.Year);
+        }
+
+        public static BudgetToSpendDTO ToDto(this BudgetToSpend entity)
+        {
+            var dto = new BudgetToSpendDTO
+            {
+                Id = entity.Id,
+                FundingCalculationInputId = entity.FundingCalculationInputId,
+                Name = entity.Name,
+                Amount = entity.Amount,
+                Year = entity.Year
+            };
+
+            return dto;
         }
     }
 }

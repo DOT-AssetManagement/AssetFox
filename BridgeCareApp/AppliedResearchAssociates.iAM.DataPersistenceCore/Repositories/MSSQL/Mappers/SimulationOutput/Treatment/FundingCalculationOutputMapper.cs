@@ -1,20 +1,23 @@
 ﻿using System;
+using System.Linq;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
     public static class FundingCalculationOutputMapper
     {
-        public static Entities.FundingCalculationOutput ToEntityWithoutChildren(
+        public static FundingCalculationOutput ToEntityWithoutChildren(
             Guid treatmentConsiderationDetailEntityId)
         {
-            return new Entities.FundingCalculationOutput
+            return new FundingCalculationOutput
             {
                 Id = Guid.NewGuid(),
                 TreatmentConsiderationDetailId = treatmentConsiderationDetailEntityId
             };
         }
 
-        public static Entities.FundingCalculationOutput ToEntity(Analysis.Engine.FundingCalculationOutput fundingCalculationOutputDomain, Guid treatmentConsiderationDetailEntityId, AssetDetailEntityFamily family)
+        public static FundingCalculationOutput ToEntity(Analysis.Engine.FundingCalculationOutput fundingCalculationOutputDomain, Guid treatmentConsiderationDetailEntityId, AssetDetailEntityFamily family)
         {
             var entity = ToEntityWithoutChildren(treatmentConsiderationDetailEntityId);
 
@@ -25,13 +28,25 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return entity;
         }
 
-        public static Analysis.Engine.FundingCalculationOutput ToDomain(Entities.FundingCalculationOutput fundingCalculationOutputEntity)
+        public static Analysis.Engine.FundingCalculationOutput ToDomain(FundingCalculationOutput fundingCalculationOutputEntity)
         {
             var domain = new Analysis.Engine.FundingCalculationOutput();
             var allocationMatrix = AllocationMapper.ToDomainList(fundingCalculationOutputEntity?.AllocationMatrix);
             domain.AllocationMatrix.AddRange(allocationMatrix);
 
             return domain;
+        }
+
+        public static FundingCalculationOutputDTO ToDto(this FundingCalculationOutput entity)
+        {
+            var dto = new FundingCalculationOutputDTO
+            {
+                Id = entity.Id,
+                TreatmentConsiderationDetailId = entity.TreatmentConsiderationDetailId,
+                AllocationMatrix = entity.AllocationMatrix.Select(_ => _.ToDto()).ToList()
+            };
+
+            return dto;
         }
     }
 }

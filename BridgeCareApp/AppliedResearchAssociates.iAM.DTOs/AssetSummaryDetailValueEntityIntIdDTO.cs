@@ -1,10 +1,11 @@
 ﻿using System;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
 
 namespace AppliedResearchAssociates.iAM.DTOs
 {
-    public class AssetSummaryDetailValueEntityIntIdDTO : BaseDTO
+    public class AssetSummaryDetailValueEntityIntIdDTO
     {
+        public int Id { get; set; }
+
         public Guid AssetSummaryDetailId { get; set; }
 
         public char Discriminator { get; set; }

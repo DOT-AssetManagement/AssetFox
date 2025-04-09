@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -119,5 +120,19 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return entities;
         }
 
+        public static AssetSummaryDetailValueEntityIntIdDTO ToDto(this AssetSummaryDetailValueEntityIntId entity)
+        {
+            var dto = new AssetSummaryDetailValueEntityIntIdDTO
+            {
+                Id = entity.Id,
+                AssetSummaryDetailId = entity.AssetSummaryDetailId,
+                AttributeId = entity.AttributeId,
+                Discriminator = entity.Discriminator,
+                NumericValue = entity.NumericValue,
+                TextValue = entity.TextValue
+            };
+
+            return dto;
+        }
     }
 }
