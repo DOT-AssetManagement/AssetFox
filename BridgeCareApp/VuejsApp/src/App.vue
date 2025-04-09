@@ -4,7 +4,7 @@
             <v-toolbar app class="paper-white-bg elevation-2">                
                 <v-toolbar-title style="flex: 1;">
                 <v-img
-                    :src="agencyLogo"
+                    :src="getUrl('/logos/penndot-image.png')"
                     @click="onNavigate('/Scenarios/')"
                     class="toolbar-image"
                     contain
@@ -13,7 +13,7 @@
 
                 <v-toolbar-title style="flex: 1;">
                 <v-img
-                    :src="productLogo"
+                    :src="getUrl('/logos/BridgeCareLogo.svg')"
                     @click="onNavigate('/Scenarios/')"
                     class="toolbar-image"
                     contain
