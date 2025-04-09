@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using BridgeCareCore.Models.Validation;
 using ValidationResult = AppliedResearchAssociates.Validation.ValidationResult;
 using static Google.Protobuf.WireFormat;
+using AppliedResearchAssociates.iAM.Common;
 
 namespace BridgeCareCore.Controllers
 {
@@ -44,6 +45,7 @@ namespace BridgeCareCore.Controllers
         private readonly IGeneralWorkQueueService _generalWorkQueueService;
         private readonly IClaimHelper _claimHelper;
         private readonly ICompleteSimulationCloningService _completeSimulationCloningService;
+        private readonly ILog _log;
 
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
 
@@ -56,8 +58,10 @@ namespace BridgeCareCore.Controllers
             IHttpContextAccessor httpContextAccessor,
             IClaimHelper claimHelper,
             ICompleteSimulationCloningService completeSimulationCloningService,
-            IGeneralWorkQueueService generalWorkQueueService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+            IGeneralWorkQueueService generalWorkQueueService,
+            ILog logger) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
+            _log = logger ?? new DoNotLog();
             _simulationService = simulationService ?? throw new ArgumentNullException(nameof(simulationService));
             _workQueueService = workQueueService ?? throw new ArgumentNullException(nameof(workQueueService));
             _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
@@ -436,6 +440,7 @@ namespace BridgeCareCore.Controllers
         [Authorize(Policy = Policy.RunSimulation)]
         public async Task<IActionResult> RunSimulation(Guid networkId, Guid simulationId)
         {
+            _log.Debug("Entering RunSimulation");
             try
             {
                 _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
@@ -444,7 +449,7 @@ namespace BridgeCareCore.Controllers
                 {
                     scenarioName = UnitOfWork.SimulationRepo.GetSimulationName(simulationId);
                 });
-                AnalysisWorkItem workItem = new(networkId, simulationId, UserInfo, scenarioName);
+                AnalysisWorkItem workItem = new(networkId, simulationId, UserInfo, scenarioName, _log);
                 var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
                 // Before sending a "queued" message that may overwrite early messages from the run,
                 // allow a brief moment for an empty queue to start running the submission.
@@ -459,11 +464,12 @@ namespace BridgeCareCore.Controllers
                     };
                     HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastSimulationAnalysisDetail, message);
                 }
-
+                _log.Debug("RunSimulation method complete");
                 return Ok();
             }
             catch (UnauthorizedAccessException e)
             {
+                _log.Debug("RunSimulation Unauthorized");
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::RunSimulation - {HubService.errorList["Unauthorized"]}", e);
             }
             catch (Exception e)
@@ -479,7 +485,9 @@ namespace BridgeCareCore.Controllers
                 {
                     HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::RunSimulation {simulationName} - {e.Message}", e);
                 }
+                _log.Debug("RunSimulation other exception");
             }
+            _log.Debug("RunSimulation method complete");
             return Ok();
         }
 
