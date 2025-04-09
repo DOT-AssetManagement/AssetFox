@@ -1,5 +1,6 @@
 ﻿using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 using System;
 using System.Collections.Generic;
 
@@ -42,6 +43,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             domain.Years.AddRange(years);
 
             return domain;
+        }
+
+        public static SimulationOutputDTO ToDto(this SimulationOutputEntity entity)
+        {
+            // TODO
+            return new SimulationOutputDTO();
         }
     }
 }

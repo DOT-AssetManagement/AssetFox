@@ -616,5 +616,45 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 _unitOfWork.Context.Database.ExecuteSqlRawAsync("[dbo].[usp_delete_simulationoutput] @SimOutputGuidList, @RetMessage", param, token).Wait();
             });
         }
+
+        public SimulationOutputDTO GetSimulationOutput(Guid simulationId)
+        {
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException("No simulation was found for the given scenario.");
+            }
+
+            if (!_unitOfWork.Context.SimulationOutput.Any(_ => _.SimulationId == simulationId))
+            {
+                return new SimulationOutputDTO
+                {
+                    Id = Guid.NewGuid()
+                };
+            }
+
+            return _unitOfWork.Context.SimulationOutput
+                .Include(_=>_.InitialAssetSummaries)
+                    .ThenInclude(_=>_.AssetSummaryDetailValuesIntId)
+                .Include(_=>_.Years).ThenInclude(_=>_.Budgets)
+                .Include(_=>_.Years).ThenInclude (_=>_.DeficientConditionGoals)
+                .Include(_ => _.Years)
+                    .ThenInclude(_ => _.Assets)
+                        .ThenInclude(_=>_.AssetDetailValuesIntId)
+                .Include(_ => _.Years)
+                    .ThenInclude(_ => _.Assets)
+                        .ThenInclude(_ => _.TreatmentConsiderations)
+                .Include(_ => _.Years)
+                    .ThenInclude(_ => _.Assets)
+                        .ThenInclude(_ => _.TreatmentOptions)
+                .Include(_ => _.Years)
+                    .ThenInclude(_ => _.Assets)
+                        .ThenInclude(_ => _.TreatmentRejections)
+                .Include(_ => _.Years)
+                    .ThenInclude(_ => _.Assets)
+                        .ThenInclude(_ => _.TreatmentSchedulingCollisions)
+                .Include(_ => _.Years).ThenInclude(_ => _.TargetConditionGoals)
+                .Single(_ => _.SimulationId == simulationId)
+                .ToDto();
+        }
     }
 }

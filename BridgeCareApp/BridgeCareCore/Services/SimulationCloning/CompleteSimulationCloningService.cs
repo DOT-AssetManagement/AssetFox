@@ -4,7 +4,6 @@ using AppliedResearchAssociates.iAM.DTOs;
 using System.Linq;
 using System;
 using AppliedResearchAssociates.iAM.Common;
-using System.Collections.Generic;
 
 namespace BridgeCareCore.Services
 {
@@ -27,9 +26,7 @@ namespace BridgeCareCore.Services
                 NetworkId = coreSimulation.NetworkId,
                 ReportStatus = coreSimulation.ReportStatus,
                 Id = simulationGuid,
-                Creator = coreSimulation.Creator,
-
-
+                Creator = coreSimulation.Creator
             };
 
             fullSimulation.AnalysisMethod = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationGuid);
@@ -46,7 +43,7 @@ namespace BridgeCareCore.Services
             fullSimulation.RemainingLifeLimits = _unitOfWork.RemainingLifeLimitRepo.GetScenarioRemainingLifeLimits(simulationGuid);
             fullSimulation.CashFlowRules = _unitOfWork.CashFlowRuleRepo.GetScenarioCashFlowRules(simulationGuid);
             fullSimulation.PerformanceCurves = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationGuid);
-            fullSimulation.SimulationOutputJsons = _unitOfWork.SimulationOutputJsonRepo.GetSimulationOutputViaJson(simulationGuid);
+            fullSimulation.SimulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutput(simulationGuid);
             fullSimulation.SimulationAnalysisDetail = _unitOfWork.SimulationAnalysisDetailRepo.GetSimulationAnalysisDetail(simulationGuid);
 
             return fullSimulation;
@@ -55,7 +52,7 @@ namespace BridgeCareCore.Services
         {
             // load it
             var sourceSimulationId = dto.ScenarioId.ToString();
-            var sourceSimulation = this.GetSimulation(sourceSimulationId);
+            var sourceSimulation = GetSimulation(sourceSimulationId);
             var simulationCloningCommittedProjectErrors = new SimulationCloningCommittedProjectErrors();
             if (sourceSimulation.CommittedProjects.Any(_ => _.ScenarioBudgetId == null))
             {

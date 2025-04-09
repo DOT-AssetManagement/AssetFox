@@ -19,7 +19,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
     {
         public static SimulationEntity ToNewEntity(
             this CompleteSimulationDTO dto,
-        List<AttributeEntity> attributes,
+            List<AttributeEntity> attributes,
             string networkKeyAttribute, BaseEntityProperties baseEntityProperties)
         {
             var analysisMethodDto = dto.AnalysisMethod;
@@ -176,12 +176,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 userJoins.Add(userJoin);
             }
 
-            var simulationOutputJsonEntities = new List<SimulationOutputJsonEntity>();
-            foreach(var simulationOutputJson in dto.SimulationOutputJsons)
-            {
-                var simulationOutputJsonEntity = simulationOutputJson.ToEntity(dto.Id);
-                simulationOutputJsonEntities.Add(simulationOutputJsonEntity);
-            }
+            // TODO SimulationOutputEntity - toEntity and then add to below, ideally there should be only 1 simulationOutput (not list?)
+            var simulationOutputs = new List<SimulationOutputEntity>();
+            var simulationOutputEntity = new SimulationOutputEntity();
+            BaseEntityPropertySetter.SetBaseEntityProperties(simulationOutputEntity, baseEntityProperties);
+            simulationOutputs.Add(simulationOutputEntity);
 
             var simulationAnalysisDetail = new SimulationAnalysisDetailEntity();
             if (dto.SimulationAnalysisDetail != null)
@@ -210,8 +209,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 CommittedProjects = committedProjectEntities,
                 SelectableTreatments = scenarioSelectableTreatmentEntities,
                 SimulationUserJoins = userJoins,
-                SimulationOutputJsons = simulationOutputJsonEntities,
-                SimulationAnalysisDetail = simulationAnalysisDetail
+                SimulationAnalysisDetail = simulationAnalysisDetail,
+                SimulationOutputs = simulationOutputs
             };
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;

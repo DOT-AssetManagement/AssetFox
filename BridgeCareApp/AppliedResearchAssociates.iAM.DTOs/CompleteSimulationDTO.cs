@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 
 namespace AppliedResearchAssociates.iAM.DTOs
@@ -74,12 +72,12 @@ namespace AppliedResearchAssociates.iAM.DTOs
         /// <summary>
         /// The Cash Flow Rule repository of a simulation.
         /// </summary>
-        public IList<CashFlowRuleDTO> CashFlowRules { get; set; }
+        public IList<CashFlowRuleDTO> CashFlowRules { get; set; }        
 
         /// <summary>
-        /// SimulationOutputJson of a simulation
+        /// SimulationOutput of a simulation
         /// </summary>
-        public IList<SimulationOutputJsonDTO> SimulationOutputJsons { get; set; }
+        public SimulationOutputDTO SimulationOutput { get; set; }
 
         /// <summary>
         /// SimulationAnalysisDetail of a simulation
