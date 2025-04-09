@@ -440,7 +440,7 @@ namespace BridgeCareCore.Controllers
         [Authorize(Policy = Policy.RunSimulation)]
         public async Task<IActionResult> RunSimulation(Guid networkId, Guid simulationId)
         {
-            _log.Debug("Entering RunSimulation");
+            _log.Debug("Entering RunSimulation Controller method");
             try
             {
                 _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
@@ -464,7 +464,7 @@ namespace BridgeCareCore.Controllers
                     };
                     HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastSimulationAnalysisDetail, message);
                 }
-                _log.Debug("RunSimulation method complete");
+                _log.Debug("RunSimulation controller method complete");
                 return Ok();
             }
             catch (UnauthorizedAccessException e)
