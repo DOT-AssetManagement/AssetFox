@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.Data.Networking;
+using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;

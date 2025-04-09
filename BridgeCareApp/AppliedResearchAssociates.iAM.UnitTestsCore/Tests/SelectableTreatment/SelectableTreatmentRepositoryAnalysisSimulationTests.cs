@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System;
 using Xunit;
+using AppliedResearchAssociates.iAM.DataUnitTests;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
 {

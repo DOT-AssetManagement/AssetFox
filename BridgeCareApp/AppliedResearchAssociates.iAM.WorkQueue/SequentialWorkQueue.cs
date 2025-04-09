@@ -167,6 +167,7 @@ public class SequentialWorkQueue<T>
             {
                 WorkCompletionSource.SetCanceled();
             }
+            GC.Collect();
         }
 
         

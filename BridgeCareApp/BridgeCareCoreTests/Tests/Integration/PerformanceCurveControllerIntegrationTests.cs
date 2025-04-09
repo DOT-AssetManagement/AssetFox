@@ -46,7 +46,7 @@ namespace BridgeCareCoreTests.Tests.Integration
         }
 
         [Fact]
-        public async void UpsertPerformanceCurveLibrary_CurveUpsertThrows_LibraryIsNotChanged()
+        public async Task UpsertPerformanceCurveLibrary_CurveUpsertThrows_LibraryIsNotChanged()
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);

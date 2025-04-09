@@ -9,6 +9,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
 {
     public static class TestHelper
     {
+        // This static constructor runs once per test class
+        // that uses TestHelper. As of 4/7/2025, that means
+        // it runs twice per test run. It takes about 15 seconds.
+        // It might be preferable to run it only once per test run,
+        // but it's not obvious how to accomplish that.
         static TestHelper()
         {
             try
