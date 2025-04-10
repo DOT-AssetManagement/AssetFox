@@ -44,6 +44,8 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
         ILog log
     ) : this(networkId, simulationId, userInfo, scenarioName) // Calling the positional parameters constructor
     {
+        // TODO as of 4/10/2025 -- Once the Simulation startup question is resolved,
+        // use the logger from the ServiceProvider. Do not pass one in.
         _log = log ?? new DoNotLog();
     }
 
