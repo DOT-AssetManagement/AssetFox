@@ -35,7 +35,6 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
 
     private readonly ILog _log = new DoNotLog();
 
-    // Constructor that accepts UnitOfDataPersistenceWork and uses the positional parameters constructor
     public AnalysisWorkItem(
         Guid networkId,
         Guid simulationId,
@@ -214,11 +213,11 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
 
                     var hubServiceLogger = new HubServiceLogger(_hubService, HubConstant.BroadcastScenarioStatusUpdate, _unitOfWork.CurrentUser?.Username);
                     var updateSimulationAnalysisDetailLogger = new CallbackLogger(message => UpdateSimulationAnalysisDetailFromString(message));
-                    markAndLog("Before CreateSimulationOutputViaRelational" + DateTime.Now);
+                    markAndLog("Before CreateSimulationOutputViaRelational");
                     // TODO: Uncomment when reports work is done and remove call to CreateSimulationOutputViaJson on the next line
                     // _unitOfWork.SimulationOutputRepo.CreateSimulationOutputViaRelational(SimulationId, simulation.Results);
                     _unitOfWork.SimulationOutputRepo.CreateSimulationOutputViaJson(SimulationId, simulation.Results);
-                    markAndLog("After CreateSimulationOutputViaRelational" + DateTime.Now);
+                    markAndLog("After CreateSimulationOutputViaRelational");
                     simulationAnalysisDetail.Status = SimulationUserMessages.SimulationOutputSavedToDatabase;
                     UpdateSimulationAnalysisDetail(simulationAnalysisDetail, DateTime.Now);
                     _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastScenarioStatusUpdate, simulationAnalysisDetail, SimulationId);
@@ -282,6 +281,8 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
         markAndLog("RunValidation");
         runner.Run(false, cancellationToken);
         markAndLog("Run complete");
+        var timingsOutput = memos.ToMultilineString();
+        _log.Debug(timingsOutput);
 
         void RunValidation(SimulationRunner runner)
         {
