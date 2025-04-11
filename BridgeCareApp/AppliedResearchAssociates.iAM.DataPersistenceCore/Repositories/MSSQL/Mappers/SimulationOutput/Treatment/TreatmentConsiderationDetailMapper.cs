@@ -98,7 +98,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new TreatmentConsiderationDetailDTO
             {
                 Id = entity.Id,
-                AssetDetailId = entity.AssetDetailId,
                 BudgetPriorityLevel = entity.BudgetPriorityLevel,
                 TreatmentName = entity.TreatmentName,
                 CashFlowConsiderations = entity.CashFlowConsiderations.Select(_ => _.ToDto()).ToList(),

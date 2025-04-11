@@ -60,7 +60,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new TreatmentRejectionDetailDTO
             {
                 Id = entity.Id,
-                AssetDetailId = entity.AssetDetailId,
                 TreatmentName = entity.TreatmentName,
                 PotentialConditionChange = entity.PotentialConditionChange,
                 TreatmentRejectionReason = entity.TreatmentRejectionReason

@@ -8,8 +8,6 @@ namespace AppliedResearchAssociates.iAM.DTOs
     {
         public Guid MaintainableAssetId { get; set; }
 
-        public Guid SimulationYearDetailId { get; set; }
-
         public string AppliedTreatment { get; set; }
 
         public int TreatmentCause { get; set; }

@@ -61,7 +61,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new CashFlowConsiderationDetailDTO
             {
                 Id = entity.Id,
-                TreatmentConsiderationDetailId= entity.TreatmentConsiderationDetailId,
                 CashFlowRuleName = entity.CashFlowRuleName,
                 ReasonAgainstCashFlow = entity.ReasonAgainstCashFlow    
             };

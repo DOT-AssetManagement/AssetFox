@@ -6,8 +6,6 @@ namespace AppliedResearchAssociates.iAM.DTOs
     {
         public int Id { get; set; }
 
-        public Guid AssetDetailId { get; set; }
-
         public char Discriminator { get; set; }
 
         public string TextValue { get; set; }

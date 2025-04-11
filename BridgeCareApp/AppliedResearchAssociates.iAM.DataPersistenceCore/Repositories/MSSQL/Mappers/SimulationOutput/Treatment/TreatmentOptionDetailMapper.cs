@@ -62,7 +62,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new TreatmentOptionDetailDTO
             {
                 Id = entity.Id,
-                AssetDetailId = entity.AssetDetailId,
                 Benefit = entity.Benefit,
                 RemainingLife = entity.RemainingLife,
                 ConditionChange = entity.ConditionChange,

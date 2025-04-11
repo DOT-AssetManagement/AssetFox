@@ -57,8 +57,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new TreatmentSchedulingCollisionDetailDTO
             {
                 Id = entity.Id,
-                AssetDetailId = entity.AssetDetailId,
-                NameOfUnscheduledTreatment= entity.NameOfUnscheduledTreatment
+                NameOfUnscheduledTreatment = entity.NameOfUnscheduledTreatment
             };
 
             return dto;

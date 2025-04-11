@@ -80,7 +80,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new DeficientConditionGoalDetailDTO
             {
                 Id = entity.Id,
-                SimulationYearDetailId = entity.SimulationYearDetailId,
                 ActualDeficientPercentage= entity.ActualDeficientPercentage,
                 AllowedDeficientPercentage = entity.AllowedDeficientPercentage,
                 DeficientLimit = entity.DeficientLimit

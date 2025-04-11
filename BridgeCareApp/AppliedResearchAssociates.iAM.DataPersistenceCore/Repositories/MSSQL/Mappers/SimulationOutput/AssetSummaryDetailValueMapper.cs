@@ -125,7 +125,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new AssetSummaryDetailValueEntityIntIdDTO
             {
                 Id = entity.Id,
-                AssetSummaryDetailId = entity.AssetSummaryDetailId,
                 AttributeId = entity.AttributeId,
                 Discriminator = entity.Discriminator,
                 NumericValue = entity.NumericValue,

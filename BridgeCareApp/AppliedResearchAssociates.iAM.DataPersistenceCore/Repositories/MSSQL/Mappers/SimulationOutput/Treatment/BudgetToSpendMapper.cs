@@ -36,7 +36,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new BudgetToSpendDTO
             {
                 Id = entity.Id,
-                FundingCalculationInputId = entity.FundingCalculationInputId,
                 Name = entity.Name,
                 Amount = entity.Amount,
                 Year = entity.Year

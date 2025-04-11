@@ -37,7 +37,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new AllocationDTO
             {
                 Id = entity.Id,
-                FundingCalculationOutputId = entity.FundingCalculationOutputId,
                 AllocatedAmount = entity.AllocatedAmount,
                 BudgetName = entity.BudgetName,
                 TreatmentName = entity.TreatmentName,

@@ -73,7 +73,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new TargetConditionGoalDetailDTO
             {
                 Id = entity.Id,
-                SimulationYearDetailId = entity.SimulationYearDetailId,
                 ActualValue = entity.ActualValue,
                 TargetValue = entity.TargetValue
             };

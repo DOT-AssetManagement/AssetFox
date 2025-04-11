@@ -42,7 +42,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new FundingCalculationOutputDTO
             {
                 Id = entity.Id,
-                TreatmentConsiderationDetailId = entity.TreatmentConsiderationDetailId,
                 AllocationMatrix = entity.AllocationMatrix.Select(_ => _.ToDto()).ToList()
             };
 

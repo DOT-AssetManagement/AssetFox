@@ -76,8 +76,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new AssetSummaryDetailDTO
             {
                 Id = entity.Id,
-                MaintainableAssetId = entity.MaintainableAssetId,
-                SimulationOutputId = entity.SimulationOutputId,
+                MaintainableAssetId = entity.MaintainableAssetId,                
                 AssetSummaryDetailValuesIntId = entity.AssetSummaryDetailValuesIntId.Select(_ => _.ToDto()).ToList()                
             };
 

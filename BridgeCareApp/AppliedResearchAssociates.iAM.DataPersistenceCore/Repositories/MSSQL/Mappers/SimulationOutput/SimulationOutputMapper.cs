@@ -1,5 +1,6 @@
 ﻿using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 using AppliedResearchAssociates.iAM.DTOs;
 using System;
 using System.Collections.Generic;
@@ -57,6 +58,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             };
 
             return simulationOutput;
+        }
+
+        internal static SimulationOutputEntity ToEntity(this SimulationOutputDTO simulationOutput, Guid simulationId)
+        {
+            // Assign relationals ids correctly
+            // do not send in id int for AssetSummaryDetailValueEntityIntIdDTO and AssetDetailValueEntityIntIdDTO - it should be added as pk unique val
+            return new SimulationOutputEntity
+            {
+                Id = simulationOutput.Id,
+                SimulationId = simulationId,
+                InitialConditionOfNetwork = simulationOutput.InitialConditionOfNetwork,
+                InitialAssetSummaries = simulationOutput.InitialAssetSummaries.Select(_ => _.ToEntity()),
+                Years = simulationOutput.Years.Select(_ => _.ToEntity())
+            };
         }
     }
 }

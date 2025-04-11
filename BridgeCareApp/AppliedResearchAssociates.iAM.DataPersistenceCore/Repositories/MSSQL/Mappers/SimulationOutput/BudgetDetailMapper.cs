@@ -54,8 +54,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 Id = entity.Id,
                 AvailableFunding = entity.AvailableFunding,
-                BudgetName = entity.BudgetName,
-                SimulationYearDetailId = entity.SimulationYearDetailId
+                BudgetName = entity.BudgetName
             };
 
             return dto;

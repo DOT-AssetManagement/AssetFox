@@ -69,7 +69,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Id = entity.Id,
                 Year = entity.Year,
                 ConditionOfNetwork = entity.ConditionOfNetwork,
-                SimulationOutputId = entity.SimulationOutputId,
                 Budgets = entity.Budgets.Select(_ => _.ToDto()).ToList(),
                 DeficientConditionGoals = entity.DeficientConditionGoals.Select(_ => _.ToDto()).ToList(),
                 TargetConditionGoals = entity.TargetConditionGoals.Select(_ => _.ToDto()).ToList(),

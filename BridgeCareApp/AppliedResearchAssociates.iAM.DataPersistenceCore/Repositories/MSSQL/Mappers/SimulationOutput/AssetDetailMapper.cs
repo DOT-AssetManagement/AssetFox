@@ -129,7 +129,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new AssetDetailDTO
             {
                 Id = entity.Id,
-                SimulationYearDetailId = entity.SimulationYearDetailId,
                 MaintainableAssetId = entity.MaintainableAssetId,
                 AppliedTreatment = entity.AppliedTreatment,
                 ProjectSource = entity.ProjectSource,

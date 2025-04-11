@@ -42,7 +42,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var dto = new FundingCalculationInputDTO
             {
                 Id = entity.Id,
-                TreatmentConsiderationDetailId = entity.TreatmentConsiderationDetailId,
                 CurrentBudgetsToSpend = entity.CurrentBudgetsToSpend.Select(_ => _.ToDto()).ToList()
             };
 

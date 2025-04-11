@@ -174,11 +174,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 var userJoin = user.ToEntity(dto.Id, baseEntityProperties);
                 userJoins.Add(userJoin);
-            }
-
-            // TODO SimulationOutputEntity - toEntity and then add to below, ideally there should be only 1 simulationOutput (not list?)
+            }            
+            
+            // Should be sigle entry?(as we are deleting when running analysis?
             var simulationOutputs = new List<SimulationOutputEntity>();
-            var simulationOutputEntity = new SimulationOutputEntity();
+            var simulationOutputEntity = dto.SimulationOutput.ToEntity(dto.Id);
             BaseEntityPropertySetter.SetBaseEntityProperties(simulationOutputEntity, baseEntityProperties);
             simulationOutputs.Add(simulationOutputEntity);
 
