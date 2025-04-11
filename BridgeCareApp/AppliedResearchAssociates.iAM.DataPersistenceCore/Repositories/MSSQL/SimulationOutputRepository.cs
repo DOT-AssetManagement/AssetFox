@@ -619,6 +619,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public SimulationOutputDTO GetSimulationOutput(Guid simulationId)
         {
+            _unitOfWork.Context.Database.SetCommandTimeout(TimeSpan.FromSeconds(3600));            
+            var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
+
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
                 throw new RowNotInTableException("No simulation was found for the given scenario.");
@@ -632,29 +635,63 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 };
             }
 
-            return _unitOfWork.Context.SimulationOutput
-                .Include(_=>_.InitialAssetSummaries)
-                    .ThenInclude(_=>_.AssetSummaryDetailValuesIntId)
-                .Include(_=>_.Years).ThenInclude(_=>_.Budgets)
-                .Include(_=>_.Years).ThenInclude (_=>_.DeficientConditionGoals)
-                .Include(_ => _.Years)
-                    .ThenInclude(_ => _.Assets)
-                        .ThenInclude(_=>_.AssetDetailValuesIntId)
-                .Include(_ => _.Years)
-                    .ThenInclude(_ => _.Assets)
-                        .ThenInclude(_ => _.TreatmentConsiderations)
-                .Include(_ => _.Years)
-                    .ThenInclude(_ => _.Assets)
-                        .ThenInclude(_ => _.TreatmentOptions)
-                .Include(_ => _.Years)
-                    .ThenInclude(_ => _.Assets)
-                        .ThenInclude(_ => _.TreatmentRejections)
-                .Include(_ => _.Years)
-                    .ThenInclude(_ => _.Assets)
-                        .ThenInclude(_ => _.TreatmentSchedulingCollisions)
-                .Include(_ => _.Years).ThenInclude(_ => _.TargetConditionGoals)
-                .Single(_ => _.SimulationId == simulationId)
-                .ToDto();
+            var simulationOutput = _unitOfWork.Context.SimulationOutput
+                .Include(_ => _.InitialAssetSummaries)
+                    .ThenInclude(_ => _.AssetSummaryDetailValuesIntId).FirstOrDefault(_ => _.SimulationId == simulationId);
+
+            var simulationOutputDto = simulationOutput.ToDtoWithoutYears();
+
+            // Years data, then ToDo per year...add to main DTO
+            var yearsWithoutAssets = _unitOfWork.Context.SimulationYearDetail
+                .Include(y => y.Budgets)
+                .Include(y => y.DeficientConditionGoals)
+                .Include(y => y.TargetConditionGoals)
+                .Where(y => y.SimulationOutputId == simulationOutput.Id)
+                .AsNoTracking()
+                .ToList();
+
+            foreach(var year in yearsWithoutAssets)
+            {
+                // Assets
+                var shouldContinueLoadingAssets = true;
+                var batchIndex = 0;
+
+                while (shouldContinueLoadingAssets)
+                {
+                    var assetEntities = _unitOfWork.Context.AssetDetail
+                           .Where(a => a.SimulationYearDetailId == year.Id)
+                           .OrderBy(a => a.Id)
+                   .AsNoTracking()
+                   .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.CashFlowConsiderations)
+                   .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.FundingCalculationInput)
+                   .ThenInclude(fci => fci.CurrentBudgetsToSpend)
+                   .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.FundingCalculationOutput)
+                   .ThenInclude(fco => fco.AllocationMatrix)
+                   .Include(a => a.TreatmentOptions)
+                   .Include(a => a.TreatmentRejections)
+                   //.Include(a => a.TreatmentSchedulingCollisions) // no usage in reports
+                   .Include(a => a.AssetDetailValuesIntId)
+                   .AsSplitQuery()
+                   .Skip(assetLoadBatchSize * batchIndex)
+                   .Take(assetLoadBatchSize)
+                   .ToList();
+                    if (assetEntities.Any())
+                    {                        
+                        year.Assets = assetEntities;
+                        _unitOfWork.Context.ChangeTracker.Clear();
+                    }
+
+                    simulationOutputDto.Years.Add(year.ToDto());
+
+                    batchIndex++;
+                    shouldContinueLoadingAssets = assetEntities.Count == assetLoadBatchSize;
+                }
+            }
+
+            return simulationOutputDto;
         }
     }
 }

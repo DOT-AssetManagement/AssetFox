@@ -46,14 +46,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return domain;
         }
 
-        public static SimulationOutputDTO ToDto(this SimulationOutputEntity entity)
+        public static SimulationOutputDTO ToDtoWithoutYears(this SimulationOutputEntity entity)
         {
             var simulationOutput = new SimulationOutputDTO
             {
                 Id = entity.Id,
                 InitialConditionOfNetwork = entity.InitialConditionOfNetwork,
-                InitialAssetSummaries = entity.InitialAssetSummaries.Select(_ => _.ToDto()).ToList(),
-                Years = entity.Years.Select(_ => _.ToDto()).ToList()
+                InitialAssetSummaries = entity.InitialAssetSummaries.Select(_ => _.ToDto()).ToList()                
             };
 
             return simulationOutput;
