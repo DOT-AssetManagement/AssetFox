@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.DTOs;
 
 namespace BridgeCareCore.Services.SimulationCloning
@@ -22,8 +23,12 @@ namespace BridgeCareCore.Services.SimulationCloning
         {
             return new TargetConditionGoalDetailDTO
             {
+                Id = Guid.NewGuid(),
                 ActualValue = targetConditionGoal.ActualValue,
-                TargetValue = targetConditionGoal.TargetValue
+                TargetValue = targetConditionGoal.TargetValue,
+                AttributeId = targetConditionGoal.AttributeId,
+                GoalIsMet = targetConditionGoal.GoalIsMet,
+                GoalName = targetConditionGoal.GoalName,
             };
         }
     }

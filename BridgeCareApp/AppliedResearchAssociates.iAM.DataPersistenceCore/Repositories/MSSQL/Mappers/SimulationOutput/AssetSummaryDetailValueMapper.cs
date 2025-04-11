@@ -133,5 +133,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static AssetSummaryDetailValueEntityIntId ToEntity(this AssetSummaryDetailValueEntityIntIdDTO assetSummaryDetailValueEntityIntIdDto, Guid assetSummaryDetailId)
+        {
+            return new AssetSummaryDetailValueEntityIntId
+            {
+                AssetSummaryDetailId = assetSummaryDetailId,
+                AttributeId = assetSummaryDetailValueEntityIntIdDto.AttributeId,
+                Discriminator = assetSummaryDetailValueEntityIntIdDto.Discriminator,
+                NumericValue = assetSummaryDetailValueEntityIntIdDto.NumericValue,
+                TextValue = assetSummaryDetailValueEntityIntIdDto.TextValue
+            };
+        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -74,10 +73,27 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 Id = entity.Id,
                 ActualValue = entity.ActualValue,
-                TargetValue = entity.TargetValue
+                TargetValue = entity.TargetValue,
+                AttributeId = entity.AttributeId,
+                GoalIsMet = entity.GoalIsMet,
+                GoalName = entity.GoalName
             };
 
             return dto;
+        }
+
+        public static TargetConditionGoalDetailEntity ToEntity(this TargetConditionGoalDetailDTO targetConditionGoalDetailDto, Guid simulationYearDetailId)
+        {
+            return new TargetConditionGoalDetailEntity
+            {
+                Id = targetConditionGoalDetailDto.Id,
+                SimulationYearDetailId = simulationYearDetailId,
+                ActualValue = targetConditionGoalDetailDto.ActualValue,
+                TargetValue = targetConditionGoalDetailDto.TargetValue,
+                AttributeId = targetConditionGoalDetailDto.AttributeId,
+                GoalIsMet = targetConditionGoalDetailDto.GoalIsMet,
+                GoalName = targetConditionGoalDetailDto.GoalName
+            };
         }
     }
 }

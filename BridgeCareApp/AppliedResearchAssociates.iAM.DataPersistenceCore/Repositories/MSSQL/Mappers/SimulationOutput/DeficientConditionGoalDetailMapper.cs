@@ -82,10 +82,28 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Id = entity.Id,
                 ActualDeficientPercentage= entity.ActualDeficientPercentage,
                 AllowedDeficientPercentage = entity.AllowedDeficientPercentage,
-                DeficientLimit = entity.DeficientLimit
+                DeficientLimit = entity.DeficientLimit,
+                GoalIsMet = entity.GoalIsMet,
+                GoalName = entity.GoalName,
+                AttributeId = entity.AttributeId
             };
 
             return dto;
+        }
+
+        public static DeficientConditionGoalDetailEntity ToEntity(this DeficientConditionGoalDetailDTO deficientConditionGoalDetailDto, Guid simulationYearDetailId)
+        {
+            return new DeficientConditionGoalDetailEntity
+            {
+                Id = deficientConditionGoalDetailDto.Id,
+                SimulationYearDetailId = simulationYearDetailId,
+                ActualDeficientPercentage = deficientConditionGoalDetailDto.ActualDeficientPercentage,
+                AllowedDeficientPercentage = deficientConditionGoalDetailDto.AllowedDeficientPercentage,                
+                DeficientLimit = deficientConditionGoalDetailDto.DeficientLimit,
+                AttributeId = deficientConditionGoalDetailDto.AttributeId,
+                GoalIsMet = deficientConditionGoalDetailDto.GoalIsMet,
+                GoalName = deficientConditionGoalDetailDto.GoalName
+            };
         }
     }
 }

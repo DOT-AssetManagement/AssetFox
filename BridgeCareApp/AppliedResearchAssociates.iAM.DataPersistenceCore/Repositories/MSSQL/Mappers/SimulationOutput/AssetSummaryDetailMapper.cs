@@ -82,5 +82,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static AssetSummaryDetailEntity ToEntity(this AssetSummaryDetailDTO assetSummaryDetailDto, Guid simulationOutputId)
+        {
+            var assetSummaryDetailId = assetSummaryDetailDto.Id;
+
+            return new AssetSummaryDetailEntity
+            {
+                Id = assetSummaryDetailId,
+                SimulationOutputId = simulationOutputId,
+                MaintainableAssetId = assetSummaryDetailDto.MaintainableAssetId,
+                AssetSummaryDetailValuesIntId = assetSummaryDetailDto.AssetSummaryDetailValuesIntId.Select(_ => _.ToEntity(assetSummaryDetailId)).ToList()
+            };
+        }
     }
 }

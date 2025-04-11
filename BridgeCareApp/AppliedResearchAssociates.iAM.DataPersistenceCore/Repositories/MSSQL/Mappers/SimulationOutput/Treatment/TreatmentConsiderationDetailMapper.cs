@@ -107,5 +107,21 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static TreatmentConsiderationDetailEntity ToEntity(this TreatmentConsiderationDetailDTO treatmentConsiderationDetailDto, Guid assetDetailId)
+        {
+            var treatmentConsiderationDetailId = treatmentConsiderationDetailDto.Id;
+
+            return new TreatmentConsiderationDetailEntity
+            {
+                Id = treatmentConsiderationDetailId,
+                AssetDetailId = assetDetailId,
+                BudgetPriorityLevel = treatmentConsiderationDetailDto.BudgetPriorityLevel,
+                TreatmentName = treatmentConsiderationDetailDto.TreatmentName,
+                CashFlowConsiderations = treatmentConsiderationDetailDto.CashFlowConsiderations.Select(_ => _.ToEntity(treatmentConsiderationDetailId)).ToList(),
+                FundingCalculationInput = treatmentConsiderationDetailDto.FundingCalculationInput.ToEntity(treatmentConsiderationDetailId),
+                FundingCalculationOutput = treatmentConsiderationDetailDto.FundingCalculationOutput.ToEntity(treatmentConsiderationDetailId)
+            };
+        }
     }
 }

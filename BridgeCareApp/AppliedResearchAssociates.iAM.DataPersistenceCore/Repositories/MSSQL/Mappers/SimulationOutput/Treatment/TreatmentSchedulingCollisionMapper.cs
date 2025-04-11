@@ -62,5 +62,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static TreatmentSchedulingCollisionDetailEntity ToEntity(this TreatmentSchedulingCollisionDetailDTO treatmentSchedulingCollisionDetailDto, Guid assetDetailId)
+        {
+            return new TreatmentSchedulingCollisionDetailEntity
+            {
+                Id = treatmentSchedulingCollisionDetailDto.Id,
+                AssetDetailId = assetDetailId,
+                NameOfUnscheduledTreatment = treatmentSchedulingCollisionDetailDto.NameOfUnscheduledTreatment
+            };
+        }
     }
 }

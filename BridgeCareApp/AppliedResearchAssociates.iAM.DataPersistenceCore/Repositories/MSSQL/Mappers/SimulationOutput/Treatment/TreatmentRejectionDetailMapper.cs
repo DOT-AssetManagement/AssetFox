@@ -67,5 +67,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static TreatmentRejectionDetailEntity ToEntity(this TreatmentRejectionDetailDTO treatmentRejectionDetailDto, Guid assetDetailId)
+        {
+            return new TreatmentRejectionDetailEntity
+            {
+                Id = treatmentRejectionDetailDto.Id,
+                AssetDetailId = assetDetailId,
+                PotentialConditionChange = treatmentRejectionDetailDto.PotentialConditionChange,
+                TreatmentName = treatmentRejectionDetailDto.TreatmentName,
+                TreatmentRejectionReason = treatmentRejectionDetailDto.TreatmentRejectionReason
+            };
+        }
     }
 }

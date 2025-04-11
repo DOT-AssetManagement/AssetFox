@@ -26,7 +26,10 @@ namespace BridgeCareCore.Services.SimulationCloning
                 Id = Guid.NewGuid(),
                 ActualDeficientPercentage = deficientConditionGoal.ActualDeficientPercentage,
                 AllowedDeficientPercentage = deficientConditionGoal.AllowedDeficientPercentage,
-                DeficientLimit = deficientConditionGoal.DeficientLimit
+                DeficientLimit = deficientConditionGoal.DeficientLimit,
+                AttributeId = deficientConditionGoal.AttributeId,
+                GoalIsMet=deficientConditionGoal.GoalIsMet,
+                GoalName=deficientConditionGoal.GoalName                
             };
         }
     }

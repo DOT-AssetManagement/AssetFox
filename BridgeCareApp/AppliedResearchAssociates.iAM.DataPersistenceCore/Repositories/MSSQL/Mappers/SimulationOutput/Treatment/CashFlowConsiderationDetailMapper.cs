@@ -67,5 +67,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static CashFlowConsiderationDetailEntity ToEntity(this CashFlowConsiderationDetailDTO cashFlowConsiderationDetailDto, Guid treatmentConsiderationDetailId)
+        {
+            return new CashFlowConsiderationDetailEntity
+            {
+                Id = cashFlowConsiderationDetailDto.Id,
+                TreatmentConsiderationDetailId = treatmentConsiderationDetailId,
+                ReasonAgainstCashFlow = cashFlowConsiderationDetailDto.ReasonAgainstCashFlow,
+                CashFlowRuleName = cashFlowConsiderationDetailDto.CashFlowRuleName
+            };
+        }
     }
 }

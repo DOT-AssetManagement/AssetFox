@@ -43,5 +43,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static BudgetToSpend ToEntity(this BudgetToSpendDTO budgetToSpendDto, Guid fundingCalculationInputId)
+        {
+            return new BudgetToSpend
+            {
+                Id = budgetToSpendDto.Id,
+                FundingCalculationInputId = fundingCalculationInputId,
+                Amount = budgetToSpendDto.Amount,
+                Name = budgetToSpendDto.Name,
+                Year = budgetToSpendDto.Year
+            };
+        }
     }
 }

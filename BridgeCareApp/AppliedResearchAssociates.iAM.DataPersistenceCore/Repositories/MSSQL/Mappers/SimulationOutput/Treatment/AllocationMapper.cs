@@ -45,5 +45,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static Allocation ToEntity(this AllocationDTO AllocationDto, Guid fundingCalculationOutputId)
+        {
+            return new Allocation
+            {
+                Id = AllocationDto.Id,
+                FundingCalculationOutputId = fundingCalculationOutputId,
+                AllocatedAmount = AllocationDto.AllocatedAmount,
+                BudgetName = AllocationDto.BudgetName,
+                TreatmentName = AllocationDto.TreatmentName,
+                Year = AllocationDto.Year
+            };
+        }
     }
 }

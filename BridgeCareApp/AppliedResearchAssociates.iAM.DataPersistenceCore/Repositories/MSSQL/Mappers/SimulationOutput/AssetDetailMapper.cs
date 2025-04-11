@@ -144,5 +144,27 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static AssetDetailEntity ToEntity(this AssetDetailDTO assetDetailDto, Guid simulationYearDetailId)
+        {
+            var assetDetailId = assetDetailDto.Id;
+
+            return new AssetDetailEntity
+            {
+                Id= assetDetailId,
+                SimulationYearDetailId= simulationYearDetailId,
+                AppliedTreatment= assetDetailDto.AppliedTreatment,
+                MaintainableAssetId=assetDetailDto.MaintainableAssetId,
+                ProjectSource = assetDetailDto.ProjectSource,
+                TreatmentCause = assetDetailDto.TreatmentCause,
+                TreatmentFundingIgnoresSpendingLimit = assetDetailDto.TreatmentFundingIgnoresSpendingLimit,
+                TreatmentStatus = assetDetailDto.TreatmentStatus,
+                AssetDetailValuesIntId= assetDetailDto.AssetDetailValuesIntId.Select(_ => _.ToEntity(assetDetailId)).ToList(),
+                TreatmentConsiderations= assetDetailDto.TreatmentConsiderations.Select(_ => _.ToEntity(assetDetailId)).ToList(),
+                TreatmentOptions= assetDetailDto.TreatmentOptions.Select(_ => _.ToEntity(assetDetailId)).ToList(),
+                TreatmentSchedulingCollisions= assetDetailDto.TreatmentSchedulingCollisions.Select(_ => _.ToEntity(assetDetailId)).ToList(),
+                TreatmentRejections= assetDetailDto.TreatmentRejections.Select(_ => _.ToEntity(assetDetailId)).ToList()
+            };
+        }
     }
 }

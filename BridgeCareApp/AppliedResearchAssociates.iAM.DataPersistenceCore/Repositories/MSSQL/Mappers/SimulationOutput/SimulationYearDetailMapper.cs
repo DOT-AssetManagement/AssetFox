@@ -77,5 +77,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             return dto;
         }
+
+        public static SimulationYearDetailEntity ToEntity(this SimulationYearDetailDTO simulationYearDetailDto, Guid simulationOutputId)
+        {
+            var simulationYearDetailId = simulationYearDetailDto.Id;
+
+            return new SimulationYearDetailEntity
+            {
+                Id = simulationYearDetailDto.Id,
+                SimulationOutputId = simulationOutputId,
+                Year = simulationYearDetailDto.Year,
+                ConditionOfNetwork = simulationYearDetailDto.ConditionOfNetwork,
+                Assets = simulationYearDetailDto.Assets.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                Budgets = simulationYearDetailDto.Budgets.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                DeficientConditionGoals = simulationYearDetailDto.DeficientConditionGoals.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                TargetConditionGoals = simulationYearDetailDto.TargetConditionGoals.Select(_ => _.ToEntity(simulationYearDetailId)).ToList()
+            };
+        }
     }
 }
