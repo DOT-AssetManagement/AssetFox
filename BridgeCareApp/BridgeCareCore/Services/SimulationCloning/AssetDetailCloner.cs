@@ -36,10 +36,10 @@ namespace BridgeCareCore.Services.SimulationCloning
                 TreatmentFundingIgnoresSpendingLimit = asset.TreatmentFundingIgnoresSpendingLimit,
                 TreatmentStatus = asset.TreatmentStatus,
                 AssetDetailValuesIntId = cloneAssetDetailValuesIntId,
-                TreatmentOptions = asset.TreatmentOptions,
-                TreatmentRejections = asset.TreatmentRejections,
-                TreatmentSchedulingCollisions = asset.TreatmentSchedulingCollisions,
-                TreatmentConsiderations = asset.TreatmentConsiderations
+                TreatmentOptions = cloneTreatmentOptions,
+                TreatmentRejections = cloneTreatmentRejections,
+                TreatmentSchedulingCollisions = cloneTreatmentSchedulingCollisions,
+                TreatmentConsiderations = cloneTreatmentConsiderations
             };
         }
     }
