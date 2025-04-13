@@ -27,5 +27,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void DeleteScenarioOutputsWithingDaterange(DateTime? startDate, DateTime endDate, CancellationToken token);
 
         SimulationOutputDTO GetSimulationOutput(Guid simulationId);
+
+        void CreateSimulationOutputRelational(SimulationOutputEntity simulationOutputEntity);
     }
 }
