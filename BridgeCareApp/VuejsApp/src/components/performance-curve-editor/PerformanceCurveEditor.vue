@@ -675,7 +675,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                 $router.push('/Scenarios/');
             }
             hasScenario.value = true;
-            await ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioPerformanceCurve}).then(async response => {
+            await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioPerformanceCurve}).then(async response => {
                 if(response.data){
                     setAlertMessageAction("A performance curve import has been added to the queue")
                 }
@@ -822,7 +822,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
         if (hasSelectedLibrary.value) {
             checkLibraryEditPermission();
             hasCreatedLibrary = false;
-            ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedPerformanceCurveLibrary.value.id, workType: WorkType.ImportLibraryPerformanceCurve}).then(response => {
+            ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedPerformanceCurveLibrary.value.id, workType: WorkType.ImportLibraryPerformanceCurve}).then(response => {
                 if(response.data){
                     setAlertMessageAction("A performance curve import has been added to the queue")
                 }

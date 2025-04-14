@@ -244,6 +244,23 @@ namespace BridgeCareCore.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        [Route("GetHiddenUploadQueuedWorkByDomainIdAndWorkType")]
+        [Authorize]
+        public async Task<IActionResult> GetHiddenUploadQueuedWorkByDomainIdAndWorkType([FromBody] WorkQueueRequestModel request)
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() => _workQueueService.GetFastQueuedWorkByDomainIdAndWorkType(request.DomainId, request.WorkType));
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::GetFastQueuedWorkByDomainIdAndWorkType - {e.Message}", e);
+            }
+            return Ok();
+        }
+
         [HttpGet]
         [Route("GetQueuedWorkByWorkType/{worktype}")]
         [Authorize]

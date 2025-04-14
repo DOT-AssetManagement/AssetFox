@@ -5,6 +5,7 @@ using AppliedResearchAssociates.iAM.WorkQueue;
 using BridgeCareCore.Interfaces;
 using BridgeCareCore.Models;
 using BridgeCareCore.Services;
+using BridgeCareCore.Services.General_Work_Queue;
 using BridgeCareCore.Services.SummaryReport.CommittedProjects;
 using BridgeCareCore.Services.Treatment;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +18,10 @@ namespace BridgeCareCore.StartupExtension
         {
             services.AddSingleton<SequentialWorkQueue<WorkQueueMetadata>>();
             services.AddSingleton<FastSequentialworkQueue<WorkQueueMetadata>>();
+            services.AddSingleton<HiddenUploadQueue<WorkQueueMetadata>>();
             services.AddHostedService<SequentialWorkBackgroundService>();
             services.AddHostedService<FastSequentialWorkBackgroundService>();
+            services.AddHostedService<HiddenUploadQueueBackgroundService>();
             services.AddHostedService<AttributeValueCacheBuildLaunchingService>();
 
             services.AddScoped<IGeneralWorkQueueService, GeneralWorkQueueService>();

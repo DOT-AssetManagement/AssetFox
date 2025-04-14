@@ -655,7 +655,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
             selectScenarioAction({ scenarioId: selectedScenarioId });   
               
-            await ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioTreatment}).then(response => {
+            await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioTreatment}).then(response => {
                 if(response.data){
                     setAlertMessageAction("A treatment curve has been added to the queue")
                 }
@@ -770,7 +770,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             checkLibraryEditPermission();
             hasCreatedLibrary = false;
             getDateModified();
-            ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedTreatmentLibrary.value.id, workType: WorkType.ImportLibraryTreatment}).then(response => {
+            ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedTreatmentLibrary.value.id, workType: WorkType.ImportLibraryTreatment}).then(response => {
                 if(response.data){
                     setAlertMessageAction("A treatment import has been added to the queue")
                 }

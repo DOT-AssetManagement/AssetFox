@@ -320,7 +320,7 @@ namespace BridgeCareCore.Controllers
                     }
                 });
                 ImportLibraryPerformanceCurveWorkitem workItem = new ImportLibraryPerformanceCurveWorkitem(performanceCurveLibraryId, excelPackage, currentUserCriteriaFilter, UserInfo.Name, libraryName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, libraryId.ToString());
 
@@ -380,7 +380,7 @@ namespace BridgeCareCore.Controllers
                 });
 
                 ImportScenarioPerformanceCurveWorkitem workItem = new ImportScenarioPerformanceCurveWorkitem(simulationId, excelPackage, currentUserCriteriaFilter, UserInfo.Name, simulationName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, simulationId.ToString());
 

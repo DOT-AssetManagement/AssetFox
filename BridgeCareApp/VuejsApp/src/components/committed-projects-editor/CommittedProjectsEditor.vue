@@ -575,7 +575,7 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
         
         await getCurrentUserOrSharedScenarioAction({simulationId: scenarioId});
         await selectScenarioAction({ scenarioId: scenarioId });
-        await ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
+        await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
             if(response.data){
                 setAlertMessageAction("Committed project import has been added to the queue");
             }
