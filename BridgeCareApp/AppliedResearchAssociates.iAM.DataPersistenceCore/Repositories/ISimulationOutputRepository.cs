@@ -25,5 +25,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void ConvertSimulationOutpuFromJsonTorelational(Guid simulationId, CancellationToken? cancellationToken = null, IWorkQueueLog queueLogger = null);
 
         void DeleteScenarioOutputsWithingDaterange(DateTime? startDate, DateTime endDate, CancellationToken token);
+
+        SimulationOutputDTO GetSimulationOutput(Guid simulationId);
+
+        void CreateSimulationOutputRelational(SimulationOutputEntity simulationOutputEntity);
     }
 }

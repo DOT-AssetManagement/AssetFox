@@ -21,6 +21,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using FundingCalculationInput = AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput;
+using FundingCalculationOutput = AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -615,6 +617,208 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                         }};
                 _unitOfWork.Context.Database.ExecuteSqlRawAsync("[dbo].[usp_delete_simulationoutput] @SimOutputGuidList, @RetMessage", param, token).Wait();
             });
+        }
+
+        public SimulationOutputDTO GetSimulationOutput(Guid simulationId)
+        {
+            _unitOfWork.Context.Database.SetCommandTimeout(TimeSpan.FromSeconds(3600));            
+            var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
+
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException("No simulation was found for the given scenario.");
+            }
+
+            if (!_unitOfWork.Context.SimulationOutput.Any(_ => _.SimulationId == simulationId))
+            {
+                return new SimulationOutputDTO
+                {
+                    Id = Guid.NewGuid()
+                };
+            }
+
+            var simulationOutput = _unitOfWork.Context.SimulationOutput
+                .Include(_ => _.InitialAssetSummaries)
+                    .ThenInclude(_ => _.AssetSummaryDetailValuesIntId).FirstOrDefault(_ => _.SimulationId == simulationId);
+
+            var simulationOutputDto = simulationOutput.ToDtoWithoutYears();
+
+            // Years data, then ToDo per year...add to main DTO
+            var yearsWithoutAssets = _unitOfWork.Context.SimulationYearDetail
+                .Include(y => y.Budgets)
+                .Include(y => y.DeficientConditionGoals)
+                .Include(y => y.TargetConditionGoals)
+                .Where(y => y.SimulationOutputId == simulationOutput.Id)
+                .AsNoTracking()
+                .ToList();
+
+            foreach(var year in yearsWithoutAssets)
+            {
+                // Assets
+                var shouldContinueLoadingAssets = true;
+                var batchIndex = 0;
+
+                while (shouldContinueLoadingAssets)
+                {
+                    var assetEntities = _unitOfWork.Context.AssetDetail
+                           .Where(a => a.SimulationYearDetailId == year.Id)
+                           .OrderBy(a => a.Id)
+                   .AsNoTracking()
+                   .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.CashFlowConsiderations)
+                   .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.FundingCalculationInput)
+                   .ThenInclude(fci => fci.CurrentBudgetsToSpend)
+                   .Include(a => a.TreatmentConsiderations)
+                   .ThenInclude(tc => tc.FundingCalculationOutput)
+                   .ThenInclude(fco => fco.AllocationMatrix)
+                   .Include(a => a.TreatmentOptions)
+                   .Include(a => a.TreatmentRejections)
+                   //.Include(a => a.TreatmentSchedulingCollisions) // no usage in reports
+                   .Include(a => a.AssetDetailValuesIntId)
+                   .AsSplitQuery()
+                   .Skip(assetLoadBatchSize * batchIndex)
+                   .Take(assetLoadBatchSize)
+                   .ToList();
+                    if (assetEntities.Any())
+                    {                        
+                        year.Assets = assetEntities;
+                        _unitOfWork.Context.ChangeTracker.Clear();
+                    }
+
+                    simulationOutputDto.Years.Add(year.ToDto());
+
+                    batchIndex++;
+                    shouldContinueLoadingAssets = assetEntities.Count == assetLoadBatchSize;
+                }
+            }
+
+            return simulationOutputDto;
+        }
+
+        public void CreateSimulationOutputRelational(SimulationOutputEntity simulationOutputEntity)
+        {
+            var simulationOutputEntityWithoutAssetsOrYearsDetails = new SimulationOutputEntity
+            {
+                Id = simulationOutputEntity.Id,
+                InitialConditionOfNetwork = simulationOutputEntity.InitialConditionOfNetwork,
+                SimulationId = simulationOutputEntity.SimulationId,
+                Years = new List<SimulationYearDetailEntity>(),
+                InitialAssetSummaries = new List<AssetSummaryDetailEntity>(),
+            };
+            _ = _unitOfWork.Context.Add(simulationOutputEntityWithoutAssetsOrYearsDetails);
+
+            var configuredBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetDetailSaveOverrideBatchSizeKey);
+            var batchSize = configuredBatchSize ?? AssetDetailSaveBatchSize;
+
+            var assetSummaryDetailEntityFamily = new AssetSummaryDetailEntityFamily();
+            var assetSummaries = simulationOutputEntity.InitialAssetSummaries.ToList();
+            foreach (var assetSummary in assetSummaries)
+            {
+                var assetSummaryEntity = new AssetSummaryDetailEntity
+                {
+                    Id = assetSummary.Id,
+                    MaintainableAssetId = assetSummary.MaintainableAssetId,
+                    SimulationOutputId = assetSummary.SimulationOutputId
+                };
+                assetSummaryDetailEntityFamily.AssetSummaryDetails.Add(assetSummaryEntity);
+
+                assetSummaryDetailEntityFamily.AssetSummaryDetailValues.AddRange(assetSummary.AssetSummaryDetailValuesIntId);
+            }
+            _unitOfWork.Context.AddAll(assetSummaryDetailEntityFamily.AssetSummaryDetails, batchSize: batchSize);
+            _unitOfWork.Context.AddAll(assetSummaryDetailEntityFamily.AssetSummaryDetailValues, batchSize: batchSize);
+
+            foreach (var year in simulationOutputEntity.Years)
+            {
+                var yearDetailEntity = new SimulationYearDetailEntity
+                {
+                    Id = year.Id,
+                    Year = year.Year,
+                    ConditionOfNetwork = year.ConditionOfNetwork,
+                    SimulationOutputId = year.SimulationOutputId,
+                    Budgets = year.Budgets,
+                    DeficientConditionGoals = year.DeficientConditionGoals,
+                    TargetConditionGoals = year.TargetConditionGoals
+                };
+                _ = _unitOfWork.Context.Add(yearDetailEntity);
+
+                var assetFamily = new AssetDetailEntityFamily();
+                var assets = year.Assets;
+                foreach (var asset in assets)
+                {
+                    var assetDetailEntity = new AssetDetailEntity
+                    {
+                        Id = asset.Id,
+                        AppliedTreatment = asset.AppliedTreatment,
+                        MaintainableAssetId = asset.MaintainableAssetId,
+                        ProjectSource = asset.ProjectSource,
+                        SimulationYearDetailId = asset.SimulationYearDetailId,
+                        TreatmentCause = asset.TreatmentCause,
+                        TreatmentFundingIgnoresSpendingLimit = asset.TreatmentFundingIgnoresSpendingLimit,
+                        TreatmentStatus = asset.TreatmentStatus
+                    };
+                    assetFamily.AssetDetails.Add(assetDetailEntity);
+
+                    assetFamily.AssetDetailValues.AddRange(asset.AssetDetailValuesIntId);
+                    assetFamily.TreatmentOptions.AddRange(asset.TreatmentOptions);
+                    assetFamily.TreatmentRejections.AddRange(asset.TreatmentRejections);
+                    assetFamily.TreatmentSchedulingCollisions.AddRange(asset.TreatmentSchedulingCollisions);
+
+                    foreach (var treatmentConsideration in asset.TreatmentConsiderations)
+                    {
+                        var treatmentConsiderationDetailEntity = new TreatmentConsiderationDetailEntity
+                        {
+                            Id = treatmentConsideration.Id,
+                            AssetDetailId = treatmentConsideration.AssetDetailId,
+                            BudgetPriorityLevel = treatmentConsideration.BudgetPriorityLevel,
+                            TreatmentName = treatmentConsideration.TreatmentName
+                        };
+                        assetFamily.TreatmentConsiderations.Add(treatmentConsiderationDetailEntity);
+
+                        assetFamily.CashFlowConsiderations.AddRange(treatmentConsideration.CashFlowConsiderations);
+
+                        var fundingCalculationInput = treatmentConsideration.FundingCalculationInput;
+                        var fundingCalculationInputEntity = new FundingCalculationInput
+                        {
+                            Id = treatmentConsideration.FundingCalculationInput.Id,
+                            TreatmentConsiderationDetailId = fundingCalculationInput.TreatmentConsiderationDetailId
+                        };
+                        assetFamily.FundingCalculationInputs.Add(fundingCalculationInputEntity);
+                        assetFamily.CurrentBudgetsToSpend.AddRange(fundingCalculationInput.CurrentBudgetsToSpend);
+
+                        var fundingCalculationOutput = treatmentConsideration.FundingCalculationOutput;
+                        var fundingCalculationOutputEntity = new FundingCalculationOutput
+                        {
+                            Id = fundingCalculationOutput.Id,
+                            TreatmentConsiderationDetailId = fundingCalculationOutput.TreatmentConsiderationDetailId
+                        };
+                        assetFamily.FundingCalculationOutputs.Add(fundingCalculationOutputEntity);
+                        assetFamily.AllocationMatrix.AddRange(fundingCalculationOutput.AllocationMatrix);
+                    }
+                }
+
+                _unitOfWork.Context.AddAll(assetFamily.AssetDetails, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.AssetDetailValues, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.TreatmentOptions, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.TreatmentRejections, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.TreatmentSchedulingCollisions, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.TreatmentConsiderations, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.FundingCalculationInputs, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.CurrentBudgetsToSpend, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.FundingCalculationOutputs, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.AllocationMatrix, batchSize: batchSize);
+
+                _unitOfWork.Context.AddAll(assetFamily.CashFlowConsiderations, batchSize: batchSize);
+            }
         }
     }
 }

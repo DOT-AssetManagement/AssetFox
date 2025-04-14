@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AnalysisEngine = AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -29,6 +30,33 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         private static AnalysisEngine.FundingCalculationOutput.Allocation ToDomain(Allocation allocationEntity)
         {
             return new AnalysisEngine.FundingCalculationOutput.Allocation(allocationEntity.Year, allocationEntity.BudgetName, allocationEntity.TreatmentName, allocationEntity.AllocatedAmount);
+        }
+
+        public static AllocationDTO ToDto(this Allocation entity)
+        {
+            var dto = new AllocationDTO
+            {
+                Id = entity.Id,
+                AllocatedAmount = entity.AllocatedAmount,
+                BudgetName = entity.BudgetName,
+                TreatmentName = entity.TreatmentName,
+                Year = entity.Year
+            };
+
+            return dto;
+        }
+
+        public static Allocation ToEntity(this AllocationDTO AllocationDto, Guid fundingCalculationOutputId)
+        {
+            return new Allocation
+            {
+                Id = AllocationDto.Id,
+                FundingCalculationOutputId = fundingCalculationOutputId,
+                AllocatedAmount = AllocationDto.AllocatedAmount,
+                BudgetName = AllocationDto.BudgetName,
+                TreatmentName = AllocationDto.TreatmentName,
+                Year = AllocationDto.Year
+            };
         }
     }
 }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 {
@@ -21,7 +17,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
                 unitOfWork.BeginTransaction();
                 transactionContents();
                 unitOfWork.Commit();
-            } catch
+            }
+            catch
             {
                 unitOfWork.Rollback();
                 throw;

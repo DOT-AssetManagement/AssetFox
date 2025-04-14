@@ -48,9 +48,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 }
             }
 
+            var simulationOutputEntity = entity.SimulationOutputs.FirstOrDefault();
+            entity.SimulationOutputs = new List<SimulationOutputEntity>();
             _unitOfWork.AsTransaction(() =>
             {
                 _unitOfWork.Context.AddEntity(entity);
+                if (simulationOutputEntity != null)
+                {
+                    _unitOfWork.SimulationOutputRepo.CreateSimulationOutputRelational(simulationOutputEntity);
+                }
             }); 
             var simulation = _unitOfWork.SimulationRepo.GetSimulation(completeSimulationDTO.Id);
             var warningMessage = simulationCloningCommittedProjectErrors.BudgetsPreventingCloning.Any() && simulationCloningCommittedProjectErrors.NumberOfCommittedProjectsAffected > 0

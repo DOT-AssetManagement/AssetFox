@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -58,6 +60,39 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static SimulationYearDetailDTO ToDto(this SimulationYearDetailEntity entity)
+        {
+            var dto = new SimulationYearDetailDTO
+            {
+                Id = entity.Id,
+                Year = entity.Year,
+                ConditionOfNetwork = entity.ConditionOfNetwork,
+                Budgets = entity.Budgets.Select(_ => _.ToDto()).ToList(),
+                DeficientConditionGoals = entity.DeficientConditionGoals.Select(_ => _.ToDto()).ToList(),
+                TargetConditionGoals = entity.TargetConditionGoals.Select(_ => _.ToDto()).ToList(),
+                Assets = entity.Assets.Select(_ => _.ToDto()).ToList()
+            };
+
+            return dto;
+        }
+
+        public static SimulationYearDetailEntity ToEntity(this SimulationYearDetailDTO simulationYearDetailDto, Guid simulationOutputId)
+        {
+            var simulationYearDetailId = simulationYearDetailDto.Id;
+
+            return new SimulationYearDetailEntity
+            {
+                Id = simulationYearDetailDto.Id,
+                SimulationOutputId = simulationOutputId,
+                Year = simulationYearDetailDto.Year,
+                ConditionOfNetwork = simulationYearDetailDto.ConditionOfNetwork,
+                Assets = simulationYearDetailDto.Assets.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                Budgets = simulationYearDetailDto.Budgets.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                DeficientConditionGoals = simulationYearDetailDto.DeficientConditionGoals.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                TargetConditionGoals = simulationYearDetailDto.TargetConditionGoals.Select(_ => _.ToEntity(simulationYearDetailId)).ToList()
+            };
         }
     }
 }

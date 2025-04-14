@@ -43,8 +43,8 @@ namespace BridgeCareCore.Services
             {
                 users.Add(user);
             }
-                        
-            var cloneSimulationOutputJsons = SimulationOutputJsonCloner.CloneList(completeSimulation.SimulationOutputJsons);
+
+            var cloneSimulationOutput = SimulationOutputCloner.Clone(completeSimulation.SimulationOutput);
             
             var simulationAnalysisDetail = SimulationAnalysisDetailCloner.Clone(completeSimulation.SimulationAnalysisDetail);
 
@@ -69,7 +69,7 @@ namespace BridgeCareCore.Services
                 CommittedProjects = cloneBaseCommittedProject,
                 Id = Guid.NewGuid(),
                 Users = users,
-                SimulationOutputJsons = cloneSimulationOutputJsons,
+                SimulationOutput = cloneSimulationOutput,
                 SimulationAnalysisDetail = simulationAnalysisDetail
             };
 

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -120,6 +122,49 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             family.TreatmentOptions.AddRange(treatmentOptions);
             family.TreatmentRejections.AddRange(treatmentRejections);
             family.TreatmentSchedulingCollisions.AddRange(treatmentSchedulingCollisions);
+        }
+
+        public static AssetDetailDTO ToDto(this AssetDetailEntity entity)
+        {
+            var dto = new AssetDetailDTO
+            {
+                Id = entity.Id,
+                MaintainableAssetId = entity.MaintainableAssetId,
+                AppliedTreatment = entity.AppliedTreatment,
+                ProjectSource = entity.ProjectSource,
+                TreatmentCause = entity.TreatmentCause,
+                TreatmentFundingIgnoresSpendingLimit = entity.TreatmentFundingIgnoresSpendingLimit,
+                TreatmentStatus = entity.TreatmentStatus,
+                AssetDetailValuesIntId = entity.AssetDetailValuesIntId.Select(_ => _.ToDto()).ToList(),
+                TreatmentConsiderations = entity.TreatmentConsiderations.Select(_ => _.ToDto()).ToList(),
+                TreatmentOptions = entity.TreatmentOptions.Select(_ => _.ToDto()).ToList(),
+                TreatmentRejections = entity.TreatmentRejections.Select(_ => _.ToDto()).ToList(),
+                TreatmentSchedulingCollisions = entity.TreatmentSchedulingCollisions.Select(_ => _.ToDto()).ToList()
+            };
+
+            return dto;
+        }
+
+        public static AssetDetailEntity ToEntity(this AssetDetailDTO assetDetailDto, Guid simulationYearDetailId)
+        {
+            var assetDetailId = assetDetailDto.Id;
+
+            return new AssetDetailEntity
+            {
+                Id = assetDetailId,
+                SimulationYearDetailId = simulationYearDetailId,
+                AppliedTreatment = assetDetailDto.AppliedTreatment,
+                MaintainableAssetId = assetDetailDto.MaintainableAssetId,
+                ProjectSource = assetDetailDto.ProjectSource,
+                TreatmentCause = assetDetailDto.TreatmentCause,
+                TreatmentFundingIgnoresSpendingLimit = assetDetailDto.TreatmentFundingIgnoresSpendingLimit,
+                TreatmentStatus = assetDetailDto.TreatmentStatus,
+                AssetDetailValuesIntId = assetDetailDto.AssetDetailValuesIntId.Select(_ => _.ToEntity(assetDetailId)).ToList(),
+                TreatmentConsiderations = assetDetailDto.TreatmentConsiderations.Select(_ => _.ToEntity(assetDetailId)).ToList(),
+                TreatmentOptions = assetDetailDto.TreatmentOptions.Select(_ => _.ToEntity(assetDetailId)).ToList(),
+                TreatmentSchedulingCollisions = assetDetailDto.TreatmentSchedulingCollisions.Select(_ => _.ToEntity(assetDetailId)).ToList(),
+                TreatmentRejections = assetDetailDto.TreatmentRejections.Select(_ => _.ToEntity(assetDetailId)).ToList()
+            };
         }
     }
 }

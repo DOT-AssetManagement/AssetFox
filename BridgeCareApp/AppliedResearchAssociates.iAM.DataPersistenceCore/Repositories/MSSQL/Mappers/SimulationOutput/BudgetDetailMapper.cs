@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -45,6 +46,29 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static BudgetDetailDTO ToDto(this BudgetDetailEntity entity)
+        {
+            var dto = new BudgetDetailDTO
+            {
+                Id = entity.Id,
+                AvailableFunding = entity.AvailableFunding,
+                BudgetName = entity.BudgetName
+            };
+
+            return dto;
+        }
+
+        public static BudgetDetailEntity ToEntity(this BudgetDetailDTO budgetDetailDto, Guid simulationYearDetailId)
+        {
+            return new BudgetDetailEntity
+            {
+                Id = budgetDetailDto.Id,
+                SimulationYearDetailId = simulationYearDetailId,
+                AvailableFunding = budgetDetailDto.AvailableFunding,
+                BudgetName = budgetDetailDto.BudgetName
+            };
         }
     }
 }

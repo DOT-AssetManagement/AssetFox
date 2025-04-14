@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -56,6 +54,29 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static CashFlowConsiderationDetailDTO ToDto(this CashFlowConsiderationDetailEntity entity)
+        {
+            var dto = new CashFlowConsiderationDetailDTO
+            {
+                Id = entity.Id,
+                CashFlowRuleName = entity.CashFlowRuleName,
+                ReasonAgainstCashFlow = entity.ReasonAgainstCashFlow    
+            };
+
+            return dto;
+        }
+
+        public static CashFlowConsiderationDetailEntity ToEntity(this CashFlowConsiderationDetailDTO cashFlowConsiderationDetailDto, Guid treatmentConsiderationDetailId)
+        {
+            return new CashFlowConsiderationDetailEntity
+            {
+                Id = cashFlowConsiderationDetailDto.Id,
+                TreatmentConsiderationDetailId = treatmentConsiderationDetailId,
+                ReasonAgainstCashFlow = cashFlowConsiderationDetailDto.ReasonAgainstCashFlow,
+                CashFlowRuleName = cashFlowConsiderationDetailDto.CashFlowRuleName
+            };
         }
     }
 }

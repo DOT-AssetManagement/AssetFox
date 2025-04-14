@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -55,6 +53,31 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static TreatmentRejectionDetailDTO ToDto(this TreatmentRejectionDetailEntity entity)
+        {
+            var dto = new TreatmentRejectionDetailDTO
+            {
+                Id = entity.Id,
+                TreatmentName = entity.TreatmentName,
+                PotentialConditionChange = entity.PotentialConditionChange,
+                TreatmentRejectionReason = entity.TreatmentRejectionReason
+            };
+
+            return dto;
+        }
+
+        public static TreatmentRejectionDetailEntity ToEntity(this TreatmentRejectionDetailDTO treatmentRejectionDetailDto, Guid assetDetailId)
+        {
+            return new TreatmentRejectionDetailEntity
+            {
+                Id = treatmentRejectionDetailDto.Id,
+                AssetDetailId = assetDetailId,
+                PotentialConditionChange = treatmentRejectionDetailDto.PotentialConditionChange,
+                TreatmentName = treatmentRejectionDetailDto.TreatmentName,
+                TreatmentRejectionReason = treatmentRejectionDetailDto.TreatmentRejectionReason
+            };
         }
     }
 }

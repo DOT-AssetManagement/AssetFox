@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -67,6 +65,35 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static TargetConditionGoalDetailDTO ToDto(this TargetConditionGoalDetailEntity entity)
+        {
+            var dto = new TargetConditionGoalDetailDTO
+            {
+                Id = entity.Id,
+                ActualValue = entity.ActualValue,
+                TargetValue = entity.TargetValue,
+                AttributeId = entity.AttributeId,
+                GoalIsMet = entity.GoalIsMet,
+                GoalName = entity.GoalName
+            };
+
+            return dto;
+        }
+
+        public static TargetConditionGoalDetailEntity ToEntity(this TargetConditionGoalDetailDTO targetConditionGoalDetailDto, Guid simulationYearDetailId)
+        {
+            return new TargetConditionGoalDetailEntity
+            {
+                Id = targetConditionGoalDetailDto.Id,
+                SimulationYearDetailId = simulationYearDetailId,
+                ActualValue = targetConditionGoalDetailDto.ActualValue,
+                TargetValue = targetConditionGoalDetailDto.TargetValue,
+                AttributeId = targetConditionGoalDetailDto.AttributeId,
+                GoalIsMet = targetConditionGoalDetailDto.GoalIsMet,
+                GoalName = targetConditionGoalDetailDto.GoalName
+            };
         }
     }
 }
