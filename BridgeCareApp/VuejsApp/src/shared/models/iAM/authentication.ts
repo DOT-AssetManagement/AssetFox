@@ -12,3 +12,10 @@ export interface UserInfo {
     hasSimulationAccess: boolean;
     email: string;
 }
+
+export interface UserInfoLocal {
+    name: string;
+    hasAdminAccess: boolean;
+    hasSimulationAccess: boolean;
+    email: string;
+}
