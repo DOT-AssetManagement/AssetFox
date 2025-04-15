@@ -31,9 +31,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Reports\**" />
+    <Compile Remove="Services\SummaryReport\Models\**" />
     <Content Remove="Reports\**" />
+    <Content Remove="Services\SummaryReport\Models\**" />
     <EmbeddedResource Remove="Reports\**" />
+    <EmbeddedResource Remove="Services\SummaryReport\Models\**" />
     <None Remove="Reports\**" />
+    <None Remove="Services\SummaryReport\Models\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -133,7 +137,6 @@
   <ItemGroup>
     <Folder Include="Interfaces\Inventory\" />
     <Folder Include="MetaData\AttributeMetaData\" />
-    <Folder Include="Services\SummaryReport\Models\" />
   </ItemGroup>
 
 

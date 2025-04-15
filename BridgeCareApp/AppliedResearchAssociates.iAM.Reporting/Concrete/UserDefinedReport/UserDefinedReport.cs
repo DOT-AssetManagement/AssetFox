@@ -1,0 +1,215 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Common.Logging;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.Hubs;
+using AppliedResearchAssociates.iAM.Hubs.Interfaces;
+using AppliedResearchAssociates.iAM.Reporting.Models;
+using AppliedResearchAssociates.iAM.Reporting.Services;
+using AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport;
+using BridgeCareCore.Services;
+using Newtonsoft.Json.Linq;
+
+namespace AppliedResearchAssociates.iAM.Reporting
+{
+    public class UserDefinedReport : IReport
+    {
+        private IUnitOfWork _unitOfWork;
+        private IHubService _hubService;
+        private readonly InitialAssetSummariesTab _initialAssetSummariesTab;
+        private readonly YearTab _yearTab;
+        public UserDefinedReportRequestModel _userDefinedReportRequestModel;
+
+        public UserDefinedReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
+        {
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
+            ReportTypeName = name;
+
+            _initialAssetSummariesTab = new InitialAssetSummariesTab();
+            _yearTab = new YearTab();
+
+            // check for existing report id
+            var reportId = (results?.Id) ?? Guid.NewGuid();
+
+            // set report return default parameters
+            ID = (Guid)reportId;
+            Errors = new List<string>();
+            Status = "Report definition created.";
+            Results = string.Empty;
+            IsComplete = false;
+        }
+
+        public Guid ID { get; set; }
+
+        public Guid? SimulationID { get; set; }
+
+        public Guid? NetworkID { get; set; }
+
+        public string Results { get; private set; }
+
+        public string Suffix { get; set; }
+
+        public ReportType Type => ReportType.File;
+
+        public string ReportTypeName { get; private set; }
+
+        public List<string> Errors { get; private set; }
+
+        public bool IsComplete { get; private set; }
+
+        public string Status { get; private set; }
+
+        public string Criteria { get; set; }
+
+        public async Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null)
+        {
+            workQueueLog ??= new DoNothingWorkQueueLog();
+            // check for the parameters string
+            if (string.IsNullOrEmpty(parameters) || string.IsNullOrWhiteSpace(parameters))
+            {
+                Errors.Add("Parameters string is empty OR there are no parameters defined");
+                IndicateError();
+                return;
+            }
+
+            // Determine the Guid for the simulation and set simulation id
+            var simulationId = ReportHelper.GetSimulationId(parameters);
+            if (!Guid.TryParse(simulationId, out var _simulationId))
+            {
+                Errors.Add("Simulation ID could not be parsed to a Guid");
+                IndicateError();
+                return;
+            }
+            SimulationID = _simulationId;
+
+            var simulationName = "";
+            try
+            {
+                checkCancelled(cancellationToken, _simulationId);
+                var simulationObject = _unitOfWork.SimulationRepo.GetSimulation(_simulationId);
+                simulationName = simulationObject.Name;
+            }
+            catch (Exception e)
+            {
+                IndicateError();
+                Errors.Add("Failed to find simulation");
+                Errors.Add(e.Message);
+                return;
+            }
+
+            // Check for simulation existence                        
+            if (simulationName == null)
+            {
+                IndicateError();
+                Errors.Add($"Failed to find name using simulation ID {_simulationId}.");
+                return;
+            }
+
+            // Generate User defined report 
+            var reportPath = "";
+            try
+            {
+                checkCancelled(cancellationToken, _simulationId);
+                _userDefinedReportRequestModel = GetUserDefinedReportRequestModel(parameters);
+                reportPath = GenerateUserDefinedReport(_simulationId, workQueueLog, cancellationToken);
+                if (!string.IsNullOrEmpty(Criteria) && string.IsNullOrEmpty(reportPath))
+                {
+                    var errorStatus = "No assets found for given criteria";
+                    IndicateError(errorStatus);
+                    Errors.Add(errorStatus);
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                IndicateError();
+                Errors.Add("Failed to generate user defined report");
+                Errors.Add(e.Message);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(reportPath) || string.IsNullOrWhiteSpace(reportPath))
+            {
+                Errors.Add("User defined report path is missing or not set");
+                IndicateError();
+                return;
+            }
+
+            // Report success with location of file
+            Results = reportPath;
+            IsComplete = true;
+            Status = "File generated.";
+            return;
+        }
+
+        private string GenerateUserDefinedReport(Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken)
+        {
+            var reportDetailDto = new SimulationReportDetailDTO { SimulationId = simulationId, ReportType = ReportTypeName };
+
+            checkCancelled(cancellationToken, simulationId);
+            reportDetailDto.Status = $"Generating...";
+
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+            UpsertSimulationReportDetail(reportDetailDto);
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+
+            var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
+            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
+
+            // Parse parameters
+
+
+            // InitialAssetSummariesTab based on param filters
+
+
+            // YearTabs based on param filters
+
+
+
+            var functionReturnValue = "";
+
+            return functionReturnValue;
+        }
+
+        private void IndicateError(string status = null)
+        {
+            Status = status ?? "User defined report completed with errors";
+            IsComplete = true;
+        }
+
+        private void checkCancelled(CancellationToken? cancellationToken, Guid simulationId)
+        {
+            if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+            {
+                throw new Exception("Report was cancelled");
+            }
+            var reportDetailDto = new SimulationReportDetailDTO
+            {
+                SimulationId = simulationId,
+                Status = Status,
+                ReportType = ReportTypeName
+            };
+            UpsertSimulationReportDetail(reportDetailDto);
+        }        
+
+        private void UpsertSimulationReportDetail(SimulationReportDetailDTO dto) => _unitOfWork.SimulationReportDetailRepo.UpsertSimulationReportDetail(dto);
+
+        private void UpsertSimulationReportDetailWithStatus(SimulationReportDetailDTO dto, string message)
+        {
+            dto.Status = message;
+            UpsertSimulationReportDetail(dto);
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, dto.Status, dto.SimulationId);
+        }
+
+        private static UserDefinedReportRequestModel GetUserDefinedReportRequestModel(string parameters)
+        {
+            var parameterObj = JObject.Parse(parameters);
+            return parameterObj.SelectToken("userDefinedReportRequestModel")?.ToObject<UserDefinedReportRequestModel>();
+        }
+    }
+}
