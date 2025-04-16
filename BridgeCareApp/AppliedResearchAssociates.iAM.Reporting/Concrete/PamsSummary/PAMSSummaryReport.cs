@@ -318,7 +318,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             foreach (var yearlySectionData in reportOutputData.Years)
             {
-                checkCancelled(cancellationToken, simulationId);
                 yearlySectionData.Assets.Sort(
                     (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, "CRS")
                     .CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, "CRS"))
