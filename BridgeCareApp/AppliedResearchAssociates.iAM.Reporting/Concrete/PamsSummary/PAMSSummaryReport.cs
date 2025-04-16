@@ -310,6 +310,20 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
+            // Sort data to get rows in InitialAssetSummaries and assets in Years aligned
+            reportOutputData.InitialAssetSummaries.Sort(
+                    (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, "CRS")
+                    .CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, "CRS"))
+                    );
+
+            foreach (var yearlySectionData in reportOutputData.Years)
+            {
+                checkCancelled(cancellationToken, simulationId);
+                yearlySectionData.Assets.Sort(
+                    (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, "CRS")
+                    .CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, "CRS"))
+                    );
+            }            
             var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PAMSData_Tab);
             var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
             var workSummaryModel = _pamsDataForSummaryReport.Fill(worksheet, reportOutputData, shouldBundleFeasibleTreatments, committedProjectList);
