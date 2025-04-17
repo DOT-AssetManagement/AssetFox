@@ -10,9 +10,14 @@ using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Services;
+using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeData;
+using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryByBudget;
+using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport;
 using BridgeCareCore.Services;
 using Newtonsoft.Json.Linq;
+using OfficeOpenXml;
+using System.IO;
 
 namespace AppliedResearchAssociates.iAM.Reporting
 {
@@ -23,11 +28,13 @@ namespace AppliedResearchAssociates.iAM.Reporting
         private readonly InitialAssetSummariesTab _initialAssetSummariesTab;
         private readonly YearTab _yearTab;
         public UserDefinedReportRequestModel _userDefinedReportRequestModel;
+        private readonly ReportHelper _reportHelper;
 
         public UserDefinedReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
+            _reportHelper = new ReportHelper(_unitOfWork);
             ReportTypeName = name;
 
             _initialAssetSummariesTab = new InitialAssetSummariesTab();
@@ -115,6 +122,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             try
             {
                 checkCancelled(cancellationToken, _simulationId);
+                // Parse parameters
                 _userDefinedReportRequestModel = GetUserDefinedReportRequestModel(parameters);
                 reportPath = GenerateUserDefinedReport(_simulationId, workQueueLog, cancellationToken);
                 if (!string.IsNullOrEmpty(Criteria) && string.IsNullOrEmpty(reportPath))
@@ -160,16 +168,39 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
             var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
+            // Sort data to get rows in InitialAssetSummaries and assets in Years aligned
+            reportOutputData.InitialAssetSummaries.Sort(
+                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
+                    );
 
-            // Parse parameters
+            foreach (var yearlySectionData in reportOutputData.Years)
+            {
 
+                checkCancelled(cancellationToken, simulationId);
+                yearlySectionData.Assets.Sort(
+                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
+                    );
+            }
+
+            using var excelPackage = new ExcelPackage(new FileInfo("UserDefinedReportTestData.xlsx"));
 
             // InitialAssetSummariesTab based on param filters
-
+            var filterAttributes = _userDefinedReportRequestModel.Attributes;
+            // TODO...
 
             // YearTabs based on param filters
-
-
+            var filterYears = _userDefinedReportRequestModel.Years;
+            reportDetailDto.Status = $"Creating Year tabs for selected years";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+            UpsertSimulationReportDetail(reportDetailDto);
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+            foreach (var filterYear in filterYears)
+            {
+                // year tab
+                var yearWorksheet = excelPackage.Workbook.Worksheets.Add("Year " + filterYear);
+                _yearTab.Fill(yearWorksheet, reportOutputData);
+                checkCancelled(cancellationToken, simulationId);
+            }
 
             var functionReturnValue = "";
 
