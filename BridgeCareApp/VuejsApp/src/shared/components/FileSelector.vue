@@ -10,7 +10,7 @@
         <v-col cols="10">
         </v-col>
         <div>
-        <input @change="onSelect($event.target.files)" id="file-select" type="file"  hidden/>
+        <input @change="onSelect($event.target.files)" id="file-select" type="file" />
     </div>
     </v-row>
     
