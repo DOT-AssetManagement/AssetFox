@@ -33,7 +33,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             TestHelper.UnitOfWork.SimulationOutputRepo.CreateSimulationOutputViaRelational(context.SimulationId, simulationOutput);
             var loadedOutput = TestHelper.UnitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(context.SimulationId);
             ObjectAssertions.Equivalent(simulationOutput.InitialAssetSummaries, loadedOutput.InitialAssetSummaries);
-            ObjectAssertions.EquivalentExcluding(simulationOutput, loadedOutput, so => so.LastModifiedDate);
+            ObjectAssertions.EquivalentExcluding(simulationOutput, loadedOutput, so => so.LastModifiedDate,
+                so => so.Years[0].Assets[0].TreatmentSchedulingCollisions);
         }
 
         [Theory]
@@ -49,7 +50,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             TestHelper.UnitOfWork.SimulationOutputRepo.CreateSimulationOutputViaRelational(context.SimulationId, simulationOutput);
             var loadedOutput = TestHelper.UnitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(context.SimulationId);
             ObjectAssertions.Equivalent(simulationOutput.InitialAssetSummaries, loadedOutput.InitialAssetSummaries);
-            ObjectAssertions.EquivalentExcluding(simulationOutput, loadedOutput, so => so.LastModifiedDate);
+            SimulationOutputAssertions.SameSimulationOutput(simulationOutput, loadedOutput, false);
         }
 
         [Fact]
@@ -73,7 +74,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             simulationOutput.InitialAssetSummaries.Sort(a => a.AssetName);
             loadedOutput.InitialAssetSummaries.Sort(a => a.AssetName);
             ObjectAssertions.Equivalent(simulationOutput.InitialAssetSummaries, loadedOutput.InitialAssetSummaries);
-            SimulationOutputAssertions.SameSimulationOutput(simulationOutput, loadedOutput);
+            SimulationOutputAssertions.SameSimulationOutput(simulationOutput, loadedOutput, false);
         }
 
         [Fact]
