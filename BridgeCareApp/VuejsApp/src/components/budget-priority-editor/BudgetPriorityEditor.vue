@@ -191,7 +191,7 @@
                 />
                 <SaveButton 
                     @save="onUpsertScenarioBudgetPriorities"
-                    :disabled='disableCrudButtonsResult || !hasUnsavedChanges'
+                    :disabled='disableCrudButtonsResult || !hasUnsavedChanges || isbudgetPriorityGridRowsEmpty'
                     :show="hasScenario"
                 />
                 <UpdateLibraryButton 
@@ -366,6 +366,7 @@
     let disableCrudButtonsResult: boolean = false;
     let checkBoxChanged: boolean = false;
     let hasLibraryEditPermission: boolean = false;
+    let isbudgetPriorityGridRowsEmpty: boolean = false;
     let hasCreatedLibrary: boolean = false;
     let parentLibraryName = ref<string>("None");
     let parentLibraryId: string = "";
@@ -477,6 +478,16 @@
     watch(selectedBudgetPriorityGridRows, onSelectedPriorityRowsChanged)
     function onSelectedPriorityRowsChanged() {
         selectedBudgetPriorityIds = getPropertyValues('id', selectedBudgetPriorityGridRows.value) as string[];
+    }
+
+    watch(budgetPriorityGridRows, onbudgetPriorityGridRowsChanged)
+    function onbudgetPriorityGridRowsChanged() {
+        if(budgetPriorityGridRows.value.length == 0)
+            isbudgetPriorityGridRowsEmpty = true;
+        else
+            isbudgetPriorityGridRowsEmpty = false;
+
+
     }
 
     watch(isSharedLibrary, onStateSharedAccessChanged)
