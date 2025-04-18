@@ -53,7 +53,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Models.PAMSPBExport
 
         public string Budget { get; set; } 
 
-        public string Category { get; set; } 
+        public string Category { get; set; }
+
+        public string ProjectId { get; set; }
 
         public List<double> TreatmentAttributeValues { get; set; } = new List<double>();
     }
