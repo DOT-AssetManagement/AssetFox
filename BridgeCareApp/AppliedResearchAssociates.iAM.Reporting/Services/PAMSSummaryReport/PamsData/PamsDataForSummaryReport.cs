@@ -451,7 +451,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     else
                     {
                         // Add Project Source
-                        var committedProject = committedProjectList.FirstOrDefault(_ => section.AppliedTreatment.Contains(_.Treatment) && _.Year == yearlySectionData.Year && _.LocationKeys["CRS"] == crs.ToString());
+                        var committedProject = committedProjectList.FirstOrDefault(_ => section.AppliedTreatment.Contains(_.ComputedTreatmentString) && _.Year == yearlySectionData.Year && _.LocationKeys["CRS"] == crs.ToString());
                         var projectSource = committedProject?.ProjectSource.ToString() ?? string.Empty;
                         worksheet.Cells[row, ++column].Value = MappingContent.GetNonCashFlowProjectPick(section.TreatmentCause, projectSource); //Project Pick
 

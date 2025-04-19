@@ -15,6 +15,7 @@ using AppliedResearchAssociates.iAM.Reporting.Logging;
 using Newtonsoft.Json.Linq;
 using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DTOs.Enums;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services
 {
@@ -417,6 +418,29 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services
                     }
                 }
             }
-        }        
+        }
+
+        public string ConvertCommittedTreatmentArray(string[] treatments, Guid simulationId)
+        {
+            if (treatments == null || treatments.Length == 0)
+                return "";
+
+            if (treatments.Length == 1)
+                return treatments[0];
+
+            var selectableTreatments = _unitOfWork.SelectableTreatmentRepo
+                .GetScenarioSelectableTreatments(simulationId)
+                .Where(_ => treatments.Contains(_.Name))
+                .Distinct()
+                .ToList();
+
+            var groupedByCategory = selectableTreatments
+                .GroupBy(_ => _.Category);
+
+            var bundles = groupedByCategory
+                .Select(group => "[" + string.Join("|", group.Select(_ => _.Name)) + "]");
+
+            return "Bundle" + string.Concat(bundles);
+        }
     }    
 }

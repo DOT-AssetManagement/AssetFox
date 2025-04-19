@@ -619,7 +619,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     }
                     else
                     {
-                        var committedProject = committedProjectList.FirstOrDefault(_ => section.AppliedTreatment.Contains(_.Treatment) &&
+                        var committedProject = committedProjectList.FirstOrDefault(_ => section.AppliedTreatment.Contains(_.ComputedTreatmentString) &&
                                                _.Year == yearlySectionData.Year &&
                                                _.LocationKeys["BRKEY_"] == section_BRKEY.ToString());
                         var projectSource = committedProject?.ProjectSource.ToString() ?? string.Empty;
