@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -21,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using FundingCalculationInput = AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput;
 using FundingCalculationOutput = AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput;
 
@@ -36,12 +38,19 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public const int AssetLoadBatchSize = 2000;
         public const int AssetDetailSaveBatchSize = 100000;
         public const string AssetDetailSaveOverrideBatchSizeKey = "AssetDetailBatchSizeOverrideForValueSave";
+        private readonly ILog _log;
 
-        public SimulationOutputRepository(UnitOfDataPersistenceWork unitOfWork) => _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        public SimulationOutputRepository(UnitOfDataPersistenceWork unitOfWork, ILog log)
+        {
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+        }
 
         public void CreateSimulationOutputViaRelational(Guid simulationId, SimulationOutput simulationOutput,
             IWorkQueueLog loggerForUserInfo = null, ILog loggerForTechnicalInfo = null, CancellationToken? cancellationToken = null)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             loggerForTechnicalInfo ??= new DoNotLog();
             loggerForUserInfo ??= new DoNothingWorkQueueLog();
             loggerForUserInfo.UpdateWorkQueueStatus("Preparing to save to database");
@@ -57,6 +66,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var simulationMemos = EventMemoModelLists.GetInstance("Simulation");
             _ = simulationMemos.Mark("Starting save");
             var startMemo = saveMemos.MarkInformation("Starting save", loggerForTechnicalInfo);
+
+            stopwatch.Stop();
+            _log.Information($"Starting sim save process. {stopwatch.ElapsedMilliseconds}ms");
+            stopwatch.Start();
+
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
                 throw new RowNotInTableException("No simulation found for given scenario.");
@@ -92,10 +106,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     return;
                 }
 
+                stopwatch.Stop();
+                _log.Information($"Begin old output deletion process. {stopwatch.ElapsedMilliseconds}ms");
+                stopwatch.Start();
                 // delete existing simulation outputs
                 var toDelete = _unitOfWork.Context.SimulationOutput.Where(_ => _.SimulationId == simulationId).Select(_ => _.Id).ToList();
                 DeleteSimulationOutputs(toDelete);
                 _ = _unitOfWork.Context.SaveChanges();
+
+                stopwatch.Stop();
+                _log.Information($"Finished old output deletion process. Beginning Intial Asset Summary save. {stopwatch.ElapsedMilliseconds}ms");
+                stopwatch.Start();
 
                 var simulationOutputEntity = SimulationOutputMapper.ToEntityWithoutAssetsOrYearDetails(simulationOutput, simulationId, attributeIdLookup);
                 _ = _unitOfWork.Context.Add(simulationOutputEntity);
@@ -115,6 +136,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 _= saveMemos.Mark("assetSummaryDetailValues");
                 _unitOfWork.Commit();
 
+                stopwatch.Stop();
+                _log.Information($"Finished Initial Asset Summary save. Beginning Years save. {stopwatch.ElapsedMilliseconds}ms");
+                stopwatch.Start();
+
                 foreach (var year in simulationOutput.Years)
                 {
                     loggerForUserInfo.UpdateWorkQueueStatus($"Saving year {year.Year}");
@@ -124,6 +149,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                         _unitOfWork.Rollback();
                         return;
                     }
+                    stopwatch.Stop();
+                    _log.Information($"Starting save for {year.Year}. {stopwatch.ElapsedMilliseconds}ms");
+                    stopwatch.Start();
+
                     var yearMemo = saveMemos.MarkInformation($"Y{year.Year}", loggerForTechnicalInfo);
                     var yearDetail = SimulationYearDetailMapper.ToEntityWithoutAssets(year, simulationOutputEntity.Id, attributeIdLookup);
                     _ = _unitOfWork.Context.Add(yearDetail);
@@ -167,12 +196,19 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     _unitOfWork.Commit();
                     _ = saveMemos.Mark(" Committed");
 
+                    stopwatch.Stop();
+                    _log.Information($"Finished Saving {year.Year}. {stopwatch.ElapsedMilliseconds}ms");
+                    stopwatch.Start();
+
                     _unitOfWork.Context.ChangeTracker.Clear();
                     _ = saveMemos.Mark(" Cleared ChangeTracker");
                 }
 
                 _ = saveMemos.MarkInformation("Save complete", loggerForTechnicalInfo);
                 _ = simulationMemos.Mark("Save complete");
+
+                stopwatch.Stop();
+                _log.Information($"Finished Saving Output. {stopwatch.ElapsedMilliseconds}ms");
 
                 if (ShouldHackSaveTimingsToFile)
                 {
