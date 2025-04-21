@@ -2364,7 +2364,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             modelBuilder.Entity<AssetSummaryDetailEntity>(entity =>
             {
                 entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
 
                 entity.HasOne(e => e.SimulationOutput)
                 .WithMany(so => so.InitialAssetSummaries)
@@ -2380,14 +2379,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             modelBuilder.Entity<AssetDetailValueEntityIntId>(entity =>
             {
                 entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
 
                 entity.HasOne(a => a.Attribute)
                 .WithMany(a => a.AssetDetailValuesIntId)
                 .HasForeignKey(a => a.AttributeId)
                 .OnDelete(DeleteBehavior.ClientCascade)
                 ;
-                entity.HasIndex(e => e.AttributeId);
 
                 entity.HasOne(e => e.AssetDetail)
                 .WithMany(a => a.AssetDetailValuesIntId)
@@ -2398,14 +2395,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             modelBuilder.Entity<AssetSummaryDetailValueEntityIntId>(entity =>
             {
                 entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
 
                 entity.HasOne(a => a.Attribute)
                 .WithMany(a => a.AssetSummaryDetailValuesIntId)
                 .HasForeignKey(a => a.AttributeId)
                 .OnDelete(DeleteBehavior.ClientCascade)
                 ;
-                entity.HasIndex(e => e.AttributeId);
 
                 entity.HasOne(e => e.AssetSummaryDetail)
                 .WithMany(a => a.AssetSummaryDetailValuesIntId)
@@ -2497,7 +2492,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             modelBuilder.Entity<AssetDetailEntity>(entity =>
             {
                 entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
                 entity.Property(e => e.TreatmentCause).IsRequired();
 
                 entity.Property(e => e.TreatmentFundingIgnoresSpendingLimit).IsRequired();
