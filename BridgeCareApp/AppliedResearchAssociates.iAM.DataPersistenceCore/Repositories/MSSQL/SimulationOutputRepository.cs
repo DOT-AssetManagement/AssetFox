@@ -40,10 +40,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public const string AssetDetailSaveOverrideBatchSizeKey = "AssetDetailBatchSizeOverrideForValueSave";
         private readonly ILog _log;
 
-        public SimulationOutputRepository(UnitOfDataPersistenceWork unitOfWork, ILog log)
+        public SimulationOutputRepository(UnitOfDataPersistenceWork unitOfWork)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
         public void CreateSimulationOutputViaRelational(Guid simulationId, SimulationOutput simulationOutput,
@@ -54,6 +53,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             loggerForTechnicalInfo ??= new DoNotLog();
             loggerForUserInfo ??= new DoNothingWorkQueueLog();
             loggerForUserInfo.UpdateWorkQueueStatus("Preparing to save to database");
+            var _log = new DoLog();
 
             if (ShouldHackSaveOutputToFile)
             {
