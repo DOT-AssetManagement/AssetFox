@@ -159,9 +159,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.
             currentRow = firstRow + 1;
             // Initialize the column index for the current year
             int currentYearColumn = startingColumn + 1;
-            var workSummaryByBudgetData = new List<WorkSummaryByBudgetModel>();            
+            var workSummaryByBudgetData = new List<WorkSummaryByBudgetModel>();           
             
-            Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
             // setting up model to store data. This will be used to fill up Bridge Work Summary By
             // Budget TAB
             var workSummaryByBudgets = new List<WorkSummaryByBudgetModel>();
@@ -185,6 +184,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.
             var primaryKey = _unitOfWork.AdminSettingsRepo.GetKeyFields();
             foreach (var summaryData in workSummaryByBudgetData)
             {
+                Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
                 foreach (var yearData in simulationOutput.Years)
                 {
                     var assets = yearData.Assets.Where(_ => _.AppliedTreatment != BAMSConstants.NoTreatment);
@@ -196,7 +196,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.
                             primaryKeyValue = section.ValuePerNumericAttribute[primaryKey[0]].ToString();
                         }
 
-                        // Build keyCashFlowFundingDetails                    
+                        // Build keyCashFlowFundingDetails
                         if (section.TreatmentStatus != TreatmentStatus.Applied)
                         {
                             var fundingSection = section.TreatmentCause == TreatmentCause.SelectedTreatment &&
