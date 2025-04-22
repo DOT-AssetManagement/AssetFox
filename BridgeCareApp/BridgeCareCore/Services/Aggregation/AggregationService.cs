@@ -50,7 +50,6 @@ namespace BridgeCareCore.Services.Aggregation
 
                 try
                 {
-                    _unitOfWork.BeginTransaction();
 
                     var maintainableAssets = new List<MaintainableAsset>();
                     var attributeData = new List<IAttributeDatum>();
@@ -341,6 +340,8 @@ namespace BridgeCareCore.Services.Aggregation
                             throw;
                         }
                     }
+
+                    _unitOfWork.BeginTransaction();
 
                     if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                     {
