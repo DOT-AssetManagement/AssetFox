@@ -172,6 +172,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var simulationDto = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
             var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
             var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+            var committedProjectList = _unitOfWork.CommittedProjectRepo.GetCommittedProjectsForExport(simulationId);
 
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("BAMSPBExportReportData.xlsx"));
@@ -184,7 +185,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PBExportReportTabNames.Treatments);
             var allowFundingFromMultipleBudgets = analysisMethodDto.ShouldUseExtraFundsAcrossBudgets;
             var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
-            _treatmentForPBExportReportReport.Fill(treatmentsWorksheet, simulationDto, reportOutputData, shouldBundleFeasibleTreatments, scenarioSelectableTreatmentsDtos, allowFundingFromMultipleBudgets, networkId);
+            _treatmentForPBExportReportReport.Fill(treatmentsWorksheet, simulationDto, reportOutputData, shouldBundleFeasibleTreatments, scenarioSelectableTreatmentsDtos, allowFundingFromMultipleBudgets, networkId, committedProjectList);
 
             if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
             {

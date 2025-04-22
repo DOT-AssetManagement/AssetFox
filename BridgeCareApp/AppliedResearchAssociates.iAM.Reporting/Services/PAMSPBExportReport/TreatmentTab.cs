@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
@@ -26,16 +25,16 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet treatmentsWorksheet, SimulationOutput simulationOutput, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments)
+        public void Fill(ExcelWorksheet treatmentsWorksheet, SimulationOutput simulationOutput, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
         {
             var currentCell = AddHeadersCells(treatmentsWorksheet);
 
-            FillDynamicDataInWorkSheet(simulationOutput, treatmentsWorksheet, currentCell, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, shouldBundleFeasibleTreatments);            
+            FillDynamicDataInWorkSheet(simulationOutput, treatmentsWorksheet, currentCell, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, shouldBundleFeasibleTreatments, committedProjectList);            
             treatmentsWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
             treatmentsWorksheet.Cells.AutoFitColumns();
         }
 
-        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, ExcelWorksheet treatmentsWorksheet, CurrentCell currentCell, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments)
+        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, ExcelWorksheet treatmentsWorksheet, CurrentCell currentCell, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
         {
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
@@ -51,7 +50,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
                     }
 
                     // Generate data model                    
-                    var treatmentDataModel = GenerateTreatmentDataModel(assetId, year, section, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, keyCashFlowFundingDetails, shouldBundleFeasibleTreatments);
+                    var treatmentDataModel = GenerateTreatmentDataModel(assetId, year, section, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, keyCashFlowFundingDetails, shouldBundleFeasibleTreatments, committedProjectList);
 
                     // Fill in excel
                     currentCell = FillDataInWorksheet(treatmentsWorksheet, treatmentDataModel, currentCell);
@@ -95,8 +94,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.TreatmentCause;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Budget;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Category;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.ProjectId;
 
-            foreach(var treatmentAttributeValue in treatmentDataModel.TreatmentAttributeValues)
+            foreach (var treatmentAttributeValue in treatmentDataModel.TreatmentAttributeValues)
             {
                 SetDecimalFormat(treatmentsWorksheet.Cells[row, column]);
                 treatmentsWorksheet.Cells[row, column++].Value = treatmentAttributeValue;
@@ -107,7 +107,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
 
         private static void SetDecimalFormat(ExcelRange cell) => ExcelHelper.SetCustomFormat(cell, ExcelHelperCellFormat.DecimalPrecision3);
 
-        private TreatmentDataModel GenerateTreatmentDataModel(Guid assetId, SimulationYearDetail year, AssetDetail section, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, bool shouldBundleFeasibleTreatments)
+        private TreatmentDataModel GenerateTreatmentDataModel(Guid assetId, SimulationYearDetail year, AssetDetail section, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
         {
             var appliedTreatment = section.AppliedTreatment;
             TreatmentDataModel treatmentDataModel = new TreatmentDataModel
@@ -188,6 +188,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             treatmentDataModel.Budget = string.Join(", ", budgetsUsed);
             treatmentDataModel.Category = shouldBundleFeasibleTreatments && appliedTreatment.Contains("Bundle") ? PAMSConstants.Bundled : scenarioSelectableTreatmentsDtos.FirstOrDefault(_ => _.Name == appliedTreatment)?.Category.ToString();
 
+            // Project Id
+            var committedProject = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.Treatment)
+                                    && _.Year == year.Year
+                                    && _.LocationKeys["CRS"] == crs);
+            treatmentDataModel.ProjectId = committedProject?.ProjectId?.ToString() ?? string.Empty;
+
             // Consequences
             var treatmentAttributeValues = new List<double>();
             foreach (var treatmentAttribute in treatmentAttributes)
@@ -235,6 +241,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             worksheet.Cells[headerRow, column++].Value = "TreatmentCause";
             worksheet.Cells[headerRow, column++].Value = "Budget";
             worksheet.Cells[headerRow, column++].Value = "Category";
+            worksheet.Cells[headerRow, column++].Value = "Project Id";
 
             treatmentAttributes = GetTreatmentAttributes();
             foreach(var treatmentAttribute in treatmentAttributes)
