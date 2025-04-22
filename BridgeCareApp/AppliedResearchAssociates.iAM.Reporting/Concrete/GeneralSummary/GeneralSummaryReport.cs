@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
@@ -221,16 +220,36 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
 
             // Work Done Tab
             var workDoneWorksheet = excelPackage.Workbook.Worksheets.Add("Work Done");
-            // Sort data - note: if BAMS then only this will be helpful
-            simulationOutput.InitialAssetSummaries.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
-                    );
+            var primaryKeyFields = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+            var firstPrimaryKey = primaryKeyFields[0].ToString();
+            var isPrimaryKeyNumeric = _reportHelper.IsPrimaryKeyNumberic(simulationOutput.InitialAssetSummaries[0].ValuePerTextAttribute, simulationOutput.InitialAssetSummaries[0].ValuePerNumericAttribute, firstPrimaryKey);
 
-            foreach (var yearlySectionData in simulationOutput.Years)
+            // Sort data
+            if (isPrimaryKeyNumeric)
             {
-                yearlySectionData.Assets.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
-                    );
+                simulationOutput.InitialAssetSummaries.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+
+                foreach (var yearlySectionData in simulationOutput.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+                }
+            }
+            else
+            {
+                simulationOutput.InitialAssetSummaries.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+
+                foreach (var yearlySectionData in simulationOutput.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+                }
             }
 
             var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(performanceCurvesDtos);
