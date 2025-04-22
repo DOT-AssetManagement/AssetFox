@@ -289,15 +289,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     foreach (var liveTable in order)
                     {
                         // --- Determine the corresponding staging table name ---
-                        // Use your existing .Stage() extension method if it reliably produces the correct name
-                        // string stagingTable = liveTable.Stage();
-                        // OR, if .Stage() doesn't exist or is simple:
                         string stagingTable = liveTable + "_Staging"; // Adjust if schema or naming is different
 
                         bool isIdentity = identityTables.Contains(liveTable);
 
                         _log.Information($"Executing usp_CopyDataFromStaging: Live='{liveTable}', Staging='{stagingTable}', IsIdentity='{isIdentity}'");
-                        //var copyMemo = saveMemos.Mark($"Copying {stagingTable} -> {liveTable}");
 
                         stopwatch.Stop();
                         _log.Information($"Copying {stagingTable} -> {liveTable} { stopwatch.ElapsedMilliseconds}ms");
@@ -310,16 +306,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                         @StagingTable = {stagingTable},
                         @IsIdentityTable = {isIdentity}");
 
-                        //copyMemo.Stop(); // Stop timing for this specific table
                         _log.Information($"Finished usp_CopyDataFromStaging for {liveTable}");
 
-                        // Optional: Add cancellation check inside the loop if copies take very long individually
                         if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                         {
                             _log.Warning("Cancellation requested during staging copy. Rolling back transaction.");
                             _unitOfWork.Rollback();
                             _ = saveMemos.Mark("Staging Copy Cancelled & Rolled Back");
-                            return; // Exit the method
+                            return; 
                         }
                     }
 
