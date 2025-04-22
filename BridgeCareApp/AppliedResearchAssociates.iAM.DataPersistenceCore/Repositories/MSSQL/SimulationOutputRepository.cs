@@ -38,7 +38,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public const string AssetLoadBatchSizeOverrideKey = "AssetDetailBatchSizeOverrideForValueLoad";
         private readonly UnitOfDataPersistenceWork _unitOfWork;
         public const int AssetLoadBatchSize = 2000;
-        public const int AssetDetailSaveBatchSize = 20000;
+        public const int AssetDetailSaveBatchSize = 100000;
         public const string AssetDetailSaveOverrideBatchSizeKey = "AssetDetailBatchSizeOverrideForValueSave";
         private readonly ILog _log;
 
@@ -125,7 +125,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
                 _unitOfWork.Context.EnsureFresh("dbo.SimulationOutput");
                 _unitOfWork.Context.BulkInsert( new List<SimulationOutputEntity> { simulationOutputEntity }, createConfig("SimulationOutput_Staging", batchSize));
-                _unitOfWork.Context.SaveChanges();
+                //_unitOfWork.Context.SaveChanges();
 
                 var assetSummaries = simulationOutput.InitialAssetSummaries;
                 _ = saveMemos.Mark("assetSummaries");
@@ -134,17 +134,30 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
                 _unitOfWork.Context.EnsureFresh("dbo.AssetSummaryDetail");
                 _unitOfWork.Context.BulkInsert(family.AssetSummaryDetails, createConfig("AssetSummaryDetail_Staging", batchSize));
-                _unitOfWork.Context.SaveChanges();
+                //_unitOfWork.Context.SaveChanges();
                 _ = simulationMemos.Mark("assetSummaryDetails");
 
                 _unitOfWork.Context.EnsureFresh("dbo.AssetSummaryDetailValueIntId");
                 _unitOfWork.Context.BulkInsert(family.AssetSummaryDetailValues, createConfig("AssetSummaryDetailValueIntId_Staging", batchSize, true));
-                _unitOfWork.Context.SaveChanges();
+                //_unitOfWork.Context.SaveChanges();
                 _ = saveMemos.Mark("assetSummaryDetailValues");
 
                 stopwatch.Stop();
                 _log.Information($"Finished Initial Asset Summary save. Beginning Years save. {stopwatch.ElapsedMilliseconds}ms");
                 stopwatch.Start();
+
+                _unitOfWork.Context.EnsureFresh("dbo.SimulationYearDetail");
+                _unitOfWork.Context.EnsureFresh("dbo.AssetDetail");
+                _unitOfWork.Context.EnsureFresh("dbo.AssetDetailValueIntId");
+                _unitOfWork.Context.EnsureFresh("dbo.TreatmentOptionDetail");
+                _unitOfWork.Context.EnsureFresh("dbo.TreatmentRejectionDetail");
+                _unitOfWork.Context.EnsureFresh("dbo.TreatmentSchedulingCollisionDetail");
+                _unitOfWork.Context.EnsureFresh("dbo.TreatmentConsiderationDetail");
+                _unitOfWork.Context.EnsureFresh("dbo.FundingCalculationInput");
+                _unitOfWork.Context.EnsureFresh("dbo.BudgetToSpend");
+                _unitOfWork.Context.EnsureFresh("dbo.FundingCalculationOutput");
+                _unitOfWork.Context.EnsureFresh("dbo.Allocation");
+                _unitOfWork.Context.EnsureFresh("dbo.CashFlowConsiderationDetail");
 
                 foreach (var year in simulationOutput.Years)
                 {
@@ -162,72 +175,71 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     var yearDetail = SimulationYearDetailMapper.ToEntityWithoutAssets(year, simulationOutputEntity.Id, attributeIdLookup);
                     yearDetail.Id = Guid.NewGuid();
 
-                    _unitOfWork.Context.EnsureFresh("dbo.SimulationYearDetail");
                     _unitOfWork.Context.BulkInsert(new List<SimulationYearDetailEntity> { yearDetail }, createConfig("SimulationYearDetail_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
 
                     var assets = year.Assets;
                     var assetFamily = AssetDetailMapper.ToEntityFamily(assets, yearDetail.Id, attributeIdLookup);
 
-                    _unitOfWork.Context.EnsureFresh("dbo.AssetDetail");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.AssetDetails, createConfig("AssetDetail_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.AssetDetails.Count} assetDetails");
 
-                    _unitOfWork.Context.EnsureFresh("dbo.AssetDetailValueIntId");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.AssetDetailValues, createConfig("AssetDetailValueIntId_Staging", batchSize, true));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ =saveMemos.Mark($" {assetFamily.AssetDetailValues.Count} assetDetailValues batchSize: {batchSize}");
 
-                    _unitOfWork.Context.EnsureFresh("dbo.TreatmentOptionDetail");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.TreatmentOptions, createConfig("TreatmentOptionDetail_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.TreatmentOptions.Count} treatmentOptions");
 
-                    _unitOfWork.Context.EnsureFresh("dbo.TreatmentRejectionDetail");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.TreatmentRejections, createConfig("TreatmentRejectionDetail_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.TreatmentRejections.Count} treatmentRejections");
 
 
-                    _unitOfWork.Context.EnsureFresh("dbo.TreatmentSchedulingCollisionDetail");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.TreatmentSchedulingCollisions, createConfig("TreatmentSchedulingCollisionDetail_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisions.Count} treatmentSchedulingCollisions");
 
 
-                    _unitOfWork.Context.EnsureFresh("dbo.TreatmentConsiderationDetail");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.TreatmentConsiderations, createConfig("TreatmentConsiderationDetail_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.TreatmentConsiderations.Count} treatmentConsiderations");
 
 
-                    _unitOfWork.Context.EnsureFresh("dbo.FundingCalculationInput");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.FundingCalculationInputs, createConfig("FundingCalculationInput_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.FundingCalculationInputs.Count} fundingCalculationInputs");
 
 
-                    _unitOfWork.Context.EnsureFresh("dbo.BudgetToSpend");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.CurrentBudgetsToSpend, createConfig("BudgetToSpend_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.CurrentBudgetsToSpend.Count} currentBudgetsToSpend");
 
 
-                    _unitOfWork.Context.EnsureFresh("dbo.FundingCalculationOutput");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.FundingCalculationOutputs, createConfig("FundingCalculationOutput_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.FundingCalculationOutputs.Count} fundingCalculationOutputs");
 
 
-                    _unitOfWork.Context.EnsureFresh("dbo.Allocation");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.AllocationMatrix, createConfig("Allocation_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.AllocationMatrix.Count} allocationMatrix");
 
-                    _unitOfWork.Context.EnsureFresh("dbo.CashFlowConsiderationDetail");
+                    
                     _unitOfWork.Context.BulkInsert(assetFamily.CashFlowConsiderations, createConfig("CashFlowConsiderationDetail_Staging", batchSize));
-                    _unitOfWork.Context.SaveChanges();
+                    //_unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.CashFlowConsiderations.Count} cashFlowConsiderations");
 
                     stopwatch.Stop();
@@ -268,39 +280,68 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 };
 
 
-                _unitOfWork.BeginTransaction();
+                _unitOfWork.BeginTransaction(); // Start a single transaction for the entire copy process
+                var originalTimeout = _unitOfWork.Context.Database.GetCommandTimeout();
+                _unitOfWork.Context.Database.SetCommandTimeout(1800); // e.g., 30 minutes timeout for the copy operations
 
                 try
                 {
-                    foreach (var live in order)
+                    foreach (var liveTable in order)
                     {
-                        var heap = live.Stage();
+                        // --- Determine the corresponding staging table name ---
+                        // Use your existing .Stage() extension method if it reliably produces the correct name
+                        // string stagingTable = liveTable.Stage();
+                        // OR, if .Stage() doesn't exist or is simple:
+                        string stagingTable = liveTable + "_Staging"; // Adjust if schema or naming is different
 
-                        if (identityTables.Contains(live))
-                        {
-                            var cols = GetColumnList(_unitOfWork.Context, live);   // e.g. [AssetSummaryDetailId], [Discriminator], ...
-                            _unitOfWork.Context.Database.ExecuteSqlRaw($@"
-                                INSERT INTO {live} ({cols})
-                                SELECT {cols} FROM {heap};");
-                        }
-                        else
-                        {
-                            _unitOfWork.Context.Database.ExecuteSqlRaw($@"
-                                INSERT INTO {live} WITH (TABLOCK)
-                                SELECT * FROM {heap};");
-                        }
+                        bool isIdentity = identityTables.Contains(liveTable);
 
-                        _unitOfWork.Context.Database.ExecuteSqlRaw($"TRUNCATE TABLE {heap};");
+                        _log.Information($"Executing usp_CopyDataFromStaging: Live='{liveTable}', Staging='{stagingTable}', IsIdentity='{isIdentity}'");
+                        //var copyMemo = saveMemos.Mark($"Copying {stagingTable} -> {liveTable}");
+
+                        stopwatch.Stop();
+                        _log.Information($"Copying {stagingTable} -> {liveTable} { stopwatch.ElapsedMilliseconds}ms");
+                        stopwatch.Start();
+
+                        // Use ExecuteSqlInterpolated for better parameter handling, especially for the boolean
+                        _unitOfWork.Context.Database.ExecuteSqlInterpolated($@"
+                    EXEC dbo.usp_CopyDataFromStaging
+                        @LiveTable = {liveTable},
+                        @StagingTable = {stagingTable},
+                        @IsIdentityTable = {isIdentity}");
+
+                        //copyMemo.Stop(); // Stop timing for this specific table
+                        _log.Information($"Finished usp_CopyDataFromStaging for {liveTable}");
+
+                        // Optional: Add cancellation check inside the loop if copies take very long individually
+                        if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                        {
+                            _log.Warning("Cancellation requested during staging copy. Rolling back transaction.");
+                            _unitOfWork.Rollback();
+                            _ = saveMemos.Mark("Staging Copy Cancelled & Rolled Back");
+                            return; // Exit the method
+                        }
                     }
-                }
 
-                catch(Exception ex )
+                    _unitOfWork.Commit(); // Commit the transaction ONLY if all SP calls succeed
+                    _log.Information("Successfully committed staging copy transaction.");
+                    _ = saveMemos.MarkInformation("Staging Copy Committed", loggerForTechnicalInfo);
+
+                }
+                catch (Exception ex)
                 {
-                    var exception = ex;
-                    _unitOfWork.Rollback();
+                    // The stored procedure will THROW on error, which is caught here.
+                    _log.Error($"Error during staging copy process. Rolling back transaction. Message: {ex}");
+                    _unitOfWork.Rollback(); // Rollback the entire transaction
+                    _ = saveMemos.Mark($"Staging Copy Failed & Rolled Back: {ex.Message}");
+                    throw; // Re-throw the exception to be handled by the outer catch block
+                }
+                finally
+                {
+                    // Always reset the command timeout
+                    _unitOfWork.Context.Database.SetCommandTimeout(originalTimeout);
                 }
 
-                _unitOfWork.Commit();
 
                 _ = saveMemos.MarkInformation("Save complete", loggerForTechnicalInfo);
                 _ = simulationMemos.Mark("Save complete");
