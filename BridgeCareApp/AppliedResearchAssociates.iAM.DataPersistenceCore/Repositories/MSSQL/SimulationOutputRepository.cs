@@ -78,8 +78,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("No simulation found for given scenario.");
             }
 
-            //_unitOfWork.BeginTransaction();
-
             // Once we are inside the transaction, there is not much value in adding logs to the
             // user logger. The problem is that these are often communicated to the user via the database.
             // But the database won't update until the transaction is completed. Therefore,
@@ -125,27 +123,21 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
                 var simulationOutputEntity = SimulationOutputMapper.ToEntityWithoutAssetsOrYearDetails(simulationOutput, simulationId, attributeIdLookup);
 
-                simulationOutputEntity.Id = Guid.NewGuid();
                 _unitOfWork.Context.EnsureFresh("dbo.SimulationOutput");
                 _unitOfWork.Context.BulkInsert( new List<SimulationOutputEntity> { simulationOutputEntity }, createConfig("SimulationOutput_Staging", batchSize));
                 _unitOfWork.Context.SaveChanges();
-
-                //_unitOfWork.Context.AddAll
 
                 var assetSummaries = simulationOutput.InitialAssetSummaries;
                 _ = saveMemos.Mark("assetSummaries");
 
                 var family = AssetSummaryDetailMapper.ToEntityLists(assetSummaries, simulationOutputEntity.Id, attributeIdLookup);
 
-                family.AssetSummaryDetails.ForEach(_ => _.Id = Guid.NewGuid());
-
+                _unitOfWork.Context.EnsureFresh("dbo.AssetSummaryDetail");
                 _unitOfWork.Context.BulkInsert(family.AssetSummaryDetails, createConfig("AssetSummaryDetail_Staging", batchSize));
                 _unitOfWork.Context.SaveChanges();
                 _ = simulationMemos.Mark("assetSummaryDetails");
 
-
-                //no guid set needed for ValueIntId entities
-
+                _unitOfWork.Context.EnsureFresh("dbo.AssetSummaryDetailValueIntId");
                 _unitOfWork.Context.BulkInsert(family.AssetSummaryDetailValues, createConfig("AssetSummaryDetailValueIntId_Staging", batchSize, true));
                 _unitOfWork.Context.SaveChanges();
                 _ = saveMemos.Mark("assetSummaryDetailValues");
@@ -170,74 +162,70 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     var yearDetail = SimulationYearDetailMapper.ToEntityWithoutAssets(year, simulationOutputEntity.Id, attributeIdLookup);
                     yearDetail.Id = Guid.NewGuid();
 
+                    _unitOfWork.Context.EnsureFresh("dbo.SimulationYearDetail");
                     _unitOfWork.Context.BulkInsert(new List<SimulationYearDetailEntity> { yearDetail }, createConfig("SimulationYearDetail_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
 
                     var assets = year.Assets;
                     var assetFamily = AssetDetailMapper.ToEntityFamily(assets, yearDetail.Id, attributeIdLookup);
 
-                    assetFamily.AssetDetails.ForEach(_ => _.Id = Guid.NewGuid());
-
+                    _unitOfWork.Context.EnsureFresh("dbo.AssetDetail");
                     _unitOfWork.Context.BulkInsert(assetFamily.AssetDetails, createConfig("AssetDetail_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.AssetDetails.Count} assetDetails");
 
-                    //no guid set needed for ValueIntId entities
-
+                    _unitOfWork.Context.EnsureFresh("dbo.AssetDetailValueIntId");
                     _unitOfWork.Context.BulkInsert(assetFamily.AssetDetailValues, createConfig("AssetDetailValueIntId_Staging", batchSize, true));
                     _unitOfWork.Context.SaveChanges();
                     _ =saveMemos.Mark($" {assetFamily.AssetDetailValues.Count} assetDetailValues batchSize: {batchSize}");
 
-                    assetFamily.TreatmentOptions.ForEach(_ => _.Id = Guid.NewGuid());
-
+                    _unitOfWork.Context.EnsureFresh("dbo.TreatmentOptionDetail");
                     _unitOfWork.Context.BulkInsert(assetFamily.TreatmentOptions, createConfig("TreatmentOptionDetail_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.TreatmentOptions.Count} treatmentOptions");
 
-                    assetFamily.TreatmentRejections.ForEach(_ => _.Id = Guid.NewGuid());
-
+                    _unitOfWork.Context.EnsureFresh("dbo.TreatmentRejectionDetail");
                     _unitOfWork.Context.BulkInsert(assetFamily.TreatmentRejections, createConfig("TreatmentRejectionDetail_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.TreatmentRejections.Count} treatmentRejections");
 
-                    assetFamily.TreatmentSchedulingCollisions.ForEach(_ => _.Id = Guid.NewGuid());
 
+                    _unitOfWork.Context.EnsureFresh("dbo.TreatmentSchedulingCollisionDetail");
                     _unitOfWork.Context.BulkInsert(assetFamily.TreatmentSchedulingCollisions, createConfig("TreatmentSchedulingCollisionDetail_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisions.Count} treatmentSchedulingCollisions");
 
-                    assetFamily.TreatmentConsiderations.ForEach(_ => _.Id = Guid.NewGuid());
 
+                    _unitOfWork.Context.EnsureFresh("dbo.TreatmentConsiderationDetail");
                     _unitOfWork.Context.BulkInsert(assetFamily.TreatmentConsiderations, createConfig("TreatmentConsiderationDetail_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.TreatmentConsiderations.Count} treatmentConsiderations");
 
-                    assetFamily.FundingCalculationInputs.ForEach(_ => _.Id = Guid.NewGuid());
 
+                    _unitOfWork.Context.EnsureFresh("dbo.FundingCalculationInput");
                     _unitOfWork.Context.BulkInsert(assetFamily.FundingCalculationInputs, createConfig("FundingCalculationInput_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.FundingCalculationInputs.Count} fundingCalculationInputs");
 
-                    assetFamily.CurrentBudgetsToSpend.ForEach(_ => _.Id = Guid.NewGuid());
 
+                    _unitOfWork.Context.EnsureFresh("dbo.BudgetToSpend");
                     _unitOfWork.Context.BulkInsert(assetFamily.CurrentBudgetsToSpend, createConfig("BudgetToSpend_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.CurrentBudgetsToSpend.Count} currentBudgetsToSpend");
 
-                    assetFamily.FundingCalculationOutputs.ForEach(_ => _.Id = Guid.NewGuid());
 
+                    _unitOfWork.Context.EnsureFresh("dbo.FundingCalculationOutput");
                     _unitOfWork.Context.BulkInsert(assetFamily.FundingCalculationOutputs, createConfig("FundingCalculationOutput_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.FundingCalculationOutputs.Count} fundingCalculationOutputs");
 
-                    assetFamily.AllocationMatrix.ForEach(_ => _.Id = Guid.NewGuid());
 
+                    _unitOfWork.Context.EnsureFresh("dbo.Allocation");
                     _unitOfWork.Context.BulkInsert(assetFamily.AllocationMatrix, createConfig("Allocation_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.AllocationMatrix.Count} allocationMatrix");
 
-                    assetFamily.CashFlowConsiderations.ForEach(_ => _.Id = Guid.NewGuid());
-
+                    _unitOfWork.Context.EnsureFresh("dbo.CashFlowConsiderationDetail");
                     _unitOfWork.Context.BulkInsert(assetFamily.CashFlowConsiderations, createConfig("CashFlowConsiderationDetail_Staging", batchSize));
                     _unitOfWork.Context.SaveChanges();
                     _ = saveMemos.Mark($" {assetFamily.CashFlowConsiderations.Count} cashFlowConsiderations");
@@ -282,25 +270,34 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
                 _unitOfWork.BeginTransaction();
 
-                foreach (var live in order)
+                try
                 {
-                    var heap = live.Stage();
-
-                    if (identityTables.Contains(live))
+                    foreach (var live in order)
                     {
-                        var cols = GetColumnList(_unitOfWork.Context, live);   // e.g. [AssetSummaryDetailId], [Discriminator], ...
-                        _unitOfWork.Context.Database.ExecuteSqlRaw($@"
-                            INSERT INTO {live} ({cols})
-                            SELECT {cols} FROM {heap};");
-                    }
-                    else
-                    {
-                        _unitOfWork.Context.Database.ExecuteSqlRaw($@"
-                            INSERT INTO {live} WITH (TABLOCK)
-                            SELECT * FROM {heap};");
-                    }
+                        var heap = live.Stage();
 
-                    _unitOfWork.Context.Database.ExecuteSqlRaw($"TRUNCATE TABLE {heap};");
+                        if (identityTables.Contains(live))
+                        {
+                            var cols = GetColumnList(_unitOfWork.Context, live);   // e.g. [AssetSummaryDetailId], [Discriminator], ...
+                            _unitOfWork.Context.Database.ExecuteSqlRaw($@"
+                                INSERT INTO {live} ({cols})
+                                SELECT {cols} FROM {heap};");
+                        }
+                        else
+                        {
+                            _unitOfWork.Context.Database.ExecuteSqlRaw($@"
+                                INSERT INTO {live} WITH (TABLOCK)
+                                SELECT * FROM {heap};");
+                        }
+
+                        _unitOfWork.Context.Database.ExecuteSqlRaw($"TRUNCATE TABLE {heap};");
+                    }
+                }
+
+                catch(Exception ex )
+                {
+                    var exception = ex;
+                    _unitOfWork.Rollback();
                 }
 
                 _unitOfWork.Commit();
