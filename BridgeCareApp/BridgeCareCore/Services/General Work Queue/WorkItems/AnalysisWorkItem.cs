@@ -33,7 +33,7 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
 
     public string WorkDescription => "Run Simulation";
 
-    private readonly UnitOfDataPersistenceWork _unitOfWork;
+    private readonly ILog _log = new DoNotLog();
 
     // Constructor that accepts UnitOfDataPersistenceWork and uses the positional parameters constructor
     public AnalysisWorkItem(
@@ -41,10 +41,12 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
         Guid simulationId,
         UserInfo userInfo,
         string scenarioName,
-        UnitOfDataPersistenceWork unitOfWork
+        ILog log
     ) : this(networkId, simulationId, userInfo, scenarioName) // Calling the positional parameters constructor
     {
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        // TODO as of 4/10/2025 -- Once the Simulation startup question is resolved,
+        // use the logger from the ServiceProvider. Do not pass one in.
+        _log = log ?? new DoNotLog();
     }
 
     public WorkQueueMetadata Metadata => new()
@@ -64,7 +66,7 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
         // message-sending. There's no problem with updating this implementation to use the
         // injected delegate; it just requires knowledge of how our update system works
         // end-to-end. (Knowledge which I (WR) lacked at the time of writing.)
-
+        _log.Debug("AnalysisWorkItem DoWork entry");
         var memos = EventMemoModelLists.GetFreshInstance("Simulation");
 
         HashSet<string> loggedMessages = new();
@@ -76,6 +78,7 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
         {
             memos.Mark(message);
             loggingService.Log(new(SimulationId, ScenarioName, message));
+            _log.Debug(message);
         }
 
         markAndLog("start");
