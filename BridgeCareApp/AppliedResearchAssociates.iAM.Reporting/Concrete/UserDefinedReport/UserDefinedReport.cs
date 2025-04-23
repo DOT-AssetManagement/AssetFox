@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Common.Logging;
@@ -10,14 +9,12 @@ using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Services;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeData;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryByBudget;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport;
 using BridgeCareCore.Services;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using System.IO;
+using System.Linq;
 
 namespace AppliedResearchAssociates.iAM.Reporting
 {
@@ -168,19 +165,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
             var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
-            // Sort data to get rows in InitialAssetSummaries and assets in Years aligned
-            reportOutputData.InitialAssetSummaries.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
-                    );
-
-            foreach (var yearlySectionData in reportOutputData.Years)
-            {
-
-                checkCancelled(cancellationToken, simulationId);
-                yearlySectionData.Assets.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
-                    );
-            }
+            // Sort data needed? if yes should be generic numberic/text
 
             using var excelPackage = new ExcelPackage(new FileInfo("UserDefinedReportTestData.xlsx"));
 
@@ -188,9 +173,10 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var filterAttributes = _userDefinedReportRequestModel.Attributes;
             // TODO...
 
+
             // YearTabs based on param filters
             var filterYears = _userDefinedReportRequestModel.Years;
-            reportDetailDto.Status = $"Creating Year tabs for selected years";
+            reportDetailDto.Status = $"Creating Year tabs for selected years";                        
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
@@ -198,13 +184,25 @@ namespace AppliedResearchAssociates.iAM.Reporting
             {
                 // year tab
                 var yearWorksheet = excelPackage.Workbook.Worksheets.Add("Year " + filterYear);
-                _yearTab.Fill(yearWorksheet, reportOutputData);
+                var simulationYear = reportOutputData.Years.FirstOrDefault(_ => _.Year == filterYear);
+                _yearTab.Fill(yearWorksheet, _userDefinedReportRequestModel, simulationYear);
                 checkCancelled(cancellationToken, simulationId);
             }
 
-            var functionReturnValue = "";
+            //check and generate folder
+            var folderPathForSimulation = $"Reports\\{simulationId}";
+            _ = Directory.CreateDirectory(folderPathForSimulation);
+            var filePath = Path.Combine(folderPathForSimulation, "UserDefinedReport.xlsx");
 
-            return functionReturnValue;
+            checkCancelled(cancellationToken, simulationId);
+            var bin = excelPackage.GetAsByteArray();
+            File.WriteAllBytes(filePath, bin);
+
+            reportDetailDto.Status = $"Report Generation Completed";
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, SimulationID);
+            UpsertSimulationReportDetail(reportDetailDto);
+
+            return filePath;
         }
 
         private void IndicateError(string status = null)
