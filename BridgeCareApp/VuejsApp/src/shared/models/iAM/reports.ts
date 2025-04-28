@@ -32,3 +32,21 @@ export const reportDetails: ReportDetails = {
     reportName: '',
     isGenerated: false
 };
+
+export interface UserDefinedReportRequestModel {
+    Attributes:string[]
+    Years: number[],
+    DisplayBudgets: boolean,
+    DisplayDeficientConditionGoals: boolean,
+    DisplayTargetConditionGoals: boolean,
+    DisplayAssets: boolean
+}
+
+export const emptyUserDefinedReportRequestModel : UserDefinedReportRequestModel ={
+    Attributes: [],
+    Years: [],
+    DisplayBudgets: true,
+    DisplayDeficientConditionGoals: true,
+    DisplayTargetConditionGoals: true,
+DisplayAssets: true
+};

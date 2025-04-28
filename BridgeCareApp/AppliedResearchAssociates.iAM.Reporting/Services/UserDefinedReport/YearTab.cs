@@ -69,7 +69,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     currentRow++;
                     currentColumn = startColumn;
                     // header
-                    yearWorksheet.Cells[currentRow, currentColumn].Value = "ValuePerNumericAttribute";
+                    yearWorksheet.Cells[currentRow, currentColumn].Value = "Numeric attributes";
                     // headers and data
                     foreach (var numericAttribute in asset.ValuePerNumericAttribute)
                     {                        
@@ -81,7 +81,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     currentRow += 3;
                     currentColumn = startColumn;
                     // header
-                    yearWorksheet.Cells[currentRow, currentColumn].Value = "ValuePerTextAttribute";
+                    yearWorksheet.Cells[currentRow, currentColumn].Value = "Text attributes";
                     // headers and data
                     foreach (var textAttribute in asset.ValuePerTextAttribute)
                     {                        
@@ -93,7 +93,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     currentRow += 3;
                     currentColumn = startColumn;
                     // headers
-                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "TreatmentConsiderations";
+                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "Treatment considerations";
                     // headers and data
                     foreach (var treatmentConsideration in asset.TreatmentConsiderations)
                     {
@@ -106,7 +106,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                         currentRow += 2;
                         currentColumn = startColumn;
                         // headers
-                        yearWorksheet.Cells[currentRow++, currentColumn].Value = "CashFlowConsiderations";
+                        yearWorksheet.Cells[currentRow++, currentColumn].Value = "Cash flow considerations";
 
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = "CashFlowRuleName";
                         yearWorksheet.Cells[currentRow, currentColumn].Value = "ReasonAgainstCashFlow";
@@ -123,7 +123,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                         currentRow += 2;
                         currentColumn = startColumn;
                         // headers
-                        yearWorksheet.Cells[currentRow++, currentColumn].Value = "FundingCalculationInput - CurrentBudgetsToSpend";
+                        yearWorksheet.Cells[currentRow++, currentColumn].Value = "Current budgets to spend";
 
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = "Name";
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = "Amount";
@@ -143,7 +143,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                         currentRow += 2;
                         currentColumn = startColumn;
                         // headers
-                        yearWorksheet.Cells[currentRow++, currentColumn].Value = "FundingCalculationOutput - AllocationMatrix";
+                        yearWorksheet.Cells[currentRow++, currentColumn].Value = "Allocation matrix";
 
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = "Year";
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = "BudgetName";
@@ -166,7 +166,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     currentRow += 2;
                     currentColumn = startColumn;
                     // headers
-                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "TreatmentSchedulingCollisions";
+                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "Treatment scheduling collisions";
 
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "Year";
                     yearWorksheet.Cells[currentRow, currentColumn].Value = "NameOfUnscheduledTreatment";
@@ -183,7 +183,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     currentRow += 2;
                     currentColumn = startColumn;
                     // headers
-                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "TreatmentRejections";
+                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "Treatment rejections";
 
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "TreatmentName";
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "TreatmentRejectionReason";
@@ -203,7 +203,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     currentColumn = startColumn;
 
                     // headers
-                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "TreatmentOptions";
+                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "Treatment options";
 
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "TreatmentName";
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "Cost";
@@ -235,7 +235,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 currentRow++;
                 var currentColumn = startColumn;
                 // headers
-                yearWorksheet.Cells[currentRow++, currentColumn].Value = "TargetConditionGoals";
+                yearWorksheet.Cells[currentRow++, currentColumn].Value = "Target condition goals";
 
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "AttributeName";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "GoalName";
@@ -265,7 +265,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 currentRow++;
                 var currentColumn = startColumn;
                 // headers
-                yearWorksheet.Cells[currentRow++, currentColumn].Value = "DeficientConditionGoals";
+                yearWorksheet.Cells[currentRow++, currentColumn].Value = "Deficient condition goals";
 
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "AttributeName";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "GoalName";

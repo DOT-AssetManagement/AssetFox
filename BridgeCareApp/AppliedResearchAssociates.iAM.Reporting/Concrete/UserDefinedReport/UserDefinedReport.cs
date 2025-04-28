@@ -176,6 +176,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             // YearTabs based on param filters
             var filterYears = _userDefinedReportRequestModel.Years;
+            // TODO remove post param Years get values from UI
+            filterYears = reportOutputData.Years.Select(x => x.Year).ToList();
             reportDetailDto.Status = $"Creating Year tabs for selected years";                        
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpsertSimulationReportDetail(reportDetailDto);

@@ -11,13 +11,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Models
         public List<int> Years { get; set; }
 
         // TODO Show/Hide (next level report)
-        public bool DisplayBudgets { get; set; } = true;
+        public bool DisplayBudgets { get; set; }
                 
-        public bool DisplayDeficientConditionGoals { get; set; } = true;        
+        public bool DisplayDeficientConditionGoals { get; set; }
                 
-        public bool DisplayTargetConditionGoals { get; set; } = true;
+        public bool DisplayTargetConditionGoals { get; set; }
                 
-        public bool DisplayAssets { get; set; } = true;
+        public bool DisplayAssets { get; set; }
         // TODO Assets => further drill down for show/hide can be planned as required...
     }
 }

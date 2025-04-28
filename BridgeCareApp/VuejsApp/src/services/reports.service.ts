@@ -1,6 +1,7 @@
 import {AxiosPromise} from 'axios';
 import {API, coreAxiosInstance} from '@/shared/utils/axios-instance';
 import { ReportDetails } from '@/shared/models/iAM/reports';
+import { UserDefinedReportRequestModel } from '@/shared/models/iAM/reports';
 
 export default class ReportsService {
     static generateReport(scenarioId: string, reportType: string): AxiosPromise {
@@ -12,12 +13,13 @@ export default class ReportsService {
             responseType: 'text'
         });
     }
-    static generateReportWithCriteria(scenarioId: string, expression: string, reportType:string): AxiosPromise {
+    /* TODO add param for userDefinedReportRequestModel type UserDefinedReportRequestModel */
+    static generateReportWithCriteria(scenarioId: string, expression: string, reportType:string, userDefinedReportRequestModel: UserDefinedReportRequestModel): AxiosPromise {
         return coreAxiosInstance.request({
             method: 'POST',
             url: `${API.Report}/GetFile/${reportType}`,
             headers: {'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},
-            data: {'scenarioId':scenarioId, 'expression':expression},
+            data: {'scenarioId':scenarioId, 'expression':expression, 'userDefinedReportRequestModel': userDefinedReportRequestModel},
             responseType: 'text'
         });
     }

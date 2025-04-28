@@ -163,7 +163,7 @@ import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import EditSvg from '@/shared/icons/EditSvg.vue';
 import ReportsTrashCanButton from '@/shared/components/buttons/ReportsTrashCanButton.vue';
 import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton.vue';
-
+import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel } from '@/shared/models/iAM/reports';
 
     let store = useStore();
     const router = useRouter();
@@ -193,6 +193,7 @@ import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton
     const criterionEditorDialogData = ref<GeneralCriterionEditorDialogData>(clone(emptyGeneralCriterionEditorDialogData));
     const currentPage = ref<Report[]>([]);
     let selectedReport = ref<Report>(emptyReport); 
+    let userDefinedReportRequestModel = ref<UserDefinedReportRequestModel>(emptyUserDefinedReportRequestModel);
     const reportsGridHeaders: any[] = [
         {
             title: 'Name',
@@ -353,7 +354,7 @@ import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton
             ) as Report;
             // Generate report with selected one from table
             await ReportsService.generateReportWithCriteria(
-                selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name
+                selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, emptyUserDefinedReportRequestModel
             ).then((response: AxiosResponse<any>) => {
                 if (response.status == 200) {
                     if (hasValue(response, 'data')) {
