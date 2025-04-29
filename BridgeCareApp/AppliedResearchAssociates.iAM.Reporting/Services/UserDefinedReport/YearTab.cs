@@ -9,14 +9,20 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
     {
         internal void Fill(ExcelWorksheet yearWorksheet, UserDefinedReportRequestModel userDefinedReportRequestModel, SimulationYearDetail simulationYearDetail)
         {
+            //set default width
+            yearWorksheet.DefaultColWidth = 13;
+
             var startColumn = 1;
             var startRow = 1;
-            CurrentCell currentCell = new CurrentCell { Row = startRow, Column = startColumn };
-            yearWorksheet.Cells[currentCell.Row++, currentCell.Column].Value = "Year " + simulationYearDetail.Year + " details";
+            var currentCell = new CurrentCell { Row = startRow, Column = startColumn };
+            yearWorksheet.Cells[currentCell.Row, currentCell.Column].Value = "Year " + simulationYearDetail.Year + " details";
+            ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentCell.Row++, currentCell.Column]);
 
             // Display output details for simulation year
-            currentCell.Row += 2;
-            yearWorksheet.Cells[currentCell.Row++, currentCell.Column].Value = simulationYearDetail.ConditionOfNetwork;
+            currentCell.Row++;
+            yearWorksheet.Cells[currentCell.Row, currentCell.Column++].Value = "ConditionOfNetwork";
+            yearWorksheet.Cells[currentCell.Row, currentCell.Column].Value = simulationYearDetail.ConditionOfNetwork;
+            ExcelHelper.ApplyBorder(yearWorksheet.Cells[currentCell.Row++, currentCell.Column]);
             var currentRow = currentCell.Row;            
 
             // Budgets            
@@ -30,6 +36,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
 
             // Assets
             FillAssets(yearWorksheet, userDefinedReportRequestModel.DisplayAssets, simulationYearDetail, startColumn, currentRow);
+
+            // TODO borders to tables
+            //ExcelHelper.ApplyBorder(worksheet.Cells[headerRow1, 1, headerRow2, worksheet.Dimension.Columns]);
+            //ExcelHelper.ApplyStyleNoWrap(worksheet.Cells[headerRow2, 3, headerRow2, 3 + currentAttributesCount - 1]);
+            //ExcelHelper.ApplyStyle(worksheet.Cells[headerRow2, 1, headerRow2, 2]);
+
+            yearWorksheet.Cells.AutoFitColumns();
         }
 
         private static void FillAssets(ExcelWorksheet yearWorksheet, bool displayAssets, SimulationYearDetail simulationYearDetail, int startColumn, int currentRow)
@@ -39,13 +52,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 currentRow++;
                 var currentColumn = startColumn;
                 // headers
-                yearWorksheet.Cells[currentRow++, currentColumn].Value = "Assets";
+                yearWorksheet.Cells[currentRow, currentColumn].Value = "Assets";
+                ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow++, currentColumn]);
                 foreach (var asset in simulationYearDetail.Assets)
                 {
                     currentColumn = startColumn;
                     // headers and data
-                    yearWorksheet.Cells[currentRow, currentColumn].Value = "AssetName";
-                    yearWorksheet.Cells[currentRow++, currentColumn + 1].Value = asset.AssetName;
+                    // TODO generic
+                    // yearWorksheet.Cells[currentRow, currentColumn].Value = primaryKey;
+                    //yearWorksheet.Cells[currentRow++, currentColumn + 1].Value = primaryKeyValue;
 
                     yearWorksheet.Cells[currentRow, currentColumn].Value = "AppliedTreatment";
                     yearWorksheet.Cells[currentRow++, currentColumn + 1].Value = asset.AppliedTreatment;
@@ -70,31 +85,37 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     currentColumn = startColumn;
                     // header
                     yearWorksheet.Cells[currentRow, currentColumn].Value = "Numeric attributes";
+                    ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow++, currentColumn]);
                     // headers and data
                     foreach (var numericAttribute in asset.ValuePerNumericAttribute)
                     {                        
                         yearWorksheet.Cells[currentRow, currentColumn].Value = numericAttribute.Key;
                         yearWorksheet.Cells[currentRow + 1, currentColumn++].Value = numericAttribute.Value;
                     }
+                    ExcelHelper.ApplyBorder(yearWorksheet.Cells[currentRow, startColumn, currentRow + 1, currentColumn - 1]);
 
                     // ValuePerTextAttribute
                     currentRow += 3;
                     currentColumn = startColumn;
                     // header
                     yearWorksheet.Cells[currentRow, currentColumn].Value = "Text attributes";
+                    ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow++, currentColumn]);
                     // headers and data
                     foreach (var textAttribute in asset.ValuePerTextAttribute)
                     {                        
                         yearWorksheet.Cells[currentRow, currentColumn].Value = textAttribute.Key;
                         yearWorksheet.Cells[currentRow + 1, currentColumn++].Value = textAttribute.Value;
                     }
+                    ExcelHelper.ApplyBorder(yearWorksheet.Cells[currentRow, startColumn, currentRow + 1, currentColumn - 1]);
 
                     // TreatmentConsiderations
                     currentRow += 3;
                     currentColumn = startColumn;
                     // headers
-                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "Treatment considerations";
+                    yearWorksheet.Cells[currentRow, currentColumn].Value = "Treatment considerations";
+                    ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow, currentColumn]);
                     // headers and data
+                    var fromRow = currentRow + 1;
                     foreach (var treatmentConsideration in asset.TreatmentConsiderations)
                     {
                         currentRow += 2;
@@ -161,16 +182,22 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                             ExcelHelper.SetCurrencyFormat(yearWorksheet.Cells[currentRow, currentColumn], ExcelFormatStrings.Currency);
                         }
                     }
+                    if (asset.TreatmentConsiderations.Count == 0)
+                    {
+                        currentRow = fromRow;
+                    }
+                    ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow, currentColumn]);
 
                     // TreatmentSchedulingCollisions                    
                     currentRow += 2;
                     currentColumn = startColumn;
                     // headers
-                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "Treatment scheduling collisions";
-
+                    yearWorksheet.Cells[currentRow, currentColumn].Value = "Treatment scheduling collisions";
+                    ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow++, currentColumn]);
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "Year";
                     yearWorksheet.Cells[currentRow, currentColumn].Value = "NameOfUnscheduledTreatment";
                     // data
+                    fromRow = currentRow + 1;
                     foreach (var treatmentSchedulingCollision in asset.TreatmentSchedulingCollisions)
                     {                        
                         currentRow++;
@@ -178,17 +205,24 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = treatmentSchedulingCollision.Year;
                         yearWorksheet.Cells[currentRow, currentColumn].Value = treatmentSchedulingCollision.NameOfUnscheduledTreatment;
                     }
+                    if (asset.TreatmentSchedulingCollisions.Count == 0)
+                    {
+                        currentRow = fromRow;
+                    }
+                    ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow, currentColumn]);
 
                     // TreatmentRejections                    
                     currentRow += 2;
                     currentColumn = startColumn;
                     // headers
-                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "Treatment rejections";
-
+                    yearWorksheet.Cells[currentRow, currentColumn].Value = "Treatment rejections";
+                    ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow++, currentColumn]);
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "TreatmentName";
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "TreatmentRejectionReason";
                     yearWorksheet.Cells[currentRow, currentColumn].Value = "PotentialConditionChange";
+                    ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow, startColumn, currentRow, currentColumn]);
                     // data
+                    fromRow = currentRow + 1;
                     foreach (var treatmentRejection in asset.TreatmentRejections)
                     {
                         currentRow++;
@@ -197,20 +231,27 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = treatmentRejection.TreatmentRejectionReason.ToString();
                         yearWorksheet.Cells[currentRow, currentColumn].Value = treatmentRejection.PotentialConditionChange;
                     }
+                    if (asset.TreatmentRejections.Count == 0)
+                    {
+                        currentRow = fromRow;
+                    }
+                    ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow, currentColumn]);
 
                     // TreatmentOptions                    
                     currentRow += 2;
                     currentColumn = startColumn;
 
                     // headers
-                    yearWorksheet.Cells[currentRow++, currentColumn].Value = "Treatment options";
-
+                    yearWorksheet.Cells[currentRow, currentColumn].Value = "Treatment options";
+                    ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow++, currentColumn]);
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "TreatmentName";
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "Cost";
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "Benefit";
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = "RemainingLife";
-                    yearWorksheet.Cells[currentRow, currentColumn].Value = "conditionChange";
+                    yearWorksheet.Cells[currentRow, currentColumn].Value = "ConditionChange";
+                    ExcelHelper.ApplyStyle(yearWorksheet.Cells[currentRow, startColumn, currentRow, currentColumn]);
                     // data
+                    fromRow = currentRow + 1;
                     foreach (var treatmentOption in asset.TreatmentOptions)
                     {
                         currentRow++;
@@ -220,7 +261,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = treatmentOption.Benefit;
                         yearWorksheet.Cells[currentRow, currentColumn++].Value = treatmentOption.RemainingLife;
                         yearWorksheet.Cells[currentRow, currentColumn].Value = treatmentOption.ConditionChange;
-                    }                    
+                    }
+                    if (asset.TreatmentOptions.Count == 0)
+                    {
+                        currentRow = fromRow;
+                    }
+                    ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow, currentColumn]);
 
                     currentColumn = startColumn;
                     currentRow += 2;
@@ -235,14 +281,16 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 currentRow++;
                 var currentColumn = startColumn;
                 // headers
-                yearWorksheet.Cells[currentRow++, currentColumn].Value = "Target condition goals";
-
+                yearWorksheet.Cells[currentRow, currentColumn].Value = "Target condition goals";
+                ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow++, currentColumn]);
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "AttributeName";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "GoalName";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "GoalIsMet";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "ActualValue";
                 yearWorksheet.Cells[currentRow, currentColumn].Value = "TargetValue";
-                // data                
+                ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, startColumn, currentRow, currentColumn]);
+                // data
+                var fromRow = currentRow + 1;
                 foreach (var targetConditionGoal in simulationYearDetail.TargetConditionGoals)
                 {
                     currentRow++;
@@ -253,6 +301,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = targetConditionGoal.ActualValue;
                     yearWorksheet.Cells[currentRow, currentColumn].Value = targetConditionGoal.TargetValue;
                 }
+                if (simulationYearDetail.TargetConditionGoals.Count == 0)
+                {
+                    currentRow = fromRow;
+                }
+                ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow, currentColumn]);
             }
 
             return ++currentRow;
@@ -265,15 +318,17 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 currentRow++;
                 var currentColumn = startColumn;
                 // headers
-                yearWorksheet.Cells[currentRow++, currentColumn].Value = "Deficient condition goals";
-
+                yearWorksheet.Cells[currentRow, currentColumn].Value = "Deficient condition goals";
+                ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow++, currentColumn]);
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "AttributeName";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "GoalName";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "GoalIsMet";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "ActualDeficientPercentage";
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "AllowedDeficientPercentage";
                 yearWorksheet.Cells[currentRow, currentColumn].Value = "DeficientLimit";
-                // data                
+                ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, startColumn, currentRow, currentColumn]);
+                // data
+                var fromRow = currentRow + 1;
                 foreach (var deficientConditionGoal in simulationYearDetail.DeficientConditionGoals)
                 {
                     currentRow++;
@@ -285,8 +340,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = deficientConditionGoal.ActualDeficientPercentage;
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = deficientConditionGoal.AllowedDeficientPercentage;
                     yearWorksheet.Cells[currentRow, currentColumn].Value = deficientConditionGoal.DeficientLimit;
-
                 }
+                if (simulationYearDetail.DeficientConditionGoals.Count == 0)
+                {
+                    currentRow = fromRow;
+                }
+                ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow, currentColumn]);
             }
 
             return ++currentRow;
@@ -299,20 +358,26 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 currentRow++;
                 var currentColumn = startColumn;
                 // headers
-                yearWorksheet.Cells[currentRow++, currentColumn].Value = "Budgets";
-
+                yearWorksheet.Cells[currentRow, currentColumn].Value = "Budgets";
+                ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow++, currentColumn]);
                 yearWorksheet.Cells[currentRow, currentColumn++].Value = "BudgetName";
                 yearWorksheet.Cells[currentRow, currentColumn].Value = "AvailableFunding";
-                ExcelHelper.ApplyBorder(yearWorksheet.Cells[currentRow, startColumn, currentRow, currentColumn]);
-                // data                
+                ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, startColumn, currentRow, currentColumn]);
+                // data
+                var fromRow = currentRow + 1;
                 foreach (var budget in simulationYearDetail.Budgets)
                 {
                     currentRow++;
                     currentColumn = startColumn;
                     yearWorksheet.Cells[currentRow, currentColumn++].Value = budget.BudgetName;
                     yearWorksheet.Cells[currentRow, currentColumn].Value = budget.AvailableFunding;
-                    ExcelHelper.SetCurrencyFormat(yearWorksheet.Cells[currentRow, currentColumn], ExcelFormatStrings.Currency);
+                    ExcelHelper.SetCurrencyFormat(yearWorksheet.Cells[currentRow, currentColumn], ExcelFormatStrings.CurrencyWithoutCents);
                 }
+                if (simulationYearDetail.Budgets.Count == 0)
+                {
+                    currentRow = fromRow;
+                }
+                ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow, currentColumn]);
             }
 
             return ++currentRow;

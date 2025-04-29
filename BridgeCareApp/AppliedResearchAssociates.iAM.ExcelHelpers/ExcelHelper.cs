@@ -68,6 +68,22 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
         }
 
         /// <summary>
+        ///     Apply style and border to given cells
+        /// </summary>
+        /// <param name="cells"></param>
+        public static void ApplyStyleWithBorder(ExcelRange cells)
+        {
+            cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            cells.Style.WrapText = true;
+            cells.Style.Font.Bold = true;
+            cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+            cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+        }
+
+        /// <summary>
         ///     Apply border to given cells
         /// </summary>
         /// <param name="cells"></param>
