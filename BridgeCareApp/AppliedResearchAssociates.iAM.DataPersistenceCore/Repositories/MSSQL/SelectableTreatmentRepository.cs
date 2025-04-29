@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
@@ -854,8 +855,36 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
             var entityId = scenarioSelectableTreatment.Id;
 
+            // Check for any supersedes and delete them before the treatment
+            if (scenarioSelectableTreatment.SupersedeRules.Count > 0)
+            {
+                // Get the entities we to delete
+                var ruleIds = _unitOfWork.Context.Set<ScenarioTreatmentSupersedeRuleEntity>()
+                    .Where(x => x.TreatmentId == entityId)
+                    .Select(x => x.Id)
+                    .ToList();
+
+                // Delete from related table for each ID
+                foreach (var ruleId in ruleIds)
+                {
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(
+                        "DELETE FROM dbo.CriterionLibrary_ScenarioTreatmentSupersedeRule WHERE ScenarioTreatmentSupersedeRuleId = {0}",
+                        ruleId);
+                }
+
+                // Ensure these deletes are committed
+                _unitOfWork.Context.SaveChanges();
+
+                // Now proceed with the parent table deletion
+                _unitOfWork.Context.DeleteAll<ScenarioTreatmentSupersedeRuleEntity>(x => x.TreatmentId == entityId);
+                _unitOfWork.Context.SaveChanges();
+            }
+
             _unitOfWork.AsTransaction(() =>
             {
+                var simulationEntity1 = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
+                _unitOfWork.Context.Upsert(simulationEntity1, simulationId, _unitOfWork.UserEntity?.Id);
+
                 _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentScenarioBudgetEntity>(_ =>
                     _.ScenarioSelectableTreatment.SimulationId == simulationId && _.ScenarioSelectableTreatment.Id == entityId);
 

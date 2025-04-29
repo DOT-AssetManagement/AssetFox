@@ -916,15 +916,31 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
         }
     }
     
-    function onShowConfirmDeleteTreatmentAlert() {
-        confirmBeforeDeleteTreatmentAlertData.value = {
-            showDialog: true,
-            heading: 'Warning',
-            choice: true,
-            message: 'Are you sure you want to delete?',
-        };
+function onShowConfirmDeleteTreatmentAlert() {
+    console.log(selectedTreatment.value);
+    if (selectedTreatment.value) {
+            // Wait .70 milliseconds to get the selectedTreatment details before continuing
+            setTimeout(() => {   
+                if (selectedTreatment.value.supersedeRules.length > 0) {
+                    confirmBeforeDeleteTreatmentAlertData.value = {
+                    showDialog: true,
+                    heading: 'Warning',
+                    choice: true,
+                    message: 'Deleting this treatment will affect the dependent supersede rules.Are you sure you want to delete?',
+                };
+                } 
+                else
+                {
+                    confirmBeforeDeleteTreatmentAlertData.value = {
+                    showDialog: true,
+                    heading: 'Warning',
+                    choice: true,
+                    message: 'Are you sure you want to delete?',
+                };
+                }        
+            }, 75);
     }
-
+}
     function  onShowTreatmentLibraryDialog(treatmentLibrary: TreatmentLibrary) {
         shareTreatmentLibraryDialogData.value = {
             showDialog: true,
@@ -962,7 +978,6 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
 
     function onSubmitConfirmDeleteTreatmentAlertResult(submit: boolean) {
         confirmBeforeDeleteTreatmentAlertData.value = clone(emptyAlertData);
-
         if (submit) {       
             onDeleteTreatment(selectedTreatment.value.id);
         }
