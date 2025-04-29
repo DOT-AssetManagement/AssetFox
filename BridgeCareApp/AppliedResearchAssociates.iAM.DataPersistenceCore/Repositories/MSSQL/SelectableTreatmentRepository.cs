@@ -864,7 +864,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     .Select(x => x.Id)
                     .ToList();
 
-                // Delete from related table for each ID
+                // Delete from CriterionLibrary_ScenarioTreatmentSupersedeRule table
                 foreach (var ruleId in ruleIds)
                 {
                     _unitOfWork.Context.Database.ExecuteSqlRaw(
@@ -872,10 +872,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                         ruleId);
                 }
 
-                // Ensure these deletes are committed
                 _unitOfWork.Context.SaveChanges();
 
-                // Now proceed with the parent table deletion
+                // Delete from parent table
                 _unitOfWork.Context.DeleteAll<ScenarioTreatmentSupersedeRuleEntity>(x => x.TreatmentId == entityId);
                 _unitOfWork.Context.SaveChanges();
             }
