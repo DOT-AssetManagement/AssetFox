@@ -982,6 +982,44 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return entity.ToDtoWithSimulationId(treatments);
         }
 
+        public List<TreatmentDTOWithSimulationId> GetAllScenarioTreatmentBySimulationId(Guid simulationId)
+        {
+            var entities = _unitOfWork.Context.ScenarioSelectableTreatment.AsNoTracking()
+                .Where(t => t.SimulationId == simulationId)
+                .AsSplitQuery()
+                .Include(_ => _.ScenarioTreatmentCosts)
+                .ThenInclude(_ => _.ScenarioTreatmentCostEquationJoin)
+                .ThenInclude(_ => _.Equation)
+                .Include(_ => _.ScenarioTreatmentCosts)
+                .ThenInclude(_ => _.CriterionLibraryScenarioTreatmentCostJoin)
+                .ThenInclude(_ => _.CriterionLibrary)
+                .Include(_ => _.ScenarioTreatmentConsequences.OrderBy(_ => _.Attribute.Name))
+                .ThenInclude(_ => _.Attribute)
+                .Include(_ => _.ScenarioTreatmentConsequences)
+                .ThenInclude(_ => _.ScenarioConditionalTreatmentConsequenceEquationJoin)
+                .ThenInclude(_ => _.Equation)
+                .Include(_ => _.ScenarioTreatmentConsequences)
+                .ThenInclude(_ => _.CriterionLibraryScenarioConditionalTreatmentConsequenceJoin)
+                .ThenInclude(_ => _.CriterionLibrary)
+                .Include(_ => _.ScenarioSelectableTreatmentScenarioBudgetJoins)
+                .ThenInclude(_ => _.ScenarioBudget)
+                .Include(_ => _.CriterionLibraryScenarioSelectableTreatmentJoin)
+                .ThenInclude(_ => _.CriterionLibrary)
+                .Include(_ => _.ScenarioTreatmentPerformanceFactors)
+                .Include(_ => _.ScenarioTreatmentSupersedeRules)
+                .ThenInclude(_ => _.CriterionLibraryScenarioTreatmentSupersedeRuleJoin)
+                .ThenInclude(_ => _.CriterionLibrary)
+                .ToList();
+
+            // Get all treatments for this simulation
+            var treatments = _unitOfWork.Context.ScenarioSelectableTreatment
+                .Where(t => t.SimulationId == simulationId)
+                .Select(t => t.ToDto(null))
+                .ToList();
+
+            return entities.Select(entity => entity.ToDtoWithSimulationId(treatments)).ToList();
+        }
+
         public TreatmentLibraryDTO GetTreatmentLibraryWithSingleTreatmentByTreatmentId(Guid treatmentId)
         {            
             var entity = _unitOfWork.Context.SelectableTreatment.AsNoTracking()
