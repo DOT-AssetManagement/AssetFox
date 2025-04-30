@@ -113,6 +113,16 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
             cells.Style.Border.Right.Style = ExcelBorderStyle.Thick;
         }
 
+        public static void ApplyTopBorder(ExcelRange cells)
+        {
+            cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+        }
+
+        public static void ApplyBottomBorder(ExcelRange cells)
+        {
+            cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+        }
+
         /// <summary>
         ///     Set currency format for given cells
         /// </summary>

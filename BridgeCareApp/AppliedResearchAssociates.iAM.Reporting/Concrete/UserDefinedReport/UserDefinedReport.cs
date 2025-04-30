@@ -35,7 +35,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             ReportTypeName = name;
 
             _initialAssetSummariesTab = new InitialAssetSummariesTab();
-            _yearTab = new YearTab();
+            _yearTab = new YearTab(_unitOfWork);
 
             // check for existing report id
             var reportId = (results?.Id) ?? Guid.NewGuid();
