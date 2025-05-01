@@ -34,7 +34,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _reportHelper = new ReportHelper(_unitOfWork);
             ReportTypeName = name;
 
-            _initialAssetSummariesTab = new InitialAssetSummariesTab();
+            _initialAssetSummariesTab = new InitialAssetSummariesTab(_unitOfWork);
             _yearTab = new YearTab(_unitOfWork);
 
             // check for existing report id
@@ -171,13 +171,22 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             // InitialAssetSummariesTab based on param filters
             var filterAttributes = _userDefinedReportRequestModel.Attributes;
-            // TODO...
-
+            // TODO remove post param Years get values from UI
+            filterAttributes = reportOutputData.InitialAssetSummaries[0].ValuePerNumericAttribute.Select(_=>_.Key).ToList();
+            filterAttributes.AddRange(reportOutputData.InitialAssetSummaries[0].ValuePerTextAttribute.Select(_ => _.Key).ToList());
+            //
+            reportDetailDto.Status = $"Creating InitialAssetSummaries tab";
+            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+            UpsertSimulationReportDetail(reportDetailDto);
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+            var assetSummariesWorksheet = excelPackage.Workbook.Worksheets.Add("InitialAssetSummaries");
+            _initialAssetSummariesTab.Fill(assetSummariesWorksheet, filterAttributes, reportOutputData.InitialAssetSummaries);
 
             // YearTabs based on param filters
             var filterYears = _userDefinedReportRequestModel.Years;
             // TODO remove post param Years get values from UI
             filterYears = reportOutputData.Years.Select(x => x.Year).ToList();
+            //
             reportDetailDto.Status = $"Creating Year tabs for selected years";                        
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpsertSimulationReportDetail(reportDetailDto);
