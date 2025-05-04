@@ -23996,6 +23996,21 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20250428121804_AddRunIdToOutput'
 )
 BEGIN
+
+                    /* empty JSON details first (child) */
+                    TRUNCATE TABLE [dbo].[SimulationOutputJson];
+
+                    /* then the root table */
+                    TRUNCATE TABLE [dbo].[SimulationOutput];
+                
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250428121804_AddRunIdToOutput'
+)
+BEGIN
     ALTER TABLE [SimulationOutput] ADD [RunId] int NOT NULL IDENTITY;
 END;
 GO

@@ -16,7 +16,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 TRUNCATE TABLE [dbo].[SimulationOutputJson];
 
                 /* then the root table */
-                TRUNCATE TABLE [dbo].[SimulationOutput];
+                DELETE FROM [dbo].[SimulationOutput];
             ");
 
             migrationBuilder.AddColumn<int>(
