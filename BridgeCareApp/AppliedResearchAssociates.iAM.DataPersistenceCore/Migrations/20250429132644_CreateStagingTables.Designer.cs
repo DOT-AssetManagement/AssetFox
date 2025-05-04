@@ -12,17 +12,18 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 {
     [DbContext(typeof(IAMContext))]
-    [Migration("20250421083107_AddSimulationOutputStagingHeaps")]
-    partial class AddSimulationOutputStagingHeaps
+    [Migration("20250429132644_CreateStagingTables")]
+    partial class CreateStagingTables
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.35")
+                .HasAnnotation("ProductVersion", "8.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AdminSettingsEntity", b =>
                 {
@@ -254,6 +255,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<string>("ProjectSource")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("SimulationYearDetailId")
                         .HasColumnType("uniqueidentifier");
 
@@ -281,7 +285,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<Guid>("AssetDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -295,6 +299,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<double?>("NumericValue")
                         .HasColumnType("float");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<string>("TextValue")
                         .HasColumnType("nvarchar(max)");
@@ -317,6 +324,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<Guid>("MaintainableAssetId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("SimulationOutputId")
                         .HasColumnType("uniqueidentifier");
 
@@ -335,7 +345,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<Guid>("AssetSummaryDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -349,6 +359,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<double?>("NumericValue")
                         .HasColumnType("float");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<string>("TextValue")
                         .HasColumnType("nvarchar(max)");
@@ -634,6 +647,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<string>("BudgetName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("SimulationYearDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -1077,6 +1093,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<string>("GoalName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("SimulationYearDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -4454,6 +4473,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("SimulationId")
                         .HasColumnType("uniqueidentifier");
 
@@ -4585,6 +4607,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<double>("ConditionOfNetwork")
                         .HasColumnType("float");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("SimulationOutputId")
                         .HasColumnType("uniqueidentifier");
 
@@ -4618,6 +4643,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<string>("GoalName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("SimulationYearDetailId")
                         .HasColumnType("uniqueidentifier");

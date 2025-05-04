@@ -44,6 +44,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 table: "AssetDetailValueIntId");
 
             migrationBuilder.DropIndex(
+                name: "IX_SimulationYearDetail_Id",
+                table: "SimulationYearDetail");
+
+            migrationBuilder.DropIndex(
                 name: "IX_AssetDetailValueIntId_AttributeId", // Simple index
                 table: "AssetDetailValueIntId");
 

@@ -15,5 +15,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public string TreatmentName { get; set; }
 
         public int TreatmentRejectionReason { get; set; }
+        public int RunId { get; set; } 
     }
 }

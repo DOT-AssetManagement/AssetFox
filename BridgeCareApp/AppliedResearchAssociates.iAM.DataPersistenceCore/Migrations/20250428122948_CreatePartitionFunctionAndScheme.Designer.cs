@@ -4,6 +4,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 {
     [DbContext(typeof(IAMContext))]
-    partial class IAMContextModelSnapshot : ModelSnapshot
+    [Migration("20250428122948_CreatePartitionFunctionAndScheme")]
+    partial class CreatePartitionFunctionAndScheme
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,9 +103,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<Guid>("FundingCalculationOutputId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("RunId")
-                        .HasColumnType("int");
 
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
@@ -717,9 +717,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RunId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Year")
                         .HasColumnType("int");
 
@@ -740,9 +737,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ReasonAgainstCashFlow")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RunId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("TreatmentConsiderationDetailId")
@@ -1186,9 +1180,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("RunId")
-                        .HasColumnType("int");
-
                     b.Property<Guid>("TreatmentConsiderationDetailId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1205,9 +1196,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("RunId")
-                        .HasColumnType("int");
 
                     b.Property<Guid>("TreatmentConsiderationDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -4486,10 +4474,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("RunId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RunId"));
 
                     b.Property<Guid>("SimulationId")
                         .HasColumnType("uniqueidentifier");
@@ -4731,9 +4716,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<int?>("BudgetPriorityLevel")
                         .HasColumnType("int");
 
-                    b.Property<int>("RunId")
-                        .HasColumnType("int");
-
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
 
@@ -4800,9 +4782,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<double?>("RemainingLife")
                         .HasColumnType("float");
 
-                    b.Property<int>("RunId")
-                        .HasColumnType("int");
-
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
 
@@ -4827,9 +4806,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<double>("PotentialConditionChange")
                         .HasColumnType("float");
-
-                    b.Property<int>("RunId")
-                        .HasColumnType("int");
 
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
@@ -4858,9 +4834,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<string>("NameOfUnscheduledTreatment")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RunId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
