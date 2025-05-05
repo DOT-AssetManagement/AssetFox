@@ -38,11 +38,6 @@ public interface IAdminSettingsRepository
 
     void SetImplementationName(string name);
 
-    string GetAgencyLogo();
-
-    void SetAgencyLogo(Image agencyLogo, string imageType);
-    void SetAgencyLogo(byte[] productLogo);
-
     string GetImplementationLogo();
 
     void SetImplementationLogo(Image productLogo, string imageType);
