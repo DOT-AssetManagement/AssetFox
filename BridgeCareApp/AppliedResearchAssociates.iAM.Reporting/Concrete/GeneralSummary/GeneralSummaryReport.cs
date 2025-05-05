@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
@@ -13,11 +11,7 @@ using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.Reporting.Services;
 using AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.GeneralBudgetSummary;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.WorkQueue.Logging;
 using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using BridgeCareCore.Services;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 
 
@@ -29,8 +23,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
         private readonly IUnitOfWork _unitOfWork;
         private readonly ReportHelper _reportHelper;
         private readonly GeneralBudgetSummary _generalBudgetSummary;
-        private readonly GeneralDeficientConditionGoals _generalDeficientConditionGoals;
-        private readonly GeneralTargetConditionGoals _generalTargetConditionGoals;
         private readonly GeneralWorkDoneTab _generalWorkDoneTab;
 
         private Guid _networkId;
@@ -67,8 +59,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
             Warnings = new List<string>();
 
             _generalBudgetSummary = new GeneralBudgetSummary(Warnings, _unitOfWork);
-            //if (_generalBudgetSummary == null) { throw new ArgumentNullException(nameof(_generalBudgetSummary))};
-
+            
             _generalWorkDoneTab = new GeneralWorkDoneTab(_unitOfWork);
 
             _reportHelper = new ReportHelper(_unitOfWork);
@@ -141,7 +132,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
             try
             {
                 Criteria = ReportHelper.GetCriteria(parameters);
-                summaryReportPath = GenerateSummaryReport(_networkId, _simulationId, workQueueLog, cancellationToken);
+                summaryReportPath = GenerateGeneralSummaryReport(_networkId, _simulationId, workQueueLog, cancellationToken);
                 if (!string.IsNullOrEmpty(Criteria) && string.IsNullOrEmpty(summaryReportPath))
                 {
                     var errorStatus = "No assets found for given criteria";
@@ -172,7 +163,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
             return;
         }
 
-        private string GenerateSummaryReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
+        private string GenerateGeneralSummaryReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
             var reportDetailDto = new SimulationReportDetailDTO { SimulationId = simulationId, ReportType = ReportTypeName };
             checkCancelled(cancellationToken, simulationId);
@@ -181,36 +172,31 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, SimulationID);
             UpsertSimulationReportDetail(reportDetailDto);
             var functionReturnValue = "";
-            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
+            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
 
             using var excelPackage = new ExcelPackage(new FileInfo("GeneralSummaryReport.xlsx"));
             var generalWorksheet = excelPackage.Workbook.Worksheets.Add("General Summary");
 
             CurrentCell currentCell = new CurrentCell { Row = 1, Column = 1 };
 
-            var explorer = _unitOfWork.AttributeRepo.GetExplorer();
-            var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
-            _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
-            var simulation = network.Simulations.First();
-            _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
-            _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
-            _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulation);
+            var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+            var performanceCurvesDtos = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
 
             var scenarioName = _unitOfWork.SimulationRepo.GetSimulationName(simulationId);            
             generalWorksheet.Cells[currentCell.Row, currentCell.Column].Value = $"{scenarioName} General Summary Report";
-            ExcelHelper.MergeCells(generalWorksheet, 1, 1, 1, reportOutputData.Years.Count + 1);
-            ExcelHelper.ApplyBorder(generalWorksheet.Cells[1, 1, 1, reportOutputData.Years.Count + 1]);
+            ExcelHelper.MergeCells(generalWorksheet, 1, 1, 1, simulationOutput.Years.Count + 1);
+            ExcelHelper.ApplyBorder(generalWorksheet.Cells[1, 1, 1, simulationOutput.Years.Count + 1]);
             currentCell.Row += 2;
 
-            reportDetailDto.Status = $"Generating Budget Tables";
+            //Budgets Table
+            reportDetailDto.Status = $"Generating Budgets Table";
             UpdateStatusMessage(workQueueLog, reportDetailDto, simulationId);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, SimulationID);
             UpsertSimulationReportDetail(reportDetailDto);
             var targetBudgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
             currentCell.Column = 1;
-            _generalBudgetSummary.FillTargetBudgets(generalWorksheet, reportOutputData, currentCell, targetBudgets, simulation.ShouldBundleFeasibleTreatments);
+            _generalBudgetSummary.FillTargetBudgets(generalWorksheet, simulationOutput, currentCell, targetBudgets, analysisMethodDto.ShouldAllowMultipleTreatments);
             currentCell.Row += 3;
 
             //Deficient Condition Goals Table
@@ -220,7 +206,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
             UpsertSimulationReportDetail(reportDetailDto);
             var deficientConditoinGoals = _unitOfWork.DeficientConditionGoalRepo.GetScenarioDeficientConditionGoals(simulationId);
             currentCell.Column = 1;
-            GeneralDeficientConditionGoals.Fill(generalWorksheet, reportOutputData, deficientConditoinGoals, currentCell);
+            GeneralDeficientConditionGoals.Fill(generalWorksheet, simulationOutput, deficientConditoinGoals, currentCell);
             currentCell.Row += 3;
 
             //Target Condition Goals Table
@@ -230,29 +216,48 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
             UpsertSimulationReportDetail(reportDetailDto);
             var targetConditionGoals = _unitOfWork.TargetConditionGoalRepo.GetScenarioTargetConditionGoals(simulationId);
             currentCell.Column = 1;
-            GeneralTargetConditionGoals.Fill(generalWorksheet, reportOutputData, targetConditionGoals, currentCell);
+            GeneralTargetConditionGoals.Fill(generalWorksheet, simulationOutput, targetConditionGoals, currentCell);
 
             // Work Done Tab
             var workDoneWorksheet = excelPackage.Workbook.Worksheets.Add("Work Done");
-            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
+            var primaryKeyFields = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+            var firstPrimaryKey = primaryKeyFields[0].ToString();
+            var isPrimaryKeyNumeric = _reportHelper.IsPrimaryKeyNumberic(simulationOutput.InitialAssetSummaries[0].ValuePerTextAttribute, simulationOutput.InitialAssetSummaries[0].ValuePerNumericAttribute, firstPrimaryKey);
 
             // Sort data
-            simulationOutput.InitialAssetSummaries.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
-                    );
-
-            foreach (var yearlySectionData in simulationOutput.Years)
+            if (isPrimaryKeyNumeric)
             {
-                yearlySectionData.Assets.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
-                    );
+                simulationOutput.InitialAssetSummaries.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+
+                foreach (var yearlySectionData in simulationOutput.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+                }
+            }
+            else
+            {
+                simulationOutput.InitialAssetSummaries.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+
+                foreach (var yearlySectionData in simulationOutput.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+                }
             }
 
-            var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(simulation);            
+            var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(performanceCurvesDtos);
+            performanceCurvesDtos.Clear();
             reportDetailDto.Status = $"Generating Work Done Tab";
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, SimulationID);
             UpsertSimulationReportDetail(reportDetailDto);
-            _generalWorkDoneTab.Fill(workDoneWorksheet, reportOutputData, simulation, performanceCurvesAttributes);
+            _generalWorkDoneTab.Fill(workDoneWorksheet, simulationOutput, analysisMethodDto, performanceCurvesAttributes);
 
             //check and generate folder
             var folderPathForSimulation = $"Reports\\{simulationId}";

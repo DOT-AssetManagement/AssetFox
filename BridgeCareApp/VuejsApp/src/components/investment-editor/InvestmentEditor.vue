@@ -554,39 +554,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             return investmentPlan.value.numberOfYearsInAnalysisPeriod;
         }
     
-    // REPLACE with created() ?
-    //function beforeRouteEnter() {
-    // created();
-    // async function created() {
-    //     (() => {
-    //         (async () => { 
-    //             librarySelectItemValue.value = '';
-    //             await getHasPermittedAccessAction();
-    //             await getBudgetLibrariesAction()
-        
-    //             if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.Investment) !== -1) {
-    //                 selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
-
-    //                 if (selectedScenarioId === uuidNIL) {
-    //                     addErrorNotificationAction({
-    //                         message: 'Found no selected scenario for edit',
-    //                     });
-    //                     $router.push('/Scenarios/');
-    //                 }
-
-    //                 hasScenario.value = true;
-    //                 ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
-    //                     if(response.data){
-    //                         setAlertMessageAction("An investment import has been added to the queue")
-    //                     }
-    //                 })
-    //                 await initializePages();
-    //             }
-    //             else
-    //                 initializing = false;               
-    //         })();                    
-    //     });
-    // }
+  
 
     onMounted(async () => {
         librarySelectItemValue.value = '';
@@ -603,7 +571,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             }
 
             hasScenario.value = true;
-            ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
+            ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
                 if(response.data){
                     setAlertMessageAction("An investment import has been added to the queue")
                 }
@@ -778,7 +746,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         if (hasSelectedLibrary.value) {
             checkLibraryEditPermission();
             hasCreatedLibrary = false;
-            ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedBudgetLibrary.value.id, workType: WorkType.ImportLibraryInvestment}).then(response => {
+            ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedBudgetLibrary.value.id, workType: WorkType.ImportLibraryInvestment}).then(response => {
                 if(response.data){
                     setAlertMessageAction("An investment import has been added to the queue")
                 }

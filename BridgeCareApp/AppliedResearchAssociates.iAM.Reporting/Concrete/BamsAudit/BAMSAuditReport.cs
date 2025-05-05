@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
@@ -22,7 +21,6 @@ namespace AppliedResearchAssociates.iAM.Reporting
     {
         protected readonly IHubService _hubService;
         private readonly IUnitOfWork _unitOfWork;
-        private Guid _networkId;       
         private readonly DataTab _dataTab;
         private readonly DecisionTab _decisionTab;
         private readonly ReportHelper _reportHelper;
@@ -98,7 +96,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             {
                 var simulationObject = _unitOfWork.SimulationRepo.GetSimulation(_simulationId);
                 simulationName = simulationObject.Name;
-                _networkId = simulationObject.NetworkId;
+                var _networkId = simulationObject.NetworkId;
             }
             catch (Exception e)
             {
@@ -120,7 +118,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var reportPath = string.Empty;
             try
             {
-                reportPath = GenerateBAMSAuditReport(_networkId, _simulationId, ReportTypeName, workQueueLog, cancellationToken);
+                reportPath = GenerateBAMSAuditReport(_simulationId, ReportTypeName, workQueueLog, cancellationToken);
             }
             catch (Exception e)
             {
@@ -144,7 +142,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             return;
         }
 
-        private string GenerateBAMSAuditReport(Guid networkId, Guid simulationId, string ReportTypeName, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
+        private string GenerateBAMSAuditReport(Guid simulationId, string ReportTypeName, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
         {
             if(cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
             {
@@ -162,8 +160,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
 
             var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
-            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);            
 
+            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
             // Sort data
             simulationOutput.InitialAssetSummaries.Sort(
                     (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
@@ -175,16 +173,10 @@ namespace AppliedResearchAssociates.iAM.Reporting
                     (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, "BRKEY_").CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
                     );
             }
-            
-            var explorer = _unitOfWork.AttributeRepo.GetExplorer();
-            var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
-            _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
-            var simulation = network.Simulations.First();
-            _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
-            _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
-            _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulation);
+
+            var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var performanceCurvesDtos = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
+            var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);            
 
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("BAMSAuditReportData.xlsx"));
@@ -207,9 +199,10 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             var decisionsWorksheet = excelPackage.Workbook.Worksheets.Add(BAMSAuditReportConstants.DecisionsTab);
-            var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(simulation);
+            var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(performanceCurvesDtos);
+            performanceCurvesDtos.Clear();
             ValidateSections(simulationOutput, reportDetailDto, simulationId, new HashSet<string>(performanceCurvesAttributes.Except(dataTabRequiredAttributes)));
-            _decisionTab.Fill(decisionsWorksheet, simulationOutput, simulation, performanceCurvesAttributes, simulation.ShouldBundleFeasibleTreatments);
+            _decisionTab.Fill(decisionsWorksheet, simulationOutput, performanceCurvesAttributes, analysisMethodDto, scenarioSelectableTreatmentsDtos);
 
             checkCancelled(cancellationToken, simulationId);
             // Check and generate folder
@@ -218,7 +211,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             var folderPathForSimulation = $"Reports\\{simulationId}";
-            Directory.CreateDirectory(folderPathForSimulation);
+            _ = Directory.CreateDirectory(folderPathForSimulation);
             reportPath = Path.Combine(folderPathForSimulation, "BAMSAuditReport.xlsx");
 
             var bin = excelPackage.GetAsByteArray();
@@ -250,11 +243,11 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
                 if (!sectionValueAttribute.ContainsKey(item))
                 {
-                    reportDetailDto.Status = $"{item} was not found in sections";
+                    reportDetailDto.Status = $"{item} was not found in section";
                     UpsertSimulationReportDetail(reportDetailDto);
                     _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
                     Errors.Add(reportDetailDto.Status);
-                    throw new KeyNotFoundException($"{item} was not found in sections");
+                    throw new KeyNotFoundException($"{item} was not found in section");
                 }
             }
         }

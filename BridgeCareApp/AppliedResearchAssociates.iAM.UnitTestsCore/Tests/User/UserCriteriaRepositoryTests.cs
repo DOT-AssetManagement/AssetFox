@@ -112,7 +112,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User
 
 
         [Fact]
-        public async void UpsertUserCriteria_ExistsButCriteriaDont_Adds()
+        public async Task UpsertUserCriteria_ExistsButCriteriaDont_Adds()
         {
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, false);
             var userId = user.Id;

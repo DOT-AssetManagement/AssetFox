@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -10,12 +12,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static SimulationYearDetailEntity ToEntityWithoutAssets(
             SimulationYearDetail domain,
             Guid simulationOutputId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup,
+            int simulationRunId)
         {
             var id = Guid.NewGuid();
-            var budgets = BudgetDetailMapper.ToEntityList(domain.Budgets, id);
-            var deficientConditionGoals = DeficientConditionGoalDetailMapper.ToEntityList(domain.DeficientConditionGoals, id, attributeIdLookup);
-            var targetConditionGoals = TargetConditionGoalDetailMapper.ToEntityList(domain.TargetConditionGoals, id, attributeIdLookup);
+            var budgets = BudgetDetailMapper.ToEntityList(domain.Budgets, id, simulationRunId);
+            var deficientConditionGoals = DeficientConditionGoalDetailMapper.ToEntityList(domain.DeficientConditionGoals, id, attributeIdLookup, simulationRunId);
+            var targetConditionGoals = TargetConditionGoalDetailMapper.ToEntityList(domain.TargetConditionGoals, id, attributeIdLookup, simulationRunId);
             var entity = new SimulationYearDetailEntity
             {
                 Id = id,
@@ -24,6 +27,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 DeficientConditionGoals = deficientConditionGoals,
                 SimulationOutputId = simulationOutputId,
                 TargetConditionGoals = targetConditionGoals,
+                RunId = simulationRunId,
                 Year = domain.Year,
             };
             return entity;
@@ -58,6 +62,39 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static SimulationYearDetailDTO ToDto(this SimulationYearDetailEntity entity)
+        {
+            var dto = new SimulationYearDetailDTO
+            {
+                Id = entity.Id,
+                Year = entity.Year,
+                ConditionOfNetwork = entity.ConditionOfNetwork,
+                Budgets = entity.Budgets.Select(_ => _.ToDto()).ToList(),
+                DeficientConditionGoals = entity.DeficientConditionGoals.Select(_ => _.ToDto()).ToList(),
+                TargetConditionGoals = entity.TargetConditionGoals.Select(_ => _.ToDto()).ToList(),
+                Assets = entity.Assets.Select(_ => _.ToDto()).ToList()
+            };
+
+            return dto;
+        }
+
+        public static SimulationYearDetailEntity ToEntity(this SimulationYearDetailDTO simulationYearDetailDto, Guid simulationOutputId)
+        {
+            var simulationYearDetailId = simulationYearDetailDto.Id;
+
+            return new SimulationYearDetailEntity
+            {
+                Id = simulationYearDetailDto.Id,
+                SimulationOutputId = simulationOutputId,
+                Year = simulationYearDetailDto.Year,
+                ConditionOfNetwork = simulationYearDetailDto.ConditionOfNetwork,
+                Assets = simulationYearDetailDto.Assets.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                Budgets = simulationYearDetailDto.Budgets.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                DeficientConditionGoals = simulationYearDetailDto.DeficientConditionGoals.Select(_ => _.ToEntity(simulationYearDetailId)).ToList(),
+                TargetConditionGoals = simulationYearDetailDto.TargetConditionGoals.Select(_ => _.ToEntity(simulationYearDetailId)).ToList()
+            };
         }
     }
 }

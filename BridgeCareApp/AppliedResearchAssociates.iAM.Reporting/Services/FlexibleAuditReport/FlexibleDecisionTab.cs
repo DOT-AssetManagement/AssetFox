@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Models.FlexibleAuditReport;
@@ -29,7 +29,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, Simulation simulation, HashSet<string> performanceCurvesAttributes)
+        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, AnalysisMethodDTO analysisMethodDto, HashSet<string> performanceCurvesAttributes, List<TreatmentDTO> scenarioSelectableTreatmentsDtos)
         {
             columnNumbersBudgetsUsed = new List<int>();
             columnNumbersCIImprovement = new();
@@ -38,16 +38,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             var currentAttributes = performanceCurvesAttributes;
 
             // Benefit attribute
-            currentAttributes.Add(_reportHelper.GetBenefitAttribute(simulation));
+            _ = currentAttributes.Add(analysisMethodDto.Benefit.Attribute);
 
             // Distinct budgets            
             var budgets = _reportHelper.GetBudgets(simulationOutput.Years);
 
             var treatments = new List<string>();
-            treatments = simulation.Treatments.Where(_ => _.Name != "No Treatment")?.OrderBy(_ => _.Name).Select(_ => _.Name).ToList();
+            treatments = scenarioSelectableTreatmentsDtos.Where(_ => _.Name != "No Treatment")?.OrderBy(_ => _.Name).Select(_ => _.Name).ToList();
 
-            ShouldBundleFeasibleTreatments = simulation.ShouldBundleFeasibleTreatments;
-
+            ShouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
 
             // Add headers to excel
             var currentCell = AddHeadersCells(decisionsWorksheet, currentAttributes, budgets, treatments);
@@ -55,47 +54,41 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             // Fill data in excel
             FillDynamicDataInWorkSheet(simulationOutput, currentAttributes, budgets, treatments, decisionsWorksheet, currentCell);
 
+            performanceCurvesAttributes.Clear();
+            scenarioSelectableTreatmentsDtos.Clear();
+
             decisionsWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
             decisionsWorksheet.Cells.AutoFitColumns();
             PerformPostAutofitAdjustments(decisionsWorksheet, columnNumbersBudgetsUsed, columnNumbersCIImprovement);
         }
 
         private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, ExcelWorksheet decisionsWorksheet, CurrentCell currentCell)
-        {
-            Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+        {            
             var primaryKey = _unitOfWork.AdminSettingsRepo.GetKeyFields();
-            var firstPrimaryKey = primaryKey[0];
+            var firstPrimaryKey = primaryKey[0].ToString();
+            var isPrimaryKeyNumeric = _reportHelper.IsPrimaryKeyNumberic(simulationOutput.InitialAssetSummaries[0].ValuePerTextAttribute, simulationOutput.InitialAssetSummaries[0].ValuePerNumericAttribute, firstPrimaryKey);
+
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
+                Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
 
-                var primaryKeyValue = _reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, primaryKey[0].ToString());
-
-                if (string.IsNullOrEmpty(primaryKeyValue) && initialAssetSummary.ValuePerNumericAttribute != null)
-                {
-                        primaryKeyValue = initialAssetSummary.ValuePerNumericAttribute[primaryKey[0].ToString()].ToString();
-                }
+                var primaryKeyValue = "";
+                primaryKeyValue = isPrimaryKeyNumeric
+                    ? initialAssetSummary.ValuePerNumericAttribute[firstPrimaryKey].ToString()
+                    : initialAssetSummary.ValuePerTextAttribute[firstPrimaryKey].ToString();
                 var years = simulationOutput.Years.OrderBy(yr => yr.Year);
 
                 // Year 0
                 var decisionDataModel = GetInitialDecisionDataModel(currentAttributes, primaryKeyValue, years.FirstOrDefault().Year - 1, initialAssetSummary);
-                FillInitialDataInWorksheet(decisionsWorksheet, decisionDataModel, currentAttributes, currentCell.Row, 1);
+                _ = FillInitialDataInWorksheet(decisionsWorksheet, decisionDataModel, currentAttributes, currentCell.Row, 1);
 
                 var yearZeroRow = currentCell.Row++;
                 foreach (var year in years)
-                {                    
-                    var section = year.Assets.FirstOrDefault(_ =>
-                    {
-                        var textValue = _reportHelper.CheckAndGetValue<string>(_.ValuePerTextAttribute, primaryKey[0].ToString());
-                        if (textValue == primaryKeyValue)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            var numericValue = _reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, primaryKey[0].ToString());
-                            return numericValue == Convert.ToDouble(primaryKeyValue);
-                        }
-                    });
+                {
+                    var section = isPrimaryKeyNumeric
+                        ? year.Assets.FirstOrDefault(_ => _reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, firstPrimaryKey).ToString() == primaryKeyValue)
+                        : year.Assets.FirstOrDefault(_ => _reportHelper.CheckAndGetValue<string>(_.ValuePerTextAttribute, firstPrimaryKey) == primaryKeyValue);
+                       
                     if (section.TreatmentCause == TreatmentCause.CommittedProject)
                     {
                         continue;
@@ -164,7 +157,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
                 decisionsTreatment.CIImprovement = treatmentOption?.ConditionChange;
                 decisionsTreatment.Cost = treatmentOption != null ? treatmentOption.Cost : 0;
                 decisionsTreatment.BCRatio = treatmentOption != null ? treatmentOption.Benefit / treatmentOption.Cost : 0;
-                decisionsTreatment.Selected = isCashFlowProject ? FlexibleAuditReportConstants.CashFlow : (section.AppliedTreatment == treatment ? FlexibleAuditReportConstants.Yes : FlexibleAuditReportConstants.No);
+                decisionsTreatment.Selected = isCashFlowProject
+                                            ? FlexibleAuditReportConstants.CashFlow
+                                            : ShouldBundleFeasibleTreatments
+                                                ? (section.AppliedTreatment.Contains(treatment) ? FlexibleAuditReportConstants.Yes : FlexibleAuditReportConstants.No)
+                                                : (section.AppliedTreatment == treatment ? FlexibleAuditReportConstants.Yes : FlexibleAuditReportConstants.No);
 
                 // If CF then use obj from keyCashFlowFundingDetails otherwise from section
                 var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
@@ -176,30 +173,39 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
                                               keyCashFlowFundingDetails[primaryKeyField] :
                                               section.TreatmentConsiderations ?? new();
 
+                // single treatmentConsideration exists when ShouldBundleFeasibleTreatments is enabled
                 var treatmentConsideration = ShouldBundleFeasibleTreatments ?
                                              treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
                                                 _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
-                                                section.AppliedTreatment.Contains(_.TreatmentName)) :
+                                                _.TreatmentName.Contains(treatment)) :
                                              treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
                                                 _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
-                                                _.TreatmentName == section.AppliedTreatment);
-                                
+                                                section.AppliedTreatment == _.TreatmentName &&
+                                                _.TreatmentName == treatment);
+
                 if (decisionsTreatment.Selected == FlexibleAuditReportConstants.Yes)
                 {
                     // AllocationMatrix includes cash flow funding of future years.
                     var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
 
-                    var amountSpent = allocationMatrix?.Where(_ => _.Year == year.Year).Sum(_ => _.AllocatedAmount) ?? 0;
+                    var amountSpent = allocationMatrix?.Where(_ => _.Year == year.Year
+                                        && _.TreatmentName == treatment)
+                                        .Sum(_ => _.AllocatedAmount) ?? 0;
                     decisionsTreatment.AmountSpent = amountSpent;
 
-                    var budgetsUsed = allocationMatrix.Where(_ => _.AllocatedAmount > 0 && _.Year == year.Year)
-                                    .Select(_ => _.BudgetName).Distinct().ToList()
-                                    ?? new();
+                    var budgetsUsed = allocationMatrix.Where(_ => _.AllocatedAmount > 0
+                                        && _.Year == year.Year
+                                        && _.TreatmentName == treatment)
+                                        .Select(_ => _.BudgetName).Distinct().ToList()
+                                        ?? new();
                     decisionsTreatment.BudgetsUsed = string.Join(", ", budgetsUsed);
 
-                    var budgetStatuses = allocationMatrix.Where(_ => _.AllocatedAmount > 0 && _.Year == year.Year)
-                                        .Select(_ => treatmentConsideration.GetBudgetUsageStatus(_.Year, _.BudgetName, _.TreatmentName).ToString()).Distinct().ToList()
-                                        ?? new();
+                    var budgetStatuses = allocationMatrix.Where(_ => _.AllocatedAmount > 0
+                                            && _.Year == year.Year
+                                            && _.TreatmentName == treatment)
+                                            .Select(_ => treatmentConsideration.GetBudgetUsageStatus(_.Year, _.BudgetName, _.TreatmentName)
+                                            .ToString()).Distinct().ToList()
+                                            ?? new();
                     decisionsTreatment.BudgetUsageStatuses = string.Join(", ", budgetStatuses);
                 }
 
@@ -278,6 +284,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
                 decisionsAggregated.Add(decisionsAggregate);
                 decisionDataModel.DecisionsAggregated = decisionsAggregated;
             }
+
             return decisionDataModel;
         }
 

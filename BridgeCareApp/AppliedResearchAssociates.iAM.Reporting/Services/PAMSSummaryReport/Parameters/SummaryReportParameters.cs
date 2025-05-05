@@ -4,19 +4,15 @@ using System.Drawing;
 using System.Linq;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Parameters
 {
     public class SummaryReportParameters
     {
-        public SummaryReportParameters()
-        {
-        }
-
-        internal void Fill(ExcelWorksheet worksheet, int simulationYearsCount, ParametersModel parametersModel, Simulation simulation)
+        internal void Fill(ExcelWorksheet worksheet, int simulationYearsCount, ParametersModel parametersModel, SimulationDTO simulationDto, AnalysisMethodDTO analysisMethodDto, InvestmentPlanDTO investmentPlanDto, List<BudgetPriorityDTO> budgetPrioritiesDtos, List<CashFlowRuleDTO> cashFlowRulesDtos, List<BudgetDTO> budgetsDtos)
         {
             var currentCell = new CurrentCell { Row = 1, Column = 1 };
             // Simulation Name format
@@ -26,7 +22,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             ExcelHelper.SetTextColor(worksheet.Cells[currentCell.Row, currentCell.Column, currentCell.Row, currentCell.Column + 1], Color.White);
 
             worksheet.Cells[currentCell.Row, currentCell.Column, currentCell.Row, currentCell.Column + 1].Value = "Simulation Name";
-            worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, currentCell.Row + 9].Value = simulation.Name;
+            worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, currentCell.Row + 9].Value = simulationDto.Name;
             ExcelHelper.ApplyColor(worksheet.Cells[1, 3, 1, 10], Color.FromArgb(142, 169, 219));
             ExcelHelper.ApplyBorder(worksheet.Cells[1, 1, 1, 10]);
             // End of Simulation Name format
@@ -38,29 +34,28 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             worksheet.Cells["A2:B2"].Value = "Simulation Comment";
 
             ExcelHelper.MergeCells(worksheet, 2, 3, 2, 10);
-            worksheet.Cells["C2:J2"].Value = simulation.AnalysisMethod.Description;
+            worksheet.Cells["C2:J2"].Value = analysisMethodDto.Description;
             ExcelHelper.ApplyBorder(worksheet.Cells[2, 1, 2, 10]);
 
-            currentCell = FillData(worksheet, parametersModel, simulation.LastRun, currentCell, simulation.LastModifiedDate, simulation.AnalysisMethod.Filter.Expression);
+            currentCell = FillData(worksheet, parametersModel, simulationDto.LastRun, currentCell, simulationDto.LastModifiedDate);
 
-            currentCell = FillSimulationDetails(worksheet, simulationYearsCount, simulation, currentCell);
+            currentCell = FillSimulationDetails(worksheet, simulationYearsCount, investmentPlanDto, currentCell);
 
-            currentCell = FillAnalysisDetails(worksheet, simulation, currentCell);
+            currentCell = FillAnalysisDetails(worksheet, analysisMethodDto, currentCell);
 
-            currentCell = FillJurisdictionCriteria(worksheet, simulation, currentCell);
+            currentCell = FillJurisdictionCriteria(worksheet, analysisMethodDto, currentCell);
 
-            currentCell = FillPriorities(worksheet, simulation, currentCell);
+            currentCell = FillPriorities(worksheet, budgetPrioritiesDtos, currentCell);
 
-            FillBudgetSplitCriteria(worksheet, currentCell, simulation);
-            FillInvestmentAndBudgetCriteria(worksheet, simulation);
+            FillBudgetSplitCriteria(worksheet,cashFlowRulesDtos, currentCell);
+            FillInvestmentAndBudgetCriteria(worksheet, investmentPlanDto, budgetsDtos);
 
             worksheet.Cells.AutoFitColumns(50);
         }
 
         #region
 
-        private CurrentCell FillData(ExcelWorksheet worksheet, ParametersModel parametersModel, DateTime lastRun, CurrentCell currentCell, DateTime lastModifiedDate,
-            string jurisdictionExpression)
+        private CurrentCell FillData(ExcelWorksheet worksheet, ParametersModel parametersModel, DateTime? lastRun, CurrentCell currentCell, DateTime? lastModifiedDate)
         {
             var bpnValueCellTracker = new Dictionary<string, (int row, int col)>();
             var statusValueCellTracker = new Dictionary<string, (int row, int col)>();
@@ -68,11 +63,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             worksheet.Cells[currentCell.Row + 2, currentCell.Column].Value = "PAMS Rules Creator:";
             worksheet.Cells[currentCell.Row + 2, currentCell.Column + 1].Value = "Central Office";
             worksheet.Cells[currentCell.Row + 3, currentCell.Column].Value = "PAMS Rules Date:";
-            worksheet.Cells[currentCell.Row + 3, currentCell.Column + 1].Value = lastModifiedDate.ToShortDateString();
+            worksheet.Cells[currentCell.Row + 3, currentCell.Column + 1].Value = lastModifiedDate?.ToShortDateString();
             ExcelHelper.ApplyBorder(worksheet.Cells[currentCell.Row + 2, currentCell.Column, currentCell.Row + 3, currentCell.Column + 1]);
 
             worksheet.Cells[currentCell.Row + 2, currentCell.Column + 3].Value = "Simulation Last Run:";
-            worksheet.Cells[currentCell.Row + 2, currentCell.Column + 4].Value = lastRun.ToShortDateString();
+            worksheet.Cells[currentCell.Row + 2, currentCell.Column + 4].Value = lastRun?.ToShortDateString();
             ExcelHelper.ApplyBorder(worksheet.Cells[currentCell.Row + 2, currentCell.Column + 3, currentCell.Row + 2, currentCell.Column + 4]);
 
             currentCell.Row += 5;
@@ -140,7 +135,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             return currentCell;
         }
 
-        private CurrentCell FillSimulationDetails(ExcelWorksheet worksheet, int yearCount, Simulation simulation, CurrentCell currentCell)
+        private CurrentCell FillSimulationDetails(ExcelWorksheet worksheet, int yearCount, InvestmentPlanDTO investmentPlanDto, CurrentCell currentCell)
         {
             currentCell.Column += 3; // curr col is now 6
             var rowNo = currentCell.Row; // 6
@@ -160,9 +155,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
 
             ExcelHelper.ApplyBorder(worksheet.Cells[rowNo, colNo, rowNo + 6, colNo + 2]);
 
-            worksheet.Cells[rowNo + 2, colNo + 2].Value = simulation.InvestmentPlan.FirstYearOfAnalysisPeriod; //StartYear;
+            worksheet.Cells[rowNo + 2, colNo + 2].Value = investmentPlanDto.FirstYearOfAnalysisPeriod; //StartYear;
             worksheet.Cells[rowNo + 4, colNo + 2].Value = yearCount;
-            worksheet.Cells[rowNo + 6, colNo + 2].Value = simulation.InvestmentPlan.InflationRatePercentage; //inflationRate;
+            worksheet.Cells[rowNo + 6, colNo + 2].Value = investmentPlanDto.InflationRatePercentage; //inflationRate;
 
             ExcelHelper.ApplyBorder(worksheet.Cells[rowNo + 2, colNo + 2, rowNo + 6, colNo + 2]);
             currentCell.Column += 6; // col = 12
@@ -170,7 +165,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             return currentCell;
         }
 
-        private CurrentCell FillAnalysisDetails(ExcelWorksheet worksheet, Simulation simulation, CurrentCell currentCell)
+        private CurrentCell FillAnalysisDetails(ExcelWorksheet worksheet, AnalysisMethodDTO analysisMethodDto, CurrentCell currentCell)
         {
             var rowNo = currentCell.Row; // row no = 6
             var colNo = currentCell.Column; // col no = 12
@@ -198,18 +193,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             worksheet.Cells[rowNo + 6, colNo, rowNo + 6, colNo + 1].Value = "Weighting:";
             worksheet.Cells[rowNo + 8, colNo, rowNo + 8, colNo + 1].Value = "Benefit:";
 
-            worksheet.Cells[rowNo + 2, colNo + 2, rowNo + 2, colNo + 3].Value = simulation.AnalysisMethod.OptimizationStrategy;
+            worksheet.Cells[rowNo + 2, colNo + 2, rowNo + 2, colNo + 3].Value = analysisMethodDto.OptimizationStrategy;
 
-            worksheet.Cells[rowNo + 4, colNo + 2, rowNo + 4, colNo + 3].Value = simulation.AnalysisMethod.SpendingStrategy; //BudgetType;
-            worksheet.Cells[rowNo + 6, colNo + 2, rowNo + 6, colNo + 3].Value = simulation.AnalysisMethod.Weighting.Name; //WeightingAttribute;
-            worksheet.Cells[rowNo + 8, colNo + 2, rowNo + 8, colNo + 3].Value = simulation.AnalysisMethod.Benefit.Attribute.Name; //BenefitAttribute;
+            worksheet.Cells[rowNo + 4, colNo + 2, rowNo + 4, colNo + 3].Value = analysisMethodDto.SpendingStrategy; //BudgetType;
+            worksheet.Cells[rowNo + 6, colNo + 2, rowNo + 6, colNo + 3].Value = analysisMethodDto.Attribute; //WeightingAttribute;
+            worksheet.Cells[rowNo + 8, colNo + 2, rowNo + 8, colNo + 3].Value = analysisMethodDto.Benefit.Attribute; //BenefitAttribute;
 
             currentCell.Row += 10; // row = 16, col = 12
 
             return currentCell;
         }
 
-        private CurrentCell FillPriorities(ExcelWorksheet worksheet, Simulation simulation, CurrentCell currentCell)
+        private CurrentCell FillPriorities(ExcelWorksheet worksheet, List<BudgetPriorityDTO> budgetPrioritiesDtos, CurrentCell currentCell)
         {
             var rowNo = currentCell.Row; // row no = 19
             var colNo = currentCell.Column; // col no = 12
@@ -229,14 +224,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             ExcelHelper.ApplyStyle(cells);
             var startingRow = rowNo + 2;
 
-            var priorites = simulation.AnalysisMethod.BudgetPriorities.OrderBy(_ => _.PriorityLevel);
+            var priorites = budgetPrioritiesDtos.OrderBy(_ => _.PriorityLevel);
             foreach (var item in priorites)
             {
                 ExcelHelper.MergeCells(worksheet, startingRow, colNo + 1, startingRow, worksheet.Dimension.End.Column, false);
                 worksheet.Cells[startingRow, colNo].Value = item.PriorityLevel;
                 worksheet.Cells[startingRow, colNo].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                 worksheet.Cells[startingRow, colNo].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                worksheet.Cells[startingRow, colNo + 1].Value = item.Criterion.Expression;
+                worksheet.Cells[startingRow, colNo + 1].Value = item.CriterionLibrary.MergedCriteriaExpression;
                 worksheet.Row(startingRow).Height = 33;
                 startingRow++;
             }
@@ -246,7 +241,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             return currentCell;
         }
 
-        private CurrentCell FillJurisdictionCriteria(ExcelWorksheet worksheet, Simulation simulation, CurrentCell currentCell)
+        private CurrentCell FillJurisdictionCriteria(ExcelWorksheet worksheet, AnalysisMethodDTO analysisMethodDto, CurrentCell currentCell)
         {
             var rowNo = currentCell.Row; // row no = 16
             var colNo = currentCell.Column; // col no = 12
@@ -256,14 +251,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             ExcelHelper.ApplyBorder(worksheet.Cells[rowNo, colNo, rowNo + 1, colNo + 14]);
 
             worksheet.Cells[rowNo, colNo, rowNo, colNo + 1].Value = "Jurisdiction Criteria:";
-            worksheet.Cells[rowNo, colNo + 2, rowNo, colNo + 14].Value = simulation.AnalysisMethod.Filter.Expression; //criteria;
+            worksheet.Cells[rowNo, colNo + 2, rowNo, colNo + 14].Value = analysisMethodDto.CriterionLibrary.MergedCriteriaExpression; //criteria;
 
             currentCell.Row += 3; // row no = 19, col no = 12
 
             return currentCell;
         }
 
-        private void FillBudgetSplitCriteria(ExcelWorksheet worksheet, CurrentCell currentCell, Simulation simulation)
+        private void FillBudgetSplitCriteria(ExcelWorksheet worksheet, List<CashFlowRuleDTO> cashFlowRulesDtos, CurrentCell currentCell)
         {
             var rowNum = currentCell.Row;
             var colNum = currentCell.Column; // 12
@@ -283,22 +278,22 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             var cells = worksheet.Cells[rowNum, colNum, rowNum, colNum + 2];
             ExcelHelper.ApplyStyle(cells);
 
-            foreach (var item in simulation.InvestmentPlan.CashFlowRules)
+            foreach (var item in cashFlowRulesDtos)
             {
                 var i = 0;
-                foreach (var rule in item.DistributionRules)
+                foreach (var rule in item.CashFlowDistributionRules)
                 {
                     i++;
                     worksheet.Cells[++rowNum, colNum].Value = i;
                     worksheet.Cells[rowNum, colNum + 1].Style.Numberformat.Format = currencyFormat;
                     worksheet.Cells[rowNum, colNum + 1].Value = rule.CostCeiling;
-                    worksheet.Cells[rowNum, colNum + 2].Value = rule.Expression;
+                    worksheet.Cells[rowNum, colNum + 2].Value = rule.YearlyPercentages;
                 }
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startingRow, colNum, rowNum, colNum + 2]);
         }
 
-        private void FillInvestmentAndBudgetCriteria(ExcelWorksheet worksheet, Simulation simulation)
+        private void FillInvestmentAndBudgetCriteria(ExcelWorksheet worksheet, InvestmentPlanDTO investmentPlanDto, List<BudgetDTO> budgetsDtos)
         {
             var currencyFormat = "_-$* #,##0.00_-;-$* #,##0.00_-;_-$* \"-\"??_-;_-@_-";
             worksheet.Cells[38, 1].Value = "Years";
@@ -312,13 +307,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             var startingBudgetHeaderColumn = 2;
             var nextBudget = 0;
             var investmentGrid = new SortedDictionary<int, Dictionary<string, decimal?>>();
-            var startYear = simulation.InvestmentPlan.FirstYearOfAnalysisPeriod;
+            var startYear = investmentPlanDto.FirstYearOfAnalysisPeriod;
 
 
-            foreach (var budgets in simulation.InvestmentPlan.Budgets)
+            foreach (var budgets in budgetsDtos)
             {
                 var i = 0;
-                foreach (var item in budgets.YearlyAmounts)
+                foreach (var item in budgets.BudgetAmounts)
                 {
                     if (!investmentGrid.ContainsKey(startYear + i))
                     {
@@ -377,15 +372,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
                 nextBudget = 0;
             }
             ExcelHelper.MergeCells(worksheet, 38, 1, 39, 1);
-            if (simulation.InvestmentPlan.Budgets.Count > 0)
+            if (budgetsDtos.Count > 0)
             {
-                ExcelHelper.MergeCells(worksheet, 38, 2, 38, simulation.InvestmentPlan.Budgets.Count + 1);
-                ExcelHelper.ApplyBorder(worksheet.Cells[38, 1, startingRowInvestment - 1, simulation.InvestmentPlan.Budgets.Count + 1]);
+                ExcelHelper.MergeCells(worksheet, 38, 2, 38, budgetsDtos.Count + 1);
+                ExcelHelper.ApplyBorder(worksheet.Cells[38, 1, startingRowInvestment - 1, budgetsDtos.Count + 1]);
             }
-            FillBudgetCriteria(worksheet, startingRowInvestment, simulation);
+            FillBudgetCriteria(worksheet, startingRowInvestment, budgetsDtos);
         }
 
-        private void FillBudgetCriteria(ExcelWorksheet worksheet, int startingRowInvestment, Simulation simulation)
+        private void FillBudgetCriteria(ExcelWorksheet worksheet, int startingRowInvestment, List<BudgetDTO> budgetsDtos)
         {
             var rowToApplyBorder = startingRowInvestment + 2;
             worksheet.Cells[startingRowInvestment + 2, 1].Value = "Budget Criteria";
@@ -398,13 +393,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Par
             ExcelHelper.MergeCells(worksheet, startingRowInvestment + 3, 2, startingRowInvestment + 3, 5);
             var cells = worksheet.Cells[startingRowInvestment + 3, 1, startingRowInvestment + 3, 2];
             ExcelHelper.ApplyStyle(cells);
-
-            var sortedBudgetConditions = simulation.InvestmentPlan.BudgetConditions.OrderBy(_ => _.Budget.Name).ToList();
-
-            foreach (var item in sortedBudgetConditions)
+                        
+            foreach (var item in budgetsDtos)
             {
-                worksheet.Cells[startingRowInvestment + 4, 1].Value = item.Budget.Name;
-                worksheet.Cells[startingRowInvestment + 4, 2].Value = item.Criterion.Expression;
+                worksheet.Cells[startingRowInvestment + 4, 1].Value = item.Name;
+                worksheet.Cells[startingRowInvestment + 4, 2].Value = item.CriterionLibrary.MergedCriteriaExpression;
                 ExcelHelper.MergeCells(worksheet, startingRowInvestment + 4, 2, startingRowInvestment + 4, 5, false);
                 startingRowInvestment++;
             }

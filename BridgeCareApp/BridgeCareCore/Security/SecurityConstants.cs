@@ -6,6 +6,7 @@
         {
             public const string Esec = "ESEC";
             public const string B2C = "B2C";
+            public const string LocalDebug = "LocalDebug";
         }
 
         public static class Policy

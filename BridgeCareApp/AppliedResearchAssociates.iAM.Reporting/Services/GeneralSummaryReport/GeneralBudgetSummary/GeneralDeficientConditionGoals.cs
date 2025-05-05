@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Models;
@@ -12,15 +11,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.
 {
     public class GeneralDeficientConditionGoals
     {
-        private readonly ReportHelper _reportHelper;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public GeneralDeficientConditionGoals(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _reportHelper = new ReportHelper(_unitOfWork);
-        }
-
         public static void Fill(ExcelWorksheet generalSummaryWorksheet, SimulationOutput reportOutputData, IList<DeficientConditionGoalDTO> deficientConditions, CurrentCell currentCell)
         {
             currentCell.Column = 1;

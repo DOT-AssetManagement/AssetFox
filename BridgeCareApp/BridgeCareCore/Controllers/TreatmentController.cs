@@ -507,7 +507,7 @@ namespace BridgeCareCore.Controllers
                 });
 
                 ImportLibraryTreatmentWorkitem workItem = new ImportLibraryTreatmentWorkitem(treatmentLibraryId, excelPackage, UserInfo.Name, libraryName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, libraryId.ToString());
 
@@ -567,7 +567,7 @@ namespace BridgeCareCore.Controllers
                 });
 
                 ImportLibraryTreatmentWorkitemSingle workItem = new ImportLibraryTreatmentWorkitemSingle(treatmentLibraryId, excelPackage, UserInfo.Name, libraryName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, libraryId.ToString());
 
@@ -678,7 +678,7 @@ namespace BridgeCareCore.Controllers
                 });
 
                 ImportScenarioSingleTreatmentWorkitem workItem = new ImportScenarioSingleTreatmentWorkitem(simulationId, excelPackage, UserInfo.Name, simulationName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWorkQueueUpdate, simulationId.ToString());
 
@@ -728,7 +728,7 @@ namespace BridgeCareCore.Controllers
                 });
 
                 ImportScenarioTreatmentWorkitem workItem = new ImportScenarioTreatmentWorkitem(simulationId, excelPackage, UserInfo.Name, simulationName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, simulationId.ToString());
 
@@ -966,7 +966,7 @@ namespace BridgeCareCore.Controllers
                 });
 
                 var workItem = new ImportLibraryTreatmentSupersedeRuleWorkitem(libraryId, excelPackage, UserInfo.Name, libraryName);
-                var analysisHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, libraryId.ToString());
 
                 return Ok();

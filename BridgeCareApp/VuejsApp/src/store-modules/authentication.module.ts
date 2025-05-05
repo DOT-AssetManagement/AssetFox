@@ -1,6 +1,6 @@
 import AuthenticationService from '../services/authentication.service';
 import { AxiosResponse } from 'axios';
-import { UserInfo, UserTokens } from '@/shared/models/iAM/authentication';
+import { UserInfo, UserInfoLocal, UserTokens } from '@/shared/models/iAM/authentication';
 import { http2XX } from '@/shared/utils/http-utils';
 import {
     checkLDAP,
@@ -12,6 +12,8 @@ import moment from 'moment';
 import { isNil } from 'ramda';
 import { SecurityTypes } from '@/shared/utils/security-types';
 import router from '@/router';
+import store from '@/store/root-store';
+import { stat } from 'fs';
 
 const state = {
     authenticated: false,
@@ -24,6 +26,7 @@ const state = {
     securityType: 'B2C',
     pennDotSecurityType: 'ESEC',
     azureSecurityType: 'B2C',
+    localDebugSecurityType:'LocalDebug'
 };
 
 const mutations = {
@@ -246,7 +249,18 @@ const actions = {
     },
     setSecurityType({ commit }: any, payload: any) {
         commit('securityTypeMutator', payload);
-    }
+    },
+    localDebugLogin({commit, state}: any, payload: any){
+        var user = payload as UserInfoLocal
+        commit('hasRoleMutator', true);
+        commit('checkedForRoleMutator', true);
+        commit('adminAccessMutator', user.hasAdminAccess);
+        commit('usernameMutator', user.name);
+        commit('authenticatedMutator', true);
+        commit('simulationAccessMutator', user.hasSimulationAccess);
+        
+        localStorage.setItem('LoggedInUser', user.name);
+}
 };
 
 async function setCommits({ commit }: any)

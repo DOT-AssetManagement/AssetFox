@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -13,13 +11,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static TargetConditionGoalDetailEntity ToEntity(
             this TargetConditionGoalDetail domain,
             Guid simulationYearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup,
+            int runId)
         {
             var id = Guid.NewGuid();
             var attributeId = attributeIdLookup[domain.AttributeName];
             var entity = new TargetConditionGoalDetailEntity
             {
                 Id = id,
+                RunId = runId,
                 ActualValue = domain.ActualValue,
                 AttributeId = attributeId,
                 GoalIsMet = domain.GoalIsMet,
@@ -33,12 +33,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static List<TargetConditionGoalDetailEntity> ToEntityList(
             List<TargetConditionGoalDetail> domainList,
             Guid simulationYearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup,
+            int runId)
         {
             var entities = new List<TargetConditionGoalDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntity(domain, simulationYearDetailId, attributeIdLookup);
+                var entity = ToEntity(domain, simulationYearDetailId, attributeIdLookup, runId);
                 entities.Add(entity);
             }
             return entities;
@@ -67,6 +68,35 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static TargetConditionGoalDetailDTO ToDto(this TargetConditionGoalDetailEntity entity)
+        {
+            var dto = new TargetConditionGoalDetailDTO
+            {
+                Id = entity.Id,
+                ActualValue = entity.ActualValue,
+                TargetValue = entity.TargetValue,
+                AttributeId = entity.AttributeId,
+                GoalIsMet = entity.GoalIsMet,
+                GoalName = entity.GoalName
+            };
+
+            return dto;
+        }
+
+        public static TargetConditionGoalDetailEntity ToEntity(this TargetConditionGoalDetailDTO targetConditionGoalDetailDto, Guid simulationYearDetailId)
+        {
+            return new TargetConditionGoalDetailEntity
+            {
+                Id = targetConditionGoalDetailDto.Id,
+                SimulationYearDetailId = simulationYearDetailId,
+                ActualValue = targetConditionGoalDetailDto.ActualValue,
+                TargetValue = targetConditionGoalDetailDto.TargetValue,
+                AttributeId = targetConditionGoalDetailDto.AttributeId,
+                GoalIsMet = targetConditionGoalDetailDto.GoalIsMet,
+                GoalName = targetConditionGoalDetailDto.GoalName
+            };
         }
     }
 }

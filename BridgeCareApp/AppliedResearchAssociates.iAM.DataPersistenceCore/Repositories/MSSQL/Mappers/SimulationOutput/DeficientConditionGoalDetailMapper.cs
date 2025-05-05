@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -13,12 +11,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static List<DeficientConditionGoalDetailEntity> ToEntityList(
             List<DeficientConditionGoalDetail> domainList,
             Guid simulationYearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<DeficientConditionGoalDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntity(domain, simulationYearDetailId, attributeIdLookup);
+                var entity = ToEntity(domain, simulationYearDetailId, attributeIdLookup, runId);
                 entities.Add(entity);
             }
             return entities;
@@ -27,13 +25,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         private static DeficientConditionGoalDetailEntity ToEntity(
             DeficientConditionGoalDetail domain,
             Guid simulationYearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup,
+            int runId)
         {
             var attributeId = attributeIdLookup[domain.AttributeName];
             var id = Guid.NewGuid();
             var entity = new DeficientConditionGoalDetailEntity
             {
                 Id = id,
+                RunId = runId,
                 ActualDeficientPercentage = domain.ActualDeficientPercentage,
                 AllowedDeficientPercentage = domain.AllowedDeficientPercentage,
                 AttributeId = attributeId,
@@ -63,7 +63,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return domain;
         }
 
-        internal static List<DeficientConditionGoalDetail> ToDomainList(
+        public static List<DeficientConditionGoalDetail> ToDomainList(
             ICollection<DeficientConditionGoalDetailEntity> entityCollection,
             Dictionary<Guid, string> attributeNameLookup
             )
@@ -75,6 +75,37 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static DeficientConditionGoalDetailDTO ToDto(this DeficientConditionGoalDetailEntity entity)
+        {
+            var dto = new DeficientConditionGoalDetailDTO
+            {
+                Id = entity.Id,
+                ActualDeficientPercentage= entity.ActualDeficientPercentage,
+                AllowedDeficientPercentage = entity.AllowedDeficientPercentage,
+                DeficientLimit = entity.DeficientLimit,
+                GoalIsMet = entity.GoalIsMet,
+                GoalName = entity.GoalName,
+                AttributeId = entity.AttributeId
+            };
+
+            return dto;
+        }
+
+        public static DeficientConditionGoalDetailEntity ToEntity(this DeficientConditionGoalDetailDTO deficientConditionGoalDetailDto, Guid simulationYearDetailId)
+        {
+            return new DeficientConditionGoalDetailEntity
+            {
+                Id = deficientConditionGoalDetailDto.Id,
+                SimulationYearDetailId = simulationYearDetailId,
+                ActualDeficientPercentage = deficientConditionGoalDetailDto.ActualDeficientPercentage,
+                AllowedDeficientPercentage = deficientConditionGoalDetailDto.AllowedDeficientPercentage,                
+                DeficientLimit = deficientConditionGoalDetailDto.DeficientLimit,
+                AttributeId = deficientConditionGoalDetailDto.AttributeId,
+                GoalIsMet = deficientConditionGoalDetailDto.GoalIsMet,
+                GoalName = deficientConditionGoalDetailDto.GoalName
+            };
         }
     }
 }

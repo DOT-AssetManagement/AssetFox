@@ -36,7 +36,7 @@ namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests
             var testCommand = "DISTRICT";
             var returnValue = new TextAttribute(
                 "TextAttribute",
-                Guid.NewGuid(),
+                TestAttributeIds.DistrictId,
                 "DISTRICT",
                 AggregationRuleTypeNames.Predominant,
                 testCommand,

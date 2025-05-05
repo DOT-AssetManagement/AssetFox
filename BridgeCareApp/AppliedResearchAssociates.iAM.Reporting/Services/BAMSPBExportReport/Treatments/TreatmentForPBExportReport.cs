@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Common;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
 using OfficeOpenXml;
-using static System.Collections.Specialized.BitVector32;
 using static AppliedResearchAssociates.iAM.Analysis.Engine.FundingCalculationOutput;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Treatments
@@ -26,7 +25,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet worksheet, Simulation simulationObject, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments)
+        public void Fill(ExcelWorksheet worksheet, SimulationDTO simulationDto, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, bool allowFundingFromMultipleBudgets, Guid networkId, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
         {
             //set default width
             worksheet.DefaultColWidth = 13;
@@ -40,7 +39,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
             ExcelHelper.ApplyColor(worksheet.Cells[headerRow, 1, headerRow, worksheet.Dimension.Columns], headerBGColor);
 
             //add data to cells
-            FillDynamicDataForHeaders(worksheet, simulationObject, reportOutputData, currentCell, shouldBundleFeasibleTreatments);
+            FillDynamicDataForHeaders(worksheet, simulationDto, reportOutputData, currentCell, shouldBundleFeasibleTreatments, scenarioSelectableTreatmentsDtos, allowFundingFromMultipleBudgets, networkId, committedProjectList);
 
             //autofit columns
             worksheet.Cells.AutoFitColumns();
@@ -78,6 +77,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                 "TreatmentCause",
                 "Budget",
                 "Category",
+                "Project Id",
 
                 "Offset",
                 "Interstate", 
@@ -118,7 +118,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
             return currentCell;
         }
 
-        private void FillDynamicDataForHeaders(ExcelWorksheet worksheet, Simulation simulationObject, SimulationOutput reportOutputData, CurrentCell currentCell, bool shouldBundleFeasibleTreatments)
+        private void FillDynamicDataForHeaders(ExcelWorksheet worksheet, SimulationDTO simulationDto, SimulationOutput reportOutputData, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, bool allowFundingFromMultipleBudgets, Guid networkId, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
         {
             var rowNo = currentCell.Row;
             var columnNo = currentCell.Column;
@@ -128,8 +128,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                 Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
                 foreach (var yearObject in reportOutputData.Years)
                 {
-                    //filter assets for no treatment records
-                    
+                    //filter assets for no treatment records                    
                     var filteredAssetDetails = yearObject.Assets
                                                         .Where(w => w.AppliedTreatment != BAMSConstants.NoTreatmentForWorkSummary
                                                             && !string.IsNullOrEmpty(w.AppliedTreatment)
@@ -170,9 +169,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                             var cost = treatmentConsideration == null ? 0 : Math.Round(treatmentConsideration.FundingCalculationOutput?.AllocationMatrix.Where(_ => _.Year == yearObject.Year)?.Sum(b => b.AllocatedAmount) ?? 0, 0); // Rounded cost to whole number based on comments from Jeff Davis
                             var appliedTreatment = assetDetailObject.AppliedTreatment ?? "";
 
-                            SelectableTreatment treatment = null;
-                            var treatments = simulationObject.Treatments?.Where(_ => _.Name == appliedTreatment).ToList();
-                            if (treatments?.Count == 1) { treatment = treatments.First(); }
+                            TreatmentDTO treatmentDto = null;
+                            var treatments = scenarioSelectableTreatmentsDtos.Where(_ => _.Name == appliedTreatment).ToList();
+                            if (treatments?.Count == 1) { treatmentDto = treatments.First(); }
 
                             TreatmentOptionDetail treatmentOptionDetail = null;
                             var treatmentOptions = assetDetailObject.TreatmentOptions?.FindAll(_ => _.TreatmentName == appliedTreatment);
@@ -208,8 +207,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                                 }
                                 else //multiple budgets
                                 {
-                                    //check for multi year budget
-                                    var allowFundingFromMultipleBudgets = simulationObject?.AnalysisMethod?.AllowFundingFromMultipleBudgets ?? false;
+                                    //check for multi year budget                                    
                                     if (allowFundingFromMultipleBudgets == true || budgetNames.Count > 1)
                                     {
                                         foreach (var allocationBudgetName in budgetNames)
@@ -247,8 +245,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                                 }
                             }
 
-                            worksheet.Cells[rowNo, columnNo++].Value = simulationObject.Id.ToString(); //SimulationId
-                            worksheet.Cells[rowNo, columnNo++].Value = simulationObject?.Network?.Id.ToString(); //NetworkId
+                            worksheet.Cells[rowNo, columnNo++].Value = simulationDto.Id.ToString(); //SimulationId
+                            worksheet.Cells[rowNo, columnNo++].Value = networkId.ToString(); //NetworkId
                             worksheet.Cells[rowNo, columnNo++].Value = assetDetailObject.AssetId.ToString(); //Asset Id
                                                        
                             worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(assetDetailObject.ValuePerTextAttribute, "DISTRICT"); //District
@@ -314,8 +312,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
 
                             worksheet.Cells[rowNo, columnNo++].Value = budgetName; //BUDGET
 
-                            worksheet.Cells[rowNo, columnNo++].Value = treatment?.Category.ToString() ?? ""; //CATEGORY
+                            worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.Category.ToString() ?? ""; //CATEGORY
 
+                            // Project Id
+                            var committedProject = committedProjectList.FirstOrDefault(_ => assetDetailObject.AppliedTreatment.Contains(_.Treatment)
+                                                    && _.Year == yearObject.Year
+                                                    && _.LocationKeys["BRKEY_"] == brKey.ToString());
+                            worksheet.Cells[rowNo, columnNo++].Value = committedProject?.ProjectId?.ToString() ?? string.Empty;
 
                             var offset = "";
                             if (!string.IsNullOrEmpty(bmsID) && !string.IsNullOrWhiteSpace(bmsID)) {
@@ -334,10 +337,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                             worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(assetDetailObject.ValuePerTextAttribute, "OWNER_CODE"); //Owner Code
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);                                                       
 
-                            worksheet.Cells[rowNo, columnNo++].Value = treatment?.ShadowForAnyTreatment ?? 0; //YEARANY
+                            worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.ShadowForAnyTreatment ?? 0; //YEARANY
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = treatment?.ShadowForSameTreatment ?? 0; //YEARSAME
+                            worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.ShadowForSameTreatment ?? 0; //YEARSAME
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
                             
 
@@ -378,6 +381,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                         }
                     }
                 }
+                keyCashFlowFundingDetails.Clear();
             }            
 
             currentCell.Row = rowNo;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -10,7 +11,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static AssetSummaryDetailValueEntityIntId ToNumericEntity(
             Guid assetSummaryDetailId,
             KeyValuePair<string, double> assetSummaryDetailValue,
-            Dictionary<string, Guid> attributeIdLookupDictionary)
+            Dictionary<string, Guid> attributeIdLookupDictionary,
+            int runId)
         {
             var attributeId = attributeIdLookupDictionary[assetSummaryDetailValue.Key];
             var entity = new AssetSummaryDetailValueEntityIntId
@@ -19,6 +21,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Discriminator = AssetDetailValueDiscriminators.Number,
                 AttributeId = attributeId,
                 NumericValue = assetSummaryDetailValue.Value,
+                RunId = runId
             };
             return entity;
         }
@@ -26,7 +29,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static AssetSummaryDetailValueEntityIntId ToTextEntity(
             Guid assetSummaryDetailId,
             KeyValuePair<string, string> keyValuePair,
-            Dictionary<string, Guid> attributeIdLookupDictionary)
+            Dictionary<string, Guid> attributeIdLookupDictionary,
+            int runId)
         {
             var attributeId = attributeIdLookupDictionary[keyValuePair.Key];
             var entity = new AssetSummaryDetailValueEntityIntId
@@ -35,6 +39,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Discriminator = AssetDetailValueDiscriminators.Text,
                 AttributeId = attributeId,
                 TextValue = keyValuePair.Value,
+                RunId = runId
             };
             return entity;
         }
@@ -49,7 +54,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 AddToDictionary(summary, valuePerNumericAttribute, valuePerTextAttribute, attributeNameLookup);
             }
-            FillAreaAttributeValue(valuePerNumericAttribute);
         }
 
         public static void FillAreaAttributeValue(Dictionary<string, double> valuePerNumericAttribute)
@@ -87,7 +91,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static List<AssetSummaryDetailValueEntityIntId> ToNumericEntityList(
             Guid assetSummaryDetailId,
             Dictionary<string, double> assetSummaryDetailValues,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<AssetSummaryDetailValueEntityIntId>();
 
@@ -95,7 +99,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 if (attributeIdLookup.ContainsKey(keyValuePair.Key))
                 {
-                    var entity = ToNumericEntity(assetSummaryDetailId, keyValuePair, attributeIdLookup);
+                    var entity = ToNumericEntity(assetSummaryDetailId, keyValuePair, attributeIdLookup, runId);
                     entities.Add(entity);
                 }                
             }
@@ -106,19 +110,44 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static List<AssetSummaryDetailValueEntityIntId> ToTextEntityList(
             Guid assetSummaryDetailId,
             Dictionary<string, string> assetSummaryDetailValues,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<AssetSummaryDetailValueEntityIntId>();
             foreach (var keyValuePair in assetSummaryDetailValues)
             {
                 if (attributeIdLookup.ContainsKey(keyValuePair.Key))
                 {
-                    var entity = ToTextEntity(assetSummaryDetailId, keyValuePair, attributeIdLookup);
+                    var entity = ToTextEntity(assetSummaryDetailId, keyValuePair, attributeIdLookup, runId);
                     entities.Add(entity);
                 }
             }
             return entities;
         }
 
+        public static AssetSummaryDetailValueEntityIntIdDTO ToDto(this AssetSummaryDetailValueEntityIntId entity)
+        {
+            var dto = new AssetSummaryDetailValueEntityIntIdDTO
+            {
+                Id = entity.Id,
+                AttributeId = entity.AttributeId,
+                Discriminator = entity.Discriminator,
+                NumericValue = entity.NumericValue,
+                TextValue = entity.TextValue
+            };
+
+            return dto;
+        }
+
+        public static AssetSummaryDetailValueEntityIntId ToEntity(this AssetSummaryDetailValueEntityIntIdDTO assetSummaryDetailValueEntityIntIdDto, Guid assetSummaryDetailId)
+        {
+            return new AssetSummaryDetailValueEntityIntId
+            {
+                AssetSummaryDetailId = assetSummaryDetailId,
+                AttributeId = assetSummaryDetailValueEntityIntIdDto.AttributeId,
+                Discriminator = assetSummaryDetailValueEntityIntIdDto.Discriminator,
+                NumericValue = assetSummaryDetailValueEntityIntIdDto.NumericValue,
+                TextValue = assetSummaryDetailValueEntityIntIdDto.TextValue
+            };
+        }
     }
 }

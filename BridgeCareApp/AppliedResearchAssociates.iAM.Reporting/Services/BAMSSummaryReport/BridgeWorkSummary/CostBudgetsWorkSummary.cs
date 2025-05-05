@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary

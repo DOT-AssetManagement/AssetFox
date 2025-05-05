@@ -21,6 +21,9 @@ using static BridgeCareCore.Security.SecurityConstants;
 using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using BridgeCareCore.Security;
+using BridgeCareCore.StartupExtension;
+using static Org.BouncyCastle.Math.EC.ECCurve;
+using Microsoft.SqlServer.TransactSql.ScriptDom;
 
 namespace BridgeCareCore.Controllers
 {
@@ -32,10 +35,12 @@ namespace BridgeCareCore.Controllers
         private static IConfigurationSection _esecConfig;
         private readonly ILog _log;
         private readonly UnitOfDataPersistenceWork _unitOfWork;
+        private string _securityType;
 
         public AuthenticationController(IConfiguration config, IEsecSecurity esecSecurity, UnitOfDataPersistenceWork unitOfWork,
             IHubService hubService, IHttpContextAccessor httpContextAccessor, ILog log) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
+            _securityType = SecurityConfigurationReader.GetSecurityType(config);
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _esecConfig = config?.GetSection("EsecConfig") ?? throw new ArgumentNullException(nameof(config));
             _log = log ?? throw new ArgumentNullException(nameof(log));
@@ -281,26 +286,33 @@ namespace BridgeCareCore.Controllers
         [Route("GetActiveStatus")]
         public async Task<IActionResult> GetActiveStatus()
         {
-            var idToken = ContextAccessor?.HttpContext?.Request.Headers["Authorization"].ToString().Split(" ")[1];
-            var handler = new JwtSecurityTokenHandler();
-            var userToken = handler.ReadJwtToken(idToken);
             var userName = "";
-            var userNameClaim = userToken.Claims.FirstOrDefault(claim => claim.Type == "name");
-            if (userNameClaim == null)
+            if (_securityType == SecurityTypes.LocalDebug)
             {
-                var subClaim = userToken.Claims.FirstOrDefault(claim => claim.Type == "sub");
-                if (subClaim == null)
-                {
-                    return Unauthorized("The token does not contain a 'username' claim.");
-                }
-
-                userName = SecurityFunctions.ParseLdap(userToken.GetClaimValue("sub"))[0];
+                userName = UserInfo?.Name;
             }
             else
             {
-                userName = userNameClaim.Value;
+                var idToken = ContextAccessor?.HttpContext?.Request.Headers["Authorization"].ToString().Split(" ")[1];
+                var handler = new JwtSecurityTokenHandler();
+                var userToken = handler.ReadJwtToken(idToken);
+
+                var userNameClaim = userToken.Claims.FirstOrDefault(claim => claim.Type == "name");
+                if (userNameClaim == null)
+                {
+                    var subClaim = userToken.Claims.FirstOrDefault(claim => claim.Type == "sub");
+                    if (subClaim == null)
+                    {
+                        return Unauthorized("The token does not contain a 'username' claim.");
+                    }
+
+                    userName = SecurityFunctions.ParseLdap(userToken.GetClaimValue("sub"))[0];
+                }
+                else
+                {
+                    userName = userNameClaim.Value;
+                }
             }
-            
 
             // Get user
             var user = _unitOfWork.Context.User.SingleOrDefault(_ => _.Username == userName);

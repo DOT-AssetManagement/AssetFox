@@ -84,7 +84,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             // Set simulation id
             string simulationId = ReportHelper.GetSimulationId(parameters);
-            if (!Guid.TryParse(simulationId, out Guid _simulationId))
+            if (!Guid.TryParse(simulationId, out var _simulationId))
             {
                 Errors.Add("Provided simulation ID is not a GUID");
                 IndicateError();
@@ -152,7 +152,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
         }
 
         private string GenerateBAMSPBExportReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
-        {
+        {            
             if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
             {
                 throw new Exception("Report was cancelled");
@@ -166,19 +166,13 @@ namespace AppliedResearchAssociates.iAM.Reporting
             };
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpdateSimulationAnalysisDetail(reportDetailDto);
-            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);          
-
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var logger = new CallbackLogger(str => UpdateSimulationAnalysisDetailWithStatus(reportDetailDto, str));
-            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
 
-            //Get Simulation object
-            var explorerObject = _unitOfWork.AttributeRepo.GetExplorer();
-            var networkObject = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorerObject);
-            _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, networkObject);
-            var simulationObject = networkObject.Simulations?.First();
-
-            //include treatments in simulation
-            _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationObject);
+            var simulationDto = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
+            var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+            var committedProjectList = _unitOfWork.CommittedProjectRepo.GetCommittedProjectsForExport(simulationId);
 
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("BAMSPBExportReportData.xlsx"));
@@ -187,8 +181,11 @@ namespace AppliedResearchAssociates.iAM.Reporting
             reportDetailDto.Status = $"Creating BAMS Treatment TAB";
             UpdateSimulationAnalysisDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PBExportReportTabNames.Treatments);
-            _treatmentForPBExportReportReport.Fill(treatmentsWorksheet, simulationObject, reportOutputData, simulationObject.ShouldBundleFeasibleTreatments);
+            var allowFundingFromMultipleBudgets = analysisMethodDto.ShouldUseExtraFundsAcrossBudgets;
+            var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
+            _treatmentForPBExportReportReport.Fill(treatmentsWorksheet, simulationDto, reportOutputData, shouldBundleFeasibleTreatments, scenarioSelectableTreatmentsDtos, allowFundingFromMultipleBudgets, networkId, committedProjectList);
 
             if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
             {
@@ -200,7 +197,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpdateSimulationAnalysisDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);          
             var folderPathForSimulation = $"Reports\\{simulationId}";
-            Directory.CreateDirectory(folderPathForSimulation);
+            _ = Directory.CreateDirectory(folderPathForSimulation);
             reportPath = Path.Combine(folderPathForSimulation, "BAMSPBExportReport.xlsx");
 
             if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
@@ -213,7 +210,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             reportDetailDto.Status = $"Report generation completed";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             UpdateSimulationAnalysisDetail(reportDetailDto);
-            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);           
+            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
             return reportPath;
         }

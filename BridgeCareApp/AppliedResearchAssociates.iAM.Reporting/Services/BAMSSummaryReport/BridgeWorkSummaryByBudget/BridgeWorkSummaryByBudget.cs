@@ -144,6 +144,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                         });
                     }
                 }
+                keyCashFlowFundingDetails.Clear();
 
                 //Filtering treatments for the given budget             
                 var costForCulvertBudget = summaryData.YearlyData

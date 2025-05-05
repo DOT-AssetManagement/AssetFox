@@ -1705,7 +1705,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                                 for(const item of response.data)
                                 {
                                     if (item.message != '') {
-                                    preCheckMessages += item.message;
+                                    preCheckMessages += item.message + ".";
                                     }
                                 }
                             }
@@ -1720,9 +1720,19 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                 
                 // Check which treatments have no budgets and add them to the warning list
                 emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenario.id });
-                emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; }) => {
+                emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
                     if (!treatment.budgets || treatment.budgets.length === 0) {
                         preCheckMessages += `Treatment ${treatment.name} has no budgets.`
+                    }
+
+                    if (!treatment.assetType)
+                    {
+                        preCheckMessages += `Treatment Asset type is empty or invalid on ${treatment.name}.` 
+                    }
+
+                    if(isNaN(treatment.category) || isNaN(treatment.shadowForAnyTreatment) || isNaN(treatment.shadowForSameTreatment))
+                    {
+                        preCheckMessages += `A treatment detail is empty or invalid on ${treatment.name}.` 
                     }
                 });
 

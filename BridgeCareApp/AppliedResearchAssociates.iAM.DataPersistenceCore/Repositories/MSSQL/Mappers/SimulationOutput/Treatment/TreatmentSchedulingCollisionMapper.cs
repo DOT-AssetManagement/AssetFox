@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -12,7 +10,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
     {
         public static TreatmentSchedulingCollisionDetailEntity ToEntity(
             TreatmentSchedulingCollisionDetail domain,
-            Guid assetDetailId)
+            Guid assetDetailId,
+            int runId)
         {
             var id = Guid.NewGuid();
             var entity = new TreatmentSchedulingCollisionDetailEntity
@@ -20,18 +19,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Id = id,
                 NameOfUnscheduledTreatment = domain.NameOfUnscheduledTreatment,
                 AssetDetailId = assetDetailId,
+                RunId = runId
             };
             return entity;
         }
 
         public static List<TreatmentSchedulingCollisionDetailEntity> ToEntityList(
             List<TreatmentSchedulingCollisionDetail> domainList,
-            Guid assetDetailId)
+            Guid assetDetailId,
+            int runId)
         {
             var entityList = new List<TreatmentSchedulingCollisionDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntity(domain, assetDetailId);
+                var entity = ToEntity(domain, assetDetailId, runId);
                 entityList.Add(entity);
             }
             return entityList;
@@ -52,6 +53,27 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 domainList.Add(domain);
             }
             return domainList;
+        }
+
+        public static TreatmentSchedulingCollisionDetailDTO ToDto(this TreatmentSchedulingCollisionDetailEntity entity)
+        {
+            var dto = new TreatmentSchedulingCollisionDetailDTO
+            {
+                Id = entity.Id,
+                NameOfUnscheduledTreatment = entity.NameOfUnscheduledTreatment
+            };
+
+            return dto;
+        }
+
+        public static TreatmentSchedulingCollisionDetailEntity ToEntity(this TreatmentSchedulingCollisionDetailDTO treatmentSchedulingCollisionDetailDto, Guid assetDetailId)
+        {
+            return new TreatmentSchedulingCollisionDetailEntity
+            {
+                Id = treatmentSchedulingCollisionDetailDto.Id,
+                AssetDetailId = assetDetailId,
+                NameOfUnscheduledTreatment = treatmentSchedulingCollisionDetailDto.NameOfUnscheduledTreatment
+            };
         }
     }
 }

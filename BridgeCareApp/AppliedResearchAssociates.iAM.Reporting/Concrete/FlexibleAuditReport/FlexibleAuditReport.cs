@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
@@ -163,30 +162,42 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
 
             var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
-            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaJson(simulationId);
-            var primaryKeyField = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+            var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
+            var primaryKeyFields = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+            var firstPrimaryKey = primaryKeyFields[0].ToString();
+            var isPrimaryKeyNumeric = _reportHelper.IsPrimaryKeyNumberic(simulationOutput.InitialAssetSummaries[0].ValuePerTextAttribute, simulationOutput.InitialAssetSummaries[0].ValuePerNumericAttribute, firstPrimaryKey);
 
             // Sort data
-            simulationOutput.InitialAssetSummaries.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, primaryKeyField[0]).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
-                    );
-
-            foreach (var yearlySectionData in simulationOutput.Years)
+            if (isPrimaryKeyNumeric)
             {
-                yearlySectionData.Assets.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, primaryKeyField[0]).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, "BRKEY_"))
-                    );
+                simulationOutput.InitialAssetSummaries.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+
+                foreach (var yearlySectionData in simulationOutput.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+                }
+            }
+            else
+            {
+                simulationOutput.InitialAssetSummaries.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+
+                foreach (var yearlySectionData in simulationOutput.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+                }
             }
 
-            var explorer = _unitOfWork.AttributeRepo.GetExplorer();
-            var network = _unitOfWork.NetworkRepo.GetSimulationAnalysisNetwork(networkId, explorer);
-            _unitOfWork.SimulationRepo.GetSimulationInNetwork(simulationId, network);
-            var simulation = network.Simulations.First();
-            _unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            _unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, null);
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
-            _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
-            _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulation);
+            var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var performanceCurvesDtos = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
+            var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);
 
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("GeneralAuditReportData.xlsx"));
@@ -210,9 +221,10 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             var decisionsWorksheet = excelPackage.Workbook.Worksheets.Add(FlexibleAuditReportConstants.DecisionsTab);
-            var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(simulation);
+            var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(performanceCurvesDtos);
+            performanceCurvesDtos.Clear();
             ValidateSections(simulationOutput, reportDetailDto, simulationId, new HashSet<string>(performanceCurvesAttributes.Except(dataTabRequiredAttributes)));
-            _decisionTab.Fill(decisionsWorksheet, simulationOutput, simulation, performanceCurvesAttributes);
+            _decisionTab.Fill(decisionsWorksheet, simulationOutput, analysisMethodDto, performanceCurvesAttributes, scenarioSelectableTreatmentsDtos);
 
             checkCancelled(cancellationToken, simulationId);
             // Check and generate folder
@@ -233,7 +245,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
 
-            return reportPath;
+            return reportPath;            
         }
         private void IndicateError()
         {
