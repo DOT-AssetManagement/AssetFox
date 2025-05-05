@@ -102,9 +102,9 @@ namespace BridgeCareCore.Services
                     return committedProjects.OrderBy(_ => _.Year).ToList();
             case "treatment":
                 if (isDescending)
-                    return committedProjects.OrderByDescending(_ => (_.Treatment ?? "").ToLower()).ToList();
+                    return committedProjects.OrderByDescending(_ => (_.ComputedTreatmentString ?? "").ToLower()).ToList();
                 else
-                    return committedProjects.OrderBy(_ => (_.Treatment ?? "").ToLower()).ToList();
+                    return committedProjects.OrderBy(_ => (_.ComputedTreatmentString ?? "").ToLower()).ToList();
             case "category":
                 if (isDescending)
                     return committedProjects.OrderByDescending(_ => _.Category.ToString().ToLower()).ToList();
@@ -133,7 +133,7 @@ namespace BridgeCareCore.Services
             return rows
                 .Where(_ => _.LocationKeys !=null && _.LocationKeys.ContainsKey(_networkKeyField) && _.LocationKeys[_networkKeyField].ToLower().Contains(search) ||
                     _.Year.ToString().Contains(search) ||
-                    _.Treatment!=null && _.Treatment.ToLower().Contains(search) ||
+                    _.Treatment!=null && _.ComputedTreatmentString.ToLower().Contains(search) ||
                     _.Category.ToString().ToLower().Contains(search) ||
                     (_.ScenarioBudgetId == null ? "" : budgetDict[_.ScenarioBudgetId.Value]).Contains(search) ||
                     _.Cost.ToString().Contains(search)).ToList();

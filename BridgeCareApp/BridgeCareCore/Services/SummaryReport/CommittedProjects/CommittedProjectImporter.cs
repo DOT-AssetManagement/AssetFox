@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
@@ -124,7 +125,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
 
                     if (project != null)
                     {
-                        var key = (project.LocationKeys[_networkKeyField], project.Year, project.Treatment);
+                        var key = (project.LocationKeys[_networkKeyField], project.Year, project.ComputedTreatmentString);
                         _projectsPerKey.TryAdd(key, project);
                     }
                 }
@@ -506,45 +507,76 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
         }
 
 
-        private string SafeGetTreatment(
+        private string[] SafeGetTreatment(
              Dictionary<int, object> rowValues,
              Dictionary<string, int> columnIndices,
              List<string> treatments,
              string columnName,
              int row)
         {
+            var result = new List<string>();
+
             var columnIndex = columnIndices[columnName];
             if (columnIndex == -1)
             {
-                return "Default treatment"; // Default value
+                result.Add("Default Treatment");
+                return result.ToArray();
             }
 
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
             {
+
                 var treatment = cellValue.ToString().Trim();
                 if (string.IsNullOrWhiteSpace(treatment))
                 {
                     AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment is null or empty.");
-                    return "Default treatment";
+                    result.Add("Default Treatment");
+                    return result.ToArray();
+                }
+
+                if (treatment.Contains("Bundle"))
+                {
+                    // Match contents inside brackets: [Treatment A|Treatment B]
+                    var matches = Regex.Matches(treatment, @"\[(.*?)\]");
+                    var normalizedMatches = new List<string>();
+                    foreach (Match match in matches)
+                    {
+                        var matchedTreatments = match.Groups[1].Value.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        normalizedMatches.AddRange(matchedTreatments);
+                    }
+
+                    foreach(var name in normalizedMatches)
+                    {
+                        var matchingTreatment = treatments.FirstOrDefault(t => string.Equals(t.Trim(), name, StringComparison.OrdinalIgnoreCase));
+                        if (matchingTreatment != null)
+                        {
+                            result.Add(matchingTreatment);
+                        }
+                    }
+
+                    return result.ToArray();
                 }
 
                 // Check if treatment exists in the provided treatments list 
                 var normalizedTreatment = treatment.ToLowerInvariant();
-                var matchingTreatment = treatments
+                var matchingSingleTreatment = treatments
                     .FirstOrDefault(t => string.Equals(t.Trim(), treatment, StringComparison.OrdinalIgnoreCase));
 
-                if (matchingTreatment != null)
+                if (matchingSingleTreatment != null)
                 {
-                    return matchingTreatment; 
+                    result.Add(matchingSingleTreatment);
+                    return result.ToArray(); 
                 }
 
                 AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment '{treatment}' not found in the valid treatments list.");
-                return "Default treatment";
+                result.Add("Default Treatment");
+                return result.ToArray();
             }
             else
             {
                 AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment is missing.");
-                return "Default treatment";
+                result.Add("Default Treatment");
+                return result.ToArray();
             }
         }
 

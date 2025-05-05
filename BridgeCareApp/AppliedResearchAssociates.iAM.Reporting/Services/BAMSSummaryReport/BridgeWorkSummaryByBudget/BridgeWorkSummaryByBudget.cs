@@ -114,7 +114,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                             var category = appliedTreatment.Contains("Bundle") ?
                                            TreatmentCategory.Bundled :
                                            (map.ContainsKey(treatmentCategoryLookup[appliedTreatment]) ? map[treatmentCategoryLookup[appliedTreatment]] : TreatmentCategory.Other);
-                            var projectSource = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.Treatment) &&
+                            var projectSource = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.ComputedTreatmentString) &&
                                                 _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource)?.ProjectSource.ToString();
                             summaryData.YearlyData.Add(new YearsData
                             {

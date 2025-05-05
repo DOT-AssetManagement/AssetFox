@@ -963,7 +963,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                 foreach (var budgetUsage in consideration.FundingCalculationOutput?.AllocationMatrix.Where(bu => bu.BudgetName.Equals(workSummaryByBudgetModel.BudgetName, StringComparison.OrdinalIgnoreCase) && bu.Year == year))
                                 {
                                     var projectSource = committedProjects.FirstOrDefault(_ => _.Year == year &&
-                                                                                         _.Treatment == budgetUsage.TreatmentName &&
+                                                                                         _.ComputedTreatmentString == budgetUsage.TreatmentName &&
                                                                                          _.ScenarioBudgetName == budgetUsage.BudgetName)?.ProjectSource;
                                     switch (projectSource)
                                     {
@@ -1680,7 +1680,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                         bu.Year == year))
                                 {
                                     var projectSource = committedProjects.FirstOrDefault(_ => _.Year == year &&
-                                                                                         _.Treatment == budgetUsage.TreatmentName &&
+                                                                                         _.ComputedTreatmentString == budgetUsage.TreatmentName &&
                                                                                          _.ScenarioBudgetName == budgetUsage.BudgetName)?.ProjectSource;
                                     switch (projectSource)
                                     {

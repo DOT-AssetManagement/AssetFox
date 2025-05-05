@@ -25,7 +25,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Id = domain.Id,
                 SimulationId = simulation.Id,
                 ScenarioBudgetId = budget?.Id,
-                Name = budget?.Name,
+                Name = new string[] { domain.Name },
                 ShadowForAnyTreatment = domain.ShadowForAnyTreatment,
                 ShadowForSameTreatment = domain.ShadowForSameTreatment,
                 Cost = domain.Cost,
@@ -199,89 +199,92 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 throw new InvalidOperationException($"Asset ({assetLabel}) has duplicate treatments in year {entity.Year}.", innerException);
             }
 
-            try
+            var existingCommittedProjectsForThisAssetYear =
+                        simulation.CommittedProjects
+                        .Where(cp => (cp.Asset.Id, cp.Year) == (asset.Id, entity.Year))
+                        .ToList();
+
+            foreach (var treatment in entity.Name)
             {
-                var existingCommittedProjectsForThisAssetYear =
-                    simulation.CommittedProjects
-                    .Where(cp => (cp.Asset.Id, cp.Year) == (asset.Id, entity.Year))
-                    .ToList();
-
-                var projectToAddTreatmentName = entity.Name;
-                // Check if a project with the same treatment name already exists for the asset and year.
-                var projectWithActiveTreatmentAlreadyExists = existingCommittedProjectsForThisAssetYear.Any(cp => cp.Name == projectToAddTreatmentName);
-
-                if (projectWithActiveTreatmentAlreadyExists)
+                try
                 {
-                    throwError_DuplicateTreatmentProjects(null, projectToAddTreatmentName);
-                }
 
-                var mainProject =
-                    existingCommittedProjectsForThisAssetYear.SingleOrDefault(cp => cp.Name != noTreatmentEntity.Name) ??
-                    existingCommittedProjectsForThisAssetYear.FirstOrDefault();
+                    var projectToAddTreatmentName = treatment;
+                    // Check if a project with the same treatment name already exists for the asset and year.
+                    var projectWithActiveTreatmentAlreadyExists = existingCommittedProjectsForThisAssetYear.Any(cp => cp.Name == projectToAddTreatmentName);
 
-                foreach (var otherProject in existingCommittedProjectsForThisAssetYear.Where(cp => cp != mainProject))
-                {
-                    _ = simulation.CommittedProjects.Remove(otherProject);
-                }
-            }
-            catch (InvalidOperationException e)
-            {
-                throwError_DuplicateTreatmentProjects(e, entity.Name);
-            }
-
-            var committedProject = simulation.CommittedProjects.GetAdd(new CommittedProject(asset, entity.Year));
-            committedProject.Id = entity.Id;
-            committedProject.Name = entity.Name;
-            committedProject.Cost = entity.Cost;
-            var treatmentName = entity.Name;
-            var treatment = selectableTreatments.FirstOrDefault(t => t.Name == treatmentName);
-
-            committedProject.TemplateTreatment = treatment;
-            var projectSource = ProjectSourceDTO.Committed;
-
-            if (Enum.TryParse(entity.ProjectSource, true, out ProjectSourceDTO parsedProjectSource))
-            {
-                committedProject.ProjectSource = parsedProjectSource;
-                projectSource = parsedProjectSource;
-            }
-            else
-            {
-                committedProject.ProjectSource = ProjectSourceDTO.Committed; 
-            }
-
-            committedProject.Budget = entity.ScenarioBudget != null ? simulation.InvestmentPlan.Budgets.Single(_ => _.Name == entity.ScenarioBudget.Name) : null;
-            committedProject.LastModifiedDate = entity.LastModifiedDate;
-
-            if (noTreatmentForCommittedProjects)
-            {
-                int startYear = simulation.InvestmentPlan.FirstYearOfAnalysisPeriod;
-                var noTreatment = selectableTreatments.FirstOrDefault(t => noTreatmentEntity.Name == t.Name);
-                for (int year = startYear; year < committedProject.Year; year++)
-                {
-                    var existingCommittedProject = simulation.CommittedProjects
-                        .Where(_ => _.Year == year && _.Asset.Id == committedProject.Asset.Id);
-                    if (!existingCommittedProject.Any())
+                    if (projectWithActiveTreatmentAlreadyExists)
                     {
-                        var projectToAdd = simulation.CommittedProjects.GetAdd(new CommittedProject(asset, year));
-                        projectToAdd.Id = Guid.NewGuid();
-                        projectToAdd.Name = noTreatmentEntity.Name;
-                        projectToAdd.Cost = noTreatmentDefaultCost;
-                        projectToAdd.Budget = entity.ScenarioBudget != null ? simulation.InvestmentPlan.Budgets.Single(_ => _.Name == entity.ScenarioBudget.Name) : null; // TODO: fix
-                        //projectToAdd.Budget = null;  // This would be the better way, but it fails vaildation
-                        projectToAdd.ProjectSource = projectSource;  // Replicate project source
-                        projectToAdd.LastModifiedDate = noTreatmentEntity.LastModifiedDate;
-                        //projectToAdd.TemplateTreatment = noTreatmentEntity.ToDomain(simulation, null);
-                        projectToAdd.TemplateTreatment = noTreatment;
+                        throwError_DuplicateTreatmentProjects(null, projectToAddTreatmentName);
                     }
-                    else
+
+                    /*var mainProject =
+                        existingCommittedProjectsForThisAssetYear.SingleOrDefault(cp => cp.Name != noTreatmentEntity.Name) ??
+                        existingCommittedProjectsForThisAssetYear.FirstOrDefault();
+
+                    foreach (var otherProject in existingCommittedProjectsForThisAssetYear.Where(cp => cp != mainProject))
                     {
-                        if (existingCommittedProject.Count() > 1)
+                        _ = simulation.CommittedProjects.Remove(otherProject);
+                    }*/
+                }
+                catch (InvalidOperationException e)
+                {
+                    throwError_DuplicateTreatmentProjects(e, treatment);
+                }
+
+                var committedProject = simulation.CommittedProjects.GetAdd(new CommittedProject(asset, entity.Year));
+                committedProject.Id = entity.Id;
+                committedProject.Name = treatment;
+                committedProject.Cost = entity.Cost;
+                var selectedTreatment = selectableTreatments.FirstOrDefault(t => t.Name == treatment);
+
+                committedProject.TemplateTreatment = selectedTreatment;
+                var projectSource = ProjectSourceDTO.Committed;
+
+                if (Enum.TryParse(entity.ProjectSource, true, out ProjectSourceDTO parsedProjectSource))
+                {
+                    committedProject.ProjectSource = parsedProjectSource;
+                    projectSource = parsedProjectSource;
+                }
+                else
+                {
+                    committedProject.ProjectSource = ProjectSourceDTO.Committed;
+                }
+
+                committedProject.Budget = entity.ScenarioBudget != null ? simulation.InvestmentPlan.Budgets.Single(_ => _.Name == entity.ScenarioBudget.Name) : null;
+                committedProject.LastModifiedDate = entity.LastModifiedDate;
+
+                if (noTreatmentForCommittedProjects)
+                {
+                    int startYear = simulation.InvestmentPlan.FirstYearOfAnalysisPeriod;
+                    var noTreatment = selectableTreatments.FirstOrDefault(t => noTreatmentEntity.Name == t.Name);
+                    for (int year = startYear; year < committedProject.Year; year++)
+                    {
+                        var existingCommittedProject = simulation.CommittedProjects
+                            .Where(_ => _.Year == year && _.Asset.Id == committedProject.Asset.Id);
+                        if (!existingCommittedProject.Any())
                         {
-                            throw new InvalidOperationException("Should not see more than one project per committed project query");
+                            var projectToAdd = simulation.CommittedProjects.GetAdd(new CommittedProject(asset, year));
+                            projectToAdd.Id = Guid.NewGuid();
+                            projectToAdd.Name = noTreatmentEntity.Name;
+                            projectToAdd.Cost = noTreatmentDefaultCost;
+                            projectToAdd.Budget = entity.ScenarioBudget != null ? simulation.InvestmentPlan.Budgets.Single(_ => _.Name == entity.ScenarioBudget.Name) : null; // TODO: fix
+                            //projectToAdd.Budget = null;  // This would be the better way, but it fails vaildation
+                            projectToAdd.ProjectSource = projectSource;  // Replicate project source
+                            projectToAdd.LastModifiedDate = noTreatmentEntity.LastModifiedDate;
+                            //projectToAdd.TemplateTreatment = noTreatmentEntity.ToDomain(simulation, null);
+                            projectToAdd.TemplateTreatment = noTreatment;
+                        }
+                        else
+                        {
+                            if (existingCommittedProject.Count() > 1)
+                            {
+                                throw new InvalidOperationException("Should not see more than one project per committed project query");
+                            }
                         }
                     }
+
                 }
-                
             }
         }
     }

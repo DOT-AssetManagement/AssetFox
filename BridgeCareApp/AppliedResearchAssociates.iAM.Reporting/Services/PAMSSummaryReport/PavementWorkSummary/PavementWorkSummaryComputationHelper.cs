@@ -179,7 +179,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                         appliedTreatment.ToLower() != PAMSConstants.NoTreatment)
                     {
-                        var committedProject = committedProjectsForWorkOutsideScope.FirstOrDefault(_ => appliedTreatment.Contains(_.Treatment) &&
+                        var committedProject = committedProjectsForWorkOutsideScope.FirstOrDefault(_ => appliedTreatment.Contains(_.ComputedTreatmentString) &&
                                                 _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);
                         var projectSource = committedProject?.ProjectSource.ToString();                        
                         if (!yearlyCostCommittedProj[yearData.Year].ContainsKey(appliedTreatment))
@@ -203,7 +203,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
                         // Remove from committedProjectsForWorkOutsideScope
                         // Bundled has many treatment names under AppliedTreatment
-                        var toRemove = committedProjectsForWorkOutsideScope.Where(_ => appliedTreatment.Contains(_.Treatment) &&
+                        var toRemove = committedProjectsForWorkOutsideScope.Where(_ => appliedTreatment.Contains(_.ComputedTreatmentString) &&
                                         _.Year == yearData.Year &&
                                         _.ProjectSource.ToString() == section.ProjectSource &&
                                         Math.Round(_.Cost, 0) == Convert.ToDouble(cost));

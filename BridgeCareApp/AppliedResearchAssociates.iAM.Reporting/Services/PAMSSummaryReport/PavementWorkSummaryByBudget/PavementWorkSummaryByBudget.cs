@@ -279,7 +279,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             var committedCost = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix.
                                                 Where(_ => _.BudgetName == summaryModel.BudgetName && _.Year == yearData.Year).
                                                 Sum(bu => bu.AllocatedAmount) ?? 0;
-                            var committedProject = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.Treatment) &&
+                            var committedProject = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.ComputedTreatmentString) &&
                                                 _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);
                             var projectSource = committedProject?.ProjectSource.ToString();
                             if (!yearlyCostCommittedProj[yearData.Year].ContainsKey(appliedTreatment))

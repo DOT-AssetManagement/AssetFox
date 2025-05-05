@@ -26,6 +26,9 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entit
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.TargetConditionGoal;
 using static AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums.TreatmentEnum;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -688,11 +691,27 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
             });
 
+            var stringArrayConverter = new ValueConverter<string[], string>(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<string[]>(v, (JsonSerializerOptions)null)
+            );
+
+            var stringArrayComparer = new ValueComparer<string[]>(
+                (a, b) => a.SequenceEqual(b),
+                a => a == null ? 0 : a.Aggregate(0, (hash, item) => HashCode.Combine(hash, item == null ? 0 : item.GetHashCode())),
+                a => a == null ? null : a.ToArray()
+            );
+
+
             modelBuilder.Entity<CommittedProjectEntity>(entity =>
             {
                 entity.HasIndex(e => e.SimulationId);
 
-                entity.Property(e => e.Name).IsRequired();
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)")
+                    .HasConversion(stringArrayConverter)
+                    .Metadata.SetValueComparer(stringArrayComparer);
 
                 entity.Property(e => e.ShadowForAnyTreatment).IsRequired();
 
