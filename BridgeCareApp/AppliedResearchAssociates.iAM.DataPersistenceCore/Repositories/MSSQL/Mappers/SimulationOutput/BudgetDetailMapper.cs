@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DTOs;
 
@@ -8,11 +9,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 {
     public static class BudgetDetailMapper
     {
-        public static BudgetDetailEntity ToEntity(BudgetDetail budget, Guid simulationYearDetailId)
+        public static BudgetDetailEntity ToEntity(BudgetDetail budget, Guid simulationYearDetailId, int runId)
         {
             var entity = new BudgetDetailEntity
             {
                 Id = Guid.NewGuid(),
+                RunId = runId,
                 SimulationYearDetailId = simulationYearDetailId,
                 BudgetName = budget.BudgetName,
                 AvailableFunding = budget.AvailableFunding,
@@ -20,12 +22,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return entity;
         }
 
-        public static List<BudgetDetailEntity> ToEntityList(List<BudgetDetail> domainList, Guid id)
+        public static List<BudgetDetailEntity> ToEntityList(List<BudgetDetail> domainList, Guid id, int runId)
         {
             var entities = new List<BudgetDetailEntity>();
             foreach (var budget in domainList)
             {
-                var mapBudget = ToEntity(budget, id);
+                var mapBudget = ToEntity(budget, id, runId);
                 entities.Add(mapBudget);
             }
             return entities;

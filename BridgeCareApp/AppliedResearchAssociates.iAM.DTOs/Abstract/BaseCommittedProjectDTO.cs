@@ -39,7 +39,7 @@ namespace AppliedResearchAssociates.iAM.DTOs.Abstract
         /// <remarks>
         /// This treatment does NOT need to exist in a library
         /// </remarks>
-        public string Treatment { get; set; }
+        public string[] Treatment { get; set; }
 
         /// <summary>
         /// FHWA Category for the treatment
@@ -84,6 +84,20 @@ namespace AppliedResearchAssociates.iAM.DTOs.Abstract
         public int ShadowForSameTreatment { get; set; }
 
         public DateTime LastModifiedDate { get; set; }
+
+        public string ComputedTreatmentString
+        {
+            get
+            {
+                if (Treatment == null || Treatment.Length == 0)
+                    return "";
+
+                if (Treatment.Length == 1)
+                    return Treatment[0];
+
+                return "Bundle[" + string.Join("|", Treatment) + "]";
+            }
+        }
 
         /// <summary>
         /// Verifies the LocationsKeys provided result in a valid location for the network type

@@ -8,6 +8,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public Guid AssetDetailId { get; set; }
 
+        public int RunId { get; set; }
+
         public virtual AssetDetailEntity AssetDetail { get; set; }
 
         public string NameOfUnscheduledTreatment { get; set; }

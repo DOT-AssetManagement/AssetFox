@@ -16,6 +16,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public ICollection<CashFlowConsiderationDetailEntity> CashFlowConsiderations { get; set; } = new HashSet<CashFlowConsiderationDetailEntity>();
 
         public string TreatmentName { get; set; }
+        public int RunId { get; set; }
 
         public virtual FundingCalculationInput FundingCalculationInput { get; set; }
 

@@ -38,6 +38,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("ImportExcelSpreadsheet/{dataSourceId}")]
+        [RequestSizeLimit(104857600)]
         [Authorize]
         public async Task<IActionResult> ImportExcelSpreadsheet(
             Guid dataSourceId)

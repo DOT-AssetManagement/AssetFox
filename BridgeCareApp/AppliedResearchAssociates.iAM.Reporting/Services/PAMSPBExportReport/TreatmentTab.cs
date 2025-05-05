@@ -189,7 +189,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             treatmentDataModel.Category = shouldBundleFeasibleTreatments && appliedTreatment.Contains("Bundle") ? PAMSConstants.Bundled : scenarioSelectableTreatmentsDtos.FirstOrDefault(_ => _.Name == appliedTreatment)?.Category.ToString();
 
             // Project Id
-            var committedProject = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.Treatment)
+            var committedProject = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.ComputedTreatmentString)
                                     && _.Year == year.Year
                                     && _.LocationKeys["CRS"] == crs);
             treatmentDataModel.ProjectId = committedProject?.ProjectId?.ToString() ?? string.Empty;

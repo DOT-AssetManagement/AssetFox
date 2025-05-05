@@ -10,5 +10,7 @@ namespace AppliedResearchAssociates.iAM.DTOs
         public IList<AssetSummaryDetailDTO> InitialAssetSummaries { get; set; } = new List<AssetSummaryDetailDTO>();
 
         public IList<SimulationYearDetailDTO> Years { get; set; } = new List<SimulationYearDetailDTO>();
+
+        public int RunId { get; set; }
     }
 }

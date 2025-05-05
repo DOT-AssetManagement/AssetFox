@@ -85,18 +85,17 @@
                                 
                                 <td v-for="header in cpGridHeaders">
                                     <div>
-                                        <v-select v-if="header.key === 'treatment'"
-                                            :items="treatmentSelectItems"
-                                            menu-icon=custom:GhdDownSvg
-                                            class="ghd-down-small"
-                                            density="compact"
-                                            variant="underlined"
-                                            v-model="item.item[header.key]"
-                                            :rules="[inputRules['generalRules'].valueIsNotEmpty]"
-                                            :style="getTreatmentStyle(item.item[header.key])"
-                                            :error-messages="item.item.treatmentErrors"
-                                            @update:model-value="onEditCommittedProjectProperty(item.item,header.key,item.item[header.key])">
-                                        </v-select>
+                                        <div v-if="header.key === 'treatment'" class="treatment-cell-content"> <span class="sm-txt" :style="getTreatmentStyle(item.item.treatment)"> {{ item.item.treatment.join(', ') || 'None' }}
+                                            </span>
+                                            <v-btn
+                                                class="ghd-blue"
+                                                @click="openTreatmentDialog(item.item)"
+                                                flat
+                                                icon
+                                            >
+                                                <img class='img-general' :src="getUrl('assets/icons/edit.svg')"/> 
+                                            </v-btn>
+                                        </div>
                                         <v-select
                                             v-else-if="header.key === 'projectSource'"
                                             :items="projectSourceOptions"
@@ -299,8 +298,15 @@
         v-model="showUploadCompleteDialog"
         :message="dialogMessage"
     />
+    <TreatmentSelectionPopup
+        v-model="showTreatmentDialog"
+        :available-treatments="treatmentSelectItems"
+        :initial-selected-treatments="currentEditingTreatments"
+        @save="handleSaveTreatments"
+    />
 </v-card>
 </template>
+
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import editDialog from '@/shared/modals/Edit-Dialog.vue'
@@ -351,6 +357,7 @@ import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
+import TreatmentSelectionPopup from './committed-project-editor-dialogs/TreatmentSelectionPopup.vue';
 
 
     let store = useStore();
@@ -384,6 +391,10 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
     let inputRules: InputValidationRules = rules;
     let network: Network = clone(emptyNetwork);
     let isAdminTemplateUploaded: Boolean;
+
+    const showTreatmentDialog = ref(false);
+    const currentEditingProjectId = ref<string | null>(null);
+    const currentEditingTreatments = ref<string[]>([]);
     
     const projectSourceMap = new Map<number, string>([
         [0, "None"],
@@ -477,7 +488,7 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
             title: 'Treatment',
             key: 'treatment',
             align: 'left',
-            sortable: true,
+            sortable: false,
             class: '',
             width: '15%',
         },
@@ -742,6 +753,50 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
         };
     }
 
+    function openTreatmentDialog(project: SectionCommittedProjectTableData) {
+        currentEditingProjectId.value = project.id;
+        // Ensure we are working with the actual data, not the table representation if they differ significantly
+        const actualProject = sectionCommittedProjects.value.find(p => p.id === project.id);
+        currentEditingTreatments.value = actualProject ? clone(actualProject.treatment) : []; // Pass current treatments
+        showTreatmentDialog.value = true;
+    }
+
+    // Function to handle saving treatments from the dialog
+    function handleSaveTreatments(newTreatments: string[]) {
+        if (currentEditingProjectId.value) {
+            const projectIndex = sectionCommittedProjects.value.findIndex(p => p.id === currentEditingProjectId.value);
+            if (projectIndex !== -1) {
+            const originalProject = sectionCommittedProjects.value[projectIndex];
+            // Create a new object for reactivity and tracking changes
+            const updatedProject = {
+                ...originalProject,
+                treatment: clone(newTreatments) // Update treatments
+            };
+
+            // Update the main data source
+            sectionCommittedProjects.value.splice(projectIndex, 1, updatedProject);
+
+            // Call the existing update logic (or a modified version)
+            onUpdateRow(originalProject.id, updatedProject); // Track the change
+
+            // Potentially trigger cost/category updates if needed based on new treatments
+            // This part requires careful consideration based on backend capabilities
+            // Maybe call a new backend endpoint? Or recalculate on the frontend if possible?
+            // Example: triggerRecalculation(updatedProject);
+
+            // Refresh the table view if necessary (onPaginationChanged might do this)
+            // onPaginationChanged(); // Consider if needed immediately or handled by onUpdateRow's side effects
+            }
+
+            sectionCommittedProjects.value = [
+                ...sectionCommittedProjects.value
+            ];
+         }
+        // Reset editing state
+        currentEditingProjectId.value = null;
+        currentEditingTreatments.value = [];
+    }
+
     function resetValidationArrays() {
         const arraysToReset = [
             missingTreatments, 
@@ -755,9 +810,9 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 
     function validateImportedData(items: SectionCommittedProject[]) {        
         items.forEach(item => {
-            if (!validTreatmentName(item.treatment)) {
+            /*if (!validTreatmentName(item.treatment)) {
                 missingTreatments.value.push(importedProjectTreatmentName.value);
-            }
+            }*/
 
             if (!validProjectSource(item.projectSource)) {
                 invalidProjectSources.value.push(item.projectSource);
@@ -918,6 +973,7 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
         }
     }
 
+    //Deprecated? TODO: REVIEW AND REMOVE
     function handleTreatmentChange(scp: SectionCommittedProjectTableData, treatmentName: string, row: SectionCommittedProject){
         row.treatment = treatmentName;
         updateCommittedProject(row, treatmentName, 'treatment')  
@@ -984,10 +1040,16 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
      function onEditCommittedProjectProperty(scp: SectionCommittedProjectTableData, property: string, value: any) {
         let row = sectionCommittedProjects.value.find(o => o.id === scp.id);
         if (!isNil(row)) {
+
+            if (property === 'treatment') {
+                console.warn("Direct edit of treatments property triggered, should use dialog.");
+                return; // Prevent direct modification here
+            }
+
             switch (property) {
-                case 'treatment':
+                /*case 'treatment':
                     handleTreatmentChange(scp, value, row);
-                    break;
+                    break;*/
                 case 'keyAttr':
                     handleKeyAttrChange(row, scp, value);
                     break;
@@ -1104,13 +1166,13 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
         if(!isNil(cat))
             value = cat;
         const row: SectionCommittedProjectTableData = {
-            keyAttr: scp.locationKeys[keyattr],
+            keyAttr: scp.locationKeys[keyattr] ?? '',
             year: scp.year,
             cost: scp.cost,
             scenarioBudgetId: scp.scenarioBudgetId? scp.scenarioBudgetId : '',
-            budget: budget? budget.name : 'Empty budget',
-            treatment: scp.treatment,
-            treatmentId: '',
+            budget: budget ? budget.name : (scp.scenarioBudgetId ? 'Invalid Budget' : 'Empty budget'),
+            treatment: scp.treatment ? clone(scp.treatment) : [],
+            treatmentId: '', //possible deprecated
             id: scp.id,
             errors: [],
             projectSourceErrors: [],
@@ -1262,16 +1324,11 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
     }
 
     //Add red boxes round missing treatments
-    const getTreatmentStyle = (treatment: string) => {
-        const treatmentNormalized = treatment.trim().toLowerCase();
+    const getTreatmentStyle = (treatment: string[]) => {
+        const project = currentPage.value.find(p => p.treatment === treatment); // Find the project row
+        const hasErrors = project && project.treatmentErrors && project.treatmentErrors.length > 0;
 
-        const isInMissingTreatments = missingTreatments.value.some(
-            (item: string) => item.trim().toLowerCase() === treatmentNormalized
-        );
-
-        return isInMissingTreatments
-            ? { border: '1px solid red', padding: '3px' }
-            : {};
+        return hasErrors ? { border: '1px solid red', padding: '3px' } : {};
     };
 
 
@@ -1317,6 +1374,7 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
         return isInvalidCost ? { border: '1px solid red', padding: '3px' } : {};
     };
 
+    //deprecated
     function validTreatmentName(treatment: string) {
         return treatmentSelectItems.value.some(
             (item: string) => item.trim().toLowerCase() === treatment.trim().toLowerCase()
@@ -1342,9 +1400,19 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
     function validateCommittedProjects() {
         currentPage.value.forEach(scp => {
 
+            const treatmentValidationErrors = scp.treatment.flatMap(treatment => {
+                if (!treatmentSelectItems.value.includes(treatment)) { // Check against available treatments
+                    return [`Invalid treatment: ${treatment}`];
+                }
+                return []; // No error for this specific treatment
+            });
+            if (scp.treatment.length === 0) {
+                treatmentValidationErrors.push('At least one treatment must be selected.');
+            }
+
             const errors = {
                 yearErrors: checkYear(scp),
-                treatmentErrors: checkTreatment(scp.treatment),
+                treatmentErrors: treatmentValidationErrors,
                 costErrors: checkCost(scp.cost),
                 projectSourceErrors: checkProjectSource(scp.projectSource),
                 //projectSourceIdErrors: checkProjectSourceId(scp.projectId),
@@ -1384,6 +1452,7 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
         return errors;
     }
 
+    //deprecated
     function checkTreatment(treatment: string) {
         const errors = [];
         if (!validTreatmentName(treatment)) {
@@ -1429,6 +1498,14 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
     }
 
     function updateCommittedProject(row: SectionCommittedProject, value: any, property: string){
+        if (property === 'treatment') {
+            console.warn('updateCommittedProject called directly for treatments. Use dialog flow.');
+            // Ensure value is an array if proceeding
+            if (!Array.isArray(value)) {
+                console.error('Treatments value is not an array!');
+                return;
+            }
+        }
         const updatedRow = setItemPropertyValue(
                     property,
                     value,
@@ -1480,27 +1557,56 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
     }
 
     function onUpdateRow(rowId: string, updatedRow: SectionCommittedProject){
-        updatedRow.cost = +updatedRow.cost.toString().replace(/(\$*)(\,*)/g, '')
-        if(any(propEq('id', rowId), addedRows.value)){
-            const index = addedRows.value.findIndex(item => item.id == updatedRow.id)
-            addedRows.value[index] = updatedRow;
+        updatedRow.cost = +updatedRow.cost.toString().replace(/(\$*)(\,*)/g, '');
+
+        // Check if it's a newly added row
+        const addedIndex = addedRows.value.findIndex(item => item.id === rowId);
+        if (addedIndex !== -1) {
+            addedRows.value[addedIndex] = updatedRow;
+            checkHasUnsavedChanges(); // Check changes after updating added row
             return;
         }
 
-        let mapEntry = updatedRowsMap.get(rowId)
+        // Check against cache/original values
+        let mapEntry = updatedRowsMap.get(rowId);
+        let originalRow: SectionCommittedProject | undefined;
 
-        if(isNil(mapEntry)){
-            const row = rowCache.value.find(r => r.id === rowId);
-            if(!isNil(row) && hasUnsavedChangesCore('', updatedRow, row))
-                updatedRowsMap.set(rowId, [row , updatedRow])
+        if (isNil(mapEntry)) {
+            // Find the original state from the cache when the page loaded
+            originalRow = rowCache.value.find(r => r.id === rowId);
+        } else {
+            // Use the originally stored value from the map
+            originalRow = mapEntry[0];
         }
-        else if(hasUnsavedChangesCore('', updatedRow, mapEntry[0])){
-            mapEntry[1] = updatedRow;
-        }
-        else
-            updatedRowsMap.delete(rowId)
 
-        checkHasUnsavedChanges();
+        if (!isNil(originalRow)) {
+            // Use hasUnsavedChangesCore for comparison - ensure it handles array comparison correctly
+            // Ramda's equals or a deep comparison might be needed if hasUnsavedChangesCore doesn't handle arrays well.
+            // const changed = !R.equals(originalRow, updatedRow); // Example using Ramda equals
+            const changed = hasUnsavedChangesCore('', updatedRow, originalRow); // Assuming this helper handles arrays
+
+            if (changed) {
+                if (isNil(mapEntry)) {
+                    // First change, add to map
+                    updatedRowsMap.set(rowId, [originalRow, updatedRow]);
+                } else {
+                    // Subsequent change, update the 'updated' value
+                    mapEntry[1] = updatedRow;
+                    // Check if it reverted back to original state
+                    if (!hasUnsavedChangesCore('', updatedRow, originalRow)) {
+                    // if (R.equals(originalRow, updatedRow)) { // Example using Ramda equals
+                        updatedRowsMap.delete(rowId); // Remove from map if reverted
+                    }
+                }
+            } else {
+                // If current change makes it identical to original, remove from map
+                if (!isNil(mapEntry)) {
+                    updatedRowsMap.delete(rowId);
+                }
+            }
+        }
+
+        checkHasUnsavedChanges(); // Update unsaved changes flag
     }
 
     function clearChanges(){
@@ -1627,6 +1733,12 @@ justify-content: space-between;
 .ghd-down-small .v-input__icon{
     position: relative;
     top: 2px;
+}
+
+.treatment-cell-content {
+  display: flex;
+  align-items: center; /* Vertically aligns the text and button */
+  gap: 4px; /* Optional: Adds space between text and button */
 }
 
 </style>
