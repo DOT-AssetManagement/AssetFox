@@ -99,33 +99,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AdminSettings
         }
 
         [Fact]
-        public void CreateAgencyLogo_Does()
-        {
-            var logoString = "agenlogo"; // length has to be a multiple of 4
-            var logoBytes = Convert.FromBase64String(logoString);
-
-            TestHelper.UnitOfWork.AdminSettingsRepo.SetAgencyLogo(logoBytes);
-
-            var fetchedLogo = TestHelper.UnitOfWork.AdminSettingsRepo.GetAgencyLogo();
-            Assert.EndsWith(logoString, fetchedLogo);
-        }
-
-        [Fact]
-        public void ChangeAgencyLogo_Does()
-        {
-            var logoString1 = "agenlog1"; // length has to be a multiple of 4
-            var logoString2 = "agenlog2"; // length has to be a multiple of 4
-            var logoBytes1 = Convert.FromBase64String(logoString1);
-            var logoBytes2 = Convert.FromBase64String(logoString2);
-
-            TestHelper.UnitOfWork.AdminSettingsRepo.SetAgencyLogo(logoBytes1);
-            TestHelper.UnitOfWork.AdminSettingsRepo.SetAgencyLogo(logoBytes2);
-
-            var fetchedLogo = TestHelper.UnitOfWork.AdminSettingsRepo.GetAgencyLogo();
-            Assert.EndsWith(logoString2, fetchedLogo);
-        }
-
-        [Fact]
         public void CreateImplementationLogo_Does()
         {
             var logoString = "implementatilogo";

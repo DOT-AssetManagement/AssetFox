@@ -178,7 +178,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             
             // Should be sigle entry?(as we are deleting when running analysis?
             var simulationOutputs = new List<SimulationOutputEntity>();
-            var simulationOutputEntity = dto.SimulationOutput.ToEntity(dto.Id);
+            var simulationOutputEntity = dto.SimulationOutput.ToEntity(dto.Id, dto.SimulationOutput.RunId);
             BaseEntityPropertySetter.SetBaseEntityProperties(simulationOutputEntity, baseEntityProperties);
             simulationOutputs.Add(simulationOutputEntity);
 

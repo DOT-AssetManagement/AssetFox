@@ -11,7 +11,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
     {
         public static TreatmentConsiderationDetailEntity ToEntityWithoutChildren(
             this TreatmentConsiderationDetail domain,
-            Guid assetDetailId)
+            Guid assetDetailId,
+            int runId)
         {
             var id = Guid.NewGuid();
             var entity = new TreatmentConsiderationDetailEntity
@@ -20,18 +21,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 AssetDetailId = assetDetailId,
                 BudgetPriorityLevel = domain.BudgetPriorityLevel,
                 TreatmentName = domain.TreatmentName,
+                RunId = runId
             };
             return entity;
         }
 
         public static List<TreatmentConsiderationDetailEntity> ToEntityList(
             List<TreatmentConsiderationDetail> domainList,
-            Guid assetDetailId)
+            Guid assetDetailId,
+            int runId)
         {
             var entityList = new List<TreatmentConsiderationDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntityWithoutChildren(domain, assetDetailId);
+                var entity = ToEntityWithoutChildren(domain, assetDetailId, runId);
                 entityList.Add(entity);
             }
             return entityList;
@@ -71,22 +74,23 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static void AddToFamily(
             Guid assetDetailId,
             AssetDetailEntityFamily family,
-            List<TreatmentConsiderationDetail> treatmentConsiderations
+            List<TreatmentConsiderationDetail> treatmentConsiderations,
+            int runId
             )
         {
             foreach (var treatmentConsideration in treatmentConsiderations)
             {
-                var entity = ToEntityWithoutChildren(treatmentConsideration, assetDetailId);
+                var entity = ToEntityWithoutChildren(treatmentConsideration, assetDetailId, runId);
                 
-                var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToEntityList(treatmentConsideration.CashFlowConsiderations, entity.Id);
+                var cashFlowConsiderations = CashFlowConsiderationDetailMapper.ToEntityList(treatmentConsideration.CashFlowConsiderations, entity.Id, runId);
                 family.CashFlowConsiderations.AddRange(cashFlowConsiderations);
 
                 // FundingCalculationInput
-                var fundingCalculationInput = FundingCalculationInputMapper.ToEntity(treatmentConsideration.FundingCalculationInput, entity.Id, family);
+                var fundingCalculationInput = FundingCalculationInputMapper.ToEntity(treatmentConsideration.FundingCalculationInput, entity.Id, family, runId);
                 family.FundingCalculationInputs.Add(fundingCalculationInput);
 
                 // FundingCalculationOutput
-                var fundingCalculationOutput = FundingCalculationOutputMapper.ToEntity(treatmentConsideration.FundingCalculationOutput, entity.Id, family);
+                var fundingCalculationOutput = FundingCalculationOutputMapper.ToEntity(treatmentConsideration.FundingCalculationOutput, entity.Id, family, runId);
                 family.FundingCalculationOutputs.Add(fundingCalculationOutput);
 
                 family.TreatmentConsiderations.Add(entity);

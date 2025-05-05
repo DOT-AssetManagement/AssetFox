@@ -418,6 +418,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services
                     }
                 }
             }
+        }        
+
+        public bool IsPrimaryKeyNumberic(Dictionary<string, string> valuePerTextAttribute, Dictionary<string, double> valuePerNumericAttribute, string primaryKey)
+        {            
+            var primaryKeyTextValue = CheckAndGetValue<string>(valuePerTextAttribute, primaryKey);
+            var primaryKeyNumericValue = CheckAndGetValue<double>(valuePerNumericAttribute, primaryKey);
+
+            return string.IsNullOrEmpty(primaryKeyTextValue) && valuePerNumericAttribute != null && primaryKeyNumericValue != default;            
         }
 
         public string ConvertCommittedTreatmentArray(string[] treatments, Guid simulationId)

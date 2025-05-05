@@ -25,7 +25,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet worksheet, SimulationDTO simulationDto, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, bool allowFundingFromMultipleBudgets, Guid networkId)
+        public void Fill(ExcelWorksheet worksheet, SimulationDTO simulationDto, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, bool allowFundingFromMultipleBudgets, Guid networkId, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
         {
             //set default width
             worksheet.DefaultColWidth = 13;
@@ -39,7 +39,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
             ExcelHelper.ApplyColor(worksheet.Cells[headerRow, 1, headerRow, worksheet.Dimension.Columns], headerBGColor);
 
             //add data to cells
-            FillDynamicDataForHeaders(worksheet, simulationDto, reportOutputData, currentCell, shouldBundleFeasibleTreatments, scenarioSelectableTreatmentsDtos, allowFundingFromMultipleBudgets, networkId);
+            FillDynamicDataForHeaders(worksheet, simulationDto, reportOutputData, currentCell, shouldBundleFeasibleTreatments, scenarioSelectableTreatmentsDtos, allowFundingFromMultipleBudgets, networkId, committedProjectList);
 
             //autofit columns
             worksheet.Cells.AutoFitColumns();
@@ -77,6 +77,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                 "TreatmentCause",
                 "Budget",
                 "Category",
+                "Project Id",
 
                 "Offset",
                 "Interstate", 
@@ -117,7 +118,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
             return currentCell;
         }
 
-        private void FillDynamicDataForHeaders(ExcelWorksheet worksheet, SimulationDTO simulationDto, SimulationOutput reportOutputData, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, bool allowFundingFromMultipleBudgets, Guid networkId)
+        private void FillDynamicDataForHeaders(ExcelWorksheet worksheet, SimulationDTO simulationDto, SimulationOutput reportOutputData, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, bool allowFundingFromMultipleBudgets, Guid networkId, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
         {
             var rowNo = currentCell.Row;
             var columnNo = currentCell.Column;
@@ -313,6 +314,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
 
                             worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.Category.ToString() ?? ""; //CATEGORY
 
+                            // Project Id
+                            var committedProject = committedProjectList.FirstOrDefault(_ => assetDetailObject.AppliedTreatment.Contains(_.Treatment)
+                                                    && _.Year == yearObject.Year
+                                                    && _.LocationKeys["BRKEY_"] == brKey.ToString());
+                            worksheet.Cells[rowNo, columnNo++].Value = committedProject?.ProjectId?.ToString() ?? string.Empty;
 
                             var offset = "";
                             if (!string.IsNullOrEmpty(bmsID) && !string.IsNullOrWhiteSpace(bmsID)) {

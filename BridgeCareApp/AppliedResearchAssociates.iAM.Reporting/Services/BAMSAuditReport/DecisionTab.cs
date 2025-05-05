@@ -130,7 +130,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
                 decisionsTreatment.Cost = treatmentOption != null ? treatmentOption.Cost : 0;
                 decisionsTreatment.BCRatio = treatmentOption != null ? treatmentOption.Benefit / treatmentOption.Cost : 0;
                 decisionsTreatment.Benefit = treatmentOption != null ? decisionsTreatment.BCRatio * decisionsTreatment.Cost : 0;
-                decisionsTreatment.Selected = isCashFlowProject ? BAMSAuditReportConstants.CashFlow : (section.AppliedTreatment == treatment ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No);
+                decisionsTreatment.Selected = isCashFlowProject
+                                            ? BAMSAuditReportConstants.CashFlow
+                                            : shouldBundleFeasibleTreatments
+                                                ? (section.AppliedTreatment.Contains(treatment) ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No)
+                                                : (section.AppliedTreatment == treatment ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No);
 
                 // If CF then use obj from keyCashFlowFundingDetails otherwise from section
                 var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
@@ -142,29 +146,37 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
                                               keyCashFlowFundingDetails[brKey] :
                                               section.TreatmentConsiderations ?? new();
 
+                // single treatmentConsideration exists when ShouldBundleFeasibleTreatments is enabled
                 var treatmentConsideration = shouldBundleFeasibleTreatments ?
                                              treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
                                                 _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
-                                                section.AppliedTreatment.Contains(_.TreatmentName)) :
+                                                _.TreatmentName.Contains(treatment)) :
                                              treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
                                                 _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
-                                                _.TreatmentName == section.AppliedTreatment);
+                                                section.AppliedTreatment == _.TreatmentName &&
+                                                _.TreatmentName == treatment);
 
                 // AllocationMatrix includes cash flow funding of future years.
                 var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
                 var amountSpent = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix.
-                                                Where(_ => _.Year == year.Year).Sum(_ => _.AllocatedAmount)
-                                                ?? 0;
+                                    Where(_ => _.Year == year.Year
+                                    && _.TreatmentName == treatment)
+                                    .Sum(_ => _.AllocatedAmount)
+                                    ?? 0;
                 decisionsTreatment.AmountSpent = amountSpent;
                                 
-                var budgetsUsed = allocationMatrix.Where(_ => _.AllocatedAmount > 0 && _.Year == year.Year)
-                                .Select(_ => _.BudgetName).Distinct().ToList()
-                                ?? new();
+                var budgetsUsed = allocationMatrix.Where(_ => _.AllocatedAmount > 0
+                                    && _.Year == year.Year
+                                    && _.TreatmentName == treatment)
+                                    .Select(_ => _.BudgetName).Distinct().ToList()
+                                    ?? new();
                 decisionsTreatment.BudgetsUsed = string.Join(", ", budgetsUsed);
 
-                var budgetStatuses = allocationMatrix.Where(_ => _.AllocatedAmount > 0 && _.Year == year.Year)
-                                    .Select(_ => treatmentConsideration.GetBudgetUsageStatus(_.Year, _.BudgetName, _.TreatmentName).ToString()).Distinct().ToList()
-                                    ?? new();
+                var budgetStatuses = allocationMatrix.Where(_ => _.AllocatedAmount > 0
+                                        && _.Year == year.Year
+                                        && _.TreatmentName == treatment)
+                                        .Select(_ => treatmentConsideration.GetBudgetUsageStatus(_.Year, _.BudgetName, _.TreatmentName).ToString()).Distinct().ToList()
+                                        ?? new();
                 decisionsTreatment.BudgetUsageStatuses = string.Join(", ", budgetStatuses);
 
                 var budgetPriorityLevel = treatmentConsideration?.BudgetPriorityLevel != null ? treatmentConsideration.BudgetPriorityLevel.Value.ToString() : string.Empty;
@@ -173,6 +185,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
                 decisionsTreatments.Add(decisionsTreatment);
             }
             decisionDataModel.DecisionsTreatments = decisionsTreatments;
+
             return decisionDataModel;
         }
 

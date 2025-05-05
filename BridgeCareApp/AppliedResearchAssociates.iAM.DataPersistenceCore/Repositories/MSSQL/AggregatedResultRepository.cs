@@ -89,6 +89,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public List<AggregatedSelectValuesResultDTO> GetAggregatedResultsForAttributeNames(List<string> attributeNames)
         {
             List<AggregatedSelectValuesResultDTO> returnList = new();
+            var networkId = _unitOfWork.AdminSettingsRepo.GetPrimaryNetworkId();
             var uniqueAttributeNames = attributeNames.Distinct().ToList();
             var abbreviatedAttributes = _unitOfWork.Context.Attribute.Where(a => uniqueAttributeNames.Contains(a.Name))
                 .AsNoTracking()
@@ -102,7 +103,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             }
             var attributeIds = attributeNameIdDictionary.Keys.ToList();
             var allAttributeValueDtos = _unitOfWork.Context.AggregatedResult
-                .Where(_ => attributeIds.Contains(_.AttributeId))
+                .Where(_ => attributeIds.Contains(_.AttributeId)
+                 && _.MaintainableAsset.NetworkId == networkId)
                 .Select(e => new
                 {
                     AttributeName = attributeNameIdDictionary[e.AttributeId],

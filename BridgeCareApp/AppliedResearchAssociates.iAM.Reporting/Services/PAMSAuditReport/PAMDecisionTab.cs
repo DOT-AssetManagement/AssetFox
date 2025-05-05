@@ -128,8 +128,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
                 var treatmentOption = section.TreatmentOptions.FirstOrDefault(_ => _.TreatmentName == treatment);
                 decisionsTreatment.CIImprovement = treatmentOption?.ConditionChange;
                 decisionsTreatment.Cost = treatmentOption != null ? treatmentOption.Cost : 0;
-                decisionsTreatment.BCRatio = treatmentOption != null ? treatmentOption.Benefit / treatmentOption.Cost : 0;
-                decisionsTreatment.Selected = isCashFlowProject ? PAMSAuditReportConstants.CashFlow : (section.AppliedTreatment == treatment ? PAMSAuditReportConstants.Yes : PAMSAuditReportConstants.No);
+                decisionsTreatment.BCRatio = treatmentOption != null ? treatmentOption.Benefit / treatmentOption.Cost : 0;                
+                decisionsTreatment.Selected = isCashFlowProject
+                                            ? PAMSAuditReportConstants.CashFlow
+                                            : ShouldBundleFeasibleTreatments
+                                                ? (section.AppliedTreatment.Contains(treatment) ? PAMSAuditReportConstants.Yes : PAMSAuditReportConstants.No)
+                                                : (section.AppliedTreatment == treatment ? PAMSAuditReportConstants.Yes : PAMSAuditReportConstants.No);
 
                 // If CF then use obj from keyCashFlowFundingDetails otherwise from section
                 var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
@@ -141,35 +145,43 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
                                               keyCashFlowFundingDetails[crs] :
                                               section.TreatmentConsiderations ?? new();
 
+                // single treatmentConsideration exists when ShouldBundleFeasibleTreatments is enabled
                 var treatmentConsideration = ShouldBundleFeasibleTreatments ?
                                      treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
                                         _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
-                                        section.AppliedTreatment.Contains(_.TreatmentName)) :
+                                        _.TreatmentName.Contains(treatment)) :
                                      treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
                                         _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == year.Year) &&
-                                        _.TreatmentName == section.AppliedTreatment);
+                                        section.AppliedTreatment == _.TreatmentName &&
+                                        _.TreatmentName == treatment);
 
                 // AllocationMatrix includes cash flow funding of future years.
                 var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
                 var amountSpent = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix.
-                                                Where(_ => _.Year == year.Year).Sum(_ => _.AllocatedAmount)
-                                                ?? 0;
+                                    Where(_ => _.Year == year.Year
+                                    && _.TreatmentName == treatment)
+                                    .Sum(_ => _.AllocatedAmount)
+                                    ?? 0;
                 decisionsTreatment.AmountSpent = amountSpent;
 
-                var budgetsUsed = allocationMatrix.Where(_ => _.AllocatedAmount > 0 && _.Year == year.Year)
-                                .Select(_ => _.BudgetName).Distinct().ToList()
-                                ?? new();
+                var budgetsUsed = allocationMatrix.Where(_ => _.AllocatedAmount > 0
+                                    && _.Year == year.Year
+                                    && _.TreatmentName == treatment)
+                                    .Select(_ => _.BudgetName).Distinct().ToList()
+                                    ?? new();
                 decisionsTreatment.BudgetsUsed = string.Join(", ", budgetsUsed);
 
-                var budgetStatuses = allocationMatrix.Where(_ => _.AllocatedAmount > 0 && _.Year == year.Year)
-                                    .Select(_ => treatmentConsideration.GetBudgetUsageStatus(_.Year, _.BudgetName, _.TreatmentName).ToString()).Distinct().ToList()
-                                    ?? new();
+                var budgetStatuses = allocationMatrix.Where(_ => _.AllocatedAmount > 0
+                                        && _.Year == year.Year
+                                        && _.TreatmentName == treatment)
+                                        .Select(_ => treatmentConsideration.GetBudgetUsageStatus(_.Year, _.BudgetName, _.TreatmentName).ToString()).Distinct().ToList()
+                                        ?? new();
                 decisionsTreatment.BudgetUsageStatuses = string.Join(", ", budgetStatuses);
 
                 decisionsTreatments.Add(decisionsTreatment);
             }
             decisionDataModel.DecisionsTreatments = decisionsTreatments;
-
+                        
             if(ShouldBundleFeasibleTreatments == true)
             {
                 // Aggregated
@@ -241,6 +253,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
                 decisionsAggregated.Add(decisionsAggregate);
                 decisionDataModel.DecisionsAggregated = decisionsAggregated;
             }
+
             return decisionDataModel;
         }
 
@@ -253,7 +266,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             };
 
             // Current
-            var currentAttributesValues = new List<double>();
+            var currentAttributesValues = new List<double>();            
             for (int index = 0; index < currentAttributes.Count - 1; index++)
             {
                 var attributeValue = CheckGetValue(section.ValuePerNumericAttribute, currentAttributes.ElementAt(index));

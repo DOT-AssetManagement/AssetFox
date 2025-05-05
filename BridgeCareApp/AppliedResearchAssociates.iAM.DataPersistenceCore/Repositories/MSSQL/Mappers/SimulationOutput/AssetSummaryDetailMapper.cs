@@ -9,12 +9,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 {
     public static class AssetSummaryDetailMapper
     {
-        public static AssetSummaryDetailEntityFamily ToEntityLists(List<AssetSummaryDetail> domainList, Guid simulationOutputId, Dictionary<string, Guid> attributeIdLookup)
+        public static AssetSummaryDetailEntityFamily ToEntityLists(List<AssetSummaryDetail> domainList, Guid simulationOutputId, Dictionary<string, Guid> attributeIdLookup, int simulationRunId)
         {
             var family = new AssetSummaryDetailEntityFamily();
             foreach (var domain in domainList)
             {
-                AddToFamily(family, domain, simulationOutputId, attributeIdLookup);
+                AddToFamily(family, domain, simulationOutputId, attributeIdLookup, simulationRunId);
             }
             return family;
         }
@@ -23,24 +23,28 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             AssetSummaryDetailEntityFamily family,
             AssetSummaryDetail domain,
             Guid simulationOutputId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup,
+            int runId)
         {
             var id = Guid.NewGuid();
             var mapNumericValues = AssetSummaryDetailValueMapper.ToNumericEntityList(
                 id,
                 domain.ValuePerNumericAttribute,
-                attributeIdLookup);
+                attributeIdLookup,
+                runId);
             family.AssetSummaryDetailValues.AddRange(mapNumericValues);
             var mapTextValues = AssetSummaryDetailValueMapper.ToTextEntityList(
                 id,
                 domain.ValuePerTextAttribute,
-                attributeIdLookup);
+                attributeIdLookup,
+                runId);
             family.AssetSummaryDetailValues.AddRange(mapTextValues);
             var entity = new AssetSummaryDetailEntity
             {
                 Id = id,
                 SimulationOutputId = simulationOutputId,
                 MaintainableAssetId = domain.AssetId,
+                RunId = runId
             };
             family.AssetSummaryDetails.Add(entity);
         }
@@ -83,7 +87,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return dto;
         }
 
-        public static AssetSummaryDetailEntity ToEntity(this AssetSummaryDetailDTO assetSummaryDetailDto, Guid simulationOutputId)
+        public static AssetSummaryDetailEntity ToEntity(this AssetSummaryDetailDTO assetSummaryDetailDto, Guid simulationOutputId, int simulationRunId)
         {
             var assetSummaryDetailId = assetSummaryDetailDto.Id;
 
@@ -91,6 +95,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 Id = assetSummaryDetailId,
                 SimulationOutputId = simulationOutputId,
+                RunId = simulationRunId,
                 MaintainableAssetId = assetSummaryDetailDto.MaintainableAssetId,
                 AssetSummaryDetailValuesIntId = assetSummaryDetailDto.AssetSummaryDetailValuesIntId.Select(_ => _.ToEntity(assetSummaryDetailId)).ToList()
             };

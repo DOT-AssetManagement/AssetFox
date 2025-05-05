@@ -19,5 +19,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public double? RemainingLife { get; set; }
 
         public string TreatmentName { get; set; }
+
+        public int RunId { get; set; }
     }
 }

@@ -52,22 +52,24 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 Id = entity.Id,
                 InitialConditionOfNetwork = entity.InitialConditionOfNetwork,
-                InitialAssetSummaries = entity.InitialAssetSummaries.Select(_ => _.ToDto()).ToList()                
+                InitialAssetSummaries = entity.InitialAssetSummaries.Select(_ => _.ToDto()).ToList(),
+                RunId = entity.RunId,
             };
 
             return simulationOutput;
         }
 
-        internal static SimulationOutputEntity ToEntity(this SimulationOutputDTO simulationOutputDto, Guid simulationId)
+        internal static SimulationOutputEntity ToEntity(this SimulationOutputDTO simulationOutputDto, Guid simulationId, int simulationRunId)
         {
             var simulationOutputId = simulationOutputDto.Id;
 
             return new SimulationOutputEntity
             {
                 Id = simulationOutputId,
+                RunId = simulationRunId,
                 SimulationId = simulationId,
                 InitialConditionOfNetwork = simulationOutputDto.InitialConditionOfNetwork,
-                InitialAssetSummaries = simulationOutputDto.InitialAssetSummaries.Select(_ => _.ToEntity(simulationOutputId)).ToList(),
+                InitialAssetSummaries = simulationOutputDto.InitialAssetSummaries.Select(_ => _.ToEntity(simulationOutputId, simulationRunId)).ToList(),
                 Years = simulationOutputDto.Years.Select(_ => _.ToEntity(simulationOutputId)).ToList()
             };
         }

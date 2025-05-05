@@ -45,7 +45,8 @@ namespace BridgeCareCoreTests.Tests
                 contextAccessor.Object,
                 claimHelper.Object,               
                 completeSimulationCloningService.Object,
-                generalWorkQueueService.Object
+                generalWorkQueueService.Object,
+                null
                 );
             return controller;
         }
