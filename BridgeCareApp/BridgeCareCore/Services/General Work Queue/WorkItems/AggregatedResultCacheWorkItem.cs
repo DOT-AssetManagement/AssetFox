@@ -16,6 +16,7 @@ using Microsoft.Graph.Models;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.Common;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 
 namespace BridgeCareCore.Services
 {
@@ -56,26 +57,34 @@ namespace BridgeCareCore.Services
             logger.Information("Starting aggregated result value cache work item");
             var attributeRepository = unitOfWork.AttributeRepo;
             var aggregatedResultRepository = unitOfWork.AggregatedResultRepo;
-            var allAttributes = attributeRepository.GetAttributes();
-            var allNames = allAttributes.Select(a => a.Name).ToList();
-            var cache = scope.ServiceProvider.GetRequiredService<IAggregatedSelectValuesResultDtoCache>();
-            var tooBig = cache.AttributesTooBigToCache;
-            var attributesToCache = allNames.Except(tooBig).ToList();
-            var batches = new List<List<string>>();
-            var batchSize = 10;
-            while (attributesToCache.Any())
+            var primaryNetwork = unitOfWork.AdminSettingsRepo.GetPrimaryNetworkId();
+            if (primaryNetwork == null)
             {
-                var batch = attributesToCache.Take(batchSize)
-                    .ToList();
-                batches.Add(batch);
-                attributesToCache = attributesToCache.Skip(batchSize).ToList();
+                logger.Information("No primary network defined. Aborting cache job.");
             }
-            foreach (var batch in batches)
+            else 
             {
-                var allDtos = aggregatedResultRepository.GetAggregatedResultsForAttributeNames(batch);
-                foreach (var dto in allDtos)
+                var allAttributes = attributeRepository.GetAttributes();
+                var allNames = allAttributes.Select(a => a.Name).ToList();
+                var cache = scope.ServiceProvider.GetRequiredService<IAggregatedSelectValuesResultDtoCache>();
+                var tooBig = cache.AttributesTooBigToCache;
+                var attributesToCache = allNames.Except(tooBig).ToList();
+                var batches = new List<List<string>>();
+                var batchSize = 10;
+                while (attributesToCache.Any())
                 {
-                    cache.SaveToCache(dto);
+                    var batch = attributesToCache.Take(batchSize)
+                        .ToList();
+                    batches.Add(batch);
+                    attributesToCache = attributesToCache.Skip(batchSize).ToList();
+                }
+                foreach (var batch in batches)
+                {
+                    var allDtos = aggregatedResultRepository.GetAggregatedResultsForAttributeNames(batch);
+                    foreach (var dto in allDtos)
+                    {
+                        cache.SaveToCache(dto);
+                    }
                 }
             }
         }

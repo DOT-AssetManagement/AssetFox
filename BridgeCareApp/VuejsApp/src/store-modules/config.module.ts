@@ -10,6 +10,10 @@ export interface Config {
   clientId: string;
   redirectUri: string;
   securityType: string;
+  logos: {
+    agencyFilename: string;
+    implementationFilename: string;
+};
 }
 
 const state = {
@@ -30,6 +34,9 @@ const actions =  {
           throw new Error('Failed to load config.json');
         }
         const config: Config = await response.json();
+        if (!config.logos || typeof config.logos.agencyFilename !== 'string' || typeof config.logos.implementationFilename !== 'string') {
+          console.warn('Config.json loaded but missing or invalid "logos" structure.');
+        }
         commit('setConfigMutator', config);
       } catch (error) {
         console.error('Error loading config:', error);

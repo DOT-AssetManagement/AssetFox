@@ -67,61 +67,6 @@ namespace BridgeCareCore.Controllers
         }
 
         [HttpGet]
-        [Route("GetAgencyLogo")]
-        public async Task<IActionResult> GetAgencyLogo()
-        {
-            try
-            {
-                var result = await Task.Factory.StartNew(() => UnitOfWork.AdminSettingsRepo.GetAgencyLogo());
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{AdminSiteSettingsError}::GetAgencyLogo - {e.Message}", e);
-                return Ok();
-            }
-        }
-
-        [HttpPost]
-        [Route("SetAgencyLogo")]
-        [Authorize(Policy = Policy.ModifyAdminSiteSettings)]
-        public async Task<IActionResult> SetAgencyLogo()
-        {
-            try
-            {
-                var files = HttpContext.Request.Form.Files[0];
-                byte[] buffer;
-                if (!ContextAccessor.HttpContext.Request.HasFormContentType)
-                    throw new ConstraintException("Request MIME type is invalid.");
-                if (ContextAccessor.HttpContext.Request.Form.Files.Count < 1)
-                    throw new ConstraintException("Attributes file not found.");
-                if (files.ContentType == "image/svg+xml")
-                {
-                    using (var MemoryStream = new MemoryStream())
-                    {
-                        await
-                        ContextAccessor.HttpContext.Request.Form.Files[0].CopyToAsync(MemoryStream);
-                        buffer = MemoryStream.ToArray();
-                    }
-                    await Task.Factory.StartNew(() => UnitOfWork.AdminSettingsRepo.SetAgencyLogo(buffer));
-                }
-                else
-                {
-                    Image logo = Image.FromStream(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
-                    await Task.Factory.StartNew(() => UnitOfWork.AdminSettingsRepo.SetAgencyLogo(logo,files.ContentType.ToString()));
-                }
-                //https://stackoverflow.com/questions/8848725/asp-net-c-sharp-convert-filestream-to-image
-                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastTaskCompleted, "Successfully Updated Agency Logo");
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{AdminSiteSettingsError}::SetAgencyLogo - {e.Message}", e);
-                return Ok();
-            }
-        }
-
-        [HttpGet]
         [Route("GetImplementationLogo")]
         public async Task<IActionResult> GetImplementationLogo()
         {
