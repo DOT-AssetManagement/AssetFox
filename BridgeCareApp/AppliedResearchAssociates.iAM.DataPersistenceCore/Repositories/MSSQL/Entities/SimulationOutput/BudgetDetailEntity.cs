@@ -6,6 +6,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
     {
         public Guid Id { get; set; }
 
+        public int RunId { get; set; }
+
         public Guid SimulationYearDetailId { get; set; }
 
         public virtual SimulationYearDetailEntity SimulationYearDetail { get; set; }    

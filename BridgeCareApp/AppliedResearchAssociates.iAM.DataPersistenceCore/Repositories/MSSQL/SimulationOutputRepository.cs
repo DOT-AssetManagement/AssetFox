@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.Common.Logging;
@@ -18,9 +20,12 @@ using EFCore.BulkExtensions;
 using Humanizer;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 using FundingCalculationInput = AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput;
 using FundingCalculationOutput = AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput;
 
@@ -36,15 +41,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public const int AssetLoadBatchSize = 2000;
         public const int AssetDetailSaveBatchSize = 100000;
         public const string AssetDetailSaveOverrideBatchSizeKey = "AssetDetailBatchSizeOverrideForValueSave";
+        private readonly ILog _log;
 
-        public SimulationOutputRepository(UnitOfDataPersistenceWork unitOfWork) => _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        public SimulationOutputRepository(UnitOfDataPersistenceWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        }
 
         public void CreateSimulationOutputViaRelational(Guid simulationId, SimulationOutput simulationOutput,
             IWorkQueueLog loggerForUserInfo = null, ILog loggerForTechnicalInfo = null, CancellationToken? cancellationToken = null)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             loggerForTechnicalInfo ??= new DoNotLog();
             loggerForUserInfo ??= new DoNothingWorkQueueLog();
             loggerForUserInfo.UpdateWorkQueueStatus("Preparing to save to database");
+            var _log = new DoLog();
 
             if (ShouldHackSaveOutputToFile)
             {
@@ -57,18 +69,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var simulationMemos = EventMemoModelLists.GetInstance("Simulation");
             _ = simulationMemos.Mark("Starting save");
             var startMemo = saveMemos.MarkInformation("Starting save", loggerForTechnicalInfo);
+
+            stopwatch.Stop();
+            _log.Information($"Starting sim save process. {stopwatch.ElapsedMilliseconds}ms");
+            stopwatch.Start();
+
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
                 throw new RowNotInTableException("No simulation found for given scenario.");
             }
 
-            _unitOfWork.BeginTransaction();
-
-            // Once we are inside the transaction, there is not much value in adding logs to the
-            // user logger. The problem is that these are often communicated to the user via the database.
-            // But the database won't update until the transaction is completed. Therefore,
-            // adding user logs about the transaction's progress will likely just cause confusion
-            // about why these logs are sometimes not appearing in the UI.
             var simulationEntity = _unitOfWork.Context.Simulation.AsNoTracking()
                 .Single(_ => _.Id == simulationId);
 
@@ -84,6 +94,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 attributeIdLookup[attribute.Name] = attribute.Id;
             }
 
+            int currentSimulationRunId = -1; // Initialize
+
             try
             {
                 if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
@@ -92,14 +104,47 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     return;
                 }
 
-                // delete existing simulation outputs
-                var toDelete = _unitOfWork.Context.SimulationOutput.Where(_ => _.SimulationId == simulationId).Select(_ => _.Id).ToList();
-                DeleteSimulationOutputs(toDelete);
-                _ = _unitOfWork.Context.SaveChanges();
+                // --- Step 1: Handle Existing Data & Get Old Run ID (if any) ---
+                int? oldSimulationRunId = null;
+                var existingOutputEntity = _unitOfWork.Context.SimulationOutput
+                    .SingleOrDefault(so => so.SimulationId == simulationId); // Find based on logical ID
 
-                var simulationOutputEntity = SimulationOutputMapper.ToEntityWithoutAssetsOrYearDetails(simulationOutput, simulationId, attributeIdLookup);
-                _ = _unitOfWork.Context.Add(simulationOutputEntity);
-                _ = _unitOfWork.Context.SaveChanges();
+                if (existingOutputEntity != null)
+                {
+                    oldSimulationRunId = existingOutputEntity.RunId;
+                    _log.Information($"Found existing data for SimulationId {simulationId} with SimulationRunId {oldSimulationRunId}. Preparing to remove.");
+
+                    // --- Step 2: Delete Old Data using SWITCH OUT ---
+                    if (oldSimulationRunId.HasValue)
+                    {
+                        DeleteSimulationDataByRunId(oldSimulationRunId.Value, _log);
+                        _log.Information($"Switched out data for old SimulationRunId {oldSimulationRunId}.");
+
+                        // Remove the old SimulationOutput record itself
+                       // _unitOfWork.Context.SimulationOutput.Remove(existingOutputEntity);
+                       //_unitOfWork.Context.SaveChanges(); // Commit the removal of the old record
+                       // _log.Information($"Removed old SimulationOutput record for SimulationRunId {oldSimulationRunId}.");
+                    }
+                }
+
+                // --- Step 3: Insert New SimulationOutput Record & Get NEW SimulationRunId ---
+                loggerForUserInfo.UpdateWorkQueueStatus("Saving simulation header...");
+                var simulationOutputEntity = SimulationOutputMapper.ToEntityWithoutAssetsOrYearDetails(simulationOutput, simulationId, attributeIdLookup); // Pass the logical simulationId
+
+                // make sure there IS a free partition BEFORE we insert root row
+                _unitOfWork.Context.Database.ExecuteSqlRaw("EXEC dbo.usp_EnsureNextRunIdHasPartition;");
+
+                _unitOfWork.Context.SimulationOutput.Add(simulationOutputEntity);
+                _unitOfWork.Context.SaveChanges(); // Save to generate the IDENTITY value
+
+                currentSimulationRunId = simulationOutputEntity.RunId; // RETRIEVE THE GENERATED ID
+                if (currentSimulationRunId <= 0) // Basic validation
+                {
+                    throw new InvalidOperationException("Failed to retrieve a valid SimulationRunId after insert.");
+                }
+                _log.Information($"Created new SimulationOutput record for SimulationId {simulationId} with RunId {currentSimulationRunId}.");
+
+
 
                 var configuredBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetDetailSaveOverrideBatchSizeKey);
                 var batchSize = configuredBatchSize ?? AssetDetailSaveBatchSize;
@@ -107,69 +152,183 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var assetSummaries = simulationOutput.InitialAssetSummaries;
                 _ = saveMemos.Mark("assetSummaries");
 
-                var family = AssetSummaryDetailMapper.ToEntityLists(assetSummaries, simulationOutputEntity.Id, attributeIdLookup);
-                _unitOfWork.Context.AddAll(family.AssetSummaryDetails, batchSize: batchSize);
+                var family = AssetSummaryDetailMapper.ToEntityLists(assetSummaries, simulationOutputEntity.Id, attributeIdLookup, currentSimulationRunId);
+
+                PrepareStagingTable("AssetSummaryDetail");
+                _unitOfWork.Context.BulkInsert(family.AssetSummaryDetails, createConfig("AssetSummaryDetail_Staging", batchSize));
+                //_unitOfWork.Context.SaveChanges();
                 _ = simulationMemos.Mark("assetSummaryDetails");
 
-                _unitOfWork.Context.AddAll(family.AssetSummaryDetailValues, batchSize: batchSize);
-                _= saveMemos.Mark("assetSummaryDetailValues");
-                _unitOfWork.Commit();
+                int tempValueIdCounter = 1;
+                foreach (var valueEntity in family.AssetSummaryDetailValues)
+                {
+                    // Assign a temporary, batch-unique ID
+                    valueEntity.Id = tempValueIdCounter++;
+                }
+                _log.Debug($"Assigned temporary IDs to {family.AssetSummaryDetailValues.Count} AssetSummaryDetailValueIntId entities.");
+
+                PrepareStagingTable("AssetSummaryDetailValueIntId");
+                _unitOfWork.Context.BulkInsert(family.AssetSummaryDetailValues, createConfig("AssetSummaryDetailValueIntId_Staging", batchSize));
+                //_unitOfWork.Context.SaveChanges();
+                _ = saveMemos.Mark("assetSummaryDetailValues");
+
+                stopwatch.Stop();
+                _log.Information($"Finished Initial Asset Summary save. Beginning Years save. {stopwatch.ElapsedMilliseconds}ms");
+                stopwatch.Start();
+
+                PrepareStagingTable("SimulationYearDetail");
+                PrepareStagingTable("AssetDetail");
+                PrepareStagingTable("AssetDetailValueIntId");
+                PrepareStagingTable("TreatmentOptionDetail");
+                PrepareStagingTable("TreatmentRejectionDetail");
+                PrepareStagingTable("TreatmentSchedulingCollisionDetail");
+                PrepareStagingTable("TreatmentConsiderationDetail");
+                PrepareStagingTable("FundingCalculationInput");
+                PrepareStagingTable("BudgetToSpend");
+                PrepareStagingTable("FundingCalculationOutput");
+                PrepareStagingTable("Allocation");
+                PrepareStagingTable("CashFlowConsiderationDetail");
+
+                //reset for year detail values
+                tempValueIdCounter = 1;
 
                 foreach (var year in simulationOutput.Years)
                 {
                     loggerForUserInfo.UpdateWorkQueueStatus($"Saving year {year.Year}");
-                    _unitOfWork.BeginTransaction();
                     if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                     {
                         _unitOfWork.Rollback();
                         return;
                     }
+                    stopwatch.Stop();
+                    _log.Information($"Starting save for {year.Year}. {stopwatch.ElapsedMilliseconds}ms");
+                    stopwatch.Start();
+
                     var yearMemo = saveMemos.MarkInformation($"Y{year.Year}", loggerForTechnicalInfo);
-                    var yearDetail = SimulationYearDetailMapper.ToEntityWithoutAssets(year, simulationOutputEntity.Id, attributeIdLookup);
-                    _ = _unitOfWork.Context.Add(yearDetail);
+                    var yearDetail = SimulationYearDetailMapper.ToEntityWithoutAssets(year, simulationOutputEntity.Id, attributeIdLookup, currentSimulationRunId);
+
+                    _unitOfWork.Context.BulkInsert(new List<SimulationYearDetailEntity> { yearDetail }, createConfig("SimulationYearDetail_Staging", batchSize));
+
+                    _unitOfWork.Context.BulkInsert(yearDetail.Budgets, createConfig("BudgetDetail_Staging", batchSize));
+                    _ = saveMemos.Mark($" {yearDetail.Budgets.Count} budgets");
+
+                    _unitOfWork.Context.BulkInsert(yearDetail.DeficientConditionGoals, createConfig("DeficientConditionGoalDetail_Staging", batchSize));
+                    _ = saveMemos.Mark($" {yearDetail.DeficientConditionGoals.Count} deficientConditionGoals");
+
+                    _unitOfWork.Context.BulkInsert(yearDetail.TargetConditionGoals, createConfig("TargetConditionGoalDetail_Staging", batchSize));
+                    _ = saveMemos.Mark($" {yearDetail.TargetConditionGoals.Count} targetConditionGoals");
+
 
                     var assets = year.Assets;
-                    var assetFamily = AssetDetailMapper.ToEntityFamily(assets, yearDetail.Id, attributeIdLookup);
-
-                    _unitOfWork.Context.AddAll(assetFamily.AssetDetails, batchSize: batchSize);
+                    var assetFamily = AssetDetailMapper.ToEntityFamily(assets, yearDetail.Id, attributeIdLookup, currentSimulationRunId);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.AssetDetails, createConfig("AssetDetail_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.AssetDetails.Count} assetDetails");
 
-                    _unitOfWork.Context.AddAll(assetFamily.AssetDetailValues, batchSize: batchSize);
+                    foreach (var valueEntity in assetFamily.AssetDetailValues)
+                    {
+                        // Assign a temporary, batch-unique ID
+                        valueEntity.Id = tempValueIdCounter++;
+                    }
+                    _log.Debug($"Assigned temporary IDs to {family.AssetSummaryDetailValues.Count} AssetDetailValueIntId entities.");
+
+
+                    _unitOfWork.Context.BulkInsert(assetFamily.AssetDetailValues, createConfig("AssetDetailValueIntId_Staging", batchSize));
                     _ =saveMemos.Mark($" {assetFamily.AssetDetailValues.Count} assetDetailValues batchSize: {batchSize}");
-
-                    _unitOfWork.Context.AddAll(assetFamily.TreatmentOptions, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.TreatmentOptions, createConfig("TreatmentOptionDetail_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.TreatmentOptions.Count} treatmentOptions");
-
-                    _unitOfWork.Context.AddAll(assetFamily.TreatmentRejections, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.TreatmentRejections, createConfig("TreatmentRejectionDetail_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.TreatmentRejections.Count} treatmentRejections");
-
-                    _unitOfWork.Context.AddAll(assetFamily.TreatmentSchedulingCollisions, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.TreatmentSchedulingCollisions, createConfig("TreatmentSchedulingCollisionDetail_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.TreatmentSchedulingCollisions.Count} treatmentSchedulingCollisions");
-
-                    _unitOfWork.Context.AddAll(assetFamily.TreatmentConsiderations, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.TreatmentConsiderations, createConfig("TreatmentConsiderationDetail_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.TreatmentConsiderations.Count} treatmentConsiderations");
-                                        
-                    _unitOfWork.Context.AddAll(assetFamily.FundingCalculationInputs, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.FundingCalculationInputs, createConfig("FundingCalculationInput_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.FundingCalculationInputs.Count} fundingCalculationInputs");
-
-                    _unitOfWork.Context.AddAll(assetFamily.CurrentBudgetsToSpend, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.CurrentBudgetsToSpend, createConfig("BudgetToSpend_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.CurrentBudgetsToSpend.Count} currentBudgetsToSpend");
-
-                    _unitOfWork.Context.AddAll(assetFamily.FundingCalculationOutputs, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.FundingCalculationOutputs, createConfig("FundingCalculationOutput_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.FundingCalculationOutputs.Count} fundingCalculationOutputs");
-
-                    _unitOfWork.Context.AddAll(assetFamily.AllocationMatrix, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.AllocationMatrix, createConfig("Allocation_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.AllocationMatrix.Count} allocationMatrix");
-
-                    _unitOfWork.Context.AddAll(assetFamily.CashFlowConsiderations, batchSize: batchSize);
+                    
+                    _unitOfWork.Context.BulkInsert(assetFamily.CashFlowConsiderations, createConfig("CashFlowConsiderationDetail_Staging", batchSize));
                     _ = saveMemos.Mark($" {assetFamily.CashFlowConsiderations.Count} cashFlowConsiderations");
 
-                    _unitOfWork.Commit();
-                    _ = saveMemos.Mark(" Committed");
+                    stopwatch.Stop();
+                    _log.Information($"Finished Saving {year.Year}. {stopwatch.ElapsedMilliseconds}ms");
+                    stopwatch.Start();
 
                     _unitOfWork.Context.ChangeTracker.Clear();
                     _ = saveMemos.Mark(" Cleared ChangeTracker");
                 }
+
+                stopwatch.Stop();
+                _log.Information($"Starting switch in from staging. {stopwatch.ElapsedMilliseconds}ms");
+                stopwatch.Start();
+
+                string[] order =
+                {
+                    "dbo.AssetSummaryDetail",
+                    "dbo.AssetSummaryDetailValueIntId",
+                    "dbo.SimulationYearDetail",
+                    "dbo.AssetDetail",
+                    "dbo.AssetDetailValueIntId",
+                    "dbo.TreatmentOptionDetail",
+                    "dbo.TreatmentRejectionDetail",
+                    "dbo.TreatmentSchedulingCollisionDetail",
+                    "dbo.TreatmentConsiderationDetail",
+                    "dbo.FundingCalculationInput",
+                    "dbo.FundingCalculationOutput",
+                    "dbo.BudgetToSpend",
+                    "dbo.Allocation",
+                    "dbo.CashFlowConsiderationDetail",
+                    "dbo.BudgetDetail",
+                    "dbo.DeficientConditionGoalDetail",
+                    "dbo.TargetConditionGoalDetail"
+                };
+
+
+                _unitOfWork.BeginTransaction(); // Start a single transaction for the entire copy process
+                var originalTimeout = _unitOfWork.Context.Database.GetCommandTimeout();
+                _unitOfWork.Context.Database.SetCommandTimeout(300); // e.g., 30 minutes timeout for the copy operations
+
+                try
+                {
+                    foreach (var liveTable in order)
+                    {
+                        string stagingTable = liveTable + "_Staging"; // Assuming this naming convention
+                                                                      // You MUST implement this helper method or SP call
+                        SwitchInPartition(stagingTable, liveTable, currentSimulationRunId);
+                        _log.Information($"Switched partition for {liveTable}");
+                        // Optional: Add cancellation check here too
+                    }
+
+                    _unitOfWork.Commit();
+                    _log.Information($"Partition Switch In committed successfully for RunId {currentSimulationRunId}.");
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Error during partition switch for RunId {currentSimulationRunId}. Rolling back.");
+                    _unitOfWork.Rollback();
+                    throw; // Re-throw
+                }
+                finally
+                {
+                    _unitOfWork.Context.Database.SetCommandTimeout(originalTimeout);
+                }
+
+                stopwatch.Stop();
+                _log.Information($"Partition switching complete. Time: {stopwatch.ElapsedMilliseconds}ms.");
+
 
                 _ = saveMemos.MarkInformation("Save complete", loggerForTechnicalInfo);
                 _ = simulationMemos.Mark("Save complete");
@@ -187,34 +346,218 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             {
                 var error = saveMemos.Mark($"Save failed with exception {ex.Message}");
                 loggerForTechnicalInfo.Error(error);
-                _unitOfWork.Rollback();
+                //_unitOfWork.Rollback();
                 throw;
+            }
+
+            BulkConfig createConfig(string heapTable, int batchSize)
+            {
+                var cfg = new BulkConfig()
+                {
+                    BatchSize = batchSize,
+                    PreserveInsertOrder = false,
+                    SqlBulkCopyOptions = EFCore.BulkExtensions.SqlBulkCopyOptions.TableLock,
+                    BulkCopyTimeout = 1800,
+                    CustomDestinationTableName = $"dbo.{ heapTable }",
+                    CalculateStats = true
+                };
+
+                return cfg;
+            }
+
+            void PrepareStagingTable(string tableName)
+            {
+
+                var stagingTableName = tableName + "_Staging";
+                string truncateSql = $"TRUNCATE TABLE dbo.{stagingTableName};";
+                try
+                {
+                    // Use ExecuteSqlRaw for DDL
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(truncateSql);
+                    _log.Debug($"Truncated staging table {stagingTableName}");
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Error truncating staging table {stagingTableName}. SQL attempted: {truncateSql}");
+                    throw; // Re-throw truncation errors, as we can't proceed
+                }
+
+                // Drop existing check constraint (assuming a fixed name)
+                string constraintName = $"CK_{stagingTableName}_Partition"; // Need consistent naming
+                string dropConstraintSql = $"ALTER TABLE {stagingTableName} DROP CONSTRAINT {constraintName};";
+                try
+                {
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(dropConstraintSql);
+                    _log.Debug($"Dropped existing constraint {constraintName} on {stagingTableName}.");
+                }
+                // SQL Server error numbers for "constraint does not exist"
+                catch (SqlException ex) when (ex.Number == 3727 || ex.Number == 3728)
+                {
+                    _log.Debug($"Constraint {constraintName} not found on {stagingTableName} (or permission issue dropping), continuing assuming it's absent.");
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Unexpected error dropping constraint {constraintName} on {stagingTableName}. SQL attempted: {dropConstraintSql} | Error Message: {ex}");
+                    // Decide if this is critical - often it isn't if the goal is just to add the new one.
+                    // If it IS critical, uncomment the next line:
+                    // throw;
+                }
+
+                // Add new check constraint for the current runId
+                string addConstraintSql = $"ALTER TABLE {stagingTableName} ADD CONSTRAINT {constraintName} CHECK (RunId = {currentSimulationRunId});";
+                try
+                {
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(addConstraintSql);
+                    _log.Debug($"Added constraint {constraintName} CHECK (RunId = {currentSimulationRunId}) on {stagingTableName}.");
+                }
+                catch (Exception ex)
+                {
+                    // Failure here IS critical, as the staging table won't be valid for switching
+                    _log.Error($"FATAL: Error adding constraint {constraintName} with RunId {currentSimulationRunId} on {stagingTableName}. SQL attempted: {addConstraintSql}");
+                    throw new InvalidOperationException($"Failed to add partition check constraint to {stagingTableName} for RunId {currentSimulationRunId}. Cannot continue.", ex);
+                }
+                _log.Debug($"Prepared staging table {stagingTableName} for RunId {currentSimulationRunId}");
             }
         }
 
-        public void DeleteSimulationOutputs(List<Guid> simulationOutputIds)
+        private void SwitchInPartition(string stagingTableName, string liveTableName, int simulationRunId, string partitionFunctionName = "PF_SimulationRun", ILog logger = null)
         {
-            if (!simulationOutputIds.Any())
+            // Use provided logger or a null logger that does nothing
+            var _log = logger ?? new DoNotLog();
+
+            if (_unitOfWork.Context.Database.CurrentTransaction == null)
+                throw new InvalidOperationException("Must be called inside an open transaction.");
+
+            // split and quote the names once
+            string Quote(string twoPart)
             {
-                return;
+                var parts = twoPart.Split('.');
+                return $"[{parts[0]}].[{parts[1]}]";
             }
 
-            _unitOfWork.Context.Database.SetCommandTimeout(TimeSpan.FromSeconds(3600));
+            string src = Quote(stagingTableName);
+            string dest = Quote(liveTableName);
 
-            var simulationOutputIdsStr = string.Join(",", simulationOutputIds.Select(_ => _.ToString()));
-            // RegEx Explained: \s means "match any whitespace token", and + means "match one or more of the proceeding token
-            simulationOutputIdsStr = System.Text.RegularExpressions.Regex.Replace(simulationOutputIdsStr, @"\s+", string.Empty);
+            _unitOfWork.Context.Database.ExecuteSqlRaw(
+                $"ALTER TABLE {stagingTableName} WITH CHECK CHECK CONSTRAINT ALL;");
 
-            // Create parameters for the stored procedure
-            var retMessageParam = new SqlParameter("@RetMessage", SqlDbType.VarChar, 250);
-            retMessageParam.Direction = ParameterDirection.Output;
-            var simGuidListParam = new SqlParameter("@SimGuidList", simulationOutputIdsStr);
+            string sql = $@"
+                DECLARE @p int = $PARTITION.{partitionFunctionName}({simulationRunId});
+                IF @p IS NULL
+                    THROW 50103, N'RunId {simulationRunId} not covered by partition function.', 1;
 
-            // Execute the stored procedure
-            var result = _unitOfWork.Context.Database.ExecuteSqlRaw("EXEC usp_delete_simulationoutput @SimGuidList, @RetMessage OUTPUT", simGuidListParam, retMessageParam);
+                DECLARE @cmd nvarchar(max) = 
+                    N'ALTER TABLE {src} SWITCH PARTITION ' + CAST(@p AS varchar(10)) +
+                    N' TO {dest} PARTITION ' + CAST(@p AS varchar(10)) + N';';
 
-            // Capture the success output value
-            var retMessage = retMessageParam.Value as string;
+                EXEC (@cmd);";
+
+            _log.Debug(sql);
+            _unitOfWork.Context.Database.ExecuteSqlRaw(sql);
+        }
+
+
+        private void DeleteSimulationDataByRunId(int simulationRunId, ILog logger = null)
+        {
+            var _log = logger ?? new DoNotLog(); // Use provided logger or a null logger
+
+            var outputId = _unitOfWork.Context.SimulationOutput.Where(_ => _.RunId == simulationRunId).Select(_ => _.Id).FirstOrDefault();
+
+            _unitOfWork.BeginTransaction();
+
+            if (_unitOfWork.Context.SimulationOutputJson.Any(_ => _.SimulationOutputId == outputId))
+            {
+                _unitOfWork.Context.DeleteAll<SimulationOutputJsonEntity>(_ => _.SimulationOutputId == outputId);
+            }
+
+            // List all tables that are partitioned by SimulationRunId
+            // Order: Children before Parents (important if FKs existed, though SWITCH bypasses checks)
+            string[] partitionedTables = {
+                // Children of AssetDetail / FundingCalculation* / TreatmentConsideration*
+                "dbo.BudgetDetail",
+                "dbo.AssetDetailValueIntId",
+                "dbo.AssetSummaryDetailValueIntId", // Child of AssetSummaryDetail
+                "dbo.TreatmentOptionDetail",
+                "dbo.TreatmentRejectionDetail",
+                "dbo.TreatmentSchedulingCollisionDetail",
+                "dbo.BudgetToSpend",                // Child of FundingCalculationInput
+                "dbo.Allocation",                   // Child of FundingCalculationOutput
+                "dbo.CashFlowConsiderationDetail",  // Child of TreatmentConsiderationDetail
+                "dbo.TargetConditionGoalDetail",
+                "dbo.DeficientConditionGoalDetail",
+                // Parents
+                "dbo.FundingCalculationInput",      // Parent of BudgetToSpend
+                "dbo.FundingCalculationOutput",     // Parent of Allocation
+                "dbo.TreatmentConsiderationDetail", // Parent of Funding*, CashFlow*
+                "dbo.AssetDetail",                  // Parent of ValueIntId, Treatment*
+                "dbo.AssetSummaryDetail",           // Parent of ValueIntId
+                "dbo.SimulationYearDetail",         // Parent of AssetDetail
+            };
+
+            _log.Information($"Starting delete (SWITCH OUT) process for SimulationRunId {simulationRunId}");
+
+            try
+            {
+                foreach (var liveTable in partitionedTables) // Loop through (already reversed)
+                {
+                    // 1. Disable every FK that points to this liveTable
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(@"
+                        DECLARE @sql nvarchar(max) = N'';
+                        SELECT @sql = @sql + 
+                              N'ALTER TABLE ' 
+                            + QUOTENAME(OBJECT_SCHEMA_NAME(fkc.parent_object_id))
+                            + N'.' + QUOTENAME(OBJECT_NAME(fkc.parent_object_id))
+                            + N' NOCHECK CONSTRAINT ' + QUOTENAME(fk.name) + N';'
+                        FROM   sys.foreign_keys fk
+                        JOIN   sys.foreign_key_columns fkc
+                                 ON fkc.constraint_object_id = fk.object_id
+                        WHERE  fk.referenced_object_id = OBJECT_ID({0});
+                        EXEC (@sql);", liveTable);
+
+                    // 2. Switch-out the partition
+                    string sql = $@"
+                        EXEC dbo.usp_PurgePartitionViaSwitchOut
+                            @SourceTable = '{Quote(liveTable)}',
+                            @PartitionValue = {simulationRunId}
+                    ";
+
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(sql);
+
+                    // 3. Re-enable (and re-trust) the same FKs
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(@"
+                        DECLARE @sql nvarchar(max) = N'';
+                        SELECT @sql = @sql + 
+                              N'ALTER TABLE ' 
+                            + QUOTENAME(OBJECT_SCHEMA_NAME(fkc.parent_object_id))
+                            + N'.' + QUOTENAME(OBJECT_NAME(fkc.parent_object_id))
+                            + N' WITH CHECK CHECK CONSTRAINT ' + QUOTENAME(fk.name) + N';'
+                        FROM   sys.foreign_keys fk
+                        JOIN   sys.foreign_key_columns fkc
+                                 ON fkc.constraint_object_id = fk.object_id
+                        WHERE  fk.referenced_object_id = OBJECT_ID({0});
+                        EXEC (@sql);", liveTable);
+                }
+
+                _unitOfWork.Context.DeleteAll<SimulationOutputEntity>(_ => _.RunId == simulationRunId);
+
+                //recycle the boundary we just freed
+                _unitOfWork.Context.Database.ExecuteSqlRaw(@"EXEC dbo.usp_RecycleFreedRunPartition @OldRunId = {0};", simulationRunId);
+
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Error during delete (SWITCH OUT) process for SimulationRunId {simulationRunId}. Rolling back transaction. Message: {ex}");
+                _unitOfWork.Rollback();
+            }
+
+            _unitOfWork.Commit();
+            _log.Information($"Delete completed. Committed transaction for DeleteSimulationDataByRunId (RunId: {simulationRunId}).");
+
+            string Quote(string twoPart)
+            {
+                var parts = twoPart.Split('.');
+                return $"[{parts[0]}].[{parts[1]}]";
+            }
         }
 
         public void CreateSimulationOutputViaJson(Guid simulationId, SimulationOutput simulationOutput)
@@ -594,29 +937,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw;
             }
             
-            var outputids = _unitOfWork.Context.SimulationOutput.Where(_ => (upperBoundDate == lowerBoundDate && _.CreatedDate == upperBoundDate) ||
+            var outputIds = _unitOfWork.Context.SimulationOutput.Where(_ => (upperBoundDate == lowerBoundDate && _.CreatedDate == upperBoundDate) ||
                 (lowerBoundDate == null && _.CreatedDate <= upperBoundDate) ||
-                (lowerBoundDate != null && upperBoundDate > lowerBoundDate && _.CreatedDate >= lowerBoundDate && _.CreatedDate <= upperBoundDate)).Select(_ => _.Id.ToString()).ToList();
-            var idChunks =  outputids.Chunk(100).ToList();
-            //this needs to be done because SimOutputGuidList is nvarchar and thus it can only store up to 4000 characters
-            idChunks.ForEach(chunk =>
-            {
-                var param = new SqlParameter[] {
-                        new SqlParameter() {
-                            ParameterName = "@SimOutputGuidList",
-                            SqlDbType =  System.Data.SqlDbType.NVarChar,
-                            Direction = System.Data.ParameterDirection.Input,
-                            Value = String.Join(",", chunk.ToArray())
-                        },
+                (lowerBoundDate != null && upperBoundDate > lowerBoundDate && _.CreatedDate >= lowerBoundDate && _.CreatedDate <= upperBoundDate)).Select(_ => _.RunId).ToList();
 
-                        new SqlParameter() {
-                            ParameterName = "@RetMessage",
-                            SqlDbType =  System.Data.SqlDbType.VarChar,
-                            Size = 250,
-                            Direction = System.Data.ParameterDirection.Output,
-                        }};
-                _unitOfWork.Context.Database.ExecuteSqlRawAsync("[dbo].[usp_delete_simulationoutput] @SimOutputGuidList, @RetMessage", param, token).Wait();
-            });
+            foreach (var id in outputIds)
+            {
+                DeleteSimulationDataByRunId(id, _log);
+            }
         }
 
         public SimulationOutputDTO GetSimulationOutput(Guid simulationId)

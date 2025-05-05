@@ -12,12 +12,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static AssetDetailEntity ToEntityWithoutChildEntities(
             AssetDetail domain,
             Guid simulationYearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var id = Guid.NewGuid();
             var entity = new AssetDetailEntity
             {
                 Id = id,
+                RunId = runId,
                 MaintainableAssetId = domain.AssetId,
                 SimulationYearDetailId = simulationYearDetailId,
                 AppliedTreatment = domain.AppliedTreatment,
@@ -32,12 +33,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static List<AssetDetailEntity> ToEntityList(
             List<AssetDetail> domainList,
             Guid simulationYearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup,
+            int runId)
         {
             var entities = new List<AssetDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntityWithoutChildEntities(domain, simulationYearDetailId, attributeIdLookup);
+                var entity = ToEntityWithoutChildEntities(domain, simulationYearDetailId, attributeIdLookup, runId);
                 entities.Add(entity);
             }
             return entities;
@@ -91,12 +93,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         internal static AssetDetailEntityFamily ToEntityFamily(
             List<AssetDetail> assets,
             Guid yearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup, int simulationRunId)
         {
             var family = new AssetDetailEntityFamily();
             foreach (var asset in assets)
             {
-                AddToFamily(family, asset, yearDetailId, attributeIdLookup);
+                AddToFamily(family, asset, yearDetailId, attributeIdLookup, simulationRunId);
             }
             return family;
         }
@@ -105,17 +107,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             AssetDetailEntityFamily family,
             AssetDetail domain,
             Guid yearDetailId,
-            Dictionary<string, Guid> attributeIdLookup
+            Dictionary<string, Guid> attributeIdLookup,
+            int runId
             )
         {
-            var entity = ToEntityWithoutChildEntities(domain, yearDetailId, attributeIdLookup);
+            var entity = ToEntityWithoutChildEntities(domain, yearDetailId, attributeIdLookup, runId);
             family.AssetDetails.Add(entity);
-            var mapNumericValues = AssetDetailValueMapper.ToNumericEntityList(entity.Id, domain.ValuePerNumericAttribute, attributeIdLookup);
-            var mapTextValues = AssetDetailValueMapper.ToTextEntityList(entity.Id, domain.ValuePerTextAttribute, attributeIdLookup);
-            var treatmentOptions = TreatmentOptionDetailMapper.ToEntityList(domain.TreatmentOptions, entity.Id);
-            var treatmentRejections = TreatmentRejectionDetailMapper.ToEntityList(domain.TreatmentRejections, entity.Id);
-            TreatmentConsiderationDetailMapper.AddToFamily(entity.Id, family, domain.TreatmentConsiderations); 
-            var treatmentSchedulingCollisions = TreatmentSchedulingCollisionDetailMapper.ToEntityList(domain.TreatmentSchedulingCollisions, entity.Id);
+            var mapNumericValues = AssetDetailValueMapper.ToNumericEntityList(entity.Id, domain.ValuePerNumericAttribute, attributeIdLookup, runId);
+            var mapTextValues = AssetDetailValueMapper.ToTextEntityList(entity.Id, domain.ValuePerTextAttribute, attributeIdLookup, runId);
+            var treatmentOptions = TreatmentOptionDetailMapper.ToEntityList(domain.TreatmentOptions, entity.Id, runId);
+            var treatmentRejections = TreatmentRejectionDetailMapper.ToEntityList(domain.TreatmentRejections, entity.Id, runId);
+            TreatmentConsiderationDetailMapper.AddToFamily(entity.Id, family, domain.TreatmentConsiderations, runId); 
+            var treatmentSchedulingCollisions = TreatmentSchedulingCollisionDetailMapper.ToEntityList(domain.TreatmentSchedulingCollisions, entity.Id, runId);
 
             family.AssetDetailValues.AddRange(mapNumericValues);
             family.AssetDetailValues.AddRange(mapTextValues);

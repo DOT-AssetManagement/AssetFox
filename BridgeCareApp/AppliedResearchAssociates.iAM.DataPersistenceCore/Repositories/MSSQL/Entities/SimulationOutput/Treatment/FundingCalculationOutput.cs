@@ -11,6 +11,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public Guid TreatmentConsiderationDetailId { get; set; }
 
+        public int RunId { get; set; }
+
         public virtual TreatmentConsiderationDetailEntity TreatmentConsiderationDetail { get; set; }
     }
 
@@ -27,5 +29,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public decimal AllocatedAmount { get; set; }
 
         public Guid FundingCalculationOutputId { get; set; }
+
+        public int RunId { get; set; }
     }
 }

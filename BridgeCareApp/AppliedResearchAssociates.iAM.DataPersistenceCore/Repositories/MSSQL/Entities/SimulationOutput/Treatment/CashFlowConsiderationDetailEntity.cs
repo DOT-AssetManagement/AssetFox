@@ -13,5 +13,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public string CashFlowRuleName { get; set; }
 
         public int ReasonAgainstCashFlow { get; set; }
+        public int RunId { get; set; }
     }
 }

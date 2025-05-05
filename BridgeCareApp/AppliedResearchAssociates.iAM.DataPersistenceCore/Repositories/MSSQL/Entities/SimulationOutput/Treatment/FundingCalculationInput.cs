@@ -11,6 +11,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public Guid TreatmentConsiderationDetailId { get; set; }
 
+        public int RunId { get; set; }
+
         public virtual TreatmentConsiderationDetailEntity TreatmentConsiderationDetail { get; set; }
     }
 
@@ -25,5 +27,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public int Year { get; set; }
 
         public Guid FundingCalculationInputId { get; set; }
+
+        public int RunId { get; set; }
     }
 }

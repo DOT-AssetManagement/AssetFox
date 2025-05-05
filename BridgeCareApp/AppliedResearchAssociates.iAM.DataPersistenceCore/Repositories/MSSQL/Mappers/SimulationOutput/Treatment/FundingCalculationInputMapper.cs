@@ -8,21 +8,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
     public static class FundingCalculationInputMapper
     {
         public static FundingCalculationInput ToEntityWithoutChildren(
-            Guid treatmentConsiderationDetailEntityId)
+            Guid treatmentConsiderationDetailEntityId, int runId)
         {
             return new FundingCalculationInput
             {
                 Id = Guid.NewGuid(),
-                TreatmentConsiderationDetailId = treatmentConsiderationDetailEntityId
+                TreatmentConsiderationDetailId = treatmentConsiderationDetailEntityId,
+                RunId = runId
             };
         }
 
-        public static FundingCalculationInput ToEntity(Analysis.Engine.FundingCalculationInput fundingCalculationInputDomain, Guid treatmentConsiderationDetailEntityId, AssetDetailEntityFamily family)
+        public static FundingCalculationInput ToEntity(Analysis.Engine.FundingCalculationInput fundingCalculationInputDomain, Guid treatmentConsiderationDetailEntityId, AssetDetailEntityFamily family, int runId)
         {
-            var entity = ToEntityWithoutChildren(treatmentConsiderationDetailEntityId);
+            var entity = ToEntityWithoutChildren(treatmentConsiderationDetailEntityId, runId);
 
             // CurrentBudgetsToSpend
-            var currentBudgetsToSpend = BudgetToSpendMapper.ToEntityList(fundingCalculationInputDomain?.CurrentBudgetsToSpend ?? new(), entity.Id);
+            var currentBudgetsToSpend = BudgetToSpendMapper.ToEntityList(fundingCalculationInputDomain?.CurrentBudgetsToSpend ?? new(), entity.Id, runId);
             family.CurrentBudgetsToSpend.AddRange(currentBudgetsToSpend);
 
             return entity;
