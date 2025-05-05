@@ -85,15 +85,16 @@
                                 
                                 <td v-for="header in cpGridHeaders">
                                     <div>
-                                        <div v-if="header.key === 'treatment'"> <span class="sm-txt" :style="getTreatmentStyle(item.item.treatment)"> {{ item.item.treatment.join(', ') || 'None' }}
+                                        <div v-if="header.key === 'treatment'" class="treatment-cell-content"> <span class="sm-txt" :style="getTreatmentStyle(item.item.treatment)"> {{ item.item.treatment.join(', ') || 'None' }}
                                             </span>
                                             <v-btn
-                                                icon="mdi-pencil"
-                                                size="x-small"
-                                                variant="tonal"
-                                                class="ml-2"
+                                                class="ghd-blue"
                                                 @click="openTreatmentDialog(item.item)"
-                                            ></v-btn>
+                                                flat
+                                                icon
+                                            >
+                                                <img class='img-general' :src="getUrl('assets/icons/edit.svg')"/> 
+                                            </v-btn>
                                         </div>
                                         <v-select
                                             v-else-if="header.key === 'projectSource'"
@@ -786,6 +787,10 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             // Refresh the table view if necessary (onPaginationChanged might do this)
             // onPaginationChanged(); // Consider if needed immediately or handled by onUpdateRow's side effects
             }
+
+            sectionCommittedProjects.value = [
+                ...sectionCommittedProjects.value
+            ];
          }
         // Reset editing state
         currentEditingProjectId.value = null;
@@ -1728,6 +1733,12 @@ justify-content: space-between;
 .ghd-down-small .v-input__icon{
     position: relative;
     top: 2px;
+}
+
+.treatment-cell-content {
+  display: flex;
+  align-items: center; /* Vertically aligns the text and button */
+  gap: 4px; /* Optional: Adds space between text and button */
 }
 
 </style>
