@@ -1,4 +1,4 @@
-﻿using System.Threading.Channels;
+using System.Threading.Channels;
 using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.Data;
 using AppliedResearchAssociates.iAM.Data.Aggregation;
@@ -72,7 +72,7 @@ namespace BridgeCareCoreTests.Tests
                 NetworkDefinitionAttribute = networkDefinitionAttribute
             };
             var network = NetworkTestSetupViaFactory.ModelViaFactory(
-                mockUnitOfWork.Object, districtAttributeDomain, parameters, networkName);
+                mockUnitOfWork.Object, districtAttributeDomain, parameters, networkName, excelRawDataDto);
             var networkId = network.Id;
             var assetName = "100";
             var location = new SectionLocation(Guid.NewGuid(), assetName);

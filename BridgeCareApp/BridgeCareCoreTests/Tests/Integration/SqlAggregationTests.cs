@@ -39,7 +39,7 @@ namespace BridgeCareCoreTests.Tests.Integration
                 NetworkDefinitionAttribute = networkDefinitionAttribute
             };
             var network = NetworkIntegrationTestSetup.ModelForEntityInDbViaFactory(
-                TestHelper.UnitOfWork, districtAttributeDomain, parameters, networkName);
+                TestHelper.UnitOfWork, districtAttributeDomain, parameters, networkName, null);
 
             var networkId = network.Id;
             var assetName = "AssetName";
