@@ -49,6 +49,7 @@ namespace BridgeCareCoreTests.Tests.Integration
                 TestAttributeNames.DeckDurationN,
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute = AttributeDtos.DeckDurationN;
             var networkId = NetworkTestSetup.NetworkId;
             var assetList = MaintainableAssetLists.SingleInNetwork(networkId, CommonTestParameterValues.DefaultEquation);
@@ -81,6 +82,7 @@ namespace BridgeCareCoreTests.Tests.Integration
                 TestAttributeNames.Interstate,
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute = AttributeDtos.Interstate;
             var networkId = NetworkTestSetup.NetworkId;
             var assetList = MaintainableAssetLists.SingleInNetwork(networkId, CommonTestParameterValues.DefaultEquation);
