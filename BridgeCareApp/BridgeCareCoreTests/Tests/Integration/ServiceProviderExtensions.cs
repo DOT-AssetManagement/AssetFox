@@ -33,6 +33,17 @@ namespace BridgeCareCoreTests.Tests.Integration
             return workStarter;
         }
 
+        public static async Task<IWorkStarter> DequeueAndCompleteHiddenUploadQueueTask(this IServiceProvider serviceProvider)
+        {
+            var workQueue = serviceProvider.GetService(typeof(HiddenUploadQueue<WorkQueueMetadata>)) as HiddenUploadQueue<WorkQueueMetadata>;
+            var cancellationToken = new CancellationToken();
+            var task = workQueue.Dequeue(cancellationToken);
+            var workStarter = await task;
+            workStarter.StartWork(serviceProvider);
+            return workStarter;
+        }
+
+
         public static async Task<IWorkStarter> DequeueFastWorkQueueTask(this IServiceProvider serviceProvider)
         {
             var workQueue = serviceProvider.GetService(typeof(FastSequentialworkQueue<WorkQueueMetadata>)) as FastSequentialworkQueue<WorkQueueMetadata>;

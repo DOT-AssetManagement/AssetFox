@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+using System.Threading.Channels;
+using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.Data;
 using AppliedResearchAssociates.iAM.Data.Aggregation;
 using AppliedResearchAssociates.iAM.Data.Mappers;
@@ -71,7 +72,7 @@ namespace BridgeCareCoreTests.Tests
                 NetworkDefinitionAttribute = networkDefinitionAttribute
             };
             var network = NetworkTestSetupViaFactory.ModelViaFactory(
-                mockUnitOfWork.Object, districtAttributeDomain, parameters, networkName);
+                mockUnitOfWork.Object, districtAttributeDomain, parameters, networkName, excelRawDataDto);
             var networkId = network.Id;
             var assetName = "100";
             var location = new SectionLocation(Guid.NewGuid(), assetName);
@@ -80,7 +81,8 @@ namespace BridgeCareCoreTests.Tests
             var newAsset = new MaintainableAsset(maintainableAssetId, networkId, location, spatialWeightingValue);
             var assetList = new List<MaintainableAsset> { newAsset };
             maintainableAssetRepo.Setup(a => a.GetAllInNetworkWithAssignedDataAndLocations(networkId)).Returns(assetList);
-            var aggregationService = new AggregationService(unitOfWork);
+            var doNotLog = new DoNotLog();
+            var aggregationService = new AggregationService(unitOfWork, doNotLog);
             var channel = Channel.CreateUnbounded<AggregationStatusMemo>();
             var aggregationState = new AggregationState();
             var attributes = new List<AttributeDTO> { districtAttribute };

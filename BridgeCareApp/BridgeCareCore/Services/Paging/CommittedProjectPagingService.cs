@@ -133,7 +133,7 @@ namespace BridgeCareCore.Services
             return rows
                 .Where(_ => _.LocationKeys !=null && _.LocationKeys.ContainsKey(_networkKeyField) && _.LocationKeys[_networkKeyField].ToLower().Contains(search) ||
                     _.Year.ToString().Contains(search) ||
-                    _.Treatment!=null && _.ComputedTreatmentString.ToLower().Contains(search) ||
+                    _.Treatment!=null && (_.ComputedTreatmentString ?? "").ToLower().Contains(search) ||
                     _.Category.ToString().ToLower().Contains(search) ||
                     (_.ScenarioBudgetId == null ? "" : budgetDict[_.ScenarioBudgetId.Value]).Contains(search) ||
                     _.Cost.ToString().Contains(search)).ToList();

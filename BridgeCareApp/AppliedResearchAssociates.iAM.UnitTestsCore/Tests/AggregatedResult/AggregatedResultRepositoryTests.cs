@@ -47,6 +47,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
                 TestAttributeNames.DeckDurationN
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute = AttributeDtos.DeckDurationN;
             var networkId = NetworkTestSetup.NetworkId;
             var assetList = MaintainableAssetLists.SingleInNetwork(networkId, CommonTestParameterValues.DefaultEquation);
@@ -99,6 +100,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
                 "NONEXISTANT"
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute = AttributeDtos.DeckDurationN;
             var networkId = NetworkTestSetup.NetworkId;
             var assetList = MaintainableAssetLists.SingleInNetwork(networkId, CommonTestParameterValues.DefaultEquation);
@@ -131,6 +133,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
                 TestAttributeNames.DeckDurationN
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute = AttributeDtos.DeckDurationN;
             var networkId = NetworkTestSetup.NetworkId;
             var assetList = MaintainableAssetLists.SingleInNetwork(networkId, CommonTestParameterValues.DefaultEquation);
@@ -163,6 +166,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
                 TestAttributeNames.Interstate
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute = AttributeDtos.Interstate;
             var networkId = NetworkTestSetup.NetworkId;
             var assetList = MaintainableAssetLists.SingleInNetwork(networkId, CommonTestParameterValues.DefaultEquation);
@@ -217,6 +221,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
                 "NONEXISTANT"
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute = AttributeDtos.Interstate;
             var networkId = NetworkTestSetup.NetworkId;
 
@@ -250,6 +255,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
                 TestAttributeNames.Interstate
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute = AttributeDtos.Interstate;
             var networkId = NetworkTestSetup.NetworkId;
 
@@ -285,6 +291,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
             };
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
 
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
             var attribute1 = AttributeDtos.DeckDurationN;
             var networkId = NetworkTestSetup.NetworkId;
 
