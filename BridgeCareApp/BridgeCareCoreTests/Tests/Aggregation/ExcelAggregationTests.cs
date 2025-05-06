@@ -1,4 +1,5 @@
 ﻿using System.Threading.Channels;
+using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.Data;
 using AppliedResearchAssociates.iAM.Data.Aggregation;
 using AppliedResearchAssociates.iAM.Data.Mappers;
@@ -80,7 +81,8 @@ namespace BridgeCareCoreTests.Tests
             var newAsset = new MaintainableAsset(maintainableAssetId, networkId, location, spatialWeightingValue);
             var assetList = new List<MaintainableAsset> { newAsset };
             maintainableAssetRepo.Setup(a => a.GetAllInNetworkWithAssignedDataAndLocations(networkId)).Returns(assetList);
-            var aggregationService = new AggregationService(unitOfWork);
+            var doNotLog = new DoNotLog();
+            var aggregationService = new AggregationService(unitOfWork, doNotLog);
             var channel = Channel.CreateUnbounded<AggregationStatusMemo>();
             var aggregationState = new AggregationState();
             var attributes = new List<AttributeDTO> { districtAttribute };
