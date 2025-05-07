@@ -87,8 +87,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 {
                     GetLengths(yearlyValues, treatment.Name, "Asphalt", out var length);
                                         
-                    totalLength += (int)length;
-                    worksheet.Cells[row, column].Value = (int)length;
+                    totalLength += Convert.ToInt32(length);
+                    worksheet.Cells[row, column].Value = Convert.ToInt32(length);
                     row++;
                 }
 
@@ -104,11 +104,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             bundledLength += length;
                         }
                     }
-                    totalLength += (int)bundledLength;
-                    worksheet.Cells[row++, column].Value = (int)bundledLength;
+                    totalLength += Convert.ToInt32(bundledLength);
+                    worksheet.Cells[row++, column].Value = Convert.ToInt32(bundledLength);
                 }
 
-                worksheet.Cells[row, column].Value = (int)totalLength;
+                worksheet.Cells[row, column].Value = Convert.ToInt32(totalLength);
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, column]);
             ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, row, column], Color.FromArgb(180, 198, 231)); // treatment rows
@@ -156,8 +156,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 foreach (var treatment in simulationTreatments)
                 {
                     GetLengths(yearlyValues, treatment.Name, "Composite", out var length);
-                    totalLength += (int)length;
-                    worksheet.Cells[row, column].Value = (int)length;
+                    totalLength += Convert.ToInt32(length);
+                    worksheet.Cells[row, column].Value = Convert.ToInt32(length);
                     row++;
                 }
 
@@ -173,11 +173,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             bundledLength += length;
                         }
                     }
-                    totalLength += (int)bundledLength;
-                    worksheet.Cells[row++, column].Value = (int)bundledLength;
+                    totalLength += Convert.ToInt32(bundledLength);
+                    worksheet.Cells[row++, column].Value = Convert.ToInt32(bundledLength);
                 }
 
-                worksheet.Cells[row, column].Value = (int)totalLength;
+                worksheet.Cells[row, column].Value = Convert.ToInt32(totalLength);
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, column]);
             ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, row, column], Color.FromArgb(180, 198, 231));
@@ -226,8 +226,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 foreach (var treatment in simulationTreatments)
                 {
                     GetLengths(yearlyValues, treatment.Name, "Concrete", out var length);
-                    totalLength += (int)length;
-                    worksheet.Cells[row, column].Value = (int)length;
+                    totalLength += Convert.ToInt32(length);
+                    worksheet.Cells[row, column].Value = Convert.ToInt32(length);
                     row++;
                 }
 
@@ -243,11 +243,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             bundledLength += length;
                         }
                     }
-                    totalLength += (int)bundledLength;
-                    worksheet.Cells[row++, column].Value = (int)bundledLength;
+                    totalLength += Convert.ToInt32(bundledLength);
+                    worksheet.Cells[row++, column].Value = Convert.ToInt32(bundledLength);
                 }
 
-                worksheet.Cells[row, column].Value = (int)totalLength;
+                worksheet.Cells[row, column].Value = Convert.ToInt32(totalLength);
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, column]);
             ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, row, column], Color.FromArgb(180, 198, 231));
@@ -306,7 +306,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         yearlyValues.Value.TryGetValue(treatmentGroup, out var costAndLength);
                         treatmentLength += costAndLength.length;
                     }
-                    worksheet.Cells[row, column].Value = (int)treatmentLength;
+                    worksheet.Cells[row, column].Value = Convert.ToInt32(treatmentLength);
                     row++;
                 }
             }
@@ -356,8 +356,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     }
                     if (workTypeTotalExists && (workTypeTotal.TryGetValue(year, out var costAndLength)))
                     {
-                        worksheet.Cells[row, column].Value = (int)costAndLength.length;
-                        columnTotals[year] += (int)costAndLength.length;
+                        worksheet.Cells[row, column].Value = Convert.ToInt32(costAndLength.length);
+                        columnTotals[year] += Convert.ToInt32(costAndLength.length);
                     }
                     else
                     {
