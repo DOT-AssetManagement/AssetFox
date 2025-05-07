@@ -278,9 +278,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             var treatmentCategory = appliedTreatment.Contains("Bundle") ? PAMSConstants.Bundled : treatmentCategoryLookup[appliedTreatment];
                             var committedCost = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix.
                                                 Where(_ => _.BudgetName == summaryModel.BudgetName && _.Year == yearData.Year).
-                                                Sum(bu => bu.AllocatedAmount) ?? 0;
-                            var committedProject = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.ComputedTreatmentString) &&
-                                                _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);
+                                                Sum(bu => bu.AllocatedAmount) ?? 0;                           
+                            var committedProject = committedProjectList.FirstOrDefault(_ => _.Treatment.All(_ => appliedTreatment.Contains(_))
+                                                && _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);
                             var projectSource = committedProject?.ProjectSource.ToString();
                             if (!yearlyCostCommittedProj[yearData.Year].ContainsKey(appliedTreatment))
                             {
