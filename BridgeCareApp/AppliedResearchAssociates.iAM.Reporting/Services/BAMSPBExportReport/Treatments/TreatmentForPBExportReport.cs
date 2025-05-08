@@ -315,9 +315,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
                             worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.Category.ToString() ?? ""; //CATEGORY
 
                             // Project Id
-                            var committedProject = committedProjectList.FirstOrDefault(_ => assetDetailObject.AppliedTreatment.Contains(_.ComputedTreatmentString)
-                                                    && _.Year == yearObject.Year
-                                                    && _.LocationKeys["BRKEY_"] == brKey.ToString());
+                            var committedProject = committedProjectList.FirstOrDefault(_ => _.Treatment.All(_ => assetDetailObject.AppliedTreatment.Contains(_))
+                                && _.Year == yearObject.Year
+                                && _.LocationKeys["BRKEY_"] == brKey.ToString());
                             worksheet.Cells[rowNo, columnNo++].Value = committedProject?.ProjectId?.ToString() ?? string.Empty;
 
                             var offset = "";
