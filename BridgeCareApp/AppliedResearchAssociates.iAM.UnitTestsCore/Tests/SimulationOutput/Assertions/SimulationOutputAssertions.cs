@@ -12,7 +12,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class SimulationOutputAssertions
     {
-        public static void SameSimulationOutput(SimulationOutput expected, SimulationOutput actual)
+        public static void SameSimulationOutput(SimulationOutput expected, SimulationOutput actual, bool treatmentSchedulingCollisionsShouldMatch)
         {
             Assert.Equal(expected.InitialConditionOfNetwork, actual.InitialConditionOfNetwork);
             Assert.Equal(expected.InitialAssetSummaries.Count, actual.InitialAssetSummaries.Count);
@@ -26,7 +26,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             foreach (var expectedYear in expected.Years)
             {
                 var actualYear = actual.Years.Single(y => y.Year == expectedYear.Year);
-                SimulationOutputYearAssertions.Same(expectedYear, actualYear);
+                SimulationOutputYearAssertions.Same(expectedYear, actualYear, treatmentSchedulingCollisionsShouldMatch);
             }
         }
     }

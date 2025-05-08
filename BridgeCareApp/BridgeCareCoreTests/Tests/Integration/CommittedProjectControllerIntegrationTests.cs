@@ -66,7 +66,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             ActionResultAssertions.Ok(importResult);
 
             // act 3
-            var workStarter = await serviceProvider.DequeueAndCompleteFastWorkQueueTask();
+            var workStarter = await serviceProvider.DequeueAndCompleteHiddenUploadQueueTask();
             var committedProjectsAfter = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             Assert.NotEmpty(committedProjectsAfter);
         }

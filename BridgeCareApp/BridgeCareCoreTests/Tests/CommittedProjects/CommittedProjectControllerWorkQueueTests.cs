@@ -46,7 +46,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             ActionResultAssertions.Ok(importResult);
 
             // act 2
-            var workStarter = await serviceProvider.DequeueAndCompleteFastWorkQueueTask();
+            var workStarter = await serviceProvider.DequeueAndCompleteHiddenUploadQueueTask();
 
             // Assert
             var castWorkStarter = workStarter as IQueuedWorkHandle<WorkQueueMetadata>;
@@ -66,7 +66,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             ActionResultAssertions.Ok(importResult);
 
             // act 2
-            var workStarter = await serviceProvider.DequeueAndCompleteFastWorkQueueTask();
+            var workStarter = await serviceProvider.DequeueAndCompleteHiddenUploadQueueTask();
 
             // Assert
             var castWorkStarter = workStarter as IQueuedWorkHandle<WorkQueueMetadata>;

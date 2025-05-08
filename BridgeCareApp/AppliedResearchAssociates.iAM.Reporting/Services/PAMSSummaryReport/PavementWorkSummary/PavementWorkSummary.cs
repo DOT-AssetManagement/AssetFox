@@ -57,8 +57,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             var costLengthPerSurfaceIdPerTreatmentPerYear = new Dictionary<int, // year
                             Dictionary<string, // treatmentName
                             Dictionary<int, // surfaceId
-                            (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>>();
-            var costAndLengthPerTreatmentGroupPerYear = new Dictionary<int, Dictionary<PavementTreatmentHelper.TreatmentGroup, (decimal treatmentCost, int length)>>();
+                            (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>>();
+            var costAndLengthPerTreatmentGroupPerYear = new Dictionary<int, Dictionary<PavementTreatmentHelper.TreatmentGroup, (decimal treatmentCost, double length)>>();
             
             _pavementWorkSummaryComputationHelper.FillDataToUseInExcel(reportOutputData, yearlyCostCommittedProj, costLengthPerSurfaceIdPerTreatmentPerYear, costAndLengthPerTreatmentGroupPerYear, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, simulationTreatments, shouldBundleFeasibleTreatments);
             var workTypeTotals = _pavementWorkSummaryComputationHelper.CalculateWorkTypeTotals(costLengthPerSurfaceIdPerTreatmentPerYear, simulationTreatments);

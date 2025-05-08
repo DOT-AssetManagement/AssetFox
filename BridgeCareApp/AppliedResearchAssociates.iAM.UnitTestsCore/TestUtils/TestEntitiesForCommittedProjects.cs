@@ -63,7 +63,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         {
             Id = id,
             Year = year,
-            Name = "Something",
+            Name = ["Something"],
             ShadowForAnyTreatment = 1,
             ShadowForSameTreatment = 1,
             ProjectSource = "Committed",
@@ -91,7 +91,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         {
             Id = TestDataForCommittedProjects.CommittedProjectId2,
             Year = 2023,
-            Name = "Simple",
+            Name = ["Simple"],
             ShadowForAnyTreatment = 1,
             ShadowForSameTreatment = 3,
             Cost = 200000,

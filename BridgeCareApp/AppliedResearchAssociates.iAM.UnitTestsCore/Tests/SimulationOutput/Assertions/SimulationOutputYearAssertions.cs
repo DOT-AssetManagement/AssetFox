@@ -11,7 +11,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class SimulationOutputYearAssertions
     {
-        public static void Same(SimulationYearDetail expectedYear, SimulationYearDetail actualYear)
+        public static void Same(SimulationYearDetail expectedYear, SimulationYearDetail actualYear, bool treatmentSchedulingCollisionsShouldMatch)
         {
             Assert.Equal(expectedYear.Year, actualYear.Year);
             Assert.Equal(expectedYear.ConditionOfNetwork, actualYear.ConditionOfNetwork);
@@ -29,7 +29,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             actualYear.Assets.Sort(a => a.AssetId);
             for (int i=0; i<expectedYear.Assets.Count; i++)
             {
-                AssetDetailAssertions.Same(expectedYear.Assets[i], actualYear.Assets[i]);
+                AssetDetailAssertions.Same(expectedYear.Assets[i], actualYear.Assets[i], treatmentSchedulingCollisionsShouldMatch);
             }
         }
     }

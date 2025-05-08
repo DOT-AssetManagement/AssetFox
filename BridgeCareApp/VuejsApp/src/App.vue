@@ -710,7 +710,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
 
     function onAddErrorNotification(data: any) {
         let errorNotification:string = data.error.toString();
-        let stackTrace: string = data.stackTrace.toString();
+        let stackTrace: string = data.stackTrace !== undefined ? data.stackTrace.toString() : "";
         let spl = errorNotification.split('::');
         if (spl.length > 0 ) {
             addErrorNotificationWithStackTraceAction( {

@@ -204,6 +204,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                         .Where(cp => (cp.Asset.Id, cp.Year) == (asset.Id, entity.Year))
                         .ToList();
 
+            var setCost = false;
+
             foreach (var treatment in entity.Name)
             {
                 try
@@ -235,7 +237,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 var committedProject = simulation.CommittedProjects.GetAdd(new CommittedProject(asset, entity.Year));
                 committedProject.Id = entity.Id;
                 committedProject.Name = treatment;
-                committedProject.Cost = entity.Cost;
+                //map the cost of a bundled treatment to only the first committed project
+                committedProject.Cost = setCost ? 0 : entity.Cost;
+                setCost = true;
                 var selectedTreatment = selectableTreatments.FirstOrDefault(t => t.Name == treatment);
 
                 committedProject.TemplateTreatment = selectedTreatment;

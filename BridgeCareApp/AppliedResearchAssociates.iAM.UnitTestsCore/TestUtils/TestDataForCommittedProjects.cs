@@ -202,7 +202,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         {
             Id = id,
             Year = year,
-            Treatment = "Simple",
+            Treatment = ["Simple"],
             ShadowForAnyTreatment = 1,
             ShadowForSameTreatment = 3,
             Cost = 200000,
@@ -220,7 +220,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         {
             Id = CommittedProjectId1,
             Year = 2022,
-            Treatment = "Something",
+            Treatment = ["Something"],
             ShadowForAnyTreatment = 1,
             ShadowForSameTreatment = 1,
             Cost = 10000,
@@ -243,7 +243,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
             {
                 Id = Guid.Parse("2d232e7b-d745-4ea5-b2a4-1de5a96d7efe"),
                 Year = 2023,
-                Treatment = "Simple",
+                Treatment = ["Simple"],
                 ShadowForAnyTreatment = 1,
                 ShadowForSameTreatment = 3,
                 Cost = 200000,
@@ -265,7 +265,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
             {
                 Id = Guid.Parse("2d232e7b-d745-4ea5-b2a4-1de5a96d7efe"),
                 Year = 2023,
-                Treatment = "Simple",
+                Treatment = ["Simple"],
                 ShadowForAnyTreatment = 1,
                 ShadowForSameTreatment = 3,
                 Cost = 200000,
