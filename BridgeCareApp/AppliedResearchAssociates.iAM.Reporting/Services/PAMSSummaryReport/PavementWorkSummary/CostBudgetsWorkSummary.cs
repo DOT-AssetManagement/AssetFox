@@ -38,11 +38,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
         public ChartRowsModel FillCostBudgetWorkSummarySections(
             ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,
             Dictionary<string, BudgetDTO> yearlyBudgetAmount,
-            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
             Dictionary<int, Dictionary<string, List<CommittedProjectMetaData>>> yearlyCostCommittedProj,
-            Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, int length)>> costAndLengthPerTreatmentGroupPerYear,
+            Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>> costAndLengthPerTreatmentGroupPerYear,
             List<(string TreatmentName, string AssetType, TreatmentCategory Category)> simulationTreatments,
-            Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, int length)>> workTypeTotals,
+            Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, double length)>> workTypeTotals,
             List<SectionCommittedProjectDTO> committedProjects,
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
             bool shouldBundleFeasibleTreatments)
@@ -84,11 +84,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
         public ChartRowsModel FillCostBudgetWorkSummarySectionsbyBudget(
             ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears,
             Dictionary<string, BudgetDTO> yearlyBudgetAmount,
-            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
             Dictionary<int, Dictionary<string, List<CommittedProjectMetaData>>> yearlyCostCommittedProj,
-            Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, int length)>> costAndLengthPerTreatmentGroupPerYear,
+            Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>> costAndLengthPerTreatmentGroupPerYear,
             List<(string TreatmentName, string AssetType, TreatmentCategory Category)> simulationTreatments,
-            Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, int length)>> workTypeTotals,
+            Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, double length)>> workTypeTotals,
             WorkSummaryByBudgetModel workSummaryByBudgetModel,
             SimulationOutput reportOutputData,
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
@@ -124,7 +124,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             CurrentCell currentCell,
             List<int> simulationYears,
-            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
             List<(string TreatmentName, string AssetType, TreatmentCategory Category)> simulationTreatments
             )
         {
@@ -141,7 +141,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             List<int> simulationYears,
             CurrentCell currentCell,
-            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
             List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments
             )
         {
@@ -254,7 +254,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 ExcelWorksheet worksheet,
                 CurrentCell currentCell,
                 List<int> simulationYears,
-                Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+                Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
                 List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments
                 )
         {
@@ -272,7 +272,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             List<int> simulationYears,
             CurrentCell currentCell,
-            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
             List<(string Name, string AssetType, TreatmentCategory Category)>
             simulationTreatments
             )
@@ -382,7 +382,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             CurrentCell currentCell,
             List<int> simulationYears,
-            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
             List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments
             )
         {
@@ -400,7 +400,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             List<int> simulationYears,
             CurrentCell currentCell,
-            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
             List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments
             )
         {
@@ -506,7 +506,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
         }
 
         private void AddTreatmentGroupTotalDetails(ExcelWorksheet worksheet, CurrentCell currentCell,
-            Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, int length)>> costAndLengthPerTreatmentGroupPerYear,
+            Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>> costAndLengthPerTreatmentGroupPerYear,
             TreatmentGroupCategory treatmentGroupCategory)
         {
             int startRow, startColumn, row, column;
@@ -550,7 +550,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
         private void FillTreatmentGroupTotalsSection(ExcelWorksheet worksheet, CurrentCell currentCell,
             List<int> simulationYears,
-            Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, int length)>> costAndLengthPerTreatmentGroupPerYear
+            Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>> costAndLengthPerTreatmentGroupPerYear
             )
         {
             if (simulationYears.Count <= 0)
@@ -570,7 +570,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
         private void FillWorkTypeTotalsSection(ExcelWorksheet worksheet, CurrentCell currentCell,
             List<int> simulationYears,
-            Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, int length)>> workTypeTotals,
+            Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, double length)>> workTypeTotals,
             Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> workTypeTotalsWorkOutsideScope,
             Dictionary<string, BudgetDTO> yearlyBudgetAmount,
             out int totalSpendingRow
@@ -717,7 +717,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
         private void FillWorkTypeTotalsSectionByBudget(ExcelWorksheet worksheet, CurrentCell currentCell,
             List<int> simulationYears,
-            Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, int length)>> workTypeTotals,
+            Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, double length)>> workTypeTotals,
             Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> workTypeTotalsWorkOutsideScope, Dictionary<string, BudgetDTO> yearlyBudgetAmount,
             out int totalSpendingRow,
             WorkSummaryByBudgetModel workSummaryByBudgetModel)
@@ -1766,7 +1766,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             return workTypeTotalWorkOutsideScope;
         }
 
-        private static void GetCosts(KeyValuePair<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>> yearlyValues, (string Name, string AssetType, TreatmentCategory Category) treatment, out decimal treatmentCost, out decimal compositeTreatmentCost)
+        private static void GetCosts(KeyValuePair<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> yearlyValues, (string Name, string AssetType, TreatmentCategory Category) treatment, out decimal treatmentCost, out decimal compositeTreatmentCost)
         {
             treatmentCost = 0;
             compositeTreatmentCost = 0;
@@ -1781,7 +1781,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             }
         }
 
-        private static void GetCostsInYearlyValue(List<KeyValuePair<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>> valuesPerSurfaceId, out decimal treatmentCost, out decimal compositeTreatmentCost)
+        private static void GetCostsInYearlyValue(List<KeyValuePair<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>> valuesPerSurfaceId, out decimal treatmentCost, out decimal compositeTreatmentCost)
         {
             treatmentCost = 0;
             compositeTreatmentCost = 0;
