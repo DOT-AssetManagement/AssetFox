@@ -203,7 +203,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
                         // Remove from committedProjectsForWorkOutsideScope
                         // Bundled has many treatment names under AppliedTreatment
-                        var toRemove = committedProjectsForWorkOutsideScope.Where(_ => appliedTreatment.Contains(_.ComputedTreatmentString) &&
+                        var toRemove = committedProjectsForWorkOutsideScope.Where(_ => _.Treatment.All(_ => appliedTreatment.Contains(_)) &&
                                         _.Year == yearData.Year &&
                                         _.ProjectSource.ToString() == section.ProjectSource &&
                                         Math.Round(_.Cost, 0) == Convert.ToDouble(cost));
