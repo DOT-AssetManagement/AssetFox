@@ -14,7 +14,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             Guid simulationYearDetailId,
             Dictionary<string, Guid> attributeIdLookup, int runId)
         {
-            var id = Guid.NewGuid();
+            var id = SequentialGuid.NewGuid();
             var entity = new AssetDetailEntity
             {
                 Id = id,

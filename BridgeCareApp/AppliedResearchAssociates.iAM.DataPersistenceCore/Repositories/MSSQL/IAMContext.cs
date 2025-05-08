@@ -29,6 +29,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -2382,229 +2383,381 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .OnDelete(DeleteBehavior.Cascade);
             });
 
-            modelBuilder.Entity<AssetSummaryDetailEntity>(entity =>
+            /* ======================  Allocation  ============================ */
+            modelBuilder.Entity<Allocation>(entity =>
             {
-                entity.Property(e => e.Id).IsRequired();
-                entity.Property(e => e.RunId).IsRequired();
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
 
-                entity.HasOne(e => e.SimulationOutput)
-                .WithMany(so => so.InitialAssetSummaries)
-                .HasForeignKey(a => a.SimulationOutputId)
-                .OnDelete(DeleteBehavior.Cascade);
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_Allocation");
 
-                entity.HasOne(e => e.MaintainableAsset)
-                .WithMany(ma => ma.AssetSummaryDetails)
-                .HasForeignKey(e => e.MaintainableAssetId)
-                .OnDelete(DeleteBehavior.ClientCascade);
+                entity.HasIndex(e => new { e.RunId, e.FundingCalculationOutputId })
+                      .HasDatabaseName("IX_Allocation_FundingCalculationOutputId");
+
+                entity.HasOne(e => e.FundingCalculationOutput)
+                      .WithMany(f => f.AllocationMatrix)
+                      .HasForeignKey(e => new { e.RunId, e.FundingCalculationOutputId })
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
-            modelBuilder.Entity<AssetDetailValueEntityIntId>(entity =>
-            {
-                entity.Property(e => e.Id).IsRequired();
-                entity.Property(e => e.RunId).IsRequired();
-
-                entity.HasOne(a => a.Attribute)
-                .WithMany(a => a.AssetDetailValuesIntId)
-                .HasForeignKey(a => a.AttributeId)
-                .OnDelete(DeleteBehavior.ClientCascade)
-                ;
-
-                entity.HasOne(e => e.AssetDetail)
-                .WithMany(a => a.AssetDetailValuesIntId)
-                .HasForeignKey(e => e.AssetDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            modelBuilder.Entity<AssetSummaryDetailValueEntityIntId>(entity =>
-            {
-                entity.Property(e => e.Id).IsRequired();
-                entity.Property(e => e.RunId).IsRequired();
-
-                entity.HasOne(a => a.Attribute)
-                .WithMany(a => a.AssetSummaryDetailValuesIntId)
-                .HasForeignKey(a => a.AttributeId)
-                .OnDelete(DeleteBehavior.ClientCascade)
-                ;
-
-                entity.HasOne(e => e.AssetSummaryDetail)
-                .WithMany(a => a.AssetSummaryDetailValuesIntId)
-                .HasForeignKey(e => e.AssetSummaryDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            modelBuilder.Entity<SimulationYearDetailEntity>(entity =>
-            {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-                entity.Property(e => e.RunId).IsRequired();
-
-                entity.HasOne(e => e.SimulationOutput)
-                .WithMany(so => so.Years)
-                .HasForeignKey(a => a.SimulationOutputId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-                entity.Property(e => e.ConditionOfNetwork)
-                .IsRequired();
-
-                entity.Property(e => e.Year)
-                .IsRequired();
-            });
-
-            modelBuilder.Entity<BudgetDetailEntity>(entity =>
-            {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-
-                entity.Property(e => e.AvailableFunding).IsRequired();
-
-                entity.Property(e => e.BudgetName).IsRequired();
-
-                entity.HasOne(e => e.SimulationYearDetail)
-                .WithMany(sy => sy.Budgets)
-                .HasForeignKey(e => e.SimulationYearDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            modelBuilder.Entity<DeficientConditionGoalDetailEntity>(entity =>
-            {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-                entity.Property(e => e.RunId).IsRequired();
-
-                entity.Property(e => e.ActualDeficientPercentage)
-                .IsRequired();
-
-                entity.Property(e => e.AllowedDeficientPercentage)
-                .IsRequired();
-
-                entity.Property(e => e.DeficientLimit).IsRequired();
-
-                entity.Property(e => e.GoalIsMet).IsRequired();
-
-                entity.HasOne(e => e.Attribute)
-                .WithMany(a => a.DeficientConditionGoalDetails)
-                .HasForeignKey(e => e.AttributeId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(e => e.SimulationYearDetail)
-                .WithMany(sy => sy.DeficientConditionGoals)
-                .HasForeignKey(e => e.SimulationYearDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            });
-
-            modelBuilder.Entity<TargetConditionGoalDetailEntity>(entity =>
-            {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-                entity.Property(e => e.RunId).IsRequired();
-
-                entity.Property(e => e.GoalIsMet).IsRequired();
-
-                entity.Property(e => e.ActualValue).IsRequired();
-
-                entity.Property(e => e.TargetValue).IsRequired();
-
-                entity.HasOne(e => e.SimulationYearDetail)
-                .WithMany(sy => sy.TargetConditionGoals)
-                .HasForeignKey(e => e.SimulationYearDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(e => e.Attribute)
-                .WithMany(a => a.TargetConditionGoals)
-                .HasForeignKey(e => e.AttributeId)
-                .OnDelete(DeleteBehavior.Cascade);
-            });
-
+            /* ======================  AssetDetail  =========================== */
             modelBuilder.Entity<AssetDetailEntity>(entity =>
             {
-                entity.Property(e => e.Id).IsRequired();
-                entity.Property(e => e.TreatmentCause).IsRequired();
-                entity.Property(e => e.RunId).IsRequired();
+                entity.Property(e => e.Id).HasColumnName("Id");
+                    
+                entity.Property(e => e.RunId).HasColumnName("RunId");
 
-                entity.Property(e => e.TreatmentFundingIgnoresSpendingLimit).IsRequired();
+                entity.ToTable("AssetDetail");
 
-                entity.Property(e => e.TreatmentStatus).IsRequired();
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_AssetDetail");
 
-                entity.HasOne(e => e.SimulationYearDetail)
-                .WithMany(sy => sy.Assets)
-                .HasForeignKey(e => e.SimulationYearDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(e => new { e.RunId, e.MaintainableAssetId })
+                      .HasDatabaseName("IX_AssetDetail_MaintainableAssetId");
+
+                entity.HasIndex(e => new { e.RunId, e.SimulationYearDetailId })
+                      .HasDatabaseName("IX_AssetDetail_SimulationYearDetailId");
 
                 entity.HasOne(e => e.MaintainableAsset)
-                .WithMany(ma => ma.AssetDetails)
-                .HasForeignKey(e => e.MaintainableAssetId)
-                .OnDelete(DeleteBehavior.ClientCascade);
+                      .WithMany(e => e.AssetDetails)
+                      .HasForeignKey(e => e.MaintainableAssetId);
+
+                entity.HasOne(e => e.SimulationYearDetail)
+                      .WithMany(e => e.Assets)
+                      .HasForeignKey(e => new { e.RunId, e.SimulationYearDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
             });
-                       
+
+            /* ======================  AssetDetailValueIntId  ================ */
+            modelBuilder.Entity<AssetDetailValueEntityIntId>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("AssetDetailValueIntId");
+
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_AssetDetailValueIntId");
+
+                entity.HasOne(e => e.AssetDetail)
+                      .WithMany(a => a.AssetDetailValuesIntId)
+                      .HasForeignKey(e => new { e.RunId, e.AssetDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Attribute)
+                      .WithMany(e => e.AssetDetailValuesIntId)
+                      .HasForeignKey(e => e.AttributeId);
+            });
+
+            /* ======================  AssetSummaryDetail  ==================== */
+            modelBuilder.Entity<AssetSummaryDetailEntity>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("AssetSummaryDetail");
+
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_AssetSummaryDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.MaintainableAssetId })
+                      .HasDatabaseName("IX_AssetSummaryDetail_MaintainableAssetId");
+
+                entity.HasIndex(e => new { e.RunId, e.SimulationOutputId })
+                      .HasDatabaseName("IX_AssetSummaryDetail_SimulationOutputId");
+
+                entity.HasOne(e => e.MaintainableAsset)
+                      .WithMany(e => e.AssetSummaryDetails)
+                      .HasForeignKey(e => e.MaintainableAssetId);
+
+                entity.HasOne(e => e.SimulationOutput)
+                      .WithMany(e => e.InitialAssetSummaries)
+                      .HasForeignKey(e => e.SimulationOutputId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            /* ======================  AssetSummaryDetailValueIntId  ========= */
+            modelBuilder.Entity<AssetSummaryDetailValueEntityIntId>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("AssetSummaryDetailValueIntId");
+
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_AssetSummaryDetailValueIntId");
+
+                entity.HasOne(e => e.AssetSummaryDetail)
+                      .WithMany(e => e.AssetSummaryDetailValuesIntId)
+                      .HasForeignKey(e => new { e.RunId, e.AssetSummaryDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Attribute)
+                      .WithMany(e => e.AssetSummaryDetailValuesIntId)
+                      .HasForeignKey(e => e.AttributeId);
+            });
+
+            /* ======================  BudgetDetail  ========================= */
+            modelBuilder.Entity<BudgetDetailEntity>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("BudgetDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_BudgetDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.SimulationYearDetailId })
+                      .HasDatabaseName("IX_BudgetDetail_SimulationYearDetailId");
+
+                // FK to SimulationYearDetail is optional; omit if you don’t enforce it
+                entity.HasOne(e => e.SimulationYearDetail)
+                      .WithMany(y => y.Budgets)
+                      .HasForeignKey(e => new { e.RunId, e.SimulationYearDetailId });
+            });
+
+            /* ======================  BudgetToSpend  ======================== */
+            modelBuilder.Entity<BudgetToSpend>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("BudgetToSpend");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_BudgetToSpend");
+
+                entity.HasIndex(e => new { e.RunId, e.FundingCalculationInputId })
+                      .HasDatabaseName("IX_BudgetToSpend_FundingCalculationInputId");
+
+                entity.HasOne(e => e.FundingCalculationInput)
+                      .WithMany(i => i.CurrentBudgetsToSpend)
+                      .HasForeignKey(e => new { e.RunId, e.FundingCalculationInputId })
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            /* ======================  CashFlowConsiderationDetail  ========== */
             modelBuilder.Entity<CashFlowConsiderationDetailEntity>(entity =>
             {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-                entity.Property(e => e.RunId).IsRequired();
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
 
-                entity.Property(e => e.ReasonAgainstCashFlow).IsRequired();
+                entity.ToTable("CashFlowConsiderationDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_CashFlowConsiderationDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.TreatmentConsiderationDetailId })
+                      .HasDatabaseName("IX_CashFlowConsiderationDetail_TreatmentConsiderationDetailId");
 
                 entity.HasOne(e => e.TreatmentConsiderationDetail)
-                .WithMany(tc => tc.CashFlowConsiderations)
-                .HasForeignKey(e => e.TreatmentConsiderationDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany(tc => tc.CashFlowConsiderations)
+                      .HasForeignKey(e => new { e.RunId, e.TreatmentConsiderationDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
+            /* ======================  DeficientConditionGoalDetail  ========= */
+            modelBuilder.Entity<DeficientConditionGoalDetailEntity>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("DeficientConditionGoalDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_DeficientConditionGoalDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.AttributeId })
+                      .HasDatabaseName("IX_DeficientConditionGoalDetail_AttributeId");
+
+                entity.HasIndex(e => new { e.RunId, e.SimulationYearDetailId })
+                      .HasDatabaseName("IX_DeficientConditionGoalDetail_SimulationYearDetailId");
+
+                entity.HasOne(e => e.Attribute)
+                      .WithMany(e => e.DeficientConditionGoalDetails)
+                      .HasForeignKey(e => e.AttributeId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.SimulationYearDetail)
+                      .WithMany(y => y.DeficientConditionGoals)
+                      .HasForeignKey(e => new { e.RunId, e.SimulationYearDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            /* ======================  FundingCalculationInput  ============== */
+            modelBuilder.Entity<FundingCalculationInput>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("FundingCalculationInput");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_FundingCalculationInput");
+
+                entity.HasIndex(e => new { e.RunId, e.TreatmentConsiderationDetailId })
+                      .HasDatabaseName("IX_FundingCalculationInput_TreatmentConsiderationDetailId");
+
+                entity.HasOne(e => e.TreatmentConsiderationDetail)
+                      .WithOne(tc => tc.FundingCalculationInput)
+                      .HasForeignKey<FundingCalculationInput>(e => new { e.RunId, e.TreatmentConsiderationDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            /* ======================  FundingCalculationOutput  ============= */
+            modelBuilder.Entity<FundingCalculationOutput>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("FundingCalculationOutput");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_FundingCalculationOutput");
+
+                entity.HasIndex(e => new { e.RunId, e.TreatmentConsiderationDetailId })
+                      .HasDatabaseName("IX_FundingCalculationOutput_TreatmentConsiderationDetailId");
+
+                entity.HasOne(e => e.TreatmentConsiderationDetail)
+                      .WithOne(tc => tc.FundingCalculationOutput)
+                      .HasForeignKey<FundingCalculationOutput>(e => new { e.RunId, e.TreatmentConsiderationDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            /* ======================  SimulationYearDetail  ================= */
+            modelBuilder.Entity<SimulationYearDetailEntity>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("SimulationYearDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_SimulationYearDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.SimulationOutputId })
+                      .HasDatabaseName("IX_SimulationYearDetail_SimulationOutputId");
+
+                entity.HasOne(e => e.SimulationOutput)
+                      .WithMany(o => o.Years)
+                      .HasForeignKey(e => e.SimulationOutputId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            /* ======================  TargetConditionGoalDetail  ============ */
+            modelBuilder.Entity<TargetConditionGoalDetailEntity>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("TargetConditionGoalDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_TargetConditionGoalDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.AttributeId })
+                      .HasDatabaseName("IX_TargetConditionGoalDetail_AttributeId");
+
+                entity.HasIndex(e => new { e.RunId, e.SimulationYearDetailId })
+                      .HasDatabaseName("IX_TargetConditionGoalDetail_SimulationYearDetailId");
+
+                entity.HasOne(e => e.Attribute)
+                      .WithMany(e => e.TargetConditionGoals)
+                      .HasForeignKey(e => e.AttributeId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.SimulationYearDetail)
+                      .WithMany(y => y.TargetConditionGoals)
+                      .HasForeignKey(e => new { e.RunId, e.SimulationYearDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            /* ======================  TreatmentConsiderationDetail  ========= */
             modelBuilder.Entity<TreatmentConsiderationDetailEntity>(entity =>
             {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-                entity.Property(e => e.RunId).IsRequired();
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("TreatmentConsiderationDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_TreatmentConsiderationDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.AssetDetailId })
+                      .HasDatabaseName("IX_TreatmentConsiderationDetail_AssetDetailId");
 
                 entity.HasOne(e => e.AssetDetail)
-                .WithMany(ad => ad.TreatmentConsiderations)
-                .HasForeignKey(e => e.AssetDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany(a => a.TreatmentConsiderations)
+                      .HasForeignKey(e => new { e.RunId, e.AssetDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
+            /* ======================  TreatmentOptionDetail  ================ */
             modelBuilder.Entity<TreatmentOptionDetailEntity>(entity =>
             {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-                entity.Property(e => e.RunId).IsRequired();
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
 
-                entity.Property(e => e.Benefit).IsRequired();
-                entity.Property(e => e.ConditionChange).IsRequired();
+                entity.ToTable("TreatmentOptionDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_TreatmentOptionDetail");
 
-                entity.Property(e => e.Cost).IsRequired();
+                entity.HasIndex(e => new { e.RunId, e.AssetDetailId })
+                      .HasDatabaseName("IX_TreatmentOptionDetail_AssetDetailId");
 
                 entity.HasOne(e => e.AssetDetail)
-                .WithMany(ad => ad.TreatmentOptions)
-                .HasForeignKey(e => e.AssetDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany(a => a.TreatmentOptions)
+                      .HasForeignKey(e => new { e.RunId, e.AssetDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
+            /* ======================  TreatmentRejectionDetail  ============= */
             modelBuilder.Entity<TreatmentRejectionDetailEntity>(entity =>
             {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-                entity.Property(e => e.RunId).IsRequired();
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
 
-                entity.Property(e => e.TreatmentRejectionReason).IsRequired();
-                entity.Property(e => e.PotentialConditionChange).IsRequired();
+                entity.ToTable("TreatmentRejectionDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_TreatmentRejectionDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.AssetDetailId })
+                      .HasDatabaseName("IX_TreatmentRejectionDetail_AssetDetailId");
 
                 entity.HasOne(e => e.AssetDetail)
-                .WithMany(ad => ad.TreatmentRejections)
-                .HasForeignKey(e => e.AssetDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany(a => a.TreatmentRejections)
+                      .HasForeignKey(e => new { e.RunId, e.AssetDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
+            /* ======================  TreatmentSchedulingCollisionDetail  ==== */
             modelBuilder.Entity<TreatmentSchedulingCollisionDetailEntity>(entity =>
             {
-                entity.Property(e => e.Id).IsRequired();
-                entity.HasIndex(e => e.Id).IsUnique();
-                entity.Property(e => e.RunId).IsRequired();
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.RunId).HasColumnName("RunId");
+
+                entity.ToTable("TreatmentSchedulingCollisionDetail");
+                entity.HasKey(e => new { e.RunId, e.Id })
+                      .IsClustered()
+                      .HasName("PK_TreatmentSchedulingCollisionDetail");
+
+                entity.HasIndex(e => new { e.RunId, e.AssetDetailId })
+                      .HasDatabaseName("IX_TreatmentSchedulingCollisionDetail_AssetDetailId");
 
                 entity.HasOne(e => e.AssetDetail)
-                .WithMany(ad => ad.TreatmentSchedulingCollisions)
-                .HasForeignKey(e => e.AssetDetailId)
-                .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany(a => a.TreatmentSchedulingCollisions)
+                      .HasForeignKey(e => new { e.RunId, e.AssetDetailId })
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<RemainingLifeLimitLibraryUserEntity>(entity =>

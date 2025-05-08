@@ -13,7 +13,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             Guid assetDetailId,
             int runId)
         {
-            var id = Guid.NewGuid();
+            var id = SequentialGuid.NewGuid();
             var entity = new TreatmentSchedulingCollisionDetailEntity
             {
                 Id = id,

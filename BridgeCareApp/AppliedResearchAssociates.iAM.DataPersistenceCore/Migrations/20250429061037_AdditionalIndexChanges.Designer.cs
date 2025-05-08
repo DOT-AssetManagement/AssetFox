@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 {
     [DbContext(typeof(IAMContext))]
-    [Migration("20250505161037_AdditionalIndexChanges")]
+    [Migration("20250429061037_AdditionalIndexChanges")]
     partial class AdditionalIndexChanges
     {
         /// <inheritdoc />

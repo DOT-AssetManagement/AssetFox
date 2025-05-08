@@ -15,7 +15,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             Dictionary<string, Guid> attributeIdLookup,
             int simulationRunId)
         {
-            var id = Guid.NewGuid();
+            var id = SequentialGuid.NewGuid();
             var budgets = BudgetDetailMapper.ToEntityList(domain.Budgets, id, simulationRunId);
             var deficientConditionGoals = DeficientConditionGoalDetailMapper.ToEntityList(domain.DeficientConditionGoals, id, attributeIdLookup, simulationRunId);
             var targetConditionGoals = TargetConditionGoalDetailMapper.ToEntityList(domain.TargetConditionGoals, id, attributeIdLookup, simulationRunId);
