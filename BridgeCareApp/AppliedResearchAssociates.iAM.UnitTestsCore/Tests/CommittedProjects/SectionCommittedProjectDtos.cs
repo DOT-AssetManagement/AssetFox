@@ -11,7 +11,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         {
             Id = id,
             Year = 2023,
-            Treatment = "Simple",
+            Treatment = ["Simple"],
             ShadowForAnyTreatment = 1,
             ShadowForSameTreatment = 3,
             Cost = 210000,
@@ -31,7 +31,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             {
                 Id = id,
                 Year = 2024,
-                Treatment = "Simple again",
+                Treatment = ["Simple again"],
                 ShadowForAnyTreatment = 1,
                 ShadowForSameTreatment = 3,
                 Cost = 10000,

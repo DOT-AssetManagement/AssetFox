@@ -13,7 +13,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         {
             return currentBudgetsToSpendDomainList.Select(_ => new BudgetToSpend
             {
-                Id = Guid.NewGuid(),
+                Id = SequentialGuid.NewGuid(),
                 Amount = _.Amount,
                 Year = _.Year,
                 FundingCalculationInputId = fundingCalculationInputId,

@@ -13,7 +13,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         {
             var entity = new BudgetDetailEntity
             {
-                Id = Guid.NewGuid(),
+                Id = SequentialGuid.NewGuid(),
                 RunId = runId,
                 SimulationYearDetailId = simulationYearDetailId,
                 BudgetName = budget.BudgetName,

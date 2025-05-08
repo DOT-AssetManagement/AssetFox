@@ -29,7 +29,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             int runId)
         {
             var attributeId = attributeIdLookup[domain.AttributeName];
-            var id = Guid.NewGuid();
+            var id = SequentialGuid.NewGuid();
             var entity = new DeficientConditionGoalDetailEntity
             {
                 Id = id,

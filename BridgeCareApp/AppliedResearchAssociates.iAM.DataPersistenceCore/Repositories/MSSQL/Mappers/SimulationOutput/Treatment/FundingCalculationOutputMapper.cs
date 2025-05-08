@@ -12,7 +12,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         {
             return new FundingCalculationOutput
             {
-                Id = Guid.NewGuid(),
+                Id = SequentialGuid.NewGuid(),
                 TreatmentConsiderationDetailId = treatmentConsiderationDetailEntityId,
                 RunId = runId
             };

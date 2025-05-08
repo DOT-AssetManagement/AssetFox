@@ -7,7 +7,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class AssetDetailAssertions
     {
-        internal static void Same(AssetDetail expected, AssetDetail actual)
+        internal static void Same(AssetDetail expected, AssetDetail actual, bool treatmentSchedulingCollisionsShouldMatch)
         {
             Assert.Equal(expected.AppliedTreatment, actual.AppliedTreatment);
             Assert.Equal(expected.TreatmentStatus, actual.TreatmentStatus);
@@ -21,12 +21,15 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             {
                 TreatmentOptionAssertions.Same(expected.TreatmentOptions[i], actual.TreatmentOptions[i]);
             }
-            Assert.Equal(expected.TreatmentSchedulingCollisions.Count, actual.TreatmentSchedulingCollisions.Count);
-            expected.TreatmentSchedulingCollisions.Sort(tsc => tsc.NameOfUnscheduledTreatment);
-            actual.TreatmentSchedulingCollisions.Sort(tsc => tsc.NameOfUnscheduledTreatment);
-            for (int i=0; i<expected.TreatmentSchedulingCollisions.Count; i++)
+            if (treatmentSchedulingCollisionsShouldMatch)
             {
-                TreatmentSchedulingCollisionAssertions.Same(expected.TreatmentSchedulingCollisions[i], actual.TreatmentSchedulingCollisions[i]);
+                Assert.Equal(expected.TreatmentSchedulingCollisions.Count, actual.TreatmentSchedulingCollisions.Count);
+                expected.TreatmentSchedulingCollisions.Sort(tsc => tsc.NameOfUnscheduledTreatment);
+                actual.TreatmentSchedulingCollisions.Sort(tsc => tsc.NameOfUnscheduledTreatment);
+                for (int i = 0; i < expected.TreatmentSchedulingCollisions.Count; i++)
+                {
+                    TreatmentSchedulingCollisionAssertions.Same(expected.TreatmentSchedulingCollisions[i], actual.TreatmentSchedulingCollisions[i]);
+                }
             }
             Assert.Equal(expected.TreatmentConsiderations.Count, actual.TreatmentConsiderations.Count);
             expected.TreatmentConsiderations.Sort(tc => tc.TreatmentName + tc.BudgetPriorityLevel);
