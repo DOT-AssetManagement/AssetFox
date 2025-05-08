@@ -792,6 +792,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
        {
             await updateTreatmentBudgetsAndPriority();
             hasInvestmentJustBeenSaved = false;
+            $emitter.emit('switchedToNewInvestmentLibrary');
        }
     });
 
@@ -1416,8 +1417,8 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 hasInvestmentJustBeenSaved = true;               
             }           
         });
-        $emitter.emit('InvestmentSettingsUpdated');
-        $emitter.emit('switchedToNewInvestmentLibrary', sync);
+        // $emitter.emit('InvestmentSettingsUpdated');
+        // $emitter.emit('switchedToNewInvestmentLibrary', sync);
     }
 
     async function updateTreatmentBudgetsAndPriority()

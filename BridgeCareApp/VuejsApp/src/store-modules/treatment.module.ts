@@ -22,6 +22,10 @@ import { stat } from 'fs';
 import { stringify } from 'querystring';
 import { LibraryUser } from '@/shared/models/iAM/user';
 import { name } from 'msal/lib-commonjs/packageMetadata';
+import { Emitter, EventType } from 'mitt';
+import { inject } from 'vue';
+
+const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
 const state = {
     treatmentLibraries: [] as TreatmentLibrary[],
@@ -229,6 +233,7 @@ const actions = {
                     message: 'Modified scenario treatments',
                 });
             }
+            $emitter.emit('switchedToNewInvestmentLibrary');
         });
     },
     async deleteTreatmentLibrary(
