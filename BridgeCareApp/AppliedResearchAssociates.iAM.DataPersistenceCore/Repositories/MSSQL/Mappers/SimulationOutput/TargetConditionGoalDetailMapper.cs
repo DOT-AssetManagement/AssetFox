@@ -14,7 +14,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             Dictionary<string, Guid> attributeIdLookup,
             int runId)
         {
-            var id = Guid.NewGuid();
+            var id = SequentialGuid.NewGuid();
             var attributeId = attributeIdLookup[domain.AttributeName];
             var entity = new TargetConditionGoalDetailEntity
             {

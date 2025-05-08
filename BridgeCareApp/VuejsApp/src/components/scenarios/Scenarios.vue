@@ -2028,7 +2028,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     }
 
     async function deleteAllReports(_scenario: any) {
-        await ReportsService.deleteAllGeneratedReports(_scenario.id)
+        await ReportsService.deleteAllGeneratedReports(_scenario)
             .then((response: AxiosResponse<any>) => {
                 if (hasValue(response, 'data')) {
                     if (!response.data.includes("No reports exist")) {

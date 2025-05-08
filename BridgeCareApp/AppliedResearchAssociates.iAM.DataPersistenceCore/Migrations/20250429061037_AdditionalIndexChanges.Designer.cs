@@ -4,6 +4,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 {
     [DbContext(typeof(IAMContext))]
-    partial class IAMContextModelSnapshot : ModelSnapshot
+    [Migration("20250429061037_AdditionalIndexChanges")]
+    partial class AdditionalIndexChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,13 +90,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Allocation", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("AllocatedAmount")
                         .HasPrecision(18, 2)
@@ -105,19 +104,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<Guid>("FundingCalculationOutputId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Year")
                         .HasColumnType("int");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_Allocation");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
-
-                    b.HasIndex("RunId", "FundingCalculationOutputId")
-                        .HasDatabaseName("IX_Allocation_FundingCalculationOutputId");
+                    b.HasIndex("FundingCalculationOutputId");
 
                     b.ToTable("Allocation");
                 });
@@ -247,13 +245,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AppliedTreatment")
                         .HasColumnType("nvarchar(max)");
@@ -263,6 +257,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.Property<string>("ProjectSource")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("SimulationYearDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -276,32 +273,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<int>("TreatmentStatus")
                         .HasColumnType("int");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_AssetDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("MaintainableAssetId");
 
-                    b.HasIndex("MaintainableAssetId")
-                        .HasDatabaseName("IX_AssetDetail_MaintainableAssetId1");
+                    b.HasIndex("SimulationYearDetailId");
 
-                    b.HasIndex("RunId", "MaintainableAssetId")
-                        .HasDatabaseName("IX_AssetDetail_MaintainableAssetId");
-
-                    b.HasIndex("RunId", "SimulationYearDetailId")
-                        .HasDatabaseName("IX_AssetDetail_SimulationYearDetailId");
-
-                    b.ToTable("AssetDetail", (string)null);
+                    b.ToTable("AssetDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailValueEntityIntId", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<int>("Id")
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<Guid>("AssetDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -316,66 +303,52 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<double?>("NumericValue")
                         .HasColumnType("float");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TextValue")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_AssetDetailValueIntId");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("AssetDetailId");
 
                     b.HasIndex("AttributeId");
 
-                    b.HasIndex("RunId", "AssetDetailId");
-
-                    b.ToTable("AssetDetailValueIntId", (string)null);
+                    b.ToTable("AssetDetailValueIntId");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetSummaryDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("MaintainableAssetId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("SimulationOutputId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_AssetSummaryDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("MaintainableAssetId");
 
-                    b.HasIndex("MaintainableAssetId")
-                        .HasDatabaseName("IX_AssetSummaryDetail_MaintainableAssetId1");
+                    b.HasIndex("SimulationOutputId");
 
-                    b.HasIndex("SimulationOutputId")
-                        .HasDatabaseName("IX_AssetSummaryDetail_SimulationOutputId1");
-
-                    b.HasIndex("RunId", "MaintainableAssetId")
-                        .HasDatabaseName("IX_AssetSummaryDetail_MaintainableAssetId");
-
-                    b.HasIndex("RunId", "SimulationOutputId")
-                        .HasDatabaseName("IX_AssetSummaryDetail_SimulationOutputId");
-
-                    b.ToTable("AssetSummaryDetail", (string)null);
+                    b.ToTable("AssetSummaryDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetSummaryDetailValueEntityIntId", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<int>("Id")
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<Guid>("AssetSummaryDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -390,19 +363,19 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<double?>("NumericValue")
                         .HasColumnType("float");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TextValue")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_AssetSummaryDetailValueIntId");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("AssetSummaryDetailId");
 
                     b.HasIndex("AttributeId");
 
-                    b.HasIndex("RunId", "AssetSummaryDetailId");
-
-                    b.ToTable("AssetSummaryDetailValueIntId", (string)null);
+                    b.ToTable("AssetSummaryDetailValueIntId");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AttributeDatumEntity", b =>
@@ -666,33 +639,32 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.BudgetDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("AvailableFunding")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("BudgetName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("SimulationYearDetailId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_BudgetDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("Id")
+                        .IsUnique();
 
-                    b.HasIndex("RunId", "SimulationYearDetailId")
-                        .HasDatabaseName("IX_BudgetDetail_SimulationYearDetailId");
+                    b.HasIndex("SimulationYearDetailId");
 
-                    b.ToTable("BudgetDetail", (string)null);
+                    b.ToTable("BudgetDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.BudgetPercentagePairEntity", b =>
@@ -734,13 +706,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.BudgetToSpend", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
@@ -752,29 +720,24 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Year")
                         .HasColumnType("int");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_BudgetToSpend");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("FundingCalculationInputId");
 
-                    b.HasIndex("RunId", "FundingCalculationInputId")
-                        .HasDatabaseName("IX_BudgetToSpend_FundingCalculationInputId");
-
-                    b.ToTable("BudgetToSpend", (string)null);
+                    b.ToTable("BudgetToSpend");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CashFlowConsiderationDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CashFlowRuleName")
                         .HasColumnType("nvarchar(max)");
@@ -782,18 +745,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<int>("ReasonAgainstCashFlow")
                         .HasColumnType("int");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("TreatmentConsiderationDetailId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_CashFlowConsiderationDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("Id")
+                        .IsUnique();
 
-                    b.HasIndex("RunId", "TreatmentConsiderationDetailId")
-                        .HasDatabaseName("IX_CashFlowConsiderationDetail_TreatmentConsiderationDetailId");
+                    b.HasIndex("TreatmentConsiderationDetailId");
 
-                    b.ToTable("CashFlowConsiderationDetail", (string)null);
+                    b.ToTable("CashFlowConsiderationDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CommittedProjectConsequenceEntity", b =>
@@ -1116,13 +1081,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.DeficientConditionGoalDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<double>("ActualDeficientPercentage")
                         .HasColumnType("float");
@@ -1142,24 +1103,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<string>("GoalName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("SimulationYearDetailId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_DeficientConditionGoalDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("AttributeId");
 
-                    b.HasIndex("AttributeId")
-                        .HasDatabaseName("IX_DeficientConditionGoalDetail_AttributeId1");
+                    b.HasIndex("Id")
+                        .IsUnique();
 
-                    b.HasIndex("RunId", "AttributeId")
-                        .HasDatabaseName("IX_DeficientConditionGoalDetail_AttributeId");
+                    b.HasIndex("SimulationYearDetailId");
 
-                    b.HasIndex("RunId", "SimulationYearDetailId")
-                        .HasDatabaseName("IX_DeficientConditionGoalDetail_SimulationYearDetailId");
-
-                    b.ToTable("DeficientConditionGoalDetail", (string)null);
+                    b.ToTable("DeficientConditionGoalDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.EquationEntity", b =>
@@ -1226,52 +1185,42 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("TreatmentConsiderationDetailId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_FundingCalculationInput");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("TreatmentConsiderationDetailId")
+                        .IsUnique();
 
-                    b.HasIndex("RunId", "TreatmentConsiderationDetailId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_FundingCalculationInput_TreatmentConsiderationDetailId");
-
-                    b.ToTable("FundingCalculationInput", (string)null);
+                    b.ToTable("FundingCalculationInput");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("TreatmentConsiderationDetailId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_FundingCalculationOutput");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("TreatmentConsiderationDetailId")
+                        .IsUnique();
 
-                    b.HasIndex("RunId", "TreatmentConsiderationDetailId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_FundingCalculationOutput_TreatmentConsiderationDetailId");
-
-                    b.ToTable("FundingCalculationOutput", (string)null);
+                    b.ToTable("FundingCalculationOutput");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.InvestmentPlanEntity", b =>
@@ -4669,16 +4618,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationYearDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<double>("ConditionOfNetwork")
                         .HasColumnType("float");
+
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("SimulationOutputId")
                         .HasColumnType("uniqueidentifier");
@@ -4686,29 +4634,21 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<int>("Year")
                         .HasColumnType("int");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_SimulationYearDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("Id")
+                        .IsUnique();
 
-                    b.HasIndex("SimulationOutputId")
-                        .HasDatabaseName("IX_SimulationYearDetail_SimulationOutputId1");
+                    b.HasIndex("SimulationOutputId");
 
-                    b.HasIndex("RunId", "SimulationOutputId")
-                        .HasDatabaseName("IX_SimulationYearDetail_SimulationOutputId");
-
-                    b.ToTable("SimulationYearDetail", (string)null);
+                    b.ToTable("SimulationYearDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TargetConditionGoalDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<double>("ActualValue")
                         .HasColumnType("float");
@@ -4722,27 +4662,25 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<string>("GoalName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("SimulationYearDetailId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<double>("TargetValue")
                         .HasColumnType("float");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_TargetConditionGoalDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("AttributeId");
 
-                    b.HasIndex("AttributeId")
-                        .HasDatabaseName("IX_TargetConditionGoalDetail_AttributeId1");
+                    b.HasIndex("Id")
+                        .IsUnique();
 
-                    b.HasIndex("RunId", "AttributeId")
-                        .HasDatabaseName("IX_TargetConditionGoalDetail_AttributeId");
+                    b.HasIndex("SimulationYearDetailId");
 
-                    b.HasIndex("RunId", "SimulationYearDetailId")
-                        .HasDatabaseName("IX_TargetConditionGoalDetail_SimulationYearDetailId");
-
-                    b.ToTable("TargetConditionGoalDetail", (string)null);
+                    b.ToTable("TargetConditionGoalDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TextAttributeValueHistoryEntity", b =>
@@ -4786,13 +4724,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AssetDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -4800,18 +4734,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<int?>("BudgetPriorityLevel")
                         .HasColumnType("int");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_TreatmentConsiderationDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("AssetDetailId");
 
-                    b.HasIndex("RunId", "AssetDetailId")
-                        .HasDatabaseName("IX_TreatmentConsiderationDetail_AssetDetailId");
+                    b.HasIndex("Id")
+                        .IsUnique();
 
-                    b.ToTable("TreatmentConsiderationDetail", (string)null);
+                    b.ToTable("TreatmentConsiderationDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentLibraryUserEntity", b =>
@@ -4848,13 +4784,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentOptionDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AssetDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -4871,29 +4803,27 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<double?>("RemainingLife")
                         .HasColumnType("float");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_TreatmentOptionDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("AssetDetailId");
 
-                    b.HasIndex("RunId", "AssetDetailId")
-                        .HasDatabaseName("IX_TreatmentOptionDetail_AssetDetailId");
+                    b.HasIndex("Id")
+                        .IsUnique();
 
-                    b.ToTable("TreatmentOptionDetail", (string)null);
+                    b.ToTable("TreatmentOptionDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentRejectionDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AssetDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -4901,32 +4831,30 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<double>("PotentialConditionChange")
                         .HasColumnType("float");
 
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TreatmentName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TreatmentRejectionReason")
                         .HasColumnType("int");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_TreatmentRejectionDetail");
+                    b.HasKey("Id");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasIndex("AssetDetailId");
 
-                    b.HasIndex("RunId", "AssetDetailId")
-                        .HasDatabaseName("IX_TreatmentRejectionDetail_AssetDetailId");
+                    b.HasIndex("Id")
+                        .IsUnique();
 
-                    b.ToTable("TreatmentRejectionDetail", (string)null);
+                    b.ToTable("TreatmentRejectionDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentSchedulingCollisionDetailEntity", b =>
                 {
-                    b.Property<int>("RunId")
-                        .HasColumnType("int")
-                        .HasColumnName("RunId");
-
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("Id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AssetDetailId")
                         .HasColumnType("uniqueidentifier");
@@ -4934,15 +4862,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.Property<string>("NameOfUnscheduledTreatment")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("RunId", "Id")
-                        .HasName("PK_TreatmentSchedulingCollisionDetail");
+                    b.Property<int>("RunId")
+                        .HasColumnType("int");
 
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("RunId", "Id"));
+                    b.HasKey("Id");
 
-                    b.HasIndex("RunId", "AssetDetailId")
-                        .HasDatabaseName("IX_TreatmentSchedulingCollisionDetail_AssetDetailId");
+                    b.HasIndex("AssetDetailId");
 
-                    b.ToTable("TreatmentSchedulingCollisionDetail", (string)null);
+                    b.HasIndex("Id")
+                        .IsUnique();
+
+                    b.ToTable("TreatmentSchedulingCollisionDetail");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.UserCriteriaFilterEntity", b =>
@@ -5045,13 +4975,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Allocation", b =>
                 {
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput", "FundingCalculationOutput")
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput", null)
                         .WithMany("AllocationMatrix")
-                        .HasForeignKey("RunId", "FundingCalculationOutputId")
+                        .HasForeignKey("FundingCalculationOutputId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("FundingCalculationOutput");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AnalysisMaintainableAssetEntity", b =>
@@ -5094,12 +5022,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.MaintainableAssetEntity", "MaintainableAsset")
                         .WithMany("AssetDetails")
                         .HasForeignKey("MaintainableAssetId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationYearDetailEntity", "SimulationYearDetail")
                         .WithMany("Assets")
-                        .HasForeignKey("RunId", "SimulationYearDetailId")
+                        .HasForeignKey("SimulationYearDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -5110,16 +5038,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailValueEntityIntId", b =>
                 {
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AttributeEntity", "Attribute")
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
                         .WithMany("AssetDetailValuesIntId")
-                        .HasForeignKey("AttributeId")
+                        .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AttributeEntity", "Attribute")
                         .WithMany("AssetDetailValuesIntId")
-                        .HasForeignKey("RunId", "AssetDetailId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("AssetDetail");
@@ -5132,7 +5060,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.MaintainableAssetEntity", "MaintainableAsset")
                         .WithMany("AssetSummaryDetails")
                         .HasForeignKey("MaintainableAssetId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationOutputEntity", "SimulationOutput")
@@ -5148,16 +5076,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetSummaryDetailValueEntityIntId", b =>
                 {
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AttributeEntity", "Attribute")
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetSummaryDetailEntity", "AssetSummaryDetail")
                         .WithMany("AssetSummaryDetailValuesIntId")
-                        .HasForeignKey("AttributeId")
+                        .HasForeignKey("AssetSummaryDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetSummaryDetailEntity", "AssetSummaryDetail")
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AttributeEntity", "Attribute")
                         .WithMany("AssetSummaryDetailValuesIntId")
-                        .HasForeignKey("RunId", "AssetSummaryDetailId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("AssetSummaryDetail");
@@ -5272,7 +5200,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationYearDetailEntity", "SimulationYearDetail")
                         .WithMany("Budgets")
-                        .HasForeignKey("RunId", "SimulationYearDetailId")
+                        .HasForeignKey("SimulationYearDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -5300,20 +5228,18 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.BudgetToSpend", b =>
                 {
-                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput", "FundingCalculationInput")
+                    b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput", null)
                         .WithMany("CurrentBudgetsToSpend")
-                        .HasForeignKey("RunId", "FundingCalculationInputId")
+                        .HasForeignKey("FundingCalculationInputId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("FundingCalculationInput");
                 });
 
             modelBuilder.Entity("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.CashFlowConsiderationDetailEntity", b =>
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", "TreatmentConsiderationDetail")
                         .WithMany("CashFlowConsiderations")
-                        .HasForeignKey("RunId", "TreatmentConsiderationDetailId")
+                        .HasForeignKey("TreatmentConsiderationDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -5424,7 +5350,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationYearDetailEntity", "SimulationYearDetail")
                         .WithMany("DeficientConditionGoals")
-                        .HasForeignKey("RunId", "SimulationYearDetailId")
+                        .HasForeignKey("SimulationYearDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -5448,7 +5374,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", "TreatmentConsiderationDetail")
                         .WithOne("FundingCalculationInput")
-                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput", "RunId", "TreatmentConsiderationDetailId")
+                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput", "TreatmentConsiderationDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -5459,7 +5385,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.TreatmentConsiderationDetailEntity", "TreatmentConsiderationDetail")
                         .WithOne("FundingCalculationOutput")
-                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput", "RunId", "TreatmentConsiderationDetailId")
+                        .HasForeignKey("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput", "TreatmentConsiderationDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -6915,7 +6841,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationYearDetailEntity", "SimulationYearDetail")
                         .WithMany("TargetConditionGoals")
-                        .HasForeignKey("RunId", "SimulationYearDetailId")
+                        .HasForeignKey("SimulationYearDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -6947,7 +6873,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
                         .WithMany("TreatmentConsiderations")
-                        .HasForeignKey("RunId", "AssetDetailId")
+                        .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -6977,7 +6903,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
                         .WithMany("TreatmentOptions")
-                        .HasForeignKey("RunId", "AssetDetailId")
+                        .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -6988,7 +6914,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
                         .WithMany("TreatmentRejections")
-                        .HasForeignKey("RunId", "AssetDetailId")
+                        .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -6999,7 +6925,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 {
                     b.HasOne("AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.AssetDetailEntity", "AssetDetail")
                         .WithMany("TreatmentSchedulingCollisions")
-                        .HasForeignKey("RunId", "AssetDetailId")
+                        .HasForeignKey("AssetDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

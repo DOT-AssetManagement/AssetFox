@@ -11,7 +11,5 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public virtual AssetDetailEntity AssetDetail { get; set; }
 
-        public int Id { get; set; }
-
     }
 }

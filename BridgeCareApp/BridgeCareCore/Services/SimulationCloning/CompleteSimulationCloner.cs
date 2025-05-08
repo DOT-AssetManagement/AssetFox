@@ -12,7 +12,7 @@ namespace BridgeCareCore.Services
             var cloneAnalysisMethod = AnalysisMethodCloner.Clone(completeSimulation.AnalysisMethod, ownerId);            
             var cloneCashFlowFule = CashFlowRuleCloner.CloneList(completeSimulation.CashFlowRules, ownerId);
             var cloneInvestmentPlan = InvestmentPlanCloner.Clone(completeSimulation.InvestmentPlan);
-            var cloneReportIndex = new List<ReportIndexDTO>(); // ReportIndexCloner.CloneList(completeSimulation.ReportIndexes); // commenting for now, need to fix the report paths and handle actual coping of report files
+            //var cloneReportIndex = new List<ReportIndexDTO>(); // ReportIndexCloner.CloneList(completeSimulation.ReportIndexes); // commenting for now, need to fix the report paths and handle actual coping of report files
             var clonePerformanceCurves = PerformanceCurvesCloner.CloneListNullPropagating(completeSimulation.PerformanceCurves, ownerId);
             var cloneCalculatedAttribute = CalculatedAttributeCloner.CloneList(completeSimulation.CalculatedAttributes, ownerId);
          
@@ -44,9 +44,9 @@ namespace BridgeCareCore.Services
                 users.Add(user);
             }
 
-            var cloneSimulationOutput = SimulationOutputCloner.Clone(completeSimulation.SimulationOutput);
+            //var cloneSimulationOutput = SimulationOutputCloner.Clone(completeSimulation.SimulationOutput);
             
-            var simulationAnalysisDetail = SimulationAnalysisDetailCloner.Clone(completeSimulation.SimulationAnalysisDetail);
+            //var simulationAnalysisDetail = SimulationAnalysisDetailCloner.Clone(completeSimulation.SimulationAnalysisDetail);
 
             var clone = new CompleteSimulationDTO
             {
@@ -55,7 +55,7 @@ namespace BridgeCareCore.Services
                 NetworkId = cloneRequest.NetworkId,
                 //figure out where the properties come from
                 AnalysisMethod = cloneAnalysisMethod,
-                ReportIndexes = cloneReportIndex,
+                //ReportIndexes = cloneReportIndex,
                 PerformanceCurves = clonePerformanceCurves,
                 CalculatedAttributes = cloneCalculatedAttribute,
                 BudgetPriorities = cloneBudgetPriorities,
@@ -69,8 +69,8 @@ namespace BridgeCareCore.Services
                 CommittedProjects = cloneBaseCommittedProject,
                 Id = Guid.NewGuid(),
                 Users = users,
-                SimulationOutput = cloneSimulationOutput,
-                SimulationAnalysisDetail = simulationAnalysisDetail
+                //SimulationOutput = cloneSimulationOutput,
+                //SimulationAnalysisDetail = simulationAnalysisDetail
             };
 
             return clone;

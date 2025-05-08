@@ -28,6 +28,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public Guid FundingCalculationInputId { get; set; }
 
+        public virtual FundingCalculationInput FundingCalculationInput { get; set; }
+
         public int RunId { get; set; }
     }
 }

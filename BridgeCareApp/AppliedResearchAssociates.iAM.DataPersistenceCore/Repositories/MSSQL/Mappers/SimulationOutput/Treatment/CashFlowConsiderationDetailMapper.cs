@@ -13,7 +13,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             Guid treatmentConsiderationDetailId,
             int runId)
         {
-            Guid id = Guid.NewGuid();
+            Guid id = SequentialGuid.NewGuid();
             var entity = new CashFlowConsiderationDetailEntity
             {
                 Id = id,
