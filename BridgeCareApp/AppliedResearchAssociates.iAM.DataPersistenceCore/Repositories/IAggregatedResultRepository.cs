@@ -22,5 +22,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         List<AggregatedSelectValuesResultDTO> GetAggregatedResultsForAttributeNames(List<string> attributeNames);
         List<AggregatedResultDTO> GetAllAggregatedResultsForMaintainableAsset(Guid assetId);
         Dictionary<Guid, List<AssetAttributeValuePair>> GetAssetAttributeValuePairDictionary(Guid networkId);
+        List<AggregatedResultDTO> GetAllInNetwork(Guid networkId);
     }
 }
