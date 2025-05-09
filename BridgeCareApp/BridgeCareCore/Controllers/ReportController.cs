@@ -158,46 +158,98 @@ namespace BridgeCareCore.Controllers
         [Authorize]
         public async Task<IActionResult> DownloadReport(Guid simulationId, string reportName)
         {
-            var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
-            if (simulationId == Guid.Empty || reportName == String.Empty)
+            var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId); // Get this early for error messages
+            if (simulationId == Guid.Empty || string.IsNullOrWhiteSpace(reportName)) // Use IsNullOrWhiteSpace for reportName
             {
-                var message = new List<string>() { $"No simulation or report name provided." };
-                return CreateErrorListing(message);
+                var message = new List<string>() { $"No simulation ID or report name provided." };
+                return CreateErrorListing(message); // Assuming this returns BadRequest or similar
             }
 
-            if (UnitOfWork.SimulationRepo.GetSimulation(simulationId) == null)
+            var simulation = UnitOfWork.SimulationRepo.GetSimulation(simulationId); // Get the full simulation object
+            if (simulation == null)
             {
                 var message = new List<string>() { $"A simulation with the ID of {simulationId} is not available in the database." };
                 return CreateErrorListing(message);
             }
+            // simulationName can be derived from simulation object if needed, or use the one fetched earlier.
 
             var report = UnitOfWork.ReportIndexRepository.GetAllForScenario(simulationId)
                 .Where(_ => _.Type == reportName)
                 .OrderByDescending(_ => _.CreationDate)
                 .FirstOrDefault();
+
             if (report == null)
             {
-                var message = new List<string>() { $"No simulations of the specified type ({reportName}) exist for simulation {simulationName}.  Did you run the report?" };
+                var message = new List<string>() { $"No reports of the specified type ({reportName}) exist for simulation {simulationName}. Did you run the report?" };
+                return CreateErrorListing(message);
+            }
+
+            if (string.IsNullOrWhiteSpace(report.Result)) 
+            {
+                var message = new List<string>() { $"The report metadata for {simulationName} (type: {reportName}) did not include a valid file path." };
                 return CreateErrorListing(message);
             }
 
             var reportPath = Path.Combine(Environment.CurrentDirectory, report.Result);
-            if (string.IsNullOrEmpty(reportPath) || string.IsNullOrWhiteSpace(reportPath))
+
+            if (!System.IO.File.Exists(reportPath))
             {
-                var message = new List<string>() { $"The report for {simulationName} did not include any results" };
-                return CreateErrorListing(message);
+                // Log this server-side as it's a more critical issue (DB entry points to non-existent file)
+                // Logger.LogError($"Report file not found at path: {reportPath} for report ID {report.Id}, simulation ID {simulationId}");
+                var message = new List<string>() { $"The report file for {simulationName} (type: {reportName}) could not be found on the server. It may have been moved or deleted." };
+                return CreateErrorListing(message); // Or return NotFound()
             }
 
-            FileInfoDTO result;
+            // --- Determine MIME type and Filename ---
+            var fileExtension = Path.GetExtension(reportPath)?.ToLowerInvariant();
+            string mimeType;
+            string effectiveFileExtension = ".xlsx"; // Default
+
+            switch (fileExtension)
+            {
+            case ".xlsx":
+                mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                effectiveFileExtension = ".xlsx";
+                break;
+            case ".json":
+                mimeType = "application/json";
+                effectiveFileExtension = ".json";
+                break;
+            default:
+                // Fallback or error if unsupported. For now, default to octet-stream or a common type.
+                // Consider if you want to strictly enforce .xlsx and .json.
+                mimeType = "application/octet-stream"; // Generic binary
+                if (!string.IsNullOrEmpty(fileExtension)) effectiveFileExtension = fileExtension;
+                // Potentially log a warning here if the extension is unexpected.
+                break;
+            }
+
+            // Use the simulation name from the retrieved simulation object if available and preferred
+            // For example, if simulation.Name is more user-friendly than simulationName from GetSimulationNameOrId
+            var actualSimulationName = UnitOfWork.SimulationRepo.GetSimulationName(simulationId); // Or use simulation.Name
+            if (string.IsNullOrWhiteSpace(actualSimulationName)) actualSimulationName = simulationId.ToString(); // Fallback
+
+            var downloadFileName = $"{actualSimulationName} {report.Type}{effectiveFileExtension}";
+
+            // --- Stream the file ---
             try
             {
-                result = await GetReport(report);
+                // IMPORTANT: The FileStream will be disposed by FileStreamResult
+                var fileStream = new FileStream(reportPath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
+
+                // Return FileStreamResult. This handles setting Content-Disposition, Content-Type, etc.
+                // and streams the file efficiently.
+                return File(fileStream, mimeType, downloadFileName);
             }
-            catch (Exception e)
+            catch (IOException ex) 
             {
-                return CreateErrorListing(new List<string>() { e.Message });
+                var message = new List<string>() { $"An error occurred while trying to access the report file for {simulationName} (type: {reportName}).", ex.Message };
+                return CreateErrorListing(message); // Or return StatusCode(500, ...)
             }
-            return Ok(result);
+            catch (Exception e) 
+            {
+                return CreateErrorListing(new List<string>() { $"An unexpected error occurred: {e.Message}" });
+            }
         }
 
         [HttpPost]

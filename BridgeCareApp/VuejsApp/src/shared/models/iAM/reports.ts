@@ -32,3 +32,10 @@ export const reportDetails: ReportDetails = {
     reportName: '',
     isGenerated: false
 };
+
+export interface DownloadReportParams {
+    scenarioId: string;
+    reportName: string;
+    // Optional: for constructing a more user-friendly filename on client if server doesn't provide good one
+    simulationName?: string; 
+};
