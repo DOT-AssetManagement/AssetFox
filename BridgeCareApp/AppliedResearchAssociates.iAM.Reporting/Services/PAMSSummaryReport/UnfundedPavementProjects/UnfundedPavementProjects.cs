@@ -205,7 +205,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Unf
             worksheet.Cells[rowNo, columnNo++].Value = Year;
             worksheet.Cells[rowNo, columnNo++].Value = treatment?.TreatmentName ?? "";
 
-            var treatmentCost = Math.Round(Convert.ToDecimal(treatment?.Cost ?? 0), 0);
+            var treatmentCost = treatment?.Cost ?? 0;
             worksheet.Cells[rowNo, columnNo].Style.Numberformat.Format = @"_($* #,##0_);_($*  #,##0);_($* "" - ""??_);(@_)";
             worksheet.Cells[rowNo, columnNo++].Value = treatmentCost;
 
