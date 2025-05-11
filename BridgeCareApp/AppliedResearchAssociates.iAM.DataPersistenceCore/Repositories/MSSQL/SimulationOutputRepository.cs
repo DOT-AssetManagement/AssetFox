@@ -11,6 +11,7 @@ using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
@@ -738,6 +739,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public SimulationOutput GetSimulationOutputViaRelation(Guid simulationId, ILog loggerForUserInfo = null, ILog loggerForTechinalInfo = null, List<AttributeDTO> attributeDtos = null)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var _log = new DoLog();
             loggerForUserInfo ??= new DoNotLog();
             loggerForTechinalInfo ??= new DoNotLog();
             _unitOfWork.Context.Database.SetCommandTimeout(TimeSpan.FromSeconds(3600));
@@ -745,6 +748,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
             var startMemo = memos.MarkInformation($"Starting load batchSize {assetLoadBatchSize}", loggerForTechinalInfo);
             loggerForUserInfo.Information("Loading SimulationOutput");
+            var batchSize = assetLoadBatchSize;
 
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
@@ -794,9 +798,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             simulationOutputDomain.InitialAssetSummaries.AddRange(assetSummaryDomainDictionary.Values);
 
             // Get and map AssetSummaryDetailValuesIntId
-            var assetSummaryDetailValueConfig = new BulkConfig
+            /*var assetSummaryDetailValueConfig = new BulkConfig
             {
-                UpdateByProperties = new List<string> { nameof(AssetSummaryDetailValueEntityIntId.AssetSummaryDetailId), nameof(AssetSummaryDetailValueEntityIntId.AttributeId) }
+                UpdateByProperties = new List<string> { nameof(AssetSummaryDetailValueEntityIntId.AssetSummaryDetailId), nameof(AssetSummaryDetailValueEntityIntId.AttributeId), nameof(AssetSummaryDetailValueEntityIntId.RunId) }
             };
             var assetSummaryDetailValueEntities = new List<AssetSummaryDetailValueEntityIntId>();
             var usedAttributeIds = BuildUsedAttributeIdList(simulationOutputId);
@@ -806,13 +810,40 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 {
                     assetSummaryDetailValueEntities.Add(new AssetSummaryDetailValueEntityIntId
                     {
+                        RunId = simulationRunId,
                         AttributeId = usedAttributeId,
                         AssetSummaryDetailId = assetSummaryDetail.Id,
-                    });
+                    }); ;
                 }
+            }*/
+
+            //stopwatch.Stop();
+            _log.Information($"Getting AssetSummaryDetail values. {stopwatch.ElapsedMilliseconds}ms");
+            stopwatch.Restart();
+            var assetSummaryDetailIds = assetSummaryDetails.Select(_ =>  _.Id).ToList();
+            var usedAttributeIds = BuildUsedAttributeIdList(simulationOutputId);
+            List<AssetSummaryDetailValueEntityIntId> assetSummaryDetailValueEntities = new List<AssetSummaryDetailValueEntityIntId>();
+            for (int i = 0; i < assetSummaryDetailIds.Count; i += batchSize)
+            {
+               var currentBatchSummaryIds = assetSummaryDetailIds.Skip(i).Take(batchSize).ToList();
+               if (!currentBatchSummaryIds.Any()) continue;
+
+               var batchValues = _unitOfWork.Context.AssetSummaryDetailValueIntId
+                   .Where(v => v.RunId == simulationRunId &&
+                                currentBatchSummaryIds.Contains(v.AssetSummaryDetailId) &&
+                                usedAttributeIds.Contains(v.AttributeId))
+                   .AsNoTracking()
+                   .ToList();
+               assetSummaryDetailValueEntities.AddRange(batchValues);
             }
+
+            //stopwatch.Stop();
+            _log.Information($"Finished Getting AssetSummaryDetailValues. {stopwatch.ElapsedMilliseconds}ms");
+            //stopwatch.Reset();
+            stopwatch.Restart();
+
             var configMemo = memos.MarkInformation("assetSummary config", loggerForTechinalInfo);
-            _unitOfWork.Context.BulkRead(assetSummaryDetailValueEntities, assetSummaryDetailValueConfig);
+            //_unitOfWork.Context.BulkRead(assetSummaryDetailValueEntities, assetSummaryDetailValueConfig);
             foreach (var assetSummaryDetailValueEntity in assetSummaryDetailValueEntities)
             {
                 var summary = assetSummaryDomainDictionary[assetSummaryDetailValueEntity.AssetSummaryDetailId];
@@ -832,11 +863,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .ToList();
 
 
-
+            //stopwatch.Stop();
+            _log.Information($"Getting SimulationYearDetails. {stopwatch.ElapsedMilliseconds}ms");
+            stopwatch.Restart();
+            //stopwatch.Start();
             // SimulationYearDetails
             #region SimulationYearDetails
             foreach (var cacheYear in cacheYears)
             {
+                _log.Information($"Starting Year {cacheYear.Year}. {stopwatch.ElapsedMilliseconds}ms");
                 var yearMemo = memos.MarkInformation($"Y{cacheYear.Year}", loggerForTechinalInfo);
                 loggerForUserInfo.Information($"Loading {cacheYear.Year}");
                 var yearId = cacheYear.Id;
@@ -845,7 +880,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var loadedYearEntity = loadedYearWithoutAssets[0];
                 var domainYear = SimulationYearDetailMapper.ToDomainWithoutAssets(loadedYearEntity, attributeNameLookup);
                 simulationOutputDomain.Years.Add(domainYear);
-                var batchSize = assetLoadBatchSize;
                 Guid lastId = Guid.Empty;    // start from the very beginning
                 bool hasMore = true;
                 var assetsDict = new Dictionary<Guid, AssetDetail>();
@@ -878,6 +912,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 }
                 domainYear.Assets.AddRange(assetsDict.Values);
             }
+
+            stopwatch.Stop();
+            _log.Information($"Finished getting SimulationYearDetails. {stopwatch.ElapsedMilliseconds}ms");
             cacheYears.Clear();
             #endregion
 
@@ -894,35 +931,160 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
             IEnumerable<AssetDetailEntity> LoadAssetBatch(int runId, Guid yearId, Guid lastId, int pageSize)
             {
-                return _unitOfWork.Context.AssetDetail
-                    .AsNoTrackingWithIdentityResolution()
+                // 1. Load the batch of AssetDetail entities
+                var assetDetailBatch = _unitOfWork.Context.AssetDetail
+                    .AsNoTrackingWithIdentityResolution() // Match original for top-level
                     .Where(a =>
                         a.RunId == runId &&
                         a.SimulationYearDetailId == yearId &&
-                        a.Id > lastId)
-                    .OrderBy(a => a.Id)                 // matches clustered PK order
+                        a.Id.CompareTo(lastId) > 0) // string.CompareTo for Guid is not standard, ensure your Guid comparison is correct for DB
+                    .OrderBy(a => a.Id)
                     .Take(pageSize)
-                    .Include(a => a.TreatmentConsiderations
-                                    .Where(tc => tc.RunId == runId))
-                        .ThenInclude(tc => tc.CashFlowConsiderations
-                                            .Where(cfc => cfc.RunId == runId))
-                    .Include(a => a.TreatmentConsiderations
-                                    .Where(tc => tc.RunId == runId))
-                        .ThenInclude(tc => tc.FundingCalculationInput)
-                            .ThenInclude(fci => fci.CurrentBudgetsToSpend
-                                                    .Where(v => v.RunId == runId))
-                    .Include(a => a.TreatmentConsiderations
-                                    .Where(tc => tc.RunId == runId))
-                        .ThenInclude(tc => tc.FundingCalculationOutput)
-                            .ThenInclude(fco => fco.AllocationMatrix
-                                                    .Where(v => v.RunId == runId))
-                    .Include(a => a.TreatmentOptions
-                                    .Where(v => v.RunId == runId))
-                    .Include(a => a.TreatmentRejections
-                                    .Where(v => v.RunId == runId))
-                    .Include(a => a.AssetDetailValuesIntId
-                                    .Where(v => v.RunId == runId))
-                    .AsSplitQuery();
+                    .ToList();
+
+                if (!assetDetailBatch.Any())
+                {
+                    return assetDetailBatch; // or Enumerable.Empty<AssetDetailEntity>();
+                }
+
+                var assetDetailIdsInBatch = assetDetailBatch.Select(ad => ad.Id).ToList();
+
+                // 2. Load direct children for this batch
+
+                var allAssetDetailValues = _unitOfWork.Context.AssetDetailValueIntId
+                    .AsNoTracking()
+                    .Where(adv => adv.RunId == runId && assetDetailIdsInBatch.Contains(adv.AssetDetailId))
+                    .ToList();
+
+                var allTreatmentOptions = _unitOfWork.Context.TreatmentOptionDetail
+                    .AsNoTracking()
+                    .Where(to => to.RunId == runId && assetDetailIdsInBatch.Contains(to.AssetDetailId))
+                    .ToList();
+
+                var allTreatmentRejections = _unitOfWork.Context.TreatmentRejectionDetail
+                    .AsNoTracking()
+                    .Where(tr => tr.RunId == runId && assetDetailIdsInBatch.Contains(tr.AssetDetailId))
+                    .ToList();
+
+                var treatmentConsiderationsForBatch = _unitOfWork.Context.TreatmentConsiderationDetail
+                    .AsNoTracking()
+                    .Where(tc => tc.RunId == runId && assetDetailIdsInBatch.Contains(tc.AssetDetailId))
+                    .ToList();
+
+                // 3. Load grandchildren (children of TreatmentConsiderations)
+                List<CashFlowConsiderationDetailEntity> allCashFlows = new List<CashFlowConsiderationDetailEntity>();
+                List<FundingCalculationInput> allFundingInputs = new List<FundingCalculationInput>();
+                List<BudgetToSpend> allBudgetsToSpend = new List<BudgetToSpend>();
+                List<FundingCalculationOutput> allFundingOutputs = new List<FundingCalculationOutput>();
+                List<Allocation> allAllocations = new List<Allocation>();
+
+                if (treatmentConsiderationsForBatch.Any())
+                {
+                    var treatmentConsiderationIdsForBatch = treatmentConsiderationsForBatch.Select(tc => tc.Id).ToList();
+
+                    allCashFlows = _unitOfWork.Context.CashFlowConsiderationDetail
+                        .AsNoTracking()
+                        .Where(cfc => cfc.RunId == runId && treatmentConsiderationIdsForBatch.Contains(cfc.TreatmentConsiderationDetailId))
+                        .ToList();
+
+                    allFundingInputs = _unitOfWork.Context.FundingCalculationInput
+                        .AsNoTracking()
+                        .Where(fci => fci.RunId == runId && treatmentConsiderationIdsForBatch.Contains(fci.TreatmentConsiderationDetailId))
+                        .ToList();
+
+                    if (allFundingInputs.Any())
+                    {
+                        var fundingInputIdsForBatch = allFundingInputs.Select(fci => fci.Id).ToList();
+                        allBudgetsToSpend = _unitOfWork.Context.BudgetToSpend
+                            .AsNoTracking()
+                            .Where(bts => bts.RunId == runId && fundingInputIdsForBatch.Contains(bts.FundingCalculationInputId))
+                            .ToList();
+                    }
+
+                    allFundingOutputs = _unitOfWork.Context.FundingCalculationOutput
+                        .AsNoTracking()
+                        .Where(fco => fco.RunId == runId && treatmentConsiderationIdsForBatch.Contains(fco.TreatmentConsiderationDetailId))
+                        .ToList();
+
+                    if (allFundingOutputs.Any())
+                    {
+                        var fundingOutputIdsForBatch = allFundingOutputs.Select(fco => fco.Id).ToList();
+                        allAllocations = _unitOfWork.Context.Allocation // Table name is Allocation
+                            .AsNoTracking()
+                            .Where(alloc => alloc.RunId == runId && fundingOutputIdsForBatch.Contains(alloc.FundingCalculationOutputId))
+                            .ToList();
+                    }
+                }
+
+                // 4. Stitch the data together
+                // Group children for efficient lookup
+                var assetDetailValuesLookup = allAssetDetailValues.GroupBy(v => v.AssetDetailId).ToDictionary(g => g.Key, g => g.ToList());
+                var treatmentOptionsLookup = allTreatmentOptions.GroupBy(v => v.AssetDetailId).ToDictionary(g => g.Key, g => g.ToList());
+                var treatmentRejectionsLookup = allTreatmentRejections.GroupBy(v => v.AssetDetailId).ToDictionary(g => g.Key, g => g.ToList());
+                var treatmentConsiderationsLookup = treatmentConsiderationsForBatch.GroupBy(tc => tc.AssetDetailId).ToDictionary(g => g.Key, g => g.ToList());
+
+                var cashFlowsLookup = allCashFlows.GroupBy(cfc => cfc.TreatmentConsiderationDetailId).ToDictionary(g => g.Key, g => g.ToList());
+                var fundingInputsLookup = allFundingInputs.ToDictionary(fci => fci.TreatmentConsiderationDetailId); // Assuming one-to-one or one-to-zero
+                var budgetsToSpendLookup = allBudgetsToSpend.GroupBy(bts => bts.FundingCalculationInputId).ToDictionary(g => g.Key, g => g.ToList());
+                var fundingOutputsLookup = allFundingOutputs.ToDictionary(fco => fco.TreatmentConsiderationDetailId); // Assuming one-to-one or one-to-zero
+                var allocationsLookup = allAllocations.GroupBy(alloc => alloc.FundingCalculationOutputId).ToDictionary(g => g.Key, g => g.ToList());
+
+                foreach (var adEntity in assetDetailBatch)
+                {
+                    // Ensure collections are initialized (EF Core usually does this for non-null collection nav props)
+                    // If not, initialize here: adEntity.AssetDetailValuesIntId = new List<AssetDetailValueEntityIntId>();
+
+                    if (assetDetailValuesLookup.TryGetValue(adEntity.Id, out var values))
+                        adEntity.AssetDetailValuesIntId = values;
+                    else
+                        adEntity.AssetDetailValuesIntId = new List<AssetDetailValueEntityIntId>();
+
+                    if (treatmentOptionsLookup.TryGetValue(adEntity.Id, out var options))
+                        adEntity.TreatmentOptions = options;
+                    else
+                        adEntity.TreatmentOptions = new List<TreatmentOptionDetailEntity>();
+
+                    if (treatmentRejectionsLookup.TryGetValue(adEntity.Id, out var rejections))
+                        adEntity.TreatmentRejections = rejections;
+                    else
+                        adEntity.TreatmentRejections = new List<TreatmentRejectionDetailEntity>();
+
+                    if (treatmentConsiderationsLookup.TryGetValue(adEntity.Id, out var considerations))
+                    {
+                        adEntity.TreatmentConsiderations = considerations;
+                        foreach (var tcEntity in adEntity.TreatmentConsiderations)
+                        {
+                            if (cashFlowsLookup.TryGetValue(tcEntity.Id, out var cfs))
+                                tcEntity.CashFlowConsiderations = cfs;
+                            else
+                                tcEntity.CashFlowConsiderations = new List<CashFlowConsiderationDetailEntity>();
+
+                            if (fundingInputsLookup.TryGetValue(tcEntity.Id, out var fci))
+                            {
+                                tcEntity.FundingCalculationInput = fci;
+                                if (budgetsToSpendLookup.TryGetValue(fci.Id, out var budgets))
+                                    tcEntity.FundingCalculationInput.CurrentBudgetsToSpend = budgets;
+                                else
+                                    tcEntity.FundingCalculationInput.CurrentBudgetsToSpend = new List<BudgetToSpend>();
+                            }
+
+                            if (fundingOutputsLookup.TryGetValue(tcEntity.Id, out var fco))
+                            {
+                                tcEntity.FundingCalculationOutput = fco;
+                                if (allocationsLookup.TryGetValue(fco.Id, out var allocs))
+                                    tcEntity.FundingCalculationOutput.AllocationMatrix = allocs;
+                                else
+                                    tcEntity.FundingCalculationOutput.AllocationMatrix = new List<Allocation>();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        adEntity.TreatmentConsiderations = new List<TreatmentConsiderationDetailEntity>();
+                    }
+                }
+
+                return assetDetailBatch;
             }
         }
 
