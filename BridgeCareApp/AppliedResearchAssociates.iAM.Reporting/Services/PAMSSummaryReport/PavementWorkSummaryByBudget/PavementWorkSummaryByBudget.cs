@@ -179,8 +179,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         var budgetAmount = (double)(treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix?.
                                            Where(_ => _.BudgetName == summaryModel.BudgetName && _.Year == yearData.Year).
                                            Sum(b => b.AllocatedAmount) ?? 0);
-                        budgetAmount = Math.Round(budgetAmount, 0);
-
+                       
                         if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                             appliedTreatment.ToLower() != PAMSConstants.NoTreatment)
                         {
