@@ -175,6 +175,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 IndicateError();
                 Errors.Add("Failed to generate summary report");
                 Errors.Add(e.Message);
+                Errors.Add(e.StackTrace);
                 return;
             }
 

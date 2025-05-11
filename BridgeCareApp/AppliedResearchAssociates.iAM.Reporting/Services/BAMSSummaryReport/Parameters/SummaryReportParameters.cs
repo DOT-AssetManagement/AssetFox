@@ -285,7 +285,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Par
 
         private int FillTreatmentsInSimulations(ExcelWorksheet worksheet, CurrentCell currentCell, ICollection<SectionCommittedProjectDTO> committedProjects, IReadOnlyCollection<TreatmentDTO> BAMStreatments, int rowNo)
         {
-            var MPMSTreatments = committedProjects?.OrderBy(c => c.Treatment).Select(c => c.Treatment).Distinct();
+            var MPMSTreatments = committedProjects?.OrderBy(c => c.ComputedTreatmentString).Select(c => c.ComputedTreatmentString).Distinct();
 
             rowNo += 10;
             ExcelHelper.MergeCells(worksheet, rowNo, currentCell.Column, rowNo, currentCell.Column + 1);
