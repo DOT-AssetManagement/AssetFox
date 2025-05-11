@@ -748,6 +748,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
             var startMemo = memos.MarkInformation($"Starting load batchSize {assetLoadBatchSize}", loggerForTechinalInfo);
             loggerForUserInfo.Information("Loading SimulationOutput");
+            var batchSize = assetLoadBatchSize;
 
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
@@ -822,10 +823,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var assetSummaryDetailIds = assetSummaryDetails.Select(_ =>  _.Id).ToList();
             var usedAttributeIds = BuildUsedAttributeIdList(simulationOutputId);
             List<AssetSummaryDetailValueEntityIntId> assetSummaryDetailValueEntities = new List<AssetSummaryDetailValueEntityIntId>();
-            int summaryBatchSize = 10000; // Adjust as needed
-            for (int i = 0; i < assetSummaryDetailIds.Count; i += summaryBatchSize)
+            for (int i = 0; i < assetSummaryDetailIds.Count; i += batchSize)
             {
-               var currentBatchSummaryIds = assetSummaryDetailIds.Skip(i).Take(summaryBatchSize).ToList();
+               var currentBatchSummaryIds = assetSummaryDetailIds.Skip(i).Take(batchSize).ToList();
                if (!currentBatchSummaryIds.Any()) continue;
 
                var batchValues = _unitOfWork.Context.AssetSummaryDetailValueIntId
@@ -880,7 +880,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var loadedYearEntity = loadedYearWithoutAssets[0];
                 var domainYear = SimulationYearDetailMapper.ToDomainWithoutAssets(loadedYearEntity, attributeNameLookup);
                 simulationOutputDomain.Years.Add(domainYear);
-                var batchSize = assetLoadBatchSize;
                 Guid lastId = Guid.Empty;    // start from the very beginning
                 bool hasMore = true;
                 var assetsDict = new Dictionary<Guid, AssetDetail>();
