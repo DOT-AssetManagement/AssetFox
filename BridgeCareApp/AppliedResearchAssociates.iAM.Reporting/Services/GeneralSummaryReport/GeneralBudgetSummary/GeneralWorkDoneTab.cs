@@ -157,11 +157,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.
 
                     var appliedTreatment = treatmentConsideration?.TreatmentName ?? section.AppliedTreatment;
                     var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
-                    var cost = Math.Round(allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0, 0); // Rounded cost to whole number based on comments from Jeff Davis
+                    var cost = allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0;
                     var workCell = worksheet.Cells[row, column];
                     workCell.Value = appliedTreatment.ToLower() == BAMSConstants.NoTreatment ? "--" : appliedTreatment.ToLower();                    
                     worksheet.Cells[row, column + 1].Value = cost;
-                    ExcelHelper.SetCurrencyFormat(worksheet.Cells[row, column + 1], ExcelFormatStrings.CurrencyWithoutCents);
+                    ExcelHelper.SetCustomFormat(worksheet.Cells[row, column + 1], ExcelHelperCellFormat.NegativeCurrency);
 
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {

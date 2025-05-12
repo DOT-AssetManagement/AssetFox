@@ -467,8 +467,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                                                     _.TreatmentName == section.AppliedTreatment);
 
                     var appliedTreatment = treatmentConsideration?.TreatmentName ?? section.AppliedTreatment;
-                    var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();                    
-                    var cost = Math.Round(allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0, 0); // Rounded cost to whole number based on comments from Jeff Davis
+                    var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
+                    var cost = allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0;
                     var workCell = worksheet.Cells[row, column];                    
                     workCell.Value = appliedTreatment.ToLower() == BAMSConstants.NoTreatment ? "--" : appliedTreatment.ToLower();
                     if (!workCell.Value.Equals("--"))
@@ -476,7 +476,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                         workDoneData[i]++;
                     }
                     worksheet.Cells[row, column + 1].Value = cost;
-                    ExcelHelper.SetCurrencyFormat(worksheet.Cells[row, column + 1], ExcelFormatStrings.CurrencyWithoutCents);
+                    ExcelHelper.SetCustomFormat(worksheet.Cells[row, column + 1], ExcelHelperCellFormat.NegativeCurrency);
 
                     worksheet.Cells[row, poorOnOffColumnStart].Value = prevYrMinc < 5 ? (thisYrMinc >= 5 ? "Off" : "--") :
                         (thisYrMinc < 5 ? "On" : "--");
@@ -648,8 +648,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                                                     _.FundingCalculationOutput.AllocationMatrix.Any(_ => _.Year == yearlySectionData.Year) &&
                                                     _.TreatmentName == section.AppliedTreatment);
 
-                    var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();                    
-                    var cost = Math.Round(allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0, 0); // Rounded cost to whole number based on comments from Jeff Davis
+                    var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
+                    var cost = allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0;
                     var recommendedTreatment = treatmentConsideration?.TreatmentName ?? section.AppliedTreatment; // Recommended Treatment
 
                     //check budget usages
@@ -711,7 +711,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     var columnForAppliedTreatment = column;
 
                     worksheet.Cells[row, ++column].Value = cost; // cost
-                    ExcelHelper.SetCurrencyFormat(worksheet.Cells[row, column], ExcelFormatStrings.CurrencyWithoutCents);
+                    ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.NegativeCurrency);
 
                     // Superseded Treatments
                     var supersededTreatments = section.AppliedTreatment.ToLower() != BAMSConstants.NoTreatment ?

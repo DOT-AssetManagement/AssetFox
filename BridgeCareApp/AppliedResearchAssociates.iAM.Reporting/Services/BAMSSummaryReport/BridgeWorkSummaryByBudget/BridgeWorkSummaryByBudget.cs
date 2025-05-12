@@ -106,7 +106,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                         var budgetAmount = (double)(treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix?.
                                            Where(_ => _.BudgetName == summaryData.Budget && _.Year == yearData.Year).
                                            Sum(b => b.AllocatedAmount) ?? 0);
-                        budgetAmount = Math.Round(budgetAmount, 0);
+                        
                         var bpnName = _reportHelper.CheckAndGetValue<string>(section?.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
                         if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                             appliedTreatment.ToLower() != BAMSConstants.NoTreatment)
