@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using MoreLinq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
 using Microsoft.Extensions.DependencyModel;
+using MathNet.Numerics;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -340,10 +341,26 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             {
                 foreach (var item in committedProjects)
                 {
-                    var matchingBudget = budgets.FirstOrDefault(_ => _.Name == item.ScenarioBudget.Name);
-                    item.ScenarioBudgetId = matchingBudget?.Id ?? null;
+                    var existingAmounts = item.ScenarioBudget.ScenarioBudgetAmounts;
+                    var matchingBudget = budgets.FirstOrDefault(b => b.Name == item.ScenarioBudget.Name);
+
+                    if (matchingBudget != null)
+                    {
+                        bool hasMatchingYearAndValue = existingAmounts.Any(existing =>
+                            matchingBudget.BudgetAmounts.Any(budget =>
+                                budget.Year == existing.Year && budget.Value == existing.Value));
+
+                        if (hasMatchingYearAndValue)
+                        {
+                            item.ScenarioBudgetId = matchingBudget.Id;
+                        }
+                    }
+                    else
+                    {
+                        item.ScenarioBudgetId = null;
+                    }
                 }
-                //committedProjects.ForEach(_ => _.ScenarioBudgetId = null);
+
                 _unitOfWork.Context.UpdateAll(committedProjects);
             }
 
