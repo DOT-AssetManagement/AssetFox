@@ -393,57 +393,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             _unitOfWork.Context.SaveChanges();
         }
 
-        public void SetAgencyLogo(Image agencyLogo, string ImageType)
-        {
-            //https://www.andrewhoefling.com/Blog/Post/basic-image-manipulation-in-c-sharp
-            int h = 50;
-            float ratio = (float)agencyLogo.Width / (float)agencyLogo.Height;
-            int w = (int)(ratio * h);
-            if (agencyLogo.Width > w || agencyLogo.Height > h)
-                agencyLogo = agencyLogo.GetThumbnailImage(w, h, null, IntPtr.Zero);
-            //https://stackoverflow.com/questions/21325661/convert-an-image-selected-by-path-to-base64-string
-            byte[] imageBytes;
-            if (ImageType.Contains("png"))
-            {
-                using (MemoryStream m = new MemoryStream())
-                {
-                    agencyLogo.Save(m, System.Drawing.Imaging.ImageFormat.Png);
-                    imageBytes = m.ToArray();
-                }
-            }
-            else
-            {
-                using (MemoryStream m = new MemoryStream())
-                {
-                    agencyLogo.Save(m, System.Drawing.Imaging.ImageFormat.Jpeg);
-                    imageBytes = m.ToArray();
-                }
-            }
-
-            var existingAgencyLogo = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == "AgencyLogo").FirstOrDefault();
-            if (existingAgencyLogo == null)
-                _unitOfWork.Context.AdminSettings.Add(new AdminSettingsEntity
-                {
-                    Key = "AgencyLogo",
-                    Value = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(imageBytes))
-                });
-            else
-            {
-                existingAgencyLogo.Value = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(imageBytes));
-                _unitOfWork.Context.AdminSettings.Update(existingAgencyLogo);
-            }
-            _unitOfWork.Context.SaveChanges();
-        }
-
-        public string GetAgencyLogo()
-        {
-            var existingAgencyLogo = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == "AgencyLogo").FirstOrDefault();
-            if (existingAgencyLogo == null) return "";
-            if (!existingAgencyLogo.Value.StartsWith("data:image/")) return "";
-
-            return _unitOfWork.Context.AdminSettings.Where(_ => _.Key == "AgencyLogo").FirstOrDefault().Value;
-        }
-
         public void SetImplementationLogo(Image productLogo, string ImageType)
         {
             int h = 50;
@@ -509,26 +458,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             {
                 implementationLogo.Value = string.Format("data:image/svg+xml;base64,{0}", Convert.ToBase64String(temp));
                 _unitOfWork.Context.AdminSettings.Update(implementationLogo);
-            }
-            _unitOfWork.Context.SaveChanges();
-
-
-        }
-        public void SetAgencyLogo(byte[] bytes)
-        {
-            var agencyLogo = _unitOfWork.Context.AdminSettings.Where(_ => _.Key == "AgencyLogo").FirstOrDefault();
-            if (agencyLogo == null)
-            {
-                _unitOfWork.Context.AdminSettings.Add(new AdminSettingsEntity
-                {
-                    Key = "AgencyLogo",
-                    Value = string.Format("data:image/svg+xml;base64,{0}", Convert.ToBase64String(bytes))
-                });
-            }
-            else
-            {
-                agencyLogo.Value = string.Format("data:image/svg+xml;base64,{0}", Convert.ToBase64String(bytes));
-                _unitOfWork.Context.AdminSettings.Update(agencyLogo);
             }
             _unitOfWork.Context.SaveChanges();
 

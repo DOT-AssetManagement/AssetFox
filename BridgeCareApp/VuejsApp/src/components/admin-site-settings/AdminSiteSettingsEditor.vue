@@ -44,35 +44,6 @@
       </v-col>
       
     </v-row>
-    <v-row align-center class="vl-style" style="margin-top: 5%">
-      <v-col cols="12">
-        <v-row column>
-          <v-subheader
-            class="ghd-control-label ghd-md-gray Montserrat-font-family"
-            >Agency Logo
-          </v-subheader>
-        </v-row>
-      </v-col>
-      <v-col cols="12">
-        <v-row column style="padding-left: 330px; margin-top: -45px;" >
-          <input
-            id="agencyImageUpload"
-            type="file"
-            accept="image/*"
-            ref="agencyFileInput"
-            @change="handleAgencyLogoUpload"
-            hidden
-          />
-          <v-btn
-            class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button"
-            style="margin-right: 40%"
-            @click="onUploadAgencyLogo"
-            variant = "outlined"
-            >Upload</v-btn
-          >
-        </v-row>
-      </v-col>
-    </v-row>
     <v-row align-center class="vl-style">
       <v-col cols="12">
         <v-row column>
@@ -144,13 +115,11 @@ import { useStore } from 'vuex';
 
 let store = useStore();
 let implementationName = computed<string>(()=>store.state.adminSiteSettingsModule.implementationName);
-let agencyLogo = computed<string>(()=>store.state.adminSiteSettingsModule.agencyLogo);
 let implementationLogo = computed<string>(()=>store.state.adminSiteSettingsModule.implementationLogo);
 let ImplementationID = ref('');
 let adminContactEmail = ref('');
 async function getImplementationNameAction(payload?: any): Promise<any> {await store.dispatch('getImplementationName',payload);}
 async function importImplementationNameAction(implementationName:string): Promise<any> {await store.dispatch('importImplementationName',implementationName);}
-async function importAgencyLogoAction(payload?: any): Promise<any> {await store.dispatch('importAgencyLogo',payload);}
 async function importProductLogoAction(payload?: any): Promise<any> {await store.dispatch('importProductLogo',payload);}
 async function setAdminContactEmailAction(adminContactEmail: string): Promise<any> {await store.dispatch('setAdminContactEmail', adminContactEmail);}
 
@@ -166,18 +135,10 @@ function onUploadImplementationLogo() {
   document.getElementById("implementationImageUpload")?.click();
 }
 
-function onUploadAgencyLogo(){
-  document.getElementById("agencyImageUpload")?.click();
-}
-
 function handleImplementationLogoUpload(payload: any){
   const file = payload.target.files[0];
   importProductLogoAction(file);  
 }
 
-function handleAgencyLogoUpload(payload: any){
-  const file = payload.target.files[0];
-  importAgencyLogoAction(file);
-}
 </script>
   
