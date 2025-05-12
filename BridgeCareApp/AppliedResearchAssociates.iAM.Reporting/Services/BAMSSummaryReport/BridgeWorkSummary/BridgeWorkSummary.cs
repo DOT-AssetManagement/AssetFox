@@ -158,7 +158,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     var cost = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix?.
                                Where(_ => _.Year == yearData.Year).
                                Sum(b => b.AllocatedAmount) ?? 0;
-                    cost = Math.Round(cost, 0);
+                    
                     if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                         appliedTreatment.ToLower() != BAMSConstants.NoTreatment)
                     {
@@ -201,7 +201,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                         var toRemove = committedProjectsForWorkOutsideScope.Where(_ => _.Treatment.All(_ => appliedTreatment.Contains(_)) &&
                                         _.Year == yearData.Year &&
                                         _.ProjectSource.ToString() == section.ProjectSource &&
-                                        Math.Round(_.Cost, 0) == Convert.ToDouble(cost));
+                                        _.Cost == Convert.ToDouble(cost));
                         if (toRemove != null)
                         {
                             committedProjectsForWorkOutsideScope.RemoveAll(_ => toRemove.Contains(_));
