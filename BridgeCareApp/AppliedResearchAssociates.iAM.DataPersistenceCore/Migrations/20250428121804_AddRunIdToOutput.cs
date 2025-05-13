@@ -12,6 +12,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
+                ALTER TABLE [dbo].[AssetSummaryDetail]                DROP CONSTRAINT [FK_AssetSummaryDetail_SimulationOutput_SimulationOutputId];
+                ALTER TABLE [dbo].[SimulationYearDetail]              DROP CONSTRAINT [FK_AssetSummaryDetail_SimulationOutput_SimulationOutputId];
+                ALTER TABLE [dbo].[SimulationOutputJson]              DROP CONSTRAINT [FK_SimulationOutputJson_SimulationOutput_SimulationOutputId];
+            ");
+
+            migrationBuilder.Sql(@"
                 /* empty JSON details first (child) */
                 TRUNCATE TABLE [dbo].[SimulationOutputJson];
 
@@ -26,6 +32,26 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                nullable: false)
                // Specify the column should be an IDENTITY column
                .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            migrationBuilder.Sql(@"
+                ALTER TABLE [dbo].[AssetSummaryDetail]
+                    ADD CONSTRAINT [FK_AssetSummaryDetail_SimulationOutput_SimulationOutputId]
+                        FOREIGN KEY ([SimulationOutputId])
+                        REFERENCES [dbo].[SimulationOutput] ([Id])
+                        ON DELETE CASCADE;
+
+                ALTER TABLE [dbo].[SimulationYearDetail]
+                    ADD CONSTRAINT [FK_SimulationYearDetail_SimulationOutput_SimulationOutputId]
+                        FOREIGN KEY ([SimulationOutputId])
+                        REFERENCES [dbo].[SimulationOutput] ([Id])
+                        ON DELETE CASCADE;
+
+                ALTER TABLE [dbo].[SimulationOutputJson]
+                    ADD CONSTRAINT [FK_SimulationOutputJson_SimulationOutput_SimulationOutputId]
+                        FOREIGN KEY ([SimulationOutputId])
+                        REFERENCES [dbo].[SimulationOutput] ([Id])
+                        ON DELETE CASCADE;
+            ");
         }
 
         /// <inheritdoc />
