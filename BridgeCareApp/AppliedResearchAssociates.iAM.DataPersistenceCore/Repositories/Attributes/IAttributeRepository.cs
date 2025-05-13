@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Data.Attributes;
@@ -43,9 +44,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 
         string GetEncryptionKey();
 
+        /// <summary>Returns the name of the attribute with the given id, or null
+        /// if there is no such attribute. Very fast as it uses a cache</summary>
         string GetAttributeName(Guid attributeId);
         List<AttributeDTO> GetAllAttributesAbbreviated();
         List<AttributeDefaultValuePair> GetAttributeDefaultValuePairs(Guid networkId);
         void UpsertAttributes(List<Attribute> attributes);
+        /// <summary>Returns a copy of the id-name cache dictionary.</summary> 
+        ReadOnlyDictionary<Guid, string> GetIdNameCache();
+        /// <summary> Clears the id-name cache dictionary. Cache will
+        /// automatically be rebuilt the next time it is needed.</summary> 
+        void ClearIdNameCache();
     }
 }
