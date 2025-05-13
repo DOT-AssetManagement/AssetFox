@@ -71,6 +71,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .ThenInclude(_ => _.CriterionLibrary)
 
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Single(_ => _.Simulation.Id == simulation.Id);
 
             // Atleast one budget priority should exist
