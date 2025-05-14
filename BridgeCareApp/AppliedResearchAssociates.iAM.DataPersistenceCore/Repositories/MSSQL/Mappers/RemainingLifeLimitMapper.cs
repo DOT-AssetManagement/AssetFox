@@ -55,13 +55,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static ScenarioRemainingLifeLimitEntity ToScenarioEntityWithCriterionLibraryJoin(this RemainingLifeLimitDTO dto, Guid simulationId,
             Guid attributeId, BaseEntityProperties baseEntityProperties)
         {
-            
-            var entity = ToScenarioEntity(dto, simulationId,attributeId);
+
+            var entity = ToScenarioEntity(dto, simulationId, attributeId);
             var criterionLibraryDto = dto.CriterionLibrary;
             var isvalid = criterionLibraryDto.IsValid();
             if (isvalid)
             {
-                var criterionLibrary  = criterionLibraryDto.ToSingleUseEntity(baseEntityProperties);
+                var criterionLibrary = criterionLibraryDto.ToSingleUseEntity(baseEntityProperties);
 
                 var join = new CriterionLibraryScenarioRemainingLifeLimitEntity
                 {
@@ -80,7 +80,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static RemainingLifeLimitLibraryEntity ToEntity(this RemainingLifeLimitLibraryDTO dto) =>
             new RemainingLifeLimitLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
-        public static void CreateRemainingLifeLimit(this ScenarioRemainingLifeLimitEntity entity, Simulation simulation)
+        public static void CreateRemainingLifeLimit(this ScenarioRemainingLifeLimitEntity entity, Simulation simulation, IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             var limit = simulation.AnalysisMethod.AddRemainingLifeLimit();
             limit.Id = entity.Id;
@@ -89,11 +89,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 entity.CriterionLibraryScenarioRemainingLifeLimitJoin?.CriterionLibrary.MergedCriteriaExpression ??
                 string.Empty;
 
-            if (entity.Attribute != null)
-            {
-                limit.Attribute = simulation.Network.Explorer.NumericAttributes
-                    .Single(_ => _.Name == entity.Attribute.Name);
-            }
+            var attributeName = attributeNameLookup[entity.AttributeId];
+            limit.Attribute = simulation.Network.Explorer.NumericAttributes
+                .Single(_ => _.Name == attributeName);
         }
 
         public static RemainingLifeLimitDTO ToDto(this RemainingLifeLimitEntity entity) =>

@@ -24,7 +24,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldUseExtraFundsAcrossBudgets = domain.AllowFundingFromMultipleBudgets,
             };
 
-        public static void FillSimulationAnalysisMethod(this AnalysisMethodEntity entity, Simulation simulation, string userCriteria)
+        public static void FillSimulationAnalysisMethod(
+            this AnalysisMethodEntity entity,
+            Simulation simulation,
+            string userCriteria,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             simulation.AnalysisMethod.Id = entity.Id;
             simulation.AnalysisMethod.Description = entity.Description;
@@ -42,32 +46,31 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
             if (entity.Attribute != null)
             {
+                var attributeName = attributeNameLookup[entity.AttributeId.Value];
                 simulation.AnalysisMethod.Weighting = simulation.Network.Explorer.NumberAttributes
-                    .Single(_ => _.Name == entity.Attribute.Name);
+                    .Single(_ => _.Name == attributeName);
             }
 
             if (entity.Benefit != null)
             {
                 simulation.AnalysisMethod.Benefit.Id = entity.Benefit.Id;
                 simulation.AnalysisMethod.Benefit.Limit = entity.Benefit.Limit;
-                if (entity.Benefit.Attribute != null)
-                {
+                var benefitAttributeName = attributeNameLookup[entity.Benefit.AttributeId];
                     simulation.AnalysisMethod.Benefit.Attribute = simulation.Network.Explorer.NumericAttributes
-                        .Single(_ => _.Name == entity.Benefit.Attribute.Name);
-                }
+                        .Single(_ => _.Name == benefitAttributeName);
             }
 
             entity.Simulation.BudgetPriorities
                 .ForEach(_ => _.CreateBudgetPriority(simulation));
 
             entity.Simulation.ScenarioTargetConditionalGoals
-                .ForEach(_ => _.CreateTargetConditionGoal(simulation));
+                .ForEach(_ => _.CreateTargetConditionGoal(simulation, attributeNameLookup));
 
             entity.Simulation.ScenarioDeficientConditionGoals
-                .ForEach(_ => _.CreateDeficientConditionGoal(simulation));
+                .ForEach(_ => _.CreateDeficientConditionGoal(simulation, attributeNameLookup));
 
             entity.Simulation.RemainingLifeLimits
-                .ForEach(_ => _.CreateRemainingLifeLimit(simulation));
+                .ForEach(_ => _.CreateRemainingLifeLimit(simulation, attributeNameLookup));
 
             simulation.ShouldBundleFeasibleTreatments = entity.shouldAllowMultipleTreatments;
         }

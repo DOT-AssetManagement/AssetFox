@@ -33,9 +33,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             }
 
            var analysisMethodEntity = _unitOfWork.Context.AnalysisMethod
-                .Include(_ => _.Attribute)
                 .Include(_ => _.Benefit)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.CriterionLibraryAnalysisMethodJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
                 .Include(_ => _.Simulation)
@@ -56,7 +54,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
                 .Include(_ => _.Simulation)
                 .ThenInclude(_ => _.ScenarioDeficientConditionGoals)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.Simulation)
                 .ThenInclude(_ => _.ScenarioDeficientConditionGoals)
                 .ThenInclude(_ => _.CriterionLibraryScenarioDeficientConditionGoalJoin)
@@ -64,7 +61,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
                 .Include(_ => _.Simulation)
                 .ThenInclude(_ => _.RemainingLifeLimits)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.Simulation)
                 .ThenInclude(_ => _.RemainingLifeLimits)
                 .ThenInclude(_ => _.CriterionLibraryScenarioRemainingLifeLimitJoin)
@@ -80,8 +76,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("No budget priority was found for the given scenario.");
             }
 
-            analysisMethodEntity.FillSimulationAnalysisMethod(simulation, userCriteria);
-            
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            analysisMethodEntity.FillSimulationAnalysisMethod(simulation, userCriteria, attributeNameLookup);
         }
 
         public bool GetSimulationAnalysisMethodSetting(Guid simulationId)
