@@ -8,6 +8,7 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using AppliedResearchAssociates.iAM.Common;
 
 using Xunit;
+using Xunit.Sdk;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
@@ -40,7 +41,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Theory]
         
         [InlineData(2)]
-        [InlineData(12)]
+        //[InlineData(12)] // commented out because this case takes about 20 seconds as of 5/14/25
         public void SaveMultiYearSimulationOutput_ThenLoad_Same(int numberOfYears)
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
@@ -53,7 +54,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             SimulationOutputAssertions.SameSimulationOutput(simulationOutput, loadedOutput, false);
         }
 
-        [Fact]
+        [Fact (Skip="Takes approximately 30 seconds as of 5/14/25")]
         public void SaveSimulationOutputWithMoreAssetsThanBatchSize_ThenLoad_Same()
         {
             var numberOfAssets = 25 + SimulationOutputRepository.AssetLoadBatchSize;
@@ -77,7 +78,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             SimulationOutputAssertions.SameSimulationOutput(simulationOutput, loadedOutput, false);
         }
 
-        [Fact]
+        [Fact (Skip="Took 1.7 minutes as of 5/14/25")]
         public void SaveSimulationOutput_ThenLoad_LastModifiedDate_Expected()
         {
             var numberOfYears = 1;

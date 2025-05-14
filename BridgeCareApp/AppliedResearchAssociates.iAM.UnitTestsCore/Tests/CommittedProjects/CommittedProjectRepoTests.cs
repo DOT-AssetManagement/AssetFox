@@ -109,6 +109,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Act & Assert
             var exception = Assert.Throws<RowNotInTableException>(() => repo.UpsertCommittedProjects(newProjects));
             Assert.Contains("budget IDs", exception.Message);
+            AttributeRepository.ClearIdNameCache();
         }
 
         [Fact]
