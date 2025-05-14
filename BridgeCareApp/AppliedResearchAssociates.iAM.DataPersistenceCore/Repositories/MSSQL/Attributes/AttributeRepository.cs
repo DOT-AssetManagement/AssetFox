@@ -37,7 +37,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             }
         }
 
-        public void ClearIdNameCache()
+        public static void ClearIdNameCache()
         {
             _IdNameCache = null;
         }

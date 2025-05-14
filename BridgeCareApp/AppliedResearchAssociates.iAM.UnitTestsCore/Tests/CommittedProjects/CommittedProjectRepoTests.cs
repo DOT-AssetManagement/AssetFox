@@ -59,6 +59,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             Assert.Equal(210000, result.Sum(_ => _.Cost));
             Assert.True(result.First() is SectionCommittedProjectDTO);
             Assert.Equal(2, result.First().LocationKeys.Count);
+            AttributeRepository.ClearIdNameCache();
         }
 
         [Fact]

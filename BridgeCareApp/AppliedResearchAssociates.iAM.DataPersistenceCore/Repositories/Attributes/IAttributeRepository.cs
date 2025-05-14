@@ -54,6 +54,5 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         ReadOnlyDictionary<Guid, string> GetIdNameCache();
         /// <summary> Clears the id-name cache dictionary. Cache will
         /// automatically be rebuilt the next time it is needed.</summary> 
-        void ClearIdNameCache();
     }
 }
