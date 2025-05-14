@@ -32,7 +32,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public ICollection<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibraries()
         {
-            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetIdNameCache();
             return _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
                 .Include(_ => _.CalculatedAttributes)
                 .Include(_ => _.CalculatedAttributes)
