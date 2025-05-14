@@ -64,7 +64,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             _emptyMockedContext = new Mock<IAMContext>();
 
             libraryRepo = new List<CalculatedAttributeLibraryEntity>().AsQueryable();
-            _mockLibrary = MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.CalculatedAttributeLibrary, libraryRepo);
+            var emptyAttributeRepo = new List<AttributeEntity>().AsQueryable();
+            MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.Attribute, emptyAttributeRepo);
+           _mockLibrary = MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.CalculatedAttributeLibrary, libraryRepo);
 
             scenarioRepo = new List<ScenarioCalculatedAttributeEntity>().AsQueryable();
             _mockScenarioCalculations = MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.ScenarioCalculatedAttribute, scenarioRepo);
