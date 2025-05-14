@@ -56,8 +56,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 simulation.AnalysisMethod.Benefit.Id = entity.Benefit.Id;
                 simulation.AnalysisMethod.Benefit.Limit = entity.Benefit.Limit;
                 var benefitAttributeName = attributeNameLookup[entity.Benefit.AttributeId];
-                    simulation.AnalysisMethod.Benefit.Attribute = simulation.Network.Explorer.NumericAttributes
-                        .Single(_ => _.Name == benefitAttributeName);
+                simulation.AnalysisMethod.Benefit.Attribute = simulation.Network.Explorer.NumericAttributes
+                    .Single(_ => _.Name == benefitAttributeName);
             }
 
             entity.Simulation.BudgetPriorities
@@ -90,28 +90,34 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 shouldAllowMultipleTreatments = dto.ShouldAllowMultipleTreatments,
                 AttributeId = attributeId,
 
-            };            
+            };
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;
         }
-            
+
 
         public static AnalysisMethodEntity ToEntityWithBenefit(this AnalysisMethodDTO dto, Guid simulationId, List<AttributeEntity> attributes, Guid? attributeId = null, BaseEntityProperties baseEntityProperties = null)
         {
             var entity = dto.ToEntity(simulationId, attributeId, baseEntityProperties);
             var benefit = dto.Benefit;
-            if (benefit != null&&benefit.Id!=Guid.Empty)
+            if (benefit != null && benefit.Id != Guid.Empty)
             {
                 var benefitAttribute = attributes.First(a => a.Name == benefit.Attribute);
                 var benefitEntity = benefit.ToEntity(dto.Id, benefitAttribute.Id, baseEntityProperties);
-                entity.Benefit = benefitEntity;                
+                entity.Benefit = benefitEntity;
             }
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;
-         }
+        }
 
-        public static AnalysisMethodDTO ToDto(this AnalysisMethodEntity entity) =>
-            new AnalysisMethodDTO
+        public static AnalysisMethodDTO ToDto(
+            this AnalysisMethodEntity entity,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
+        {
+            var attributeName = entity.AttributeId == null ?
+                String.Empty
+                : attributeNameLookup[entity.AttributeId.Value];
+            return new AnalysisMethodDTO
             {
                 Id = entity.Id,
                 Description = entity.Description,
@@ -121,11 +127,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldDeteriorateDuringCashFlow = entity.ShouldDeteriorateDuringCashFlow,
                 ShouldAllowMultipleTreatments = entity.shouldAllowMultipleTreatments,
                 ShouldUseExtraFundsAcrossBudgets = entity.ShouldUseExtraFundsAcrossBudgets,
-                Attribute = entity.Attribute?.Name ?? string.Empty,
+                Attribute = attributeName,
                 Benefit = entity.Benefit?.ToDto() ?? new BenefitDTO(),
                 CriterionLibrary = entity.CriterionLibraryAnalysisMethodJoin != null
                     ? entity.CriterionLibraryAnalysisMethodJoin.CriterionLibrary.ToDto()
                     : new CriterionLibraryDTO()
             };
+        }
     }
 }

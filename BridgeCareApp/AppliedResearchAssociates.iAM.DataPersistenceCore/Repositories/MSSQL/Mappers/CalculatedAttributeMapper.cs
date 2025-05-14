@@ -11,7 +11,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 {
     public static class CalculatedAttributeMapper
     {
-        public static CalculatedAttributeLibraryDTO ToDto(this CalculatedAttributeLibraryEntity entity) =>
+        public static CalculatedAttributeLibraryDTO ToDto(
+            this CalculatedAttributeLibraryEntity entity,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup) =>
             new CalculatedAttributeLibraryDTO()
             {
                 Id = entity.Id,
@@ -21,15 +23,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 IsDefault = entity.IsDefault,
                 IsShared = entity.IsShared,
                 CalculatedAttributes = entity.CalculatedAttributes.Any()
-                    ? entity.CalculatedAttributes.Select(_ => _.ToDto()).ToList()
+                    ? entity.CalculatedAttributes.Select(_ => _.ToDto(attributeNameLookup)).ToList()
                     : new List<CalculatedAttributeDTO>()
             };
 
-        public static CalculatedAttributeDTO ToDto(this CalculatedAttributeEntity entity) =>
+        public static CalculatedAttributeDTO ToDto(
+            this CalculatedAttributeEntity entity,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup) =>
             new CalculatedAttributeDTO()
             {
                 Id = entity.Id,
-                Attribute = entity.Attribute.Name,
+                Attribute = attributeNameLookup[entity.AttributeId],
                 CalculationTiming = entity.CalculationTiming,
                 Equations = entity.Equations.Any()
                     ? entity.Equations.Select(_ => _.ToDto()).ToList()

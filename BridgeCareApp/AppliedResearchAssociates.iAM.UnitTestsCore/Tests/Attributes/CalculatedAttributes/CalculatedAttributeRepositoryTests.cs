@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.CalculatedAttribute;
@@ -170,10 +171,10 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         {
             // Arrange
             var repo = new CalculatedAttributeRepository(_testRepo);
-
+            var attributeRepo = new AttributeRepository(_testRepo);
             var attributes = TestDataForCalculatedAttributesRepository.GetAttributeRepo();
-
-            var changingLibraryDTO = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "Second").ToDto();
+            var attributeNameLookup = attributeRepo.GetAttributeNameLookupDictionary();
+            var changingLibraryDTO = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "Second").ToDto(attributeNameLookup);
             var revisedCalculation = changingLibraryDTO.CalculatedAttributes.FirstOrDefault(_ => _.Attribute == "DESCRIPTION");
             revisedCalculation.CalculationTiming = 2;
 

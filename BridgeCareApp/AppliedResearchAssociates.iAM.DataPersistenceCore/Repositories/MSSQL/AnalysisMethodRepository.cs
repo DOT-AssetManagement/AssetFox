@@ -46,7 +46,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
                 .Include(_ => _.Simulation)
                 .ThenInclude(_ => _.ScenarioTargetConditionalGoals)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.Simulation)
                 .ThenInclude(_ => _.ScenarioTargetConditionalGoals)
                 .ThenInclude(_ => _.CriterionLibraryScenarioTargetConditionGoalJoin)
@@ -108,14 +107,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 };
             }
 
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
             return _unitOfWork.Context.AnalysisMethod
-                .Include(_ => _.Attribute)
                 .Include(_ => _.Benefit)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.CriterionLibraryAnalysisMethodJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
                 .Single(_ => _.SimulationId == simulationId)
-                .ToDto();
+                .ToDto(attributeNameLookup);
         }
 
         public void UpsertAnalysisMethod(Guid simulationId, AnalysisMethodDTO dto)

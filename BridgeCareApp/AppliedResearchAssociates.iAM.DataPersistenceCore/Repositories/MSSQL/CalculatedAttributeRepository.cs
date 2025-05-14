@@ -30,10 +30,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return dtos;
         }
 
-        public ICollection<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibraries() =>
-            _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
+        public ICollection<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibraries()
+        {
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            return _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
                 .Include(_ => _.CalculatedAttributes)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.CalculatedAttributes)
                 .ThenInclude(_ => _.Equations)
                 .ThenInclude(_ => _.CriterionLibraryCalculatedAttributeJoin)
@@ -42,13 +43,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .ThenInclude(_ => _.Equations)
                 .ThenInclude(_ => _.EquationCalculatedAttributeJoin)
                 .ThenInclude(_ => _.Equation)
-                .Select(_ => _.ToDto())
+                .Select(_ => _.ToDto(attributeNameLookup))
                 .ToList();
+        }
 
         public List<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibrariesNoChildren()
         {
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetAttributeNameLookupDictionary();
             return _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
-                .Select(_ => _.ToDto())
+                .Select(_ => _.ToDto(attributeNameLookup))
                 .ToList();
         }
 
@@ -73,15 +76,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("The specified calculated attribute library was not found");
             }
 
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetAttributeNameLookupDictionary();
             return _unitOfDataPersistenceWork.Context.CalculatedAttribute.AsNoTracking()
-                .Include(_ => _.Attribute)
                 .Where(_ => _.CalculatedAttributeLibraryId == libraryid)
-                .Select(_ => _.ToDto())
+                .Select(_ => _.ToDto(attributeNameLookup))
                 .ToList();
         }
 
         public CalculatedAttributeDTO GetLibraryCalulatedAttributesByLibraryAndAttributeId(Guid libraryId, Guid attributeId)
         {
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetAttributeNameLookupDictionary();
             return _unitOfDataPersistenceWork.Context.CalculatedAttribute.AsNoTracking()
             .Include(_ => _.Attribute)
             .Include(_ => _.Equations)
@@ -91,7 +95,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             .ThenInclude(_ => _.EquationCalculatedAttributeJoin)
             .ThenInclude(_ => _.Equation)
             .Single(_ => _.Attribute.Id == attributeId && _.CalculatedAttributeLibraryId == libraryId)
-            .ToDto();
+            .ToDto(attributeNameLookup);
         }
 
         public CalculatedAttributeDTO GetScenarioCalulatedAttributesByScenarioAndAttributeId(Guid scenarioId, Guid attributeId)
@@ -110,6 +114,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public CalculatedAttributeLibraryDTO GetCalculatedAttributeLibraryByID(Guid id)
         {
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetAttributeNameLookupDictionary();
             return _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
             .Include(_ => _.CalculatedAttributes)
             .ThenInclude(_ => _.Attribute)
@@ -121,7 +126,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             .ThenInclude(_ => _.Equations)
             .ThenInclude(_ => _.EquationCalculatedAttributeJoin)
             .ThenInclude(_ => _.Equation)
-            .Single(_ => _.Id == id).ToDto();
+            .Single(_ => _.Id == id).ToDto(attributeNameLookup);
         }
 
         public void UpsertCalculatedAttributeLibrary(CalculatedAttributeLibraryDTO library)
@@ -492,11 +497,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         }
         public List<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibrariesNoChildrenAccessibleToUser(Guid userId)
         {
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetAttributeNameLookupDictionary();
             return _unitOfDataPersistenceWork.Context.CalculatedAttributeLibraryUser
                 .AsNoTracking()
                 .Include(u => u.CalculatedAttributeLibrary)
                 .Where(u => u.UserId == userId)
-                .Select(u => u.CalculatedAttributeLibrary.ToDto())
+                .Select(u => u.CalculatedAttributeLibrary.ToDto(attributeNameLookup))
                 .ToList();
         }
         public void UpsertOrDeleteUsers(Guid calculatedAttributeLibraryId, IList<LibraryUserDTO> libraryUsers)

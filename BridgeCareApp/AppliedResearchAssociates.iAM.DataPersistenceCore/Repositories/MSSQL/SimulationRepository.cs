@@ -187,6 +187,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     throw new RowNotInTableException($"No network found having id {networkId}");
                 }
 
+                var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
                 var defaultLibrary = _unitOfWork.Context.CalculatedAttributeLibrary.Where(_ => _.IsDefault == true)
                     .Include(_ => _.CalculatedAttributes)
                     .ThenInclude(_ => _.Attribute)
@@ -198,7 +199,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     .ThenInclude(_ => _.Equations)
                     .ThenInclude(_ => _.EquationCalculatedAttributeJoin)
                     .ThenInclude(_ => _.Equation)
-                    .Select(_ => _.ToDto())
+                    .Select(_ => _.ToDto(attributeNameLookup))
                     .ToList();
 
                 if (defaultLibrary.Count == 0)
