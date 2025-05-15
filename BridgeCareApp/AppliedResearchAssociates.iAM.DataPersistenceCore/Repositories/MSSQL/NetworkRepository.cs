@@ -14,6 +14,7 @@ using Network = AppliedResearchAssociates.iAM.Data.Networking.Network;
 using System.Threading;
 using AppliedResearchAssociates.iAM.Common.Logging;
 using Microsoft.Data.SqlClient;
+using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -96,6 +97,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             if (areFacilitiesRequired)
             {
                 var attributeIdLookup = getAttributeIdLookUp();
+                var memos = EventMemoModelLists.GetInstance("Simulation");
+                memos.Mark("NetworkRepository before load assets");
                 networkEntity.MaintainableAssets = GetInitialQuery()
                                                     .Where(_ => _.NetworkId == networkId)
                                                     // Having the select below, NOT in a separate method, helps performance by reducing the amount of data that is fetched from the database.
@@ -120,6 +123,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                                                             }
                                                         }).ToList()
                                                     }).AsNoTracking().ToList();
+                memos.Mark("NetworkRepository after load assets");
             }
 
             if (!areFacilitiesRequired && simulationId != null)
