@@ -18,6 +18,7 @@ using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using System.Collections.ObjectModel;
 using NetTopologySuite.Utilities;
 using System.Diagnostics;
+using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -220,6 +221,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("Found no attributes.");
             }
 
+            var memos = EventMemoModelLists.GetInstance("Simulation");
+            memos.Mark("GetExplorer before load attributes");
             var attributes = _unitOfWork.Context.Attribute
                 .Include(_ => _.AttributeEquationCriterionLibraryJoins)
                 .ThenInclude(_ => _.Equation)
@@ -228,7 +231,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Where(_ => _.Name != "AGE")
                 .AsNoTracking()
                 .ToList();
-
+            memos.Mark("GetExplorer after load attributes");
             var explorer = new Explorer();
 
             attributes.ForEach(entity =>
