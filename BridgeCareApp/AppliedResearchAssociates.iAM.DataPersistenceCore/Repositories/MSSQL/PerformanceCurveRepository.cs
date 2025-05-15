@@ -23,6 +23,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public Guid? EquationId { get; set; }
         public Guid? CriterionLibraryId { get; set; }
     }
+
     public class PerformanceCurveRepository : IPerformanceCurveRepository
     {
         private readonly UnitOfDataPersistenceWork _unitOfWork;
@@ -36,13 +37,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return dtos;
         }
 
-        public void GetScenarioPerformanceCurves(Simulation simulation, Dictionary<Guid, string> attributeNameLookupDictionary)
+        public void GetScenarioPerformanceCurves(Simulation simulation)
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulation.Id))
             {
                 throw new RowNotInTableException("No simulation was found for the given scenario.");
             }
 
+            var attributeNameLookupDictionary = _unitOfWork.AttributeRepo.GetIdNameCache();
             _unitOfWork.Context.ScenarioPerformanceCurve
                 .AsNoTracking()
                 .Include(_ => _.CriterionLibraryScenarioPerformanceCurveJoin)

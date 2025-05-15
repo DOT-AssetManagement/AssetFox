@@ -187,7 +187,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     throw new RowNotInTableException($"No network found having id {networkId}");
                 }
 
-                var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+                var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
                 var defaultLibrary = _unitOfWork.Context.CalculatedAttributeLibrary.Where(_ => _.IsDefault == true)
                     .Include(_ => _.CalculatedAttributes)
                     .ThenInclude(_ => _.Attribute)

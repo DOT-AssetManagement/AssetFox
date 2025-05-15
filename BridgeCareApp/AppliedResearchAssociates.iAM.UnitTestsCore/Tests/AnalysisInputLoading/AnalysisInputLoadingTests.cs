@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
@@ -40,7 +41,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var analysisMethodRepository = AnalysisMethodRepositoryMocks.New(unitOfWork);
             analysisMethodRepository.Setup(a => a.GetSimulationAnalysisMethod(null, "userCriteria")).Throws(new Exception("GetSimulationAnalysisMethod failed"));
             var performanceCurveRepository = PerformanceCurveRepositoryMocks.New(unitOfWork);
-            performanceCurveRepository.Setup(p => p.GetScenarioPerformanceCurves(null, It.IsAny<Dictionary<Guid, string>>()))
+            performanceCurveRepository.Setup(p => p.GetScenarioPerformanceCurves(It.IsAny<Simulation>()))
                 .Throws(new Exception("GetScenarioPerformanceCurves failed"));
             var selectableTreatmentRepository = SelectableTreatmentRepositoryMocks.New(unitOfWork);
             selectableTreatmentRepository.Setup(s => s.GetScenarioSelectableTreatments(null)).Throws(new Exception("GetScenarioSelectableTreatments failed"));

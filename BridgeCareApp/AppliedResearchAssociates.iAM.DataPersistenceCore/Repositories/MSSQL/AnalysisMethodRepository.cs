@@ -75,7 +75,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("No budget priority was found for the given scenario.");
             }
 
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
             analysisMethodEntity.FillSimulationAnalysisMethod(simulation, userCriteria, attributeNameLookup);
         }
 
@@ -107,7 +107,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 };
             }
 
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
             return _unitOfWork.Context.AnalysisMethod
                 .Include(_ => _.Benefit)
                 .Include(_ => _.CriterionLibraryAnalysisMethodJoin)

@@ -85,7 +85,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static PerformanceCurveLibraryEntity ToEntity(this PerformanceCurveLibraryDTO dto) =>
             new PerformanceCurveLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
-        public static void CreatePerformanceCurve(this ScenarioPerformanceCurveEntity entity, Simulation simulation, Dictionary<Guid, string> attributeNameLookupDictionary)
+        public static void CreatePerformanceCurve(
+            this ScenarioPerformanceCurveEntity entity,
+            Simulation simulation,
+            IReadOnlyDictionary<Guid, string> attributeNameLookupDictionary)
         {
             var performanceCurve = simulation.AddPerformanceCurve();
             performanceCurve.Id = entity.Id;

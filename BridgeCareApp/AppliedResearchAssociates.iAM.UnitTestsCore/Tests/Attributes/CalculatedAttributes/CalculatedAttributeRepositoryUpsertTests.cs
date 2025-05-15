@@ -26,6 +26,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         public void UpdatesRepositoryWithExistingLibrary()
         {
             // Arrange
+            AttributeRepository.ClearIdNameCache();
             Setup();
 
             Guid libraryId = Guid.NewGuid();
@@ -36,6 +37,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
             var calcAttr = CalculatedAttributeTestSetup.TestCalculatedAttributeInLibraryInDb(TestHelper.UnitOfWork, library, calcAttrId, TestAttributeNames.ActionType);
             calcAttr.CalculationTiming = 1;
             library.CalculatedAttributes[0] = calcAttr;
+            AttributeRepository.ClearIdNameCache();
 
             //Act
             TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertCalculatedAttributeLibrary(library);
@@ -144,6 +146,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         {
             //// TODO:  Ensure existing, non-modified attributes are preserved
             //// Arrange
+            AttributeRepository.ClearIdNameCache();
             Setup();
 
             Guid libraryId = Guid.NewGuid();
@@ -173,6 +176,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         [Fact]
         public void LibraryInDb_GetModifiedDate_Gets()
         {
+            AttributeRepository.ClearIdNameCache();
             var beforeDate = DateTime.Now;
             var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var afterDate = DateTime.Now;

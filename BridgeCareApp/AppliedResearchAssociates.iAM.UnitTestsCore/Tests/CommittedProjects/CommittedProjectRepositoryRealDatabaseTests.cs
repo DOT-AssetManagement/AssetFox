@@ -30,6 +30,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public async Task DeleteSpecificWorksWithValidProject()
         {
             // Arrange
+            AttributeRepository.ClearIdNameCache();
             var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
 
             // Set up a network with maintainable assets
@@ -153,8 +154,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         [Fact]
         public async Task UpsertWorksWithNullBudget()
         {
-
             // Arrange
+            AttributeRepository.ClearIdNameCache();
             var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
 
             // Set up a network with maintainable assets
@@ -216,6 +217,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public async Task GetForSimulationWorksWithCommittedProjects()
         {
             // Arrange
+            AttributeRepository.ClearIdNameCache();
             var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
 
             // Set up a network with maintainable assets

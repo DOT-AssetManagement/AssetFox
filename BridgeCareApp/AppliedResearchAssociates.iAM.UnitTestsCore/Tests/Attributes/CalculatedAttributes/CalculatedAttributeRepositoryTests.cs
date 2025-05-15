@@ -97,6 +97,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         public void SuccessfullyPullsDataFromLibraryRepository()
         {
             // Arrange
+            AttributeRepository.ClearIdNameCache();
             var repo = new CalculatedAttributeRepository(_testRepo);
 
             // Act
@@ -172,10 +173,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         public void UpsertHandlesNoLibraryFound()
         {
             // Arrange
+            AttributeRepository.ClearIdNameCache();
             var repo = new CalculatedAttributeRepository(_testRepo);
             var attributeRepo = new AttributeRepository(_testRepo);
             var attributes = TestDataForCalculatedAttributesRepository.GetAttributeRepo();
-            var attributeNameLookup = attributeRepo.GetAttributeNameLookupDictionary();
+            var attributeNameLookup = attributeRepo.GetIdNameCache();
             var changingLibraryDTO = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "Second").ToDto(attributeNameLookup);
             var revisedCalculation = changingLibraryDTO.CalculatedAttributes.FirstOrDefault(_ => _.Attribute == "DESCRIPTION");
             revisedCalculation.CalculationTiming = 2;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
@@ -91,6 +92,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         public void UpsertAnalysisMethod_AnalysisMethodInDb_Updates()
         {
             var unitOfWork = TestHelper.UnitOfWork;
+            AttributeRepository.ClearIdNameCache();
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
@@ -121,6 +123,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public void GetSimulationAnalysisMethod_SimulationInDbWithChildren_Gets()
         {
+            AttributeRepository.ClearIdNameCache();
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);

@@ -8,6 +8,7 @@ using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
@@ -72,9 +73,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             investmentPlanDto.NumberOfYearsInAnalysisPeriod = 1;
             TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulation.Id);
             TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            AttributeRepository.ClearIdNameCache();
 
-            TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
+            TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation);
 
             var curvesAfter = simulation.PerformanceCurves.ToList();
             var curveAfter = curvesAfter.Single();

@@ -16,7 +16,8 @@ namespace AppliedResearchAssociates.iAM.DataUnitTests
         {
             var connectionString = configuration.GetConnectionString("BridgeCareConnex");
             var options = new DbContextOptionsBuilder<IAMContext>()
-                .UseSqlServer(connectionString)
+                .UseSqlServer(connectionString,
+                opts => opts.CommandTimeout(3600))
                 .Options;
             var dbContext = new IAMContext(options);
             var unitOfWork = new UnitOfDataPersistenceWork(configuration, dbContext);
