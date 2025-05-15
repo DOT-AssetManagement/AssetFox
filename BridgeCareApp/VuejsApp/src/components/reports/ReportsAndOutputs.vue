@@ -127,6 +127,10 @@
             :dialogData="criterionEditorDialogData"
             @submit="onCriterionEditorDialogSubmit"
         />
+
+        <UserDefinedReportInputDialog 
+            :showDialog='showUserDefinedReportInputDialog' 
+            @submit='onAddUserDefinedReportInput' />
     </v-row>
 </v-card>
 </template>
@@ -164,6 +168,7 @@ import EditSvg from '@/shared/icons/EditSvg.vue';
 import ReportsTrashCanButton from '@/shared/components/buttons/ReportsTrashCanButton.vue';
 import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton.vue';
 import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel } from '@/shared/models/iAM/reports';
+import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/UserDefinedReportInputDialog.vue';
 
     let store = useStore();
     const router = useRouter();
@@ -177,6 +182,7 @@ import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel } fro
     let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
 
     let editShow = ref<boolean>(false);
+    let showUserDefinedReportInputDialog = ref<boolean>(false);
 
     //let simulationName: string;
     let networkName: string = '';
@@ -352,25 +358,48 @@ import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel } fro
                 propEq('id', reportId),
                 currentPage.value,
             ) as Report;
-            // Generate report with selected one from table
+            // Generate report with selected one from table            
+            if(selectedReport.value.name != "UserDefinedReport")
+            {
+                await ReportsService.generateReportWithCriteria(
+                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, emptyUserDefinedReportRequestModel
+                ).then((response: AxiosResponse<any>) => {
+                    handleSuccessError(response);
+                });                
+            }
+            else
+            {
+                showUserDefinedReportInputDialog.value = true;
+            }
+        }
+    }
+
+    async function onAddUserDefinedReportInput(newUserDefinedReportRequestModel: UserDefinedReportRequestModel) {
+        showUserDefinedReportInputDialog.value = false;
+        if (!isNil(newUserDefinedReportRequestModel)) {
             await ReportsService.generateReportWithCriteria(
-                selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, emptyUserDefinedReportRequestModel
+                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, newUserDefinedReportRequestModel
             ).then((response: AxiosResponse<any>) => {
-                if (response.status == 200) {
-                    if (hasValue(response, 'data')) {
-                        const resultId: string = response.data as string;
-                        //reportIndexID = resultId;
-                    }
-                    addSuccessNotificationAction({
-                        message: selectedReport.value.name +  ' report generation started for ' + simulationName.value + '.',
-                    });
-                } else {
-                    addErrorNotificationAction({
-                        message: 'Failed to generate apricot for ' + simulationName.value + '.',
-                        longMessage:
-                            'Failed to generate the report or output. Make sure the scenario has been run',
-                    });
-                }
+                handleSuccessError(response);
+            });
+        }
+    }
+
+    function handleSuccessError(response: AxiosResponse<any>)
+    {
+        if (response.status == 200) {
+            if (hasValue(response, 'data')) {
+                const resultId: string = response.data as string;
+                //reportIndexID = resultId;
+            }
+            addSuccessNotificationAction({
+                message: selectedReport.value.name +  ' report generation started for ' + simulationName.value + '.',
+            });
+        } else {
+            addErrorNotificationAction({
+                message: 'Failed to generate apricot for ' + simulationName.value + '.',
+                longMessage:
+                    'Failed to generate the report or output. Make sure the scenario has been run',
             });
         }
     }
