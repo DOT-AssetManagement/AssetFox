@@ -31,39 +31,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public AttributeRepository(UnitOfDataPersistenceWork unitOfWork) =>
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
-        private void Break()
-        {
-            if(Debugger.IsAttached)
-            {
-                Debugger.Break();
-            }
-        }
-
         private void EnsureCacheExists()
         {
             if (_IdNameCache == null)
             {
                 var dictionary = _unitOfWork.Context.Attribute.ToDictionary(a => a.Id, a => a.Name);
                 _IdNameCache = new ReadOnlyDictionary<Guid, string>(dictionary);
-                var dictionary2 = this.GetAttributeNameLookupDictionary();
-                var count1 = _IdNameCache.Count;
-                var count2 = dictionary2.Count;
-                if (count1!=count2) {
-                    Break();
-                }
-                foreach (var key in _IdNameCache.Keys)
-                {
-                    var name1 = _IdNameCache[key];
-                    if (!dictionary2.ContainsKey(key))
-                    {
-                        Break();
-                    }
-                    var name2 = dictionary2[key];
-                    if (name1 != name2)
-                    {
-                        Break();
-                    }
-                }
             }
         }
 
