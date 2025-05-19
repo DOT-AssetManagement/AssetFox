@@ -1,24 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
+using AppliedResearchAssociates.iAM.Data.Attributes;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Attributes;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
 using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Attributes;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using System.Collections.ObjectModel;
-using NetTopologySuite.Utilities;
-using System.Diagnostics;
-using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
