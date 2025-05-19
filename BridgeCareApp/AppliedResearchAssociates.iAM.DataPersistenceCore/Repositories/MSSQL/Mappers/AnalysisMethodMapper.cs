@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.Analysis;
@@ -44,13 +44,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 string.IsNullOrEmpty(userCriteria) ? specifiedFilter :
                 combinedCriteria;
 
-            if (entity.Attribute != null)
+            if (entity.AttributeId.HasValue)
             {
                 var attributeName = attributeNameLookup[entity.AttributeId.Value];
                 simulation.AnalysisMethod.Weighting = simulation.Network.Explorer.NumberAttributes
                     .Single(_ => _.Name == attributeName);
             }
-
             if (entity.Benefit != null)
             {
                 simulation.AnalysisMethod.Benefit.Id = entity.Benefit.Id;
