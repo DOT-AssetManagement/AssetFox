@@ -3,21 +3,27 @@
         <v-main style="font-family: roboto;">
             <v-toolbar app class="paper-white-bg elevation-2">                
                 <v-toolbar-title style="flex: 1;">
-                <v-img
-                    :src="getUrl('/logos/penndot-image.png')"
-                    @click="onNavigate('/Scenarios/')"
-                    class="toolbar-image"
-                    contain
-                />
+                    <v-img
+                        v-if="agencyLogoUrl"
+                        :src="agencyLogoUrl"
+                        alt="Agency Logo"
+                        @click="onNavigate('/Scenarios/')"
+                        @error="onAgencyLogoError"
+                        class="toolbar-image"
+                        contain
+                    />
                 </v-toolbar-title>
 
                 <v-toolbar-title style="flex: 1;">
-                <v-img
-                    :src="getUrl('/logos/BridgeCareLogo.svg')"
-                    @click="onNavigate('/Scenarios/')"
-                    class="toolbar-image"
-                    contain
-                />
+                    <v-img
+                        v-if="implementationLogoUrl"
+                        :src="implementationLogoUrl"
+                        alt="Implementation Logo"
+                        @click="onNavigate('/Scenarios/')"
+                        @error="onImplementationLogoError"
+                        class="toolbar-image"
+                        contain
+                    />
                 </v-toolbar-title>
                 <v-toolbar-items >
                     <v-btn-toggle style="height: 100%;">
@@ -296,6 +302,7 @@ import Notifications from '@kyvg/vue3-notification'
 import Spinner from './shared/modals/Spinner.vue';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { Config } from '@/store-modules/config.module';
 import {
     axiosInstance,
     coreAxiosInstance,
@@ -336,7 +343,7 @@ import { getUrl } from './shared/utils/get-url';
 import { UserInfoLocal } from './shared/models/iAM/authentication';
 
     let store = useStore();
-    const config = store.getters.getConfig;
+    const config = computed<Config | null>(() => store.getters.getConfig);
     let authenticated = computed(() => store.state.authenticationModule.authenticated);
     let hasRole = computed<boolean>(() => store.state.authenticationModule.hasRole);
     let username = computed<string>(() => store.state.authenticationModule.username);
@@ -353,8 +360,6 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     const announcements = computed(() => store.state.announcementModule.announcements);
     const currentUser = computed<User>(() =>store.state.userModule.currentUser);
     const stateImplementationName = computed<string>(()=>store.state.adminSiteSettingsModule.implementationName);
-    const agencyLogoBase64 = computed(() => store.state.adminSiteSettingsModule.agencyLogo);
-    const productLogoBase64 = computed(() => store.state.adminSiteSettingsModule.productLogo);
     const stateInventoryReportNames = computed<string[]>(() => store.state.adminDataModule.inventoryReportNames);
     const stateAlertMessage = computed<string>(() => store.state.alertModule.alertMessage);
     const stateAlert = ref<boolean>(store.state.alertModule.alert);
@@ -380,8 +385,6 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     async function getCurrentUserByUserNameAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserByUserName', payload);}
     async function updateUserLastNewsAccessDateAction(payload?: any): Promise<any> { await store.dispatch('updateUserLastNewsAccessDate', payload);}
     async function getImplementationNameAction(payload?: any): Promise<any> { await store.dispatch('getImplementationName', payload);}
-    async function getAgencyLogoAction(payload?: any): Promise<any> { await store.dispatch('getAgencyLogo', payload);} 
-    async function getProductLogoAction(payload?: any): Promise<any> { await store.dispatch('getProductLogo', payload);} 
     async function getInventoryReportsAction(payload?: any): Promise<any> { await store.dispatch('getInventoryReports', payload);} 
     function setAlertMessageAction(payload?: any) { store.dispatch('setAlertMessage', payload);} 
     function incrementProcessCounterAction(payload?: any) { store.dispatch('incrementProcessCounter', payload);}
@@ -418,10 +421,40 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     let unauthorizedError: string = '';
     const implementationName =ref<string>('');
     let packageVersionEnv = ref<string>('');
-    const agencyLogo= ref<string>('');
-    const productLogo= ref<string>('');
     let inventoryReportName: string = '';
     let alert: Ref<boolean> = ref(false);
+
+    const agencyLogoFilename = computed(() => config.value?.logos?.agencyFilename);
+    const implementationLogoFilename = computed(() => config.value?.logos?.implementationFilename);
+
+    const agencyLogoError = ref(false);
+    const implementationLogoError = ref(false);
+
+    const agencyLogoUrl = computed(() => {
+        if (agencyLogoFilename.value && !agencyLogoError.value) {
+            return `/logos/${agencyLogoFilename.value}`; // Direct path from public root
+        }
+        return null; // Or a default fallback image path like '/logos/default-agency.png'
+    });
+
+    const implementationLogoUrl = computed(() => {
+        if (implementationLogoFilename.value && !implementationLogoError.value) {
+            return `/logos/${implementationLogoFilename.value}`; // Direct path from public root
+        }
+        return null; // Or a default fallback image path like '/logos/default-impl.png'
+    });
+
+    const onAgencyLogoError = () => {
+    // You can still access the failed URL via the computed property if needed for logging
+    console.warn(`Failed to load agency logo: ${agencyLogoUrl.value}`);
+    agencyLogoError.value = true;
+    };
+
+    const onImplementationLogoError = () => {
+    // You can still access the failed URL via the computed property if needed for logging
+    console.warn(`Failed to load implementation logo: ${implementationLogoUrl.value}`);
+    implementationLogoError.value = true;
+    };
 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     provide('emitter', $emitter);
@@ -483,14 +516,6 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         implementationName.value = stateImplementationName.value;
     })
 
-    watch(agencyLogoBase64, () => {
-        agencyLogo.value = agencyLogoBase64.value;
-    })
-
-    watch(productLogoBase64, () =>  {
-        productLogo.value = productLogoBase64.value;
-    })
-
     watch(stateInventoryReportNames, onStateInventoryReportNamesChanged)
     function onStateInventoryReportNamesChanged(){
         if(stateInventoryReportNames.value.length > 0)
@@ -515,6 +540,12 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         
     function created() {
         packageVersionEnv.value = import.meta.env.VITE_APP_VERSION // declared in .env files
+
+        if (!config.value) {
+            store.dispatch('loadConfig').catch(error => {
+                console.error("Failed to load config in App.vue:", error);
+            });
+        }
 
         // create a request handler
         async function requestHandler(
@@ -640,16 +671,6 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         {
             startTokenCheckTimer(); 
         }
-        
-        if(agencyLogoBase64.value === '')
-            agencyLogo.value = new URL(`assets/images/generic/IAM_Main.jpg`, import.meta.url).href;
-        else
-            agencyLogo.value = agencyLogoBase64.value
-
-        if(productLogoBase64.value === '')
-            productLogo.value = new URL(`assets/images/generic/IAM_Banner.jpg`, import.meta.url).href;
-        else
-            productLogo.value = productLogoBase64.value
 
         if(implementationName.value === "")
             implementationName.value = "BridgeCare"
@@ -689,7 +710,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
 
     function onAddErrorNotification(data: any) {
         let errorNotification:string = data.error.toString();
-        let stackTrace: string = data.stackTrace.toString();
+        let stackTrace: string = data.stackTrace !== undefined ? data.stackTrace.toString() : "";
         let spl = errorNotification.split('::');
         if (spl.length > 0 ) {
             addErrorNotificationWithStackTraceAction( {
@@ -813,9 +834,8 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
             }
         }).then(() =>
         //If these gets are placed before authorization, GetUserInformation() in EsecSecurity.cs will throw an error, as its HttpRequest will have no Authorization header!
-        getImplementationNameAction().then(() =>
-        getAgencyLogoAction().then(() => {getProductLogoAction();}
-        )))))));
+        getImplementationNameAction()
+        )))));
     }
   function $forceUpdate() {
     throw new Error('Method not implemented.');

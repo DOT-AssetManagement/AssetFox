@@ -67,9 +67,9 @@ namespace BridgeCareCoreTests.Tests
             var sectionCommittedProject1 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId1, scenarioBudgetId1, simulationId);
             var sectionCommittedProject2 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId2, scenarioBudgetId2, simulationId);
             var sectionCommittedProject3 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId3, scenarioBudgetId1, simulationId);
-            sectionCommittedProject1.Treatment = "Treatmentz";
-            sectionCommittedProject2.Treatment = "Treatmentx";
-            sectionCommittedProject3.Treatment = "Treatmenty";
+            sectionCommittedProject1.Treatment = ["Treatmentz"];
+            sectionCommittedProject2.Treatment = ["Treatmentx"];
+            sectionCommittedProject3.Treatment = ["Treatmenty"];
             var sectionCommittedProjects = new List<SectionCommittedProjectDTO> { sectionCommittedProject1, sectionCommittedProject2, sectionCommittedProject3 };
             var returnDictionary = new Dictionary<Guid, string>
             {
@@ -122,8 +122,8 @@ namespace BridgeCareCoreTests.Tests
             var sectionCommittedProject2 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId2, scenarioBudgetId2, simulationId);
             var sectionCommittedProject3 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId3, scenarioBudgetId1, simulationId);
             sectionCommittedProject1.Treatment = null;
-            sectionCommittedProject2.Treatment = "";
-            sectionCommittedProject3.Treatment = "Treatmenty";
+            sectionCommittedProject2.Treatment = [""];
+            sectionCommittedProject3.Treatment = ["Treatmenty"];
             var sectionCommittedProjects = new List<SectionCommittedProjectDTO> { sectionCommittedProject1, sectionCommittedProject2, sectionCommittedProject3 };
             var returnDictionary = new Dictionary<Guid, string>
             {
@@ -219,9 +219,9 @@ namespace BridgeCareCoreTests.Tests
             var sectionCommittedProject1 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId1, scenarioTreatmentId1, simulationId);
             var sectionCommittedProject2 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId2, scenarioTreatmentId2, simulationId);
             var sectionCommittedProject3 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId3, scenarioTreatmentId1, simulationId);
-            sectionCommittedProject1.Treatment = "Simple";
-            sectionCommittedProject2.Treatment = "Complicated";
-            sectionCommittedProject3.Treatment = "Simple";
+            sectionCommittedProject1.Treatment = ["Simple"];
+            sectionCommittedProject2.Treatment = ["Complicated"];
+            sectionCommittedProject3.Treatment = ["Simple"];
             sectionCommittedProject1.LocationKeys[TestAttributeNames.BrKey] = "1";
             sectionCommittedProject2.LocationKeys[TestAttributeNames.BrKey] = "2";
             sectionCommittedProject3.LocationKeys[TestAttributeNames.BrKey] = "1";
@@ -254,7 +254,7 @@ namespace BridgeCareCoreTests.Tests
 
             Assert.Equal(3, page.TotalItems);
             Assert.Equal(2, page.Items.Count);
-            Assert.True(page.Items.All(_ => _.Treatment == "Simple"));
+            Assert.True(page.Items.All(_ => _.Treatment.Single() == "Simple"));
         }
 
         [Fact]
@@ -270,7 +270,7 @@ namespace BridgeCareCoreTests.Tests
             {
                 Id = Guid.NewGuid(),
                 Year = 2022,
-                Treatment = "Something",
+                Treatment = ["Something"],
                 ShadowForAnyTreatment = 1,
                 ShadowForSameTreatment = 1,
                 Cost = 10000,
@@ -325,17 +325,17 @@ namespace BridgeCareCoreTests.Tests
             var sectionCommittedProject2 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId2, scenarioTreatmentId2, simulationId);
             var sectionCommittedProject3 = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId3, scenarioTreatmentId1, simulationId);
             var updateRow = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId1, scenarioTreatmentId1, simulationId);
-            updateRow.Treatment = "updated treatment";
-            sectionCommittedProject1.Treatment = "Simple";
-            sectionCommittedProject2.Treatment = "Z Complicated";
-            sectionCommittedProject3.Treatment = "Simple";
+            updateRow.Treatment = ["updated treatment"];
+            sectionCommittedProject1.Treatment = ["Simple"];
+            sectionCommittedProject2.Treatment = ["Z Complicated"];
+            sectionCommittedProject3.Treatment = ["Simple"];
             sectionCommittedProject1.LocationKeys[TestAttributeNames.BrKey] = "1";
             sectionCommittedProject2.LocationKeys[TestAttributeNames.BrKey] = "2";
             sectionCommittedProject3.LocationKeys[TestAttributeNames.BrKey] = "1";
             var sectionCommittedProjects = new List<SectionCommittedProjectDTO> { sectionCommittedProject1, sectionCommittedProject2, sectionCommittedProject3 };
 
             var newTreament = "updated treatment";
-            updateRow.Treatment = newTreament;
+            updateRow.Treatment = [newTreament];
 
             var request = new PagingRequestModel<SectionCommittedProjectDTO>()
             {
@@ -355,7 +355,7 @@ namespace BridgeCareCoreTests.Tests
             Assert.Equal(3, page.TotalItems);
             Assert.Equal(request.RowsPerPage, page.Items.Count);
             var updatedItem = page.Items.Single(_ => _.Id == sectionCommittedProjectId1);
-            Assert.Equal(newTreament, updatedItem.Treatment);
+            Assert.Equal<string[]>([newTreament], updatedItem.Treatment);
         }
 
         [Fact]
@@ -388,7 +388,7 @@ namespace BridgeCareCoreTests.Tests
             var committedProjectRepo = CommittedProjectRepositoryMocks.New(unitOfWork);
             committedProjectRepo.Setup(c => c.GetSectionCommittedProjectDTOs(simulationId)).Returns(dtos);
             var updateDto = SectionCommittedProjectDtos.Dto(sectionCommittedProjectId, scenarioBudgetId);
-            updateDto.Treatment = "Update me";
+            updateDto.Treatment = ["Update me"];
             updateDto.Cost = 1000000;
             var sync = new PagingSyncModel<SectionCommittedProjectDTO>()
             {

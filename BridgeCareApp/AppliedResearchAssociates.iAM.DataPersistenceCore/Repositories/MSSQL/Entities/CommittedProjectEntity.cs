@@ -5,7 +5,7 @@ using AppliedResearchAssociates.iAM.DTOs.Enums;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
 {
-    public class CommittedProjectEntity : TreatmentEntity
+    public class CommittedProjectEntity : CommittedTreatmentEntity
     {
         public Guid SimulationId { get; set; }
 

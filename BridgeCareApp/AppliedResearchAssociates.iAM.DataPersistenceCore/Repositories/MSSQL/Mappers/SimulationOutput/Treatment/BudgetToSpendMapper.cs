@@ -9,15 +9,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 {
     public static class BudgetToSpendMapper
     {
-        public static IEnumerable<BudgetToSpend> ToEntityList(List<AnalysisEngine.FundingCalculationInput.Budget> currentBudgetsToSpendDomainList, Guid fundingCalculationInputId)
+        public static IEnumerable<BudgetToSpend> ToEntityList(List<AnalysisEngine.FundingCalculationInput.Budget> currentBudgetsToSpendDomainList, Guid fundingCalculationInputId, int runId)
         {
             return currentBudgetsToSpendDomainList.Select(_ => new BudgetToSpend
             {
-                Id = Guid.NewGuid(),
+                Id = SequentialGuid.NewGuid(),
                 Amount = _.Amount,
                 Year = _.Year,
                 FundingCalculationInputId = fundingCalculationInputId,
-                Name = _.Name
+                Name = _.Name,
+                RunId = runId
             });
         }
 

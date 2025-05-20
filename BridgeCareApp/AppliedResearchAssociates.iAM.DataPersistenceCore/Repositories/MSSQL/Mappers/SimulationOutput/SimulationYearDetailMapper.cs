@@ -12,12 +12,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static SimulationYearDetailEntity ToEntityWithoutAssets(
             SimulationYearDetail domain,
             Guid simulationOutputId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup,
+            int simulationRunId)
         {
-            var id = Guid.NewGuid();
-            var budgets = BudgetDetailMapper.ToEntityList(domain.Budgets, id);
-            var deficientConditionGoals = DeficientConditionGoalDetailMapper.ToEntityList(domain.DeficientConditionGoals, id, attributeIdLookup);
-            var targetConditionGoals = TargetConditionGoalDetailMapper.ToEntityList(domain.TargetConditionGoals, id, attributeIdLookup);
+            var id = SequentialGuid.NewGuid();
+            var budgets = BudgetDetailMapper.ToEntityList(domain.Budgets, id, simulationRunId);
+            var deficientConditionGoals = DeficientConditionGoalDetailMapper.ToEntityList(domain.DeficientConditionGoals, id, attributeIdLookup, simulationRunId);
+            var targetConditionGoals = TargetConditionGoalDetailMapper.ToEntityList(domain.TargetConditionGoals, id, attributeIdLookup, simulationRunId);
             var entity = new SimulationYearDetailEntity
             {
                 Id = id,
@@ -26,6 +27,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 DeficientConditionGoals = deficientConditionGoals,
                 SimulationOutputId = simulationOutputId,
                 TargetConditionGoals = targetConditionGoals,
+                RunId = simulationRunId,
                 Year = domain.Year,
             };
             return entity;

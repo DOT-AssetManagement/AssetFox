@@ -80,7 +80,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 IsModified = entity.IsModified,
                 BudgetOrder = entity.BudgetOrder,
                 BudgetAmounts = entity.ScenarioBudgetAmounts.Any()
-                    ? entity.ScenarioBudgetAmounts.Select(_ => _.ToDto(entity.Name)).ToList()
+                    ? entity.ScenarioBudgetAmounts.OrderBy(_=>_.Year).Select(_ => _.ToDto(entity.Name)).ToList()
                     : new List<BudgetAmountDTO>(),
                 CriterionLibrary = entity.CriterionLibraryScenarioBudgetJoin != null
                     ? entity.CriterionLibraryScenarioBudgetJoin.CriterionLibrary.ToDto()

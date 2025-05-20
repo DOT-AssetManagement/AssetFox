@@ -6,7 +6,7 @@ export interface BaseCommittedProject {
     simulationId: string;
     scenarioBudgetId: string | null;
     year: number;
-    treatment: string;
+    treatment: string[];
     cost: number;
     shadowForAnyTreatment: number;
     shadowForSameTreatment: number;
@@ -19,7 +19,7 @@ export interface SectionCommittedProjectTableData {
     id: string;
     keyAttr: string;
     year: number;
-    treatment: string;
+    treatment: string[];
     treatmentId: string;
     scenarioBudgetId: string;
     budget: string;
@@ -54,7 +54,7 @@ export const emptySectionCommittedProject = {
     simulationId: getBlankGuid(),
     scenarioBudgetId: null,
     year: 0,
-    treatment: '',
+    treatment: [],
     cost: 0,
     shadowForAnyTreatment: 0,
     shadowForSameTreatment: 0,

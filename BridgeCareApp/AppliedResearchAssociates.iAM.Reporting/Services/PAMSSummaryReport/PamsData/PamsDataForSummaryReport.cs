@@ -346,9 +346,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     worksheet.Cells[row, column].Value = treatmentDone;
 
                     var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
-                    var sumCoveredCost = Math.Round(allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0, 0);
+                    var sumCoveredCost = allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0;
                     worksheet.Cells[row, column + 1].Value = sumCoveredCost;
-                    ExcelHelper.SetCurrencyFormat(worksheet.Cells[row, column + 1]);
+                    ExcelHelper.SetCustomFormat(worksheet.Cells[row, column + 1], ExcelHelperCellFormat.NegativeCurrency);
 
                     if (!treatmentDone.Equals("--"))
                     {
@@ -451,7 +451,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     else
                     {
                         // Add Project Source
-                        var committedProject = committedProjectList.FirstOrDefault(_ => section.AppliedTreatment.Contains(_.Treatment) && _.Year == yearlySectionData.Year && _.LocationKeys["CRS"] == crs.ToString());
+                        var committedProject = committedProjectList.FirstOrDefault(_ => _.Treatment.All(_ => section.AppliedTreatment.Contains(_))
+                            && _.Year == yearlySectionData.Year && _.LocationKeys["CRS"] == crs.ToString());
                         var projectSource = committedProject?.ProjectSource.ToString() ?? string.Empty;
                         worksheet.Cells[row, ++column].Value = MappingContent.GetNonCashFlowProjectPick(section.TreatmentCause, projectSource); //Project Pick
 
@@ -487,9 +488,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     worksheet.Cells[row, ++column].Value = project;
                     var columnForAppliedTreatment = column;
 
-                    var cost = Math.Round(allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0, 0);
-                    worksheet.Cells[row, ++column].Value = cost; // cost
-                    ExcelHelper.SetCurrencyFormat(worksheet.Cells[row, column]);
+                    var cost = allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0;
+                    worksheet.Cells[row, ++column].Value = cost; // cost                    
+                    ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.NegativeCurrency);
 
                     // Superseded Treatments
                     var supersededTreatments = section.AppliedTreatment.ToLower() != PAMSConstants.NoTreatment ?

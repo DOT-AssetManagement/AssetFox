@@ -505,6 +505,15 @@ public sealed class SimulationRunner
                         context.Detail.TreatmentStatus = TreatmentStatus.Progressed;
                     }
                 }
+                else if (treatment is CommittedProjectBundle committedProjectBundle)
+                {
+                    context.Detail.ProjectSource = committedProjectBundle.BundledProjects.FirstOrDefault().ProjectSource.ToString();
+
+                    if (!committedProjectBundle.BundledProjects.FirstOrDefault().ShouldApplyConsequences)
+                    {
+                        context.Detail.TreatmentStatus = TreatmentStatus.Progressed;
+                    }
+                }
 
                 context.Detail.TreatmentCause = treatment is CommittedProject or CommittedProjectBundle
                     ? TreatmentCause.CommittedProject

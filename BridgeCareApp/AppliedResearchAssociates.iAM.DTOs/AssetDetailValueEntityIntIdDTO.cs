@@ -4,7 +4,7 @@ namespace AppliedResearchAssociates.iAM.DTOs
 {
     public class AssetDetailValueEntityIntIdDTO
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         public char Discriminator { get; set; }
 

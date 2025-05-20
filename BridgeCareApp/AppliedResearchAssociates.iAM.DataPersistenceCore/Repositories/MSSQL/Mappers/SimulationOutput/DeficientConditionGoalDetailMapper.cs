@@ -11,12 +11,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static List<DeficientConditionGoalDetailEntity> ToEntityList(
             List<DeficientConditionGoalDetail> domainList,
             Guid simulationYearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<DeficientConditionGoalDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntity(domain, simulationYearDetailId, attributeIdLookup);
+                var entity = ToEntity(domain, simulationYearDetailId, attributeIdLookup, runId);
                 entities.Add(entity);
             }
             return entities;
@@ -25,13 +25,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         private static DeficientConditionGoalDetailEntity ToEntity(
             DeficientConditionGoalDetail domain,
             Guid simulationYearDetailId,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup,
+            int runId)
         {
             var attributeId = attributeIdLookup[domain.AttributeName];
-            var id = Guid.NewGuid();
+            var id = SequentialGuid.NewGuid();
             var entity = new DeficientConditionGoalDetailEntity
             {
                 Id = id,
+                RunId = runId,
                 ActualDeficientPercentage = domain.ActualDeficientPercentage,
                 AllowedDeficientPercentage = domain.AllowedDeficientPercentage,
                 AttributeId = attributeId,
