@@ -26,6 +26,7 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentSupersedeRule;
 using AppliedResearchAssociates.iAM.DataUnitTests;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 
 namespace BridgeCareCoreTests.Tests.Integration
 {
@@ -426,12 +427,14 @@ namespace BridgeCareCoreTests.Tests.Integration
             var networkId = networkEntity.Id;
             var simulationEntity = SimulationTestSetup.EntityInDb(TestHelper.UnitOfWork, networkId);
             var simulationId = simulationEntity.Id;
+            var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
             var explorer = TestHelper.UnitOfWork.AttributeRepo.GetExplorer();
-            var network = NetworkMapper.ToDomain(networkEntity, explorer);
+            var network = NetworkMapper.ToDomain(networkEntity, explorer, attributeNameLookup);
             var date = new DateTime(2023, 5, 3);
             SimulationMapper.CreateSimulation(simulationEntity, network, date, date);
             var simulation = network.Simulations.Single(s => s.Id == simulationId);
             var analysisMethodId = Guid.NewGuid();
+
             var analysisMethodDto = TestHelper.UnitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
             analysisMethodDto.Benefit = new BenefitDTO
             {

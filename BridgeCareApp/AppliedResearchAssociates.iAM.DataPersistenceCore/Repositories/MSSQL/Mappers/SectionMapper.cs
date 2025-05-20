@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 
@@ -12,7 +14,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             HistoryMapper = new(network);
         }
 
-        public void CreateMaintainableAsset(MaintainableAssetEntity entity)
+        public void CreateMaintainableAsset(MaintainableAssetEntity entity, IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             var asset = Network.AddAsset();
             asset.Id = entity.Id;
@@ -25,7 +27,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                     .Where(_ => _.Discriminator == DataPersistenceConstants.AggregatedResultNumericDiscriminator)
                     .ToList();
 
-                HistoryMapper.SetNumericAttributeValueHistories(numericResults, asset);
+                HistoryMapper.SetNumericAttributeValueHistories(numericResults, asset, attributeNameLookup);
             }
 
             if (entity.AggregatedResults.Any(_ => _.Discriminator == DataPersistenceConstants.AggregatedResultTextDiscriminator))
@@ -34,7 +36,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                     .Where(_ => _.Discriminator == DataPersistenceConstants.AggregatedResultTextDiscriminator)
                     .ToList();
 
-                HistoryMapper.SetTextAttributeValueHistories(textResults, asset);
+                HistoryMapper.SetTextAttributeValueHistories(textResults, asset, attributeNameLookup);
             }
         }
 

@@ -22,7 +22,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
         {
             simulationSource = TestEntitiesForSelectableTreatments.GoodTestSimulation();
             var debugExplorer = new Explorer("dummy");
-            var testNetwork = simulationSource.Network.ToDomain(debugExplorer);
+            var dictionary = new Dictionary<Guid, string>();
+            var testNetwork = simulationSource.Network.ToDomain(debugExplorer, dictionary);
             simulationSource.CreateSimulation(testNetwork, DateTime.Now, DateTime.Now);
             testSimulation = testNetwork.Simulations.First();            
             treatmentDtoWithEmptyLists = TreatmentDtos.DtoWithEmptyListsWithCriterionLibrary(Guid.NewGuid(), "Test Treatmnent1");

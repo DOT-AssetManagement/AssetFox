@@ -20,7 +20,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         {
             simulationSource = TestEntitiesForCommittedProjects.Simulations.Single(_ => _.Name == "FourYearTest");
             var debugExplorer = new Explorer("dummy");
-            var testNetwork = simulationSource.Network.ToDomain(debugExplorer);
+            var dictionary = new Dictionary<Guid, string>();
+            var testNetwork = simulationSource.Network.ToDomain(debugExplorer, dictionary);
             simulationSource.CreateSimulation(testNetwork, DateTime.Now, DateTime.Now);
             testSimulation = testNetwork.Simulations.First();
             simulationSource.InvestmentPlan.FillSimulationInvestmentPlan(testSimulation);

@@ -91,12 +91,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException($"No network found having id {networkId}");
             }
 
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
             var networkEntity = _unitOfWork.Context.Network.AsNoTracking()
                 .Single(_ => _.Id == networkId);
 
             if (areFacilitiesRequired)
             {
-                var attributeIdLookup = getAttributeIdLookUp();
                 var memos = EventMemoModelLists.GetInstance("Simulation");
                 memos.Mark("NetworkRepository before load assets");
                 networkEntity.MaintainableAssets = GetInitialQuery()
@@ -119,7 +119,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                                                             NumericValue = result.NumericValue,
                                                             Attribute = new AttributeEntity
                                                             {
-                                                                Name = attributeIdLookup[result.AttributeId],
+                                                                Name = attributeNameLookup[result.AttributeId],
                                                             }
                                                         }).ToList()
                                                     }).AsNoTracking().ToList();
@@ -129,7 +129,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             if (!areFacilitiesRequired && simulationId != null)
             {
                 // Load Assets corresponding to simulation's committed projects(this case is used by simulation pre-checks system)
-                var attributeIdLookup = getAttributeIdLookUp();
                 var assetIdsInCommittedProjectsForSimulation = _unitOfWork.MaintainableAssetRepo.GetAllIdsInCommittedProjectsForSimulation((Guid)simulationId, networkId);
                 networkEntity.MaintainableAssets = GetInitialQuery()
                                                     .Where(_ => assetIdsInCommittedProjectsForSimulation.Contains(_.Id))
@@ -152,7 +151,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                                                             NumericValue = result.NumericValue,
                                                             Attribute = new AttributeEntity
                                                             {
-                                                                Name = attributeIdLookup[result.AttributeId],
+                                                                Name = attributeNameLookup[result.AttributeId],
                                                             }
                                                         }).ToList()
                                                     })
@@ -160,19 +159,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                                                     .ToList();
             }
 
-            var domain = networkEntity.ToDomain(explorer);
+            var domain = networkEntity.ToDomain(explorer, attributeNameLookup);
             return domain;
 
-            Dictionary<Guid,string> getAttributeIdLookUp()
-            {
-                var attributeIdLookup = new Dictionary<Guid, string>();
-                var allAttributes = _unitOfWork.AttributeRepo.GetAttributes();
-                foreach (var attribute in allAttributes)
-                {
-                    attributeIdLookup[attribute.Id] = attribute.Name;
-                }
-                return attributeIdLookup;
-            }
         }
 
         private IQueryable<MaintainableAssetEntity> GetInitialQuery()

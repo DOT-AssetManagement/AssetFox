@@ -19,7 +19,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 entity.Id,
                 entity.Name);
 
-        public static SimulationAnalysisDomains.Network ToDomain(this NetworkEntity entity, SimulationAnalysisDomains.Explorer explorer)
+        public static SimulationAnalysisDomains.Network ToDomain(this NetworkEntity entity, SimulationAnalysisDomains.Explorer explorer, IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             var network = explorer.AddNetwork();
             network.Id = entity.Id;
@@ -28,7 +28,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             if (entity.MaintainableAssets.Any())
             {
                 SectionMapper mapper = new(network);
-                entity.MaintainableAssets.ForEach(mapper.CreateMaintainableAsset);
+                entity.MaintainableAssets.ForEach(e => mapper.CreateMaintainableAsset(e, attributeNameLookup));
             }
 
             return network;
