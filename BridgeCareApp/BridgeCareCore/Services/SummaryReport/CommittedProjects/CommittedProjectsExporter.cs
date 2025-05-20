@@ -90,7 +90,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
         {
             return header switch
             {
-                CommittedProjectsColumnHeaders.Treatment => project.Treatment,
+                CommittedProjectsColumnHeaders.Treatment => project.ComputedTreatmentString,
                 CommittedProjectsColumnHeaders.Year => project.Year,
                 CommittedProjectsColumnHeaders.Budget => GetBudgetName(project),
                 CommittedProjectsColumnHeaders.Cost => project.Cost,

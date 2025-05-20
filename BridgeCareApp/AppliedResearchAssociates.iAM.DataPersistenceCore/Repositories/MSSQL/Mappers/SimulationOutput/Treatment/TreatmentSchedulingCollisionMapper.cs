@@ -10,26 +10,29 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
     {
         public static TreatmentSchedulingCollisionDetailEntity ToEntity(
             TreatmentSchedulingCollisionDetail domain,
-            Guid assetDetailId)
+            Guid assetDetailId,
+            int runId)
         {
-            var id = Guid.NewGuid();
+            var id = SequentialGuid.NewGuid();
             var entity = new TreatmentSchedulingCollisionDetailEntity
             {
                 Id = id,
                 NameOfUnscheduledTreatment = domain.NameOfUnscheduledTreatment,
                 AssetDetailId = assetDetailId,
+                RunId = runId
             };
             return entity;
         }
 
         public static List<TreatmentSchedulingCollisionDetailEntity> ToEntityList(
             List<TreatmentSchedulingCollisionDetail> domainList,
-            Guid assetDetailId)
+            Guid assetDetailId,
+            int runId)
         {
             var entityList = new List<TreatmentSchedulingCollisionDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntity(domain, assetDetailId);
+                var entity = ToEntity(domain, assetDetailId, runId);
                 entityList.Add(entity);
             }
             return entityList;

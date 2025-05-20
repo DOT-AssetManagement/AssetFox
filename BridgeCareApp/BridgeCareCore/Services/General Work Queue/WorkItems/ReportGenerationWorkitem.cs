@@ -60,11 +60,11 @@ namespace BridgeCareCore.Services
             // Handle a completed run with errors
             if (report.Errors.Any())
             {               
-                _log.Information($"Failed to generate '{reportName}'");
+                _log.Error($"Failed to generate '{reportName}'");
 
                 foreach (string message in report.Errors)
                 {
-                    _log.Information($"Message: {message}");
+                    _log.Error($"Message: {message}");
                 }
                 throw new Exception($"Failed to generate '{reportName}' on simulation '{scenarioName}': {report.Status}");
             }

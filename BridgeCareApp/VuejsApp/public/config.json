@@ -9,5 +9,9 @@
         "email": "test@test.com",
         "hasAdminAccess": true,
         "hasSimulationAccess": true
+    },
+    "logos": {
+        "agencyFilename": "penndot-image.png",
+        "implementationFilename": "BridgeCareLogo.svg"
     }
 }

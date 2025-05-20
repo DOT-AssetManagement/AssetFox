@@ -10,27 +10,30 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
     {
         public static CashFlowConsiderationDetailEntity ToEntity(
             CashFlowConsiderationDetail domain,
-            Guid treatmentConsiderationDetailId)
+            Guid treatmentConsiderationDetailId,
+            int runId)
         {
-            Guid id = Guid.NewGuid();
+            Guid id = SequentialGuid.NewGuid();
             var entity = new CashFlowConsiderationDetailEntity
             {
                 Id = id,
                 TreatmentConsiderationDetailId = treatmentConsiderationDetailId,
                 CashFlowRuleName = domain.CashFlowRuleName,
                 ReasonAgainstCashFlow = (int)domain.ReasonAgainstCashFlow,
+                RunId = runId
             };
             return entity;
         }
 
         public static List<CashFlowConsiderationDetailEntity> ToEntityList(
             List<CashFlowConsiderationDetail> domainList,
-            Guid treatmentConsiderationDetailId)
+            Guid treatmentConsiderationDetailId,
+            int runId)
         {
             var entityList = new List<CashFlowConsiderationDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntity(domain, treatmentConsiderationDetailId);
+                var entity = ToEntity(domain, treatmentConsiderationDetailId, runId);
                 entityList.Add(entity);
             }
             return entityList;

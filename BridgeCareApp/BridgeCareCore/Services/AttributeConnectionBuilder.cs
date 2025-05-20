@@ -13,7 +13,7 @@ namespace BridgeCareCore.Services
 {
     public static class AttributeConnectionBuilder
     {
-        public static AttributeConnection Build(Attribute attribute, BaseDataSourceDTO dataSource, IUnitOfWork unitOfWork)
+        public static AttributeConnection Build(Attribute attribute, BaseDataSourceDTO dataSource, IUnitOfWork unitOfWork, ExcelRawDataDTO excelSpreadsheet = null)
         {
             if (dataSource is AllDataSource)
             {
@@ -25,7 +25,6 @@ namespace BridgeCareCore.Services
                 return new SqlAttributeConnection(attribute, dataSource);
 
             case ConnectionType.EXCEL:
-                var excelSpreadsheet = unitOfWork.ExcelWorksheetRepository.GetExcelRawDataByDataSourceId(dataSource.Id);
                 if (excelSpreadsheet == null)
                 {
                     var warningMessage = $@"Found DataSource {dataSource.Name}. The DataSource was of type ""EXCEL"". However, we did not find an ExcelRawData for that data source.";

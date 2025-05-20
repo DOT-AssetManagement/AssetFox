@@ -158,13 +158,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     var cost = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix?.
                                Where(_ => _.Year == yearData.Year).
                                Sum(b => b.AllocatedAmount) ?? 0;
-                    cost = Math.Round(cost, 0);
+                    
                     if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                         appliedTreatment.ToLower() != BAMSConstants.NoTreatment)
                     {
                         var committedCost = cost;
-                        var committedProject = committedProjectsForWorkOutsideScope.FirstOrDefault(_ => appliedTreatment.Contains(_.Treatment) &&
-                                                _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);
+                        var committedProject = committedProjectsForWorkOutsideScope.FirstOrDefault(_ => _.Treatment.All(_ => appliedTreatment.Contains(_))
+                                                && _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);
                         var projectSource = committedProject?.ProjectSource.ToString();
                         if (!yearlyCostCommittedProj[yearData.Year].ContainsKey(appliedTreatment))
                         {                            
@@ -198,10 +198,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
                         // Remove from committedProjectsForWorkOutsideScope
                         // Bundled treatments have many treatment names under AppliedTreatment
-                        var toRemove = committedProjectsForWorkOutsideScope.Where(_ => appliedTreatment.Contains(_.Treatment) &&
+                        var toRemove = committedProjectsForWorkOutsideScope.Where(_ => _.Treatment.All(_ => appliedTreatment.Contains(_)) &&
                                         _.Year == yearData.Year &&
                                         _.ProjectSource.ToString() == section.ProjectSource &&
-                                        Math.Round(_.Cost, 0) == Convert.ToDouble(cost));
+                                        _.Cost == Convert.ToDouble(cost));
                         if (toRemove != null)
                         {
                             committedProjectsForWorkOutsideScope.RemoveAll(_ => toRemove.Contains(_));

@@ -68,8 +68,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 // Inside iteration since each section has its own budget analysis section.
                 var costBudgetsWorkSummary = new CostBudgetsWorkSummary();
 
-                var costLengthPerSurfaceIdPerTreatmentPerYear = new Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>>();
-                var costAndLengthPerTreatmentGroupPerYear = new Dictionary<int, Dictionary<PavementTreatmentHelper.TreatmentGroup, (decimal treatmentCost, int length)>>();
+                var costLengthPerSurfaceIdPerTreatmentPerYear = new Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>>();
+                var costAndLengthPerTreatmentGroupPerYear = new Dictionary<int, Dictionary<PavementTreatmentHelper.TreatmentGroup, (decimal treatmentCost, double length)>>();
 
                 currentCell.Column = 1;
                 worksheet.Cells[currentCell.Row, currentCell.Column].Value = budgetSummaryModel.BudgetName;
@@ -90,13 +90,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             costLengthPerSurfaceIdPerTreatmentPerYear.Add(year,
                                 new Dictionary<string, // treatmentName
                                 Dictionary<int, // surfaceId
-                            (decimal treatmentCost, decimal compositeTreatmentCost, int length)>>());
+                            (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>());
                         }
                         var treatmentData = costLengthPerSurfaceIdPerTreatmentPerYear[year];
 
                         if (!costAndLengthPerTreatmentGroupPerYear.ContainsKey(year))
                         {
-                            costAndLengthPerTreatmentGroupPerYear.Add(year, new Dictionary<PavementTreatmentHelper.TreatmentGroup, (decimal treatmentCost, int length)>());
+                            costAndLengthPerTreatmentGroupPerYear.Add(year, new Dictionary<PavementTreatmentHelper.TreatmentGroup, (decimal treatmentCost, double length)>());
                         }
                         var treatmentGroupData = costAndLengthPerTreatmentGroupPerYear[year];
 
@@ -104,7 +104,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         {
                             if (treatment.Name != PAMSConstants.NoTreatmentForWorkSummary)
                             {
-                                var dict = new Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, int length)>
+                                var dict = new Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>
                                 {
                                     { 0, (0, 0, 0) }
                                 };
@@ -179,8 +179,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         var budgetAmount = (double)(treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix?.
                                            Where(_ => _.BudgetName == summaryModel.BudgetName && _.Year == yearData.Year).
                                            Sum(b => b.AllocatedAmount) ?? 0);
-                        budgetAmount = Math.Round(budgetAmount, 0);
-
+                       
                         if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                             appliedTreatment.ToLower() != PAMSConstants.NoTreatment)
                         {
@@ -278,9 +277,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             var treatmentCategory = appliedTreatment.Contains("Bundle") ? PAMSConstants.Bundled : treatmentCategoryLookup[appliedTreatment];
                             var committedCost = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix.
                                                 Where(_ => _.BudgetName == summaryModel.BudgetName && _.Year == yearData.Year).
-                                                Sum(bu => bu.AllocatedAmount) ?? 0;
-                            var committedProject = committedProjectList.FirstOrDefault(_ => appliedTreatment.Contains(_.Treatment) &&
-                                                _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);
+                                                Sum(bu => bu.AllocatedAmount) ?? 0;                           
+                            var committedProject = committedProjectList.FirstOrDefault(_ => _.Treatment.All(_ => appliedTreatment.Contains(_))
+                                                && _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);
                             var projectSource = committedProject?.ProjectSource.ToString();
                             if (!yearlyCostCommittedProj[yearData.Year].ContainsKey(appliedTreatment))
                             {

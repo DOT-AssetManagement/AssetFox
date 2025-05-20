@@ -14,6 +14,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var detail = new TreatmentConsiderationDetail(treatmentName)
             {
                 BudgetPriorityLevel = 10,
+                FundingCalculationInput = new(),
+                FundingCalculationOutput = new(),
             };
             //var budgetUsageDetail = BudgetUsageDetails.Detail(budgetName);
             //detail.BudgetUsages.Add(budgetUsageDetail);

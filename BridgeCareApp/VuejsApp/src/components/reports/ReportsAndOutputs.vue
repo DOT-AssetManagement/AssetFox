@@ -405,24 +405,50 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
     }
 
     async function onDownloadReport(reportId: string) {        
-        selectedReport.value = find(
-            propEq('id', reportId),
-            currentPage.value,
-        ) as Report;
-        await ReportsService.downloadReport(
-            selectedScenarioId.value, selectedReport.value.name
-        ).then((response: AxiosResponse<any>) => {
-            if (hasValue(response, 'data')) {
-                const fileInfo: FileInfo = response.data as FileInfo;
-                FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
-            } else {
-                addErrorNotificationAction({
-                    message: 'Failed to download report.',
-                    longMessage:
-                        'Failed to download the report or output. Make sure the scenario has been run',
-                });
-            }
-        });
+        const reportToDownload = find(
+        propEq('id', reportId),
+        currentPage.value, // Assuming currentPage.value holds the list of reports
+        ) as Report | undefined; // Type it correctly, find can return undefined
+
+        if (!reportToDownload) {
+            addErrorNotificationAction({
+                message: 'Report not found.',
+                longMessage: 'The specified report could not be found in the current list.',
+            });
+            console.error(`Report with ID ${reportId} not found.`);
+            return;
+        }
+
+        // If you still need to set selectedReport for other UI purposes:
+        selectedReport.value = reportToDownload;
+
+        // Show a loading indicator if you have one
+        // setLoading(true);
+
+        try {
+            // Call the updated service method
+            // The service method now directly triggers the download
+            await ReportsService.downloadReport({
+                scenarioId: selectedScenarioId.value, // from component scope
+                reportName: reportToDownload.name,
+                simulationName: simulationName.value,  // from component scope (useful for filename)
+            });
+
+            // The download is triggered by the service.
+            // You might want a generic "Download started" message here,
+            // or let the browser's download indication be sufficient.
+            addSuccessNotificationAction({
+                message: `'${reportToDownload.name}' report download has started for ${simulationName.value}.`,
+            });
+
+        } 
+        catch (error: any) {
+            console.error('Error in onDownloadReport:', error);
+            addErrorNotificationAction({
+                message: `Failed to download '${reportToDownload.name}'.`,
+                longMessage: error.message || 'An unexpected error occurred. Please check server logs or try again.',
+            });
+        }
     }
 
     async function getReportGenerationStatus()

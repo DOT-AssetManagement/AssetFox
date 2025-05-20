@@ -199,8 +199,8 @@ namespace BridgeCareCoreTests.Tests
             Assert.True(testInput[1].VerifyLocation(networkKeyAttribute), "Could not verify location");
             Assert.Equal(2023, testInput[1].Year);
             Assert.Equal(TreatmentCategory.CapacityAdding, testInput[1].Category);
-            Assert.True(testInput.Any(_ => _.Treatment == "No Treatment"), "No Treatment was not created");
-            var noTreatment = testInput.First(_ => _.Treatment == "No Treatment");
+            Assert.True(testInput.Any(_ => _.Treatment.Single() == "No Treatment"), "No Treatment was not created");
+            var noTreatment = testInput.First(_ => _.Treatment.Single() == "No Treatment");
             Assert.Equal(0, noTreatment.Cost);
             Assert.Equal(2022, noTreatment.Year);
         }

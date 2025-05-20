@@ -333,7 +333,7 @@ namespace BridgeCareCoreTests.Tests.Integration
                 {
                     Id = Guid.NewGuid(),
                     Cost = 500000,
-                    Name = "Committed Project",
+                    Name = ["Committed Project"],
                     Year = DateTime.Now.Year,
                     ProjectSource = "Committed",
                     ShadowForAnyTreatment = 1,

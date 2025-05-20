@@ -33,7 +33,7 @@ namespace BridgeCareCoreTests.Tests
                 ScenarioBudgetId = resolveScenarioBudgetId,
                 SimulationId = simulationId,
                 ProjectSource = projectSource,
-                Treatment = treatment,
+                Treatment = [treatment],
                 LocationKeys = locationKeys,
                 ProjectId = "",
             };

@@ -6,7 +6,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 {
     public abstract class SimulationOutputValueEntityIntId
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Column(TypeName = "char(1)")]
         public char Discriminator { get; set; }

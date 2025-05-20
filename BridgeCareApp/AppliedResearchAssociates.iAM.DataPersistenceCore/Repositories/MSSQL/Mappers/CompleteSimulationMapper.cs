@@ -38,12 +38,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             }
 
             var investmentPlan = InvestmentPlanMapper.ToEntityNullPropagating(dto.InvestmentPlan, dto.Id, baseEntityProperties);
-            var reportIndexEntities = new List<ReportIndexEntity>();
+            /*var reportIndexEntities = new List<ReportIndexEntity>();
             foreach (var report in dto.ReportIndexes)
             {
                 var reportEntity = report.ToEntity();
                 reportIndexEntities.Add(reportEntity);
-            }
+            }*/
 
             var scenarioBudgetsEntities = new List<ScenarioBudgetEntity>();
             foreach (var budget in dto.Budgets)
@@ -177,17 +177,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             }            
             
             // Should be sigle entry?(as we are deleting when running analysis?
-            var simulationOutputs = new List<SimulationOutputEntity>();
-            var simulationOutputEntity = dto.SimulationOutput.ToEntity(dto.Id);
-            BaseEntityPropertySetter.SetBaseEntityProperties(simulationOutputEntity, baseEntityProperties);
-            simulationOutputs.Add(simulationOutputEntity);
+            //var simulationOutputs = new List<SimulationOutputEntity>();
+            //var simulationOutputEntity = dto.SimulationOutput.ToEntity(dto.Id, dto.SimulationOutput.RunId);
+           // BaseEntityPropertySetter.SetBaseEntityProperties(simulationOutputEntity, baseEntityProperties);
+            //simulationOutputs.Add(simulationOutputEntity);
 
-            var simulationAnalysisDetail = new SimulationAnalysisDetailEntity();
+            /*var simulationAnalysisDetail = new SimulationAnalysisDetailEntity();
             if (dto.SimulationAnalysisDetail != null)
             {
                 simulationAnalysisDetail = dto.SimulationAnalysisDetail?.ToEntity();
                 simulationAnalysisDetail.SimulationId = dto.Id;
-            }
+            }*/
 
             var entity = new SimulationEntity
             {
@@ -197,7 +197,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 NumberOfYearsOfTreatmentOutlook = 100,
                 AnalysisMethod = analysisMethod,
                 InvestmentPlan = investmentPlan,
-                SimulationReports = reportIndexEntities,
+                //SimulationReports = reportIndexEntities,
                 Budgets = scenarioBudgetsEntities,
                 CalculatedAttributes = scenarioCalculatedAttributeEntities,
                 ScenarioTargetConditionalGoals = scenarioTargetConditionGoalEntities,
@@ -209,8 +209,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 CommittedProjects = committedProjectEntities,
                 SelectableTreatments = scenarioSelectableTreatmentEntities,
                 SimulationUserJoins = userJoins,
-                SimulationAnalysisDetail = simulationAnalysisDetail,
-                SimulationOutputs = simulationOutputs
+                //SimulationAnalysisDetail = simulationAnalysisDetail,
+                //SimulationOutputs = simulationOutputs
             };
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;

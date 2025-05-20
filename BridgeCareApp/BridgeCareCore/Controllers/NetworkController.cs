@@ -89,7 +89,7 @@ namespace BridgeCareCore.Controllers
                 // create network domain model from attribute data created from the network attribute
                 var allDataSource = parameters.NetworkDefinitionAttribute.DataSource;
                 var mappedDataSource = AllDataSourceMapper.ToSpecificDto(allDataSource);
-                var attributeConnection = AttributeConnectionBuilder.Build(attribute, mappedDataSource, UnitOfWork);
+                var attributeConnection = getAttributeConnection();
                 var attributeData = AttributeDataBuilder.GetData(attributeConnection);
 
                 if (!attributeData.Any())
@@ -112,6 +112,16 @@ namespace BridgeCareCore.Controllers
                 // [TODO] Create DTO to return network information necessary to be stored in the UI
                 // for future reference.
                 return Ok(network.Id);
+
+                AttributeConnection getAttributeConnection() {
+
+                    if (mappedDataSource.Type == "Excel")
+                    {
+                        var excelSpreadsheet = _unitOfWork.ExcelWorksheetRepository.GetExcelRawDataByDataSourceId(mappedDataSource.Id);
+                        return AttributeConnectionBuilder.Build(attribute, mappedDataSource, UnitOfWork, excelSpreadsheet);
+                    }
+                    return AttributeConnectionBuilder.Build(attribute, mappedDataSource, UnitOfWork);
+                }
             }
             catch (Exception e)
             {

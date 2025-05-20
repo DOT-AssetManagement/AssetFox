@@ -47,8 +47,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
                 noTreatment);
 
             // Assert
+            var providedName = providedCommittedProject.Name.Single();
             Assert.Equal(4, testSimulation.CommittedProjects.Count);
-            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == providedCommittedProject.Name));
+            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == providedName));
             Assert.Equal(3, testSimulation.CommittedProjects.Where(_ => _.Name == noTreatment.Name).Count());
         }
 
@@ -81,7 +82,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Arrange
             var firstCommittedProject = simulationSource.CommittedProjects.First();
             var secondCommittedProject = simulationSource.CommittedProjects.Last();
-            secondCommittedProject.Name = "Something Else";
+            secondCommittedProject.Name = ["Something Else"];
             var testAssetId = simulationSource.Network.MaintainableAssets.First().Id;
             var noTreatment = TestEntitiesForCommittedProjects.FourYearScenarioNoTreatment();
             AnalysisSelectableTreatment myTreatment = new AnalysisSelectableTreatment(testSimulation);
@@ -93,9 +94,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             secondCommittedProject.CreateCommittedProject(testSimulation, selectableTreatments, testAssetId, true, 0, noTreatment);
 
             // Assert
+            var firstName = firstCommittedProject.Name.Single();
+            var secondName = secondCommittedProject.Name.Single();
             Assert.Equal(4, testSimulation.CommittedProjects.Count);
-            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == firstCommittedProject.Name));
-            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == secondCommittedProject.Name));
+            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == firstName));
+            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == secondName));
             Assert.Equal(2, testSimulation.CommittedProjects.Where(_ => _.Name == noTreatment.Name).Count());
         }
 
@@ -109,7 +112,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Arrange
             var firstCommittedProject = simulationSource.CommittedProjects.First(_ => _.Year == 2025);
             var secondCommittedProject = simulationSource.CommittedProjects.First(_ => _.Year != 2025);
-            secondCommittedProject.Name = "Something Else";
+            secondCommittedProject.Name = ["Something Else"];
             secondCommittedProject.Year = firstCommittedProject.Year;
             var testAssetId = simulationSource.Network.MaintainableAssets.First().Id;
             var noTreatment = TestEntitiesForCommittedProjects.FourYearScenarioNoTreatment();
@@ -122,8 +125,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             secondCommittedProject.CreateCommittedProject(testSimulation, selectableTreatments, testAssetId, true, 0, noTreatment);
 
             // Assert
+            var secondName = secondCommittedProject.Name.Single();
             Assert.Equal(5, testSimulation.CommittedProjects.Count);
-            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == secondCommittedProject.Name));
+            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == secondName));
             Assert.Equal(3, testSimulation.CommittedProjects.Where(_ => _.Name == noTreatment.Name).Count());
         }
     }
