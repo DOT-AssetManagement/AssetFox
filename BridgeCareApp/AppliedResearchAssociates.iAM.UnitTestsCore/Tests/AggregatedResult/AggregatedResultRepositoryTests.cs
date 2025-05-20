@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -330,6 +324,45 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
             ObjectAssertions.EquivalentExcluding(expected[1], aggregatedResults[1], x => x.Attribute);
             Assert.Equal(expected[1].Values[0], aggregatedResults[1].Values[0]);
             Assert.Equal(expected[1].Attribute.Name, aggregatedResults[1].Attribute.Name);
+        }
+
+        [Fact]
+        public void GetAssetAttributeValuePairDictionary_NetworkInDbWithAssetAndAttribute_Gets()
+        {
+            var dataSource = AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            var attributeNames = new List<string>
+            {
+                TestAttributeNames.DeckDurationN
+            };
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, false);
+            var attribute = AttributeDtos.DeckDurationN;
+            var networkId = NetworkTestSetup.NetworkId;
+            var assetList = MaintainableAssetLists.SingleInNetwork(networkId, CommonTestParameterValues.DefaultEquation);
+            var assetId = assetList[0].Id;
+            TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
+            var numericAttribute = AttributeTestSetup.Numeric(attribute.Id, attribute.Name, dataSource.Id);
+            var attributeList = new List<IamAttribute> { numericAttribute };
+            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList);
+            TestHelper.UnitOfWork.Context.ChangeTracker.Clear();
+
+            var aggregatedResults = TestHelper.UnitOfWork.AggregatedResultRepo.GetAssetAttributeValuePairDictionary(networkId);
+
+            var expectedPair = new AssetAttributeValuePair
+            {
+                AttributeName = TestAttributeNames.DeckDurationN,
+                AttributeValue = "1.23",
+            };
+            var expectedPairs = new List<AssetAttributeValuePair> { expectedPair };
+            var expectedDictionary = new Dictionary<Guid, List<AssetAttributeValuePair>>
+            {
+                {
+                    assetId,
+                    expectedPairs
+                }
+            };
+            ObjectAssertions.Equivalent(expectedDictionary, aggregatedResults);
+            int x = 666;
         }
     }
 }
