@@ -127,7 +127,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldAllowMultipleTreatments = entity.shouldAllowMultipleTreatments,
                 ShouldUseExtraFundsAcrossBudgets = entity.ShouldUseExtraFundsAcrossBudgets,
                 Attribute = attributeName,
-                Benefit = entity.Benefit?.ToDto() ?? new BenefitDTO(),
+                Benefit = entity.Benefit?.ToDto(attributeNameLookup) ?? new BenefitDTO(),
                 CriterionLibrary = entity.CriterionLibraryAnalysisMethodJoin != null
                     ? entity.CriterionLibraryAnalysisMethodJoin.CriterionLibrary.ToDto()
                     : new CriterionLibraryDTO()
