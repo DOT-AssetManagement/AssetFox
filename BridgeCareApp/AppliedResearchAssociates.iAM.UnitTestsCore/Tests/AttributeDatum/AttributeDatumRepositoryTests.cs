@@ -30,6 +30,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AttributeDatum
             var assetIds = new List<Guid> { assetId };
             var attributeIds = new List<Guid> { keyAttributeId };
             var datumId = AttributeDatumTestSetup.AssignStringAttributeDatum(attributeDto, asset);
+            TestHelper.UnitOfWork.Context.ChangeTracker.Clear();
 
             var attributeData = TestHelper.UnitOfWork.AttributeDatumRepo.GetAllInNetwork(
                 assetIds, attributeIds);
