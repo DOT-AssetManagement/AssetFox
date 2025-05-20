@@ -39,22 +39,37 @@ export interface DownloadReportParams {
     // Optional: for constructing a more user-friendly filename on client if server doesn't provide good one
     simulationName?: string; 
 };
-};
 
 export interface UserDefinedReportRequestModel {
-    Attributes:string[]
-    Years: number[],
-    DisplayBudgets: boolean,
-    DisplayDeficientConditionGoals: boolean,
-    DisplayTargetConditionGoals: boolean,
-    DisplayAssets: boolean
+    attributes:string[];
+    years: number[];
+    displayConditionOfNetwork: boolean;
+    displayInitialAssetSummaries: boolean; // assets attributes
+    displayAssets: boolean; // combine yearly assets + metadata + attributes
+    displayBudgets: boolean; // asset, years, budget info - vertical data in sheet
+    displayDeficientConditionGoals: boolean;
+    displayTargetConditionGoals: boolean;    
+    displayTreatmentOptions: boolean;
+    displayTreatmentSchedulingCollisions: boolean;
+    displayTreatmentRejections: boolean;
+    displayTreatmentCashflowConsiderations: boolean; // treatmentConsiderations
+    displyTreatmentCurrentBudgetsToSpend: boolean; // treatmentConsiderations
+    displayTreatmentAllocations: boolean; // treatmentConsiderations
 }
 
 export const emptyUserDefinedReportRequestModel : UserDefinedReportRequestModel ={
-    Attributes: [],
-    Years: [],
-    DisplayBudgets: true,
-    DisplayDeficientConditionGoals: true,
-    DisplayTargetConditionGoals: true,
-DisplayAssets: true
+    attributes: [],
+    years: [],
+    displayConditionOfNetwork: true,
+    displayInitialAssetSummaries: true,
+    displayAssets: true,
+    displayBudgets: true,
+    displayDeficientConditionGoals: true,
+    displayTargetConditionGoals: true,
+    displayTreatmentOptions: true,
+    displayTreatmentSchedulingCollisions: true,
+    displayTreatmentRejections: true,
+    displayTreatmentCashflowConsiderations: true,
+    displyTreatmentCurrentBudgetsToSpend: true,
+    displayTreatmentAllocations: true
 };

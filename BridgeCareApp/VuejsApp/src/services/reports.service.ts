@@ -13,7 +13,7 @@ export default class ReportsService {
             responseType: 'text'
         });
     }
-    /* TODO add param for userDefinedReportRequestModel type UserDefinedReportRequestModel */
+    
     static generateReportWithCriteria(scenarioId: string, expression: string, reportType:string, userDefinedReportRequestModel: UserDefinedReportRequestModel): AxiosPromise {
         return coreAxiosInstance.request({
             method: 'POST',
