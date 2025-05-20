@@ -10,11 +10,12 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
 {
     public static class AnalysisMethodEntities
     {
-        public static AnalysisMethodEntity TestAnalysis(Guid simulationId, Guid? id = null)
+        public static AnalysisMethodEntity TestAnalysis(Guid simulationId, Guid? attributeId, Guid? id = null)
         {
             var resolveId = id ?? Guid.NewGuid();
             var returnValue = new AnalysisMethodEntity
             {
+                AttributeId = attributeId,
                 Id = resolveId,
                 SimulationId = simulationId,
                 OptimizationStrategy = OptimizationStrategy.Benefit,

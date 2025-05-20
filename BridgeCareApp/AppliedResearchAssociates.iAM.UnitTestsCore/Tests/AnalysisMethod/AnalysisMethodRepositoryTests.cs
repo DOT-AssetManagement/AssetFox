@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
@@ -23,7 +24,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            var entity = AnalysisMethodEntities.TestAnalysis(simulation.Id);
+            var entity = AnalysisMethodEntities.TestAnalysis(simulation.Id, TestAttributeIds.ConditionIndexId);
             TestHelper.UnitOfWork.Context.AnalysisMethod.Add(entity);
             TestHelper.UnitOfWork.Context.SaveChanges();
             // Act
@@ -31,7 +32,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             // Assert
             Assert.NotNull(result);
         }
-
 
         [Fact]
         public void UpsertAnalysisMethod_AnalysisMethodAlreadyInDb_UpdatesBenefit()
@@ -49,6 +49,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             repo.UpsertAnalysisMethod(simulation.Id, analysisMethodDto);
 
             // Assert
+            TestHelper.UnitOfWork.Context.ChangeTracker.Clear();
             var upsertedAnalysisMethodDto = repo.GetAnalysisMethod(simulation.Id);
             Assert.Equal(analysisMethodDto.Id, upsertedAnalysisMethodDto.Id);
             Assert.Equal(analysisMethodDto.Benefit.Id, upsertedAnalysisMethodDto.Benefit.Id);
@@ -103,7 +104,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var attributeEntity = TestHelper.UnitOfWork.Context.Attribute.First();
             analysisMethodDto.Attribute = attributeEntity.Name;
             analysisMethodDto.CriterionLibrary = criterionLibrary;
-            var analysisMethod = AnalysisMethodEntities.TestAnalysis(simulation.Id);
+            var analysisMethod = AnalysisMethodEntities.TestAnalysis(simulation.Id, TestAttributeIds.ConditionIndexId);
             var benefitDto = BenefitDtos.Dto(attributeEntity.Name);
             analysisMethodDto.Benefit = benefitDto;
 
