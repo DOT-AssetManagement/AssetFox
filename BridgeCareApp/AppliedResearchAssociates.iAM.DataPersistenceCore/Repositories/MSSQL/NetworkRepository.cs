@@ -117,6 +117,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                                                             Year = result.Year,
                                                             TextValue = result.TextValue,
                                                             NumericValue = result.NumericValue,
+                                                            AttributeId = result.AttributeId,
                                                             Attribute = new AttributeEntity
                                                             {
                                                                 Name = attributeNameLookup[result.AttributeId],
