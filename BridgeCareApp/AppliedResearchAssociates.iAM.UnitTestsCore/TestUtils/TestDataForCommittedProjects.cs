@@ -20,10 +20,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
         public const string NetworkName = "Primary";
         public const string MaintainableAssetIdString1 = "f286b7cf-445d-4291-9167-0f225b170cae";
         public const string MaintainableAssetIdString2 = "46f5da89-5e65-4b8a-9b36-03d9af0302f7";
+        public const string MaintainableAssetIdString3 = "cf28e62e-0a02-4195-8d28-5cdb9646dd58";
         public const string CommittedProjectIdString1 = "2e9e66df-4436-49b1-ae68-9f5c10656b1b";
         public const string CommittedProjectIdString2 = "091001e2-c1f0-4af6-90e7-e998bbea5d00";
+
         public static Guid MaintainableAssetId1 => Guid.Parse(MaintainableAssetIdString1);
         public static Guid MaintainableAssetId2 => Guid.Parse(MaintainableAssetIdString2);
+        public static Guid MaintainableAssetId3 => Guid.Parse(MaintainableAssetIdString3);
         public static Guid CommittedProjectId1 => Guid.Parse(CommittedProjectIdString1);
         public static Guid CommittedProjectId2 => Guid.Parse(CommittedProjectIdString2);
         public static Guid AuthorizedUser => Guid.Parse("b047f934-2a40-4cbb-b3cd-0a17c8a5af21");

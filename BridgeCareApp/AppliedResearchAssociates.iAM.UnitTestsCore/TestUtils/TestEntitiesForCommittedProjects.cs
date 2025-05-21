@@ -129,7 +129,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
                 AggregatedResults = new List<AggregatedResultEntity>()
             },
             new MaintainableAssetEntity() {
-                Id = Guid.Parse("cf28e62e-0a02-4195-8d28-5cdb9646dd58"),
+                Id = TestDataForCommittedProjects.MaintainableAssetId3,
                 NetworkId = TestDataForCommittedProjects.NetworkId,
                 MaintainableAssetLocation = new MaintainableAssetLocationEntity(Guid.NewGuid(), DataPersistenceCore.DataPersistenceConstants.SectionLocation ,"3"),
                 SpatialWeighting = "[DECK_AREA]",
