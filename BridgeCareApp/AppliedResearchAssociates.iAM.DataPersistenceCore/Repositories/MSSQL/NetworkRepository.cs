@@ -118,10 +118,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                                                             TextValue = result.TextValue,
                                                             NumericValue = result.NumericValue,
                                                             AttributeId = result.AttributeId,
-                                                            Attribute = new AttributeEntity
-                                                            {
-                                                                Name = attributeNameLookup[result.AttributeId],
-                                                            }
                                                         }).ToList()
                                                     }).AsNoTracking().ToList();
                 memos.Mark("NetworkRepository after load assets");
