@@ -81,7 +81,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                     var value = getValue(entity);
                     history[yearOfHistory.Key] = value;
 
-                    _ = attributesWithUnsetHistory.Remove(entity.Attribute.Name);
+                    _ = attributesWithUnsetHistory.Remove(attributeName);
                 }
             }
         }
