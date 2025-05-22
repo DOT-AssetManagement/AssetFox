@@ -198,11 +198,15 @@
                             </div>       
                            
                             <div v-if="header.key !== 'year' && header.key !== 'action'">
-                                <editDialog :return-value.sync='item.item.values[header.key]'
+                                <EditDialogForInvestmentBudget :return-value.sync='item.item.values[header.key]'
                                     @open='defaultOnOpen(item.item.values[header.key])'
                                     @click='defaultOnEditBudgetYearValue(item.item.values[header.key])'
                                     @save='onEditBudgetYearValue(item.item.year, header.key, editValue)'
-                                    @cancel='onEditBudgetYearValue(item.item.year, header.key, item.item.values[header.key])'                                    
+                                    @cancel='onEditBudgetYearValue(item.item.year, header.key, item.item.values[header.key])'
+                                    :style="getInvestmentBudgetStyle(item.item.values[header.key])"
+                                    style="width: 6rem; "
+                                    :disabled="editValue < 1"
+                                    :error-message="editValue < 1 ? 'Item cannot be less than 1' : ''"                                 
                                     size="large" lazy>
                                     <currencyTextbox readonly single-line class='sm-txt'
                                         variant="underlined"
@@ -211,12 +215,14 @@
                                     <template v-slot:input>
                                         <currencyTextbox label='Edit' single-line
                                         @click='defaultOnEditBudgetYearValue(item.item.values[header.key])'
-                                            v-model.number='editValue'                                           
+                                            v-model.number='editValue'
                                             :rules="[rules['generalRules'].valueIsNotEmpty]" />
                                     </template>
-                                </editDialog>
+                                </EditDialogForInvestmentBudget>
                             </div>
-
+                            <div v-if="item.item.values[header.key] < 1" style="color: red; font-size: 0.875rem;">
+                                Item cannot be less than 1
+                            </div>
                             <div v-if="header.key === 'action'">
                                 <v-btn id="InvestmentEditor-removeYear-btn" @click="onRemoveBudgetYear(item.item.year)" class="ghd-red" flat icon>
                                     <TrashCanSvg />
@@ -268,7 +274,7 @@
                         :show="!hasScenario"
                     />
                     <SaveButton 
-                        :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
+                        :disabled="disableCrudButtonsResult || !hasUnsavedChanges || lessThanZeroBudgetValues"
                         @save="onUpsertInvestment()"
                         :show="hasScenario"
                     />
@@ -313,6 +319,7 @@
 <script setup lang='ts'>
 import { shallowRef } from 'vue';
 import editDialog from '@/shared/modals/Edit-Dialog.vue'
+import EditDialogForInvestmentBudget from '@/shared/modals/EditDialogForInvestmentBudget.vue';
 import SetRangeForAddingBudgetYearsDialog from './investment-editor-dialogs/SetRangeForAddingBudgetYearsDialog.vue';
 import SetRangeForDeletingBudgetYearsDialog from './investment-editor-dialogs/SetRangeForDeletingBudgetYearsDialog.vue';
 import EditBudgetsDialog from './investment-editor-dialogs/EditBudgetsDialog.vue';
@@ -536,6 +543,14 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     let unsavedDialogAllowed = ref<boolean>(true);
     let trueLibrarySelectItemValue : string | null = '';
     let librarySelectItemValueAllowedChanged: boolean = true;
+    const lessThanZeroBudgetValues = computed(() => {
+    return budgetYearsGridData.value.some(budget =>
+        Object.values(budget.values).some(value =>
+      typeof value === 'number' && value < 1
+    )
+    );
+    });
+
 
     const percentMask = { mask: '###' };
     const yearMask = { mask: '####' };
@@ -554,7 +569,39 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             return investmentPlan.value.numberOfYearsInAnalysisPeriod;
         }
     
-  
+    // REPLACE with created() ?
+    //function beforeRouteEnter() {
+    // created();
+    // async function created() {
+    //     (() => {
+    //         (async () => { 
+    //             librarySelectItemValue.value = '';
+    //             await getHasPermittedAccessAction();
+    //             await getBudgetLibrariesAction()
+        
+    //             if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.Investment) !== -1) {
+    //                 selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
+
+    //                 if (selectedScenarioId === uuidNIL) {
+    //                     addErrorNotificationAction({
+    //                         message: 'Found no selected scenario for edit',
+    //                     });
+    //                     $router.push('/Scenarios/');
+    //                 }
+
+    //                 hasScenario.value = true;
+    //                 ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
+    //                     if(response.data){
+    //                         setAlertMessageAction("An investment import has been added to the queue")
+    //                     }
+    //                 })
+    //                 await initializePages();
+    //             }
+    //             else
+    //                 initializing = false;               
+    //         })();                    
+    //     });
+    // }
 
     onMounted(async () => {
         librarySelectItemValue.value = '';
@@ -571,7 +618,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             }
 
             hasScenario.value = true;
-            ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
+            ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
                 if(response.data){
                     setAlertMessageAction("An investment import has been added to the queue")
                 }
@@ -746,7 +793,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         if (hasSelectedLibrary.value) {
             checkLibraryEditPermission();
             hasCreatedLibrary = false;
-            ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedBudgetLibrary.value.id, workType: WorkType.ImportLibraryInvestment}).then(response => {
+            ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedBudgetLibrary.value.id, workType: WorkType.ImportLibraryInvestment}).then(response => {
                 if(response.data){
                     setAlertMessageAction("An investment import has been added to the queue")
                 }
@@ -760,6 +807,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
        {
             await updateTreatmentBudgetsAndPriority();
             hasInvestmentJustBeenSaved = false;
+            $emitter.emit('switchedToNewInvestmentLibrary');
        }
     });
 
@@ -1139,7 +1187,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                         id: getNewGuid(),
                         budgetName: budget.name,
                         year: currentYear,
-                        value: 0,
+                        value: 1,
                     };
                     let amounts = addedBudgetAmounts.value.get(budget.name)
                     if (!isNil(amounts))
@@ -1171,6 +1219,13 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         }
     }
 
+    function getInvestmentBudgetStyle(budget: number) {            
+        if (budget < 1) {
+            return { 
+            border: '1px solid red'
+            };
+        }
+    }
 
     function onShowEditBudgetsDialog() {
 
@@ -1384,8 +1439,8 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 hasInvestmentJustBeenSaved = true;               
             }           
         });
-        $emitter.emit('InvestmentSettingsUpdated');
-        $emitter.emit('switchedToNewInvestmentLibrary', sync);
+        // $emitter.emit('InvestmentSettingsUpdated');
+        // $emitter.emit('switchedToNewInvestmentLibrary', sync);
     }
 
     async function updateTreatmentBudgetsAndPriority()
