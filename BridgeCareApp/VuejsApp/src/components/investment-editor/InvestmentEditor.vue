@@ -204,7 +204,7 @@
                                     @save='onEditBudgetYearValue(item.item.year, header.key, editValue)'
                                     @cancel='onEditBudgetYearValue(item.item.year, header.key, item.item.values[header.key])'
                                     :style="getInvestmentBudgetStyle(item.item.values[header.key])"
-                                    style="width: 6rem; "
+                                    style="width: 6rem;"
                                     :disabled="editValue < 1"
                                     :error-message="editValue < 1 ? 'Item cannot be less than 1' : ''"                                 
                                     size="large" lazy>
