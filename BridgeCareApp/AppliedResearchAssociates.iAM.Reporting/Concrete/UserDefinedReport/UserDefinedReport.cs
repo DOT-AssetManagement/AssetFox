@@ -121,6 +121,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 checkCancelled(cancellationToken, _simulationId);
                 // Parse parameters
                 _userDefinedReportRequestModel = GetUserDefinedReportRequestModel(parameters);
+                Criteria = ReportHelper.GetCriteria(parameters);
                 reportPath = GenerateUserDefinedReport(_simulationId, workQueueLog, cancellationToken);
                 if (!string.IsNullOrEmpty(Criteria) && string.IsNullOrEmpty(reportPath))
                 {

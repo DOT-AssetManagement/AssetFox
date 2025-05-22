@@ -49,7 +49,7 @@
                                         </v-card-text>
                                     </v-card>
                                 </v-menu>
-                                    <v-btn v-if="props.item.name.includes('Summary')"
+                                    <v-btn v-if="props.item.name.includes('Summary') || props.item.name.includes('UserDefinedReport')"
                                         @click="onShowCriterionEditorDialog(props.item.id)"
                                         class="criteria-button-blue"
                                         flat
@@ -177,7 +177,7 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
     function addErrorNotificationAction(payload?: any) {  store.dispatch('addErrorNotification',payload);} 
     function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification',payload);} 
     async function getSimulationReportsAction(payload?: any): Promise<any> { await store.dispatch('getSimulationReports',payload);} 
-    async function updateSimulationReportDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationReportDetail', payload)}
+    async function updateSimulationReportDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationReportDetail', payload)}  
     const notifications = computed<Notification[]>(() => store.state.notificationModule.notifications);
     let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
 
@@ -199,7 +199,6 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
     const criterionEditorDialogData = ref<GeneralCriterionEditorDialogData>(clone(emptyGeneralCriterionEditorDialogData));
     const currentPage = ref<Report[]>([]);
     let selectedReport = ref<Report>(emptyReport); 
-    let userDefinedReportRequestModel = ref<UserDefinedReportRequestModel>(emptyUserDefinedReportRequestModel);
     const reportsGridHeaders: any[] = [
         {
             title: 'Name',
@@ -251,7 +250,6 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
     
 
     onMounted(async () => {
-
         selectedScenarioId.value = router.currentRoute.value.query.scenarioId as string;
         simulationName.value = router.currentRoute.value.query.scenarioName as string;
         networkName = router.currentRoute.value.query.networkName as string;
@@ -264,8 +262,8 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
                 router.push('/Scenarios/');
             }
 
-        await getSimulationReportsAction();
-        await getReportGenerationStatus();
+        await getSimulationReportsAction();        
+        await getReportGenerationStatus();        
     });
 
     watch(stateSimulationReportNames, () => {

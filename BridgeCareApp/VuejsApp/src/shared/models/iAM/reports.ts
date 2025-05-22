@@ -60,16 +60,16 @@ export interface UserDefinedReportRequestModel {
 export const emptyUserDefinedReportRequestModel : UserDefinedReportRequestModel ={
     attributes: [],
     years: [],
-    displayConditionOfNetwork: true,
-    displayInitialAssetSummaries: true,
-    displayAssets: true,
-    displayBudgets: true,
-    displayDeficientConditionGoals: true,
-    displayTargetConditionGoals: true,
-    displayTreatmentOptions: true,
-    displayTreatmentSchedulingCollisions: true,
-    displayTreatmentRejections: true,
-    displayTreatmentCashflowConsiderations: true,
-    displyTreatmentCurrentBudgetsToSpend: true,
-    displayTreatmentAllocations: true
+    displayConditionOfNetwork: false,
+    displayInitialAssetSummaries: false,
+    displayAssets: false,
+    displayBudgets: false,
+    displayDeficientConditionGoals: false,
+    displayTargetConditionGoals: false,
+    displayTreatmentOptions: false,
+    displayTreatmentSchedulingCollisions: false,
+    displayTreatmentRejections: false,
+    displayTreatmentCashflowConsiderations: false,
+    displyTreatmentCurrentBudgetsToSpend: false,
+    displayTreatmentAllocations: false
 };
