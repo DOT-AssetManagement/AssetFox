@@ -198,15 +198,11 @@
                             </div>       
                            
                             <div v-if="header.key !== 'year' && header.key !== 'action'">
-                                <EditDialogForInvestmentBudget :return-value.sync='item.item.values[header.key]'
+                                <editDialog :return-value.sync='item.item.values[header.key]'
                                     @open='defaultOnOpen(item.item.values[header.key])'
                                     @click='defaultOnEditBudgetYearValue(item.item.values[header.key])'
                                     @save='onEditBudgetYearValue(item.item.year, header.key, editValue)'
-                                    @cancel='onEditBudgetYearValue(item.item.year, header.key, item.item.values[header.key])'
-                                    :style="getInvestmentBudgetStyle(item.item.values[header.key])"
-                                    style="width: 6rem;"
-                                    :disabled="editValue < 1"
-                                    :error-message="editValue < 1 ? 'Item cannot be less than 1' : ''"                                 
+                                    @cancel='onEditBudgetYearValue(item.item.year, header.key, item.item.values[header.key])'                                    
                                     size="large" lazy>
                                     <currencyTextbox readonly single-line class='sm-txt'
                                         variant="underlined"
@@ -215,14 +211,12 @@
                                     <template v-slot:input>
                                         <currencyTextbox label='Edit' single-line
                                         @click='defaultOnEditBudgetYearValue(item.item.values[header.key])'
-                                            v-model.number='editValue'
+                                            v-model.number='editValue'                                           
                                             :rules="[rules['generalRules'].valueIsNotEmpty]" />
                                     </template>
-                                </EditDialogForInvestmentBudget>
+                                </editDialog>
                             </div>
-                            <div v-if="item.item.values[header.key] < 1" style="color: red; font-size: 0.875rem;">
-                                Item cannot be less than 1
-                            </div>
+
                             <div v-if="header.key === 'action'">
                                 <v-btn id="InvestmentEditor-removeYear-btn" @click="onRemoveBudgetYear(item.item.year)" class="ghd-red" flat icon>
                                     <TrashCanSvg />
@@ -274,7 +268,7 @@
                         :show="!hasScenario"
                     />
                     <SaveButton 
-                        :disabled="disableCrudButtonsResult || !hasUnsavedChanges || lessThanZeroBudgetValues"
+                        :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
                         @save="onUpsertInvestment()"
                         :show="hasScenario"
                     />
@@ -319,7 +313,6 @@
 <script setup lang='ts'>
 import { shallowRef } from 'vue';
 import editDialog from '@/shared/modals/Edit-Dialog.vue'
-import EditDialogForInvestmentBudget from '@/shared/modals/EditDialogForInvestmentBudget.vue';
 import SetRangeForAddingBudgetYearsDialog from './investment-editor-dialogs/SetRangeForAddingBudgetYearsDialog.vue';
 import SetRangeForDeletingBudgetYearsDialog from './investment-editor-dialogs/SetRangeForDeletingBudgetYearsDialog.vue';
 import EditBudgetsDialog from './investment-editor-dialogs/EditBudgetsDialog.vue';
@@ -543,14 +536,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     let unsavedDialogAllowed = ref<boolean>(true);
     let trueLibrarySelectItemValue : string | null = '';
     let librarySelectItemValueAllowedChanged: boolean = true;
-    const lessThanZeroBudgetValues = computed(() => {
-    return budgetYearsGridData.value.some(budget =>
-        Object.values(budget.values).some(value =>
-      typeof value === 'number' && value < 1
-    )
-    );
-    });
-
 
     const percentMask = { mask: '###' };
     const yearMask = { mask: '####' };
@@ -1187,7 +1172,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                         id: getNewGuid(),
                         budgetName: budget.name,
                         year: currentYear,
-                        value: 1,
+                        value: 0,
                     };
                     let amounts = addedBudgetAmounts.value.get(budget.name)
                     if (!isNil(amounts))
@@ -1219,13 +1204,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         }
     }
 
-    function getInvestmentBudgetStyle(budget: number) {            
-        if (budget < 1) {
-            return { 
-            border: '1px solid red'
-            };
-        }
-    }
 
     function onShowEditBudgetsDialog() {
 
