@@ -6,13 +6,16 @@ using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.PerformanceCurve;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.PerformanceCurve;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyModel;
 using MoreLinq;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
@@ -346,6 +349,219 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .OrderBy(_ => _.Id)
                 .Select(_ => _.ToDto())
                 .ToList();
+        }
+
+        public void SaveScenarioPerformanceCurveChanges(UpsertAndDeleteModel<PerformanceCurveDTO> changes, Guid simulationId)
+        {
+            var distinctAttributeNames = changes.UpdateRows.Concat(changes.AddedRows).Select(_ => _.Attribute).Distinct().ToList();
+            var attributeNameIdDict = _unitOfWork.Context.Attribute.Where(_ => distinctAttributeNames.Contains(_.Name)).ToDictionary(_ => _.Name, _ => _.Id);
+            _unitOfWork.AsTransaction(() =>
+            {
+                DeleteScenarioCurves(changes.RowsForDeletion);
+                InsertScenarioCurves(changes.AddedRows, simulationId, attributeNameIdDict);
+                UpdateScenarioCurves(changes.UpdateRows, simulationId, attributeNameIdDict);
+            });
+        }
+
+        private void DeleteScenarioCurves(List<Guid> ids)
+        {
+            _unitOfWork.Context.DeleteAll<ScenarioPerformanceCurveEntity>(_ => ids.Contains(_.Id));
+            //_unitOfWork.Context.DeleteAll<EquationEntity>(_ => ids.Contains(_.ScenarioPerformanceCurveEquationJoin.ScenarioPerformanceCurveId));
+            //_unitOfWork.Context.DeleteAll<ScenarioPerformanceCurveEquationEntity>(_ => ids.Contains(_.ScenarioPerformanceCurveId));
+            //_unitOfWork.Context.DeleteAll<CriterionLibraryEntity>(_ => ids.Contains(_.));
+            //_unitOfWork.Context.DeleteAll<CriterionLibraryScenarioPerformanceCurveEntity>(_ => criterionIds.Contains(_.CriterionLibraryId));
+        }
+
+        private void UpdateScenarioCurves(List<PerformanceCurveDTO> curves, Guid simulationId, Dictionary<string, Guid> attrDict)
+        {
+            var curveEntities = curves.Select(_ => _.ToScenarioEntity(simulationId, attrDict[_.Attribute])).ToList();
+            _unitOfWork.Context.UpdateAll(curveEntities, _unitOfWork.UserEntity?.Id);
+
+            var curvesWithCriterions = curves.Where(_ => _.CriterionLibrary?.Id != null).ToList();
+            var criterionIds = curvesWithCriterions.Select(_ => _.CriterionLibrary.Id).ToList();
+            _unitOfWork.Context.DeleteAll<CriterionLibraryEntity>(_ => criterionIds.Contains(_.Id));
+            _unitOfWork.Context.DeleteAll<CriterionLibraryScenarioPerformanceCurveEntity>(_ => criterionIds.Contains(_.CriterionLibraryId));
+
+            var curvesWithEquations = curves.Where(_ => _.Equation?.Id != null).ToList();
+            var equationIds = curvesWithEquations.Select(_ => _.Equation.Id).ToList();
+            _unitOfWork.Context.DeleteAll<EquationEntity>(_ => criterionIds.Contains(_.Id));
+            _unitOfWork.Context.DeleteAll<ScenarioPerformanceCurveEquationEntity>(_ => equationIds.Contains(_.EquationId));
+
+            AddCriterionsFromScenarioCurves(curvesWithCriterions);
+            AddEquationsFromScenarioCurves(curvesWithEquations);
+        }
+
+        private void InsertScenarioCurves(List<PerformanceCurveDTO> curves, Guid simulationId, Dictionary<string, Guid> attrDict)
+        {
+            var performanceCurveEntities = curves.Select(_ => _.ToScenarioEntity(simulationId, attrDict[_.Attribute])).ToList();
+            _unitOfWork.Context.AddAll(performanceCurveEntities, _unitOfWork.UserEntity?.Id);
+            AddCriterionsFromScenarioCurves(curves);
+            AddEquationsFromScenarioCurves(curves);
+        }
+
+        private void AddCriterionsFromScenarioCurves(List<PerformanceCurveDTO> cruves)
+        {
+            var criteriaToAdd = new List<CriterionLibraryEntity>();
+            var criteriaJoinsToAdd = new List<CriterionLibraryScenarioPerformanceCurveEntity>();
+            cruves.ForEach(_ =>
+            {
+                if (_.CriterionLibrary != null)
+                {
+                    var criterion = new CriterionLibraryEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        MergedCriteriaExpression = _.CriterionLibrary.MergedCriteriaExpression,
+                        Name = $"{_.Name} Criterion",
+                        IsSingleUse = true
+                    };
+                    criteriaToAdd.Add(criterion);
+                    criteriaJoinsToAdd.Add(new CriterionLibraryScenarioPerformanceCurveEntity
+                    {
+                        CriterionLibraryId = criterion.Id,
+                        ScenarioPerformanceCurveId = _.Id
+                    });
+                }
+            });
+
+            if (criteriaToAdd.Count > 0)
+            {
+                _unitOfWork.Context.AddAll(criteriaToAdd, _unitOfWork.UserEntity?.Id);
+                _unitOfWork.Context.AddAll(criteriaJoinsToAdd, _unitOfWork.UserEntity?.Id);
+            }
+        }
+
+        private void AddEquationsFromScenarioCurves(List<PerformanceCurveDTO> cruves)
+        {
+            var equationsToAdd = new List<EquationEntity>();
+            var equationJoinsToAdd = new List<ScenarioPerformanceCurveEquationEntity>();
+            cruves.ForEach(_ =>
+            {
+                if (_.Equation != null)
+                {
+                    var equation = new EquationEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        Expression = _.Equation.Expression
+                    };
+                    equationsToAdd.Add(equation);
+                    equationJoinsToAdd.Add(new ScenarioPerformanceCurveEquationEntity
+                    {
+                        EquationId = equation.Id,
+                        ScenarioPerformanceCurveId = _.Id
+                    });
+                }
+            });
+
+            if (equationsToAdd.Count > 0)
+            {
+                _unitOfWork.Context.AddAll(equationsToAdd, _unitOfWork.UserEntity?.Id);
+                _unitOfWork.Context.AddAll(equationJoinsToAdd, _unitOfWork.UserEntity?.Id);
+            }
+        }
+
+        public void SaveLIbraryPerformanceCurveChanges(PerformanceCurveLibraryDTO library, UpsertAndDeleteModel<PerformanceCurveDTO> changes)
+        {
+            var distinctAttributeNames = changes.UpdateRows.Concat(changes.AddedRows).Select(_ => _.Attribute).Distinct().ToList();
+            var attributeNameIdDict = _unitOfWork.Context.Attribute.Where(_ => distinctAttributeNames.Contains(_.Name)).ToDictionary(_ => _.Name, _ => _.Id);
+            _unitOfWork.AsTransaction(() =>
+            {
+                _unitOfWork.PerformanceCurveRepo.UpsertPerformanceCurveLibrary(library);
+                DeleteLibraryCurves(changes.RowsForDeletion);
+                UpdateLibraryCurves(changes.UpdateRows, library.Id, attributeNameIdDict);
+                InsertLibraryCurves(changes.AddedRows, library.Id, attributeNameIdDict);
+            });
+        }
+
+        private void DeleteLibraryCurves(List<Guid> ids)
+        {
+            _unitOfWork.Context.DeleteAll<PerformanceCurveEntity>(_ => ids.Contains(_.Id));
+        }
+
+        private void UpdateLibraryCurves(List<PerformanceCurveDTO> curves, Guid libraryId, Dictionary<string, Guid> attrDict)
+        {
+            var curveEntities = curves.Select(_ => _.ToLibraryEntity(libraryId, attrDict[_.Attribute])).ToList();
+            _unitOfWork.Context.UpdateAll(curveEntities, _unitOfWork.UserEntity?.Id);
+
+            var curvesWithCriterions = curves.Where(_ => _.CriterionLibrary?.Id != null).ToList();
+            var criterionIds = curvesWithCriterions.Select(_ => _.CriterionLibrary.Id).ToList();
+            _unitOfWork.Context.DeleteAll<CriterionLibraryEntity>(_ => criterionIds.Contains(_.Id));
+            _unitOfWork.Context.DeleteAll<CriterionLibraryPerformanceCurveEntity>(_ => criterionIds.Contains(_.CriterionLibraryId));
+
+            var curvesWithEquations = curves.Where(_ => _.Equation?.Id != null).ToList();
+            var equationIds = curvesWithEquations.Select(_ => _.Equation.Id).ToList();
+            _unitOfWork.Context.DeleteAll<EquationEntity>(_ => criterionIds.Contains(_.Id));
+            _unitOfWork.Context.DeleteAll<PerformanceCurveEquationEntity>(_ => equationIds.Contains(_.EquationId));
+
+            AddCriterionsFromLIbraryCurves(curvesWithCriterions);
+            AddEquationsFromLIbraryCurves(curvesWithEquations);
+        }
+
+        private void InsertLibraryCurves(List<PerformanceCurveDTO> curves, Guid libraryId, Dictionary<string, Guid> attrDict)
+        {
+            var performanceCurveEntities = curves.Select(_ => _.ToLibraryEntity(libraryId, attrDict[_.Attribute])).ToList();
+            _unitOfWork.Context.AddAll(performanceCurveEntities, _unitOfWork.UserEntity?.Id);
+            AddCriterionsFromLIbraryCurves(curves);
+            AddEquationsFromLIbraryCurves(curves);
+        }
+
+        private void AddCriterionsFromLIbraryCurves(List<PerformanceCurveDTO> cruves)
+        {
+            var criteriaToAdd = new List<CriterionLibraryEntity>();
+            var criteriaJoinsToAdd = new List<CriterionLibraryPerformanceCurveEntity>();
+            cruves.ForEach(_ =>
+            {
+                if (_.CriterionLibrary != null)
+                {
+                    var criterion = new CriterionLibraryEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        MergedCriteriaExpression = _.CriterionLibrary.MergedCriteriaExpression,
+                        Name = $"{_.Name} Criterion",
+                        IsSingleUse = true
+                    };
+                    criteriaToAdd.Add(criterion);
+                    criteriaJoinsToAdd.Add(new CriterionLibraryPerformanceCurveEntity
+                    {
+                        CriterionLibraryId = criterion.Id,
+                        PerformanceCurveId = _.Id
+                    });
+                }
+            });
+
+            if (criteriaToAdd.Count > 0)
+            {
+                _unitOfWork.Context.AddAll(criteriaToAdd, _unitOfWork.UserEntity?.Id);
+                _unitOfWork.Context.AddAll(criteriaJoinsToAdd, _unitOfWork.UserEntity?.Id);
+            }
+        }
+
+        private void AddEquationsFromLIbraryCurves(List<PerformanceCurveDTO> cruves)
+        {
+            var equationsToAdd = new List<EquationEntity>();
+            var equationJoinsToAdd = new List<PerformanceCurveEquationEntity>();
+            cruves.ForEach(_ =>
+            {
+                if (_.Equation != null)
+                {
+                    var equation = new EquationEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        Expression = _.Equation.Expression
+                    };
+                    equationsToAdd.Add(equation);
+                    equationJoinsToAdd.Add(new PerformanceCurveEquationEntity
+                    {
+                        EquationId = equation.Id,
+                        PerformanceCurveId = _.Id
+                    });
+                }
+            });
+
+            if (equationsToAdd.Count > 0)
+            {
+                _unitOfWork.Context.AddAll(equationsToAdd, _unitOfWork.UserEntity?.Id);
+                _unitOfWork.Context.AddAll(equationJoinsToAdd, _unitOfWork.UserEntity?.Id);
+            }
         }
 
         public void UpsertOrDeleteScenarioPerformanceCurvesNonAtomic(

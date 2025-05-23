@@ -12,6 +12,8 @@ using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
+using MoreLinq.Extensions;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -40,6 +42,71 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
             _unitOfWork.Context.AddAll(
                 budgetAmountEntities.Where(_ => !existingEntityIds.Contains(_.Id)).ToList(), _unitOfWork.UserEntity?.Id);
+        }
+        public void SaveScenarioBudgetAmounts(InvestmentUpsertAndDeleteModel changes, Guid simulationId)
+        {
+            DeleteScenariobudgetamounts(changes.Deletionyears, simulationId);
+            InsertScenarioBudgetAmounts(changes.AddedBudgetAmounts, simulationId, changes.FirstYearAnalysisBudgetShift);
+            UpdateScenarioBudgetAmounts(changes.UpdatedBudgetAmounts, simulationId, changes.FirstYearAnalysisBudgetShift);           
+        }
+        private void InsertScenarioBudgetAmounts(Dictionary<string, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid simulationId, int shift = 0)
+        {
+            var entities = GetScenarioAmountEntities(budgetAmountsPerBudgetId, simulationId);
+            _unitOfWork.Context.AddAll(entities, _unitOfWork.UserEntity?.Id);
+        }
+        private void UpdateScenarioBudgetAmounts(Dictionary<string, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid simulationId, int shift = 0)
+        {
+            var entities = GetScenarioAmountEntities(budgetAmountsPerBudgetId, simulationId);
+            _unitOfWork.Context.UpdateAll(entities, _unitOfWork.UserEntity?.Id);
+        }
+        private List<ScenarioBudgetAmountEntity> GetScenarioAmountEntities(Dictionary<string, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid simulationId, int shift = 0)
+        {
+            var budgetNames = budgetAmountsPerBudgetId.Keys.ToList();
+            var budgets = _unitOfWork.Context.ScenarioBudget.AsNoTracking().Where(_ => budgetNames.Contains(_.Name) && _.SimulationId == simulationId).ToList();
+            var amountEntities = new List<ScenarioBudgetAmountEntity>();
+            budgets.ForEach(_ =>
+            {
+                budgetAmountsPerBudgetId[_.Name].ForEach(__ => amountEntities.Add(__.ToScenarioEntity(_.Id)));
+            });
+            amountEntities.ForEach(_ => _.Year += shift);
+            return amountEntities;
+        }
+        public void DeleteScenariobudgetamounts(List<int> years, Guid SimulationId)
+        {
+            _unitOfWork.Context.DeleteAll<ScenarioBudgetAmountEntity>(_ => years.Contains(_.Year) && _.ScenarioBudget.SimulationId == SimulationId);
+        }
+
+        public void SaveLibraryBudgetAmounts(InvestmentUpsertAndDeleteModel changes, Guid simulationId)
+        {
+            DeleteLibrarybudgetamounts(changes.Deletionyears, simulationId);
+            InsertLibraryBudgetAmounts(changes.AddedBudgetAmounts, simulationId, changes.FirstYearAnalysisBudgetShift);
+            UpdateLibraryBudgetAmounts(changes.UpdatedBudgetAmounts, simulationId, changes.FirstYearAnalysisBudgetShift);
+        }
+        private void InsertLibraryBudgetAmounts(Dictionary<string, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid libraryId, int shift = 0)
+        {
+            var entities = GetLibraryAmountEntities(budgetAmountsPerBudgetId, libraryId);
+            _unitOfWork.Context.AddAll(entities, _unitOfWork.UserEntity?.Id);
+        }
+        private void UpdateLibraryBudgetAmounts(Dictionary<string, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid libraryId, int shift = 0)
+        {
+            var entities = GetLibraryAmountEntities(budgetAmountsPerBudgetId, libraryId);
+            _unitOfWork.Context.UpdateAll(entities, _unitOfWork.UserEntity?.Id);
+        }
+        private List<BudgetAmountEntity> GetLibraryAmountEntities(Dictionary<string, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid libraryId, int shift = 0)
+        {
+            var budgetNames = budgetAmountsPerBudgetId.Keys.ToList();
+            var budgets = _unitOfWork.Context.Budget.AsNoTracking().Where(_ => budgetNames.Contains(_.Name) && _.BudgetLibraryId == libraryId).ToList();
+            var amountEntities = new List<BudgetAmountEntity>();
+            budgets.ForEach(_ =>
+            {
+                budgetAmountsPerBudgetId[_.Name].ForEach(__ => amountEntities.Add(__.ToLibraryEntity(_.Id)));
+            });
+            amountEntities.ForEach(_ => _.Year += shift);
+            return amountEntities;
+        }
+        public void DeleteLibrarybudgetamounts(List<int> years, Guid librayId)
+        {
+            _unitOfWork.Context.DeleteAll<BudgetAmountEntity>(_ => years.Contains(_.Year) && _.Budget.BudgetLibraryId == librayId);
         }
 
         public void UpsertOrDeleteScenarioBudgetAmounts(Dictionary<Guid, List<BudgetAmountDTO>> budgetAmountsPerBudgetId, Guid simulationId)

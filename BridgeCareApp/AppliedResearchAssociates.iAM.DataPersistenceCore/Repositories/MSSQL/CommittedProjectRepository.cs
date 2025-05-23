@@ -8,8 +8,10 @@ using System.Text.RegularExpressions;
 using AppliedResearchAssociates.CalculateEvaluate;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
@@ -272,6 +274,77 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Include(_ => _.Simulation.Network)
                 .Select(_ => _.ToDTO(networkKeyAttribute))
                 .ToList();
+        }
+
+        public void SaveCommittedProjectChanges(UpsertAndDeleteModel<SectionCommittedProjectDTO> changes, Guid simulationId)
+        {
+            var projects = changes.AddedRows.Concat(changes.UpdateRows).ToList();
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException($"Unable to find simulation ID {simulationId} in database");
+            }
+            if (projects.Any(_ => _.ScenarioBudgetId == null))
+            {
+                throw new Exception("Committed projects with an empty budget cannot be saved");
+            }
+            // Test for existing budget
+            var budgetIds = _unitOfWork.Context.ScenarioBudget.AsNoTracking()
+                .Where(_ => _.SimulationId == simulationId)
+                .Select(_ => _.Id)
+                .ToList();
+
+            var badBudgets = projects
+                .Where(_ => _.ScenarioBudgetId != null
+                    && _.ScenarioBudgetId != Guid.Empty // Allow empty GUIDs
+                    && !budgetIds.Contains(_.ScenarioBudgetId.Value))
+                .ToList();
+
+            if (badBudgets.Any())
+            {
+                var budgetList = new StringBuilder();
+                badBudgets.ForEach(budget => budgetList.Append(budget.Id.ToString() + ", "));
+                throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}");
+            }
+
+            var attributes = _unitOfWork.Context.Attribute.AsNoTracking().ToList();
+            var keyAttr = GetNetworkKeyAttribute(simulationId);
+            var groupedCpByYearTreatAsset = projects.GroupBy(_ => _.Year.ToString() + _.Treatment + _.LocationKeys[keyAttr]).ToList();
+            if (groupedCpByYearTreatAsset.Count < projects.Count)
+            {
+                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset");
+            }
+            _unitOfWork.AsTransaction(() =>
+            {
+                DeleteCommittedProjects(changes.RowsForDeletion);
+                InsertcommittedProjects(changes.AddedRows, keyAttr, attributes);
+                UpdateCommittedProjects(changes.UpdateRows, keyAttr, attributes);
+            });
+        }
+
+        private void DeleteCommittedProjects(List<Guid> ids)
+        {
+            _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(cp => ids.Contains(cp.Id));
+            _unitOfWork.Context.DeleteAll<CommittedProjectLocationEntity>(cpl => ids.Contains(cpl.CommittedProjectId));
+        }
+
+        private void UpdateCommittedProjects(List<SectionCommittedProjectDTO> cp, string keyAttr, List<AttributeEntity> attributes)
+        {
+            
+            var committedProjectEntities = cp.Select(_ => _.ToEntity(attributes,keyAttr)).ToList();
+            
+            _unitOfWork.Context.UpdateAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
+        }
+
+        private void InsertcommittedProjects(List<SectionCommittedProjectDTO> cp, string keyAttr, List<AttributeEntity> attributes)
+        {
+            var committedProjectEntities = cp.Select(_ => _.ToEntity(attributes, keyAttr)).ToList();
+            _unitOfWork.Context.AddAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
+
+            var committedProjectLocations = committedProjectEntities.Select(_ => _.CommittedProjectLocation).ToList();
+            committedProjectLocations.ForEach(cpl => cpl.Id = Guid.NewGuid());
+
+            _unitOfWork.Context.AddAll(committedProjectEntities);
+            _unitOfWork.Context.AddAll(committedProjectLocations);
         }
 
         public void UpsertCommittedProjects(List<SectionCommittedProjectDTO> projects)

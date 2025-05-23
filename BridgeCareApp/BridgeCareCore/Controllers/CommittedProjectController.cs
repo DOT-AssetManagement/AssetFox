@@ -23,6 +23,7 @@ using BridgeCareCore.Services;
 using BridgeCareCore.Services.General_Work_Queue.WorkItems;
 using System.IO;
 using Org.BouncyCastle.Utilities;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 
 namespace BridgeCareCore.Controllers
 {
@@ -439,9 +440,14 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    var projects = _committedProjectPagingService.GetSyncedDataset(simulationId, request);
-                    CheckUpsertPermit(projects);
-                    UnitOfWork.CommittedProjectRepo.UpsertCommittedProjects(projects);
+                    _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                    var changes = new UpsertAndDeleteModel<SectionCommittedProjectDTO>()
+                    {
+                        AddedRows = request.AddedRows,
+                        RowsForDeletion = request.RowsForDeletion,
+                        UpdateRows = request.UpdateRows
+                    };
+                    UnitOfWork.CommittedProjectRepo.SaveCommittedProjectChanges(changes, simulationId);
                 });
 
                 return Ok();
