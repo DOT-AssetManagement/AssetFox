@@ -103,6 +103,42 @@ internal sealed class AssetContext : CalculateEvaluateScope
         {
             result = criterion.Evaluate(this);
             EvaluationCache.Add(criterion.Expression, result);
+
+            if (SimulationRunner.ExpressionsAnalyzedForAttributeDependencies.Add(criterion.Expression))
+            {
+                // Determine all direct and indirect attribute dependencies of the expression.
+
+                Stack<string> dependenciesToAnalyze = new(criterion.ReferencedParameters);
+                HashSet<string> dependencies = new();
+
+                while (dependenciesToAnalyze.TryPop(out var dependency))
+                {
+                    if (dependencies.Add(dependency) &&
+                        SimulationRunner.CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
+                    {
+                        foreach (var valueSource in calculatedField.ValueSources)
+                        {
+                            foreach (var reference in valueSource.Equation.ReferencedParameters)
+                            {
+                                dependenciesToAnalyze.Push(reference);
+                            }
+                        }
+                    }
+                }
+
+                // Register the current expression as a dependent of each attribute dependency.
+
+                foreach (var dependency in dependencies)
+                {
+                    if (!SimulationRunner.DependentExpressionsPerAttributeName.TryGetValue(dependency, out var dependentExpressions))
+                    {
+                        dependentExpressions = new();
+                        SimulationRunner.DependentExpressionsPerAttributeName.Add(dependency, dependentExpressions);
+                    }
+
+                    _ = dependentExpressions.Add(criterion.Expression);
+                }
+            }
         }
 
         return result;
@@ -271,19 +307,19 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     public override void SetNumber(string key, double value)
     {
-        ClearCache();
+        ClearCache(key);
         base.SetNumber(key, value);
     }
 
     public override void SetNumber(string key, Func<double> getValue)
     {
-        ClearCache();
+        ClearCache(key);
         base.SetNumber(key, getValue);
     }
 
     public override void SetText(string key, string value)
     {
-        ClearCache();
+        ClearCache(key);
         base.SetText(key, value);
     }
 
@@ -293,9 +329,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     public bool YearIsWithinShadowForSameTreatment(int year, Treatment treatment) => FirstUnshadowedYearForSameTreatment.TryGetValue(treatment.Name, out var firstUnshadowedYear) && year < firstUnshadowedYear;
 
-    private static readonly StringComparer KeyComparer = StringComparer.OrdinalIgnoreCase;
-
-    private readonly Dictionary<string, bool?> EvaluationCache = new();
+    private readonly Dictionary<string, bool?> EvaluationCache = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly Dictionary<string, int> FirstUnshadowedYearForSameTreatment = new();
 
@@ -303,9 +337,9 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private readonly Dictionary<Attribute, double> MostRecentAdjustmentFactorsForPerformanceCurves = new();
 
-    private readonly Dictionary<string, double> NumberCache = new(KeyComparer);
+    private readonly Dictionary<string, double> NumberCache = new(StringComparer.OrdinalIgnoreCase);
 
-    private readonly Dictionary<string, double> NumberCache_Override = new(KeyComparer);
+    private readonly Dictionary<string, double> NumberCache_Override = new(StringComparer.OrdinalIgnoreCase);
 
     private Treatment AppliedTreatmentWithPendingMetadata;
 
@@ -403,10 +437,17 @@ internal sealed class AssetContext : CalculateEvaluateScope
         }
     }
 
-    private void ClearCache()
+    private void ClearCache(string triggerKey)
     {
         NumberCache.Clear();
-        EvaluationCache.Clear();
+
+        if (SimulationRunner.DependentExpressionsPerAttributeName.TryGetValue(triggerKey, out var dependentExpressions))
+        {
+            foreach (var expression in dependentExpressions)
+            {
+                _ = EvaluationCache.Remove(expression);
+            }
+        }
     }
 
     private void CopyAttributeValuesToDetail(AssetSummaryDetail detail)

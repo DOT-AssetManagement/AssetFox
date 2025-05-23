@@ -1,12 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 using AppliedResearchAssociates.CalculateEvaluate;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
 
 namespace AppliedResearchAssociates.iAM.Analysis;
 
 public sealed class Criterion : CompilableExpression
 {
     internal Criterion(Explorer explorer) => Explorer = explorer ?? throw new ArgumentNullException(nameof(explorer));
+
+    public IReadOnlyCollection<string> ReferencedParameters
+    {
+        get
+        {
+            try
+            {
+                EnsureCompiled();
+            }
+            catch (MalformedInputException)
+            {
+                return Array.Empty<string>();
+            }
+            return Evaluator?.ReferencedParameters ?? Array.Empty<string>();
+        }
+    }
 
     public bool? Evaluate(CalculateEvaluateScope scope)
     {

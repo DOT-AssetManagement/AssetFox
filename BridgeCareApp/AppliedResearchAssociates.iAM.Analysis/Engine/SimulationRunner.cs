@@ -160,6 +160,7 @@ public sealed class SimulationRunner
         ConditionsPerBudget = Simulation.InvestmentPlan.BudgetConditions.ToLookupAsDictionary(budgetCondition => budgetCondition.Budget);
         CurvesPerAttribute = Simulation.PerformanceCurves.ToLookupAsDictionary(curve => curve.Attribute);
         NumberAttributeByName = Simulation.Network.Explorer.NumberAttributes.ToDictionary(attribute => attribute.Name, StringComparer.OrdinalIgnoreCase);
+        CalculatedFieldsByName = Simulation.Network.Explorer.CalculatedFields.ToDictionary(attribute => attribute.Name, StringComparer.OrdinalIgnoreCase);
 
         SortedDistributionRulesPerCashFlowRule = Simulation.InvestmentPlan.CashFlowRules.ToDictionary(
             _ => _,
@@ -334,6 +335,8 @@ public sealed class SimulationRunner
 
     internal Dictionary<string, NumberAttribute> NumberAttributeByName { get; private set; }
 
+    internal Dictionary<string, CalculatedField> CalculatedFieldsByName { get; private set; }
+
     internal Func<TreatmentOption, double> ObjectiveFunction { get; private set; }
 
     internal double GetInflationFactor(int year) => Simulation.InvestmentPlan.GetInflationFactor(year);
@@ -386,6 +389,10 @@ public sealed class SimulationRunner
     internal List<CalculatedField> CalculatedFieldsWithPreDeteriorationTiming;
 
     internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
+
+    internal readonly Dictionary<string, HashSet<string>> DependentExpressionsPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
+
+    internal readonly HashSet<string> ExpressionsAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
 
     private enum CostCoverage
     {
