@@ -118,6 +118,11 @@ internal sealed class AssetContext : CalculateEvaluateScope
                     {
                         foreach (var valueSource in calculatedField.ValueSources)
                         {
+                            foreach (var reference in valueSource.Criterion.ReferencedParameters)
+                            {
+                                dependenciesToAnalyze.Push(reference);
+                            }
+
                             foreach (var reference in valueSource.Equation.ReferencedParameters)
                             {
                                 dependenciesToAnalyze.Push(reference);
