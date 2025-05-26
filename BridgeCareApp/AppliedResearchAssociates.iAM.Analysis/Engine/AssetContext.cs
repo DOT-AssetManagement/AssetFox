@@ -104,46 +104,11 @@ internal sealed class AssetContext : CalculateEvaluateScope
             result = criterion.Evaluate(this);
             EvaluationCache.Add(criterion.Expression, result);
 
-            if (SimulationRunner.ExpressionsAnalyzedForAttributeDependencies.Add(criterion.Expression))
-            {
-                // Determine all direct and indirect attribute dependencies of the expression.
-
-                Stack<string> dependenciesToAnalyze = new(criterion.ReferencedParameters);
-                HashSet<string> dependencies = new();
-
-                while (dependenciesToAnalyze.TryPop(out var dependency))
-                {
-                    if (dependencies.Add(dependency) &&
-                        SimulationRunner.CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
-                    {
-                        foreach (var valueSource in calculatedField.ValueSources)
-                        {
-                            foreach (var reference in valueSource.Criterion.ReferencedParameters)
-                            {
-                                dependenciesToAnalyze.Push(reference);
-                            }
-
-                            foreach (var reference in valueSource.Equation.ReferencedParameters)
-                            {
-                                dependenciesToAnalyze.Push(reference);
-                            }
-                        }
-                    }
-                }
-
-                // Register the current expression as a dependent of each attribute dependency.
-
-                foreach (var dependency in dependencies)
-                {
-                    if (!SimulationRunner.DependentExpressionsPerAttributeName.TryGetValue(dependency, out var dependentExpressions))
-                    {
-                        dependentExpressions = new();
-                        SimulationRunner.DependentExpressionsPerAttributeName.Add(dependency, dependentExpressions);
-                    }
-
-                    _ = dependentExpressions.Add(criterion.Expression);
-                }
-            }
+            AnalyzeForAttributeDependencies(
+                SimulationRunner.ExpressionsAnalyzedForAttributeDependencies,
+                SimulationRunner.DependentExpressionsPerAttributeName,
+                criterion.Expression,
+                criterion.ReferencedParameters);
         }
 
         return result;
@@ -217,6 +182,11 @@ internal sealed class AssetContext : CalculateEvaluateScope
             }
 
             NumberCache[key] = number;
+
+            AnalyzeForAttributeDependencies(
+                SimulationRunner.KeysAnalyzedForAttributeDependencies,
+                SimulationRunner.DependentKeysPerAttributeName,
+                key);
         }
 
         _ = GetNumber_ActiveKeysOfCurrentInvocation.Remove(key);
@@ -352,6 +322,64 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private AnalysisMethod AnalysisMethod => SimulationRunner.Simulation.AnalysisMethod;
 
+    private void AnalyzeForAttributeDependencies(
+        HashSet<string> analyzedItems,
+        Dictionary<string, HashSet<string>> dependentsPerAttributeName,
+        string itemToAnalyze,
+        IEnumerable<string> directDependencies = null)
+    {
+        if (analyzedItems.Add(itemToAnalyze))
+        {
+            // Determine all direct and indirect attribute dependencies of the item.
+
+            Stack<string> dependenciesToAnalyze;
+            if (directDependencies is null)
+            {
+                dependenciesToAnalyze = new();
+                dependenciesToAnalyze.Push(itemToAnalyze);
+            }
+            else
+            {
+                dependenciesToAnalyze = new(directDependencies);
+            }
+
+            HashSet<string> dependencies = new();
+
+            while (dependenciesToAnalyze.TryPop(out var dependency))
+            {
+                if (dependencies.Add(dependency) &&
+                    SimulationRunner.CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
+                {
+                    foreach (var valueSource in calculatedField.ValueSources)
+                    {
+                        foreach (var reference in valueSource.Criterion.ReferencedParameters)
+                        {
+                            dependenciesToAnalyze.Push(reference);
+                        }
+
+                        foreach (var reference in valueSource.Equation.ReferencedParameters)
+                        {
+                            dependenciesToAnalyze.Push(reference);
+                        }
+                    }
+                }
+            }
+
+            // Register the item as a dependent of each of its attribute dependencies.
+
+            foreach (var dependency in dependencies)
+            {
+                if (!dependentsPerAttributeName.TryGetValue(dependency, out var dependents))
+                {
+                    dependents = new();
+                    dependentsPerAttributeName.Add(dependency, dependents);
+                }
+
+                _ = dependents.Add(itemToAnalyze);
+            }
+        }
+    }
+
     private void ApplyTreatmentButNotMetadata(Treatment treatment)
     {
         ApplyTreatmentConsequences(treatment);
@@ -444,7 +472,13 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private void ClearCache(string triggerKey)
     {
-        NumberCache.Clear();
+        if (SimulationRunner.DependentKeysPerAttributeName.TryGetValue(triggerKey, out var dependentKeys))
+        {
+            foreach (var key in dependentKeys)
+            {
+                _ = NumberCache.Remove(key);
+            }
+        }
 
         if (SimulationRunner.DependentExpressionsPerAttributeName.TryGetValue(triggerKey, out var dependentExpressions))
         {

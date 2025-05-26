@@ -390,9 +390,21 @@ public sealed class SimulationRunner
 
     internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
 
+    #region supporting data structures for refined invalidation of numeric cache
+
+    internal readonly Dictionary<string, HashSet<string>> DependentKeysPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
+
+    internal readonly HashSet<string> KeysAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
+
+    #endregion
+
+    #region supporting data structures for refined invalidation of evaluation cache
+
     internal readonly Dictionary<string, HashSet<string>> DependentExpressionsPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
 
     internal readonly HashSet<string> ExpressionsAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
+
+    #endregion
 
     private enum CostCoverage
     {
