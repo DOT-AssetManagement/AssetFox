@@ -22,8 +22,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
     {
         private IUnitOfWork _unitOfWork;
         private IHubService _hubService;
-        private readonly InitialAssetSummariesTab _initialAssetSummariesTab;
-        private readonly YearTab _yearTab;
+        private readonly InitialAssetsTab _initialAssetsTab;
+        private readonly YearAssetsTab _yearAssetsTab;
+        private readonly ConditionOfNetworkTab _conditionOfNetworkTab;
         public UserDefinedReportRequestModel _userDefinedReportRequestModel;
         private readonly ReportHelper _reportHelper;
 
@@ -34,8 +35,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _reportHelper = new ReportHelper(_unitOfWork);
             ReportTypeName = name;
 
-            _initialAssetSummariesTab = new InitialAssetSummariesTab(_unitOfWork);
-            _yearTab = new YearTab(_unitOfWork);
+            _initialAssetsTab = new InitialAssetsTab(_unitOfWork);
+            _yearAssetsTab = new YearAssetsTab(_unitOfWork);
+            _conditionOfNetworkTab = new ConditionOfNetworkTab(_unitOfWork);
 
             // check for existing report id
             var reportId = (results?.Id) ?? Guid.NewGuid();
@@ -47,6 +49,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             Results = string.Empty;
             IsComplete = false;
         }
+
+        private Guid _networkId;
 
         public Guid ID { get; set; }
 
@@ -97,6 +101,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 checkCancelled(cancellationToken, _simulationId);
                 var simulationObject = _unitOfWork.SimulationRepo.GetSimulation(_simulationId);
                 simulationName = simulationObject.Name;
+                _networkId = simulationObject.NetworkId;
             }
             catch (Exception e)
             {
@@ -122,7 +127,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 // Parse parameters
                 _userDefinedReportRequestModel = GetUserDefinedReportRequestModel(parameters);
                 Criteria = ReportHelper.GetCriteria(parameters);
-                reportPath = GenerateUserDefinedReport(_simulationId, workQueueLog, cancellationToken);
+                reportPath = GenerateUserDefinedReport(_networkId, _simulationId, workQueueLog, cancellationToken);
                 if (!string.IsNullOrEmpty(Criteria) && string.IsNullOrEmpty(reportPath))
                 {
                     var errorStatus = "No assets found for given criteria";
@@ -153,7 +158,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             return;
         }
 
-        private string GenerateUserDefinedReport(Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken)
+        private string GenerateUserDefinedReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken)
         {
             var reportDetailDto = new SimulationReportDetailDTO { SimulationId = simulationId, ReportType = ReportTypeName };
 
@@ -165,43 +170,100 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
             var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
-            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
-            // Sort data needed? if yes should be generic numberic/text
+            var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);            
+
+            // reportOutputData will be having all assets data, filter it based on criteria expression
+            if (!string.IsNullOrEmpty(Criteria))
+            {
+                var criteriaValidationResult = _reportHelper.FilterReportOutputData(reportOutputData, networkId, Criteria);
+
+                if (!reportOutputData.InitialAssetSummaries.Any())
+                {
+                    reportDetailDto.Status = "Failed to generate report due to no assets found for given criteria";
+                    workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+                    UpsertSimulationReportDetail(reportDetailDto);
+
+                    return string.Empty;
+                }
+            }
+
+            var primaryKeyFields = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+            var firstPrimaryKey = primaryKeyFields[0].ToString();
+            var isPrimaryKeyNumeric = _reportHelper.IsPrimaryKeyNumberic(reportOutputData.InitialAssetSummaries[0].ValuePerTextAttribute, reportOutputData.InitialAssetSummaries[0].ValuePerNumericAttribute, firstPrimaryKey);                        
+            
+            var filterYears = _userDefinedReportRequestModel.Years;
+            _ = reportOutputData.Years.RemoveAll(_ => !filterYears.Contains(_.Year));
+
+            // Sort data
+            if (isPrimaryKeyNumeric)
+            {
+                reportOutputData.InitialAssetSummaries.Sort(
+                    (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                );
+
+                foreach (var yearlySectionData in reportOutputData.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+                }
+            }
+            else
+            {
+                reportOutputData.InitialAssetSummaries.Sort(
+                    (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                );
+
+                foreach (var yearlySectionData in reportOutputData.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+                }
+            }
 
             using var excelPackage = new ExcelPackage(new FileInfo("UserDefinedReportTestData.xlsx"));
-
-            // InitialAssetSummariesTab based on param filters
-            var filterAttributes = _userDefinedReportRequestModel.Attributes;
-            // TODO remove post param Years get values from UI
-            filterAttributes = reportOutputData.InitialAssetSummaries[0].ValuePerNumericAttribute.Select(_=>_.Key).ToList();
-            filterAttributes.AddRange(reportOutputData.InitialAssetSummaries[0].ValuePerTextAttribute.Select(_ => _.Key).ToList());
-            //
-            reportDetailDto.Status = $"Creating InitialAssetSummaries tab";
-            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpsertSimulationReportDetail(reportDetailDto);
-            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
-            var assetSummariesWorksheet = excelPackage.Workbook.Worksheets.Add("InitialAssetSummaries");
-            _initialAssetSummariesTab.Fill(assetSummariesWorksheet, filterAttributes, reportOutputData.InitialAssetSummaries);
-
-            // YearTabs based on param filters
-            var filterYears = _userDefinedReportRequestModel.Years;
-            // TODO remove post param Years get values from UI
-            filterYears = reportOutputData.Years.Select(x => x.Year).ToList();
-            //
-            reportDetailDto.Status = $"Creating Year tabs for selected years";                        
-            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpsertSimulationReportDetail(reportDetailDto);
-            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
-            foreach (var filterYear in filterYears)
+            
+            if (_userDefinedReportRequestModel.DisplayConditionOfNetwork)
             {
-                // year tab
-                var yearWorksheet = excelPackage.Workbook.Worksheets.Add("Year " + filterYear);
-                var simulationYear = reportOutputData.Years.FirstOrDefault(_ => _.Year == filterYear);
-                _yearTab.Fill(yearWorksheet, _userDefinedReportRequestModel, simulationYear);
+                reportDetailDto.Status = $"Creating Condition Of Network tab";
+                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+                UpsertSimulationReportDetail(reportDetailDto);
+                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                var conditionOfNetwokWorksheet = excelPackage.Workbook.Worksheets.Add("Condition Of Network");
+                _conditionOfNetworkTab.Fill(conditionOfNetwokWorksheet, reportOutputData.Years);
                 checkCancelled(cancellationToken, simulationId);
             }
 
-            //check and generate folder
+            var filterAttributes = _userDefinedReportRequestModel.Attributes;
+            // Initial Assets - use filterAttributes
+            if (_userDefinedReportRequestModel.DisplayInitialAssets)
+            {
+                reportDetailDto.Status = $"Creating Initial Assets tab";
+                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+                UpsertSimulationReportDetail(reportDetailDto);
+                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                var assetSummariesWorksheet = excelPackage.Workbook.Worksheets.Add("Initial Assets");
+                _initialAssetsTab.Fill(assetSummariesWorksheet, filterAttributes, reportOutputData.InitialAssetSummaries);
+                checkCancelled(cancellationToken, simulationId);
+            }
+
+            // Year Assets - use filterAttributes
+            if (_userDefinedReportRequestModel.DisplayYearAssets)
+            {
+                reportDetailDto.Status = $"Creating Year Assets tab";
+                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+                UpsertSimulationReportDetail(reportDetailDto);
+                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                var yearWorksheet = excelPackage.Workbook.Worksheets.Add("Year Assets");                
+                _yearAssetsTab.Fill(yearWorksheet, _userDefinedReportRequestModel, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
+            }
+
+            // TODO other tabs based on flags
+
+
+            // check and generate folder
             var folderPathForSimulation = $"Reports\\{simulationId}";
             _ = Directory.CreateDirectory(folderPathForSimulation);
             var filePath = Path.Combine(folderPathForSimulation, "UserDefinedReport.xlsx");

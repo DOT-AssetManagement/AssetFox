@@ -44,8 +44,8 @@ export interface UserDefinedReportRequestModel {
     attributes:string[];
     years: number[];
     displayConditionOfNetwork: boolean;
-    displayInitialAssetSummaries: boolean; // assets attributes
-    displayAssets: boolean; // combine yearly assets + metadata + attributes
+    displayInitialAssets: boolean; // assets attributes
+    displayYearAssets: boolean; // combine yearly assets + metadata + attributes
     displayBudgets: boolean; // asset, years, budget info - vertical data in sheet
     displayDeficientConditionGoals: boolean;
     displayTargetConditionGoals: boolean;    
@@ -61,8 +61,8 @@ export const emptyUserDefinedReportRequestModel : UserDefinedReportRequestModel 
     attributes: [],
     years: [],
     displayConditionOfNetwork: false,
-    displayInitialAssetSummaries: false,
-    displayAssets: false,
+    displayInitialAssets: false,
+    displayYearAssets: false,
     displayBudgets: false,
     displayDeficientConditionGoals: false,
     displayTargetConditionGoals: false,

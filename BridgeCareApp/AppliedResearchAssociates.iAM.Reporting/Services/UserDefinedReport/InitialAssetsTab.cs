@@ -9,12 +9,12 @@ using OfficeOpenXml;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
 {
-    internal class InitialAssetSummariesTab
+    internal class InitialAssetsTab
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ReportHelper _reportHelper;
 
-        public InitialAssetSummariesTab(IUnitOfWork unitOfWork)
+        public InitialAssetsTab(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _reportHelper = new ReportHelper(_unitOfWork);

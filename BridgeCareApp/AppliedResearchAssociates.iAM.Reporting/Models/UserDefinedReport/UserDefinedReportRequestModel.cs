@@ -2,22 +2,37 @@
 
 namespace AppliedResearchAssociates.iAM.Reporting.Models
 {
+    /// <summary>
+    /// Filters for user defined report
+    /// </summary>
     public class UserDefinedReportRequestModel
     {
-        // Filters
-
-        public List<string> Attributes { get; set; } // TODO InitialAssetSummaries' AssetSummaryDetailValuesIntId details with given Attributes
+        public List<string> Attributes { get; set; }
 
         public List<int> Years { get; set; }
 
-        // TODO Show/Hide (next level report)
+        public bool DisplayConditionOfNetwork { get; set; }
+
+        public bool DisplayInitialAssets { get; set; }
+
+        public bool DisplayYearAssets { get; set; }
+
         public bool DisplayBudgets { get; set; }
-                
+
         public bool DisplayDeficientConditionGoals { get; set; }
-                
+
         public bool DisplayTargetConditionGoals { get; set; }
-                
-        public bool DisplayAssets { get; set; }
-        // TODO Assets => further drill down for show/hide can be planned as required...
+
+        public bool DisplayTreatmentOptions { get; set; }
+
+        public bool DisplayTreatmentSchedulingCollisions { get; set; }
+
+        public bool DisplayTreatmentRejections { get; set; }
+
+        public bool DisplayTreatmentCashflowConsiderations { get; set; }
+
+        public bool DisplyTreatmentCurrentBudgetsToSpend { get; set; }
+
+        public bool DisplayTreatmentAllocations { get; set; }
     }
 }

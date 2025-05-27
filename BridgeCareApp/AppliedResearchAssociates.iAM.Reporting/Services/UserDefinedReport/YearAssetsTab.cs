@@ -8,25 +8,25 @@ using OfficeOpenXml;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
 {
-    internal class YearTab
+    internal class YearAssetsTab
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ReportHelper _reportHelper;
 
-        public YearTab(IUnitOfWork unitOfWork)
+        public YearAssetsTab(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        internal void Fill(ExcelWorksheet yearWorksheet, UserDefinedReportRequestModel userDefinedReportRequestModel, SimulationYearDetail simulationYearDetail)
+        internal void Fill(ExcelWorksheet yearWorksheet, UserDefinedReportRequestModel userDefinedReportRequestModel, List<SimulationYearDetail> years)
         {
             //set default width
             yearWorksheet.DefaultColWidth = 18;
             
             var startColumn = 1;            
             var startRow = 1;
-            //var currentCell = new CurrentCell { Row = startRow, Column = startColumn };
+            
             // Display output details for simulation year
             var currentColumn = startColumn;
             var currentRow = startRow;
@@ -38,7 +38,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
             yearWorksheet.Cells[currentRow, currentColumn].Value = "ConditionOfNetwork";
             ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, currentColumn++]);
             yearWorksheet.Cells[currentRow, currentColumn].Value = simulationYearDetail.ConditionOfNetwork;
-            ExcelHelper.ApplyBorder(yearWorksheet.Cells[currentRow++, currentColumn]);            
+            ExcelHelper.ApplyBorder(yearWorksheet.Cells[currentRow++, currentColumn]);
 
             // Budgets            
             currentRow = FillBudgets(yearWorksheet, userDefinedReportRequestModel.DisplayBudgets, simulationYearDetail, startColumn, currentRow);
@@ -50,7 +50,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
             currentRow = FillTargetConditionGoals(yearWorksheet, userDefinedReportRequestModel.DisplayTargetConditionGoals, simulationYearDetail, startColumn, currentRow);
 
             // Assets
-            FillAssets(yearWorksheet, userDefinedReportRequestModel.DisplayAssets, simulationYearDetail, startColumn, currentRow);
+            FillAssets(yearWorksheet, userDefinedReportRequestModel.DisplayYearAssets, simulationYearDetail, startColumn, currentRow);
 
             yearWorksheet.Cells.AutoFitColumns();
         }

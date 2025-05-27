@@ -72,7 +72,7 @@
                         class="ghd-checkbox"
                         color="#2A578D"
                         label="Initial Assets"
-                        v-model="newUserDefinedReportRequestModel.displayInitialAssetSummaries"
+                        v-model="newUserDefinedReportRequestModel.displayInitialAssets"
                         @update:model-value='onSetDisplayProperty("displayInitialAssetSummaries",$event)'/>
                     </v-col>
                 </v-row>
@@ -83,7 +83,7 @@
                         class="ghd-checkbox"
                         color="#2A578D"
                         label="Year Assets"
-                        v-model="newUserDefinedReportRequestModel.displayAssets"
+                        v-model="newUserDefinedReportRequestModel.displayYearAssets"
                         @update:model-value='onSetDisplayProperty("displayAssets",$event)'/>
                     </v-col>
                 </v-row>                
