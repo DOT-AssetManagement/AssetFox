@@ -92,7 +92,7 @@
   }
   
   function save() {
-    emit('save', selectedTreatments.value);
+    emit('save', selectedTreatments.value.filter(treatment => treatment !== 'Default Treatment'));
     dialog.value = false;
     emit('update:modelValue', false);
   }

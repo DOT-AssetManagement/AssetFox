@@ -594,6 +594,17 @@ import CashFlowService from '@/services/cash-flow.service';
                 });
         });
 
+        $emitter.on('CommittedProjectsWithErrors', () => {
+            isCashFlowSet.value = false;
+            isCommittedProjectsBudgetsUnset.value = true;
+            // Update the icon of the Committed Projects tab
+            navigationTabs.value.forEach((tab) => {
+                    if (tab.tabName === 'Committed Projects') {
+                        tab.validationIcon = 'fas fa-times-circle';
+                    }
+                });
+        });
+
         $emitter.on('SimulationRunSettingUpdated', () => {
             if(String(selectedScenarioId) === String(simulationRunSettingId.value))
             {

@@ -78,7 +78,7 @@
                         v-model:items-per-page="projectPagination.rowsPerPage"
                         item-value="name"
                         v-model="selectedCpItems"
-                        @update:options="onPaginationChanged"
+                        @update:options="onPaginationChangedAndValidated"
                         class=" fixed-header v-table__overflow">
                             <template v-slot:item="item">
                                 <tr>
@@ -359,7 +359,6 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import TreatmentSelectionPopup from './committed-project-editor-dialogs/TreatmentSelectionPopup.vue';
 
-
     let store = useStore();
     const $router = useRouter();    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
@@ -424,8 +423,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
     
-
-
     const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
     const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
     const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
@@ -601,7 +598,12 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     templateSelectItems.value = response.data;
             }
         });   
-        onPaginationChanged();         
+        onPaginationChanged();        
+        
+        if(hasValidationErrors.value)
+        {
+            $emitter.emit('CommittedProjectsWithErrors');
+        }
     });
     onBeforeUnmount(() => beforeDestroy())
     function beforeDestroy() {
@@ -683,13 +685,19 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
            selectedCommittedProject.value = selectedCpItems.value[0].id;
     },{ immediate: true });
 
+    async function onPaginationChangedAndValidated() {
+     onPaginationChanged().then(() => {
+            checkUpdateCommittedProjectsValidationIcon();
+        });
+    }
+
     async function onPaginationChanged() {
         if (isRunning) {
             return;
         }
 
         resetValidationArrays();
-
+        
         isRunning = true
         checkHasUnsavedChanges();
 
@@ -1282,12 +1290,12 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             invalidTreatments.value.length > 0 ||
             invalidBudgets.value.length > 0 ||
             currentPage.value.some((scp) => {
-                return (scp.errors && scp.errors.length > 0) ||
-                    (scp.yearErrors && scp.yearErrors.length > 0) ||
+                return (scp.yearErrors && scp.yearErrors.length > 0) ||
                     (scp.treatmentErrors && scp.treatmentErrors.length > 0) ||
                     (scp.costErrors && scp.costErrors.length > 0) ||
                     (scp.projectSourceErrors && scp.projectSourceErrors.length > 0) ||
                     //(scp.projectSourceIdErrors && scp.projectSourceIdErrors.length > 0) ||
+                    //(scp.errors && scp.errors.length > 0) || -> errors always have brkey does not exist error
                     (scp.budgetErrors && scp.budgetErrors.length > 0);
             });
     });
@@ -1640,12 +1648,22 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 setAlertMessageAction('');
                 if (totalItems.value > 0) {
                     dialogMessage.value = 'Committed projects were imported. See alerts for further details.';
+                    checkUpdateCommittedProjectsValidationIcon();
                 } else {
                     dialogMessage.value = 'No committed projects were imported. See alerts for further details.';
                 }                
                     showUploadCompleteDialog.value = true;
                 })
         } 
+    }
+
+    function checkUpdateCommittedProjectsValidationIcon() {
+        if(hasValidationErrors.value) {
+            $emitter.emit('CommittedProjectsWithErrors');
+        }
+        else {
+            $emitter.emit('CommittedProjectsUpdated');
+        }
     }
 
     async function fetchTreatmentLibrary(simulationId: string) {
