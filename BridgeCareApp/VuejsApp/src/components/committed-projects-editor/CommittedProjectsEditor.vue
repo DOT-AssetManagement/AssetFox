@@ -78,7 +78,7 @@
                         v-model:items-per-page="projectPagination.rowsPerPage"
                         item-value="name"
                         v-model="selectedCpItems"
-                        @update:options="onPaginationChangedAndValidated"
+                        @update:options="onPaginationChanged"
                         class=" fixed-header v-table__overflow">
                             <template v-slot:item="item">
                                 <tr>
@@ -422,7 +422,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     let isKeyAttributeValidMap: Map<string, boolean> = new Map<string, boolean>();
 
     let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
-    
+    let AllCommittedProjectsValid: boolean = false;
+
     const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
     const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
     const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
@@ -600,10 +601,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         });   
         onPaginationChanged();        
         
-        if(hasValidationErrors.value)
-        {
-            $emitter.emit('CommittedProjectsWithErrors');
-        }
+        await validateAllCommittedProjects();        
     });
     onBeforeUnmount(() => beforeDestroy())
     function beforeDestroy() {
@@ -614,6 +612,24 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             importCompleted,
         );
         setAlertMessageAction('');
+    }
+
+    async function validateAllCommittedProjects()
+    {
+        await CommittedProjectsService.validateAllCommittedProjects(scenarioId, network).then(response => {
+            if(response.data) {
+                AllCommittedProjectsValid = response.data;
+            }
+        });
+
+        if(currentPage.value.length > 0) {
+            if(!AllCommittedProjectsValid) {
+                $emitter.emit('CommittedProjectsWithErrors');
+            }
+            else {
+                $emitter.emit('CommittedProjectsUpdated');
+            }
+        }
     }
 
     //Watch
@@ -684,12 +700,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         if(selectedCpItems.value.length === 1)
            selectedCommittedProject.value = selectedCpItems.value[0].id;
     },{ immediate: true });
-
-    async function onPaginationChangedAndValidated() {
-     onPaginationChanged().then(() => {
-            checkUpdateCommittedProjectsValidationIcon();
-        });
-    }
 
     async function onPaginationChanged() {
         if (isRunning) {
@@ -960,6 +970,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         } else {
             performUpsert();
         }
+
+        validateAllCommittedProjects();
     }
 
     function handleUpsertResponse(response: AxiosResponse) {
@@ -1639,7 +1651,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             updatedRowsMap.size > 0 
     }
 
-    function importCompleted(data: any){
+    async function importCompleted(data: any){
         var importComp = data.importComp as importCompletion
         if(importComp.id === scenarioId && importComp.workType == WorkType.ImportCommittedProject){
             projectPagination.page = 1
@@ -1647,23 +1659,14 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             onPaginationChanged().then(() => {
                 setAlertMessageAction('');
                 if (totalItems.value > 0) {
-                    dialogMessage.value = 'Committed projects were imported. See alerts for further details.';
-                    checkUpdateCommittedProjectsValidationIcon();
+                    dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any error cells.';
+                    validateAllCommittedProjects();
                 } else {
-                    dialogMessage.value = 'No committed projects were imported. See alerts for further details.';
+                    dialogMessage.value = 'No committed projects were imported and saved. error export sheet for any error cells.';
                 }                
                     showUploadCompleteDialog.value = true;
                 })
         } 
-    }
-
-    function checkUpdateCommittedProjectsValidationIcon() {
-        if(hasValidationErrors.value) {
-            $emitter.emit('CommittedProjectsWithErrors');
-        }
-        else {
-            $emitter.emit('CommittedProjectsUpdated');
-        }
     }
 
     async function fetchTreatmentLibrary(simulationId: string) {
