@@ -366,10 +366,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         private void DeleteScenarioCurves(List<Guid> ids)
         {
             _unitOfWork.Context.DeleteAll<ScenarioPerformanceCurveEntity>(_ => ids.Contains(_.Id));
-            //_unitOfWork.Context.DeleteAll<EquationEntity>(_ => ids.Contains(_.ScenarioPerformanceCurveEquationJoin.ScenarioPerformanceCurveId));
-            //_unitOfWork.Context.DeleteAll<ScenarioPerformanceCurveEquationEntity>(_ => ids.Contains(_.ScenarioPerformanceCurveId));
-            //_unitOfWork.Context.DeleteAll<CriterionLibraryEntity>(_ => ids.Contains(_.));
-            //_unitOfWork.Context.DeleteAll<CriterionLibraryScenarioPerformanceCurveEntity>(_ => criterionIds.Contains(_.CriterionLibraryId));
         }
 
         private void UpdateScenarioCurves(List<PerformanceCurveDTO> curves, Guid simulationId, Dictionary<string, Guid> attrDict)

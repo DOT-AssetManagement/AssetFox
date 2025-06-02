@@ -10,6 +10,12 @@ export interface Config {
   clientId: string;
   redirectUri: string;
   securityType: string;
+  localDegugInfo: {
+    name: string,
+    email: string,
+    hasAdminAccess: boolean,
+    hasSimulationAccess: boolean
+  };
   logos: {
     agencyFilename: string;
     implementationFilename: string;
