@@ -4,14 +4,17 @@ using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using BridgeCareCore.Utils;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
@@ -134,10 +137,35 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                     AddValidationError(ErrorType.GeneralError, $"Error processing row {row}");
                 }
             };
-          
+
             // Batch error reporting
+            using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo("CommittedProjects")))
+            {                
+                CreateErrorExportSheet(excelPackage, worksheet);
+
+                //check and generate folder
+                var folderPathForSimulation = $"CommittedProjects\\{simulation.Id}";
+                _ = Directory.CreateDirectory(folderPathForSimulation);
+                var filePath = Path.Combine(folderPathForSimulation, "CommittedProjects.xlsx");
+                var bin = excelPackage.GetAsByteArray();
+                File.WriteAllBytes(filePath, bin);
+            }
+            
             NotifyValidationErrors(userId);
+
             return _projectsPerKey.Values.ToList();
+        }
+
+        private void CreateErrorExportSheet(ExcelPackage excelPackage, ExcelWorksheet toCopyWorksheet)
+        {
+            var errorExportSheet = excelPackage.Workbook.Worksheets.Add("Committed Projects", toCopyWorksheet);
+
+            // TODO foreach in _validationErrorMessages highlight the resp cell with red border and save the excel - decide where to save?
+            // and wipeout earlier excel of last import if no errors just delete one - should we keep count of errors as part of fileName?
+            foreach(var errorMessage in _validationErrorMessages)
+            {
+                
+            }
         }
 
         /// <summary>
@@ -168,8 +196,8 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                     $"Duplicate Project Removed: Row {row}, Asset {locationId}, Year {projectYear}'");
                 return null; // Skip further processing
             }
-
-            var assetId = ValidateLocationIdHasAssets(maintainableAssetIdsPerLocationId, locationId, row);
+            var columnIndex = columnIndices[_networkKeyField];
+            var assetId = ValidateLocationIdHasAssets(maintainableAssetIdsPerLocationId, locationId, row, columnIndex);
             var locationInformation = BuildLocationInformation(locationColumnNames, rowValues, assetId, row);        
 
             return new SectionCommittedProjectDTO
@@ -251,11 +279,12 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
         private Guid ValidateLocationIdHasAssets(
             Dictionary<string, Guid> maintainableAssetIdsPerLocationId,
             string locationId,
-            int row)
+            int row,
+            int columnIndex)
         {
             if (!maintainableAssetIdsPerLocationId.TryGetValue(locationId, out var assetId))
             {
-                AddValidationError(ErrorType.AssetNotFound, $"Row {row}: Location '{locationId}' does not match any network asset.");
+                AddValidationError(ErrorType.AssetNotFound, $"Row {row}, Column {columnIndex}: Location '{locationId}' does not match any network asset.");
             }
 
             return assetId;
@@ -687,7 +716,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             {
                 return;
             }
-
+                        
             foreach (var errorType in _validationErrorMessages.Keys)
             {
                 var errors = _validationErrorMessages[errorType].Distinct().ToList();
