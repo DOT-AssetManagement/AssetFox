@@ -110,9 +110,15 @@
                                         avatar @click='onSetTreatmentSelectItemValue(treatmentSelectItem.value)'>
                                 <v-list-item-content class ="item-content">
                                     <span>{{treatmentSelectItem.text}}</span>
+                                    <div>
+                                    <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'"
+                                    @click.stop="OnCloneTreatmentClicked(treatmentSelectItem.value)"  class="ghd-red">
+                                        <img class='img-general' :src="getUrl('assets/icons/copy.svg')"/>
+                                    </v-btn>
                                     <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'" @click="onShowConfirmDeleteTreatmentAlert" class="ghd-red">
                                         <TrashCanSvg />
-                                    </v-btn>
+                                    </v-btn>                                   
+                                    </div>
                                 </v-list-item-content>
                             </v-list-item>
                         </template>
@@ -301,6 +307,10 @@
         :showDialog='showCreateTreatmentDialog'
         @submit='onAddTreatment'
     />
+    <CloneTreatmentDialog
+        :show-dialog='showCloneTreatmentDialog'
+        @submit='CloneTreatment'
+    />
 
     <ImportNewTreatmentDialog
         :showDialog ='showImportTreatmentDialog'
@@ -358,6 +368,7 @@ import {
     PerformanceCurve,
 } from '@/shared/models/iAM/performance';
 import CreateTreatmentDialog from '@/components/treatment-editor/treatment-editor-dialogs/CreateTreatmentDialog.vue';
+import CloneTreatmentDialog from './treatment-editor-dialogs/CloneTreatmentDialog.vue';
 import {
     any,
     append,
@@ -420,7 +431,7 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-
+import { getUrl } from '@/shared/utils/get-url';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
@@ -574,6 +585,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
     let activeTab = ref(0);
     let treatmentTabs: string[] = ['Treatment Details', 'Costs', 'Consequences', 'Supersede', 'Performance Factor'];
     const createTreatmentLibraryDialogData = ref<CreateTreatmentLibraryDialogData>(clone(emptyCreateTreatmentLibraryDialogData));
+    let showCloneTreatmentDialog = ref<boolean>(false)
     let showCreateTreatmentDialog = ref(false);
     const showImportTreatmentDialog = ref<boolean>(false);
     let confirmBeforeDeleteAlertData = ref(clone(emptyAlertData));
@@ -608,6 +620,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
     let simpleTreatments  = shallowRef<SimpleTreatment[]>([]);
     let isShared: boolean = false;
     let treatmentCache: Treatment[] = [];
+    let treatmentToBeClonedId: string = ''
 
     let unsavedDialogAllowed: boolean = true;
     let trueLibrarySelectItemValue: string = '';
@@ -1544,6 +1557,70 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             
             $emitter.emit('TreatmentSettingsUpdated');                 
         }        
+    }
+
+    function OnCloneTreatmentClicked(treatmentId: string | number){
+        showCloneTreatmentDialog.value = true;
+        treatmentToBeClonedId = treatmentId.toString();
+    }
+
+    async function CloneTreatment(name: string)
+    {
+        showCloneTreatmentDialog.value = false;
+        if(isNil(name))
+            return;
+        var origiTreatment = treatmentCache.find(_ => _.id == treatmentToBeClonedId);
+        var mapEntry = updatedRowsMap.get(treatmentSelectItemValue.value);
+        var addedRow = addedRows.find(_ => _.id == treatmentSelectItemValue.value);
+
+        if(!isNil(mapEntry)){
+            origiTreatment = clone(mapEntry[1]);
+        }
+        else if(!isNil(addedRow)){
+            origiTreatment = clone(addedRow);
+        }     
+        if(isNil(origiTreatment)){
+            var response: AxiosResponse<any>;
+            if(hasSelectedLibrary.value){
+                    response = await TreatmentService.getSelectedTreatmentById(treatmentToBeClonedId)
+            }
+                else response = await TreatmentService.getScenarioSelectedTreatmentById(treatmentToBeClonedId)
+            
+            if(hasValue(response, 'data')) {
+                    var data = response.data as Treatment;
+                    treatmentCache.push(data)
+                    origiTreatment = data;
+            }
+        }
+        var treatmentClone = clone(origiTreatment!);
+        treatmentClone.name = name;
+        treatmentClone.id = getNewGuid();
+        treatmentClone.consequences.forEach(_ => {
+            _.id = getNewGuid();
+            _.equation.id = getNewGuid();
+            _.criterionLibrary.id = getNewGuid();
+        })
+        treatmentClone.costs.forEach(_ => {
+            _.id = getNewGuid();
+            _.equation.id = getNewGuid();
+            _.criterionLibrary.id = getNewGuid();
+        })
+        treatmentClone.supersedeRules.forEach(_ => {
+
+            _.id = getNewGuid();
+            _.criterionLibrary.id = getNewGuid();
+        })
+        treatmentClone.criterionLibrary.id = getNewGuid();
+        treatmentClone.performanceFactors.forEach(_ => {
+            _.id = getNewGuid();
+        })
+
+        if (!isNil(treatmentClone)) {
+            addedRows = append(treatmentClone, addedRows);
+            simpleTreatments.value = append({name: treatmentClone.name, id: treatmentClone.id}, simpleTreatments.value);
+            setTimeout(() => (treatmentSelectItemValue.value = treatmentClone.id));
+        }
+
     }
 
     //paging
