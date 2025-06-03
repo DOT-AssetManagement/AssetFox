@@ -127,4 +127,10 @@ export default class CommittedProjectsService {
             `${API.CommittedProject}/FillTreatmentValues`, data
         );
     }
+
+    static validateAllCommittedProjects(scenarioId: string, network: Network): AxiosPromise {
+        return coreAxiosInstance.post(
+            `${API.CommittedProject}/ValidateAllCommittedProjects/${scenarioId}`, network
+        );
+    }
 }

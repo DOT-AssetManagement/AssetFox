@@ -359,7 +359,6 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import TreatmentSelectionPopup from './committed-project-editor-dialogs/TreatmentSelectionPopup.vue';
 
-
     let store = useStore();
     const $router = useRouter();    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
@@ -423,8 +422,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     let isKeyAttributeValidMap: Map<string, boolean> = new Map<string, boolean>();
 
     let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
-    
-
+    let AllCommittedProjectsValid: boolean = false;
 
     const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
     const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
@@ -601,7 +599,9 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     templateSelectItems.value = response.data;
             }
         });   
-        onPaginationChanged();         
+        onPaginationChanged();        
+        
+        await validateAllCommittedProjects();        
     });
     onBeforeUnmount(() => beforeDestroy())
     function beforeDestroy() {
@@ -612,6 +612,24 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             importCompleted,
         );
         setAlertMessageAction('');
+    }
+
+    async function validateAllCommittedProjects()
+    {
+        await CommittedProjectsService.validateAllCommittedProjects(scenarioId, network).then(response => {
+            if(response.data) {
+                AllCommittedProjectsValid = response.data;
+            }
+        });
+
+        if(currentPage.value.length > 0) {
+            if(!AllCommittedProjectsValid) {
+                $emitter.emit('CommittedProjectsWithErrors');
+            }
+            else {
+                $emitter.emit('CommittedProjectsUpdated');
+            }
+        }
     }
 
     //Watch
@@ -689,7 +707,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         }
 
         resetValidationArrays();
-
+        
         isRunning = true
         checkHasUnsavedChanges();
 
@@ -952,6 +970,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         } else {
             performUpsert();
         }
+
+        validateAllCommittedProjects();
     }
 
     function handleUpsertResponse(response: AxiosResponse) {
@@ -1282,12 +1302,12 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             invalidTreatments.value.length > 0 ||
             invalidBudgets.value.length > 0 ||
             currentPage.value.some((scp) => {
-                return (scp.errors && scp.errors.length > 0) ||
-                    (scp.yearErrors && scp.yearErrors.length > 0) ||
+                return (scp.yearErrors && scp.yearErrors.length > 0) ||
                     (scp.treatmentErrors && scp.treatmentErrors.length > 0) ||
                     (scp.costErrors && scp.costErrors.length > 0) ||
                     (scp.projectSourceErrors && scp.projectSourceErrors.length > 0) ||
                     //(scp.projectSourceIdErrors && scp.projectSourceIdErrors.length > 0) ||
+                    //(scp.errors && scp.errors.length > 0) || -> errors always have brkey does not exist error
                     (scp.budgetErrors && scp.budgetErrors.length > 0);
             });
     });
@@ -1631,7 +1651,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             updatedRowsMap.size > 0 
     }
 
-    function importCompleted(data: any){
+    async function importCompleted(data: any){
         var importComp = data.importComp as importCompletion
         if(importComp.id === scenarioId && importComp.workType == WorkType.ImportCommittedProject){
             projectPagination.page = 1
@@ -1639,9 +1659,11 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             onPaginationChanged().then(() => {
                 setAlertMessageAction('');
                 if (totalItems.value > 0) {
-                    dialogMessage.value = 'Committed projects were imported. See alerts for further details.';
+                    dialogMessage.value = 'Committed projects in the sheet were imported and saved.'; // TODO add below after export sheet functionality is in place
+                    //  See error export sheet for any error cells.';
+                    validateAllCommittedProjects();
                 } else {
-                    dialogMessage.value = 'No committed projects were imported. See alerts for further details.';
+                    dialogMessage.value = 'No committed projects were imported and saved. error export sheet for any error cells.';
                 }                
                     showUploadCompleteDialog.value = true;
                 })

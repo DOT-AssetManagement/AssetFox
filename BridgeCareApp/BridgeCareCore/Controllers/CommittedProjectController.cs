@@ -23,6 +23,7 @@ using BridgeCareCore.Services;
 using BridgeCareCore.Services.General_Work_Queue.WorkItems;
 using System.IO;
 using Org.BouncyCastle.Utilities;
+using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
 
 namespace BridgeCareCore.Controllers
 {
@@ -462,6 +463,51 @@ namespace BridgeCareCore.Controllers
             return Ok();
         }
 
+        [HttpGet("projectsources")]
+        public IActionResult GetProjectSources()
+        {
+            var projectSources = Enum.GetNames(typeof(ProjectSourceDTO)).ToList();
+            return Ok(projectSources);
+        }
+
+        [HttpPost]
+        [Route("ValidateAllCommittedProjects/{simulationId}")]
+        [Authorize(Policy = Policy.ViewCommittedProjects)]
+        public async Task<IActionResult> ValidateAllCommittedProjects(Guid simulationId, NetworkDTO network)
+        {
+            bool isValid = false;
+
+            try
+            {
+                var result = await Task.Factory.StartNew(() =>
+                {
+                    _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
+                    var sectionCommittedProjectDtos = UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
+                    var budgetYears = UnitOfWork.BudgetRepo.GetBudgetYearsBySimulationId(simulationId);
+                    var keyAttrName = UnitOfWork.AttributeRepo.GetSingleById(network.KeyAttribute).Name;
+                    var keyAttrValues = sectionCommittedProjectDtos.Select(_ => _.LocationKeys[keyAttrName]).ToList();
+                    var keyAttributeValuesExists = UnitOfWork.MaintainableAssetRepo.CheckIfKeyAttributeValuesExists(network.Id, keyAttrValues);
+                    return UnitOfWork.CommittedProjectRepo.ValidateAllCommittedProjects(sectionCommittedProjectDtos, budgetYears, keyAttributeValuesExists);
+                });
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{CommittedProjectError}::GetCommittedProjects - {HubService.errorList["Unauthorized"]}", e);
+            }
+            catch (RowNotInTableException)
+            {
+                return BadRequest($"Unable to find simulation {simulationId}");
+            }
+            catch (Exception e)
+            {
+                var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{CommittedProjectError}::GetCommittedProjects for {simulationName} - {e.Message}", e);
+            }
+            return Ok(isValid);
+        }
+
         private void CheckDeletePermit(List<Guid> projectIds)
         {
             if (_claimHelper.RequirePermittedCheck())
@@ -479,14 +525,7 @@ namespace BridgeCareCore.Controllers
                     }
                 }
             }
-        }
-
-        [HttpGet("projectsources")]
-        public IActionResult GetProjectSources()
-        {
-            var projectSources = Enum.GetNames(typeof(ProjectSourceDTO)).ToList();
-            return Ok(projectSources);
-        }
+        }               
 
         private void CheckUpsertPermit(List<SectionCommittedProjectDTO> projects)
         {
