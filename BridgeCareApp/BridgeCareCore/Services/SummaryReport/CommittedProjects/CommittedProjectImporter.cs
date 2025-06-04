@@ -1,21 +1,19 @@
 ﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using BridgeCareCore.Utils;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
 {
@@ -139,16 +137,20 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             };
 
             // Batch error reporting
-            using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo("CommittedProjects")))
+            using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo("CommittedProjectsAudit")))
             {                
-                CreateErrorExportSheet(excelPackage, worksheet);
+                var errorCount = CreateErrorExportSheet(excelPackage, worksheet);
 
-                //check and generate folder
+                // check and generate folder
                 var folderPathForSimulation = $"CommittedProjects\\{simulation.Id}";
+                Directory.Delete(folderPathForSimulation, true);                
                 _ = Directory.CreateDirectory(folderPathForSimulation);
-                var filePath = Path.Combine(folderPathForSimulation, "CommittedProjects.xlsx");
-                var bin = excelPackage.GetAsByteArray();
-                File.WriteAllBytes(filePath, bin);
+                if (errorCount > 0)
+                {
+                    var filePath = Path.Combine(folderPathForSimulation, "CommittedProjectsAudit_Errors_" + errorCount + ".xlsx");
+                    var bin = excelPackage.GetAsByteArray();
+                    File.WriteAllBytes(filePath, bin);
+                }
             }
             
             NotifyValidationErrors(userId);
@@ -156,16 +158,29 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             return _projectsPerKey.Values.ToList();
         }
 
-        private void CreateErrorExportSheet(ExcelPackage excelPackage, ExcelWorksheet toCopyWorksheet)
+        private int CreateErrorExportSheet(ExcelPackage excelPackage, ExcelWorksheet toCopyWorksheet)
         {
             var errorExportSheet = excelPackage.Workbook.Worksheets.Add("Committed Projects", toCopyWorksheet);
-
-            // TODO foreach in _validationErrorMessages highlight the resp cell with red border and save the excel - decide where to save?
-            // and wipeout earlier excel of last import if no errors just delete one - should we keep count of errors as part of fileName?
-            foreach(var errorMessage in _validationErrorMessages)
+            var excelAddresses = new List<ExcelAddress>();
+            
+            foreach(var errorsPerType in _validationErrorMessages)
             {
-                
+                foreach (var error in errorsPerType.Value)
+                {                    
+                    var rowIndex = error.IndexOf("Row") + 4;
+                    var colIndex = error.IndexOf("Column") + 7;
+                    var row = error.Split([':'])[0].ElementAt(rowIndex).ToString();
+                    var col = error.Split([':'])[0].ElementAt(colIndex).ToString();
+                    var cells = errorExportSheet.Cells[Convert.ToInt32(row), Convert.ToInt32(col)];
+                    if (!excelAddresses.Any(_ => _.Address == cells.Address))
+                    {
+                        excelAddresses.Add(cells);
+                    }
+                    ExcelHelper.ApplyColor(cells, Color.Red);
+                }
             }
+
+            return excelAddresses.Count;
         }
 
         /// <summary>
