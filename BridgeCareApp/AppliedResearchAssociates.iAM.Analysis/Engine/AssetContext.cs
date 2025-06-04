@@ -323,12 +323,12 @@ internal sealed class AssetContext : CalculateEvaluateScope
     private AnalysisMethod AnalysisMethod => SimulationRunner.Simulation.AnalysisMethod;
 
     private void AnalyzeForAttributeDependencies(
-        HashSet<string> analyzedItems,
-        Dictionary<string, HashSet<string>> dependentsPerAttributeName,
+        ConcurrentDictionary<string, object> analyzedItems,
+        ConcurrentDictionary<string, ConcurrentDictionary<string, object>> dependentsPerAttributeName,
         string itemToAnalyze,
         IEnumerable<string> directDependencies = null)
     {
-        if (analyzedItems.Add(itemToAnalyze))
+        if (analyzedItems.TryAdd(itemToAnalyze, default))
         {
             // Determine all direct and indirect attribute dependencies of the item.
 
@@ -369,13 +369,10 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
             foreach (var dependency in dependencies)
             {
-                if (!dependentsPerAttributeName.TryGetValue(dependency, out var dependents))
-                {
-                    dependents = new();
-                    dependentsPerAttributeName.Add(dependency, dependents);
-                }
+                var dependents = dependentsPerAttributeName.GetOrAdd(dependency,
+                    static key => new(StringComparer.OrdinalIgnoreCase));
 
-                _ = dependents.Add(itemToAnalyze);
+                _ = dependents.TryAdd(itemToAnalyze, default);
             }
         }
     }
@@ -470,19 +467,19 @@ internal sealed class AssetContext : CalculateEvaluateScope
         }
     }
 
-    private void ClearCache(string triggerKey)
+    private void ClearCache(string triggeringKey)
     {
-        if (SimulationRunner.DependentKeysPerAttributeName.TryGetValue(triggerKey, out var dependentKeys))
+        if (SimulationRunner.DependentKeysPerAttributeName.TryGetValue(triggeringKey, out var dependentKeys))
         {
-            foreach (var key in dependentKeys)
+            foreach (var (key, _) in dependentKeys)
             {
                 _ = NumberCache.Remove(key);
             }
         }
 
-        if (SimulationRunner.DependentExpressionsPerAttributeName.TryGetValue(triggerKey, out var dependentExpressions))
+        if (SimulationRunner.DependentExpressionsPerAttributeName.TryGetValue(triggeringKey, out var dependentExpressions))
         {
-            foreach (var expression in dependentExpressions)
+            foreach (var (expression, _) in dependentExpressions)
             {
                 _ = EvaluationCache.Remove(expression);
             }

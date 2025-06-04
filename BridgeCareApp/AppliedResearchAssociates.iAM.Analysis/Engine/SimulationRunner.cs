@@ -1,9 +1,7 @@
 //#define dump_analysis_input
 //#define dump_analysis_output
 
-#if !DEBUG
-#define use_parallelism
-#endif
+#define debug_without_parallelism
 
 #if dump_analysis_input || dump_analysis_output
 using System.IO;
@@ -17,6 +15,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis.Logic;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.Validation;
@@ -25,13 +24,25 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine;
 
 public sealed class SimulationRunner
 {
-    public SimulationRunner(Simulation simulation) => Simulation = simulation ?? throw new ArgumentNullException(nameof(simulation));
+    public SimulationRunner(Simulation simulation) : this(simulation, false)
+    {
+    }
+
+    public SimulationRunner(Simulation simulation, bool disableParallelism)
+    {
+        Simulation = simulation ?? throw new ArgumentNullException(nameof(simulation));
+
+#if DEBUG && debug_without_parallelism
+        DisableParallelism = true;
+#else
+        DisableParallelism = disableParallelism;
+#endif
+    }
 
     public event EventHandler<ProgressEventArgs> Progress;
 
     public event EventHandler<SimulationLogEventArgs> SimulationLog;
 
-#if use_parallelism
     private static readonly int MaxThreadsForSimulation = GetMaxThreadsForSimulation();
 
     private static int GetMaxThreadsForSimulation()
@@ -39,9 +50,8 @@ public sealed class SimulationRunner
         int processorCount = Environment.ProcessorCount;
         return processorCount >= 8 ? processorCount - 2 : processorCount - 1;
     }
-#endif
 
-    public Simulation Simulation { get;  }
+    public Simulation Simulation { get; }
 
     public void HandleValidationFailures(ValidationResultBag simulationValidationResults)
     {
@@ -171,14 +181,22 @@ public sealed class SimulationRunner
             treatment.SetConsequencesPerAttribute();
         }
 
-        AssetContexts = Simulation.Network.Assets
-#if use_parallelism
-            .AsParallel()
-            .WithDegreeOfParallelism(MaxThreadsForSimulation)
-#endif
-            .Select(asset => new AssetContext(asset, this))
-            .Where(context => Simulation.AnalysisMethod.Filter.EvaluateOrDefault(context))
-            .ToSortedSet(SelectionComparer<AssetContext>.Create(context => context.Asset.Id));
+        if (DisableParallelism)
+        {
+            AssetContexts = Simulation.Network.Assets
+                .Select(asset => new AssetContext(asset, this))
+                .Where(context => Simulation.AnalysisMethod.Filter.EvaluateOrDefault(context))
+                .ToSortedSet(SelectionComparer<AssetContext>.Create(context => context.Asset.Id));
+        }
+        else
+        {
+            AssetContexts = Simulation.Network.Assets
+                .AsParallel()
+                .WithDegreeOfParallelism(MaxThreadsForSimulation)
+                .Select(asset => new AssetContext(asset, this))
+                .Where(context => Simulation.AnalysisMethod.Filter.EvaluateOrDefault(context))
+                .ToSortedSet(SelectionComparer<AssetContext>.Create(context => context.Asset.Id));
+        }
 
         if (AssetContexts.Count == 0)
         {
@@ -360,6 +378,8 @@ public sealed class SimulationRunner
 
     private static readonly IComparer<BudgetPriority> BudgetPriorityComparer = SelectionComparer<BudgetPriority>.Create(priority => priority.PriorityLevel);
 
+    private readonly bool DisableParallelism;
+
     private List<SelectableTreatment> ActiveTreatments;
 
     private BudgetContext[] BudgetContexts;
@@ -392,17 +412,17 @@ public sealed class SimulationRunner
 
     #region supporting data structures for refined invalidation of numeric cache
 
-    internal readonly Dictionary<string, HashSet<string>> DependentKeysPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
+    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentKeysPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
 
-    internal readonly HashSet<string> KeysAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
+    internal readonly ConcurrentDictionary<string, object> KeysAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
 
     #endregion
 
     #region supporting data structures for refined invalidation of evaluation cache
 
-    internal readonly Dictionary<string, HashSet<string>> DependentExpressionsPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
+    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentExpressionsPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
 
-    internal readonly HashSet<string> ExpressionsAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
+    internal readonly ConcurrentDictionary<string, object> ExpressionsAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
 
     #endregion
 
@@ -415,16 +435,22 @@ public sealed class SimulationRunner
 
     private static bool GoalsAreMet(IEnumerable<ConditionActual> conditionActuals) => conditionActuals.All(actual => actual.GoalIsMet);
 
-    private static void InParallel<T>(IEnumerable<T> items, Action<T> action)
+    private void InParallel<T>(IEnumerable<T> items, Action<T> action)
     {
-#if use_parallelism
-        _ = System.Threading.Tasks.Parallel.ForEach(items, new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = MaxThreadsForSimulation }, action);
-#else
-        foreach (var item in items)
+        if (DisableParallelism)
         {
-            action(item);
+            foreach (var item in items)
+            {
+                action(item);
+            }
         }
-#endif
+        else
+        {
+            _ = Parallel.ForEach(
+                items,
+                new ParallelOptions { MaxDegreeOfParallelism = MaxThreadsForSimulation },
+                action);
+        }
     }
 
     private static bool TryConvertToDecimal(double value, out decimal convertedValue)
@@ -921,14 +947,7 @@ public sealed class SimulationRunner
 
         foreach (var goal in Simulation.AnalysisMethod.DeficientConditionGoals)
         {
-            var goalContexts = AssetContexts
-#if use_parallelism
-                .AsParallel()
-                .WithDegreeOfParallelism(MaxThreadsForSimulation)
-#endif
-                .Where(context => goal.Criterion.EvaluateOrDefault(context))
-                .ToArray();
-
+            var goalContexts = GetGoalContexts(goal);
             var goalSpatialWeight = goalContexts.Sum(context => context.GetSpatialWeight());
             var deficientContexts = goalContexts.Where(context => goal.LevelIsDeficient(context.GetNumber(goal.Attribute.Name)));
             var deficientSpatialWeight = deficientContexts.Sum(context => context.GetSpatialWeight());
@@ -951,14 +970,7 @@ public sealed class SimulationRunner
                 continue;
             }
 
-            var goalContexts = AssetContexts
-#if use_parallelism
-                .AsParallel()
-                .WithDegreeOfParallelism(MaxThreadsForSimulation)
-#endif
-                .Where(context => goal.Criterion.EvaluateOrDefault(context))
-                .ToArray();
-
+            var goalContexts = GetGoalContexts(goal);
             var goalSpatialWeight = goalContexts.Sum(context => context.GetSpatialWeight());
             var averageActual = goalContexts.Sum(context => context.GetNumber(goal.Attribute.Name) * context.GetSpatialWeight()) / goalSpatialWeight;
 
@@ -966,6 +978,24 @@ public sealed class SimulationRunner
         }
 
         return results;
+    }
+
+    private AssetContext[] GetGoalContexts(ConditionGoal goal)
+    {
+        if (DisableParallelism)
+        {
+            return AssetContexts
+                .Where(context => goal.Criterion.EvaluateOrDefault(context))
+                .ToArray();
+        }
+        else
+        {
+            return AssetContexts
+                .AsParallel()
+                .WithDegreeOfParallelism(MaxThreadsForSimulation)
+                .Where(context => goal.Criterion.EvaluateOrDefault(context))
+                .ToArray();
+        }
     }
 
     private void MoveBudgetsToNextYear()

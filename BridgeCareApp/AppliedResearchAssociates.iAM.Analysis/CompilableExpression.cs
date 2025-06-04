@@ -48,9 +48,17 @@ public abstract class CompilableExpression : WeakEntity, IValidator
 
     protected abstract void Compile();
 
-    protected void EnsureCompiled() => _EnsureCompiled?.Invoke();
+    protected void EnsureCompiled()
+    {
+        lock (CompilationLock)
+        {
+            _EnsureCompiled?.Invoke();
+        }
+    }
 
     private const string EXPRESSION_COULD_NOT_BE_COMPILED = "Expression could not be compiled.";
+
+    private readonly object CompilationLock = new();
 
     private Action _EnsureCompiled;
 
