@@ -73,7 +73,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var ageAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.AgeId);
             var ageAttributeAsList = new List<AttributeDTO> { ageAttribute };
             var mappedAttributeList = AttributeDtoDomainMapper.ToDomainList(ageAttributeAsList, "");
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
             var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
             var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
             calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";

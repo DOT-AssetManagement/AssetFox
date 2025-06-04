@@ -19,6 +19,7 @@ using Xunit;
 using MaintainableAsset = AppliedResearchAssociates.iAM.Data.Networking.MaintainableAsset;
 using System.Data;
 using AppliedResearchAssociates.iAM.DataUnitTests;
+using AppliedResearchAssociates.iAM.Data.Mappers;
 
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
@@ -298,6 +299,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var location = Locations.Section(locationIdentifier);
             var maintainableAsset = new MaintainableAsset(assetId, networkId, location, "[Deck_Area]");
             var maintainableAssetEntity = maintainableAsset.ToEntity(networkId);
+            var deckAreaAttribute = AttributeDtoDomainMapper.ToDomain(AttributeDtos.DeckArea, "");
             var maintainableAssetLocation = new MaintainableAssetLocationEntity()
             {
                 Id = Guid.NewGuid(),
@@ -315,7 +317,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, "Test Simulation", user.Id, networkId);
             TestHelper.UnitOfWork.SimulationRepo.SetNoTreatmentBeforeCommitted(simulationId);
             simulation.NetworkId = network.Id;
-            var ip = InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulation.Id, null, 2023, 2);
+            var ip = InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulation.Id, null, 2022, 3);
             // Set up a selectable treatment for the test with sample budgets
             var treatmentbudget = TreatmentBudgetDtos.Dto();
             var libraryId = Guid.NewGuid();
@@ -324,7 +326,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             var costId = Guid.NewGuid();
             var costLibraryId = Guid.NewGuid();
             var insertCostEquationId = Guid.NewGuid();
-            var cost = TreatmentCostDtos.WithEquationAndCriterionLibrary(costId, insertCostEquationId, costLibraryId, "1", "mergedCriteriaExpression");
+            var cost = TreatmentCostDtos.WithEquationAndCriterionLibrary(costId, insertCostEquationId, costLibraryId, "[DECK_AREA]", "mergedCriteriaExpression");
             treatment.Costs.Add(cost);
             treatment.Budgets = new List<TreatmentBudgetDTO>() { treatmentbudget };
             treatment.BudgetIds = new List<Guid> { };
@@ -346,12 +348,17 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Act
             var testSimulation = CommittedProjectRepoTestHelpers.CreateSimulation(simulation.Id, TestHelper.UnitOfWork, true);
             testSimulation.Network.Id = networkId;
+            AggregatedResultTestSetup.AddSingleNumericAggregatedResultToDb(
+                TestHelper.UnitOfWork,
+                maintainableAsset,
+                deckAreaAttribute,
+                3100);
 
             TestHelper.UnitOfWork.CommittedProjectRepo.GetSimulationCommittedProjects(testSimulation);
 
             // Assert
-            Assert.Equal(2, testSimulation.CommittedProjects.Count);
-            Assert.Equal(220000, testSimulation.CommittedProjects.Sum(_ => _.Cost));
+            Assert.Equal(3, testSimulation.CommittedProjects.Count);
+            Assert.Equal(220000 + 3100, testSimulation.CommittedProjects.Sum(_ => _.Cost));
         }
 
         [Fact]

@@ -16,6 +16,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         public const string ConditionIndex = "CONDITIONINDEX";
         public const string CulvDurationN = "CULV_DURATION_N";
         public const string CulvSeeded = "CULV_SEEDED";
+        public const string DeckArea = "DECK_AREA";
         public const string DeckDurationN = "DECK_DURATION_N";
         public const string DeckSeeded = "DECK_SEEDED";
         public const string District = "DISTRICT";

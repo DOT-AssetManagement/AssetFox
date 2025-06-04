@@ -20,6 +20,9 @@ namespace AppliedResearchAssociates.iAM.DataUnitTests
         public const string BmsIdString = "24C42A9F-3E80-4D3A-9E95-CB60063F3CAA";
         public static Guid BmsidId = Guid.Parse(BmsIdString);
 
+        public const string DeckAreaIdString = "EBB8717C-5C2F-4D7B-8712-4C52FF22D9CC";
+        public static Guid DeckareaId = Guid.Parse(DeckAreaIdString);
+
         public const string DistrictIdString = "B279B58E-89CC-4662-8874-C87F04ADB60E";
         public static Guid DistrictId = Guid.Parse(DistrictIdString);
 

@@ -25,6 +25,19 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
              IsAscending = true
          };
 
+        public static AttributeDTO DeckArea
+            => new()
+            {
+                Id = TestAttributeIds.DeckareaId,
+                Name = TestAttributeNames.DeckArea,
+                Type = AttributeTypeNames.Number,
+                AggregationRuleType = AggregationRuleTypeNames.Average,
+                Command = "",
+                IsAscending = true,
+                IsCalculated = false,
+                DefaultValue = "1000",
+            };
+
         public static AttributeDTO Interstate
             => new()
             {

@@ -26,7 +26,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
             var numericAttribute = AttributeTestSetup.Numeric(attribute.Id, attribute.Name, dataSource.Id);
             var attributeList = new List<IamAttribute> { numericAttribute };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList);
 
             var aggregatedResults = TestHelper.UnitOfWork.AggregatedResultRepo.GetAggregatedResultsForAttributeNames(attributeNames);
             Assert.Empty(aggregatedResults);
@@ -48,7 +48,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
             var numericAttribute = AttributeTestSetup.Numeric(attribute.Id, attribute.Name, dataSource.Id);
             var attributeList = new List<IamAttribute> { numericAttribute };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList);
 
             var aggregatedResults = TestHelper.UnitOfWork.AggregatedResultRepo.GetAggregatedResultsForAttributeNames(attributeNames);
             var expected = new AggregatedSelectValuesResultDTO()
@@ -78,7 +78,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
             var numericAttribute = AttributeTestSetup.Numeric(attribute.Id, attribute.Name, dataSource.Id);
             var attributeList = new List<IamAttribute> { numericAttribute };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList);
 
             var aggregatedResults = TestHelper.UnitOfWork.AggregatedResultRepo.GetAggregatedResultsForAttributeNames(attributeNames);
             Assert.Empty(aggregatedResults);
@@ -101,7 +101,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
             var numericAttribute = AttributeTestSetup.Numeric(attribute.Id, attribute.Name, dataSource.Id);
             var attributeList = new List<IamAttribute> { numericAttribute };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList);
 
             var aggregatedResults = TestHelper.UnitOfWork.AggregatedResultRepo.GetAggregatedResultsForAttributeNames(attributeNames);
             var expected = new AggregatedSelectValuesResultDTO()
@@ -134,7 +134,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
             var numericAttribute = AttributeTestSetup.Numeric(attribute.Id, attribute.Name, dataSource.Id);
             var attributeList = new List<IamAttribute> { numericAttribute };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList);
 
             var aggregatedResults = TestHelper.UnitOfWork.AggregatedResultRepo.GetAggregatedResultsForAttributeNames(attributeNames);
             var expected = new AggregatedSelectValuesResultDTO()
@@ -343,7 +343,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(assetList, networkId);
             var numericAttribute = AttributeTestSetup.Numeric(attribute.Id, attribute.Name, dataSource.Id);
             var attributeList = new List<IamAttribute> { numericAttribute };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList);
             TestHelper.UnitOfWork.Context.ChangeTracker.Clear();
 
             var aggregatedResults = TestHelper.UnitOfWork.AggregatedResultRepo.GetAssetAttributeValuePairDictionary(networkId);

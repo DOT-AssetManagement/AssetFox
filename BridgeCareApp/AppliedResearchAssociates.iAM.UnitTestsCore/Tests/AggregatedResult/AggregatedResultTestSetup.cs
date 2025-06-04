@@ -8,19 +8,29 @@ using AppliedResearchAssociates.iAM.Data.Aggregation;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using DataAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
     public static class AggregatedResultTestSetup
     {
-        public static void AddNumericAggregatedResultsToDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<IamAttribute> resultAttributes, double value = 1.23)
+        public static void AddSingleNumericAggregatedResultToDb
+            (IUnitOfWork unitOfWork,
+            MaintainableAsset maintainableAsset,
+            DataAttribute resultAttribute,
+            double value)
+        {
+            var assetList = new List<MaintainableAsset> { maintainableAsset };
+            var resultAttributes = new List<DataAttribute> { resultAttribute };
+            SetNumericAggregatedResultsInDb(unitOfWork, assetList, resultAttributes, value);
+        }
+        public static void SetNumericAggregatedResultsInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<DataAttribute> resultAttributes, double value = 1.23)
         {
             var results = new List<IAggregatedResult>();
             foreach (var asset in maintainableAssets)
             {
                 var resultId = Guid.NewGuid();
-                var resultData = new List<(IamAttribute, (int, double))>();
+                var resultData = new List<(DataAttribute, (int, double))>();
 
                 foreach (var attribute in resultAttributes)
                 {
@@ -40,13 +50,13 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         }
         /// <summary>This deletes any former aggregated results.
         /// Therefore, you can only call something like it once per test.</summary> 
-        public static void SetTextAggregatedResultsInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<IamAttribute> resultAttributes, string text = "AggregatedResult")
+        public static void SetTextAggregatedResultsInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<DataAttribute> resultAttributes, string text = "AggregatedResult")
         {
             var results = new List<IAggregatedResult>();            
             foreach (var asset in maintainableAssets)
             {
                 var resultId = Guid.NewGuid();
-                var resultData = new List<(IamAttribute, (int, string))>();
+                var resultData = new List<(DataAttribute, (int, string))>();
 
                 foreach (var attribute in resultAttributes)
                 {
@@ -68,14 +78,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         public static void SetTextAggregatedResultsInDb(
             IUnitOfWork unitOfWork,
             List<MaintainableAsset> maintainableAssets,
-            Dictionary<string, List<IamAttribute>> resultsForAttributes
+            Dictionary<string, List<DataAttribute>> resultsForAttributes
             )
         {
             var results = new List<IAggregatedResult>();
             foreach (var asset in maintainableAssets)
             {
                 var resultId = Guid.NewGuid();
-                var resultData = new List<(IamAttribute, (int, string))>();
+                var resultData = new List<(DataAttribute, (int, string))>();
 
                 foreach (var key in resultsForAttributes.Keys)
                 {
@@ -98,14 +108,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             unitOfWork.AggregatedResultRepo.AddAggregatedResults(results);
         }
 
-        public static void SetBothAggregatedResultsInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<IamAttribute> resultNumericAttributes, List<IamAttribute> resultTextAttributes, string text = "AggregatedResult")
+        public static void SetBothAggregatedResultsInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<DataAttribute> resultNumericAttributes, List<DataAttribute> resultTextAttributes, string text = "AggregatedResult")
         {
             var results = new List<IAggregatedResult>();
             foreach (var asset in maintainableAssets)
             {
                 var resultId = Guid.NewGuid();
-                var resultNumericData = new List<(IamAttribute, (int, double))>();
-                var resultTextData = new List<(IamAttribute, (int, string))>();
+                var resultNumericData = new List<(DataAttribute, (int, double))>();
+                var resultTextData = new List<(DataAttribute, (int, string))>();
 
                 foreach (var attribute in resultNumericAttributes)
                 {

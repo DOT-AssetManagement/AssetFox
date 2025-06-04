@@ -41,7 +41,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var numberAttribute = AttributeTestSetup.Numeric(keyAttributeDto.Id, keyAttributeDto.Name, dataSource.Id, ConnectionType.EXCEL);
             var attributeList = new List<IamAttribute> { numberAttribute };
             var assetList = new List<MaintainableAsset> { maintainableAsset };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
 
             var exists = TestHelper.UnitOfWork.MaintainableAssetRepo.CheckIfKeyAttributeValueExists(network.Id, "12345");
 
@@ -63,7 +63,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var numberAttribute = AttributeTestSetup.Numeric(keyAttributeDto.Id, keyAttributeDto.Name, dataSource.Id, ConnectionType.EXCEL);
             var attributeList = new List<IamAttribute> { numberAttribute };
             var assetList = new List<MaintainableAsset> { maintainableAsset };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
             var maxIntAsString = int.MaxValue.ToString();
             var attributeValues = new List<string> { "12345", maxIntAsString };
 
@@ -88,7 +88,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var numberAttribute = AttributeTestSetup.Numeric(keyAttributeDto.Id, keyAttributeDto.Name, dataSource.Id, ConnectionType.EXCEL);
             var attributeList = new List<IamAttribute> { numberAttribute };
             var assetList = new List<MaintainableAsset> { maintainableAsset };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
 
             var retreivedAsset = TestHelper.UnitOfWork.MaintainableAssetRepo.GetMaintainableAssetByKeyAttribute(network.Id, "12345");
 
@@ -135,7 +135,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var numberAttribute = AttributeTestSetup.Numeric(keyAttributeDto.Id, keyAttributeDto.Name, dataSource.Id, ConnectionType.EXCEL);
             var attributeList = new List<IamAttribute> { numberAttribute };
             var assetList = new List<MaintainableAsset> { maintainableAsset };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
 
             var retreivedAsset = TestHelper.UnitOfWork.MaintainableAssetRepo.GetMaintainableAssetByKeyAttribute(network.Id, "54321");
 
@@ -231,7 +231,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var numberAttribute = AttributeTestSetup.Numeric(keyAttributeDto.Id, keyAttributeDto.Name, dataSource.Id, ConnectionType.EXCEL);
             var attributeList = new List<IamAttribute> { numberAttribute };
             var assetList = new List<MaintainableAsset> { maintainableAsset };
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assetList, attributeList, 12345);
 
             var attributeIds = TestHelper.UnitOfWork.MaintainableAssetRepo.GetMaintainableAssetAttributeIdsByNetworkId(network.Id);
 
