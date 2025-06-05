@@ -18,6 +18,8 @@
                     class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Import Projects</v-btn>
                 <v-btn @click='OnExportProjectsClick' 
                     class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Export Projects</v-btn>
+                <v-btn @click='OnErrorExportSheetClick'
+                    class="ghd-red ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Error Export Sheet</v-btn>
                 <v-btn @click='OnDeleteAllClick' 
                     class="ghd-red ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Delete All</v-btn>
             </v-col>
@@ -906,6 +908,17 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 }
             });
     }
+
+    async function OnErrorExportSheetClick(){
+        await CommittedProjectsService.getErrorExportSheet(scenarioId)
+            .then((response: AxiosResponse) => {
+                if (hasValue(response, 'data')) {
+                    const fileInfo: FileInfo = response.data as FileInfo;
+                    FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
+                }
+            });
+    }
+
     // async function OnGetTemplateClick(){
     //    await CommittedProjectsService.getUploadedCommittedProjectTemplate()
     //         .then((response: AxiosResponse) => {

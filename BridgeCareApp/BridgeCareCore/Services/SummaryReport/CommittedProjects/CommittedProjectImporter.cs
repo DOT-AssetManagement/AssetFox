@@ -143,7 +143,10 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
 
                 // check and generate folder
                 var folderPathForSimulation = $"CommittedProjects\\{simulation.Id}";
-                Directory.Delete(folderPathForSimulation, true);                
+                if (Directory.Exists(folderPathForSimulation))
+                {
+                    Directory.Delete(folderPathForSimulation, true);
+                }
                 _ = Directory.CreateDirectory(folderPathForSimulation);
                 if (errorCount > 0)
                 {
