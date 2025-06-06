@@ -519,7 +519,7 @@ namespace BridgeCareCore.Controllers
                 if(result == null)
                 {
                     var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
-                    return BadRequest($"Unable to find error export sheet for simulation {simulationName}");
+                    return BadRequest($"No error export sheet exists for simulation {simulationName}");
                 }
                 return Ok(result);
             }

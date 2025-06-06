@@ -1672,14 +1672,13 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             onPaginationChanged().then(() => {
                 setAlertMessageAction('');
                 if (totalItems.value > 0) {
-                    dialogMessage.value = 'Committed projects in the sheet were imported and saved.'; // TODO add below after export sheet functionality is in place
-                    //  See error export sheet for any error cells.';
+                    dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any invalid cells.';
                     validateAllCommittedProjects();
                 } else {
-                    dialogMessage.value = 'No committed projects were imported and saved. error export sheet for any error cells.';
-                }                
+                    dialogMessage.value = 'No committed projects were imported and saved. See error export sheet for any invalid cells.';
+                }
                     showUploadCompleteDialog.value = true;
-                })
+            })
         } 
     }
 

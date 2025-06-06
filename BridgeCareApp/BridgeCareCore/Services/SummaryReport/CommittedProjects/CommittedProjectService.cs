@@ -263,7 +263,8 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                 return null;
             }
 
-            ExcelPackage excelPackage = new ExcelPackage(File.OpenRead(Path.Combine(dirPath, files.First())));
+            using var fileStream = File.OpenRead(Path.Combine(dirPath, files.First()));
+            using var excelPackage = new ExcelPackage(fileStream);
 
             return new FileInfoDTO
             {
