@@ -1320,7 +1320,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     (scp.costErrors && scp.costErrors.length > 0) ||
                     (scp.projectSourceErrors && scp.projectSourceErrors.length > 0) ||
                     //(scp.projectSourceIdErrors && scp.projectSourceIdErrors.length > 0) ||
-                    //(scp.errors && scp.errors.length > 0) || -> errors always have brkey does not exist error
+                    (scp.errors && scp.errors.length > 0) ||                    
                     (scp.budgetErrors && scp.budgetErrors.length > 0);
             });
     });
