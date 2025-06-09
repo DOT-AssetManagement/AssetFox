@@ -268,7 +268,7 @@
                         :show="!hasScenario"
                     />
                     <SaveButton 
-                        :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
+                        :disabled="disableCrudButtonsResult || !hasUnsavedChanges || hasNoBudgets"
                         @save="onUpsertInvestment()"
                         :show="hasScenario"
                     />
@@ -472,6 +472,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     let lastYear: number = 0;
     let firstYear: number = 0;
     let initializing: boolean = true;
+    let hasNoBudgets: boolean = false;
 
     const dialogMessage = ref('');
 
@@ -714,6 +715,13 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         selectedBudgetYears.value = getPropertyValues('year', selectedBudgetYearsGridData.value) as number[];
     });
 
+    watch(budgetYearsGridData, ()=> {
+        if(budgetYearsGridData.value.length == 0)
+        hasNoBudgets = true;
+        else
+        hasNoBudgets = false;
+    });
+
     watch(librarySelectItemValue,() => {
         hasSelectedLibrary.value = true;
 
@@ -760,6 +768,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
        {
             await updateTreatmentBudgetsAndPriority();
             hasInvestmentJustBeenSaved = false;
+            $emitter.emit('switchedToNewInvestmentLibrary');
        }
     });
 
@@ -1384,8 +1393,8 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 hasInvestmentJustBeenSaved = true;               
             }           
         });
-        $emitter.emit('InvestmentSettingsUpdated');
-        $emitter.emit('switchedToNewInvestmentLibrary', sync);
+        // $emitter.emit('InvestmentSettingsUpdated');
+        // $emitter.emit('switchedToNewInvestmentLibrary', sync);
     }
 
     async function updateTreatmentBudgetsAndPriority()

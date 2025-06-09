@@ -574,6 +574,18 @@ import CashFlowService from '@/services/cash-flow.service';
                 });
         });
 
+        
+        $emitter.on('CashFlowIsEmpty', () => {
+
+            // Update the icon of the Cash Flow tab
+            navigationTabs.value.forEach((tab) => {
+                    if (tab.tabName === 'Cash Flow') {
+                        tab.validationIcon = 'fas fa-exclamation-circle';
+                    }
+                });
+        });
+
+
         $emitter.on('CommittedProjectsUpdated', () => {
             isCashFlowSet.value = false;
             isCommittedProjectsBudgetsUnset.value = true;
@@ -594,6 +606,17 @@ import CashFlowService from '@/services/cash-flow.service';
                 });
         });
 
+        $emitter.on('CommittedProjectsWithErrors', () => {
+            isCashFlowSet.value = false;
+            isCommittedProjectsBudgetsUnset.value = true;
+            // Update the icon of the Committed Projects tab
+            navigationTabs.value.forEach((tab) => {
+                    if (tab.tabName === 'Committed Projects') {
+                        tab.validationIcon = 'fas fa-times-circle';
+                    }
+                });
+        });
+
         $emitter.on('SimulationRunSettingUpdated', () => {
             if(String(selectedScenarioId) === String(simulationRunSettingId.value))
             {
@@ -610,21 +633,11 @@ import CashFlowService from '@/services/cash-flow.service';
         });
 
         $emitter.on('switchedToNewInvestmentLibrary', () => {
-            navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Committed Projects') {
-                        if(tab.validationIcon === 'fas fa-check-circle')
-                        tab.validationIcon = 'fas fa-times-circle';
-                    }
-                });
-
-                if(isCommittedProjectsSet.value === false)
-                {
-                    isCommittedProjectsBudgetsUnset.value = false;
-                }
-        });
+            getCommittedProjects();                                     
+        });                                      
         
     }
-    
+                                                                                                                                                                              
     /**
      * Shows the Alert
      */

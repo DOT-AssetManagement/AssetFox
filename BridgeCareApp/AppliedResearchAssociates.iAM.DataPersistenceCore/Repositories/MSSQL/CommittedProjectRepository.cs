@@ -17,6 +17,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -485,6 +486,71 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         {
             var simulation = _unitOfWork.Context.Simulation.AsNoTracking().Include(_ => _.Network).FirstOrDefault(_ => _.Id == simulationId);
             return _unitOfWork.AttributeRepo.GetAttributeName(simulation.Network.KeyAttributeId);
+        }
+
+        public bool ValidateAllCommittedProjects(List<SectionCommittedProjectDTO> sectionCommittedProjectDtos, List<int> budgetYears, Dictionary<string, bool> keyAttributeValuesExists)
+        {
+            bool isValid = true;
+            budgetYears = [.. budgetYears.Order()];
+            var firstYear = budgetYears.First();
+            var lastYear = budgetYears.Last();
+
+            // check if brkey is valid
+            if (keyAttributeValuesExists.Any(_ => !_.Value))
+            {
+                return false;
+            }
+
+            foreach (var sectionCommittedProjectDto in sectionCommittedProjectDtos)
+            {
+                // Treatment
+                if (sectionCommittedProjectDto.Treatment.Length == 0 || sectionCommittedProjectDto.Treatment.Contains("Default Treatment"))
+                {
+                    isValid = false;
+                }
+
+                // year
+                var year = sectionCommittedProjectDto.Year;
+                if (year == 0
+                    || year.ToString().Length < 4
+                    || year < 1900)
+                {
+                    isValid = false;
+                }
+                if (budgetYears.Count > 0)
+                {                    
+                    if (year < firstYear || year > lastYear)
+                    {
+                        isValid = false;
+                    }
+                }
+
+                // cost
+                if (sectionCommittedProjectDto.Cost == 0
+                    || sectionCommittedProjectDto.Cost < 0)
+                {
+                    isValid = false;
+                }
+
+                // project source
+                if (sectionCommittedProjectDto.ProjectSource == ProjectSourceDTO.None)
+                {
+                    isValid = false;
+                }
+
+                // budget id
+                if (sectionCommittedProjectDto.ScenarioBudgetId == Guid.Empty || sectionCommittedProjectDto.ScenarioBudgetId == null)
+                {
+                    isValid = false;
+                }                
+
+                if (!isValid)
+                {
+                    return isValid;
+                }
+            }
+
+            return isValid;
         }
     }
 }
