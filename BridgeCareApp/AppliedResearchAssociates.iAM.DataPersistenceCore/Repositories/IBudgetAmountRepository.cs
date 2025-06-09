@@ -4,6 +4,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entit
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
@@ -17,5 +18,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         List<BudgetAmountDTO> GetLibraryBudgetAmounts(Guid libraryId);
 
         List<BudgetAmountDTO> GetScenarioBudgetAmounts(Guid simulationId);
+        void SaveScenarioBudgetAmounts(InvestmentUpsertAndDeleteModel changes, Guid simulationId);
+        void SaveLibraryBudgetAmounts(InvestmentUpsertAndDeleteModel changes, Guid simulationId);
     }
 }

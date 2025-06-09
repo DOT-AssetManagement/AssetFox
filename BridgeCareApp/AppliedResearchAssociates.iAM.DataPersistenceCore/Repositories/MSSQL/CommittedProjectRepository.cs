@@ -8,13 +8,16 @@ using System.Text.RegularExpressions;
 using AppliedResearchAssociates.CalculateEvaluate;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -274,6 +277,77 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .ToList();
         }
 
+        public void SaveCommittedProjectChanges(UpsertAndDeleteModel<SectionCommittedProjectDTO> changes, Guid simulationId)
+        {
+            var projects = changes.AddedRows.Concat(changes.UpdateRows).ToList();
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException($"Unable to find simulation ID {simulationId} in database");
+            }
+            if (projects.Any(_ => _.ScenarioBudgetId == null))
+            {
+                throw new Exception("Committed projects with an empty budget cannot be saved");
+            }
+            // Test for existing budget
+            var budgetIds = _unitOfWork.Context.ScenarioBudget.AsNoTracking()
+                .Where(_ => _.SimulationId == simulationId)
+                .Select(_ => _.Id)
+                .ToList();
+
+            var badBudgets = projects
+                .Where(_ => _.ScenarioBudgetId != null
+                    && _.ScenarioBudgetId != Guid.Empty // Allow empty GUIDs
+                    && !budgetIds.Contains(_.ScenarioBudgetId.Value))
+                .ToList();
+
+            if (badBudgets.Any())
+            {
+                var budgetList = new StringBuilder();
+                badBudgets.ForEach(budget => budgetList.Append(budget.Id.ToString() + ", "));
+                throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}");
+            }
+
+            var attributes = _unitOfWork.Context.Attribute.AsNoTracking().ToList();
+            var keyAttr = GetNetworkKeyAttribute(simulationId);
+            var groupedCpByYearTreatAsset = projects.GroupBy(_ => _.Year.ToString() + _.Treatment + _.LocationKeys[keyAttr]).ToList();
+            if (groupedCpByYearTreatAsset.Count < projects.Count)
+            {
+                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset");
+            }
+            _unitOfWork.AsTransaction(() =>
+            {
+                DeleteCommittedProjects(changes.RowsForDeletion);
+                InsertcommittedProjects(changes.AddedRows, keyAttr, attributes);
+                UpdateCommittedProjects(changes.UpdateRows, keyAttr, attributes);
+            });
+        }
+
+        private void DeleteCommittedProjects(List<Guid> ids)
+        {
+            _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(cp => ids.Contains(cp.Id));
+            _unitOfWork.Context.DeleteAll<CommittedProjectLocationEntity>(cpl => ids.Contains(cpl.CommittedProjectId));
+        }
+
+        private void UpdateCommittedProjects(List<SectionCommittedProjectDTO> cp, string keyAttr, List<AttributeEntity> attributes)
+        {
+            
+            var committedProjectEntities = cp.Select(_ => _.ToEntity(attributes,keyAttr)).ToList();
+            
+            _unitOfWork.Context.UpdateAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
+        }
+
+        private void InsertcommittedProjects(List<SectionCommittedProjectDTO> cp, string keyAttr, List<AttributeEntity> attributes)
+        {
+            var committedProjectEntities = cp.Select(_ => _.ToEntity(attributes, keyAttr)).ToList();
+            _unitOfWork.Context.AddAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
+
+            var committedProjectLocations = committedProjectEntities.Select(_ => _.CommittedProjectLocation).ToList();
+            committedProjectLocations.ForEach(cpl => cpl.Id = Guid.NewGuid());
+
+            _unitOfWork.Context.AddAll(committedProjectEntities);
+            _unitOfWork.Context.AddAll(committedProjectLocations);
+        }
+
         public void UpsertCommittedProjects(List<SectionCommittedProjectDTO> projects)
         {
             // Test for existing simulation
@@ -412,6 +486,71 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         {
             var simulation = _unitOfWork.Context.Simulation.AsNoTracking().Include(_ => _.Network).FirstOrDefault(_ => _.Id == simulationId);
             return _unitOfWork.AttributeRepo.GetAttributeName(simulation.Network.KeyAttributeId);
+        }
+
+        public bool ValidateAllCommittedProjects(List<SectionCommittedProjectDTO> sectionCommittedProjectDtos, List<int> budgetYears, Dictionary<string, bool> keyAttributeValuesExists)
+        {
+            bool isValid = true;
+            budgetYears = [.. budgetYears.Order()];
+            var firstYear = budgetYears.First();
+            var lastYear = budgetYears.Last();
+
+            // check if brkey is valid
+            if (keyAttributeValuesExists.Any(_ => !_.Value))
+            {
+                return false;
+            }
+
+            foreach (var sectionCommittedProjectDto in sectionCommittedProjectDtos)
+            {
+                // Treatment
+                if (sectionCommittedProjectDto.Treatment.Length == 0 || sectionCommittedProjectDto.Treatment.Contains("Default Treatment"))
+                {
+                    isValid = false;
+                }
+
+                // year
+                var year = sectionCommittedProjectDto.Year;
+                if (year == 0
+                    || year.ToString().Length < 4
+                    || year < 1900)
+                {
+                    isValid = false;
+                }
+                if (budgetYears.Count > 0)
+                {                    
+                    if (year < firstYear || year > lastYear)
+                    {
+                        isValid = false;
+                    }
+                }
+
+                // cost
+                if (sectionCommittedProjectDto.Cost == 0
+                    || sectionCommittedProjectDto.Cost < 0)
+                {
+                    isValid = false;
+                }
+
+                // project source
+                if (sectionCommittedProjectDto.ProjectSource == ProjectSourceDTO.None)
+                {
+                    isValid = false;
+                }
+
+                // budget id
+                if (sectionCommittedProjectDto.ScenarioBudgetId == Guid.Empty || sectionCommittedProjectDto.ScenarioBudgetId == null)
+                {
+                    isValid = false;
+                }                
+
+                if (!isValid)
+                {
+                    return isValid;
+                }
+            }
+
+            return isValid;
         }
     }
 }

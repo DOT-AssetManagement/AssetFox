@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using AppliedResearchAssociates.iAM.DTOs;
 using System.IO;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
@@ -19,6 +19,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         List<BaseCommittedProjectDTO> GetCommittedProjectsForExport(Guid simulationId);
 
         void UpsertCommittedProjects(List<SectionCommittedProjectDTO> projects);
+        void SaveCommittedProjectChanges(UpsertAndDeleteModel<SectionCommittedProjectDTO> changes, Guid simulationId);
 
         void SetCommittedProjectTemplate(Stream stream);
 
@@ -33,5 +34,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void DeleteSimulationCommittedProjects(Guid simulationId);
 
         void DeleteSpecificCommittedProjects(List<Guid> projectIds);
+
+        bool ValidateAllCommittedProjects(List<SectionCommittedProjectDTO> sectionCommittedProjectDtos, List<int> budgetYears, Dictionary<string, bool> keyAttributeValuesExists);
     }
 }

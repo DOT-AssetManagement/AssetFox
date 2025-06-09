@@ -2,6 +2,7 @@ using System.Data;
 using System.Text;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
@@ -163,6 +164,8 @@ namespace BridgeCareCoreTests.Tests
             var controller = CreateController(unitOfWork);
             var request = new InvestmentPagingSyncModel();
             var investmentPlan = new InvestmentPlanDTO();
+            var expectedArg0 = new InvestmentUpsertAndDeleteModel();
+            expectedArg0.Investment = investmentPlan;
             request.Investment = investmentPlan;
 
             // Act
@@ -170,11 +173,10 @@ namespace BridgeCareCoreTests.Tests
 
             // Assert
             ActionResultAssertions.Ok(result);
-            var invocation = budgetRepo.SingleInvocationWithName(nameof(IBudgetRepository.UpsertOrDeleteScenarioBudgetsWithInvestmentPlan));
-            var budgets = invocation.Arguments[0] as List<BudgetDTO>;
-            Assert.Empty(budgets);
-            ObjectAssertions.Equivalent(invocation.Arguments[1], investmentPlan);
-            Assert.Equal(simulationId, invocation.Arguments[2]);
+            var invocation = budgetRepo.SingleInvocationWithName(nameof(IBudgetRepository.SaveScenarioInvestments));
+            var changes = invocation.Arguments[0] as InvestmentUpsertAndDeleteModel;
+            Assert.Equivalent(expectedArg0, changes);
+            Assert.Equal(simulationId, invocation.Arguments[1]);
         }
 
         [Fact]
@@ -250,12 +252,12 @@ namespace BridgeCareCoreTests.Tests
 
             // Assert
             var invocations = budgetRepo.Invocations.ToList();
-            var upsertLibraryInvocation = budgetRepo.SingleInvocationWithName(nameof(IBudgetRepository.UpdateBudgetLibraryAndUpsertOrDeleteBudgets));
+            var upsertLibraryInvocation = budgetRepo.SingleInvocationWithName(nameof(IBudgetRepository.SaveLibraryInvestments));
             var upsertedLibrary = upsertLibraryInvocation.Arguments[0] as BudgetLibraryDTO;
             Assert.Equal("Updated Description", upsertedLibrary.Description);
-            var updatedBudgetDtos = upsertedLibrary.Budgets;
+            var changes = upsertLibraryInvocation.Arguments[1] as InvestmentUpsertAndDeleteModel;
+            var updatedBudgetDtos = changes.UpdatedBudgets;
             var updatedBudgetDto = updatedBudgetDtos.Single();
-            Assert.Equal(1234m, updatedBudgetDto.BudgetAmounts[0].Value); // counterintuitive behavior. Verified that it is present in the repo back to at least Sept. 30, 2022 (commit 82e8df57004)
             ObjectAssertions.EquivalentExcluding(updatedBudgetDto, updatedBudget, x => x.BudgetAmounts[0].Id, x => x.BudgetAmounts[0].Value);
             Assert.Equal(libraryId, upsertedLibrary.Id);
         }
@@ -273,16 +275,12 @@ namespace BridgeCareCoreTests.Tests
             var oldBudgetAmount = BudgetAmountDtos.ForBudgetAndYear(oldBudget, 2023, 500000, budgetAmountId);
             var newBudgetAmount = BudgetAmountDtos.ForBudgetAndYear(newBudget, 2023, 1000000, budgetAmountId);
             oldBudget.BudgetAmounts.Add(oldBudgetAmount);
-            newBudget.BudgetAmounts.Add(newBudgetAmount);
+            newBudget.BudgetAmounts.Add(oldBudgetAmount);
             var investmentPlanId = Guid.NewGuid();
             var investmentPlan = InvestmentPlanDtos.Dto(investmentPlanId);
             var simulationId = Guid.NewGuid();
             var libraryId = Guid.NewGuid();
-            var oldBudgetLibrary = new BudgetLibraryDTO
-            {
-                Id = libraryId,
-                Budgets = new List<BudgetDTO> { oldBudget }
-            };
+            
             budgetRepo.Setup(br => br.GetScenarioBudgets(simulationId)).ReturnsList(oldBudget);
             var controller = CreateController(unitOfWork);
             var dto = new InvestmentDTO
@@ -300,17 +298,18 @@ namespace BridgeCareCoreTests.Tests
             // Act
             await controller.UpsertInvestment(simulationId, request);
 
-            var upsertInvocation = budgetRepo.SingleInvocationWithName(nameof(IBudgetRepository.UpsertOrDeleteScenarioBudgetsWithInvestmentPlan));
-            Assert.Equal(simulationId, upsertInvocation.Arguments[2]);
-            var modifiedBudgetDtos = upsertInvocation.Arguments[0] as List<BudgetDTO>;
+            var upsertInvocation = budgetRepo.SingleInvocationWithName(nameof(IBudgetRepository.SaveScenarioInvestments));
+            Assert.Equal(simulationId, upsertInvocation.Arguments[1]);
+            var changes = upsertInvocation.Arguments[0] as InvestmentUpsertAndDeleteModel;
+            var modifiedBudgetDtos = changes.UpdatedBudgets;
             var modifiedBudgetDto = modifiedBudgetDtos.Single();
             Assert.Equal("Updated Name", modifiedBudgetDto.Name);
             Assert.Equal(dto.ScenarioBudgets[0].CriterionLibrary.Id,
                 modifiedBudgetDto.CriterionLibrary.Id);
             Assert.Single(modifiedBudgetDto.BudgetAmounts);
             Assert.Equal(1000000,
-               modifiedBudgetDto.BudgetAmounts[0].Value);
-            var modifiedInvestmentPlan = upsertInvocation.Arguments[1] as InvestmentPlanDTO;
+               changes.UpdatedBudgetAmounts[dto.ScenarioBudgets[0].Name].Single().Value);
+            var modifiedInvestmentPlan = changes.Investment;
             Assert.Equal(1000000, modifiedInvestmentPlan.MinimumProjectCostLimit);
         }
 
