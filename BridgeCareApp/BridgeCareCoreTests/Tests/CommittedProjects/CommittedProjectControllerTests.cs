@@ -2,6 +2,7 @@ using System.Data;
 using System.Security.Claims;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
@@ -340,7 +341,7 @@ namespace BridgeCareCoreTests.Tests
 
             // Assert
             Assert.IsType<OkResult>(result);
-            _mockCommittedProjectRepo.Verify(_ => _.UpsertCommittedProjects(It.IsAny<List<SectionCommittedProjectDTO>>()), Times.Once());
+            _mockCommittedProjectRepo.Verify(_ => _.SaveCommittedProjectChanges(It.IsAny<UpsertAndDeleteModel<SectionCommittedProjectDTO>>(), It.IsAny<Guid>()), Times.Once());
         }
 
         [Fact]
@@ -357,7 +358,7 @@ namespace BridgeCareCoreTests.Tests
                 _mockUOW.Object,
                 hubService,
                 accessor, _mockClaimHelper.Object, generalWorkQueue.Object);
-            _mockCommittedProjectRepo.Setup(_ => _.UpsertCommittedProjects(It.IsAny<List<SectionCommittedProjectDTO>>()))
+            _mockCommittedProjectRepo.Setup(_ => _.SaveCommittedProjectChanges(It.IsAny<UpsertAndDeleteModel<SectionCommittedProjectDTO>>(), It.IsAny<Guid>()))
                 .Throws<RowNotInTableException>();
 
             var sync = new PagingSyncModel<SectionCommittedProjectDTO>()

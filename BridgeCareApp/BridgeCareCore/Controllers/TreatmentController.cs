@@ -256,6 +256,35 @@ namespace BridgeCareCore.Controllers
         }
 
         [HttpGet]
+        [Route("GetAllScenarioTreatments/{simulationId}")]
+        [Authorize(Policy = Policy.ViewTreatmentFromScenario)]
+        public async Task<IActionResult> GetAllScenarioTreatments(Guid simulationId)
+        {
+            try
+            {
+                List<TreatmentDTOWithSimulationId> result = null;
+                await Task.Factory.StartNew(() =>
+                {
+                    var treatments = UnitOfWork.SelectableTreatmentRepo.GetAllScenarioTreatmentBySimulationId(simulationId);
+                    _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
+                    result = treatments;
+                });
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError} ::GetAllScenarioTreatments - {HubService.errorList["Unauthorized"]}", e);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError} ::GetAllScenarioTreatments - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+
+        [HttpGet]
         [Route("GetSimpleTreatmentsByScenarioId/{simulationId}")]
         [Authorize(Policy = Policy.ViewTreatmentFromScenario)]
         public async Task<IActionResult> GetSimpleTreatmentsByScenarioId(Guid simulationId)

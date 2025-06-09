@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
@@ -19,6 +20,7 @@ using BridgeCareCore.Security.Interfaces;
 using BridgeCareCore.Services;
 using BridgeCareCore.Services.General_Work_Queue.WorkItems;
 using BridgeCareCore.Utils.Interfaces;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -135,17 +137,35 @@ namespace BridgeCareCore.Controllers
                 await Task.Factory.StartNew(() =>
                 {
                     _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                    if(pagingSync.LibraryId != null)
+                    {
+                        var dtos = _investmentPagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);
+                        BudgetDtoListService.AddModifiedToScenarioBudget(dtos, pagingSync.IsModified);
+                        BudgetDtoListService.AddLibraryIdToScenarioBudget(dtos, pagingSync.LibraryId);
 
-                    var dtos = _investmentPagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);
-                    BudgetDtoListService.AddModifiedToScenarioBudget(dtos, pagingSync.IsModified);
-                    BudgetDtoListService.AddLibraryIdToScenarioBudget(dtos, pagingSync.LibraryId);
+                        InvestmentDTO investment = new InvestmentDTO();
+                        var investmentPlan = pagingSync.Investment;
+                        investment.ScenarioBudgets = dtos;
+                        investment.InvestmentPlan = investmentPlan;
 
-                    InvestmentDTO investment = new InvestmentDTO();
-                    var investmentPlan = pagingSync.Investment;
-                    investment.ScenarioBudgets = dtos;
-                    investment.InvestmentPlan = investmentPlan;
-                    
-                    UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgetsWithInvestmentPlan(dtos, investmentPlan, simulationId);
+                        UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgetsWithInvestmentPlan(dtos, investmentPlan, simulationId);
+                    }
+                    else
+                    {
+                        
+                        InvestmentUpsertAndDeleteModel changes = new InvestmentUpsertAndDeleteModel()
+                        {
+                            Investment = pagingSync.Investment,
+                            AddedBudgetAmounts = pagingSync.AddedBudgetAmounts,
+                            AddedBudgets = pagingSync.AddedBudgets,
+                            BudgetsForDeletion = pagingSync.BudgetsForDeletion,
+                            Deletionyears = pagingSync.Deletionyears,
+                            UpdatedBudgetAmounts = pagingSync.UpdatedBudgetAmounts,
+                            UpdatedBudgets = pagingSync.UpdatedBudgets,
+                            FirstYearAnalysisBudgetShift = pagingSync.FirstYearAnalysisBudgetShift
+                        };
+                        UnitOfWork.BudgetRepo.SaveScenarioInvestments(changes, simulationId);
+                    } 
                 });
 
                 return Ok();
@@ -209,34 +229,51 @@ namespace BridgeCareCore.Controllers
                         throw new InvalidOperationException(errorMessage);
                     }
                     _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
-                    var budgets = new List<BudgetDTO>();
-                    if (upsertRequest.ScenarioId != null)
-                        budgets = _investmentPagingService.GetSyncedScenarioDataSet(upsertRequest.ScenarioId.Value, upsertRequest.SyncModel);
-                    else if (upsertRequest.SyncModel.LibraryId != null && upsertRequest.SyncModel.LibraryId != Guid.Empty)
-                        budgets = _investmentPagingService.GetSyncedLibraryDataset(upsertRequest.SyncModel.LibraryId.Value, upsertRequest.SyncModel);
-                    else if (!upsertRequest.IsNewLibrary)
-                        budgets = _investmentPagingService.GetSyncedLibraryDataset(upsertRequest.Library.Id, upsertRequest.SyncModel);
-                    else if (upsertRequest.IsNewLibrary && upsertRequest.SyncModel.LibraryId == Guid.Empty)
-                    {
-                        budgets = _investmentPagingService.GetNewLibraryDataset(upsertRequest.SyncModel);
-                    }
-
                     if (upsertRequest.IsNewLibrary)
-                        budgets.ForEach(budget =>
+                    {
+                        var budgets = new List<BudgetDTO>();
+                        if (upsertRequest.ScenarioId != null)
+                            budgets = _investmentPagingService.GetSyncedScenarioDataSet(upsertRequest.ScenarioId.Value, upsertRequest.SyncModel);
+                        else if (upsertRequest.SyncModel.LibraryId != null && upsertRequest.SyncModel.LibraryId != Guid.Empty)
+                            budgets = _investmentPagingService.GetSyncedLibraryDataset(upsertRequest.SyncModel.LibraryId.Value, upsertRequest.SyncModel);
+                        else if (!upsertRequest.IsNewLibrary)
+                            budgets = _investmentPagingService.GetSyncedLibraryDataset(upsertRequest.Library.Id, upsertRequest.SyncModel);
+                        else if (upsertRequest.IsNewLibrary && upsertRequest.SyncModel.LibraryId == Guid.Empty)
                         {
-                            budget.Id = Guid.NewGuid();
-                            budget.BudgetAmounts.ForEach(_ => _.Id = Guid.NewGuid());
-                        });
-                    var dto = upsertRequest.Library;
-                    dto.Budgets = budgets;
-                    if (upsertRequest.IsNewLibrary)
-                    {
-                        UnitOfWork.BudgetRepo.CreateNewBudgetLibrary(dto, UserId);
+                            budgets = _investmentPagingService.GetNewLibraryDataset(upsertRequest.SyncModel);
+                        }
 
-                    } else
-                    {
-                        UnitOfWork.BudgetRepo.UpdateBudgetLibraryAndUpsertOrDeleteBudgets(dto);
+                        if (upsertRequest.IsNewLibrary)
+                            budgets.ForEach(budget =>
+                            {
+                                budget.Id = Guid.NewGuid();
+                                budget.BudgetAmounts.ForEach(_ => _.Id = Guid.NewGuid());
+                            });
+                        var dto = upsertRequest.Library;
+                        dto.Budgets = budgets;
+                        if (upsertRequest.IsNewLibrary)
+                        {
+                            UnitOfWork.BudgetRepo.CreateNewBudgetLibrary(dto, UserId);
+
+                        }
+                        else
+                        {
+                            UnitOfWork.BudgetRepo.UpdateBudgetLibraryAndUpsertOrDeleteBudgets(dto);
+                        }
                     }
+                    InvestmentUpsertAndDeleteModel changes = new InvestmentUpsertAndDeleteModel()
+                    {
+                        Investment = upsertRequest.SyncModel.Investment,
+                        AddedBudgetAmounts = upsertRequest.SyncModel.AddedBudgetAmounts,
+                        AddedBudgets = upsertRequest.SyncModel.AddedBudgets,
+                        BudgetsForDeletion = upsertRequest.SyncModel.BudgetsForDeletion,
+                        Deletionyears = upsertRequest.SyncModel.Deletionyears,
+                        UpdatedBudgetAmounts = upsertRequest.SyncModel.UpdatedBudgetAmounts,
+                        UpdatedBudgets = upsertRequest.SyncModel.UpdatedBudgets,
+                        FirstYearAnalysisBudgetShift = upsertRequest.SyncModel.FirstYearAnalysisBudgetShift
+                    };
+                    UnitOfWork.BudgetRepo.SaveLibraryInvestments(upsertRequest.Library, changes, upsertRequest.Library.Id);
+
                 });
 
                 return Ok();

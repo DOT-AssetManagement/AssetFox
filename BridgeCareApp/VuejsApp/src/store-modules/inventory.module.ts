@@ -42,7 +42,7 @@ const actions = {
         });
     },
 
-        async getQuery({commit}: any, payload: any){
+    async getQuery({commit}: any, payload: any){
         await InventoryService.getQuery(payload.querySet)
         .then((response: AxiosResponse<any>) => {
             if(hasValue(response, 'data')){

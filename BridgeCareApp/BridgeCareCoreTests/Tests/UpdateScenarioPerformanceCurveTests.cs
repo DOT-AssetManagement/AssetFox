@@ -1,6 +1,7 @@
 ﻿using AppliedResearchAssociates.iAM.Common;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
@@ -69,9 +70,9 @@ namespace BridgeCareCoreTests.Tests
             await controller.UpsertScenarioPerformanceCurves(simulationId, request);
 
             // assert
-            var upsertCall = performanceCurveRepo.SingleInvocationWithName(nameof(IPerformanceCurveRepository.UpsertOrDeleteScenarioPerformanceCurves));
+            var upsertCall = performanceCurveRepo.SingleInvocationWithName(nameof(IPerformanceCurveRepository.SaveScenarioPerformanceCurveChanges));
             var expectedArgument = new List<PerformanceCurveDTO> { performanceCurveDto2 };
-            ObjectAssertions.Equivalent(expectedArgument, upsertCall.Arguments[0]);
+            ObjectAssertions.Equivalent(expectedArgument, (upsertCall.Arguments[0] as UpsertAndDeleteModel<PerformanceCurveDTO>).UpdateRows);
             Assert.Equal(simulationId, upsertCall.Arguments[1]);
         }
 
@@ -98,9 +99,10 @@ namespace BridgeCareCoreTests.Tests
             await controller.UpsertScenarioPerformanceCurves(simulationId, request);
 
             // assert
-            var upsertCall = performanceCurveRepo.SingleInvocationWithName(nameof(IPerformanceCurveRepository.UpsertOrDeleteScenarioPerformanceCurves));
+            var upsertCall = performanceCurveRepo.SingleInvocationWithName(nameof(IPerformanceCurveRepository.SaveScenarioPerformanceCurveChanges));
             var expectedArgument = new List<PerformanceCurveDTO>();
-            ObjectAssertions.Equivalent(expectedArgument, upsertCall.Arguments[0]);
+            ObjectAssertions.Equivalent(expectedArgument, (upsertCall.Arguments[0] as UpsertAndDeleteModel<PerformanceCurveDTO>).UpdateRows);
+            ObjectAssertions.Equivalent(expectedArgument, (upsertCall.Arguments[0] as UpsertAndDeleteModel<PerformanceCurveDTO>).AddedRows);
             Assert.Equal(simulationId, upsertCall.Arguments[1]);
         }
 
@@ -127,9 +129,9 @@ namespace BridgeCareCoreTests.Tests
             await controller.UpsertScenarioPerformanceCurves(simulationId, request);
 
             // assert
-            var upsertCall = performanceCurveRepo.SingleInvocationWithName(nameof(IPerformanceCurveRepository.UpsertOrDeleteScenarioPerformanceCurves));
+            var upsertCall = performanceCurveRepo.SingleInvocationWithName(nameof(IPerformanceCurveRepository.SaveScenarioPerformanceCurveChanges));
             var expectedArgument = new List<PerformanceCurveDTO> { performanceCurveDto };
-            ObjectAssertions.Equivalent(expectedArgument, upsertCall.Arguments[0]);
+            ObjectAssertions.Equivalent(expectedArgument, (upsertCall.Arguments[0] as UpsertAndDeleteModel<PerformanceCurveDTO>).AddedRows);
             Assert.Equal(simulationId, upsertCall.Arguments[1]);
         }
     }

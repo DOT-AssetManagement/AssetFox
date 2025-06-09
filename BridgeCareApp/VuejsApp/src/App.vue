@@ -815,7 +815,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     }
 
     function onLocalDebugLogin() {
-        var payload = config.localDegugInfo as UserInfoLocal
+        var payload = config.value?.localDegugInfo as UserInfoLocal
         localDebugLoginAction(payload).then(() => router.push('/Scenarios/'));
     }
     

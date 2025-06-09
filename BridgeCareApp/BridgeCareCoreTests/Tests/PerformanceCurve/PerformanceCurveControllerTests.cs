@@ -1,5 +1,6 @@
 ﻿using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
@@ -142,7 +143,7 @@ namespace BridgeCareCoreTests.Tests
 
             // Assert
             ActionResultAssertions.Ok(result);
-            var libraryCall = repo.SingleInvocationWithName(nameof(IPerformanceCurveRepository.UpsertOrDeletePerformanceCurveLibraryAndCurves));
+            var libraryCall = repo.SingleInvocationWithName(nameof(IPerformanceCurveRepository.SaveLIbraryPerformanceCurveChanges));
             ObjectAssertions.Equivalent(dto2, libraryCall.Arguments[0]);
         }
 
@@ -264,7 +265,7 @@ namespace BridgeCareCoreTests.Tests
 
             await controller.UpsertPerformanceCurveLibrary(pagingRequest);
 
-            repositoryMock.SingleInvocationWithName(nameof(IPerformanceCurveRepository.UpsertOrDeletePerformanceCurveLibraryAndCurves));
+            repositoryMock.SingleInvocationWithName(nameof(IPerformanceCurveRepository.SaveLIbraryPerformanceCurveChanges));
         }
 
         [Fact]

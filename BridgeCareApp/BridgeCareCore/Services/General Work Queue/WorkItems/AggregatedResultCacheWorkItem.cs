@@ -52,7 +52,7 @@ namespace BridgeCareCore.Services
 
         private static void DoWorkInner(IServiceScope scope)
         {
-            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>() as UnitOfDataPersistenceWork;
             var logger = scope.ServiceProvider.GetRequiredService<ILog>();
             logger.Information("Starting aggregated result value cache work item");
             var attributeRepository = unitOfWork.AttributeRepo;

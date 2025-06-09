@@ -153,7 +153,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public Dictionary<string, bool> CheckIfKeyAttributeValuesExists(Guid networkId, List<string> attributeValues)
         {
 
-            var network = _unitOfWork.Context.Network.AsNoTracking().Include(_ => _.Simulations).FirstOrDefault(_ => _.Id == networkId);
+            var network = _unitOfWork.Context.Network.AsNoTracking().FirstOrDefault(_ => _.Id == networkId);
             if (network == null)
                 return new Dictionary<string, bool>();
             var attrEntity = _unitOfWork.Context.Attribute.AsNoTracking().FirstOrDefault(_ => _.Id == network.KeyAttributeId);
