@@ -53,6 +53,12 @@ export default class TreatmentService {
         );
     }
 
+    static getAllScenarioTreatments(scenarioId: string): AxiosPromise {
+        return coreAxiosInstance.get(
+            `${API.Treatment}/GetAllScenarioTreatments/${scenarioId}`,
+        );
+    }
+
     static getSimpleTreatmentsByScenarioId(scenarioId: string): AxiosPromise {
         return coreAxiosInstance.get(
             `${API.Treatment}/GetSimpleTreatmentsByScenarioId/${scenarioId}`,

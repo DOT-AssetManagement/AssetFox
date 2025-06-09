@@ -574,6 +574,18 @@ import CashFlowService from '@/services/cash-flow.service';
                 });
         });
 
+        
+        $emitter.on('CashFlowIsEmpty', () => {
+
+            // Update the icon of the Cash Flow tab
+            navigationTabs.value.forEach((tab) => {
+                    if (tab.tabName === 'Cash Flow') {
+                        tab.validationIcon = 'fas fa-exclamation-circle';
+                    }
+                });
+        });
+
+
         $emitter.on('CommittedProjectsUpdated', () => {
             isCashFlowSet.value = false;
             isCommittedProjectsBudgetsUnset.value = true;

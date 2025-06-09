@@ -27,6 +27,7 @@ const state = {
     treatmentLibraries: [] as TreatmentLibrary[],
     selectedTreatmentLibrary: clone(emptyTreatmentLibrary) as TreatmentLibrary,
     scenarioSelectableTreatments: [] as Treatment[],
+    allScenarioTreatments: [] as Treatment[],
     scenarioTreatmentLibrary: clone(emptyTreatmentLibrary) as TreatmentLibrary,
     simpleScenarioSelectableTreatments: [] as SimpleTreatment[],
     simpleSelectableTreatments: [] as SimpleTreatment[],
@@ -78,6 +79,9 @@ const mutations = {
         selectableTreatments: Treatment[],
     ) {
         state.scenarioSelectableTreatments = clone(selectableTreatments);
+    },
+    getAllScenarioTreatmentsMutator(state: any, treatments: Treatment[]) {
+        state.allScenarioTreatments = clone(treatments);
     },
     simpleScenarioSelectableTreatmentsMutator(
         state: any,
@@ -184,6 +188,20 @@ const actions = {
                 }
             },
         );
+    },
+    async getAllScenarioTreatments({ commit }: any, scenario: { scenarioId: string }) {
+        const scenarioId = scenario.scenarioId;
+    
+        const response = await TreatmentService.getAllScenarioTreatments(scenarioId);
+        
+        if (hasValue(response, 'data')) {
+            commit(
+                'getAllScenarioTreatmentsMutator',
+                response.data as Treatment[],
+            );
+        }
+    
+        return response.data;
     },
     async getSimpleSelectableTreatments({ commit }: any, libraryId: string) {
         await TreatmentService.getSimpleTreatmentsByLibraryId(libraryId).then(
