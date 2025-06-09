@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -13,8 +13,7 @@ using AppliedResearchAssociates.iAM.DTOs;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
-using Microsoft.Extensions.DependencyModel;
-using MathNet.Numerics;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -312,6 +311,149 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Select(_ => _.ToDto())
                 .ToList();
             return budgets.OrderBy(_ => _.BudgetOrder).ToList();
+        }
+
+        public void SaveScenarioInvestments(InvestmentUpsertAndDeleteModel changes, Guid simulationId)
+        {
+            
+            _unitOfWork.AsTransaction(() =>
+            {
+                DeleteScenarioBudgets(changes.BudgetsForDeletion);
+                InsertScenarioBudgets(changes.AddedBudgets, simulationId);
+                UpdateScenarioBudgets(changes.UpdatedBudgets, simulationId);
+                _unitOfWork.BudgetAmountRepo.SaveScenarioBudgetAmounts(changes, simulationId);
+                _unitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(changes.Investment, simulationId);
+            });
+        }
+
+        private void DeleteScenarioBudgets(List<Guid> ids)
+        {
+            _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentScenarioBudgetEntity>(_ => ids.Contains(_.ScenarioBudgetId));
+            _unitOfWork.Context.DeleteAll<ScenarioBudgetEntity>(_ =>ids.Contains(_.Id));
+            var committedProjects = _unitOfWork.Context.CommittedProject.Where(_ => ids.Contains(_.ScenarioBudgetId ?? Guid.Empty)).ToList();
+            if (committedProjects.Count > 0)
+            {
+                committedProjects.ForEach(_ => _.ScenarioBudgetId = null);
+                _unitOfWork.Context.UpdateAll(committedProjects);
+            }
+        }
+
+        private void UpdateScenarioBudgets(List<BudgetDTO> budgets, Guid simulationId)
+        {
+            var budgetEntities = budgets.Select(_ => _.ToScenarioEntity(simulationId)).ToList();
+            _unitOfWork.Context.UpdateAll(budgetEntities, _unitOfWork.UserEntity?.Id);
+            var budgetsWithCriterions = budgets.Where(_ => _.CriterionLibrary?.Id != null).ToList();
+            var criterionIds = budgetsWithCriterions.Select(_ => _.CriterionLibrary.Id).ToList();
+            _unitOfWork.Context.DeleteAll<CriterionLibraryEntity>(_ => criterionIds.Contains(_.Id));
+            _unitOfWork.Context.DeleteAll<CriterionLibraryScenarioBudgetEntity>(_ => criterionIds.Contains(_.CriterionLibraryId));
+
+            AddCriterionsFromBudgets(budgetsWithCriterions);
+        }
+
+        private void InsertScenarioBudgets(List<BudgetDTO> budgets, Guid simulationId)
+        {
+            var budgetEntities = budgets.Select(_ => _.ToScenarioEntity(simulationId)).ToList();
+            _unitOfWork.Context.AddAll(budgetEntities, _unitOfWork.UserEntity?.Id);
+            AddCriterionsFromBudgets(budgets);
+        }
+
+        private void AddCriterionsFromBudgets(List<BudgetDTO> budgets)
+        {
+            var criteriaToAdd = new List<CriterionLibraryEntity>();
+            var criteriaJoinsToAdd = new List<CriterionLibraryScenarioBudgetEntity>();
+            budgets.ForEach(_ =>
+            {
+                if (_.CriterionLibrary != null)
+                {
+                    var criterion = new CriterionLibraryEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        MergedCriteriaExpression = _.CriterionLibrary.MergedCriteriaExpression,
+                        Name = $"{_.Name} Criterion",
+                        IsSingleUse = true
+                    };
+                    criteriaToAdd.Add(criterion);
+                    criteriaJoinsToAdd.Add(new CriterionLibraryScenarioBudgetEntity
+                    {
+                        CriterionLibraryId = criterion.Id,
+                        ScenarioBudgetId = _.Id
+                    });
+                }
+            });
+
+            if (criteriaToAdd.Count > 0)
+            {
+                _unitOfWork.Context.AddAll(criteriaToAdd, _unitOfWork.UserEntity?.Id);
+                _unitOfWork.Context.AddAll(criteriaJoinsToAdd, _unitOfWork.UserEntity?.Id);
+            }
+        }
+
+        public void SaveLibraryInvestments(BudgetLibraryDTO library, InvestmentUpsertAndDeleteModel changes, Guid libraryId)
+        {
+
+            _unitOfWork.AsTransaction(() =>
+            {
+                UpsertBudgetLibrary(library);
+                DeleteLibraryBudgets(changes.BudgetsForDeletion);
+                InsertLIbraryBudgets(changes.AddedBudgets, libraryId);
+                UpdateLibraryBudgets(changes.UpdatedBudgets, libraryId);
+                _unitOfWork.BudgetAmountRepo.SaveLibraryBudgetAmounts(changes, libraryId);
+            });
+        }
+
+        private void DeleteLibraryBudgets(List<Guid> ids)
+        {
+            _unitOfWork.Context.DeleteAll<BudgetEntity>(_ => ids.Contains(_.Id));
+        }
+
+        private void UpdateLibraryBudgets(List<BudgetDTO> budgets, Guid simulationId)
+        {
+            var budgetEntities = budgets.Select(_ => _.ToLibraryEntity(simulationId)).ToList();
+            _unitOfWork.Context.UpdateAll(budgetEntities, _unitOfWork.UserEntity?.Id);
+            var budgetsWithCriterions = budgets.Where(_ => _.CriterionLibrary?.Id != null).ToList();
+            var criterionIds = budgetsWithCriterions.Select(_ => _.CriterionLibrary.Id).ToList();
+            _unitOfWork.Context.DeleteAll<CriterionLibraryEntity>(_ => criterionIds.Contains(_.Id));
+            _unitOfWork.Context.DeleteAll<CriterionLibraryBudgetEntity>(_ => criterionIds.Contains(_.CriterionLibraryId));
+
+            AddCriterionsFromLibraryBudgets(budgetsWithCriterions);
+        }
+
+        private void InsertLIbraryBudgets(List<BudgetDTO> budgets, Guid simulationId)
+        {
+            var budgetEntities = budgets.Select(_ => _.ToLibraryEntity(simulationId)).ToList();
+            _unitOfWork.Context.AddAll(budgetEntities, _unitOfWork.UserEntity?.Id);
+            AddCriterionsFromLibraryBudgets(budgets);
+        }
+
+        private void AddCriterionsFromLibraryBudgets(List<BudgetDTO> budgets)
+        {
+            var criteriaToAdd = new List<CriterionLibraryEntity>();
+            var criteriaJoinsToAdd = new List<CriterionLibraryBudgetEntity>();
+            budgets.ForEach(_ =>
+            {
+                if (_.CriterionLibrary != null)
+                {
+                    var criterion = new CriterionLibraryEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        MergedCriteriaExpression = _.CriterionLibrary.MergedCriteriaExpression,
+                        Name = $"{_.Name} Criterion",
+                        IsSingleUse = true
+                    };
+                    criteriaToAdd.Add(criterion);
+                    criteriaJoinsToAdd.Add(new CriterionLibraryBudgetEntity
+                    {
+                        CriterionLibraryId = criterion.Id,
+                        BudgetId = _.Id
+                    });
+                }
+            });
+
+            if (criteriaToAdd.Count > 0)
+            {
+                _unitOfWork.Context.AddAll(criteriaToAdd, _unitOfWork.UserEntity?.Id);
+                _unitOfWork.Context.AddAll(criteriaJoinsToAdd, _unitOfWork.UserEntity?.Id);
+            }
         }
 
         public void UpsertOrDeleteScenarioBudgets(List<BudgetDTO> budgets, Guid simulationId)

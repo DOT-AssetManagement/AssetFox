@@ -1607,8 +1607,9 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             if (any(propEq('id', rowId), addedBudgetAmounts.value.get(updatedRow.budgetName)!)) {
                 let amounts = addedBudgetAmounts.value.get(updatedRow.budgetName)!
                 amounts[amounts.findIndex(b => b.id == rowId)] = updatedRow;
+                checkHasUnsavedChanges();
+                return;
             }
-
 
         let mapEntry = updatedBudgetAmountsMaps.value.get(rowId)
 

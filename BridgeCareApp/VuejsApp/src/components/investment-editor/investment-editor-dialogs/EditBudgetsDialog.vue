@@ -234,7 +234,10 @@ watch(dialogData,() => {
             clone(budget),
             editBudgetsDialogGridData.value,
         );
-        if(any(propEq('id', budget.id), budgetChanges.value.updatedBudgets))
+        var addedBudgetIndex = budgetChanges.value.addedBudgets.findIndex((b => b.id == budget.id))
+        if(addedBudgetIndex > -1)
+            budgetChanges.value.addedBudgets[addedBudgetIndex];
+        else if(any(propEq('id', budget.id), budgetChanges.value.updatedBudgets))
             budgetChanges.value.updatedBudgets[budgetChanges.value.updatedBudgets.findIndex((b => b.id == budget.id))] = budget;
         else
             budgetChanges.value.updatedBudgets.push(budget);
@@ -297,12 +300,14 @@ watch(dialogData,() => {
             const origBudget = props.dialogData.budgets.find((b) => b.id == budget.id);
 
             if(!isNil(origBudget)){
-                if(origBudget.criterionLibrary.mergedCriteriaExpression !== budget.criterionLibrary.mergedCriteriaExpression){                                                            
-                    if(budgetChanges.value.addedBudgets.length !== 0){
-                        budgetChanges.value.addedBudgets[budgetChanges.value.addedBudgets.findIndex((b => b.id == budget.id))] = budget;
+                if(origBudget.criterionLibrary.mergedCriteriaExpression !== budget.criterionLibrary.mergedCriteriaExpression){  
+                    var addBudgetIndex = budgetChanges.value.addedBudgets.findIndex((b => b.id == budget.id))        
+                    var updatedBudgetIndes = budgetChanges.value.updatedBudgets.findIndex((b => b.id == budget.id))
+                    if(addBudgetIndex > -1){
+                        budgetChanges.value.addedBudgets[addBudgetIndex] = budget;
                     }
-                    else if(budgetChanges.value.updatedBudgets.length !== 0){                        
-                        budgetChanges.value.updatedBudgets[budgetChanges.value.updatedBudgets.findIndex((b => b.id == budget.id))] = budget;
+                    else if(updatedBudgetIndes > -1){                        
+                        budgetChanges.value.updatedBudgets[updatedBudgetIndes] = budget;
                     }
                     else
                     {

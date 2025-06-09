@@ -4,6 +4,7 @@ using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entit
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
 {
@@ -32,6 +33,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         List<BudgetDTO> GetScenarioBudgets(Guid simulationId);
 
         void UpsertOrDeleteScenarioBudgets(List<BudgetDTO> budgets, Guid simulationId);
+        void SaveScenarioInvestments(InvestmentUpsertAndDeleteModel changes, Guid simulationId);
+        void SaveLibraryInvestments(BudgetLibraryDTO library, InvestmentUpsertAndDeleteModel changes, Guid libraryId);
 
         /// <summary>Returned dictionary values are the names of the corresponding scenario budgets.</summary>
         Dictionary<Guid, string> GetScenarioBudgetDictionary(List<Guid> budgetIds);
