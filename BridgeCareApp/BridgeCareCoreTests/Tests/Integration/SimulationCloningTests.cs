@@ -695,9 +695,11 @@ namespace BridgeCareCoreTests.Tests.Integration
             Assert.Equal(networkId, clonedSimulation.NetworkId);
             Assert.Equal(network.Name, clonedSimulation.NetworkName);
 
+            var originalProjects = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
+            var originalProject = originalProjects.Single();
             var clonedProjects = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(clonedSimulationId);
             var clonedProject = clonedProjects.Single();
-            ObjectAssertions.EquivalentExcluding(sectionCommittedProject, clonedProject, x => x.SimulationId, cp => cp.ScenarioBudgetId, cp => cp.Id, cp => cp.LocationKeys, cp => cp.LastModifiedDate);
+            ObjectAssertions.EquivalentExcluding(originalProject, clonedProject, x => x.SimulationId, cp => cp.ScenarioBudgetId, cp => cp.Id, cp => cp.LocationKeys, cp => cp.LastModifiedDate);
             Assert.NotEqual(sectionCommittedProjectId, clonedProject.Id);
             var clonedBudgets = TestHelper.UnitOfWork.BudgetRepo.GetScenarioBudgets(cloningResult.Simulation.Id);
             var clonedBudget = clonedBudgets.Single();

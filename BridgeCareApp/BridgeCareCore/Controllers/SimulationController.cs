@@ -187,7 +187,7 @@ namespace BridgeCareCore.Controllers
         {
             try
             {
-                var result = await Task.Factory.StartNew(() => _workQueueService.GetWorkQueuePage(request));
+                var result = await Task.Run(() => _workQueueService.GetWorkQueuePage(request));
                 return Ok(result);
             }
             catch (Exception e)

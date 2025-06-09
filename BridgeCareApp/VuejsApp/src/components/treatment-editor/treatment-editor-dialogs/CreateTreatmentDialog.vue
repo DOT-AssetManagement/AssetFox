@@ -41,7 +41,6 @@ import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 const props = defineProps<{showDialog: boolean}>()
 let showDialogComputed = computed(() => props.showDialog);
 let newTreatment = ref<Treatment>({...emptyTreatment, id: getNewGuid(), addTreatment: false});
-let store = useStore();
 const emit = defineEmits(['submit'])
 
   function onSubmit(submit: boolean) {

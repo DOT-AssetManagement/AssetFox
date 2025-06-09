@@ -163,6 +163,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 IndicateError();
                 Errors.Add("Failed to get generate summary report");
                 Errors.Add(e.Message);
+                Errors.Add(e.StackTrace);
                 return;
             }
 
@@ -271,10 +272,10 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Pull best guess on committed project treatment categories here
             var committedProjectsForWorkOutsideScope = _unitOfWork.CommittedProjectRepo.GetCommittedProjectsForExport(simulationId);
             var committedProjectList = _unitOfWork.CommittedProjectRepo.GetCommittedProjectsForExport(simulationId);
-            var treatmentsToAdd = committedProjectList.Select(_ => _.Treatment).Where(_ => !treatmentCategoryLookup.ContainsKey(_));
+            var treatmentsToAdd = committedProjectList.Select(_ => _.ComputedTreatmentString).Where(_ => !treatmentCategoryLookup.ContainsKey(_));
             foreach (var newTreatment in treatmentsToAdd)
             {
-                var bestTreatmentEntry = committedProjectList.Where(_ => _.Treatment == newTreatment)
+                var bestTreatmentEntry = committedProjectList.Where(_ => _.ComputedTreatmentString == newTreatment)
                     .GroupBy(_ => _.Category)
                     .Select(_ => new { Category = _.Key, Count = _.Count() })
                     .OrderByDescending(_ => _.Count)

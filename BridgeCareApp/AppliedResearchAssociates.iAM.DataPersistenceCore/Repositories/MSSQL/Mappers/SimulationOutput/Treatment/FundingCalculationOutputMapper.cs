@@ -8,21 +8,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
     public static class FundingCalculationOutputMapper
     {
         public static FundingCalculationOutput ToEntityWithoutChildren(
-            Guid treatmentConsiderationDetailEntityId)
+            Guid treatmentConsiderationDetailEntityId, int runId)
         {
             return new FundingCalculationOutput
             {
-                Id = Guid.NewGuid(),
-                TreatmentConsiderationDetailId = treatmentConsiderationDetailEntityId
+                Id = SequentialGuid.NewGuid(),
+                TreatmentConsiderationDetailId = treatmentConsiderationDetailEntityId,
+                RunId = runId
             };
         }
 
-        public static FundingCalculationOutput ToEntity(Analysis.Engine.FundingCalculationOutput fundingCalculationOutputDomain, Guid treatmentConsiderationDetailEntityId, AssetDetailEntityFamily family)
+        public static FundingCalculationOutput ToEntity(Analysis.Engine.FundingCalculationOutput fundingCalculationOutputDomain, Guid treatmentConsiderationDetailEntityId, AssetDetailEntityFamily family, int runId)
         {
-            var entity = ToEntityWithoutChildren(treatmentConsiderationDetailEntityId);
+            var entity = ToEntityWithoutChildren(treatmentConsiderationDetailEntityId, runId);
 
             // AllocationMatrix
-            var allocationMatrix = AllocationMapper.ToEntityList(fundingCalculationOutputDomain?.AllocationMatrix ?? new(), entity.Id);
+            var allocationMatrix = AllocationMapper.ToEntityList(fundingCalculationOutputDomain?.AllocationMatrix ?? new(), entity.Id, runId);
             family.AllocationMatrix.AddRange(allocationMatrix);
 
             return entity;

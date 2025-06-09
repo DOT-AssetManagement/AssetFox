@@ -11,7 +11,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static AssetDetailValueEntityIntId ToNumericEntity(
             Guid assetDetailId,
             KeyValuePair<string, double> assetDetailValue,
-            Dictionary<string, Guid> attributeIdLookupDictionary)
+            Dictionary<string, Guid> attributeIdLookupDictionary,
+            int runId)
         {
             var attributeId = attributeIdLookupDictionary[assetDetailValue.Key];
             var entity = new AssetDetailValueEntityIntId
@@ -20,6 +21,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Discriminator = AssetDetailValueDiscriminators.Number,
                 AttributeId = attributeId,
                 NumericValue = assetDetailValue.Value,
+                RunId = runId
             };
             return entity;
         }
@@ -27,7 +29,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static AssetDetailValueEntityIntId ToTextEntity(
             Guid assetDetailId,
             KeyValuePair<string, string> assetDetailValue,
-            Dictionary<string, Guid> attributeIdLookupDictionary)
+            Dictionary<string, Guid> attributeIdLookupDictionary,
+            int runId)
         {
             var attributeId = attributeIdLookupDictionary[assetDetailValue.Key];
             var entity = new AssetDetailValueEntityIntId
@@ -36,6 +39,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 Discriminator = AssetDetailValueDiscriminators.Text,
                 AttributeId = attributeId,
                 TextValue = assetDetailValue.Value,
+                RunId = runId
             };
             return entity;
         }
@@ -43,7 +47,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static List<AssetDetailValueEntityIntId> ToNumericEntityList(
             Guid assetDetailId,
             Dictionary<string, double> assetDetailValues,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<AssetDetailValueEntityIntId>();
 
@@ -51,7 +55,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             {
                 if (attributeIdLookup.ContainsKey(keyValuePair.Key))
                 {
-                    var entity = ToNumericEntity(assetDetailId, keyValuePair, attributeIdLookup);
+                    var entity = ToNumericEntity(assetDetailId, keyValuePair, attributeIdLookup, runId);
                     entities.Add(entity);
                 }
             }
@@ -61,12 +65,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static List<AssetDetailValueEntityIntId> ToTextEntityList(
             Guid assetDetailId,
             Dictionary<string, string> assetDetailValues,
-            Dictionary<string, Guid> attributeIdLookup)
+            Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<AssetDetailValueEntityIntId>();
             foreach (var keyValuePair in assetDetailValues)
             {
-                var entity = ToTextEntity(assetDetailId, keyValuePair, attributeIdLookup);
+                var entity = ToTextEntity(assetDetailId, keyValuePair, attributeIdLookup, runId);
                 entities.Add(entity);
             }
             return entities;

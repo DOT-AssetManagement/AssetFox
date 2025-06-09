@@ -10,9 +10,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
     {
         public static TreatmentRejectionDetailEntity ToEntity(
             TreatmentRejectionDetail domain,
-            Guid assetDetailId)
+            Guid assetDetailId,
+            int runId)
         {
-            var id = Guid.NewGuid();
+            var id = SequentialGuid.NewGuid();
             var entity = new TreatmentRejectionDetailEntity
             {
                 Id = id,
@@ -20,18 +21,20 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 TreatmentName = domain.TreatmentName,
                 TreatmentRejectionReason = (int)domain.TreatmentRejectionReason,
                 PotentialConditionChange = domain.PotentialConditionChange,
+                RunId = runId
             };
             return entity;
         }
 
         public static List<TreatmentRejectionDetailEntity> ToEntityList(
             List<TreatmentRejectionDetail> domainList,
-            Guid assetDetailId)
+            Guid assetDetailId,
+            int runId)
         {
             var entityList = new List<TreatmentRejectionDetailEntity>();
             foreach (var domain in domainList)
             {
-                var entity = ToEntity(domain, assetDetailId);
+                var entity = ToEntity(domain, assetDetailId, runId);
                 entityList.Add(entity);
             }
             return entityList;

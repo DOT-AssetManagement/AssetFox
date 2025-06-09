@@ -479,6 +479,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     let lastYear: number = 0;
     let firstYear: number = 0;
     let initializing: boolean = true;
+    let hasNoBudgets: boolean = false;
 
     const dialogMessage = ref('');
 
@@ -759,6 +760,13 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
 
     watch(selectedBudgetYearsGridData,()=> {
         selectedBudgetYears.value = getPropertyValues('year', selectedBudgetYearsGridData.value) as number[];
+    });
+
+    watch(budgetYearsGridData, ()=> {
+        if(budgetYearsGridData.value.length == 0)
+        hasNoBudgets = true;
+        else
+        hasNoBudgets = false;
     });
 
     watch(librarySelectItemValue,() => {

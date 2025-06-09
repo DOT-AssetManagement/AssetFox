@@ -9,7 +9,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 {
     public static class AllocationMapper
     {
-        public static IEnumerable<Allocation> ToEntityList(List<AnalysisEngine.FundingCalculationOutput.Allocation> allocationMatrixDomainList, Guid fundingCalculationOutputId)
+        public static IEnumerable<Allocation> ToEntityList(List<AnalysisEngine.FundingCalculationOutput.Allocation> allocationMatrixDomainList, Guid fundingCalculationOutputId, int runId)
         {
             return allocationMatrixDomainList.Select(_ => new Allocation
             {
@@ -18,7 +18,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 BudgetName = _.BudgetName,
                 FundingCalculationOutputId = fundingCalculationOutputId,
                 TreatmentName = _.TreatmentName,
-                Year = _.Year
+                Year = _.Year,
+                RunId = runId
             });
         }
 

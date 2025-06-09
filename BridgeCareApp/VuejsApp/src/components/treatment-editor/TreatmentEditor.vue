@@ -110,9 +110,15 @@
                                         avatar @click='onSetTreatmentSelectItemValue(treatmentSelectItem.value)'>
                                 <v-list-item-content class ="item-content">
                                     <span>{{treatmentSelectItem.text}}</span>
+                                    <div>
+                                    <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'"
+                                    @click.stop="OnCloneTreatmentClicked(treatmentSelectItem.value)"  class="ghd-red">
+                                        <img class='img-general' :src="getUrl('assets/icons/copy.svg')"/>
+                                    </v-btn>
                                     <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'" @click="onShowConfirmDeleteTreatmentAlert" class="ghd-red">
                                         <TrashCanSvg />
-                                    </v-btn>
+                                    </v-btn>                                   
+                                    </div>
                                 </v-list-item-content>
                             </v-list-item>
                         </template>
@@ -301,6 +307,10 @@
         :showDialog='showCreateTreatmentDialog'
         @submit='onAddTreatment'
     />
+    <CloneTreatmentDialog
+        :show-dialog='showCloneTreatmentDialog'
+        @submit='CloneTreatment'
+    />
 
     <ImportNewTreatmentDialog
         :showDialog ='showImportTreatmentDialog'
@@ -358,6 +368,7 @@ import {
     PerformanceCurve,
 } from '@/shared/models/iAM/performance';
 import CreateTreatmentDialog from '@/components/treatment-editor/treatment-editor-dialogs/CreateTreatmentDialog.vue';
+import CloneTreatmentDialog from './treatment-editor-dialogs/CloneTreatmentDialog.vue';
 import {
     any,
     append,
@@ -420,7 +431,7 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-
+import { getUrl } from '@/shared/utils/get-url';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
@@ -429,6 +440,7 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
     let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
     let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
+    let allScenarioTreatments = computed<Treatment[]>(() => store.state.treatmentModule.allScenarioTreatments);    
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let stateScenarioTreatmentLibrary= computed<TreatmentLibrary>(() => store.state.treatmentModule.scenarioTreatmentLibrary);
     let stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() => store.state.investmentModule.scenarioSimpleBudgetDetails);
@@ -540,6 +552,10 @@ function selectScenarioAction(payload?: any) {
   store.dispatch('selectScenario', payload);
 }
 
+async function getAllScenarioTreatmentsAction(payload?: any) {
+  await store.dispatch('getAllScenarioTreatments', payload);
+}
+
 async function getScenarioPerformanceCurvesAction(payload?: any): Promise<any> {
   await store.dispatch('getScenarioPerformanceCurves', payload);
 }
@@ -574,6 +590,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
     let activeTab = ref(0);
     let treatmentTabs: string[] = ['Treatment Details', 'Costs', 'Consequences', 'Supersede', 'Performance Factor'];
     const createTreatmentLibraryDialogData = ref<CreateTreatmentLibraryDialogData>(clone(emptyCreateTreatmentLibraryDialogData));
+    let showCloneTreatmentDialog = ref<boolean>(false)
     let showCreateTreatmentDialog = ref(false);
     const showImportTreatmentDialog = ref<boolean>(false);
     let confirmBeforeDeleteAlertData = ref(clone(emptyAlertData));
@@ -608,6 +625,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
     let simpleTreatments  = shallowRef<SimpleTreatment[]>([]);
     let isShared: boolean = false;
     let treatmentCache: Treatment[] = [];
+    let treatmentToBeClonedId: string = ''
 
     let unsavedDialogAllowed: boolean = true;
     let trueLibrarySelectItemValue: string = '';
@@ -653,7 +671,9 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             treatmentTabs = [...treatmentTabs, 'Budgets'];
             await getScenarioSimpleBudgetDetailsAction({ scenarioId: selectedScenarioId, })
             await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
-            selectScenarioAction({ scenarioId: selectedScenarioId });   
+            selectScenarioAction({ scenarioId: selectedScenarioId });
+
+            await getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
               
             await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioTreatment}).then(response => {
                 if(response.data){
@@ -917,12 +937,49 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
     }
     
     function onShowConfirmDeleteTreatmentAlert() {
-        confirmBeforeDeleteTreatmentAlertData.value = {
-            showDialog: true,
-            heading: 'Warning',
-            choice: true,
-            message: 'Are you sure you want to delete?',
-        };
+                        if (selectedTreatment.value) {
+                                // Wait .75 milliseconds to get the selectedTreatment details before continuing
+                                setTimeout(() => { 
+                                    let treatmentName = selectedTreatment.value.name;  
+                                    let affectedTreatments: string[] = [];
+                                    if (selectedTreatment.value.supersedeRules.length > 0) {
+
+                        allScenarioTreatments.value.forEach((treatmentWrapper: any) => {
+                        const supersedeRules = treatmentWrapper.treatment.supersedeRules || [];
+                        const treatmentNameWithSupersedes = treatmentWrapper.treatment.name;
+
+                        // Add the affected treatment names to the affectedTreatments list
+                        supersedeRules.forEach((rule: any) => {
+                            if (rule.treatment.name == treatmentName) {
+                            affectedTreatments.push(treatmentNameWithSupersedes);
+                            }
+                        });
+
+                        });
+                            let message = "Are you sure you want to delete?";
+                            // Add the treatment names to the message
+                            if (affectedTreatments.length > 0) {
+                                message = `Supersede rules will be affected in: ${affectedTreatments.join(', ')}. ${message}`;
+                            }
+
+                            confirmBeforeDeleteTreatmentAlertData.value = {
+                                showDialog: true,
+                                heading: 'Warning',
+                                choice: true,
+                                message: message,
+                            };
+                    } 
+                    else
+                    {
+                        confirmBeforeDeleteTreatmentAlertData.value = {
+                        showDialog: true,
+                        heading: 'Warning',
+                        choice: true,
+                        message: 'Are you sure you want to delete?',
+                    };
+                    }        
+                }, 75);
+        }
     }
 
     function  onShowTreatmentLibraryDialog(treatmentLibrary: TreatmentLibrary) {
@@ -962,7 +1019,6 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
 
     function onSubmitConfirmDeleteTreatmentAlertResult(submit: boolean) {
         confirmBeforeDeleteTreatmentAlertData.value = clone(emptyAlertData);
-
         if (submit) {       
             onDeleteTreatment(selectedTreatment.value.id);
         }
@@ -985,7 +1041,8 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
                     addedRows = addedRows.filter(_ => _.id !== treatmentId.toString());
                 });
             }            
-        }                
+        }
+        getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
     }
 
     function onShowCreateTreatmentLibraryDialog(createAsNewLibrary: boolean) {
@@ -1544,6 +1601,70 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             
             $emitter.emit('TreatmentSettingsUpdated');                 
         }        
+    }
+
+    function OnCloneTreatmentClicked(treatmentId: string | number){
+        showCloneTreatmentDialog.value = true;
+        treatmentToBeClonedId = treatmentId.toString();
+    }
+
+    async function CloneTreatment(name: string)
+    {
+        showCloneTreatmentDialog.value = false;
+        if(isNil(name))
+            return;
+        var origiTreatment = treatmentCache.find(_ => _.id == treatmentToBeClonedId);
+        var mapEntry = updatedRowsMap.get(treatmentSelectItemValue.value);
+        var addedRow = addedRows.find(_ => _.id == treatmentSelectItemValue.value);
+
+        if(!isNil(mapEntry)){
+            origiTreatment = clone(mapEntry[1]);
+        }
+        else if(!isNil(addedRow)){
+            origiTreatment = clone(addedRow);
+        }     
+        if(isNil(origiTreatment)){
+            var response: AxiosResponse<any>;
+            if(hasSelectedLibrary.value){
+                    response = await TreatmentService.getSelectedTreatmentById(treatmentToBeClonedId)
+            }
+                else response = await TreatmentService.getScenarioSelectedTreatmentById(treatmentToBeClonedId)
+            
+            if(hasValue(response, 'data')) {
+                    var data = response.data as Treatment;
+                    treatmentCache.push(data)
+                    origiTreatment = data;
+            }
+        }
+        var treatmentClone = clone(origiTreatment!);
+        treatmentClone.name = name;
+        treatmentClone.id = getNewGuid();
+        treatmentClone.consequences.forEach(_ => {
+            _.id = getNewGuid();
+            _.equation.id = getNewGuid();
+            _.criterionLibrary.id = getNewGuid();
+        })
+        treatmentClone.costs.forEach(_ => {
+            _.id = getNewGuid();
+            _.equation.id = getNewGuid();
+            _.criterionLibrary.id = getNewGuid();
+        })
+        treatmentClone.supersedeRules.forEach(_ => {
+
+            _.id = getNewGuid();
+            _.criterionLibrary.id = getNewGuid();
+        })
+        treatmentClone.criterionLibrary.id = getNewGuid();
+        treatmentClone.performanceFactors.forEach(_ => {
+            _.id = getNewGuid();
+        })
+
+        if (!isNil(treatmentClone)) {
+            addedRows = append(treatmentClone, addedRows);
+            simpleTreatments.value = append({name: treatmentClone.name, id: treatmentClone.id}, simpleTreatments.value);
+            setTimeout(() => (treatmentSelectItemValue.value = treatmentClone.id));
+        }
+
     }
 
     //paging

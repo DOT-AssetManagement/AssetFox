@@ -31,7 +31,7 @@ namespace AppliedResearchAssociates.iAM.StressTesting
             var context = SimulationOutputCreationContextTestSetup.ContextWithObjectsInDatabase(TestHelper.UnitOfWork, assetNameIdPairs, numericAttributeNames, textAttributeNames, yearCount);
             TestHelper.UnitOfWork.SimulationOutputRepo.CreateSimulationOutputViaRelational(context.SimulationId, simulationOutput);
             var loadedOutput = TestHelper.UnitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(context.SimulationId);
-            SimulationOutputAssertions.SameSimulationOutput(loadedOutput, simulationOutput);
+            SimulationOutputAssertions.SameSimulationOutput(loadedOutput, simulationOutput, false);
         }
 
         //[Fact]

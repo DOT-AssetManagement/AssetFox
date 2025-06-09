@@ -12,25 +12,25 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
 {
     public class MASTab
     {
-        public void Fill(ExcelWorksheet masWorksheet, Guid networkId, List<MaintainableAsset> networkMaintainableAssets, List<AttributeDatumDTO> attributeDatumDTOs, List<AttributeDTO> attributeDTOs)
+        public void Fill(ExcelWorksheet masWorksheet, Guid networkId, List<MaintainableAsset> networkMaintainableAssets, List<AggregatedResultDTO> aggregatedResultDTOs, List<AttributeDTO> attributeDTOs)
         {
             var currentCell = AddHeadersCells(masWorksheet);
 
-            FillDynamicDataInWorkSheet(masWorksheet, currentCell, networkId, networkMaintainableAssets, attributeDatumDTOs, attributeDTOs);
+            FillDynamicDataInWorkSheet(masWorksheet, currentCell, networkId, networkMaintainableAssets, aggregatedResultDTOs, attributeDTOs);
 
             masWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
             masWorksheet.Cells.AutoFitColumns();
         }
 
-        private void FillDynamicDataInWorkSheet(ExcelWorksheet masWorksheet, CurrentCell currentCell, Guid networkId, List<MaintainableAsset> networkMaintainableAssets, List<AttributeDatumDTO> attributeDatumDTOs, List<AttributeDTO> attributeDTOs)
+        private void FillDynamicDataInWorkSheet(ExcelWorksheet masWorksheet, CurrentCell currentCell, Guid networkId, List<MaintainableAsset> networkMaintainableAssets, List<AggregatedResultDTO> aggregatedResultDatumDTOs, List<AttributeDTO> attributeDTOs)
         {
             foreach (var networkMaintainableAsset in networkMaintainableAssets)
             {
                 var assetId = networkMaintainableAsset.Id;
 
                 // Generate data model
-                var attributeDatumDTOsForAsset = attributeDatumDTOs.Where(_ => _.MaintainableAssetId == assetId).ToList();
-                var masDataModel = GenerateMASDataModel(assetId, networkId, networkMaintainableAsset, attributeDatumDTOsForAsset, attributeDTOs);
+                var aggregatedResultDTOsForAsset = aggregatedResultDatumDTOs.Where(_ => _.MaintainableAssetId == assetId).ToList();
+                var masDataModel = GenerateMASDataModel(assetId, networkId, networkMaintainableAsset, aggregatedResultDTOsForAsset, attributeDTOs);
 
                 // Fill in excel
                 currentCell = FillDataInWorksheet(masWorksheet, masDataModel, currentCell);
@@ -70,13 +70,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
 
         private static void SetDecimalFormat(ExcelRange cell) => ExcelHelper.SetCustomFormat(cell, ExcelHelperCellFormat.DecimalPrecision3);
 
-        private MASDataModel GenerateMASDataModel(Guid assetId, Guid networkId, MaintainableAsset networkMaintainableAsset, List<AttributeDatumDTO> attributeDatumDTOsForAsset, List<AttributeDTO> attributeDTOs)
+        private MASDataModel GenerateMASDataModel(Guid assetId, Guid networkId, MaintainableAsset networkMaintainableAsset, List<AggregatedResultDTO> aggregatedResultDTOsForAsset, List<AttributeDTO> attributeDTOs)
         {
             MASDataModel masDataModel = new MASDataModel
             {
                 NetworkId = networkId,
                 MaintainableAssetId = assetId
             };
+
+            var test = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "DISTRICT");
 
             var locationIdentifier = networkMaintainableAsset.Location?.LocationIdentifier;
             masDataModel.AssetName = locationIdentifier;
@@ -94,33 +96,33 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             masDataModel.FromSection = fromSection;
             masDataModel.ToSection = toSection;                        
                         
-            double pavementLength = GetNumericValue(attributeDatumDTOsForAsset, attributeDTOs, "SEGMENT_LENGTH");
-            double pavementWidth = GetNumericValue(attributeDatumDTOsForAsset, attributeDTOs, "WIDTH");
+            double pavementLength = GetNumericValue(aggregatedResultDTOsForAsset, attributeDTOs, "SEGMENT_LENGTH");
+            double pavementWidth = GetNumericValue(aggregatedResultDTOsForAsset, attributeDTOs, "WIDTH");
             masDataModel.Length = pavementLength;
             masDataModel.Width = pavementWidth;
             masDataModel.Area = pavementLength * pavementWidth;
-            masDataModel.District = GetTextValue(attributeDatumDTOsForAsset, attributeDTOs, "DISTRICT");
-            masDataModel.Cnty = GetTextValue(attributeDatumDTOsForAsset, attributeDTOs, "CNTY");
-            masDataModel.Route = GetTextValue(attributeDatumDTOsForAsset, attributeDTOs, "SR");
-            masDataModel.Direction = direction; // GetTextValue(attributeDatumDTOsForAsset, attributeDTOs, "DIRECTION");            
-            masDataModel.Interstate = GetTextValue(attributeDatumDTOsForAsset, attributeDTOs, "INTERSTATE");
-            masDataModel.Lanes = GetNumericValue(attributeDatumDTOsForAsset, attributeDTOs, "LANES");
-            masDataModel.surfaceName = GetTextValue(attributeDatumDTOsForAsset, attributeDTOs, "SURFACE_NAME");
-            masDataModel.RiskScore = GetNumericValue(attributeDatumDTOsForAsset, attributeDTOs, "RISKSCORE");
+            masDataModel.District = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "DISTRICT");
+            masDataModel.Cnty = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "CNTY");
+            masDataModel.Route = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "SR");
+            masDataModel.Direction = direction; // GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "DIRECTION");            
+            masDataModel.Interstate = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "INTERSTATE");
+            masDataModel.Lanes = GetNumericValue(aggregatedResultDTOsForAsset, attributeDTOs, "LANES");
+            masDataModel.surfaceName = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "SURFACE_NAME");
+            masDataModel.RiskScore = GetNumericValue(aggregatedResultDTOsForAsset, attributeDTOs, "RISKSCORE");
 
             return masDataModel;
         }
 
-        private double GetNumericValue(List<AttributeDatumDTO> attributeDatumDTOsForAsset, List<AttributeDTO> attributeDTOs, string attribute)
+        private double GetNumericValue(List<AggregatedResultDTO> aggregatedResultDTOsForAsset, List<AttributeDTO> attributeDTOs, string attribute)
         {
-            var attributeDatumDTOForAsset = attributeDatumDTOsForAsset.FirstOrDefault(_ => _.Attribute == attribute);             
-            return attributeDatumDTOForAsset != null ? (double)attributeDatumDTOForAsset.NumericValue : Convert.ToDouble(attributeDTOs.FirstOrDefault(_ => _.Name == attribute).DefaultValue);
+            var aggregatedResultDTOForAsset = aggregatedResultDTOsForAsset.FirstOrDefault(_ => _.Attribute.Name == attribute);             
+            return aggregatedResultDTOForAsset != null ? (double)aggregatedResultDTOForAsset.NumericValue : Convert.ToDouble(attributeDTOs.FirstOrDefault(_ => _.Name == attribute).DefaultValue);
         }
 
-        private string GetTextValue(List<AttributeDatumDTO> attributeDatumDTOsForAsset, List<AttributeDTO> attributeDTOs, string attribute)
+        private string GetTextValue(List<AggregatedResultDTO> aggregatedResultDTOsForAsset, List<AttributeDTO> attributeDTOs, string attribute)
         {
-            var attributeDatumDTOForAsset = attributeDatumDTOsForAsset.FirstOrDefault(_ => _.Attribute == attribute);            
-            return attributeDatumDTOForAsset != null ? attributeDatumDTOForAsset.TextValue : attributeDTOs.FirstOrDefault(_ => _.Name == attribute).DefaultValue;
+            var aggregatedResultDTOForAsset = aggregatedResultDTOsForAsset.FirstOrDefault(_ => _.Attribute.Name == attribute);            
+            return aggregatedResultDTOForAsset != null ? aggregatedResultDTOForAsset.TextValue : attributeDTOs.FirstOrDefault(_ => _.Name == attribute).DefaultValue;
         }
 
         private static CurrentCell AddHeadersCells(ExcelWorksheet worksheet)

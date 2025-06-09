@@ -315,6 +315,7 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
+import { emit } from 'process';
 
 
 let store = useStore();
@@ -810,7 +811,10 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
                 libraryImported = false;
             }           
         });
-        $emitter.emit('CashFlowUpdated');
+        if(currentPage.value.length == 0)
+            $emitter.emit('CashFlowIsEmpty');
+        else
+            $emitter.emit('CashFlowUpdated');
     }
 
     function onUpsertCashFlowRuleLibrary() {
