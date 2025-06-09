@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
     <UserSecretsId>7bf892ee-3d69-4247-9888-2f7660ebee57</UserSecretsId>
   </PropertyGroup>
