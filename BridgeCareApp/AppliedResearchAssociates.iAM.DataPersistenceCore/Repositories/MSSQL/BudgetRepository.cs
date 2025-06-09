@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using MoreLinq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
 using Microsoft.Extensions.DependencyModel;
+using MathNet.Numerics;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -321,6 +322,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             }
 
             var budgetEntities = budgets.Select(_ => _.ToScenarioEntity(simulationId)).ToList();
+            var budgetNames = new List<string>();
+
+            foreach (var budgetName in budgets)
+            {
+                budgetNames.Add(budgetName.Name);
+            }
 
             var entityIds = budgetEntities.Select(_ => _.Id).ToList();
             entityIds.Add(Guid.Empty);
@@ -328,11 +335,32 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var existingEntityIds = _unitOfWork.Context.ScenarioBudget.AsNoTracking()
                 .Where(_ => _.SimulationId == simulationId && entityIds.Contains(_.Id)).Select(_ => _.Id).ToList();
 
-            var committedProjects = _unitOfWork.Context.CommittedProject.Where(_ =>
+            var committedProjects = _unitOfWork.Context.CommittedProject.Include(_ => _.ScenarioBudget).Where(_ =>
                 _.SimulationId == simulationId && !entityIds.Contains(_.ScenarioBudgetId ?? Guid.Empty)).ToList();
-            if(committedProjects.Count > 0)
+            if (committedProjects.Any())
             {
-                committedProjects.ForEach(_ => _.ScenarioBudgetId = null);
+                foreach (var item in committedProjects)
+                {
+                    var existingAmounts = item.ScenarioBudget.ScenarioBudgetAmounts;
+                    var matchingBudget = budgets.FirstOrDefault(b => b.Name == item.ScenarioBudget.Name);
+
+                    if (matchingBudget != null)
+                    {
+                        bool hasMatchingYearAndValue = existingAmounts.Any(existing =>
+                            matchingBudget.BudgetAmounts.Any(budget =>
+                                budget.Year == existing.Year && budget.Value == existing.Value));
+
+                        if (hasMatchingYearAndValue)
+                        {
+                            item.ScenarioBudgetId = matchingBudget.Id;
+                        }
+                    }
+                    else
+                    {
+                        item.ScenarioBudgetId = null;
+                    }
+                }
+
                 _unitOfWork.Context.UpdateAll(committedProjects);
             }
 

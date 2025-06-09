@@ -633,21 +633,11 @@ import CashFlowService from '@/services/cash-flow.service';
         });
 
         $emitter.on('switchedToNewInvestmentLibrary', () => {
-            navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Committed Projects') {
-                        if(tab.validationIcon === 'fas fa-check-circle')
-                        tab.validationIcon = 'fas fa-times-circle';
-                    }
-                });
-
-                if(isCommittedProjectsSet.value === false)
-                {
-                    isCommittedProjectsBudgetsUnset.value = false;
-                }
-        });
+            getCommittedProjects();                                     
+        });                                      
         
     }
-    
+                                                                                                                                                                              
     /**
      * Shows the Alert
      */
