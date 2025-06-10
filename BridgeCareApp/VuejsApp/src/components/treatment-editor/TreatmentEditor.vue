@@ -110,12 +110,12 @@
                                         avatar @click='onSetTreatmentSelectItemValue(treatmentSelectItem.value)'>
                                 <v-list-item-content class ="item-content">
                                     <span>{{treatmentSelectItem.text}}</span>
-                                    <div>
+                                    <div style="display: flex; flex-shrink: 0;">
                                     <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'"
                                     @click.stop="OnCloneTreatmentClicked(treatmentSelectItem.value)"  class="ghd-red">
                                         <img class='img-general' :src="getUrl('assets/icons/copy.svg')"/>
                                     </v-btn>
-                                    <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'" @click="onShowConfirmDeleteTreatmentAlert" class="ghd-red">
+                                    <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'" @click.stop="onShowConfirmDeleteTreatmentAlert(treatmentSelectItem.value)" class="ghd-red">
                                         <TrashCanSvg />
                                     </v-btn>                                   
                                     </div>
@@ -440,7 +440,7 @@ import { getUrl } from '@/shared/utils/get-url';
     let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
     let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
-    let allScenarioTreatments = computed<Treatment[]>(() => store.state.treatmentModule.allScenarioTreatments);    
+    //let allScenarioTreatments = computed<Treatment[]>(() => store.state.treatmentModule.allScenarioTreatments);    
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let stateScenarioTreatmentLibrary= computed<TreatmentLibrary>(() => store.state.treatmentModule.scenarioTreatmentLibrary);
     let stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() => store.state.investmentModule.scenarioSimpleBudgetDetails);
@@ -673,7 +673,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
             selectScenarioAction({ scenarioId: selectedScenarioId });
 
-            await getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
+            //await getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
               
             await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioTreatment}).then(response => {
                 if(response.data){
@@ -936,49 +936,60 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
         }
     }
     
-    function onShowConfirmDeleteTreatmentAlert() {
-                        if (selectedTreatment.value) {
-                                // Wait .75 milliseconds to get the selectedTreatment details before continuing
-                                setTimeout(() => { 
-                                    let treatmentName = selectedTreatment.value.name;  
-                                    let affectedTreatments: string[] = [];
-                                    if (selectedTreatment.value.supersedeRules.length > 0) {
+    async function onShowConfirmDeleteTreatmentAlert(treatmentId: string) {
+    if (!treatmentId) return;
 
-                        allScenarioTreatments.value.forEach((treatmentWrapper: any) => {
-                        const supersedeRules = treatmentWrapper.treatment.supersedeRules || [];
-                        const treatmentNameWithSupersedes = treatmentWrapper.treatment.name;
+    onSetTreatmentSelectItemValue(treatmentId);
 
-                        // Add the affected treatment names to the affectedTreatments list
-                        supersedeRules.forEach((rule: any) => {
-                            if (rule.treatment.name == treatmentName) {
+        try {
+            // 1. Fetch the complete, up-to-date details for the specific treatment.
+            // This 'await' keyword is the key. The code will pause here until the data is returned.
+            const response = hasScenario.value 
+                ? await TreatmentService.getScenarioSelectedTreatmentById(treatmentId)
+                : await TreatmentService.getSelectedTreatmentById(treatmentId);
+
+            if (!response.data) {
+                addErrorNotificationAction({ message: 'Could not find treatment to delete.' });
+                return;
+            }
+
+            const treatmentToDelete: Treatment = response.data;
+            const treatmentName = treatmentToDelete.name;
+            let affectedTreatments: string[] = [];
+
+            // 2. Perform the logic with the guaranteed-to-be-correct data.
+            //    This logic remains the same, but it's now reliable.
+            /*if (treatmentToDelete.supersedeRules.length > 0) {
+                allScenarioTreatments.value.forEach((treatmentWrapper: any) => {
+                    const supersedeRules = treatmentWrapper.treatment.supersedeRules || [];
+                    const treatmentNameWithSupersedes = treatmentWrapper.treatment.name;
+
+                    supersedeRules.forEach((rule: any) => {
+                        if (rule.treatment.name == treatmentName) {
                             affectedTreatments.push(treatmentNameWithSupersedes);
-                            }
-                        });
+                        }
+                    });
+                });
+            }*/
+            
+            let message = "Are you sure you want to delete?";
+            if (affectedTreatments.length > 0) {
+                message = `Supersede rules will be affected in: ${affectedTreatments.join(', ')}. ${message}`;
+            }
+            
+            // 3. Show the confirmation dialog.
+            confirmBeforeDeleteTreatmentAlertData.value = {
+                showDialog: true,
+                heading: 'Warning',
+                choice: true,
+                message: message,
+            };
 
-                        });
-                            let message = "Are you sure you want to delete?";
-                            // Add the treatment names to the message
-                            if (affectedTreatments.length > 0) {
-                                message = `Supersede rules will be affected in: ${affectedTreatments.join(', ')}. ${message}`;
-                            }
+        }
 
-                            confirmBeforeDeleteTreatmentAlertData.value = {
-                                showDialog: true,
-                                heading: 'Warning',
-                                choice: true,
-                                message: message,
-                            };
-                    } 
-                    else
-                    {
-                        confirmBeforeDeleteTreatmentAlertData.value = {
-                        showDialog: true,
-                        heading: 'Warning',
-                        choice: true,
-                        message: 'Are you sure you want to delete?',
-                    };
-                    }        
-                }, 75);
+        catch(error) {
+            console.error("Failed to get treatment details for deletion:", error);
+            addErrorNotificationAction({ message: 'An error occurred while preparing to delete the treatment.' });
         }
     }
 
@@ -1031,7 +1042,10 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             const treatments : SimpleTreatment[] = reject(propEq('id', treatmentId.toString()), simpleTreatments.value);
             deleteScenarioSelectableTreatmentAction({ scenarioSelectableTreatment: selectedTreatment.value, simulationId: selectedScenarioId, treatments}).then(() => {
                 addedRows = addedRows.filter(_ => _.id !== treatmentId.toString());
+                clearChanges();
             });
+
+            //getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
         }
         else
         {
@@ -1039,10 +1053,10 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
                 const treatments : SimpleTreatment[] = reject(propEq('id', treatmentId.toString()), simpleTreatments.value);            
                 deleteTreatmentAction({ treatments: treatments, treatment: selectedTreatment.value, libraryId: selectedTreatmentLibrary.value.id}).then(() => {
                     addedRows = addedRows.filter(_ => _.id !== treatmentId.toString());
+                    clearChanges();
                 });
             }            
         }
-        getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
     }
 
     function onShowCreateTreatmentLibraryDialog(createAsNewLibrary: boolean) {
