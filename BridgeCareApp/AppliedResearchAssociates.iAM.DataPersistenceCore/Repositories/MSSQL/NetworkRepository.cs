@@ -148,7 +148,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                                                             NumericValue = result.NumericValue,
                                                             Attribute = new AttributeEntity
                                                             {
-                                                                Name = attributeNameLookup[result.AttributeId],
+                                                                Name = attributeNameLookup.GetAttributeNameOrEmptyString(result.AttributeId),
                                                             }
                                                         }).ToList()
                                                     })

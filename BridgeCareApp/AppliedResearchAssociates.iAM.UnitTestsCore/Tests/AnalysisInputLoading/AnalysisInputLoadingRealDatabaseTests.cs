@@ -77,7 +77,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
             var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
             calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var calculatedAttributes = new List<CalculatedAttributeDTO> { calculatedAttribute };
             TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertScenarioCalculatedAttributesNonAtomic(calculatedAttributes, simulationId);
             var input = GetSimulationInput(networkId, simulationId);

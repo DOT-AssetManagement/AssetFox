@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -10,7 +9,6 @@ using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using Xunit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
@@ -40,7 +38,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var repo = unitOfWork.AnalysisMethodRepo;
             var analysisMethodDto = repo.GetAnalysisMethod(simulation.Id);
@@ -94,7 +92,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         public void UpsertAnalysisMethod_AnalysisMethodInDb_Updates()
         {
             var unitOfWork = TestHelper.UnitOfWork;
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
@@ -125,7 +123,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public void GetSimulationAnalysisMethod_SimulationInDbWithChildren_Gets()
         {
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);

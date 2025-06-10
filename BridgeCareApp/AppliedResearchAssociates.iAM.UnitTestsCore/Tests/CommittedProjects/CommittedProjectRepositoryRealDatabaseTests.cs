@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
@@ -14,12 +17,8 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using Xunit;
 using MaintainableAsset = AppliedResearchAssociates.iAM.Data.Networking.MaintainableAsset;
-using System.Data;
-using AppliedResearchAssociates.iAM.DataUnitTests;
-using AppliedResearchAssociates.iAM.Data.Mappers;
 
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
@@ -31,7 +30,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public async Task DeleteSpecificWorksWithValidProject()
         {
             // Arrange
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
 
             // Set up a network with maintainable assets
@@ -156,7 +155,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public async Task UpsertWorksWithNullBudget()
         {
             // Arrange
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
 
             // Set up a network with maintainable assets
@@ -218,7 +217,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public async Task GetForSimulationWorksWithCommittedProjects()
         {
             // Arrange
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
 
             // Set up a network with maintainable assets
@@ -288,7 +287,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public async Task GetForSimulationWorksWithNoTreatmentBeforeCommittedProjects()
         {
             // Arrange
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var repo = new CommittedProjectRepository(TestHelper.UnitOfWork);
 
             // Set up a network with maintainable assets

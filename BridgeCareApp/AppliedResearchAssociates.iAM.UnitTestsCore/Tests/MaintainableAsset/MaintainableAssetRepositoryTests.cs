@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -185,7 +179,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public async Task GetAllIdsInCommittedProjectsForSimulation_SimulationInDbWithAssetAndCommittedProject_GetsCommittedProjectId()
         {
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, false);
             var keyAttributeDto = AttributeDtos.BrKey;

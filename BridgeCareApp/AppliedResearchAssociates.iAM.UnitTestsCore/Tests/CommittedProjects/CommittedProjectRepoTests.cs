@@ -48,7 +48,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         [Fact]
         public void GetForExportWorksWithCommittedProjects()
         {
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             // Arrange
             var repo = new CommittedProjectRepository(_testUOW);
 
@@ -109,7 +109,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
             // Act & Assert
             var exception = Assert.Throws<RowNotInTableException>(() => repo.UpsertCommittedProjects(newProjects));
             Assert.Contains("budget IDs", exception.Message);
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
         }
 
         [Fact]

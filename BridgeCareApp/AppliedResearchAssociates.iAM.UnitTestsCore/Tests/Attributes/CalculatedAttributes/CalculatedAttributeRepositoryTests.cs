@@ -97,7 +97,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         public void SuccessfullyPullsDataFromLibraryRepository()
         {
             // Arrange
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var repo = new CalculatedAttributeRepository(_testRepo);
 
             // Act
@@ -173,7 +173,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         public void UpsertHandlesNoLibraryFound()
         {
             // Arrange
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var repo = new CalculatedAttributeRepository(_testRepo);
             var attributeRepo = new AttributeRepository(_testRepo);
             var attributes = TestDataForCalculatedAttributesRepository.GetAttributeRepo();

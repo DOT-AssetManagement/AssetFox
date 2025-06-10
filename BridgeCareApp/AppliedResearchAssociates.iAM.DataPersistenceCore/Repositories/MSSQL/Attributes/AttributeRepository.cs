@@ -55,7 +55,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             {
                 return _IdNameCache[attributeId];
             }
-            return null;
+            return String.Empty;
         }
 
 

@@ -59,7 +59,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var yearsOfHistory = entities
                 .GroupBy(entity =>
                 {
-                    _ = attributesWithUnsetHistory.Add(attributeNameLookup[entity.AttributeId]);
+                    _ = attributesWithUnsetHistory.Add(attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId));
                     return entity.Year;
                 })
                 .ToList();
@@ -75,7 +75,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
                 foreach (var entity in yearOfHistory)
                 {
-                    var attributeName = attributeNameLookup[entity.AttributeId];
+                    var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
                     var attribute = attributePerName[attributeName];
                     var history = maintainableAsset.GetHistory(attribute);
                     var value = getValue(entity);

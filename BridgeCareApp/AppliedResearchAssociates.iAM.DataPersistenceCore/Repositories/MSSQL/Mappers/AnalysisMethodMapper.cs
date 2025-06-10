@@ -44,19 +44,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 string.IsNullOrEmpty(userCriteria) ? specifiedFilter :
                 combinedCriteria;
 
-            if (entity.AttributeId.HasValue)
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
+            var attribute = simulation.Network.Explorer.NumberAttributes.FirstOrDefault(a => a.Name == attributeName);
+            if (attribute != null)
             {
-                var attributeName = attributeNameLookup[entity.AttributeId.Value];
-                simulation.AnalysisMethod.Weighting = simulation.Network.Explorer.NumberAttributes
-                    .Single(_ => _.Name == attributeName);
+                simulation.AnalysisMethod.Weighting = attribute;
             }
             if (entity.Benefit != null)
             {
                 simulation.AnalysisMethod.Benefit.Id = entity.Benefit.Id;
                 simulation.AnalysisMethod.Benefit.Limit = entity.Benefit.Limit;
-                var benefitAttributeName = attributeNameLookup[entity.Benefit.AttributeId];
-                simulation.AnalysisMethod.Benefit.Attribute = simulation.Network.Explorer.NumericAttributes
-                    .Single(_ => _.Name == benefitAttributeName);
+                var benefitAttributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.Benefit.AttributeId);
+                if (benefitAttributeName != String.Empty)
+                {
+                    simulation.AnalysisMethod.Benefit.Attribute = simulation.Network.Explorer.NumericAttributes
+                        .Single(_ => _.Name == benefitAttributeName);
+                }
             }
 
             entity.Simulation.BudgetPriorities

@@ -96,7 +96,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         {
             var targetConditionGoal = simulation.AnalysisMethod.AddTargetConditionGoal();
             targetConditionGoal.Id = entity.Id;
-            var attributeName = attributeNameLookup[entity.AttributeId];
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
             targetConditionGoal.Attribute = simulation.Network.Explorer.NumberAttributes
                 .Single(_ => _.Name == attributeName);
             targetConditionGoal.Target = entity.Target;

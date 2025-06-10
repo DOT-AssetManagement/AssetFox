@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
@@ -22,7 +18,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var analysisMethod = AnalysisMethodDtos.Default(analysisMethodId, TestAttributeNames.Age);
             TestHelper.UnitOfWork.AnalysisMethodRepo.UpsertAnalysisMethod(simulation.Id, analysisMethod);
@@ -43,7 +39,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var analysisMethod = AnalysisMethodDtos.Default(analysisMethodId, TestAttributeNames.Age);
             var benefitId = analysisMethod.Benefit.Id;
@@ -68,7 +64,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var analysisMethod = AnalysisMethodDtos.Default(analysisMethodId, TestAttributeNames.Age);
             var benefitDto = analysisMethod.Benefit;
@@ -91,7 +87,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
-            AttributeRepository.ClearIdNameCache();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var analysisMethod = AnalysisMethodDtos.Default(analysisMethodId, TestAttributeNames.Age);
             var benefitDto = analysisMethod.Benefit;

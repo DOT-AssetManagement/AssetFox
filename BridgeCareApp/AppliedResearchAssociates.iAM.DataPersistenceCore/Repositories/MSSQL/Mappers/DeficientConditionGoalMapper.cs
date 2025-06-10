@@ -93,7 +93,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         {
             var deficientConditionGoal = simulation.AnalysisMethod.AddDeficientConditionGoal();
             deficientConditionGoal.Id = entity.Id;
-            var attributeName = attributeNameLookup[entity.AttributeId];
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
             deficientConditionGoal.Attribute = simulation.Network.Explorer.NumberAttributes
                 .Single(_ => _.Name == entity.Attribute.Name);
             deficientConditionGoal.AllowedDeficientPercentage = entity.AllowedDeficientPercentage;

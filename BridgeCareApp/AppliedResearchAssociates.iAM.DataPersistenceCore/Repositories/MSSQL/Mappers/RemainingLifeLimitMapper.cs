@@ -89,7 +89,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 entity.CriterionLibraryScenarioRemainingLifeLimitJoin?.CriterionLibrary.MergedCriteriaExpression ??
                 string.Empty;
 
-            var attributeName = attributeNameLookup[entity.AttributeId];
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
             limit.Attribute = simulation.Network.Explorer.NumericAttributes
                 .Single(_ => _.Name == attributeName);
         }

@@ -50,7 +50,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             Dictionary<Guid, string> attributeNameLookup
             )
         {
-            var attributeName = attributeNameLookup[entity.AttributeId];
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
             var domain = new DeficientConditionGoalDetail
             {
                 ActualDeficientPercentage = entity.ActualDeficientPercentage,
