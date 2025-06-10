@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
@@ -12,6 +13,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ReportHelper _reportHelper;
+        private List<string> filterAttributes;
+        private List<int> filterYears;
 
         public YearAssetsTab(IUnitOfWork unitOfWork)
         {
@@ -19,41 +22,106 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        internal void Fill(ExcelWorksheet yearWorksheet, UserDefinedReportRequestModel userDefinedReportRequestModel, List<SimulationYearDetail> years)
+        internal void Fill(ExcelWorksheet yearWorksheet, UserDefinedReportRequestModel userDefinedReportRequestModel, bool isPrimaryKeyNumeric, string primaryKey, List<AssetSummaryDetail> initialAssetSummaries, List<SimulationYearDetail> years)
         {
+            filterAttributes = userDefinedReportRequestModel.Attributes;
             //set default width
             yearWorksheet.DefaultColWidth = 18;
             
-            var startColumn = 1;            
+            var startColumn = 1;
             var startRow = 1;
             
             // Display output details for simulation year
             var currentColumn = startColumn;
             var currentRow = startRow;
-            yearWorksheet.Cells[currentRow, currentColumn].Value = "Year";
-            ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, currentColumn++]);
-            yearWorksheet.Cells[currentRow, currentColumn].Value = simulationYearDetail.Year;
-            ExcelHelper.ApplyBorder(yearWorksheet.Cells[currentRow++, currentColumn]);
-            currentColumn = startColumn;
-            yearWorksheet.Cells[currentRow, currentColumn].Value = "ConditionOfNetwork";
-            ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, currentColumn++]);
-            yearWorksheet.Cells[currentRow, currentColumn].Value = simulationYearDetail.ConditionOfNetwork;
-            ExcelHelper.ApplyBorder(yearWorksheet.Cells[currentRow++, currentColumn]);
 
-            // Budgets            
-            currentRow = FillBudgets(yearWorksheet, userDefinedReportRequestModel.DisplayBudgets, simulationYearDetail, startColumn, currentRow);
+            // Headers
+            var currentCell = AddHeaders(yearWorksheet, filterAttributes, primaryKey);
 
-            // DeficientConditionGoals
-            currentRow = FillDeficientConditionGoals(yearWorksheet, userDefinedReportRequestModel.DisplayDeficientConditionGoals, simulationYearDetail, startColumn, currentRow);
+            // Add row next to headers for filters and year numbers for dynamic data. Cover from
+            // top, left to right, and bottom set of data
+            using (var autoFilterCells = yearWorksheet.Cells[2, 1, currentCell.Row, currentCell.Column])
+            {
+                autoFilterCells.AutoFilter = true;
+            }
 
-            // TargetConditionGoals
-            currentRow = FillTargetConditionGoals(yearWorksheet, userDefinedReportRequestModel.DisplayTargetConditionGoals, simulationYearDetail, startColumn, currentRow);
-
-            // Assets
-            FillAssets(yearWorksheet, userDefinedReportRequestModel.DisplayYearAssets, simulationYearDetail, startColumn, currentRow);
+            // Data per filterAttributes, filterYears for assets
+            AddDynamicData(yearWorksheet, filterAttributes, filterYears, initialAssetSummaries, years, isPrimaryKeyNumeric, primaryKey);
 
             yearWorksheet.Cells.AutoFitColumns();
         }
+
+        private static CurrentCell AddHeaders(ExcelWorksheet yearWorksheet, List<string> filterAttributes, string primaryKey)
+        {
+            var startColumn = 1;
+            var startRow = 1;
+            var currentRow = startRow;
+            var currentColumn = startColumn;
+
+            yearWorksheet.Cells[currentRow, currentColumn].Value = primaryKey;
+            ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, currentColumn++]);
+
+            yearWorksheet.Cells[currentRow, currentColumn].Value = "Year";
+            ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, currentColumn++]);
+
+            foreach (var attribute in filterAttributes)
+            {
+                if (attribute.Equals(primaryKey))
+                {
+                    continue;
+                }
+                yearWorksheet.Cells[currentRow, currentColumn].Value = attribute;
+                ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, currentColumn++]);
+            }
+
+            return new CurrentCell { Row = ++startRow, Column = currentColumn - 1 };
+        }
+
+        private void AddDynamicData(ExcelWorksheet yearWorksheet, List<string> filterAttributes, List<int> filterYears, List<AssetSummaryDetail> initialAssetSummaries, List<SimulationYearDetail> years, bool isPrimaryKeyNumeric, string primaryKey)
+        {
+            var dataRow = 3;
+            var startColumn = 1;
+            var dataColumn = startColumn;
+                        
+            foreach (var assetSummary in initialAssetSummaries)
+            {
+                var primaryKeyValue = isPrimaryKeyNumeric
+                ? CheckGetValue(assetSummary.ValuePerNumericAttribute, primaryKey).ToString()
+                : CheckGetTextValue(assetSummary.ValuePerTextAttribute, primaryKey);                
+
+                foreach (var year in years)
+                {
+                    yearWorksheet.Cells[dataRow, dataColumn].Value = primaryKeyValue;
+                    ExcelHelper.ApplyBorder(yearWorksheet.Cells[dataRow, dataColumn++]);
+
+                    yearWorksheet.Cells[dataRow, dataColumn].Value = year.Year;
+                    ExcelHelper.ApplyBorder(yearWorksheet.Cells[dataRow, dataColumn++]);
+
+                    var yearAssets = year.Assets;
+                    var asset = isPrimaryKeyNumeric
+                         ? yearAssets.FirstOrDefault(_ => CheckGetValue(_.ValuePerNumericAttribute, primaryKey).ToString() == primaryKeyValue)
+                         : yearAssets.FirstOrDefault(_ => CheckGetTextValue(_.ValuePerTextAttribute, primaryKey) == primaryKeyValue);
+                    foreach (var attribute in filterAttributes)
+                    {
+                        if (attribute.Equals(primaryKey))
+                        {
+                            continue;
+                        }
+                        
+                        yearWorksheet.Cells[dataRow, dataColumn].Value = GetAttributeValue(asset, attribute);
+                        ExcelHelper.ApplyBorder(yearWorksheet.Cells[dataRow, dataColumn++]);
+                    }
+
+                    dataRow++;
+                    dataColumn = startColumn;
+                }
+            }
+        }
+
+        private object GetAttributeValue(AssetSummaryDetail assetSummary, string attribute) =>
+            assetSummary.ValuePerNumericAttribute.Any(_ => _.Key == attribute)
+            ? CheckGetValue(assetSummary.ValuePerNumericAttribute, attribute)
+            : CheckGetTextValue(assetSummary.ValuePerTextAttribute, attribute);
 
         private void FillAssets(ExcelWorksheet yearWorksheet, bool displayAssets, SimulationYearDetail simulationYearDetail, int startColumn, int currentRow)
         {

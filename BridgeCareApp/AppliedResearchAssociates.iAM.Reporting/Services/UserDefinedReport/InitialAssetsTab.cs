@@ -20,16 +20,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        internal void Fill(ExcelWorksheet assetSummariesWorksheet, List<string> filterAttributes, List<AssetSummaryDetail> initialAssetSummaries)
+        internal void Fill(ExcelWorksheet assetSummariesWorksheet, List<string> filterAttributes, bool isPrimaryKeyNumeric, string primaryKey, List<AssetSummaryDetail> initialAssetSummaries)
         {
             //set default width
-            assetSummariesWorksheet.DefaultColWidth = 18;
+            assetSummariesWorksheet.DefaultColWidth = 18;            
 
-            var primaryKeyFields = _unitOfWork.AdminSettingsRepo.GetKeyFields();
-            var primaryKey = primaryKeyFields[0].ToString();
-            var isPrimaryKeyNumeric = _reportHelper.IsPrimaryKeyNumberic(initialAssetSummaries[0].ValuePerTextAttribute, initialAssetSummaries[0].ValuePerNumericAttribute, primaryKey);
-
-            var currentCell = AddHeaders(assetSummariesWorksheet, filterAttributes, isPrimaryKeyNumeric, primaryKey);
+            var currentCell = AddHeaders(assetSummariesWorksheet, filterAttributes, primaryKey);
 
             // Add row next to headers for filters and year numbers for dynamic data. Cover from
             // top, left to right, and bottom set of data
@@ -38,7 +34,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 autoFilterCells.AutoFilter = true;
             }
 
-            AddDynamicData(assetSummariesWorksheet, filterAttributes, initialAssetSummaries, isPrimaryKeyNumeric, primaryKey);            
+            AddDynamicData(assetSummariesWorksheet, filterAttributes, initialAssetSummaries, isPrimaryKeyNumeric, primaryKey);
 
             assetSummariesWorksheet.Cells.AutoFitColumns();
         }
@@ -79,7 +75,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 : CheckGetTextValue(assetSummary.ValuePerTextAttribute, attribute);
         }
 
-        private static CurrentCell AddHeaders(ExcelWorksheet assetSummariesWorksheet, List<string> filterAttributes, bool isPrimaryKeyNumeric, string primaryKey)
+        private static CurrentCell AddHeaders(ExcelWorksheet assetSummariesWorksheet, List<string> filterAttributes, string primaryKey)
         {
             var startColumn = 1;
             var startRow = 1;

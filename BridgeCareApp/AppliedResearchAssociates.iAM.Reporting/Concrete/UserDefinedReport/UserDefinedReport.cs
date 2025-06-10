@@ -244,24 +244,67 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 UpsertSimulationReportDetail(reportDetailDto);
                 _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
                 var assetSummariesWorksheet = excelPackage.Workbook.Worksheets.Add("Initial Assets");
-                _initialAssetsTab.Fill(assetSummariesWorksheet, filterAttributes, reportOutputData.InitialAssetSummaries);
+                _initialAssetsTab.Fill(assetSummariesWorksheet, filterAttributes, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries);
                 checkCancelled(cancellationToken, simulationId);
             }
 
-            // Year Assets - use filterAttributes
+            // Year Assets - use filterAttributes and filterYears
             if (_userDefinedReportRequestModel.DisplayYearAssets)
             {
                 reportDetailDto.Status = $"Creating Year Assets tab";
                 workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
                 UpsertSimulationReportDetail(reportDetailDto);
                 _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
-                var yearWorksheet = excelPackage.Workbook.Worksheets.Add("Year Assets");                
-                _yearAssetsTab.Fill(yearWorksheet, _userDefinedReportRequestModel, reportOutputData.Years);
+                var yearAssetsWorksheet = excelPackage.Workbook.Worksheets.Add("Year Assets");
+                _yearAssetsTab.Fill(yearAssetsWorksheet, _userDefinedReportRequestModel, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
                 checkCancelled(cancellationToken, simulationId);
             }
 
-            // TODO other tabs based on flags
+            // TODO
+            if(_userDefinedReportRequestModel.DisplayBudgets)
+            {
 
+            }
+
+            if (_userDefinedReportRequestModel.DisplayDeficientConditionGoals)
+            {
+
+            }
+
+            if (_userDefinedReportRequestModel.DisplayTargetConditionGoals)
+            {
+
+            }
+
+            if (_userDefinedReportRequestModel.DisplayTreatmentOptions)
+            {
+
+            }
+
+            if (_userDefinedReportRequestModel.DisplayTreatmentSchedulingCollisions)
+            {
+
+            }
+
+            if (_userDefinedReportRequestModel.DisplayTreatmentRejections)
+            {
+
+            }
+
+            if (_userDefinedReportRequestModel.DisplayTreatmentCashflowConsiderations)
+            {
+
+            }
+
+            if (_userDefinedReportRequestModel.DisplyTreatmentCurrentBudgetsToSpend)
+            {
+
+            }
+
+            if (_userDefinedReportRequestModel.DisplayTreatmentAllocations)
+            {
+
+            }
 
             // check and generate folder
             var folderPathForSimulation = $"Reports\\{simulationId}";
