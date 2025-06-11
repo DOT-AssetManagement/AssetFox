@@ -32,6 +32,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public ICollection<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibraries()
         {
+            // WJWJWJ improvement here documented in a test
             var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetIdNameCache();
             return _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
                 .Include(_ => _.CalculatedAttributes)
@@ -117,7 +118,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetIdNameCache();
             return _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
             .Include(_ => _.CalculatedAttributes)
-            .ThenInclude(_ => _.Attribute)
             .Include(_ => _.CalculatedAttributes)
             .ThenInclude(_ => _.Equations)
             .ThenInclude(_ => _.CriterionLibraryCalculatedAttributeJoin)

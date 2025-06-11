@@ -30,10 +30,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static CalculatedAttributeDTO ToDto(
             this CalculatedAttributeEntity entity,
             IReadOnlyDictionary<Guid, string> attributeNameLookup) =>
+            // WJWJWJ DB access here
             new CalculatedAttributeDTO()
             {
                 Id = entity.Id,
-                Attribute = attributeNameLookup[entity.AttributeId],
+                Attribute = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId),
                 CalculationTiming = entity.CalculationTiming,
                 Equations = entity.Equations.Any()
                     ? entity.Equations.Select(_ => _.ToDto()).ToList()
