@@ -23,17 +23,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
         internal void Fill(ExcelWorksheet assetSummariesWorksheet, List<string> filterAttributes, bool isPrimaryKeyNumeric, string primaryKey, List<AssetSummaryDetail> initialAssetSummaries)
         {
             //set default width
-            assetSummariesWorksheet.DefaultColWidth = 18;            
+            assetSummariesWorksheet.DefaultColWidth = 18;
 
+            // Headers
             var currentCell = AddHeaders(assetSummariesWorksheet, filterAttributes, primaryKey);
 
-            // Add row next to headers for filters and year numbers for dynamic data. Cover from
-            // top, left to right, and bottom set of data
+            // Add row next to headers for filters
             using (var autoFilterCells = assetSummariesWorksheet.Cells[2, 1, currentCell.Row, currentCell.Column])
             {
                 autoFilterCells.AutoFilter = true;
             }
 
+            // Data
             AddDynamicData(assetSummariesWorksheet, filterAttributes, initialAssetSummaries, isPrimaryKeyNumeric, primaryKey);
 
             assetSummariesWorksheet.Cells.AutoFitColumns();
@@ -66,14 +67,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 dataRow++;
                 dataColumn = startColumn;
             }
-        }
-
-        private object GetAttributeValue(AssetSummaryDetail assetSummary, string attribute)
-        {
-            return assetSummary.ValuePerNumericAttribute.Any(_ => _.Key == attribute)
-                ? CheckGetValue(assetSummary.ValuePerNumericAttribute, attribute)
-                : CheckGetTextValue(assetSummary.ValuePerTextAttribute, attribute);
-        }
+        }        
 
         private static CurrentCell AddHeaders(ExcelWorksheet assetSummariesWorksheet, List<string> filterAttributes, string primaryKey)
         {
@@ -97,6 +91,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
 
             return new CurrentCell { Row = ++startRow, Column = currentColumn - 1 };
         }
+
+        private object GetAttributeValue(AssetSummaryDetail assetSummary, string attribute) =>
+            assetSummary.ValuePerNumericAttribute.Any(_ => _.Key == attribute)
+                ? CheckGetValue(assetSummary.ValuePerNumericAttribute, attribute)
+                : CheckGetTextValue(assetSummary.ValuePerTextAttribute, attribute);
 
         private double CheckGetValue(Dictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
 

@@ -11,12 +11,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
     internal class ConditionOfNetworkTab
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ReportHelper _reportHelper;
 
         public ConditionOfNetworkTab(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _reportHelper = new ReportHelper(_unitOfWork);
         }
 
         internal void Fill(ExcelWorksheet conditionOfNetwokWorksheet, List<SimulationYearDetail> years)

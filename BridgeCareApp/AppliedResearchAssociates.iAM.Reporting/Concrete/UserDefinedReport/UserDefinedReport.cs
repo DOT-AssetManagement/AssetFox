@@ -21,12 +21,13 @@ namespace AppliedResearchAssociates.iAM.Reporting
     public class UserDefinedReport : IReport
     {
         private IUnitOfWork _unitOfWork;
-        private IHubService _hubService;
-        private readonly InitialAssetsTab _initialAssetsTab;
-        private readonly YearAssetsTab _yearAssetsTab;
-        private readonly ConditionOfNetworkTab _conditionOfNetworkTab;
+        private IHubService _hubService;        
         public UserDefinedReportRequestModel _userDefinedReportRequestModel;
         private readonly ReportHelper _reportHelper;
+        private readonly ConditionOfNetworkTab _conditionOfNetworkTab;
+        private readonly InitialAssetsTab _initialAssetsTab;
+        private readonly YearAssetsTab _yearAssetsTab;        
+        private readonly BudgetsTab _budgetsTab;
 
         public UserDefinedReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {
@@ -34,10 +35,11 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
             _reportHelper = new ReportHelper(_unitOfWork);
             ReportTypeName = name;
-
+                        
+            _conditionOfNetworkTab = new ConditionOfNetworkTab(_unitOfWork);
             _initialAssetsTab = new InitialAssetsTab(_unitOfWork);
             _yearAssetsTab = new YearAssetsTab(_unitOfWork);
-            _conditionOfNetworkTab = new ConditionOfNetworkTab(_unitOfWork);
+            _budgetsTab = new BudgetsTab(_unitOfWork);
 
             // check for existing report id
             var reportId = (results?.Id) ?? Guid.NewGuid();
@@ -256,14 +258,19 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 UpsertSimulationReportDetail(reportDetailDto);
                 _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
                 var yearAssetsWorksheet = excelPackage.Workbook.Worksheets.Add("Year Assets");
-                _yearAssetsTab.Fill(yearAssetsWorksheet, _userDefinedReportRequestModel, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                _yearAssetsTab.Fill(yearAssetsWorksheet, filterAttributes, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
                 checkCancelled(cancellationToken, simulationId);
             }
-
-            // TODO
+                        
             if(_userDefinedReportRequestModel.DisplayBudgets)
             {
-
+                reportDetailDto.Status = $"Creating Budgets tab";
+                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+                UpsertSimulationReportDetail(reportDetailDto);
+                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                var budgetsWorksheet = excelPackage.Workbook.Worksheets.Add("Budgets");
+                _budgetsTab.Fill(budgetsWorksheet,  isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplayDeficientConditionGoals)
