@@ -9,8 +9,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore
     public static class AttributeNameDictionaryLookupExtensions
     {
         /// <summary>If the dictionary contains the key, returns the string value.
-        /// Otherwise, returns the empty string. Will never throw. Should NOT
-        /// be used inside of ToDto calls due to sql-side virtualization.</summary> 
+        /// Otherwise, returns the empty string. Will never throw. Usage inside
+        /// of ToDto calls will impact sql-side virtualization.</summary> 
         public static String GetAttributeNameOrEmptyString(
             this IReadOnlyDictionary<Guid, string> attributeNameCacheDictionary, Guid? key)
         {

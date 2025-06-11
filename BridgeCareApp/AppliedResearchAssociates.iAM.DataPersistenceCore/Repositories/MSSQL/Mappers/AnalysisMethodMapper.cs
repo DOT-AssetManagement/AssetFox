@@ -116,9 +116,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             this AnalysisMethodEntity entity,
             IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
-            var attributeName = entity.AttributeId == null ?
-                String.Empty
-                : attributeNameLookup[entity.AttributeId.Value];
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
             return new AnalysisMethodDTO
             {
                 Id = entity.Id,
