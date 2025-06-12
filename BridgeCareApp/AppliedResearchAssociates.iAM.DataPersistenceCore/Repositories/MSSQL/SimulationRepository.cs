@@ -190,8 +190,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
                 var defaultLibrary = _unitOfWork.Context.CalculatedAttributeLibrary.Where(_ => _.IsDefault == true)
                     .Include(_ => _.CalculatedAttributes)
-                    .ThenInclude(_ => _.Attribute)
-                    .Include(_ => _.CalculatedAttributes)
                     .ThenInclude(_ => _.Equations)
                     .ThenInclude(_ => _.CriterionLibraryCalculatedAttributeJoin)
                     .ThenInclude(_ => _.CriterionLibrary)

@@ -61,7 +61,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public List<AttributeDatumDTO> GetAllInNetwork(IEnumerable<Guid> networkMaintainableAssetIds, List<Guid> requiredAttributeIds)
         {
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
             var attributeDatumDTOs = new List<AttributeDatumDTO>();
             var attributeDatumSet = _unitOfWork.Context.AttributeDatum;
             var attributeDatums = requiredAttributeIds?.Count > 0 ? attributeDatumSet.Where(_ => requiredAttributeIds.Contains(_.AttributeId)) : attributeDatumSet.Select(_ => _);
@@ -71,7 +71,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 var attributeDatumsForAsset = attributeDatums.Where(_ => _.MaintainableAssetId == assetId).ToList();
                 foreach (var attributeDatumForAsset in attributeDatumsForAsset)
                 {
-                    var attributeName = attributeNameLookup[attributeDatumForAsset.AttributeId];
+                    var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(attributeDatumForAsset.AttributeId);
                     var attributeDatumDTO = new AttributeDatumDTO
                     {
                         MaintainableAssetId = assetId,

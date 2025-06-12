@@ -30,7 +30,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static CalculatedAttributeDTO ToDto(
             this CalculatedAttributeEntity entity,
             IReadOnlyDictionary<Guid, string> attributeNameLookup) =>
-            // WJWJWJ DB access here
             new CalculatedAttributeDTO()
             {
                 Id = entity.Id,
@@ -41,13 +40,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                     : new List<CalculatedAttributeEquationCriteriaPairDTO>()
             };
 
-        public static CalculatedAttributeDTO ToDto(this ScenarioCalculatedAttributeEntity entity) =>
+        public static CalculatedAttributeDTO ToDto(this ScenarioCalculatedAttributeEntity entity, IReadOnlyDictionary<Guid, string> attributeNameLookup) =>
             new CalculatedAttributeDTO()
             {
                 Id = entity.Id,
                 LibraryId = entity.LibraryId,
                 IsModified = entity.IsModified,
-                Attribute = entity.Attribute.Name,
+                Attribute = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId),
                 CalculationTiming = entity.CalculationTiming,
                 Equations = entity.Equations.Any()
                     ? entity.Equations.Select(_ => _.ToDto()).ToList()

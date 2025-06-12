@@ -249,7 +249,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         {
             // Arrange
             var repo = new CalculatedAttributeRepository(_testRepo);
-            var attributeToModify = _testRepo.Context.ScenarioCalculatedAttribute.First(_ => _.Attribute.Name == "CONDITION").ToDto();
+            var entity = _testRepo.Context.ScenarioCalculatedAttribute.First(_ => _.Attribute.Name == "CONDITION");
+            var dummyDictionary = new Dictionary<Guid, string> {{ entity.Attribute.Id, entity.Attribute.Name }};
+            var attributeToModify = entity.ToDto(dummyDictionary);
             attributeToModify.CalculationTiming = 2;
 
             // Act & Assert

@@ -18,7 +18,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         [Fact]
         public async Task UpdateCalculatedAttributeLibraryWithUserAccessChange_Does()
         {
-            // WJWJWJ this test next
             TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
@@ -81,7 +80,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         [Fact]
         public void GetCalculatedAttributesByLibraryIdNoChildren_LibraryInDbWithCalculatedAttribute_Gets()
         {
-            // WJWJWJ this test
             TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);

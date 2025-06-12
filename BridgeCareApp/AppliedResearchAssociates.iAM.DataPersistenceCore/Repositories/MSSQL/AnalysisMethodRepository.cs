@@ -113,7 +113,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Include(_ => _.CriterionLibraryAnalysisMethodJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
                 .Single(_ => _.SimulationId == simulationId)
-                .ToDto(attributeNameLookup); // WJWJ is an improvement in sql server profiler. 
+                .ToDto(attributeNameLookup);
         }
 
         public void UpsertAnalysisMethod(Guid simulationId, AnalysisMethodDTO dto)

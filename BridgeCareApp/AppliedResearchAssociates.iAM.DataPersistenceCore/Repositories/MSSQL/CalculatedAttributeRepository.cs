@@ -32,7 +32,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public ICollection<CalculatedAttributeLibraryDTO> GetCalculatedAttributeLibraries()
         {
-            // WJWJWJ improvement here documented in a test
             var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetIdNameCache();
             return _unitOfDataPersistenceWork.Context.CalculatedAttributeLibrary.AsNoTracking()
                 .Include(_ => _.CalculatedAttributes)
@@ -63,10 +62,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("The specified scenario was not found");
             }
 
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetIdNameCache();
             return _unitOfDataPersistenceWork.Context.ScenarioCalculatedAttribute.AsNoTracking()
-                .Include(_ => _.Attribute)
                 .Where(_ => _.SimulationId == scenarioId)
-                .Select(_ => _.ToDto())
+                .Select(_ => _.ToDto(attributeNameLookup))
                 .ToList();
         }
 
@@ -88,7 +87,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         {
             var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetIdNameCache();
             return _unitOfDataPersistenceWork.Context.CalculatedAttribute.AsNoTracking()
-            .Include(_ => _.Attribute)
             .Include(_ => _.Equations)
             .ThenInclude(_ => _.CriterionLibraryCalculatedAttributeJoin)
             .ThenInclude(_ => _.CriterionLibrary)
@@ -101,8 +99,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public CalculatedAttributeDTO GetScenarioCalulatedAttributesByScenarioAndAttributeId(Guid scenarioId, Guid attributeId)
         {
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetIdNameCache();
             return _unitOfDataPersistenceWork.Context.ScenarioCalculatedAttribute.AsNoTracking()
-            .Include(_ => _.Attribute)
             .Include(_ => _.Equations)
             .ThenInclude(_ => _.CriterionLibraryCalculatedAttributeJoin)
             .ThenInclude(_ => _.CriterionLibrary)
@@ -110,7 +108,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             .ThenInclude(_ => _.EquationCalculatedAttributeJoin)
             .ThenInclude(_ => _.Equation)
             .Single(_ => _.Attribute.Id == attributeId && _.SimulationId == scenarioId)
-            .ToDto();
+            .ToDto(attributeNameLookup);
         }
 
         public CalculatedAttributeLibraryDTO GetCalculatedAttributeLibraryByID(Guid id)
@@ -257,20 +255,22 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
             _unitOfDataPersistenceWork.Context.DeleteAll<CalculatedAttributeLibraryEntity>(_ => _.Id == libraryId);
         }
-            
 
-        public ICollection<CalculatedAttributeDTO> GetScenarioCalculatedAttributes(Guid simulationId) =>
-            _unitOfDataPersistenceWork.Context.ScenarioCalculatedAttribute.AsNoTracking()
+
+        public ICollection<CalculatedAttributeDTO> GetScenarioCalculatedAttributes(Guid simulationId)
+        {
+            var attributeNameLookup = _unitOfDataPersistenceWork.AttributeRepo.GetIdNameCache();
+            return _unitOfDataPersistenceWork.Context.ScenarioCalculatedAttribute.AsNoTracking()
                 .Where(_ => _.SimulationId == simulationId)
-                .Include(_ => _.Attribute)
                 .Include(_ => _.Equations)
                 .ThenInclude(_ => _.CriterionLibraryCalculatedAttributeJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
                 .Include(_ => _.Equations)
                 .ThenInclude(_ => _.EquationCalculatedAttributeJoin)
                 .ThenInclude(_ => _.Equation)
-                .Select(_ => _.ToDto())
+                .Select(_ => _.ToDto(attributeNameLookup))
                 .ToList();
+        }
 
         public void UpsertScenarioCalculatedAttributesNonAtomic(ICollection<CalculatedAttributeDTO> calculatedAttributes, Guid scenarioId)
         {
