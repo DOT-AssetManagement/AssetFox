@@ -3,7 +3,7 @@
         <v-autocomplete
             v-model="inventoryReportName" 
             :items="stateInventoryReportNames"
-            :label="`Select a Inventory Report`"
+            :label="`Select an Inventory Report`"
             variant="outlined"
             density="compact"
             class="ghd-select ghd-text-field ghd-text-field-border">

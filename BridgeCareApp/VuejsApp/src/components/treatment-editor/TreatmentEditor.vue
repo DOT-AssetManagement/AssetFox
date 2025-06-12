@@ -440,6 +440,7 @@ import { getUrl } from '@/shared/utils/get-url';
     let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
     let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
+    let allScenarioTreatments = computed<Treatment[]>(() => store.state.treatmentModule.allScenarioTreatments);    
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let stateScenarioTreatmentLibrary= computed<TreatmentLibrary>(() => store.state.treatmentModule.scenarioTreatmentLibrary);
     let stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() => store.state.investmentModule.scenarioSimpleBudgetDetails);
@@ -549,6 +550,10 @@ async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>
 
 function selectScenarioAction(payload?: any) {
   store.dispatch('selectScenario', payload);
+}
+
+async function getAllScenarioTreatmentsAction(payload?: any) {
+  await store.dispatch('getAllScenarioTreatments', payload);
 }
 
 async function getScenarioPerformanceCurvesAction(payload?: any): Promise<any> {
@@ -666,7 +671,9 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
             treatmentTabs = [...treatmentTabs, 'Budgets'];
             await getScenarioSimpleBudgetDetailsAction({ scenarioId: selectedScenarioId, })
             await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
-            selectScenarioAction({ scenarioId: selectedScenarioId });   
+            selectScenarioAction({ scenarioId: selectedScenarioId });
+
+            await getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
               
             await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioTreatment}).then(response => {
                 if(response.data){
@@ -930,12 +937,49 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
     }
     
     function onShowConfirmDeleteTreatmentAlert() {
-        confirmBeforeDeleteTreatmentAlertData.value = {
-            showDialog: true,
-            heading: 'Warning',
-            choice: true,
-            message: 'Are you sure you want to delete?',
-        };
+                        if (selectedTreatment.value) {
+                                // Wait .75 milliseconds to get the selectedTreatment details before continuing
+                                setTimeout(() => { 
+                                    let treatmentName = selectedTreatment.value.name;  
+                                    let affectedTreatments: string[] = [];
+                                    if (selectedTreatment.value.supersedeRules.length > 0) {
+
+                        allScenarioTreatments.value.forEach((treatmentWrapper: any) => {
+                        const supersedeRules = treatmentWrapper.treatment.supersedeRules || [];
+                        const treatmentNameWithSupersedes = treatmentWrapper.treatment.name;
+
+                        // Add the affected treatment names to the affectedTreatments list
+                        supersedeRules.forEach((rule: any) => {
+                            if (rule.treatment.name == treatmentName) {
+                            affectedTreatments.push(treatmentNameWithSupersedes);
+                            }
+                        });
+
+                        });
+                            let message = "Are you sure you want to delete?";
+                            // Add the treatment names to the message
+                            if (affectedTreatments.length > 0) {
+                                message = `Supersede rules will be affected in: ${affectedTreatments.join(', ')}. ${message}`;
+                            }
+
+                            confirmBeforeDeleteTreatmentAlertData.value = {
+                                showDialog: true,
+                                heading: 'Warning',
+                                choice: true,
+                                message: message,
+                            };
+                    } 
+                    else
+                    {
+                        confirmBeforeDeleteTreatmentAlertData.value = {
+                        showDialog: true,
+                        heading: 'Warning',
+                        choice: true,
+                        message: 'Are you sure you want to delete?',
+                    };
+                    }        
+                }, 75);
+        }
     }
 
     function  onShowTreatmentLibraryDialog(treatmentLibrary: TreatmentLibrary) {
@@ -975,7 +1019,6 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
 
     function onSubmitConfirmDeleteTreatmentAlertResult(submit: boolean) {
         confirmBeforeDeleteTreatmentAlertData.value = clone(emptyAlertData);
-
         if (submit) {       
             onDeleteTreatment(selectedTreatment.value.id);
         }
@@ -998,7 +1041,8 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
                     addedRows = addedRows.filter(_ => _.id !== treatmentId.toString());
                 });
             }            
-        }                
+        }
+        getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
     }
 
     function onShowCreateTreatmentLibraryDialog(createAsNewLibrary: boolean) {

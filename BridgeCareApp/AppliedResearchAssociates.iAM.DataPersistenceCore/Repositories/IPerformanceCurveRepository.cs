@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
@@ -25,6 +26,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         void UpsertOrDeleteScenarioPerformanceCurves(List<PerformanceCurveDTO> scenarioPerformanceCurves, Guid simulationId);
 
         void UpsertOrDeleteScenarioPerformanceCurvesNonAtomic(List<PerformanceCurveDTO> scenarioPerformanceCurves, Guid simulationId);
+        void SaveScenarioPerformanceCurveChanges(UpsertAndDeleteModel<PerformanceCurveDTO> changes, Guid simulationId);
+        void SaveLIbraryPerformanceCurveChanges(PerformanceCurveLibraryDTO libray, UpsertAndDeleteModel<PerformanceCurveDTO> changes);
 
         public List<PerformanceCurveDTO> GetPerformanceCurvesForLibrary(Guid performanceCurveLibraryId);
 

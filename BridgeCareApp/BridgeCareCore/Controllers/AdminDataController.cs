@@ -300,8 +300,9 @@ namespace BridgeCareCore.Controllers
                     catch (Exception e)
                     {
                         HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{AdminSettingError}::SetInventoryReports - {e.Message}", e);
+                        return Ok();
                     }
-                    return Ok();
+                    
 
                 };
                 //If all reports in list exist and use the right type, save to database.
@@ -393,8 +394,8 @@ namespace BridgeCareCore.Controllers
                     catch (Exception e)
                     {
                         HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{AdminSettingError}::SetSimulationReports - {e.Message}", e);
-                    }
-                    return Ok();
+                        return Ok();
+                    }                  
 
                 };
                 //If all reports in list exist and use the right type, save to database.

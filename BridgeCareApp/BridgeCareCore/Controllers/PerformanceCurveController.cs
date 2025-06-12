@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
@@ -182,14 +183,28 @@ namespace BridgeCareCore.Controllers
                         var errorMessage = libraryAccess.LibraryExists ? RequestedToCreateExistingLibraryErrorMessage : RequestedToModifyNonexistentLibraryErrorMessage;
                         throw new InvalidOperationException(errorMessage);
                     }
-                    var curves = _performanceCurvePagingService.GetSyncedLibraryDataset(upsertRequest);
-                    var dto = upsertRequest.Library;
-                    if (dto != null)
+                    if (upsertRequest.IsNewLibrary)
                     {
-                        _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
-                        dto.PerformanceCurves = curves;
+                        var curves = _performanceCurvePagingService.GetSyncedLibraryDataset(upsertRequest);
+                        var dto = upsertRequest.Library;
+                        if (dto != null)
+                        {
+                            _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
+                            dto.PerformanceCurves = curves;
+                        }
+                        UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurveLibraryAndCurves(dto, upsertRequest.IsNewLibrary, UserId);
                     }
-                    UnitOfWork.PerformanceCurveRepo.UpsertOrDeletePerformanceCurveLibraryAndCurves(dto, upsertRequest.IsNewLibrary, UserId);
+                    else
+                    {
+                        var changes = new UpsertAndDeleteModel<PerformanceCurveDTO>()
+                        {
+                            AddedRows = upsertRequest.SyncModel.AddedRows,
+                            UpdateRows = upsertRequest.SyncModel.UpdateRows,
+                            RowsForDeletion = upsertRequest.SyncModel.RowsForDeletion,
+                        };
+                        UnitOfWork.PerformanceCurveRepo.SaveLIbraryPerformanceCurveChanges(upsertRequest.Library ,changes);
+                    }
+                    
                 });
 
                 return Ok();
@@ -214,11 +229,25 @@ namespace BridgeCareCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
-                    var dtos = _performanceCurvePagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);                   
-                    _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
-                    PerformanceCurveDtoListService.AddLibraryIdToScenarioPerformanceCurves(dtos, pagingSync.LibraryId);
-                    PerformanceCurveDtoListService.AddModifiedToScenarioPerformanceCurve(dtos, pagingSync.IsModified);
-                    UnitOfWork.PerformanceCurveRepo.UpsertOrDeleteScenarioPerformanceCurves(dtos, simulationId);
+                    if(pagingSync.LibraryId != null)
+                    {
+                        var dtos = _performanceCurvePagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);
+                        _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                        PerformanceCurveDtoListService.AddLibraryIdToScenarioPerformanceCurves(dtos, pagingSync.LibraryId);
+                        PerformanceCurveDtoListService.AddModifiedToScenarioPerformanceCurve(dtos, pagingSync.IsModified);
+                        UnitOfWork.PerformanceCurveRepo.UpsertOrDeleteScenarioPerformanceCurves(dtos, simulationId);
+                    }
+                    else
+                    {
+                        var changes = new UpsertAndDeleteModel<PerformanceCurveDTO>()
+                        {
+                            AddedRows = pagingSync.AddedRows,
+                            RowsForDeletion = pagingSync.RowsForDeletion,
+                            UpdateRows = pagingSync.UpdateRows,
+                        };
+                        UnitOfWork.PerformanceCurveRepo.SaveScenarioPerformanceCurveChanges(changes, simulationId);
+                    }
+                    
                 });
 
                 return Ok();
