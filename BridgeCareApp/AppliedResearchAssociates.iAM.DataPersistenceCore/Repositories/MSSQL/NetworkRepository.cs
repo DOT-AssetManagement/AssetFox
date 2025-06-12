@@ -91,7 +91,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException($"No network found having id {networkId}");
             }
 
-            var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
             var networkEntity = _unitOfWork.Context.Network.AsNoTracking()
                 .Single(_ => _.Id == networkId);
 

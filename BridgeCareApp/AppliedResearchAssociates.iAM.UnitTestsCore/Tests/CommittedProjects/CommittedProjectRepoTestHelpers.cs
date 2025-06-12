@@ -17,7 +17,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
         public static Simulation CreateSimulation(Guid simulationId, IUnitOfWork unitOfWork, bool populateInvestments = true)
         {
             var explorer = unitOfWork.AttributeRepo.GetExplorer();
-            var attributeNameLookup = unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            var attributeNameLookup = unitOfWork.AttributeRepo.GetIdNameCache();
             var testNetwork = explorer.AddNetwork();
             testNetwork.Id = TestDataForCommittedProjects.NetworkId;
             SectionMapper mapper = new(testNetwork);

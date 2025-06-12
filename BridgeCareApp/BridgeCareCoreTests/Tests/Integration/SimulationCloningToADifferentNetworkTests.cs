@@ -458,7 +458,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             var destinationNetworkId = SimulationCloningTestSetup.TestDestinationNetworkIdInDatabase();
             var simulationEntity = SimulationTestSetup.EntityInDb(TestHelper.UnitOfWork, destinationNetworkId);
             var simulationId = simulationEntity.Id;
-            var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetIdNameCache();
             var explorer = TestHelper.UnitOfWork.AttributeRepo.GetExplorer();
             var network = NetworkMapper.ToDomain(networkEntity, explorer, attributeNameLookup);
             var date = new DateTime(2023, 5, 3);
