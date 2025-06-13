@@ -20,14 +20,14 @@ namespace AppliedResearchAssociates.iAM.Reporting
 {
     public class UserDefinedReport : IReport
     {
-        private IUnitOfWork _unitOfWork;
-        private IHubService _hubService;        
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IHubService _hubService;        
         public UserDefinedReportRequestModel _userDefinedReportRequestModel;
         private readonly ReportHelper _reportHelper;
         private readonly ConditionOfNetworkTab _conditionOfNetworkTab;
         private readonly InitialAssetsTab _initialAssetsTab;
-        private readonly YearAssetsTab _yearAssetsTab;        
-        private readonly BudgetsTab _budgetsTab;
+        private readonly YearAssetsTab _yearAssetsTab;
+        private readonly TreatmentOptionsTab _treatmentOptionsTab;
 
         public UserDefinedReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {
@@ -39,7 +39,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _conditionOfNetworkTab = new ConditionOfNetworkTab(_unitOfWork);
             _initialAssetsTab = new InitialAssetsTab(_unitOfWork);
             _yearAssetsTab = new YearAssetsTab(_unitOfWork);
-            _budgetsTab = new BudgetsTab(_unitOfWork);
+            _treatmentOptionsTab = new TreatmentOptionsTab(_unitOfWork);
 
             // check for existing report id
             var reportId = (results?.Id) ?? Guid.NewGuid();
@@ -166,10 +166,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             checkCancelled(cancellationToken, simulationId);
             reportDetailDto.Status = $"Generating...";
-
-            workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpsertSimulationReportDetail(reportDetailDto);
-            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+            updateStatusSendMessage();
 
             var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
             var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);            
@@ -229,9 +226,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             if (_userDefinedReportRequestModel.DisplayConditionOfNetwork)
             {
                 reportDetailDto.Status = $"Creating Condition Of Network tab";
-                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-                UpsertSimulationReportDetail(reportDetailDto);
-                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                updateStatusSendMessage();
                 var conditionOfNetwokWorksheet = excelPackage.Workbook.Worksheets.Add("Condition Of Network");
                 _conditionOfNetworkTab.Fill(conditionOfNetwokWorksheet, reportOutputData.Years);
                 checkCancelled(cancellationToken, simulationId);
@@ -242,9 +237,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             if (_userDefinedReportRequestModel.DisplayInitialAssets)
             {
                 reportDetailDto.Status = $"Creating Initial Assets tab";
-                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-                UpsertSimulationReportDetail(reportDetailDto);
-                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                updateStatusSendMessage();
                 var assetSummariesWorksheet = excelPackage.Workbook.Worksheets.Add("Initial Assets");
                 _initialAssetsTab.Fill(assetSummariesWorksheet, filterAttributes, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries);
                 checkCancelled(cancellationToken, simulationId);
@@ -254,9 +247,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             if (_userDefinedReportRequestModel.DisplayYearAssets)
             {
                 reportDetailDto.Status = $"Creating Year Assets tab";
-                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-                UpsertSimulationReportDetail(reportDetailDto);
-                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                updateStatusSendMessage();
                 var yearAssetsWorksheet = excelPackage.Workbook.Worksheets.Add("Year Assets");
                 _yearAssetsTab.Fill(yearAssetsWorksheet, filterAttributes, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
                 checkCancelled(cancellationToken, simulationId);
@@ -265,27 +256,37 @@ namespace AppliedResearchAssociates.iAM.Reporting
             if(_userDefinedReportRequestModel.DisplayBudgets)
             {
                 reportDetailDto.Status = $"Creating Budgets tab";
-                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-                UpsertSimulationReportDetail(reportDetailDto);
-                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                updateStatusSendMessage();
                 var budgetsWorksheet = excelPackage.Workbook.Worksheets.Add("Budgets");
-                _budgetsTab.Fill(budgetsWorksheet,  isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                BudgetsTab.Fill(budgetsWorksheet, reportOutputData.Years);
                 checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplayDeficientConditionGoals)
             {
-
+                reportDetailDto.Status = $"Creating DeficientConditionGoals tab";
+                updateStatusSendMessage();
+                var deficientConditionGoalsWorksheet = excelPackage.Workbook.Worksheets.Add("DeficientConditionGoals");
+                DeficientConditionGoalsTab.Fill(deficientConditionGoalsWorksheet, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplayTargetConditionGoals)
             {
-
+                reportDetailDto.Status = $"Creating TargetConditionGoals tab";
+                updateStatusSendMessage();
+                var targetConditionGoalsWorksheet = excelPackage.Workbook.Worksheets.Add("TargetConditionGoals");
+                TargetConditionGoalsTab.Fill(targetConditionGoalsWorksheet, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplayTreatmentOptions)
             {
-
+                reportDetailDto.Status = $"Creating TreatmentOptions tab";
+                updateStatusSendMessage();
+                var treatmentOptionsWorksheet = excelPackage.Workbook.Worksheets.Add("TreatmentOptions");
+                _treatmentOptionsTab.Fill(treatmentOptionsWorksheet, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplayTreatmentSchedulingCollisions)
@@ -327,7 +328,14 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
 
             return filePath;
-        }
+
+            void updateStatusSendMessage()
+            {
+                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+                UpsertSimulationReportDetail(reportDetailDto);
+                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+            }
+        }        
 
         private void IndicateError(string status = null)
         {

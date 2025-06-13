@@ -45,13 +45,13 @@ export interface UserDefinedReportRequestModel {
     years: number[];
     displayConditionOfNetwork: boolean;
     displayInitialAssets: boolean; // assets attributes
-    displayYearAssets: boolean; // combine yearly assets + metadata + attributes
-    displayBudgets: boolean; // asset, years, budget info - vertical data in sheet
-    displayDeficientConditionGoals: boolean;
-    displayTargetConditionGoals: boolean;    
-    displayTreatmentOptions: boolean;
-    displayTreatmentSchedulingCollisions: boolean;
-    displayTreatmentRejections: boolean;
+    displayYearAssets: boolean; // yearly assets + metadata + attributes
+    displayBudgets: boolean; // years, budgets
+    displayDeficientConditionGoals: boolean; // years, DeficientConditionGoals
+    displayTargetConditionGoals: boolean; // years, DeficientConditionGoals, TargetConditionGoals   
+    displayTreatmentOptions: boolean; // assets, years, TreatmentOptions
+    displayTreatmentSchedulingCollisions: boolean; // assets, years, TreatmentSchedulingCollisions
+    displayTreatmentRejections: boolean; // assets, years, TreatmentRejections
     displayTreatmentCashflowConsiderations: boolean; // treatmentConsiderations
     displyTreatmentCurrentBudgetsToSpend: boolean; // treatmentConsiderations
     displayTreatmentAllocations: boolean; // treatmentConsiderations
