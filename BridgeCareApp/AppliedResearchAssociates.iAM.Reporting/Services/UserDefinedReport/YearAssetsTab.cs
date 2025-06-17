@@ -161,69 +161,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
         //    {
         //        foreach (var asset in simulationYearDetail.Assets)
         //        {
-        //            currentColumn = startColumn;
-        //            // headers and data
-        //            var primaryKeyValue = isPrimaryKeyNumeric
-        //                ? CheckGetValue(asset.ValuePerNumericAttribute, primaryKey).ToString()
-        //                : CheckGetTextValue(asset.ValuePerTextAttribute, primaryKey);        //        
 
-        //            // TreatmentOptions                    
-        //            currentRow += 3;
-        //            currentColumn = startColumn;
-
-        //            // headers
-        //            yearWorksheet.Cells[currentRow, currentColumn].Value = "Treatment options";
-        //            ExcelHelper.MergeCells(yearWorksheet, currentRow, currentColumn, currentRow, currentColumn + 4, true);
-        //            ExcelHelper.ApplyColor(yearWorksheet.Cells[currentRow++, currentColumn], System.Drawing.Color.LightGray);
-        //            yearWorksheet.Cells[currentRow, currentColumn++].Value = "TreatmentName";
-        //            yearWorksheet.Cells[currentRow, currentColumn++].Value = "Cost";
-        //            yearWorksheet.Cells[currentRow, currentColumn++].Value = "Benefit";
-        //            yearWorksheet.Cells[currentRow, currentColumn++].Value = "RemainingLife";
-        //            yearWorksheet.Cells[currentRow, currentColumn].Value = "ConditionChange";
-        //            ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, startColumn, currentRow, currentColumn]);
-        //            // data
-        //            fromRow = currentRow + 1;
-        //            foreach (var treatmentOption in asset.TreatmentOptions)
-        //            {
-        //                currentRow++;
-        //                currentColumn = startColumn;
-        //                yearWorksheet.Cells[currentRow, currentColumn].Value = treatmentOption.TreatmentName;
-        //                yearWorksheet.Cells[currentRow, currentColumn++].Style.WrapText = true;
-        //                yearWorksheet.Cells[currentRow, currentColumn++].Value = treatmentOption.Cost;
-        //                yearWorksheet.Cells[currentRow, currentColumn++].Value = treatmentOption.Benefit;
-        //                yearWorksheet.Cells[currentRow, currentColumn++].Value = treatmentOption.RemainingLife;
-        //                yearWorksheet.Cells[currentRow, currentColumn].Value = treatmentOption.ConditionChange;
-        //            }
-        //            if (asset.TreatmentOptions.Count == 0)
-        //            {
-        //                currentRow = fromRow;
-        //            }
-        //            ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow++, currentColumn]);
-
-        //            // TreatmentSchedulingCollisions                    
-        //            currentRow += 2;
-        //            currentColumn = startColumn;
-        //            // headers
-        //            yearWorksheet.Cells[currentRow, currentColumn].Value = "Treatment scheduling collisions";
-        //            ExcelHelper.MergeCells(yearWorksheet, currentRow, currentColumn, currentRow, currentColumn + 1, true);
-        //            ExcelHelper.ApplyColor(yearWorksheet.Cells[currentRow++, currentColumn], System.Drawing.Color.LightGray);
-        //            yearWorksheet.Cells[currentRow, currentColumn++].Value = "Year";
-        //            yearWorksheet.Cells[currentRow, currentColumn].Value = "NameOfUnscheduledTreatment";
-        //            ExcelHelper.ApplyStyleWithBorder(yearWorksheet.Cells[currentRow, startColumn, currentRow, currentColumn]);
-        //            // data
-        //            fromRow = currentRow + 1;
-        //            foreach (var treatmentSchedulingCollision in asset.TreatmentSchedulingCollisions)
-        //            {
-        //                currentRow++;
-        //                currentColumn = startColumn;
-        //                yearWorksheet.Cells[currentRow, currentColumn++].Value = treatmentSchedulingCollision.Year;
-        //                yearWorksheet.Cells[currentRow, currentColumn].Value = treatmentSchedulingCollision.NameOfUnscheduledTreatment;
-        //            }
-        //            if (asset.TreatmentSchedulingCollisions.Count == 0)
-        //            {
-        //                currentRow = fromRow;
-        //            }
-        //            ExcelHelper.ApplyBorder(yearWorksheet.Cells[fromRow, startColumn, currentRow, currentColumn]);
 
         //            // TreatmentRejections                    
         //            currentRow += 2;

@@ -28,6 +28,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
         private readonly InitialAssetsTab _initialAssetsTab;
         private readonly YearAssetsTab _yearAssetsTab;
         private readonly TreatmentOptionsTab _treatmentOptionsTab;
+        private readonly TreatmentSchedulingCollisionsTab _treatmentSchedulingCollisionsTab;
+        private readonly TreatmentRejectionsTab _treatmentRejectionsTab;
 
         public UserDefinedReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {
@@ -40,13 +42,15 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _initialAssetsTab = new InitialAssetsTab(_unitOfWork);
             _yearAssetsTab = new YearAssetsTab(_unitOfWork);
             _treatmentOptionsTab = new TreatmentOptionsTab(_unitOfWork);
+            _treatmentSchedulingCollisionsTab = new TreatmentSchedulingCollisionsTab(_unitOfWork);
+            _treatmentRejectionsTab = new TreatmentRejectionsTab(_unitOfWork);
 
             // check for existing report id
             var reportId = (results?.Id) ?? Guid.NewGuid();
 
             // set report return default parameters
             ID = (Guid)reportId;
-            Errors = new List<string>();
+            Errors = [];
             Status = "Report definition created.";
             Results = string.Empty;
             IsComplete = false;
@@ -176,7 +180,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             {
                 var criteriaValidationResult = _reportHelper.FilterReportOutputData(reportOutputData, networkId, Criteria);
 
-                if (!reportOutputData.InitialAssetSummaries.Any())
+                if (reportOutputData.InitialAssetSummaries.Count == 0)
                 {
                     reportDetailDto.Status = "Failed to generate report due to no assets found for given criteria";
                     workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
@@ -291,12 +295,20 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             if (_userDefinedReportRequestModel.DisplayTreatmentSchedulingCollisions)
             {
-
+                reportDetailDto.Status = $"Creating TreatmentSchedulingCollisions tab";
+                updateStatusSendMessage();
+                var treatmentSchedulingCollisionsWorksheet = excelPackage.Workbook.Worksheets.Add("TreatmentSchedulingCollisions");
+                _treatmentSchedulingCollisionsTab.Fill(treatmentSchedulingCollisionsWorksheet, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplayTreatmentRejections)
             {
-
+                reportDetailDto.Status = $"Creating TreatmentRejections tab";
+                updateStatusSendMessage();
+                var treatmentRejectionsWorksheet = excelPackage.Workbook.Worksheets.Add("TreatmentRejections");
+                _treatmentRejectionsTab.Fill(treatmentRejectionsWorksheet, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplayTreatmentCashflowConsiderations)
