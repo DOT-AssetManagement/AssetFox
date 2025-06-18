@@ -14,7 +14,6 @@ using BridgeCareCore.Services;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using System.IO;
-using System.Linq;
 
 namespace AppliedResearchAssociates.iAM.Reporting
 {
@@ -24,12 +23,14 @@ namespace AppliedResearchAssociates.iAM.Reporting
         private readonly IHubService _hubService;        
         public UserDefinedReportRequestModel _userDefinedReportRequestModel;
         private readonly ReportHelper _reportHelper;
-        private readonly ConditionOfNetworkTab _conditionOfNetworkTab;
         private readonly InitialAssetsTab _initialAssetsTab;
         private readonly YearAssetsTab _yearAssetsTab;
         private readonly TreatmentOptionsTab _treatmentOptionsTab;
         private readonly TreatmentSchedulingCollisionsTab _treatmentSchedulingCollisionsTab;
         private readonly TreatmentRejectionsTab _treatmentRejectionsTab;
+        private readonly TreatmentCashflowConsiderationsTab _treatmentCashflowConsiderationsTab;
+        private readonly TreatmentCurrentBudgetsToSpendTab _treatmentCurrentBudgetsToSpendTab;
+        private readonly TreatmentAllocationsTab _treatmentAllocationsTab;
 
         public UserDefinedReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {
@@ -38,12 +39,14 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _reportHelper = new ReportHelper(_unitOfWork);
             ReportTypeName = name;
                         
-            _conditionOfNetworkTab = new ConditionOfNetworkTab(_unitOfWork);
             _initialAssetsTab = new InitialAssetsTab(_unitOfWork);
             _yearAssetsTab = new YearAssetsTab(_unitOfWork);
             _treatmentOptionsTab = new TreatmentOptionsTab(_unitOfWork);
             _treatmentSchedulingCollisionsTab = new TreatmentSchedulingCollisionsTab(_unitOfWork);
             _treatmentRejectionsTab = new TreatmentRejectionsTab(_unitOfWork);
+            _treatmentCashflowConsiderationsTab = new TreatmentCashflowConsiderationsTab(_unitOfWork);
+            _treatmentCurrentBudgetsToSpendTab = new TreatmentCurrentBudgetsToSpendTab(_unitOfWork);
+            _treatmentAllocationsTab = new TreatmentAllocationsTab(_unitOfWork);
 
             // check for existing report id
             var reportId = (results?.Id) ?? Guid.NewGuid();
@@ -232,7 +235,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 reportDetailDto.Status = $"Creating Condition Of Network tab";
                 updateStatusSendMessage();
                 var conditionOfNetwokWorksheet = excelPackage.Workbook.Worksheets.Add("Condition Of Network");
-                _conditionOfNetworkTab.Fill(conditionOfNetwokWorksheet, reportOutputData.Years);
+                ConditionOfNetworkTab.Fill(conditionOfNetwokWorksheet, reportOutputData.Years);
                 checkCancelled(cancellationToken, simulationId);
             }
 
@@ -313,17 +316,29 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             if (_userDefinedReportRequestModel.DisplayTreatmentCashflowConsiderations)
             {
-
+                reportDetailDto.Status = $"Creating TreatmentCashflowConsiderations tab";
+                updateStatusSendMessage();
+                var treatmentCashflowConsiderationsWorksheet = excelPackage.Workbook.Worksheets.Add("TreatmentCashflowConsiderations");
+                _treatmentCashflowConsiderationsTab.Fill(treatmentCashflowConsiderationsWorksheet, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplyTreatmentCurrentBudgetsToSpend)
             {
-
+                reportDetailDto.Status = $"Creating TreatmentCurrentBudgetsToSpend tab";
+                updateStatusSendMessage();
+                var treatmentCurrentBudgetsToSpendWorksheet = excelPackage.Workbook.Worksheets.Add("TreatmentCurrentBudgetsToSpend");
+                _treatmentCurrentBudgetsToSpendTab.Fill(treatmentCurrentBudgetsToSpendWorksheet, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             if (_userDefinedReportRequestModel.DisplayTreatmentAllocations)
             {
-
+                reportDetailDto.Status = $"Creating TreatmentAllocations tab";
+                updateStatusSendMessage();
+                var treatmentAllocationsWorksheet = excelPackage.Workbook.Worksheets.Add("TreatmentAllocations");
+                _treatmentAllocationsTab.Fill(treatmentAllocationsWorksheet, isPrimaryKeyNumeric, firstPrimaryKey, reportOutputData.InitialAssetSummaries, reportOutputData.Years);
+                checkCancelled(cancellationToken, simulationId);
             }
 
             // check and generate folder

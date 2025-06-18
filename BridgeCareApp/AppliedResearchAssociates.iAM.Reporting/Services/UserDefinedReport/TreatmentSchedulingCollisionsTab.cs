@@ -38,6 +38,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
             AddDynamicData(treatmentSchedulingCollisionsWorksheet, initialAssetSummaries, years, isPrimaryKeyNumeric, primaryKey);
 
             treatmentSchedulingCollisionsWorksheet.Cells.AutoFitColumns();
+            treatmentSchedulingCollisionsWorksheet.Column(3).SetTrueWidth(20);
+            treatmentSchedulingCollisionsWorksheet.Column(4).SetTrueWidth(20);
         }
 
         private void AddDynamicData(ExcelWorksheet treatmentOptionsWorksheet, List<AssetSummaryDetail> initialAssetSummaries, List<SimulationYearDetail> years, bool isPrimaryKeyNumeric, string primaryKey)

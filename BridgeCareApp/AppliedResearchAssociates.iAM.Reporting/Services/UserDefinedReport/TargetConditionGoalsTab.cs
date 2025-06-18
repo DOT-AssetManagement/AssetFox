@@ -26,6 +26,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
             AddDynamicData(targetConditionGoalsWorksheet, years);
 
             targetConditionGoalsWorksheet.Cells.AutoFitColumns();
+            targetConditionGoalsWorksheet.Column(5).SetTrueWidth(14.50);
+            targetConditionGoalsWorksheet.Column(6).SetTrueWidth(16.50);
         }
 
         private static void AddDynamicData(ExcelWorksheet targetConditionGoalsWorksheet, List<SimulationYearDetail> years)
