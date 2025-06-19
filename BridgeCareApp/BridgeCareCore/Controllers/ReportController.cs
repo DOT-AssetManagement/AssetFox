@@ -457,30 +457,6 @@ namespace BridgeCareCore.Controllers
             return Ok($"All reports for {simulationName} have been successfully deleted.");
         }
 
-        //[HttpPost]
-        //[Route("GetUserScenariosPage")]
-        //[Authorize]
-        //public async Task<IActionResult> GetUserDefinedReport([FromBody] UserDefinedReportRequestModel userDefinedReportRequestModel)
-        //{
-        //    try
-        //    {
-        //        // Will this report be queued? - yes
-        //        // As to be queued and we use parameters we will send in UserDefinedReportRequestModel from UI to GetFile API
-
-
-        //        return Ok();
-        //    }
-        //    catch (UnauthorizedAccessException e)
-        //    {
-        //        HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{ReportError}::GetUserDefinedReport - {HubService.errorList["Unauthorized"]}", e);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{ReportError}::GetUserDefinedReport - {e.Message}", e);
-        //    }
-        //    return Ok();
-        //}
-
         #endregion
 
         #region "Internal functions"
