@@ -18,5 +18,7 @@ namespace BridgeCareCore.Interfaces
         double GetTreatmentCost(string assetKeyData, Guid treatmentId, Guid networkId);
 
         List<CommittedProjectConsequenceDTO> GetValidConsequences(Guid committedProjectId, Guid treatmentId, string assetKeyData, Guid networkId);
+
+        FileInfoDTO DownloadErrorExportSheet(Guid simulationId);
     }
 }

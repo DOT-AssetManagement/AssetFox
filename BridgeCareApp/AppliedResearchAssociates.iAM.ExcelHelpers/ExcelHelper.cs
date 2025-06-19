@@ -173,7 +173,7 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
         {
             cells.Style.Fill.PatternType = ExcelFillStyle.Solid;
             cells.Style.Fill.BackgroundColor.SetColor(color);
-        }
+        }        
 
         public static void SetTextColor(ExcelRange cells, Color color)
         {

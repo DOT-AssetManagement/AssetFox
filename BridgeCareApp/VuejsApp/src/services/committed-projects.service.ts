@@ -35,10 +35,15 @@ export default class CommittedProjectsService {
         return coreAxiosInstance.get(
             `${API.CommittedProject}/DownloadSelectedCommittedProjectTemplate/${filename}`,
         );
-    }
+    }    
     static exportCommittedProjects(scenarioId: string): AxiosPromise {
         return coreAxiosInstance.get(
             `${API.CommittedProject}/ExportCommittedProjects/${scenarioId}`,
+        );
+    }
+    static getErrorExportSheet(scenarioId: string): AxiosPromise {
+        return coreAxiosInstance.get(
+            `${API.CommittedProject}/DownloadErrorExportSheet/${scenarioId}`,
         );
     }
     static getCommittedProjects(scenarioId: string): AxiosPromise {
