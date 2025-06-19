@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using AppliedResearchAssociates.CalculateEvaluate;
@@ -11,16 +10,11 @@ using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Utils;
+using Microsoft.Graph.Models;
 using MoreLinq;
 using OfficeOpenXml;
-using NLog;
 
 namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
 {
@@ -260,6 +254,24 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             });
         }
 
+        public FileInfoDTO DownloadErrorExportSheet(Guid simulationId)
+        {
+            var dirPath = Path.Combine(Environment.CurrentDirectory, "CommittedProjects\\" + simulationId);
+            var files = Directory.Exists(dirPath) ? Directory.EnumerateFileSystemEntries(dirPath) : [];
+            if (!files.Any())
+            {
+                return null;
+            }
 
+            using var fileStream = File.OpenRead(Path.Combine(dirPath, files.First()));
+            using var excelPackage = new ExcelPackage(fileStream);
+
+            return new FileInfoDTO
+            {
+                FileName = Path.GetFileName(files.First()),
+                FileData = Convert.ToBase64String(excelPackage.GetAsByteArray()),
+                MimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            };
+        }
     }
 }

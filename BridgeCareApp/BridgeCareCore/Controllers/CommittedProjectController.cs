@@ -512,6 +512,29 @@ namespace BridgeCareCore.Controllers
             return Ok(isValid);
         }
 
+        [HttpGet]
+        [Route("DownloadErrorExportSheet/{simulationId}")]
+        [Authorize]
+        public async Task<IActionResult> DownloadErrorExportSheet(Guid simulationId)
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() => _committedProjectService.DownloadErrorExportSheet(simulationId));
+                if(result == null)
+                {
+                    var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
+                    return BadRequest($"No error export sheet exists for simulation {simulationName}");
+                }
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{CommittedProjectError}::DownloadErrorExportSheet for {simulationName} - {e.Message}", e);
+            }
+            return Ok();
+        }
+
         private void CheckDeletePermit(List<Guid> projectIds)
         {
             if (_claimHelper.RequirePermittedCheck())
