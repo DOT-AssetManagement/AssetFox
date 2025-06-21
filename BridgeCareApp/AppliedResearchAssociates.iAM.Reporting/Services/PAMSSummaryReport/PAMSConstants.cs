@@ -60,6 +60,7 @@
         public const string CompositeTotal = "PAMS Composite Total";
         public const string ConcreteTotal = "PAMS Concrete Total";
         public const string CommittedTotal = "Committed Total";
+        public const string MpmsTotal = "MPMS Total";
         public const string OPICalculationsTab = "Condition Data";
 
         public const string TotalWorkBudget = "Total Work Budget";

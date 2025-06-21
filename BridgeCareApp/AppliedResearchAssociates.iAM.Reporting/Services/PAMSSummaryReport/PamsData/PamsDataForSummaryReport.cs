@@ -355,7 +355,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                         workDoneData[i]++;
                     }
                     i++;
-
+                    
                     if (row % 2 == 0) {
                         if (section.TreatmentCause != TreatmentCause.CashFlowProject &&
                             !CommittedProjectsCashFlowed(section.AppliedTreatment, previousYearTreatment, previousYearCause, section.TreatmentCause, section.TreatmentStatus, previousYearTreatmentStatus))
@@ -368,18 +368,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {
                         ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.White);
 
                         // Color the previous year project also
                         ExcelHelper.ApplyColor(worksheet.Cells[row, column - 2, row, column - 1], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, column - 2, row, column - 1], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, column - 2, row, column - 1], Color.White);
                     }
                     if (yearlySectionData.Year == lastYear &&
                         section.TreatmentCause == TreatmentCause.SelectedTreatment &&
                         section.TreatmentStatus == TreatmentStatus.Progressed)
                     {
                         ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.White);
                     }
 
                     ExcelHelper.ApplyLeftBorder(worksheet.Cells[row, column]);
@@ -509,14 +509,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                         ExcelHelper.ApplyColor(worksheet.Cells[row, initialColumnForShade, row, column], Color.LightGray);
                     }
 
+                    // Cash flow coloring
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {
                         ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.White);
 
                         // Color the previous year project also
                         ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.White);
                     }
 
                     column = column + 1;

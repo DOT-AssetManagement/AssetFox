@@ -1179,7 +1179,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             }
 
             column = currentCell.Column;
-            worksheet.Cells[currentCell.Row, column].Value = PAMSConstants.CommittedTotal;
+            worksheet.Cells[currentCell.Row, column].Value = PAMSConstants.MpmsTotal;
             column++;
             int firstTotalYear = TotalMPMSSpent.Count > 0 ? TotalMPMSSpent.Keys.Min() : startYear;
             var offsetForTotal = firstTotalYear - startYear;
