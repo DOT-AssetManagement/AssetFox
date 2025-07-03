@@ -66,7 +66,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
             budgetsWorksheet.Cells[currentRow, currentColumn].Value = "BudgetName";
             ExcelHelper.ApplyStyleWithBorder(budgetsWorksheet.Cells[currentRow, currentColumn++]);
 
-            budgetsWorksheet.Cells[currentRow, currentColumn].Value = "AvailableFunding";
+            budgetsWorksheet.Cells[currentRow, currentColumn].Value = "RemainingFunding";
             ExcelHelper.ApplyStyleWithBorder(budgetsWorksheet.Cells[currentRow, currentColumn++]);
 
             return new CurrentCell { Row = ++startRow, Column = currentColumn - 1 };
