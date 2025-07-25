@@ -26,14 +26,17 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
         private static readonly TreatmentGroup[] _treatmentGroups = new[]
         {
+            // TODO: remove if does not feel correct: Replacement added to fix issue of data having replacement in category and not reconstruction
             new TreatmentGroup (TreatmentCategory.Preservation, TreatmentGroupCategory.Bituminous, "Routine Maintenance"),
             new TreatmentGroup (TreatmentCategory.Maintenance, TreatmentGroupCategory.Bituminous, "Routine Maintenance"),
             new TreatmentGroup (TreatmentCategory.Rehabilitation, TreatmentGroupCategory.Bituminous, "Major Rehabilitation"),
             new TreatmentGroup (TreatmentCategory.Reconstruction, TreatmentGroupCategory.Bituminous, "Reconstruction"),
+            new TreatmentGroup (TreatmentCategory.Replacement, TreatmentGroupCategory.Bituminous, "Reconstruction"),
             new TreatmentGroup (TreatmentCategory.Preservation, TreatmentGroupCategory.Concrete, "Preventive Maintenance"),
             new TreatmentGroup (TreatmentCategory.Maintenance, TreatmentGroupCategory.Concrete, "Preventive Maintenance"),
             new TreatmentGroup (TreatmentCategory.Rehabilitation, TreatmentGroupCategory.Concrete, "Major Rehabilitation"),
             new TreatmentGroup (TreatmentCategory.Reconstruction, TreatmentGroupCategory.Concrete, "Reconstruction"),
+            new TreatmentGroup (TreatmentCategory.Replacement, TreatmentGroupCategory.Concrete, "Reconstruction"),
             new TreatmentGroup (TreatmentCategory.Bundled, TreatmentGroupCategory.Bundled, "Multi Treatments")
         };
 
@@ -56,7 +59,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 treatmentCategory = TreatmentCategory.Bundled;
             }
             else
-            {   
+            {
                 var treatment = simulationTreatments.FirstOrDefault(_ => _.Name.Equals(treatmentName));
                 var assetType = treatment.AssetType ?? string.Empty;
                 groupCategory = assetType.ToLower().Equals(PAMSConstants.Asphalt) ?
@@ -139,7 +142,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 worksheet.Cells[row++, column].Value = item.Name;
             }
         }
-        
+
         #region Private methods
 
         private void AddMergeSectionHeader(ExcelWorksheet worksheet, string headerText, int yearsCount, CurrentCell currentCell)
@@ -170,7 +173,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             }
 
             if (!string.IsNullOrEmpty(totalHeaderLabel))
-            { 
+            {
                 worksheet.Cells[row, column].Value = totalHeaderLabel;
                 var cells = worksheet.Cells[row, column];
                 ExcelHelper.ApplyStyle(cells);

@@ -15,7 +15,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
     {
         public static int FeetToMiles(this int feet) => feet / 5280;
         public static double FeetToMiles(this double feet) => feet / 5280.0;
-        public static decimal FeetToMiles(this decimal feet) => feet / (decimal) 5280.0;
+        public static decimal FeetToMiles(this decimal feet) => feet / (decimal)5280.0;
     }
 
     public static class PavementConditionExtensions
@@ -136,20 +136,21 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 Dictionary<string, string> treatmentCategoryLookup,
                 List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
                 List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments,
-                bool shouldBundleFeasibleTreatments)
+                bool shouldBundleFeasibleTreatments,
+                Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
-            Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+            //Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
             foreach (var yearData in reportOutputData.Years)
             {
                 costLengthPerSurfaceIdPerTreatmentPerYear.Add(yearData.Year, new Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>());
                 costAndLengthPerTreatmentGroupPerYear.Add(yearData.Year, new Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>());
                 yearlyCostCommittedProj[yearData.Year] = new Dictionary<string, List<CommittedProjectMetaData>>();
                 foreach (var section in yearData.Assets)
-                {                    
+                {
                     var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
 
                     // Build keyCashFlowFundingDetails
-                    _summaryReportHelper.BuildKeyCashFlowFundingDetails(yearData, section, crs, keyCashFlowFundingDetails);
+                    //_summaryReportHelper.BuildKeyCashFlowFundingDetails(yearData, section, crs, keyCashFlowFundingDetails);
 
                     // If CF then use obj from keyCashFlowFundingDetails otherwise from section                    
                     var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
@@ -174,14 +175,16 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     var cost = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix?.
                                Where(_ => _.Year == yearData.Year).
                                Sum(b => b.AllocatedAmount) ?? 0;
-                    
+
                     if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                         appliedTreatment.ToLower() != PAMSConstants.NoTreatment)
                     {
-                        var committedProject = committedProjectsForWorkOutsideScope.FirstOrDefault(_ => _.Treatment.All(_ => appliedTreatment.Contains(_))
-                                                && _.Year == yearData.Year && _.ProjectSource.ToString() == section.ProjectSource);                        
-                        var projectSource = committedProject?.ProjectSource.ToString();                        
-                        if (!yearlyCostCommittedProj[yearData.Year].ContainsKey(appliedTreatment))
+                        var committedProject = committedProjectsForWorkOutsideScope.FirstOrDefault(_ => _.Treatment.All(_ => appliedTreatment.Contains(_)) &&
+                            _.Year == yearData.Year &&
+                            _.ProjectSource.ToString() == section.ProjectSource &&
+                            _.LocationKeys["CRS"] == crs);
+                        var projectSource = committedProject?.ProjectSource.ToString();
+                        if (!yearlyCostCommittedProj[yearData.Year].TryGetValue(appliedTreatment, out var value))
                         {
                             var committedProjectMetaData = new List<CommittedProjectMetaData>() {
                                                                 new() { TreatmentCost = cost,
@@ -192,25 +195,17 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         }
                         else
                         {
-                            yearlyCostCommittedProj[yearData.Year][appliedTreatment].Add(new()
+                            value.Add(new()
                             {
                                 TreatmentCost = cost,
                                 ProjectSource = projectSource,
-                                TreatmentCategory = treatmentCategory // TODO Should this be committed proj's category in future?
+                                TreatmentCategory = treatmentCategory // Should this be committed proj's category in future - current working is correct per PAMS
                             });
                         }
 
                         // Remove from committedProjectsForWorkOutsideScope
-                        // Bundled has many treatment names under AppliedTreatment
-                        var toRemove = committedProjectsForWorkOutsideScope.Where(_ => _.Treatment.All(_ => appliedTreatment.Contains(_)) &&
-                                        _.Year == yearData.Year &&
-                                        _.ProjectSource.ToString() == section.ProjectSource &&
-                                        _.Cost == Convert.ToDouble(cost));
-                        if (toRemove != null)
-                        {
-                            committedProjectsForWorkOutsideScope.RemoveAll(_ => toRemove.Contains(_));
-                        }
-                        
+                        _ = committedProjectsForWorkOutsideScope.Remove(committedProject);
+
                         continue;
                     }
 
@@ -255,21 +250,20 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             int segmentLength = 0;
             var year = yearsData.Year;
             var appliedTreatment = yearsData.TreatmentName;
-            var surfaceId = yearsData.SurfaceId;            
+            var surfaceId = yearsData.SurfaceId;
             var cost = Convert.ToDecimal(yearsData.Amount);
             var compositeTreatmentCost = surfaceId == 62 ? cost : 0;
             if (!costLengthPerSurfaceIdPerTreatmentPerYear[yearsData.Year].ContainsKey(yearsData.TreatmentName))
             {
                 costLengthPerSurfaceIdPerTreatmentPerYear[year].Add(appliedTreatment,
                     new() { { surfaceId, (cost, compositeTreatmentCost, segmentLength) } });
-            }        
+            }
             else
-            {                
+            {
                 var values = costLengthPerSurfaceIdPerTreatmentPerYear[year][appliedTreatment];
                 if (!values.ContainsKey(surfaceId))
                 {
                     values.Add(surfaceId, (cost, compositeTreatmentCost, segmentLength));
-
                     costLengthPerSurfaceIdPerTreatmentPerYear[year][appliedTreatment] = values;
                 }
                 else
@@ -311,7 +305,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             decimal cost,
             Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear
             )
-        {            
+        {
             var surfaceId = (int)section.ValuePerNumericAttribute["SURFACEID"];
             var appliedTreatment = section.AppliedTreatment;
             var compositeTreatmentCost = surfaceId == 62 ? cost : 0;
@@ -323,7 +317,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     new() { { surfaceId, (cost, compositeTreatmentCost, segmentLengthInMiles) } });
             }
             else
-            {                
+            {
                 var values = costLengthPerSurfaceIdPerTreatmentPerYear[year][appliedTreatment];
                 if (!values.ContainsKey(surfaceId))
                 {
@@ -336,6 +330,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     surfaceIdValues.treatmentCost += cost;
                     surfaceIdValues.compositeTreatmentCost += compositeTreatmentCost;
                     surfaceIdValues.length += segmentLengthInMiles;
+
                     values[surfaceId] = surfaceIdValues;
                 }
             }
@@ -365,8 +360,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
         internal Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, double length)>> CalculateWorkTypeTotals(
             Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
-            List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments
-            )
+            List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments,
+            Dictionary<int, Dictionary<string, List<CommittedProjectMetaData>>> yearlyCostCommittedProj)
         {
             var workTypeTotals = new Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, double length)>>();
 
@@ -406,7 +401,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     }
                 }
 
-                foreach(var yearlyValue in yearlyValues.Value)
+                foreach (var yearlyValue in yearlyValues.Value)
                 {
                     var treatment = yearlyValue.Key;
                     if (treatment.Contains("Bundle"))
@@ -414,14 +409,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         var category = TreatmentCategory.Bundled;
                         decimal cost = 0;
                         double length = 0;
-                        var costAndLengthsPerSurfaceId = yearlyValue.Value;                        
+                        var costAndLengthsPerSurfaceId = yearlyValue.Value;
                         foreach (var value in costAndLengthsPerSurfaceId)
                         {
                             cost += value.Value.treatmentCost;
                             length += value.Value.length;
                         }
 
-                        if (!workTypeTotals.ContainsKey(category))
+                        if (!workTypeTotals.TryGetValue(category, out var keyValues))
                         {
                             workTypeTotals.Add(category, new SortedDictionary<int, (decimal treatmentCost, double length)>()
                             {
@@ -430,14 +425,46 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         }
                         else
                         {
+                            if (!workTypeTotals[category].TryGetValue(yearlyValues.Key, out var value))
+                            {
+                                value = (0, 0);
+                                workTypeTotals[category].Add(yearlyValues.Key, value);
+                            }
+
+                            value.treatmentCost += cost;
+                            value.length += length;
+                            keyValues[yearlyValues.Key] = value;
+                        }
+                    }
+                }
+
+                // Add committed projs to Work Type Totals categories, add 0 for lengths for now!
+                // TODO: question do we need lengths here? If yes we may need to add that to CommittedProjectMetaData and hydrate it initially
+                var yearlyCostCommittedProjValue = yearlyCostCommittedProj[yearlyValues.Key];
+                foreach (var committedProjectMetaDataSet in yearlyCostCommittedProjValue.Values)
+                {
+                    foreach (var committedProjectMetaData in committedProjectMetaDataSet)
+                    {
+                        _ = Enum.TryParse(committedProjectMetaData.TreatmentCategory, out TreatmentCategory category);
+                        category = SummaryReportHelper.GetCategory(category);
+                        var cost = committedProjectMetaData.TreatmentCost;
+                        if (!workTypeTotals.TryGetValue(category, out var keyValues))
+                        {
+                            workTypeTotals.Add(category, new SortedDictionary<int, (decimal treatmentCost, double length)>()
+                        {
+                                { yearlyValues.Key, (cost, 0) }
+                            });
+                        }
+                        else
+                        {
                             if (!workTypeTotals[category].ContainsKey(yearlyValues.Key))
                             {
                                 workTypeTotals[category].Add(yearlyValues.Key, (0, 0));
                             }
-                            var value = workTypeTotals[category][yearlyValues.Key];
+                            var value = keyValues[yearlyValues.Key];
                             value.treatmentCost += cost;
-                            value.length += length;
-                            workTypeTotals[category][yearlyValues.Key] = value;
+                            value.length += 0;
+                            keyValues[yearlyValues.Key] = value;
                         }
                     }
                 }

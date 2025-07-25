@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -247,6 +248,17 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 }
             }
 
+            var keyCashFlowFundingDetails = new Dictionary<string, List<TreatmentConsiderationDetail>>();
+            var summaryReportHelperForCashFlow = new SummaryReportHelper(); // Using the helper from the correct namespace
+            foreach (var yearData in reportOutputData.Years)
+            {
+                foreach (var section in yearData.Assets)
+                {
+                    var crs = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
+                    summaryReportHelperForCashFlow.BuildKeyCashFlowFundingDetails(yearData, section, crs, keyCashFlowFundingDetails);
+                }
+            }
+
             //get treatment category lookup
             var treatmentCategoryLookup = new Dictionary<string, string>();
             var treatmentList = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsWithCriterionLibrary(simulationId);
@@ -326,7 +338,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             }            
             var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PAMSData_Tab);
             var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
-            var workSummaryModel = _pamsDataForSummaryReport.Fill(worksheet, reportOutputData, shouldBundleFeasibleTreatments, committedProjectList);
+            var workSummaryModel = _pamsDataForSummaryReport.Fill(worksheet, reportOutputData, shouldBundleFeasibleTreatments, committedProjectList, keyCashFlowFundingDetails);
             checkCancelled(cancellationToken, simulationId);
 
             // Filling up parameters tab
@@ -339,7 +351,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pamsWorkSummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummary_Tab);            
-            var chartRowModel = _pavementWorkSummary.Fill(pamsWorkSummaryWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
+            var chartRowModel = _pavementWorkSummary.Fill(pamsWorkSummaryWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails);
             checkCancelled(cancellationToken, simulationId);
 
             // Pavement Work Summary By Budget TAB
@@ -348,7 +360,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pavementWorkSummaryByBudgetWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummaryByBudget_Tab);
-            _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, yearlyCostCommittedProj, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
+            _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, yearlyCostCommittedProj, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails);
             checkCancelled(cancellationToken, simulationId);
 
             // Unfunded Pavement Projects TAB
@@ -364,7 +376,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var _countySummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.CountySummary_Tab);
-            _countySummary.Fill(_countySummaryWorksheet, reportOutputData, simulationYears, simulationDto);
+            _countySummary.Fill(_countySummaryWorksheet, reportOutputData, simulationYears, simulationDto, keyCashFlowFundingDetails);
             checkCancelled(cancellationToken, simulationId);
 
             //Graph TABs
