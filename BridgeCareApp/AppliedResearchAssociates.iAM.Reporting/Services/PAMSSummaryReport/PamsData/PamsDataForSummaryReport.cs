@@ -79,7 +79,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
         }
 
 
-        public WorkSummaryModel Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
+        public WorkSummaryModel Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
             // Add data to excel.
             reportOutputData.Years.ForEach(_ => _simulationYears.Add(_.Year));
@@ -87,12 +87,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
             // Add row next to headers for filters and year numbers for dynamic data. Cover from
             // top, left to right, and bottom set of data.
-            using (ExcelRange autoFilterCells = worksheet.Cells[3, 1, currentCell.Row, currentCell.Column - 1]) {
+            using (ExcelRange autoFilterCells = worksheet.Cells[3, 1, currentCell.Row, currentCell.Column - 1])
+            {
                 autoFilterCells.AutoFilter = true;
             }
 
             FillData(worksheet, reportOutputData, currentCell);
-            FillDynamicData(worksheet, reportOutputData, currentCell, shouldBundleFeasibleTreatments, committedProjectList);
+            FillDynamicData(worksheet, reportOutputData, currentCell, shouldBundleFeasibleTreatments, committedProjectList, keyCashFlowFundingDetails);
             worksheet.Cells.AutoFitColumns();
 
             const double minimumColumnWidth = 15;
@@ -106,13 +107,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
             foreach (var spacerNumber in _spacerColumnNumbers)
             {
-                bool isColumnEmpty = true; 
+                bool isColumnEmpty = true;
                 for (int row = 1; row <= worksheet.Dimension.End.Row; row++)
                 {
                     if (worksheet.Cells[row, spacerNumber].Value != null)
                     {
                         isColumnEmpty = false;
-                        break; 
+                        break;
                     }
                 }
                 if (isColumnEmpty)
@@ -138,13 +139,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
         private CurrentCell BuildHeaderAndSubHeaders(ExcelWorksheet worksheet, List<int> simulationYears)
         {
-            
+
             //Get Headers
             var headers = GetHeaders();
 
             //build header columns
             int headerRow = 1;
-            for (int column = 0; column < headers.Count; column++) {
+            for (int column = 0; column < headers.Count; column++)
+            {
                 worksheet.Cells[headerRow, column + 1].Value = headers[column];
                 ExcelHelper.MergeCells(worksheet, headerRow, column + 1, headerRow + 1, column + 1);
             }
@@ -174,9 +176,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             // Merge "Work Planned" header with the cell below it
             ExcelHelper.MergeCells(worksheet, row, column, row + 1, column);
 
-            ExcelHelper.ApplyStyle(worksheet.Cells[row, column-2, row, column]);
-            
-            worksheet.Row(row).Height = 40;            
+            ExcelHelper.ApplyStyle(worksheet.Cells[row, column - 2, row, column]);
+
+            worksheet.Row(row).Height = 40;
             currentCell.Column = column;
 
             // Add Years Data headers
@@ -278,7 +280,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             currentCell.Row = rowNo; currentCell.Column = columnNo;
         }
 
-        private void FillDynamicData(ExcelWorksheet worksheet, SimulationOutput outputResults, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, List<BaseCommittedProjectDTO> committedProjectList)
+        private void FillDynamicData(ExcelWorksheet worksheet, SimulationOutput outputResults, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, List<BaseCommittedProjectDTO> committedProjectList, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
             //initial row to populate data.
             const int initialRow = 4;
@@ -292,7 +294,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
             var isInitialYear = true;
             var lastYear = outputResults.Years.Last().Year;
-            Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+            //Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
             foreach (var yearlySectionData in outputResults.Years)
             {
                 row = initialRow;
@@ -321,7 +323,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     // Work done and cost for the given year                    
                     var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
                     // Build keyCashFlowFundingDetails
-                    _summaryReportHelper.BuildKeyCashFlowFundingDetails(yearlySectionData, section, crs, keyCashFlowFundingDetails);
+                    //_summaryReportHelper.BuildKeyCashFlowFundingDetails(yearlySectionData, section, crs, keyCashFlowFundingDetails);
 
                     // If CF then use obj from keyCashFlowFundingDetails otherwise from section
                     var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
@@ -356,7 +358,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     }
                     i++;
 
-                    if (row % 2 == 0) {
+                    if (row % 2 == 0)
+                    {
                         if (section.TreatmentCause != TreatmentCause.CashFlowProject &&
                             !CommittedProjectsCashFlowed(section.AppliedTreatment, previousYearTreatment, previousYearCause, section.TreatmentCause, section.TreatmentStatus, previousYearTreatmentStatus))
                         {
@@ -367,19 +370,19 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     // Cash flow coloring
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(7384391));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.White);
 
                         // Color the previous year project also
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, column - 2, row, column - 1], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, column - 2, row, column - 1], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, column - 2, row, column - 1], Color.FromArgb(7384391));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, column - 2, row, column - 1], Color.White);
                     }
                     if (yearlySectionData.Year == lastYear &&
                         section.TreatmentCause == TreatmentCause.SelectedTreatment &&
                         section.TreatmentStatus == TreatmentStatus.Progressed)
                     {
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(7384391));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.White);
                     }
 
                     ExcelHelper.ApplyLeftBorder(worksheet.Cells[row, column]);
@@ -403,9 +406,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                 row++;
             }
 
-          
+
             row = 4; // setting row back to start
-            var initialColumn = column;            
+            var initialColumn = column;
             _parametersModel.nHSModel.NHS = "N";
             _parametersModel.nHSModel.NonNHS = "N";
             foreach (var initialSection in outputResults.InitialAssetSummaries)
@@ -509,14 +512,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                         ExcelHelper.ApplyColor(worksheet.Cells[row, initialColumnForShade, row, column], Color.LightGray);
                     }
 
+                    // Cash flow coloring
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(7384391));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.White);
 
                         // Color the previous year project also
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.FromArgb(0, 255, 0));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.FromArgb(255, 0, 0));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.FromArgb(7384391));
+                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.White);
                     }
 
                     column = column + 1;
@@ -528,20 +532,21 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
         private int AddSimulationYearData(ExcelWorksheet worksheet, int row, int column, AssetSummaryDetail initialSection, AssetDetail section, bool updateColumn = false)
         {
-            if(updateColumn)
+            if (updateColumn)
             {
                 column++;
             }
             var initialColumnForShade = column + 1;
             var selectedSection = initialSection ?? section;
             var averageRutting = CalculateRuttingBasedOnSurfaceType(selectedSection);
-                        
+
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "OPI_CALCULATED")));
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, PAMSAuditReportConstants.IRI)));
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(averageRutting), 3);
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, PAMSAuditReportConstants.FAULT)), 3);
 
-            if (row % 2 == 0) {
+            if (row % 2 == 0)
+            {
                 var toColumn = section == null ? column + 1 : column;
                 ExcelHelper.ApplyColor(worksheet.Cells[row, initialColumnForShade, row, toColumn], Color.LightGray);
             }
@@ -591,7 +596,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
         private void TrackInitialYearDataForParametersTAB(AssetSummaryDetail initialSection)
         {
             // Get NHS record for Parameter TAB            
-            var nhsInd = _summaryReportHelper.checkAndGetValue<string>(initialSection.ValuePerTextAttribute, "NHS_IND");            
+            var nhsInd = _summaryReportHelper.checkAndGetValue<string>(initialSection.ValuePerTextAttribute, "NHS_IND");
             if (nhsInd != "N")
             {
                 _parametersModel.nHSModel.NHS = "Y";
@@ -648,10 +653,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
         private static void CommittedForConsecutiveYears(ExcelRange range)
         {
-            ExcelHelper.ApplyColor(range, Color.FromArgb(7384391));
+            ExcelHelper.ApplyColor(range, Color.Orange);
             ExcelHelper.SetTextColor(range, Color.White);
         }
 
-        
+
     }
 }
