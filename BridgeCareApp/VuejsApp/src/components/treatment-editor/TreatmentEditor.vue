@@ -1235,17 +1235,24 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
 
     function modifySelectedTreatmentPerformanceFactor(modifiedPerformanceFactor: TreatmentPerformanceFactor) {
         if (hasSelectedTreatment.value) {
-            if (findIndex(propEq('id', modifiedPerformanceFactor.id), selectedTreatment.value.performanceFactors) < 0)
-            {
+            // Find the index of the factor by its 'attribute' name, not its 'id'
+            const existingFactorIndex = findIndex(
+                propEq('attribute', modifiedPerformanceFactor.attribute),
+                selectedTreatment.value.performanceFactors
+            );
+
+            if (existingFactorIndex < 0) {
+                // If it's a genuinely new attribute, add it to the list.
                 modifySelectedTreatment({
                     ...clone(selectedTreatment.value),
                     performanceFactors: prepend(modifiedPerformanceFactor, selectedTreatment.value.performanceFactors)
                 });
             } else {
+                // If it exists, update it at its correct index.
                 modifySelectedTreatment({
                     ...clone(selectedTreatment.value),
                     performanceFactors: update(
-                        findIndex(propEq('id', modifiedPerformanceFactor.id), selectedTreatment.value.performanceFactors),
+                        existingFactorIndex,
                         modifiedPerformanceFactor,
                         selectedTreatment.value.performanceFactors,
                     ),

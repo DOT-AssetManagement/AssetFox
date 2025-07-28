@@ -21,6 +21,82 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             _bridgeWorkSummaryCommon = new BridgeWorkSummaryCommon();
         }
 
+        private void FillCostSectionByWorkType(
+            ExcelWorksheet worksheet,
+            CurrentCell currentCell,
+            List<int> simulationYears,
+            List<YearsData> costData,
+            string projectSource,
+            string totalLabel,
+            WorkTypeTotal workTypeTotal)
+        {
+            var startYear = simulationYears[0];
+            var startOfSection = currentCell.Row;
+
+            // 1. Aggregate costs by Work Type and Year
+            var costsByWorkType = new Dictionary<string, Dictionary<int, double>>();
+            foreach (var item in costData.Where(i => i.ProjectSource == projectSource))
+            {
+                // Use the TreatmentCategory (Work Type) as the key for grouping
+                var workType = item.TreatmentCategory.ToSpreadsheetString();
+                if (string.IsNullOrEmpty(workType))
+                {
+                    workType = "Other"; // Fallback for safety
+                }
+
+                if (!costsByWorkType.ContainsKey(workType))
+                {
+                    costsByWorkType[workType] = new Dictionary<int, double>();
+                }
+                if (!costsByWorkType[workType].ContainsKey(item.Year))
+                {
+                    costsByWorkType[workType][item.Year] = 0.0;
+                }
+                costsByWorkType[workType][item.Year] += item.Amount;
+
+                // This helper correctly populates the overall WorkTypeTotal for the summary section later
+                WorkTypeTotalHelper.FillWorkTypeTotals(item, workTypeTotal);
+            }
+
+            // 2. Write aggregated data to the worksheet, one row per Work Type
+            foreach (var workType in costsByWorkType.Keys.OrderBy(k => k))
+            {
+                var rowNum = currentCell.Row++;
+                worksheet.Cells[rowNum, currentCell.Column].Value = workType;
+                worksheet.Cells[rowNum, currentCell.Column + 2, rowNum, currentCell.Column + 1 + simulationYears.Count].Value = 0.0;
+
+                foreach (var yearlyCost in costsByWorkType[workType])
+                {
+                    var year = yearlyCost.Key;
+                    var cost = yearlyCost.Value;
+                    var cellToEnterCost = year - startYear;
+                    worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value = cost;
+                }
+            }
+
+            worksheet.Cells[currentCell.Row, currentCell.Column].Value = totalLabel;
+
+            // 3. Calculate and write the total row
+            var totalBudgetPerYear = costData
+                .Where(item => item.ProjectSource == projectSource)
+                .GroupBy(item => item.Year)
+                .ToDictionary(g => g.Key, g => g.Sum(item => (decimal)item.Amount));
+
+            foreach (var totalBudget in totalBudgetPerYear)
+            {
+                var cellToEnterTotalCost = totalBudget.Key - startYear;
+                worksheet.Cells[currentCell.Row, currentCell.Column + cellToEnterTotalCost + 2].Value = totalBudget.Value;
+            }
+
+            // Apply formatting
+            ExcelHelper.ApplyBorder(worksheet.Cells[startOfSection, currentCell.Column, currentCell.Row, simulationYears.Count + 2]);
+            ExcelHelper.SetCustomFormat(worksheet.Cells[startOfSection, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], ExcelHelperCellFormat.NegativeCurrency);
+            ExcelHelper.ApplyColor(worksheet.Cells[startOfSection, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.DarkSeaGreen);
+            ExcelHelper.ApplyColor(worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.FromArgb(84, 130, 53));
+            ExcelHelper.SetTextColor(worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.White);
+            currentCell.Row++;
+        }
+
         internal void FillCostOfCommittedWork(ExcelWorksheet worksheet,
             CurrentCell currentCell,
             List<int> simulationYears,
@@ -28,51 +104,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             Dictionary<int, decimal> totalBudgetPerYearForCommittedWork,
             WorkTypeTotal workTypeTotal)
         {
-            var startYear = simulationYears[0];
             currentCell.Row += 1;
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of Committed Work", "Committed Work Type");
             currentCell.Row += 1;
-            var startOfCommittedBudget = currentCell.Row;
             currentCell.Column = 1;
-            var treatmentTracker = new Dictionary<string, int>();
-            foreach (var item in costForCommittedBudgets)
-            {
-                if (item.ProjectSource == "Committed")
-                {
-                    string currentProjectSource = item.ProjectSource;
-                    var rowNum = currentCell.Row++;
-                    worksheet.Cells[rowNum, currentCell.Column].Value = item.Treatment;
-                    worksheet.Cells[rowNum, currentCell.Column + 2, rowNum, currentCell.Column + 1 + simulationYears.Count].Value = 0.0;
-                    var cellToEnterCost = item.Year - startYear;
-                    var cellValue = worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value;
-                    var totalAmount = 0.0;
-                    if (cellValue != null)
-                    {
-                        totalAmount = (double)cellValue;
-                    }
-                    totalAmount += item.Amount;
-                    worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value = totalAmount;
-                    WorkTypeTotalHelper.FillWorkTypeTotals(item, workTypeTotal);
-                }
-            }
-            worksheet.Cells[currentCell.Row, currentCell.Column].Value = BAMSConstants.CommittedTotal;
-
-            foreach (var totalCommittedBudget in totalBudgetPerYearForCommittedWork)
-            {
-                var year = totalCommittedBudget.Key;
-                var totalAmount = costForCommittedBudgets
-                    .Where(item => item.Year == year && (item.ProjectSource == "Committed"))
-                    .Sum(item => item.Amount);
-
-                var cellToEnterTotalBridgeCost = year - startYear;
-                worksheet.Cells[currentCell.Row, currentCell.Column + cellToEnterTotalBridgeCost + 2].Value = totalAmount;
-            }
-            ExcelHelper.ApplyBorder(worksheet.Cells[startOfCommittedBudget, currentCell.Column, currentCell.Row, simulationYears.Count + 2]);
-            ExcelHelper.SetCustomFormat(worksheet.Cells[startOfCommittedBudget, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], ExcelHelperCellFormat.NegativeCurrency);
-            ExcelHelper.ApplyColor(worksheet.Cells[startOfCommittedBudget, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.DarkSeaGreen);
-            ExcelHelper.ApplyColor(worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.FromArgb(84, 130, 53));
-            ExcelHelper.SetTextColor(worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.White);
-            currentCell.Row++;
+            FillCostSectionByWorkType(worksheet, currentCell, simulationYears, costForCommittedBudgets, "Committed", BAMSConstants.CommittedTotal, workTypeTotal);
         }
 
         internal void FillCostOfMPMSWork(ExcelWorksheet worksheet,
@@ -82,51 +118,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             Dictionary<int, decimal> totalBudgetPerYearForCommittedWork,
             WorkTypeTotal workTypeTotal)
         {
-            var startYear = simulationYears[0];
             currentCell.Row += 1;
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of MPMS Work", "MPMS Work Type");
             currentCell.Row += 1;
-            var startOfCommittedBudget = currentCell.Row;
             currentCell.Column = 1;
-            var treatmentTracker = new Dictionary<string, int>();            
-            foreach (var item in costForCommittedBudgets)
-            {
-                if (item.ProjectSource == "MPMS")
-                {
-                    string currentProjectSource = item.ProjectSource;
-                    var rowNum = currentCell.Row++;
-                    worksheet.Cells[rowNum, currentCell.Column].Value = item.Treatment;
-                    worksheet.Cells[rowNum, currentCell.Column + 2, rowNum, currentCell.Column + 1 + simulationYears.Count].Value = 0.0;
-                    var cellToEnterCost = item.Year - startYear;
-                    var cellValue = worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value;
-                    var totalAmount = 0.0;
-                    if (cellValue != null)
-                    {
-                        totalAmount = (double)cellValue;
-                    }
-                    totalAmount += item.Amount;
-                    worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value = totalAmount;
-                    WorkTypeTotalHelper.FillWorkTypeTotals(item, workTypeTotal);
-                }
-            }
-            worksheet.Cells[currentCell.Row, currentCell.Column].Value = BAMSConstants.CommittedTotal;
-
-            foreach (var totalCommittedBudget in totalBudgetPerYearForCommittedWork)
-            {
-                var year = totalCommittedBudget.Key;
-                var totalAmount = costForCommittedBudgets
-                    .Where(item => item.Year == year && (item.ProjectSource == "MPMS"))
-                    .Sum(item => item.Amount);
-
-                var cellToEnterTotalBridgeCost = year - startYear;
-                worksheet.Cells[currentCell.Row, currentCell.Column + cellToEnterTotalBridgeCost + 2].Value = totalAmount;
-            }
-            ExcelHelper.ApplyBorder(worksheet.Cells[startOfCommittedBudget, currentCell.Column, currentCell.Row, simulationYears.Count + 2]);
-            ExcelHelper.SetCustomFormat(worksheet.Cells[startOfCommittedBudget, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], ExcelHelperCellFormat.NegativeCurrency);
-            ExcelHelper.ApplyColor(worksheet.Cells[startOfCommittedBudget, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.DarkSeaGreen);
-            ExcelHelper.ApplyColor(worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.FromArgb(84, 130, 53));
-            ExcelHelper.SetTextColor(worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.White);
-            currentCell.Row++;
+            FillCostSectionByWorkType(worksheet, currentCell, simulationYears, costForCommittedBudgets, "MPMS", BAMSConstants.CommittedTotal, workTypeTotal);
         }
 
         internal void FillCostOfSAPWork(
@@ -137,49 +133,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             Dictionary<int, decimal> totalBudgetPerYearForSAPWork,
             WorkTypeTotal workTypeTotal)
         {
-            var startYear = simulationYears[0];
-            currentCell.Row += 1; 
+            currentCell.Row += 1;
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of SAP Work", "SAP Work Type");
-            currentCell.Row += 1; 
-            var startOfSAPBudget = currentCell.Row;
+            currentCell.Row += 1;
             currentCell.Column = 1;
-            var treatmentTracker = new Dictionary<string, int>();
-            foreach (var item in costForSAPBudgets)
-            {
-                if (item.ProjectSource == "SAP")
-                {
-                    var rowNum = currentCell.Row++;
-                    worksheet.Cells[rowNum, currentCell.Column].Value = item.Treatment;
-                    worksheet.Cells[rowNum, currentCell.Column + 2, rowNum, currentCell.Column + 1 + simulationYears.Count].Value = 0.0;
-                    var cellToEnterCost = item.Year - startYear;
-                    var totalAmount = (double)(worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value ?? 0.0);
-                    totalAmount += item.Amount;
-                    worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value = totalAmount;
-                    WorkTypeTotalHelper.FillWorkTypeTotals(item, workTypeTotal);
-                }
-            }
-            worksheet.Cells[currentCell.Row, currentCell.Column].Value = BAMSConstants.SAPTotal;
-            foreach (var totalSAPBudget in totalBudgetPerYearForSAPWork)
-            {
-                var year = totalSAPBudget.Key;
-                var totalAmount = costForSAPBudgets
-                    .Where(item => item.Year == year && item.ProjectSource == "SAP")
-                    .Sum(item => item.Amount);
-
-                var cellToEnterTotalBridgeCost = year - startYear;
-                worksheet.Cells[currentCell.Row, currentCell.Column + cellToEnterTotalBridgeCost + 2].Value = totalAmount;
-            }
-            int startRow = Math.Min(startOfSAPBudget, currentCell.Row);
-            int endRow = Math.Max(startOfSAPBudget, currentCell.Row);
-            int startCol = Math.Min(currentCell.Column + 2, simulationYears.Count + 2);
-            int endCol = Math.Max(currentCell.Column + 2, simulationYears.Count + 2);
-
-            ExcelHelper.ApplyBorder(worksheet.Cells[startOfSAPBudget, currentCell.Column, currentCell.Row, simulationYears.Count + 2]);
-            ExcelHelper.SetCustomFormat(worksheet.Cells[startRow, startCol, endRow, endCol], ExcelHelperCellFormat.NegativeCurrency);
-            ExcelHelper.ApplyColor(worksheet.Cells[startOfSAPBudget, startCol, currentCell.Row, simulationYears.Count + 2], Color.DarkSeaGreen);
-            ExcelHelper.ApplyColor(worksheet.Cells[currentCell.Row, startCol, currentCell.Row, endCol], Color.FromArgb(84, 130, 53));
-            ExcelHelper.SetTextColor(worksheet.Cells[currentCell.Row, startCol, currentCell.Row, endCol], Color.White);
-            currentCell.Row++;  
+            FillCostSectionByWorkType(worksheet, currentCell, simulationYears, costForSAPBudgets, "SAP", BAMSConstants.SAPTotal, workTypeTotal);
         }
 
         internal void FillCostOfProjectBuilderWork(
@@ -190,50 +148,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             Dictionary<int, decimal> totalBudgetPerYearForProjectBuilderWork,
             WorkTypeTotal workTypeTotal)
         {
-            var startYear = simulationYears[0];
-            currentCell.Row += 1;  
+            currentCell.Row += 1;
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of Project Builder Work", "Project Builder Work Type");
-            currentCell.Row += 1;  
-            var startOfProjectBuilderBudget = currentCell.Row; 
+            currentCell.Row += 1;
             currentCell.Column = 1;
-            var treatmentTracker = new Dictionary<string, int>();
-            foreach (var item in costForProjectBuilderBudgets)
-            {
-                if (item.ProjectSource == "ProjectBuilder")
-                {
-                    var rowNum = currentCell.Row++;
-                    worksheet.Cells[rowNum, currentCell.Column].Value = item.Treatment;
-                    worksheet.Cells[rowNum, currentCell.Column + 2, rowNum, currentCell.Column + 1 + simulationYears.Count].Value = 0.0;
-                    var cellToEnterCost = item.Year - startYear;
-                    var totalAmount = (double)(worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value ?? 0.0);
-                    totalAmount += item.Amount;
-                    worksheet.Cells[rowNum, currentCell.Column + cellToEnterCost + 2].Value = totalAmount;
-                    WorkTypeTotalHelper.FillWorkTypeTotals(item, workTypeTotal);
-                }
-            }
-            worksheet.Cells[currentCell.Row, currentCell.Column].Value = BAMSConstants.ProjectBuilderTotal;
-            foreach (var totalProjectBuilderBudget in totalBudgetPerYearForProjectBuilderWork)
-            {
-                var year = totalProjectBuilderBudget.Key;
-                var totalAmount = costForProjectBuilderBudgets
-                    .Where(item => item.Year == year && item.ProjectSource == "ProjectBuilder")
-                    .Sum(item => item.Amount);
-
-                var cellToEnterTotal = year - startYear;
-                worksheet.Cells[currentCell.Row, currentCell.Column + cellToEnterTotal + 2].Value = totalAmount;
-            }
-            ExcelHelper.ApplyBorder(worksheet.Cells[startOfProjectBuilderBudget, currentCell.Column, currentCell.Row, simulationYears.Count + 2]);
-            ExcelHelper.SetCustomFormat(worksheet.Cells[startOfProjectBuilderBudget, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], ExcelHelperCellFormat.NegativeCurrency);
-            ExcelHelper.ApplyColor(worksheet.Cells[startOfProjectBuilderBudget, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.DarkSeaGreen);
-            ExcelHelper.ApplyColor(worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.FromArgb(84, 130, 53));
-            ExcelHelper.SetTextColor(worksheet.Cells[currentCell.Row, currentCell.Column + 2, currentCell.Row, simulationYears.Count + 2], Color.White);
-            currentCell.Row += 2; 
+            FillCostSectionByWorkType(worksheet, currentCell, simulationYears, costForProjectBuilderBudgets, "ProjectBuilder", BAMSConstants.ProjectBuilderTotal, workTypeTotal);
+            currentCell.Row++; // Add extra space after the section
         }
 
         internal void AddCostOfWorkOutsideScope(WorkTypeTotal workTypeTotal, List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, Guid? scenarioBudgetId)
         {
             var committedProjectsForWorkOutsideScopeFiltered = committedProjectsForWorkOutsideScope.Where(_ => _.ScenarioBudgetId == scenarioBudgetId);
-            foreach(var committedProjectForWorkOutsideScope in committedProjectsForWorkOutsideScopeFiltered)
+            foreach (var committedProjectForWorkOutsideScope in committedProjectsForWorkOutsideScopeFiltered)
             {
                 var yearsData = new YearsData { TreatmentCategory = TreatmentCategory.WorkOutsideScope, Year = committedProjectForWorkOutsideScope.Year, Amount = committedProjectForWorkOutsideScope.Cost };
                 WorkTypeTotalHelper.FillWorkTypeTotals(yearsData, workTypeTotal);

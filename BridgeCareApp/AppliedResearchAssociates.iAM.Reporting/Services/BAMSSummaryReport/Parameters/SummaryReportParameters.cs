@@ -83,10 +83,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Par
             worksheet.Cells[currentCell.Row + 3, currentCell.Column + 1].Value = lastModifiedDate.ToShortDateString();
             ExcelHelper.ApplyBorder(worksheet.Cells[currentCell.Row + 2, currentCell.Column, currentCell.Row + 3, currentCell.Column + 1]);
 
-            worksheet.Cells[currentCell.Row + 2, currentCell.Column + 5].Value = "MPMS Pull Date:";
+            /*worksheet.Cells[currentCell.Row + 2, currentCell.Column + 5].Value = "MPMS Pull Date:";
             var MPMSPullDate = committedProjects.OrderByDescending(c => c.LastModifiedDate).FirstOrDefault()?.LastModifiedDate;
             worksheet.Cells[currentCell.Row + 2, currentCell.Column + 6].Value = MPMSPullDate?.ToShortDateString();
-            ExcelHelper.ApplyBorder(worksheet.Cells[currentCell.Row + 2, currentCell.Column + 5, currentCell.Row + 2, currentCell.Column + 6]);
+            ExcelHelper.ApplyBorder(worksheet.Cells[currentCell.Row + 2, currentCell.Column + 5, currentCell.Row + 2, currentCell.Column + 6]);*/
 
             worksheet.Cells[currentCell.Row + 2, currentCell.Column + 9].Value = "Simulation Last Run:";
             worksheet.Cells[currentCell.Row + 2, currentCell.Column + 10].Value = lastRun?.ToShortDateString();

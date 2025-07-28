@@ -82,7 +82,6 @@
                                         <img :src="getUrl('assets/icons/download.svg')"/>
                                     </v-btn>
                                     <v-btn
-                                        v-if="hasAdminAccess"
                                         @click="onDeleteReport(props.item.id)"
                                         :disabled="!props.item.isGenerated || !CanUserDelete(props.item.name)"
                                         flat
