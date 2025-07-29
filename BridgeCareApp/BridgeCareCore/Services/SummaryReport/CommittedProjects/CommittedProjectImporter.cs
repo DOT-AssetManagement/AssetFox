@@ -1,18 +1,19 @@
 ﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using BridgeCareCore.Utils;
 using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
 {
@@ -134,10 +135,55 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                     AddValidationError(ErrorType.GeneralError, $"Error processing row {row}");
                 }
             };
-          
+
             // Batch error reporting
+            using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo("CommittedProjectsAudit")))
+            {                
+                var errorCount = CreateErrorExportSheet(excelPackage, worksheet);
+
+                // check and generate folder
+                var folderPathForSimulation = $"CommittedProjects\\{simulation.Id}";
+                if (Directory.Exists(folderPathForSimulation))
+                {
+                    Directory.Delete(folderPathForSimulation, true);
+                }
+                _ = Directory.CreateDirectory(folderPathForSimulation);
+                if (errorCount > 0)
+                {
+                    var filePath = Path.Combine(folderPathForSimulation, "CommittedProjectsAudit_Errors_" + errorCount + ".xlsx");
+                    var bin = excelPackage.GetAsByteArray();
+                    File.WriteAllBytes(filePath, bin);
+                }
+            }
+            
             NotifyValidationErrors(userId);
+
             return _projectsPerKey.Values.ToList();
+        }
+
+        private int CreateErrorExportSheet(ExcelPackage excelPackage, ExcelWorksheet toCopyWorksheet)
+        {
+            var errorExportSheet = excelPackage.Workbook.Worksheets.Add("Committed Projects", toCopyWorksheet);
+            var excelAddresses = new List<ExcelAddress>();
+            
+            foreach(var errorsPerType in _validationErrorMessages)
+            {
+                foreach (var error in errorsPerType.Value)
+                {                    
+                    var rowIndex = error.IndexOf("Row") + 4;
+                    var colIndex = error.IndexOf("Column") + 7;
+                    var row = error.Split([':'])[0].ElementAt(rowIndex).ToString();
+                    var col = error.Split([':'])[0].ElementAt(colIndex).ToString();
+                    var cells = errorExportSheet.Cells[Convert.ToInt32(row), Convert.ToInt32(col)];
+                    if (!excelAddresses.Any(_ => _.Address == cells.Address))
+                    {
+                        excelAddresses.Add(cells);
+                    }
+                    ExcelHelper.ApplyColor(cells, Color.Red);
+                }
+            }
+
+            return excelAddresses.Count;
         }
 
         /// <summary>
@@ -168,8 +214,8 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                     $"Duplicate Project Removed: Row {row}, Asset {locationId}, Year {projectYear}'");
                 return null; // Skip further processing
             }
-
-            var assetId = ValidateLocationIdHasAssets(maintainableAssetIdsPerLocationId, locationId, row);
+            var columnIndex = columnIndices[_networkKeyField];
+            var assetId = ValidateLocationIdHasAssets(maintainableAssetIdsPerLocationId, locationId, row, columnIndex);
             var locationInformation = BuildLocationInformation(locationColumnNames, rowValues, assetId, row);        
 
             return new SectionCommittedProjectDTO
@@ -251,11 +297,12 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
         private Guid ValidateLocationIdHasAssets(
             Dictionary<string, Guid> maintainableAssetIdsPerLocationId,
             string locationId,
-            int row)
+            int row,
+            int columnIndex)
         {
             if (!maintainableAssetIdsPerLocationId.TryGetValue(locationId, out var assetId))
             {
-                AddValidationError(ErrorType.AssetNotFound, $"Row {row}: Location '{locationId}' does not match any network asset.");
+                AddValidationError(ErrorType.AssetNotFound, $"Row {row}, Column {columnIndex}: Location '{locationId}' does not match any network asset.");
             }
 
             return assetId;
@@ -687,7 +734,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             {
                 return;
             }
-
+                        
             foreach (var errorType in _validationErrorMessages.Keys)
             {
                 var errors = _validationErrorMessages[errorType].Distinct().ToList();

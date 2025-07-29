@@ -39,3 +39,37 @@ export interface DownloadReportParams {
     // Optional: for constructing a more user-friendly filename on client if server doesn't provide good one
     simulationName?: string; 
 };
+
+export interface UserDefinedReportRequestModel {
+    attributes:string[];
+    years: number[];
+    displayConditionOfNetwork: boolean;
+    displayInitialAssets: boolean; // assets attributes
+    displayYearAssets: boolean; // yearly assets + metadata + attributes
+    displayBudgets: boolean; // years, budgets
+    displayDeficientConditionGoals: boolean; // years, DeficientConditionGoals
+    displayTargetConditionGoals: boolean; // years, DeficientConditionGoals, TargetConditionGoals   
+    displayTreatmentOptions: boolean; // assets, years, TreatmentOptions
+    displayTreatmentSchedulingCollisions: boolean; // assets, years, TreatmentSchedulingCollisions
+    displayTreatmentRejections: boolean; // assets, years, TreatmentRejections
+    displayTreatmentCashflowConsiderations: boolean; // treatmentConsiderations
+    displyTreatmentCurrentBudgetsToSpend: boolean; // treatmentConsiderations
+    displayTreatmentAllocations: boolean; // treatmentConsiderations
+}
+
+export const emptyUserDefinedReportRequestModel : UserDefinedReportRequestModel ={
+    attributes: [],
+    years: [],
+    displayConditionOfNetwork: false,
+    displayInitialAssets: false,
+    displayYearAssets: false,
+    displayBudgets: false,
+    displayDeficientConditionGoals: false,
+    displayTargetConditionGoals: false,
+    displayTreatmentOptions: false,
+    displayTreatmentSchedulingCollisions: false,
+    displayTreatmentRejections: false,
+    displayTreatmentCashflowConsiderations: false,
+    displyTreatmentCurrentBudgetsToSpend: false,
+    displayTreatmentAllocations: false
+};

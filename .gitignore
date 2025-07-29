@@ -410,6 +410,7 @@ BridgeCareApp/BridgeCareCore/b2c.json
 /BridgeCareApp/BridgeCareCore/Reports
 .Rproj.user
 /BridgeCareApp/BridgeCareCore/web.config
+/BridgeCareApp/BridgeCareCore/CommittedProjects
 
 # Connection strings
 BridgeCareApp/AppliedResearchAssociates.iAM.TestHelpers/testConnections.json

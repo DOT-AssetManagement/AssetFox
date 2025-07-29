@@ -18,6 +18,8 @@
                     class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Import Projects</v-btn>
                 <v-btn @click='OnExportProjectsClick' 
                     class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Export Projects</v-btn>
+                <v-btn @click='OnErrorExportSheetClick'
+                    class="ghd-red ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Error Export Sheet</v-btn>
                 <v-btn @click='OnDeleteAllClick' 
                     class="ghd-red ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Delete All</v-btn>
             </v-col>
@@ -906,6 +908,17 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 }
             });
     }
+
+    async function OnErrorExportSheetClick(){
+        await CommittedProjectsService.getErrorExportSheet(scenarioId)
+            .then((response: AxiosResponse) => {
+                if (hasValue(response, 'data')) {
+                    const fileInfo: FileInfo = response.data as FileInfo;
+                    FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
+                }
+            });
+    }
+
     // async function OnGetTemplateClick(){
     //    await CommittedProjectsService.getUploadedCommittedProjectTemplate()
     //         .then((response: AxiosResponse) => {
@@ -1307,7 +1320,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     (scp.costErrors && scp.costErrors.length > 0) ||
                     (scp.projectSourceErrors && scp.projectSourceErrors.length > 0) ||
                     //(scp.projectSourceIdErrors && scp.projectSourceIdErrors.length > 0) ||
-                    //(scp.errors && scp.errors.length > 0) || -> errors always have brkey does not exist error
+                    (scp.errors && scp.errors.length > 0) ||                    
                     (scp.budgetErrors && scp.budgetErrors.length > 0);
             });
     });
@@ -1659,14 +1672,13 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             onPaginationChanged().then(() => {
                 setAlertMessageAction('');
                 if (totalItems.value > 0) {
-                    dialogMessage.value = 'Committed projects in the sheet were imported and saved.'; // TODO add below after export sheet functionality is in place
-                    //  See error export sheet for any error cells.';
+                    dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any invalid cells.';
                     validateAllCommittedProjects();
                 } else {
-                    dialogMessage.value = 'No committed projects were imported and saved. error export sheet for any error cells.';
-                }                
+                    dialogMessage.value = 'No committed projects were imported and saved. See error export sheet for any invalid cells.';
+                }
                     showUploadCompleteDialog.value = true;
-                })
+            })
         } 
     }
 

@@ -68,6 +68,22 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
         }
 
         /// <summary>
+        ///     Apply style and border to given cells
+        /// </summary>
+        /// <param name="cells"></param>
+        public static void ApplyStyleWithBorder(ExcelRange cells)
+        {
+            cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            cells.Style.WrapText = true;
+            cells.Style.Font.Bold = true;
+            cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+            cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+        }
+
+        /// <summary>
         ///     Apply border to given cells
         /// </summary>
         /// <param name="cells"></param>
@@ -95,6 +111,16 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
         public static void ApplyRightTickBorder(ExcelRange cells)
         {
             cells.Style.Border.Right.Style = ExcelBorderStyle.Thick;
+        }
+
+        public static void ApplyTopBorder(ExcelRange cells)
+        {
+            cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+        }
+
+        public static void ApplyBottomBorder(ExcelRange cells)
+        {
+            cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
         }
 
         /// <summary>
@@ -147,7 +173,7 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
         {
             cells.Style.Fill.PatternType = ExcelFillStyle.Solid;
             cells.Style.Fill.BackgroundColor.SetColor(color);
-        }
+        }        
 
         public static void SetTextColor(ExcelRange cells, Color color)
         {

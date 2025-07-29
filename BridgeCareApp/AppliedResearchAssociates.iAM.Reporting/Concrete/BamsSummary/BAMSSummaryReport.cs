@@ -201,7 +201,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             reportDetailDto.Status = $"Generating...";
 
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
             var functionReturnValue = "";
@@ -218,7 +218,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 $"{BAMSConstants.CulvDurationN}"
             };
 
-            var logger = new CallbackLogger(str => UpdateSimulationAnalysisDetailWithStatus(reportDetailDto, str));
+            var logger = new CallbackLogger(str => UpsertSimulationReportDetailWithStatus(reportDetailDto, str));
             var reportOutputData = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId);
 
             // reportOutputData will be having all assets data, filter it based on criteria expression
@@ -230,7 +230,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 {
                     reportDetailDto.Status = "Failed to generate report due to no assets found for given criteria";
                     workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);                    
-                    UpdateSimulationAnalysisDetail(reportDetailDto);                    
+                    UpsertSimulationReportDetail(reportDetailDto);                    
 
                     return string.Empty;
                 }
@@ -246,7 +246,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 if (!initialSectionValues.ContainsKey(item))
                 {
                     reportDetailDto.Status = $"{item} was not found in initial section";
-                    UpdateSimulationAnalysisDetail(reportDetailDto);
+                    UpsertSimulationReportDetail(reportDetailDto);
                     _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
                     Errors.Add(reportDetailDto.Status);
@@ -264,7 +264,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
                 if (!sectionValueAttribute.ContainsKey(item))
                 {
                     reportDetailDto.Status = $"{item} was not found in sections";
-                    UpdateSimulationAnalysisDetail(reportDetailDto);
+                    UpsertSimulationReportDetail(reportDetailDto);
 
                     workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
                     _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);                   
@@ -377,7 +377,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Parameters TAB
             reportDetailDto.Status = $"Creating Parameters TAB";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             // Create
             var parametersWorksheet = excelPackage.Workbook.Worksheets.Add("Parameters");
@@ -391,7 +391,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Bridge Data TAB
             reportDetailDto.Status = $"Creating Bridge Data TAB";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var bridgeDataWorksheet = excelPackage.Workbook.Worksheets.Add(SummaryReportTabNames.BridgeData);
             var allowFundingFromMultipleBudgets = analysisMethodDto.ShouldUseExtraFundsAcrossBudgets;
@@ -406,7 +406,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Funded Treatment List TAB
             reportDetailDto.Status = $"Creating Funded Treatment List TAB";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var fundedTreatmentWorksheet = excelPackage.Workbook.Worksheets.Add("Funded Treatment List");
             _fundedTreatmentList.Fill(fundedTreatmentWorksheet, reportOutputData, shouldBundleFeasibleTreatments);
@@ -415,7 +415,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Unfunded Treatment - Final List TAB
             reportDetailDto.Status = $"Creating Unfunded Treatment - Final List TAB";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var unfundedTreatmentFinalListWorksheet = excelPackage.Workbook.Worksheets.Add("Unfunded Treatment - Final List");
             _unfundedTreatmentFinalList.Fill(unfundedTreatmentFinalListWorksheet, reportOutputData);
@@ -424,7 +424,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Unfunded Treatment - Time TAB
             reportDetailDto.Status = $"Creating Unfunded Treatment - Time TAB";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var unfundedTreatmentTimeWorksheet = excelPackage.Workbook.Worksheets.Add("Unfunded Treatment - Time");
             _unfundedTreatmentTime.Fill(unfundedTreatmentTimeWorksheet, reportOutputData);
@@ -433,7 +433,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Bridge work summary TAB
             reportDetailDto.Status = $"Creating Bridge Work Summary TAB";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var bridgeWorkSummaryWorksheet = excelPackage.Workbook.Worksheets.Add("Bridge Work Summary");
             var chartRowModel = _bridgeWorkSummary.Fill(bridgeWorkSummaryWorksheet, reportOutputData, simulationYears, workSummaryModel, yearlyBudgets, scenarioSelectableTreatmentsDtos, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
@@ -442,7 +442,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Bridge work summary by Budget TAB
             reportDetailDto.Status = $"Creating Bridge Work Summary by Budget TAB";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var summaryByBudgetWorksheet = excelPackage.Workbook.Worksheets.Add("Bridge Work Summary By Budget");
             _bridgeWorkSummaryByBudget.Fill(summaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgets, scenarioSelectableTreatmentsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, simpleBudgetDetailDtos);
@@ -451,7 +451,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // District County Totals TAB
             reportDetailDto.Status = $"Creating District County Totals TAB";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var districtCountyTotalsModel = DistrictTotalsModels.DistrictTotals(reportOutputData);
             ExcelWorksheetAdder.AddWorksheet(excelPackage.Workbook, districtCountyTotalsModel);
@@ -460,7 +460,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Graph tabs
             reportDetailDto.Status = $"Creating Graph TABs";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             _addGraphsInTabs.Add(excelPackage, bridgeDataWorksheet, bridgeWorkSummaryWorksheet, chartRowModel, simulationYearsCount);
             checkCancelled(cancellationToken, simulationId);
@@ -478,25 +478,23 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             reportDetailDto.Status = $"Report generation completed";
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
-            UpdateSimulationAnalysisDetail(reportDetailDto);
+            UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
 
             //return value
             return functionReturnValue;
-        }        
+        }                
 
-        private void UpdateSimulationAnalysisDetail(SimulationReportDetailDTO dto) => _unitOfWork.SimulationReportDetailRepo.UpsertSimulationReportDetail(dto);
-
-        private void UpdateSimulationAnalysisDetailWithStatus(SimulationReportDetailDTO dto, string message)
+        private void UpsertSimulationReportDetailWithStatus(SimulationReportDetailDTO dto, string message)
         {
             dto.Status = message;
-            UpdateSimulationAnalysisDetail(dto);
+            UpsertSimulationReportDetail(dto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, dto.Status, dto.SimulationId);
         }
 
         private void IndicateError(string status = null)
         {
-            Status = status ?? "Summary output report completed with errors";
+            Status = status ?? "Summary report completed with errors";
             IsComplete = true;
         }
 
