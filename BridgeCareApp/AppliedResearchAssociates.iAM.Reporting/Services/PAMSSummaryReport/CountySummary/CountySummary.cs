@@ -57,7 +57,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             //get data by district and county and build list
             BuildDistrictCountyCostList(reportOutputData, simulationYears, keyCashFlowFundingDetails);
 
-
             //Fill Budget By County
             FillBudgetByCountyInExcel(worksheet, reportOutputData, simulationYears, simulation);
 
@@ -125,7 +124,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                     foreach (var year in simulationYears)
                     {
                         //cost
-                        decimal sumOfCoveredCost = 0; var simulationYearDetail = reportOutputData.Years.Where(w => w.Year == year).FirstOrDefault();
+                        decimal sumOfCoveredCost = 0;
+                        var simulationYearDetail = reportOutputData.Years.Where(w => w.Year == year).FirstOrDefault();
                         if (simulationYearDetail != null)
                         {
                             //asset detail list
@@ -136,11 +136,20 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                             //get cost
                             if (assetDetailList?.Any() == true)
                             {
-                                foreach (var s in assetDetailList)
+                                foreach (var section in assetDetailList)
                                 {
-                                    var crs = _summaryReportHelper.checkAndGetValue<string>(s.ValuePerTextAttribute, "CRS");
-                                    var treatmentConsiderations = keyCashFlowFundingDetails.ContainsKey(crs) ? keyCashFlowFundingDetails[crs] : s.TreatmentConsiderations ?? new();
-                                    sumOfCoveredCost += treatmentConsiderations.Sum(tc => tc.FundingCalculationOutput?.AllocationMatrix.Where(_ => _.Year == year).Sum(b => b.AllocatedAmount) ?? 0);
+                                    var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
+                                    var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
+                                                  section.TreatmentStatus == TreatmentStatus.Progressed) ||
+                                                  (section.TreatmentCause == TreatmentCause.CashFlowProject &&
+                                                  section.TreatmentStatus == TreatmentStatus.Progressed) ||
+                                                  (section.TreatmentCause == TreatmentCause.CashFlowProject &&
+                                                  section.TreatmentStatus == TreatmentStatus.Applied)) ?
+                                                  keyCashFlowFundingDetails[crs] :
+                                                  section.TreatmentConsiderations ?? new();
+
+                                    sumOfCoveredCost += treatmentConsiderations.Sum(tc => tc.FundingCalculationOutput?.AllocationMatrix
+                                        .Where(_ => _.Year == year).Sum(b => b.AllocatedAmount) ?? 0);                                    
                                 }
                             }
                         }

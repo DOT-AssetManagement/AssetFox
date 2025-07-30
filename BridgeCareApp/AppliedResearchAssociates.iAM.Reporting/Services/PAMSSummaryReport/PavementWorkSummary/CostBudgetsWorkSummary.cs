@@ -20,6 +20,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
     public class CostBudgetsWorkSummary
     {
         private PavementWorkSummaryCommon _pavementWorkSummaryCommon;
+        private SummaryReportHelper _summaryReportHelper;
 
         private Dictionary<int, decimal> TotalAsphaltSpent = new();
         private Dictionary<int, decimal> TotalCompositeSpent = new();
@@ -33,6 +34,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
         public CostBudgetsWorkSummary()
         {
             _pavementWorkSummaryCommon = new PavementWorkSummaryCommon();
+            _summaryReportHelper = new SummaryReportHelper();
         }
 
         public ChartRowsModel FillCostBudgetWorkSummarySections(
@@ -967,13 +969,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                         section.AppliedTreatment.ToLower() != PAMSConstants.NoTreatment)
                         {
+                            var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
                             foreach (var consideration in section.TreatmentConsiderations)
                             {
                                 foreach (var budgetUsage in consideration.FundingCalculationOutput?.AllocationMatrix.Where(bu => bu.BudgetName.Equals(workSummaryByBudgetModel.BudgetName, StringComparison.OrdinalIgnoreCase) && bu.Year == year))
                                 {
                                     var projectSource = committedProjects.FirstOrDefault(_ => _.Year == year &&
-                                                                                         _.ComputedTreatmentString == budgetUsage.TreatmentName &&
-                                                                                         _.ScenarioBudgetName == budgetUsage.BudgetName)?.ProjectSource;
+                                                                                         _.Treatment.All(_ => budgetUsage.TreatmentName.Contains(_)) &&
+                                                                                         _.ScenarioBudgetName == budgetUsage.BudgetName &&
+                                                                                         _.LocationKeys["CRS"] == crs)?.ProjectSource;
                                     switch (projectSource)
                                     {
                                     case ProjectSourceDTO.Committed:
@@ -1375,7 +1379,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                 var cellToEnterCost = yearlyItem.Key - startYear + 2;
                                 var currentValue = worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost].Value;
                                 decimal toAdd = currentValue == null ? 0 : Convert.ToDecimal(currentValue);
-                                worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost].Value = committedProjectMetaData.TreatmentCost = toAdd;
+                                worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost].Value = committedProjectMetaData.TreatmentCost + toAdd;
                             }
                             projectBuilderTotalCost += committedProjectMetaData.TreatmentCost;
 
