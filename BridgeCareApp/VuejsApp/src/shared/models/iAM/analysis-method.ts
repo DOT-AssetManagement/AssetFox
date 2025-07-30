@@ -36,6 +36,7 @@ export interface AnalysisMethod {
     attribute: string;
     benefit: Benefit;
     criterionLibrary: CriterionLibrary;
+    lastKnownAssetCount: number;
 }
 
 export const emptyBenefit: Benefit = {
@@ -55,5 +56,6 @@ export const emptyAnalysisMethod: AnalysisMethod = {
     shouldAllowMultipleTreatments: false,
     attribute: '',
     benefit: clone(emptyBenefit),
-    criterionLibrary: clone(emptyCriterionLibrary)
+    criterionLibrary: clone(emptyCriterionLibrary),
+    lastKnownAssetCount: -1,
 };

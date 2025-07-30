@@ -94,6 +94,20 @@ Line 164 Delete,
                             >
                             </v-text-field>
                         </v-col>
+                        <v-col cols = "3">
+                            <v-subheader class="ghd-control-label ghd-md-gray">
+                                  Asset count
+                            </v-subheader>
+                            <v-text-field
+                                id="EditAnalysisMethod-criteria-assetCount"
+                                style="margin:0px"
+                                class="ghd-control-text ghd-control-border"
+                                variant="outlined"
+                                density="compact"
+                                readonly
+                                v-model="analysisMethod.lastKnownAssetCount">
+                            </v-text-field>
+                        </v-col>
                     </v-row>
                     <v-row>
                         <v-col cols = "3">
@@ -422,18 +436,21 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         };
     }
 
-    function onCriterionEditorDialogSubmit(criterionexpression: string) {
+    function onCriterionEditorDialogSubmit(criterionexpression: string, resultsCount: number | null) {
         criterionEditorDialogData.value = clone(
             emptyGeneralCriterionEditorDialogData,
         );
         console.log("onCriterionEditorDialogSubmit");
         console.log(criterionexpression);
+        console.log(resultsCount);
 
         if (!isNil(criterionexpression)) {
             if(analysisMethod.value.criterionLibrary.id == getBlankGuid())
                 analysisMethod.value.criterionLibrary.id = getNewGuid();
+            let assetCount = resultsCount == -1 ? analysisMethod.value.lastKnownAssetCount : resultsCount;
             analysisMethod.value = {
                 ...analysisMethod.value,
+                lastKnownAssetCount: assetCount ?? -1,
                 criterionLibrary: {...analysisMethod.value.criterionLibrary, mergedCriteriaExpression: criterionexpression} as CriterionLibrary,
             };
         }

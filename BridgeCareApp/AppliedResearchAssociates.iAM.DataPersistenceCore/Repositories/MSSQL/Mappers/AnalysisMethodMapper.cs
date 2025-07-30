@@ -91,7 +91,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldUseExtraFundsAcrossBudgets = dto.ShouldUseExtraFundsAcrossBudgets,
                 shouldAllowMultipleTreatments = dto.ShouldAllowMultipleTreatments,
                 AttributeId = attributeId,
-
+                LastKnownAssetCount = dto.LastKnownAssetCount,
             };
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;
@@ -129,6 +129,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldUseExtraFundsAcrossBudgets = entity.ShouldUseExtraFundsAcrossBudgets,
                 Attribute = attributeName,
                 Benefit = entity.Benefit?.ToDto(attributeNameLookup) ?? new BenefitDTO(),
+                LastKnownAssetCount = entity.LastKnownAssetCount,
                 CriterionLibrary = entity.CriterionLibraryAnalysisMethodJoin != null
                     ? entity.CriterionLibraryAnalysisMethodJoin.CriterionLibrary.ToDto()
                     : new CriterionLibraryDTO()
