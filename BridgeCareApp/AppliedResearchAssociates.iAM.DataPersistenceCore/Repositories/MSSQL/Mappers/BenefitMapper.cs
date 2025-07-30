@@ -2,6 +2,7 @@
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
+using System.Collections.Generic;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
@@ -30,7 +31,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             return entity;
         }
 
-        public static BenefitDTO ToDto(this BenefitEntity entity) =>
-            new BenefitDTO { Id = entity.Id, Limit = entity.Limit, Attribute = entity.Attribute.Name };
+        public static BenefitDTO ToDto(this BenefitEntity entity, IReadOnlyDictionary<Guid, string> attributeNameLookup)
+        {
+            var attributeName = attributeNameLookup[entity.AttributeId];
+            return new BenefitDTO { Id = entity.Id, Limit = entity.Limit, Attribute = attributeName };
+        }
     }
 }

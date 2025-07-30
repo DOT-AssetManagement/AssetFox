@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
@@ -17,6 +18,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         [Fact]
         public async Task UpdateCalculatedAttributeLibraryWithUserAccessChange_Does()
         {
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             CalculatedAttributeLibraryUserTestSetup.SetUsersOfCalculatedAttributeLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
@@ -35,6 +37,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         [Fact]
         public async Task UpdateCalculatedAttributeLibraryUsers_RequestAccessRemoval_Does()
         {
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             CalculatedAttributeLibraryUserTestSetup.SetUsersOfCalculatedAttributeLibrary(TestHelper.UnitOfWork, library.Id, LibraryAccessLevel.Modify, user.Id);
@@ -52,6 +55,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         [Fact]
         public async Task UpdateLibraryUsers_AddAccessForUser_Does()
         {
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var user1 = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var user2 = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
@@ -74,8 +78,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         }
 
         [Fact]
-        public void GetCalcuatedAttributesByLibraryIdNoChildren_LibraryInDbWithCalculatedAttribute_Gets()
+        public void GetCalculatedAttributesByLibraryIdNoChildren_LibraryInDbWithCalculatedAttribute_Gets()
         {
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var calculatedAttributeId = Guid.NewGuid();
@@ -108,6 +113,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.Calculate
         [Fact]
         public async Task GetLibraryAccess_LibraryInDbWithUserAccess_Gets()
         {
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var library = CalculatedAttributeLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertCalculatedAttributeLibrary(library);

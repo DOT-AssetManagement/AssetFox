@@ -134,7 +134,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var scenarioPerformanceCurveCriterionLibrary = CriterionLibraryDtos.Dto();
             var simulationPerformanceCurve = ScenarioPerformanceCurveTestSetup.DtoForEntityInDb(TestHelper.UnitOfWork, simulationId, scenarioPerformanceId, scenarioPerformanceCurveCriterionLibrary, "pretendEquation");
             ScenarioBudgetTestSetup.UpsertOrDeleteScenarioBudgets(TestHelper.UnitOfWork, scenarioBudgets, simulationId);
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assets, numericAttributeList);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, numericAttributeList);
             AttributeDatumTestSetup.AssignStringAttributeDatum(textAttributeDto, asset);
             AttributeDatumTestSetup.AssignDoubleAttributeDatum(numericAttributeDto, asset, 100);
             BudgetLibraryUserTestSetup.SetUsersOfBudgetLibrary(TestHelper.UnitOfWork, budgetLibraryId, LibraryAccessLevel.Owner, userId);

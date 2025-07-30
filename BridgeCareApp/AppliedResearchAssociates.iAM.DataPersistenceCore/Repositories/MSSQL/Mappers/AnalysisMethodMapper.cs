@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.Analysis;
@@ -24,7 +24,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldUseExtraFundsAcrossBudgets = domain.AllowFundingFromMultipleBudgets,
             };
 
-        public static void FillSimulationAnalysisMethod(this AnalysisMethodEntity entity, Simulation simulation, string userCriteria)
+        public static void FillSimulationAnalysisMethod(
+            this AnalysisMethodEntity entity,
+            Simulation simulation,
+            string userCriteria,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             simulation.AnalysisMethod.Id = entity.Id;
             simulation.AnalysisMethod.Description = entity.Description;
@@ -40,20 +44,21 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 string.IsNullOrEmpty(userCriteria) ? specifiedFilter :
                 combinedCriteria;
 
-            if (entity.Attribute != null)
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
+            var attribute = simulation.Network.Explorer.NumberAttributes.FirstOrDefault(a => a.Name == attributeName);
+            if (attribute != null)
             {
-                simulation.AnalysisMethod.Weighting = simulation.Network.Explorer.NumberAttributes
-                    .Single(_ => _.Name == entity.Attribute.Name);
+                simulation.AnalysisMethod.Weighting = attribute;
             }
-
             if (entity.Benefit != null)
             {
                 simulation.AnalysisMethod.Benefit.Id = entity.Benefit.Id;
                 simulation.AnalysisMethod.Benefit.Limit = entity.Benefit.Limit;
-                if (entity.Benefit.Attribute != null)
+                var benefitAttributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.Benefit.AttributeId);
+                if (benefitAttributeName != String.Empty)
                 {
                     simulation.AnalysisMethod.Benefit.Attribute = simulation.Network.Explorer.NumericAttributes
-                        .Single(_ => _.Name == entity.Benefit.Attribute.Name);
+                        .Single(_ => _.Name == benefitAttributeName);
                 }
             }
 
@@ -61,13 +66,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 .ForEach(_ => _.CreateBudgetPriority(simulation));
 
             entity.Simulation.ScenarioTargetConditionalGoals
-                .ForEach(_ => _.CreateTargetConditionGoal(simulation));
+                .ForEach(_ => _.CreateTargetConditionGoal(simulation, attributeNameLookup));
 
             entity.Simulation.ScenarioDeficientConditionGoals
-                .ForEach(_ => _.CreateDeficientConditionGoal(simulation));
+                .ForEach(_ => _.CreateDeficientConditionGoal(simulation, attributeNameLookup));
 
             entity.Simulation.RemainingLifeLimits
-                .ForEach(_ => _.CreateRemainingLifeLimit(simulation));
+                .ForEach(_ => _.CreateRemainingLifeLimit(simulation, attributeNameLookup));
 
             simulation.ShouldBundleFeasibleTreatments = entity.shouldAllowMultipleTreatments;
         }
@@ -87,28 +92,32 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 shouldAllowMultipleTreatments = dto.ShouldAllowMultipleTreatments,
                 AttributeId = attributeId,
 
-            };            
+            };
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;
         }
-            
+
 
         public static AnalysisMethodEntity ToEntityWithBenefit(this AnalysisMethodDTO dto, Guid simulationId, List<AttributeEntity> attributes, Guid? attributeId = null, BaseEntityProperties baseEntityProperties = null)
         {
             var entity = dto.ToEntity(simulationId, attributeId, baseEntityProperties);
             var benefit = dto.Benefit;
-            if (benefit != null&&benefit.Id!=Guid.Empty)
+            if (benefit != null && benefit.Id != Guid.Empty)
             {
                 var benefitAttribute = attributes.First(a => a.Name == benefit.Attribute);
                 var benefitEntity = benefit.ToEntity(dto.Id, benefitAttribute.Id, baseEntityProperties);
-                entity.Benefit = benefitEntity;                
+                entity.Benefit = benefitEntity;
             }
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;
-         }
+        }
 
-        public static AnalysisMethodDTO ToDto(this AnalysisMethodEntity entity) =>
-            new AnalysisMethodDTO
+        public static AnalysisMethodDTO ToDto(
+            this AnalysisMethodEntity entity,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
+        {
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
+            return new AnalysisMethodDTO
             {
                 Id = entity.Id,
                 Description = entity.Description,
@@ -118,11 +127,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldDeteriorateDuringCashFlow = entity.ShouldDeteriorateDuringCashFlow,
                 ShouldAllowMultipleTreatments = entity.shouldAllowMultipleTreatments,
                 ShouldUseExtraFundsAcrossBudgets = entity.ShouldUseExtraFundsAcrossBudgets,
-                Attribute = entity.Attribute?.Name ?? string.Empty,
-                Benefit = entity.Benefit?.ToDto() ?? new BenefitDTO(),
+                Attribute = attributeName,
+                Benefit = entity.Benefit?.ToDto(attributeNameLookup) ?? new BenefitDTO(),
                 CriterionLibrary = entity.CriterionLibraryAnalysisMethodJoin != null
                     ? entity.CriterionLibraryAnalysisMethodJoin.CriterionLibrary.ToDto()
                     : new CriterionLibraryDTO()
             };
+        }
     }
 }

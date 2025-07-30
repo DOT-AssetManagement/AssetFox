@@ -14,6 +14,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 {
     public class UnitOfDataPersistenceWork : IDisposable, IUnitOfWork
     {
+        public void ClearAttributeIdNameCache()
+        {
+            AttributeRepository.ClearIdNameCache();
+        }
         public UnitOfDataPersistenceWork(IConfiguration config, IAMContext context)
         {
             Config = config ?? throw new ArgumentNullException(nameof(config));

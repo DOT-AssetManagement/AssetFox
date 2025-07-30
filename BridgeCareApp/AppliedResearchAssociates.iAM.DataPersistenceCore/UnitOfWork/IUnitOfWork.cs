@@ -115,5 +115,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
         ///<summary>Roll back the transaction for the database repository</summary>
         ///<remarks>Only use this when the transaction MUST occur outside the data repository</remarks>
         void Rollback();
+        void ClearAttributeIdNameCache();
     }
 }

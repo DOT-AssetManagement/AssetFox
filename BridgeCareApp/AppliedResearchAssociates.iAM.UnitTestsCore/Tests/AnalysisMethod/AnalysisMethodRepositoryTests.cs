@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using Xunit;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
@@ -22,7 +22,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
-            var entity = AnalysisMethodEntities.TestAnalysis(simulation.Id);
+            var entity = AnalysisMethodEntities.TestAnalysis(simulation.Id, TestAttributeIds.ConditionIndexId);
             TestHelper.UnitOfWork.Context.AnalysisMethod.Add(entity);
             TestHelper.UnitOfWork.Context.SaveChanges();
             // Act
@@ -31,7 +31,6 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.NotNull(result);
         }
 
-
         [Fact]
         public void UpsertAnalysisMethod_AnalysisMethodAlreadyInDb_UpdatesBenefit()
         {
@@ -39,6 +38,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var repo = unitOfWork.AnalysisMethodRepo;
             var analysisMethodDto = repo.GetAnalysisMethod(simulation.Id);
@@ -48,6 +48,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             repo.UpsertAnalysisMethod(simulation.Id, analysisMethodDto);
 
             // Assert
+            TestHelper.UnitOfWork.Context.ChangeTracker.Clear();
             var upsertedAnalysisMethodDto = repo.GetAnalysisMethod(simulation.Id);
             Assert.Equal(analysisMethodDto.Id, upsertedAnalysisMethodDto.Id);
             Assert.Equal(analysisMethodDto.Benefit.Id, upsertedAnalysisMethodDto.Benefit.Id);
@@ -91,6 +92,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         public void UpsertAnalysisMethod_AnalysisMethodInDb_Updates()
         {
             var unitOfWork = TestHelper.UnitOfWork;
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
@@ -101,7 +103,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var attributeEntity = TestHelper.UnitOfWork.Context.Attribute.First();
             analysisMethodDto.Attribute = attributeEntity.Name;
             analysisMethodDto.CriterionLibrary = criterionLibrary;
-            var analysisMethod = AnalysisMethodEntities.TestAnalysis(simulation.Id);
+            var analysisMethod = AnalysisMethodEntities.TestAnalysis(simulation.Id, TestAttributeIds.ConditionIndexId);
             var benefitDto = BenefitDtos.Dto(attributeEntity.Name);
             analysisMethodDto.Benefit = benefitDto;
 
@@ -121,6 +123,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
         [Fact]
         public void GetSimulationAnalysisMethod_SimulationInDbWithChildren_Gets()
         {
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);

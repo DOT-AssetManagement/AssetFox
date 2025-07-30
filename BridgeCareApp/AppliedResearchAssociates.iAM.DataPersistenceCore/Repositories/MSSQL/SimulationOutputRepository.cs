@@ -636,6 +636,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public void CreateSimulationOutputViaJson(Guid simulationId, SimulationOutput simulationOutput)
         {
+
+            if (ShouldHackSaveOutputToFile)
+            {
+#pragma warning disable CS0162 // Unreachable code detected
+                HackSaveOutputToFile(simulationOutput);
+#pragma warning restore CS0162 // Unreachable code detected
+            }
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
                 throw new RowNotInTableException("No simulation found for given scenario.");

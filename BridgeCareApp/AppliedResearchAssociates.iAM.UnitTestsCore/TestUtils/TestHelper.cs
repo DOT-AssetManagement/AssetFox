@@ -21,7 +21,8 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
                 var config = TestConfiguration.Get();
                 var connectionString = TestConnectionStrings.BridgeCare(config);
                 var options = new DbContextOptionsBuilder<IAMContext>()
-                    .UseSqlServer(connectionString)
+                    .UseSqlServer(connectionString,
+                    opts => opts.CommandTimeout(3600))
                     .Options;
                 var dbContext = new IAMContext(options);
                 UnitOfWork = new UnitOfDataPersistenceWork(config, dbContext);

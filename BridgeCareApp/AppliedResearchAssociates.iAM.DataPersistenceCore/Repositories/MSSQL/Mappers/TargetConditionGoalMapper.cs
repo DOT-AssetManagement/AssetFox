@@ -89,12 +89,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static TargetConditionGoalLibraryEntity ToEntity(this TargetConditionGoalLibraryDTO dto) =>
             new TargetConditionGoalLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
-        public static void CreateTargetConditionGoal(this ScenarioTargetConditionGoalEntity entity, Simulation simulation)
+        public static void CreateTargetConditionGoal(
+            this ScenarioTargetConditionGoalEntity entity,
+            Simulation simulation,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             var targetConditionGoal = simulation.AnalysisMethod.AddTargetConditionGoal();
             targetConditionGoal.Id = entity.Id;
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
             targetConditionGoal.Attribute = simulation.Network.Explorer.NumberAttributes
-                .Single(_ => _.Name == entity.Attribute.Name);
+                .Single(_ => _.Name == attributeName);
             targetConditionGoal.Target = entity.Target;
             targetConditionGoal.Year = entity.Year;
             targetConditionGoal.Name = entity.Name;

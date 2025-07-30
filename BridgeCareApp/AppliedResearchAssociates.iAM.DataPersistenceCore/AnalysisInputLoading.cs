@@ -183,8 +183,8 @@ public static class AnalysisInputLoading
         // load
         try
         {
-            var attributeNameLookup = unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
-            unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
+            var attributeNameLookup = unitOfWork.AttributeRepo.GetIdNameCache();
+            unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation);
         }
         catch (Exception ex)
         {

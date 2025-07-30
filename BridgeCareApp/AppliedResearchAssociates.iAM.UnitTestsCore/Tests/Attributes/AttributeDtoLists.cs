@@ -15,6 +15,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
                 AttributeDtos.BrKey,
                 AttributeDtos.ConditionIndex,
                 AttributeDtos.CulvSeeded,
+                AttributeDtos.DeckArea,
                 AttributeDtos.DeckSeeded,
                 AttributeDtos.InternetReport,
                 AttributeDtos.Interstate,

@@ -1,16 +1,19 @@
 ﻿using System;
-using TNetwork = AppliedResearchAssociates.iAM.Data.Networking.Network;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using Xunit;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DataUnitTests;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Data.Attributes;
+using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers;
+using AppliedResearchAssociates.iAM.Data.Networking;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AppliedResearchAssociates.iAM.DataUnitTests;
+using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
+using AppliedResearchAssociates.iAM.TestHelpers;
+using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
+using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using Xunit;
+using TNetwork = AppliedResearchAssociates.iAM.Data.Networking.Network;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
 {
@@ -22,12 +25,14 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var networkName = RandomStrings.WithPrefix("Network");
             var config = TestConfiguration.Get();
             var allNetworksBefore = await TestHelper.UnitOfWork.NetworkRepo.Networks();
-            var connectionString = TestConnectionStrings.BridgeCare(config);
-            var dataSourceDto = DataSourceTestSetup.DtoForSqlDataSourceInDb(TestHelper.UnitOfWork, connectionString);
+            var dataSourceDto = DataSourceTestSetup.DtoForExcelDataSourceInDb(TestHelper.UnitOfWork);
             var attribute = UnitTestsCoreAttributeTestSetup.ExcelAttributeForEntityInDb(dataSourceDto);
+            var importedSpreadsheet = ExcelRawDataSetup.RawData(dataSourceDto.Id);
+            var deserializationResult = ExcelRawDataSpreadsheetSerializer.Deserialize(importedSpreadsheet.SerializedWorksheetContent);
+            var rawDataSpreadsheet = deserializationResult.Worksheet;
             var defaultEquation = "[Deck_Area]";
-            var textAttribute = AttributeConnectionAttributes.String(connectionString, dataSourceDto.Id);
-            var attributeConnection = new SqlAttributeConnection(textAttribute, dataSourceDto);
+            var attribute2 = AttributeConnectionAttributes.ForExcelTestData(dataSourceDto.Id);
+            var attributeConnection = new ExcelAttributeConnection(attribute2, dataSourceDto, rawDataSpreadsheet);
             // var attributeConnection = AttributeConnectionBuilder.Build(textAttribute, dataSourceDto, TestHelper.UnitOfWork);
             var data = attributeConnection.GetData<string>();
             var network = NetworkFactory.CreateNetworkFromAttributeDataRecords(

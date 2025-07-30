@@ -2,28 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
 using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCoreTests.Tests;
 using MoreLinq;
 using Xunit;
 using Assert = Xunit.Assert;
-using DataNetworkingNetwork = AppliedResearchAssociates.iAM.Data.Networking.Network;
 
 namespace AppliedResearchAssociates.iAM.UnitTestsCore
 {
@@ -72,9 +63,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore
             investmentPlanDto.NumberOfYearsInAnalysisPeriod = 1;
             TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulation.Id);
             TestHelper.UnitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
-            var attributeNameLookup = TestHelper.UnitOfWork.AttributeRepo.GetAttributeNameLookupDictionary();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
 
-            TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation, attributeNameLookup);
+            TestHelper.UnitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulation);
 
             var curvesAfter = simulation.PerformanceCurves.ToList();
             var curveAfter = curvesAfter.Single();

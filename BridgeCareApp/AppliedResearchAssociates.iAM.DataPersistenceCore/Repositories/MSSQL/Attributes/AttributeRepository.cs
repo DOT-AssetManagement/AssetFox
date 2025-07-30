@@ -1,20 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
+using AppliedResearchAssociates.iAM.Data.Attributes;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Attributes;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
 using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Attributes;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 {
@@ -22,9 +23,41 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
     {
         private readonly UnitOfDataPersistenceWork _unitOfWork;
 
+        private static ReadOnlyDictionary<Guid, string> _IdNameCache;
+
         public AttributeRepository(UnitOfDataPersistenceWork unitOfWork) =>
-            _unitOfWork = unitOfWork ??
-                                         throw new ArgumentNullException(nameof(unitOfWork));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+
+        private void EnsureCacheExists()
+        {
+            if (_IdNameCache == null)
+            {
+                var dictionary = _unitOfWork.Context.Attribute.ToDictionary(a => a.Id, a => a.Name);
+                _IdNameCache = new ReadOnlyDictionary<Guid, string>(dictionary);
+            }
+        }
+
+        public static void ClearIdNameCache()
+        {
+            _IdNameCache = null;
+        }
+
+        public ReadOnlyDictionary<Guid, string> GetIdNameCache()
+        {
+            EnsureCacheExists();
+            return _IdNameCache;
+        }
+
+        public string GetAttributeName(Guid attributeId)
+        {
+            EnsureCacheExists();
+            if (_IdNameCache.ContainsKey(attributeId))
+            {
+                return _IdNameCache[attributeId];
+            }
+            return String.Empty;
+        }
+
 
         public void UpsertAttributes(List<Attribute> attributes)
         {
@@ -46,12 +79,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 if (!updateValidity.Ok)
                 {
                     throw new InvalidAttributeUpsertException(updateValidity.Message);
-                };
+                }
+                ;
             }
             var entitiesToAdd = upsertAttributeEntities.Where(_ => !existingAttributeIds.Contains(_.Id)).ToList();
 
             _unitOfWork.Context.UpdateAll(entitiesToUpdate, _unitOfWork.UserEntity?.Id);
             _unitOfWork.Context.AddAll(entitiesToAdd, _unitOfWork.UserEntity?.Id);
+            ClearIdNameCache();
         }
 
         public void JoinAttributesWithEquationsAndCriteria(Explorer explorer)
@@ -156,6 +191,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("Found no attributes.");
             }
 
+            var memos = EventMemoModelLists.GetInstance("Simulation");
+            memos.Mark("GetExplorer before load attributes");
             var attributes = _unitOfWork.Context.Attribute
                 .Include(_ => _.AttributeEquationCriterionLibraryJoins)
                 .ThenInclude(_ => _.Equation)
@@ -164,7 +201,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Where(_ => _.Name != "AGE")
                 .AsNoTracking()
                 .ToList();
-
+            memos.Mark("GetExplorer after load attributes");
             var explorer = new Explorer();
 
             attributes.ForEach(entity =>
@@ -314,33 +351,28 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     _unitOfWork.Context.DeleteEntity<AttributeEntity>(_ => _.Id == id)
                 );
             }
+            ClearIdNameCache();
         }
 
         public string GetEncryptionKey() => _unitOfWork.EncryptionKey;
-
-        public string GetAttributeName(Guid attributeId)
-        {
-            var attributeName = _unitOfWork.Context.Attribute.AsNoTracking().FirstOrDefault(a => a.Id == attributeId)?.Name;
-            return attributeName ?? throw new InvalidOperationException("Cannot find attribute for the given id.");
-        }
 
         public List<AttributeDefaultValuePair> GetAttributeDefaultValuePairs(Guid networkId)
         {
             return _unitOfWork.Context.Attribute
                 .AsSplitQuery()
                 .AsNoTracking()
-                .Join(_unitOfWork.Context.AggregatedResult, 
-                      attribute => attribute.Id, 
-                      aggregatedResult => aggregatedResult.AttributeId, 
+                .Join(_unitOfWork.Context.AggregatedResult,
+                      attribute => attribute.Id,
+                      aggregatedResult => aggregatedResult.AttributeId,
                       (attribute, aggregatedResult) => new { attribute, aggregatedResult })
-                .Join(_unitOfWork.Context.MaintainableAsset, 
-                      combined => combined.aggregatedResult.MaintainableAssetId, 
-                      maintainableAsset => maintainableAsset.Id, 
+                .Join(_unitOfWork.Context.MaintainableAsset,
+                      combined => combined.aggregatedResult.MaintainableAssetId,
+                      maintainableAsset => maintainableAsset.Id,
                       (combined, maintainableAsset) => new { combined.attribute, maintainableAsset })
                 .Where(_ => _.maintainableAsset.NetworkId == networkId)
                 .Select(_ => new AttributeDefaultValuePair
                 {
-                    AttributeName = _.attribute.Name, 
+                    AttributeName = _.attribute.Name,
                     DefaultAttributeValue = _.attribute.DefaultValue
                 })
                 .Distinct()

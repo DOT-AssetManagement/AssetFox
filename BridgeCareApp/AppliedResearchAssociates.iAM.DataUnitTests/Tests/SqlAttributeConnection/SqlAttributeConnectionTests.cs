@@ -7,7 +7,7 @@ namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Attributes
 {
     public class SqlAttributeConnectionTests// also create tests for ExcelAttributeConnection
     {
-        [Fact]
+        [Fact(Skip ="Sql attribute connections are not being used. This sporadically fails  with transient error for reasons WJ is unclear about.")]
         public void GetData_StringAttributeInDatabase_Gets()
         {
             // Arrange

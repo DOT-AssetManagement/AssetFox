@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
+﻿using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using AppliedResearchAssociates.iAM.TestHelpers;
 using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
@@ -15,7 +9,6 @@ using BridgeCareCore.Models;
 using BridgeCareCore.Services;
 using BridgeCareCoreTests.Helpers;
 using BridgeCareCoreTests.Tests.General_Work_Queue;
-using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
 

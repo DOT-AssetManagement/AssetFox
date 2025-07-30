@@ -27,60 +27,56 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("No simulation was found for the given scenario.");
             }
 
-            if(!_unitOfWork.Context.AnalysisMethod.Any(_ => _.Simulation.Id == simulation.Id))
+            if (!_unitOfWork.Context.AnalysisMethod.Any(_ => _.Simulation.Id == simulation.Id))
             {
                 throw new RowNotInTableException("No analysis method was found for the given scenario.");
             }
 
-           var analysisMethodEntity = _unitOfWork.Context.AnalysisMethod
-                .Include(_ => _.Attribute)
-                .Include(_ => _.Benefit)
-                .ThenInclude(_ => _.Attribute)
-                .Include(_ => _.CriterionLibraryAnalysisMethodJoin)
-                .ThenInclude(_ => _.CriterionLibrary)
-                .Include(_ => _.Simulation)
-                .ThenInclude(_ => _.BudgetPriorities)
-                .ThenInclude(_ => _.CriterionLibraryScenarioBudgetPriorityJoin)
-                .ThenInclude(_ => _.CriterionLibrary)
-                .Include(_ => _.Simulation)
-                .ThenInclude(_ => _.BudgetPriorities)
-                .ThenInclude(_ => _.BudgetPercentagePairs)
+            var analysisMethodEntity = _unitOfWork.Context.AnalysisMethod
+                 .Include(_ => _.Benefit)
+                 .Include(_ => _.CriterionLibraryAnalysisMethodJoin)
+                 .ThenInclude(_ => _.CriterionLibrary)
+                 .Include(_ => _.Simulation)
+                 .ThenInclude(_ => _.BudgetPriorities)
+                 .ThenInclude(_ => _.CriterionLibraryScenarioBudgetPriorityJoin)
+                 .ThenInclude(_ => _.CriterionLibrary)
+                 .Include(_ => _.Simulation)
+                 .ThenInclude(_ => _.BudgetPriorities)
+                 .ThenInclude(_ => _.BudgetPercentagePairs)
 
-                .Include(_ => _.Simulation)
-                .ThenInclude(_ => _.ScenarioTargetConditionalGoals)
-                .ThenInclude(_ => _.Attribute)
-                .Include(_ => _.Simulation)
-                .ThenInclude(_ => _.ScenarioTargetConditionalGoals)
-                .ThenInclude(_ => _.CriterionLibraryScenarioTargetConditionGoalJoin)
-                .ThenInclude(_ => _.CriterionLibrary)
+                 .Include(_ => _.Simulation)
+                 .ThenInclude(_ => _.ScenarioTargetConditionalGoals)
+                 .Include(_ => _.Simulation)
+                 .ThenInclude(_ => _.ScenarioTargetConditionalGoals)
+                 .ThenInclude(_ => _.CriterionLibraryScenarioTargetConditionGoalJoin)
+                 .ThenInclude(_ => _.CriterionLibrary)
 
-                .Include(_ => _.Simulation)
-                .ThenInclude(_ => _.ScenarioDeficientConditionGoals)
-                .ThenInclude(_ => _.Attribute)
-                .Include(_ => _.Simulation)
-                .ThenInclude(_ => _.ScenarioDeficientConditionGoals)
-                .ThenInclude(_ => _.CriterionLibraryScenarioDeficientConditionGoalJoin)
-                .ThenInclude(_ => _.CriterionLibrary)
+                 .Include(_ => _.Simulation)
+                 .ThenInclude(_ => _.ScenarioDeficientConditionGoals)
+                 .Include(_ => _.Simulation)
+                 .ThenInclude(_ => _.ScenarioDeficientConditionGoals)
+                 .ThenInclude(_ => _.CriterionLibraryScenarioDeficientConditionGoalJoin)
+                 .ThenInclude(_ => _.CriterionLibrary)
 
-                .Include(_ => _.Simulation)
-                .ThenInclude(_ => _.RemainingLifeLimits)
-                .ThenInclude(_ => _.Attribute)
-                .Include(_ => _.Simulation)
-                .ThenInclude(_ => _.RemainingLifeLimits)
-                .ThenInclude(_ => _.CriterionLibraryScenarioRemainingLifeLimitJoin)
-                .ThenInclude(_ => _.CriterionLibrary)
+                 .Include(_ => _.Simulation)
+                 .ThenInclude(_ => _.RemainingLifeLimits)
+                 .Include(_ => _.Simulation)
+                 .ThenInclude(_ => _.RemainingLifeLimits)
+                 .ThenInclude(_ => _.CriterionLibraryScenarioRemainingLifeLimitJoin)
+                 .ThenInclude(_ => _.CriterionLibrary)
 
-                .AsNoTracking()
-                .Single(_ => _.Simulation.Id == simulation.Id);
+                 .AsNoTracking()
+                 .AsSplitQuery()
+                 .Single(_ => _.Simulation.Id == simulation.Id);
 
             // Atleast one budget priority should exist
-            if(!analysisMethodEntity.Simulation.BudgetPriorities.Any())
+            if (!analysisMethodEntity.Simulation.BudgetPriorities.Any())
             {
                 throw new RowNotInTableException("No budget priority was found for the given scenario.");
             }
 
-            analysisMethodEntity.FillSimulationAnalysisMethod(simulation, userCriteria);
-            
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
+            analysisMethodEntity.FillSimulationAnalysisMethod(simulation, userCriteria, attributeNameLookup);
         }
 
         public bool GetSimulationAnalysisMethodSetting(Guid simulationId)
@@ -111,14 +107,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 };
             }
 
+            var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
             return _unitOfWork.Context.AnalysisMethod
-                .Include(_ => _.Attribute)
                 .Include(_ => _.Benefit)
-                .ThenInclude(_ => _.Attribute)
                 .Include(_ => _.CriterionLibraryAnalysisMethodJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
                 .Single(_ => _.SimulationId == simulationId)
-                .ToDto();
+                .ToDto(attributeNameLookup);
         }
 
         public void UpsertAnalysisMethod(Guid simulationId, AnalysisMethodDTO dto)
@@ -148,7 +143,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             var simulationEntity = _unitOfWork.Context.Simulation.Where(_ => _.Id == simulationId).FirstOrDefault();
             _unitOfWork.SimulationRepo.UpdateLastModifiedDate(simulationEntity);
 
-            _unitOfWork.BenefitRepo.UpsertBenefit(dto.Benefit, dto.Id);          
+            _unitOfWork.BenefitRepo.UpsertBenefit(dto.Benefit, dto.Id);
 
             _unitOfWork.Context.DeleteEntity<CriterionLibraryAnalysisMethodEntity>(_ => _.AnalysisMethodId == dto.Id);
 

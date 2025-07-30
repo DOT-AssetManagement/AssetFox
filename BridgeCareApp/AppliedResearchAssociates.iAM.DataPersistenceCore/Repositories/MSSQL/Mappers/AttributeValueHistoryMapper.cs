@@ -17,22 +17,26 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public void SetNumericAttributeValueHistories(
             List<AggregatedResultEntity> entities,
-            AnalysisMaintainableAsset maintainableAsset)
+            AnalysisMaintainableAsset maintainableAsset,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             SetAttributeValueHistories(
                 entities,
                 maintainableAsset,
+                attributeNameLookup,
                 NumberAttributePerName,
                 e => e.NumericValue.Value);
         }
 
         public void SetTextAttributeValueHistories(
             List<AggregatedResultEntity> entities,
-            AnalysisMaintainableAsset maintainableAsset)
+            AnalysisMaintainableAsset maintainableAsset,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             SetAttributeValueHistories(
                 entities,
                 maintainableAsset,
+                attributeNameLookup,
                 TextAttributePerName,
                 e => e.TextValue);
         }
@@ -45,6 +49,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             (
             List<AggregatedResultEntity> entities,
             AnalysisMaintainableAsset maintainableAsset,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup,
             IReadOnlyDictionary<string, TAttribute> attributePerName,
             Func<AggregatedResultEntity, TValue> getValue
             )
@@ -54,7 +59,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             var yearsOfHistory = entities
                 .GroupBy(entity =>
                 {
-                    _ = attributesWithUnsetHistory.Add(entity.Attribute.Name);
+                    _ = attributesWithUnsetHistory.Add(attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId));
                     return entity.Year;
                 })
                 .ToList();
@@ -70,12 +75,13 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
                 foreach (var entity in yearOfHistory)
                 {
-                    var attribute = attributePerName[entity.Attribute.Name];
+                    var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
+                    var attribute = attributePerName[attributeName];
                     var history = maintainableAsset.GetHistory(attribute);
                     var value = getValue(entity);
                     history[yearOfHistory.Key] = value;
 
-                    _ = attributesWithUnsetHistory.Remove(entity.Attribute.Name);
+                    _ = attributesWithUnsetHistory.Remove(attributeName);
                 }
             }
         }

@@ -6,6 +6,7 @@ using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.Data.Mappers;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.DataPersistenceCore;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataUnitTests;
 using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
 using AppliedResearchAssociates.iAM.DTOs;
@@ -72,10 +73,11 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             var ageAttribute = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(TestAttributeIds.AgeId);
             var ageAttributeAsList = new List<AttributeDTO> { ageAttribute };
             var mappedAttributeList = AttributeDtoDomainMapper.ToDomainList(ageAttributeAsList, "");
-            AggregatedResultTestSetup.AddNumericAggregatedResultsToDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
+            AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
             var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
             var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
             calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var calculatedAttributes = new List<CalculatedAttributeDTO> { calculatedAttribute };
             TestHelper.UnitOfWork.CalculatedAttributeRepo.UpsertScenarioCalculatedAttributesNonAtomic(calculatedAttributes, simulationId);
             var input = GetSimulationInput(networkId, simulationId);
@@ -88,7 +90,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
             Assert.Single(input.InvestmentPlan.BudgetConditions);
             Assert.Equal(input.InvestmentPlan.Budgets.Single().YearlyAmounts.Single().Id, budgetAmountWithBudgetId.BudgetAmount.Id);
             Assert.Equal(assetId, input.Network.Assets.Single().Id);
-            Assert.Single(input.Network.Explorer.CalculatedFields.Where(cf => cf.Name == TestAttributeNames.ConditionIndex));
+            Assert.Single(input.Network.Explorer.CalculatedFields, cf => cf.Name == TestAttributeNames.ConditionIndex);
         }
 
         private static Simulation GetSimulationInput(Guid networkId, Guid simulationId)

@@ -86,10 +86,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
         public static DeficientConditionGoalLibraryEntity ToEntity(this DeficientConditionGoalLibraryDTO dto) =>
             new DeficientConditionGoalLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
-        public static void CreateDeficientConditionGoal(this ScenarioDeficientConditionGoalEntity entity, Simulation simulation)
+        public static void CreateDeficientConditionGoal(
+            this ScenarioDeficientConditionGoalEntity entity,
+            Simulation simulation,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
         {
             var deficientConditionGoal = simulation.AnalysisMethod.AddDeficientConditionGoal();
             deficientConditionGoal.Id = entity.Id;
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
             deficientConditionGoal.Attribute = simulation.Network.Explorer.NumberAttributes
                 .Single(_ => _.Name == entity.Attribute.Name);
             deficientConditionGoal.AllowedDeficientPercentage = entity.AllowedDeficientPercentage;

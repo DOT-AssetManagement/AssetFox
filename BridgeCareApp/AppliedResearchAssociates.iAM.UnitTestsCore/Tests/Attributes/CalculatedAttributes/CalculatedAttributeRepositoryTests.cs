@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.CalculatedAttribute;
@@ -63,7 +64,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             _emptyMockedContext = new Mock<IAMContext>();
 
             libraryRepo = new List<CalculatedAttributeLibraryEntity>().AsQueryable();
-            _mockLibrary = MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.CalculatedAttributeLibrary, libraryRepo);
+            var emptyAttributeRepo = new List<AttributeEntity>().AsQueryable();
+            MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.Attribute, emptyAttributeRepo);
+           _mockLibrary = MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.CalculatedAttributeLibrary, libraryRepo);
 
             scenarioRepo = new List<ScenarioCalculatedAttributeEntity>().AsQueryable();
             _mockScenarioCalculations = MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.ScenarioCalculatedAttribute, scenarioRepo);
@@ -72,19 +75,19 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             _emptyTestRepo = emptyMockedRepo;
 
             // Create calculated test context (using objects from the prior creation
-            var isCalcultedContext = new Mock<IAMContext>();
+            var isCalculatedContext = new Mock<IAMContext>();
 
             scenarioRepo = TestDataForCalculatedAttributesRepository.GetSimulationCalculatedAttributesRepo(false);
-            var _mockScenarioLimitedCalculations = MockedContextBuilder.AddDataSet(isCalcultedContext, _ => _.ScenarioCalculatedAttribute, scenarioRepo);
+            var _mockScenarioLimitedCalculations = MockedContextBuilder.AddDataSet(isCalculatedContext, _ => _.ScenarioCalculatedAttribute, scenarioRepo);
 
-            isCalcultedContext.Setup(_ => _.CalculatedAttributeLibrary).Returns(_mockLibrary.Object);
-            isCalcultedContext.Setup(_ => _.Set<CalculatedAttributeLibraryEntity>()).Returns(_mockLibrary.Object);
-            isCalcultedContext.Setup(_ => _.Attribute).Returns(_mockAttributes.Object);
-            isCalcultedContext.Setup(_ => _.Set<AttributeEntity>()).Returns(_mockAttributes.Object);
-            isCalcultedContext.Setup(_ => _.Simulation).Returns(simulationLibrary.Object);
-            isCalcultedContext.Setup(_ => _.Set<SimulationEntity>()).Returns(simulationLibrary.Object);
+            isCalculatedContext.Setup(_ => _.CalculatedAttributeLibrary).Returns(_mockLibrary.Object);
+            isCalculatedContext.Setup(_ => _.Set<CalculatedAttributeLibraryEntity>()).Returns(_mockLibrary.Object);
+            isCalculatedContext.Setup(_ => _.Attribute).Returns(_mockAttributes.Object);
+            isCalculatedContext.Setup(_ => _.Set<AttributeEntity>()).Returns(_mockAttributes.Object);
+            isCalculatedContext.Setup(_ => _.Simulation).Returns(simulationLibrary.Object);
+            isCalculatedContext.Setup(_ => _.Set<SimulationEntity>()).Returns(simulationLibrary.Object);
 
-            var mockedIsCalculatedRepo = new UnitOfDataPersistenceWork((new Mock<IConfiguration>()).Object, isCalcultedContext.Object);
+            var mockedIsCalculatedRepo = new UnitOfDataPersistenceWork((new Mock<IConfiguration>()).Object, isCalculatedContext.Object);
             _isCalcualtedTestRepo = mockedIsCalculatedRepo;
 
             _badId = new Guid("ddb82ba3-174f-43b0-97b2-4456b6b9edb2");
@@ -94,6 +97,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         public void SuccessfullyPullsDataFromLibraryRepository()
         {
             // Arrange
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var repo = new CalculatedAttributeRepository(_testRepo);
 
             // Act
@@ -169,11 +173,12 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         public void UpsertHandlesNoLibraryFound()
         {
             // Arrange
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var repo = new CalculatedAttributeRepository(_testRepo);
-
+            var attributeRepo = new AttributeRepository(_testRepo);
             var attributes = TestDataForCalculatedAttributesRepository.GetAttributeRepo();
-
-            var changingLibraryDTO = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "Second").ToDto();
+            var attributeNameLookup = attributeRepo.GetIdNameCache();
+            var changingLibraryDTO = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "Second").ToDto(attributeNameLookup);
             var revisedCalculation = changingLibraryDTO.CalculatedAttributes.FirstOrDefault(_ => _.Attribute == "DESCRIPTION");
             revisedCalculation.CalculationTiming = 2;
 
@@ -244,7 +249,9 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
         {
             // Arrange
             var repo = new CalculatedAttributeRepository(_testRepo);
-            var attributeToModify = _testRepo.Context.ScenarioCalculatedAttribute.First(_ => _.Attribute.Name == "CONDITION").ToDto();
+            var entity = _testRepo.Context.ScenarioCalculatedAttribute.First(_ => _.Attribute.Name == "CONDITION");
+            var dummyDictionary = new Dictionary<Guid, string> {{ entity.Attribute.Id, entity.Attribute.Name }};
+            var attributeToModify = entity.ToDto(dummyDictionary);
             attributeToModify.CalculationTiming = 2;
 
             // Act & Assert
@@ -290,7 +297,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             repo.PopulateScenarioCalculatedFields(simulation);
 
             // Assert
-            Assert.Equal(0, testExplorer.CalculatedFields.Count);
+            Assert.Empty(testExplorer.CalculatedFields);
         }
 
         [Fact]
@@ -313,7 +320,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CalculatedAttributes
             repo.PopulateScenarioCalculatedFields(simulation);
 
             // Assert
-            Assert.Equal(1, testExplorer.CalculatedFields.Count);
+            Assert.Single(testExplorer.CalculatedFields);
             Assert.Equal(CalculatedFieldTiming.OnDemand, testExplorer.CalculatedFields.First().Timing);
         }
 
