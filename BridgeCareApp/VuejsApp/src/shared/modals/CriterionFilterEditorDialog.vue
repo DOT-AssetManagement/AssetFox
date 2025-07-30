@@ -92,6 +92,8 @@ async function getAvailableReportsAction(payload?: any): Promise<any> {await sto
 
     function onSubmitCriteriaEditorResult(result: CriteriaEditorResult) {
         const canUpdateOrCreate = result.validated;
+        console.log("onSubmitCriteriaEditorResult");
+        console.log(result);
 
         if (result.validated) {
 

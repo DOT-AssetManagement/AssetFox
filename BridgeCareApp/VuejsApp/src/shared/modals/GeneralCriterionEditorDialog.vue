@@ -64,6 +64,7 @@ const criteriaEditorData = ref<CriteriaEditorData>({
 const canUpdateOrCreate = ref<boolean>(false);
 
 let CriteriaExpressionToReturn: string | null = "";
+let ResultsCount: number | null = null;
 
   watch(dialogData,()=> {
         // const htmlTag: HTMLCollection = document.getElementsByTagName('html') as HTMLCollection;
@@ -72,6 +73,7 @@ let CriteriaExpressionToReturn: string | null = "";
             criteriaEditorData.value = {
                     ...criteriaEditorData.value,
                     mergedCriteriaExpression: dialogData.value.CriteriaExpression,
+                    resultsCount: dialogData.value.resultsCount,
                     isLibraryContext: true
                 };
 
@@ -96,13 +98,18 @@ let CriteriaExpressionToReturn: string | null = "";
 
         if (result.validated) {
             CriteriaExpressionToReturn = result.criteria
+            console.log("result count %d", result.resultsCount);
+            console.log("criteria " + result.criteria);
+            ResultsCount = result.resultsCount
         }
     }
 
     function onSubmit(submit: boolean) {
+        console.log("GeneralCriterionEditorDialog.onSubmit");
+        console.log("ResultsCount is %d", ResultsCount);
         if (submit) {
             if (!isNil(CriteriaExpressionToReturn)) {
-                emit('submit', CriteriaExpressionToReturn);
+                emit('submit', CriteriaExpressionToReturn, ResultsCount);
             }
         } else {
             dialogData.value.showDialog = false

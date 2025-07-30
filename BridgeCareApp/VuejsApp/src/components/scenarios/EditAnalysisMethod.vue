@@ -417,6 +417,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     function onShowCriterionEditorDialog() {
         criterionEditorDialogData.value = {
             showDialog: true,
+            resultsCount: null,
             CriteriaExpression: analysisMethod.value.criterionLibrary.mergedCriteriaExpression,
         };
     }
@@ -425,6 +426,8 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         criterionEditorDialogData.value = clone(
             emptyGeneralCriterionEditorDialogData,
         );
+        console.log("onCriterionEditorDialogSubmit");
+        console.log(criterionexpression);
 
         if (!isNil(criterionexpression)) {
             if(analysisMethod.value.criterionLibrary.id == getBlankGuid())
