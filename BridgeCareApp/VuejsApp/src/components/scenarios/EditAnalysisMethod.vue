@@ -94,20 +94,6 @@ Line 164 Delete,
                             >
                             </v-text-field>
                         </v-col>
-                        <v-col cols = "3">
-                            <v-subheader class="ghd-control-label ghd-md-gray">
-                                  Asset count
-                            </v-subheader>
-                            <v-text-field
-                                id="EditAnalysisMethod-criteria-assetCount"
-                                style="margin:0px"
-                                class="ghd-control-text ghd-control-border"
-                                variant="outlined"
-                                density="compact"
-                                readonly
-                                v-model="analysisMethod.lastKnownAssetCount">
-                            </v-text-field>
-                        </v-col>
                     </v-row>
                     <v-row>
                         <v-col cols = "3">
@@ -150,7 +136,7 @@ Line 164 Delete,
                             <v-col>
                                 <v-row justify="space-between" style="padding: 10px;">
                                 <v-subheader class="ghd-control-label ghd-md-gray">                             
-                                    Criteria
+                                    Criteria ({{ assetCountString }})
                                 </v-subheader>
                                 <v-btn
                                     id="EditAnalysisMethod-criteriaEditor-btn"
@@ -263,7 +249,8 @@ import AnalysisMethodService from '@/services/analysis-method.service';
 
     const selectedScenarioId = ref<string>(getBlankGuid());
     const analysisMethod = ref<AnalysisMethod>(clone(emptyAnalysisMethod));
-    let benefit = computed<Benefit>(() => analysisMethod.value.benefit)//
+    let benefit = computed<Benefit>(() => analysisMethod.value.benefit);
+    let assetCountString = ref<string>("unknown asset count");
     const optimizationStrategy: SelectItem[] = [
         { text: 'Benefit', value: OptimizationStrategy.Benefit },
         {
@@ -372,6 +359,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         });
 
          setBenefitAttributeIfEmpty();
+         updateAssetCountString();
     }
 
     watch(stateSimulationAnalysisSetting, (newVal) => {
@@ -394,6 +382,14 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
             hasValue(benefitAttributes.value)
         ) {
             analysisMethod.value.benefit.attribute = benefitAttributes.value[0].value.toString();
+        }
+    }
+
+    function updateAssetCountString() {
+        if (hasValue(analysisMethod.value.lastKnownAssetCount) && analysisMethod.value.lastKnownAssetCount!=-1) {
+            assetCountString.value = "Last known asset count: " + analysisMethod.value.lastKnownAssetCount;
+        } else {
+            assetCountString.value = "unknown asset count";
         }
     }
  
