@@ -32,7 +32,6 @@ export interface CriterionLibrary {
 
 export interface CriteriaEditorData {
     mergedCriteriaExpression: string | null;
-    resultsCount: number | null;
     isLibraryContext: boolean;
     networkId: string;
 }
@@ -67,7 +66,6 @@ export const emptyCriterionLibrary: CriterionLibrary = {
 
 export const emptyCriteriaEditorData: CriteriaEditorData = {
     mergedCriteriaExpression: '',
-    resultsCount: null,
     isLibraryContext: false,
     networkId: getBlankGuid()
 };

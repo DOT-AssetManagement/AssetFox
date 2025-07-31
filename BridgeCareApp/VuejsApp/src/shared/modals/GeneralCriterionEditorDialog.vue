@@ -73,7 +73,6 @@ let ResultsCount: number | null = null;
             criteriaEditorData.value = {
                     ...criteriaEditorData.value,
                     mergedCriteriaExpression: dialogData.value.CriteriaExpression,
-                    resultsCount: dialogData.value.resultsCount,
                     isLibraryContext: true
                 };
 
@@ -98,15 +97,11 @@ let ResultsCount: number | null = null;
 
         if (result.validated) {
             CriteriaExpressionToReturn = result.criteria
-            console.log("result count %d", result.resultsCount);
-            console.log("criteria " + result.criteria);
             ResultsCount = result.resultsCount
         }
     }
 
     function onSubmit(submit: boolean) {
-        console.log("GeneralCriterionEditorDialog.onSubmit");
-        console.log("ResultsCount is %d", ResultsCount);
         if (submit) {
             if (!isNil(CriteriaExpressionToReturn)) {
                 emit('submit', CriteriaExpressionToReturn, ResultsCount);

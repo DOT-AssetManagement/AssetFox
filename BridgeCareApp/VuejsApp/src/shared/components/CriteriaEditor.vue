@@ -660,7 +660,6 @@ const tab = ref<any>(null);
                                 getMainCriteria(),
                             );
                             if (parsedCriteria) {
-                                console.log("submitting %d", result.resultsCount);
                                 emit('submitCriteriaEditorResult', {
                                     validated: true,
                                     resultsCount: result.resultsCount,
@@ -831,7 +830,6 @@ const tab = ref<any>(null);
                 getMainCriteria(),
             );
             if (parsedCriteria) {
-                console.log("emitting %d", resultsCount.value);
                 emit(
                     'submitCriteriaEditorResult',
                     parsedCriteria.join(''),
