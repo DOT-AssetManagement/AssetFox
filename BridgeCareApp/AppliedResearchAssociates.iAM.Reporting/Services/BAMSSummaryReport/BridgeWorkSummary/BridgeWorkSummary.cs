@@ -34,14 +34,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             _nhsBridgeDeckAreaWorkSummary = new NHSBridgeDeckAreaWorkSummary(_unitOfWork);
             _deckAreaBridgeWorkSummary = new DeckAreaBridgeWorkSummary(_unitOfWork);
             _postedClosedBridgeWorkSummary = new PostedClosedBridgeWorkSummary(workSummaryModel, _unitOfWork);
-            _projectsCompletedCount = new ProjectsCompletedCount(Warnings);            
+            //_projectsCompletedCount = new ProjectsCompletedCount(Warnings);            
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
         public ChartRowsModel Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData,
             List<int> simulationYears, WorkSummaryModel workSummaryModel, Dictionary<string, BudgetDTO> yearlyBudgets,
             List<TreatmentDTO> selectableTreatments, Dictionary<string, string> treatmentCategoryLookup,
-            List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, bool shouldBundleFeasibleTreatments)
+            List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, bool shouldBundleFeasibleTreatments, SpendingStrategy spendingStrategy)
         {
             var currentCell = new CurrentCell { Row = 10, Column = 1 };
 
@@ -73,11 +73,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
             #endregion Initial work to set some data, which will be used throughout the Work summary TAB
 
+
             _costBudgetsWorkSummary.FillCostBudgetWorkSummarySections(worksheet, currentCell, costAndCountPerTreatmentPerYear, yearlyCostCommittedProj,
-                simulationYears, yearlyBudgets, costPerBPNPerYear, simulationTreatments, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
+                simulationYears, yearlyBudgets, costPerBPNPerYear, simulationTreatments, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, spendingStrategy);
 
             _bridgesCulvertsWorkSummary.FillBridgesCulvertsWorkSummarySections(worksheet, currentCell, costAndCountPerTreatmentPerYear, yearlyCostCommittedProj, simulationYears, simulationTreatments);
-            _projectsCompletedCount.FillProjectCompletedCountSection(worksheet, currentCell, countForCompletedProject, countForCompletedCommittedProject, simulationYears, simulationTreatments);
+            //_projectsCompletedCount.FillProjectCompletedCountSection(worksheet, currentCell, countForCompletedProject, countForCompletedCommittedProject, simulationYears, simulationTreatments);
 
             var chartRowsModel = _bridgeRateDeckAreaWorkSummary.FillBridgeRateDeckAreaWorkSummarySections(worksheet, currentCell,
                 simulationYears, workSummaryModel, reportOutputData);

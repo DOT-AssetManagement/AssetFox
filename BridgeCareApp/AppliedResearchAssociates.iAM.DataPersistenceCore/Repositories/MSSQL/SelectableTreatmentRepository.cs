@@ -706,6 +706,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 _unitOfWork.Context.DeleteAll<ScenarioTreatmentSupersedeRuleEntity>(_ =>
                     _.ScenarioSelectableTreatment.SimulationId == simulationId);
 
+                _unitOfWork.Context.DeleteAll<ScenarioTreatmentPerformanceFactorEntity>(_ =>
+                    _.ScenarioSelectableTreatment.SimulationId == simulationId);
+
                 _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentEntity>(_ =>
                     _.SimulationId == simulationId && !entityIds.Contains(_.Id));
 
@@ -845,8 +848,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             });
         }
 
-        public void DeleteScenarioSelectableTreatment(TreatmentDTO scenarioSelectableTreatment,
-            Guid simulationId)
+        public void DeleteScenarioSelectableTreatment(TreatmentDTO scenarioSelectableTreatment, Guid simulationId)
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
@@ -854,35 +856,31 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             }
 
             var entityId = scenarioSelectableTreatment.Id;
-
-            // Check for any supersedes and delete them before the treatment
-            if (scenarioSelectableTreatment.SupersedeRules.Count > 0)
-            {
-                // Get the entities we to delete
-                var ruleIds = _unitOfWork.Context.Set<ScenarioTreatmentSupersedeRuleEntity>()
-                    .Where(x => x.TreatmentId == entityId)
-                    .Select(x => x.Id)
-                    .ToList();
-
-                // Delete from CriterionLibrary_ScenarioTreatmentSupersedeRule table
-                foreach (var ruleId in ruleIds)
-                {
-                    _unitOfWork.Context.Database.ExecuteSqlRaw(
-                        "DELETE FROM dbo.CriterionLibrary_ScenarioTreatmentSupersedeRule WHERE ScenarioTreatmentSupersedeRuleId = {0}",
-                        ruleId);
-                }
-
-                _unitOfWork.Context.SaveChanges();
-
-                // Delete from parent table
-                _unitOfWork.Context.DeleteAll<ScenarioTreatmentSupersedeRuleEntity>(x => x.TreatmentId == entityId);
-                _unitOfWork.Context.SaveChanges();
-            }
+            var hasSupersedeDependencies = _unitOfWork.Context.Set<ScenarioTreatmentSupersedeRuleEntity>().Where(x => x.PreventTreatmentId == entityId).Any();
 
             _unitOfWork.AsTransaction(() =>
             {
-                var simulationEntity1 = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
-                _unitOfWork.Context.Upsert(simulationEntity1, simulationId, _unitOfWork.UserEntity?.Id);
+
+                // Check if there are any supersede rules to delete.
+                if (scenarioSelectableTreatment.SupersedeRules.Count > 0 || hasSupersedeDependencies)
+                {
+                    // 1. Get the list of rule IDs to delete.
+                    var ruleIdsToDelete = _unitOfWork.Context.Set<ScenarioTreatmentSupersedeRuleEntity>()
+                        .Where(x => x.TreatmentId == entityId || x.PreventTreatmentId == entityId)
+                        .Select(x => x.Id)
+                        .ToList();
+
+                    if (ruleIdsToDelete.Any())
+                    {
+                        // 2. Delete from the linking table using a SINGLE efficient raw SQL call.
+                        string ruleIdsString = string.Join(",", ruleIdsToDelete.Select(id => $"'{id}'"));
+                        _unitOfWork.Context.Database.ExecuteSqlRaw(
+                             $"DELETE FROM dbo.CriterionLibrary_ScenarioTreatmentSupersedeRule WHERE ScenarioTreatmentSupersedeRuleId IN ({ruleIdsString})");
+
+                        // 3. Delete from the parent table.
+                        _unitOfWork.Context.DeleteAll<ScenarioTreatmentSupersedeRuleEntity>(x => x.TreatmentId == entityId || x.PreventTreatmentId == entityId);
+                    }
+                }
 
                 _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentScenarioBudgetEntity>(_ =>
                     _.ScenarioSelectableTreatment.SimulationId == simulationId && _.ScenarioSelectableTreatment.Id == entityId);
@@ -909,7 +907,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     _.ScenarioConditionalTreatmentConsequence.ScenarioSelectableTreatment.SimulationId == simulationId
                     && _.ScenarioConditionalTreatmentConsequence.ScenarioSelectableTreatment.Id == entityId);
 
-                // Update last modified date
+
+                // Update last modified date.
                 var simulationEntity = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
                 _unitOfWork.Context.Upsert(simulationEntity, simulationId, _unitOfWork.UserEntity?.Id);
             });

@@ -38,7 +38,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
         public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, BudgetDTO> yearlyBudgets
-            , List<TreatmentDTO> selectableTreatments, Dictionary<string, string> treatmentCategoryLookup, List<BaseCommittedProjectDTO> committedProjectList, List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, bool shouldBundleFeasibleTreatments, List<SimpleBudgetDetailDTO> scenarioSimpleBudgets)
+            , List<TreatmentDTO> selectableTreatments, Dictionary<string, string> treatmentCategoryLookup, List<BaseCommittedProjectDTO> committedProjectList, List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, bool shouldBundleFeasibleTreatments, List<SimpleBudgetDetailDTO> scenarioSimpleBudgets, SpendingStrategy spendingStrategy)
         {
             var startYear = simulationYears[0];
             var currentCell = new CurrentCell { Row = 1, Column = 1 };
@@ -226,7 +226,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 }
 
                 currentCell.Row += 2; // For BAMS Work type Totals
-                _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "", "BAMS Work Type Totals");
+                _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "", "Work Type Totals");
 
                 var initialRow = currentCell.Row;
                 worksheet.Cells[initialRow, 3 + numberOfYears].Value = "Total (all years)";
@@ -270,7 +270,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     {
                         totalCost = (decimal)currValue;
                     }
-                    totalCost += item.Value;
+                    if (spendingStrategy == SpendingStrategy.UnlimitedSpending) // Or whatever indicates an unlimited budget
+                    {
+                        var perYearTotalSpent = totalSpent.Find(_ => _.year == (startYear + yearTracker));
+                        totalCost = perYearTotalSpent.amount;
+                    }
+                    else
+                    {
+                        totalCost += item.Value;
+                    }
                     worksheet.Cells[currentCell.Row, currentCell.Column + cellFortotalBudget + 2].Value = totalCost;
                     yearTracker++;
                 }
@@ -347,7 +355,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     for (int index = 0; index < categoryBudgetTotals.Length; index++)
                     {
                         // Calculate percentage
-                        var percentage = categoryBudgetTotals[index] / yearlyBudget;
+                        var percentage = (yearlyBudget == 0) ? 0 : categoryBudgetTotals[index] / yearlyBudget;
                         worksheet.Cells[row++, column].Value = percentage;
                     }
                     yearTracker++;

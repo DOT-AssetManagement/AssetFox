@@ -17,6 +17,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
     {
         private BridgeWorkSummaryCommon _bridgeWorkSummaryCommon;
         private WorkSummaryModel _workSummaryModel;
+        private ReportHelper _reportHelper;
 
         private Dictionary<int, decimal> TotalCulvertSpent = new();
         private Dictionary<int, decimal> TotalBridgeSpent = new();
@@ -44,7 +45,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             Dictionary<int, Dictionary<string, decimal>> bpnCostPerYear,
             List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments,
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
-            bool shouldBundleFeasibleTreatments)
+            bool shouldBundleFeasibleTreatments,
+            SpendingStrategy spendingStrategy)
         {
             ShouldBundleFeasibleTreatments = shouldBundleFeasibleTreatments;
             var localSimulationTreatments = new List<(string Name, string AssetType, TreatmentCategory Category)>(simulationTreatments);
@@ -75,7 +77,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 WorkTypeTotalCommitted = workTypeTotalCommitted
             };
             
-            var budgetTotalRow = FillWorkTypeTotalsSection(worksheet, currentCell, simulationYears, yearlyBudgets, workTypeTotalAggregated, shouldBundleFeasibleTreatments);
+            var budgetTotalRow = FillWorkTypeTotalsSection(worksheet, currentCell, simulationYears, yearlyBudgets, workTypeTotalAggregated, shouldBundleFeasibleTreatments, spendingStrategy);
 
             FillWorkTypeTotalWorkOutsideScope(worksheet, currentCell, simulationYears, workTypeTotalAggregated.WorkTypeTotalWorkOutsideScope);
 
@@ -197,9 +199,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             List<int> simulationYears,
             Dictionary<string, BudgetDTO> yearlyBudgetAmount,
             WorkTypeTotalAggregated workTypeTotalAggregated,
-            bool shouldBundleFeasibleTreatments)
+            bool shouldBundleFeasibleTreatments,
+            SpendingStrategy spendingStrategy)
         {
-            _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "", "BAMS Work Type Totals");
+            _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "", "Work Type Totals");
             var initialRow = currentCell.Row;
             currentCell.Row++;                                    
             var workTypes = new List<TreatmentCategory> { TreatmentCategory.Maintenance, TreatmentCategory.Preservation, TreatmentCategory.Rehabilitation, TreatmentCategory.Replacement, TreatmentCategory.CapacityAdding, TreatmentCategory.Other, TreatmentCategory.Bundled };
@@ -220,7 +223,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalCulvert, workType, worksheet, rowIndex);
 
                 // For non culvert data
-                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalBridge, workType, worksheet, rowIndex);                
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalBridge, workType, worksheet, rowIndex);
+
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalCommitted, workType, worksheet, rowIndex);
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalMPMS, workType, worksheet, rowIndex);
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalSAP, workType, worksheet, rowIndex);
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalProjectBuilder, workType, worksheet, rowIndex);
+                AddWorkTypeTotalData(workTypeTotalAggregated.WorkTypeTotalWorkOutsideScope, workType, worksheet, rowIndex);
 
                 // Bundled
                 if (workType == TreatmentCategory.Bundled)
@@ -247,8 +256,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 var year = simulationYears[columnIndex - 3];
                 worksheet.Cells[currentCell.Row, columnIndex].Formula = ExcelFormulas.RangeSum(startAddress, endAddress);
                 worksheet.Cells[currentCell.Row, columnIndex].Calculate();
-                worksheet.Cells[currentCell.Row, columnIndex].Value = Convert.ToDecimal(worksheet.Cells[currentCell.Row, columnIndex].Value) +
-                                                                      TotalCommittedSpent[year] + TotalMPMSSpent[year] + TotalSAPSpent[year] + TotalProjectBuilderSpent[year];
+                //worksheet.Cells[currentCell.Row, columnIndex].Value = Convert.ToDecimal(worksheet.Cells[currentCell.Row, columnIndex].Value) +
+                                                                      //TotalCommittedSpent[year] + TotalMPMSSpent[year] + TotalSAPSpent[year] + TotalProjectBuilderSpent[year];
             }
 
             // Adding percentage after the Total (all years)
@@ -283,7 +292,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 var yearIndex = year - simulationYears[0];
                 var columnIndex = yearIndex + 3;
                 var budgetTotal = yearlyBudgetAmount.Sum(x => x.Value.BudgetAmounts[yearIndex].Value);
-                worksheet.Cells[currentCell.Row, columnIndex].Value = budgetTotal;
+                if (spendingStrategy == SpendingStrategy.UnlimitedSpending) // Or whatever indicates an unlimited budget
+                {
+                    worksheet.Cells[currentCell.Row, columnIndex].Value = Convert.ToDecimal(worksheet.Cells[totalSpentRow, columnIndex].Value);
+                }
+                else
+                {
+                    worksheet.Cells[currentCell.Row, columnIndex].Value = budgetTotal;
+                }
                 averageAnnualBudget += budgetTotal;
             }
             var budgetTotalRow = currentCell.Row;

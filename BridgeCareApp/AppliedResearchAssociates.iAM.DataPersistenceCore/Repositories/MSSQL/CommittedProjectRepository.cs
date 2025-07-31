@@ -339,12 +339,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         private void InsertcommittedProjects(List<SectionCommittedProjectDTO> cp, string keyAttr, List<AttributeEntity> attributes)
         {
             var committedProjectEntities = cp.Select(_ => _.ToEntity(attributes, keyAttr)).ToList();
-            _unitOfWork.Context.AddAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
-
             var committedProjectLocations = committedProjectEntities.Select(_ => _.CommittedProjectLocation).ToList();
             committedProjectLocations.ForEach(cpl => cpl.Id = Guid.NewGuid());
 
-            _unitOfWork.Context.AddAll(committedProjectEntities);
+            _unitOfWork.Context.AddAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
             _unitOfWork.Context.AddAll(committedProjectLocations);
         }
 

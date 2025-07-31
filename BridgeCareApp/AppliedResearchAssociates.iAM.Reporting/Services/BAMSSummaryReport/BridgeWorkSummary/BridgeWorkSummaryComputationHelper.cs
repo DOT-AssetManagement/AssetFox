@@ -160,6 +160,19 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
             totalCost += cashFlowChainsTotal;
 
+            var committedBPNBridges = sectionDetails.FindAll(b =>
+                b.TreatmentCause == TreatmentCause.CommittedProject &&
+                _reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, "BUS_PLAN_NETWORK") == bpn);
+
+            foreach (var section in committedBPNBridges)
+            {
+                var cost = section.TreatmentConsiderations?
+                    .SelectMany(tc => tc.FundingCalculationOutput?.AllocationMatrix ?? new())
+                    .Where(a => a.Year == currentYearDetail.Year)
+                    .Sum(a => (double)a.AllocatedAmount) ?? 0;
+                totalCost += cost;
+            }
+
             return totalCost;
         }
 

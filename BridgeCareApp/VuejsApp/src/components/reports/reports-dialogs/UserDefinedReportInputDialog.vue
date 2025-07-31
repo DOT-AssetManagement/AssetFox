@@ -216,7 +216,7 @@
 </template>
 
 <script setup lang="ts">    
-    import { toRefs, ref, computed, onMounted } from 'vue';
+    import { toRefs, ref, computed, onMounted, watch } from 'vue';
     import { getUrl } from '@/shared/utils/get-url';
     import { setItemPropertyValue } from '@/shared/utils/setter-utils';
     import { emptyUserDefinedReportRequestModel, UserDefinedReportRequestModel } from '@/shared/models/iAM/reports';
@@ -243,20 +243,37 @@
     const showAttributeDialog = ref(false);
     const currentEditingAttributes = ref<string[]>([]);
     let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
-    let attributeSelectItems = stateAttributes.value.map((attribute: Attribute) => (attribute.name));
+    let attributeSelectItems = computed(() => stateAttributes.value.map(attr => attr.name));
     
     const showYearDialog = ref(false);
     const currentEditingYears = ref<number[]>([]);
     async function getInvestmentAction(payload?: any): Promise<any> { await store.dispatch('getInvestment', payload); }
     let stateInvestmentPlan = computed<InvestmentPlan>(() => store.state.investmentModule.investmentPlan);
-    let yearSelectItems: number[];
+    const yearSelectItems = computed(() => {
+        const plan = stateInvestmentPlan.value;
+        if (plan?.numberOfYearsInAnalysisPeriod && plan?.firstYearOfAnalysisPeriod) {
+            return Array.from(
+                { length: plan.numberOfYearsInAnalysisPeriod },
+                (_, index) => index + plan.firstYearOfAnalysisPeriod
+            );
+        }
+        return []; // Return an empty array if data is not available
+    });
 
-    onMounted(async () => {       
+    /*onMounted(async () => {       
         selectedScenarioId.value = router.currentRoute.value.query.scenarioId as string; 
         await getInvestmentAction(selectedScenarioId.value);        
         yearSelectItems = Array.from(Array(stateInvestmentPlan.value?.numberOfYearsInAnalysisPeriod), (_, index) => 
         index + stateInvestmentPlan.value?.firstYearOfAnalysisPeriod) ?? [];
-    });
+    });*/
+
+    watch(showDialog, async (isNowVisible) => {
+    if (isNowVisible) {
+        selectedScenarioId.value = router.currentRoute.value.query.scenarioId as string;
+        // Fetch the investment plan for the current scenario
+        await getInvestmentAction(selectedScenarioId.value);
+    }
+});
 
     function disableSubmitButton() {
         return false; // any rules to check?
@@ -269,7 +286,11 @@
         emit('submit', null);
         }
 
-        newUserDefinedReportRequestModel.value = {...emptyUserDefinedReportRequestModel};
+        newUserDefinedReportRequestModel.value = {
+            ...emptyUserDefinedReportRequestModel,
+            attributes: [], // Ensure arrays are cleared
+            years: [],      // Ensure arrays are cleared
+        };
     }
 
     function onSetDisplayProperty(property: string, value: any) {

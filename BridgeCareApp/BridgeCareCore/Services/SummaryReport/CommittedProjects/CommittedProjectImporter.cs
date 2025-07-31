@@ -78,6 +78,9 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             var budgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulation.Id)
                 .ToDictionary(b => b.Name, b => b.Id, StringComparer.OrdinalIgnoreCase);
 
+            //Get Investment Years
+            var years = _unitOfWork.InvestmentPlanRepo.GetInvestmentStartAndEndYears(simulation.Id);
+
             //Get Treatments
             var treatments = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentNames(simulation.Id);
 
@@ -122,6 +125,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                         maintainableAssetIdsPerLocationId,
                         budgets,
                         treatments,
+                        years,
                         simulation.Id);
 
                     if (project != null)
@@ -163,23 +167,42 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
 
         private int CreateErrorExportSheet(ExcelPackage excelPackage, ExcelWorksheet toCopyWorksheet)
         {
-            var errorExportSheet = excelPackage.Workbook.Worksheets.Add("Committed Projects", toCopyWorksheet);
+            var errorExportSheet = excelPackage.Workbook.Worksheets.Add("Committed Projects");
+
+            // Manually copy the cell values from the source to the new sheet
+            // This avoids copying potentially corrupted styles
+            for (int row = 1; row <= toCopyWorksheet.Dimension.End.Row; row++)
+            {
+                for (int col = 1; col <= toCopyWorksheet.Dimension.End.Column; col++)
+                {
+                    errorExportSheet.Cells[row, col].Value = toCopyWorksheet.Cells[row, col].Value;
+                }
+            }
+
             var excelAddresses = new List<ExcelAddress>();
-            
-            foreach(var errorsPerType in _validationErrorMessages)
+
+            var regex = new Regex(@"Row (\d+), Column (\d+)", RegexOptions.Compiled);
+
+            foreach (var errorsPerType in _validationErrorMessages)
             {
                 foreach (var error in errorsPerType.Value)
-                {                    
-                    var rowIndex = error.IndexOf("Row") + 4;
-                    var colIndex = error.IndexOf("Column") + 7;
-                    var row = error.Split([':'])[0].ElementAt(rowIndex).ToString();
-                    var col = error.Split([':'])[0].ElementAt(colIndex).ToString();
-                    var cells = errorExportSheet.Cells[Convert.ToInt32(row), Convert.ToInt32(col)];
-                    if (!excelAddresses.Any(_ => _.Address == cells.Address))
+                {
+                    Match match = regex.Match(error);
+
+                    if (match.Success)
                     {
-                        excelAddresses.Add(cells);
+                        int row = int.Parse(match.Groups[1].Value);
+                        int col = int.Parse(match.Groups[2].Value);
+
+                        var cells = errorExportSheet.Cells[row, col];
+
+                        if (!excelAddresses.Any(_ => _.Address == cells.Address))
+                        {
+                            excelAddresses.Add(cells);
+                        }
+                        ExcelHelper.ApplyColor(cells, Color.Red);
                     }
-                    ExcelHelper.ApplyColor(cells, Color.Red);
+                    
                 }
             }
 
@@ -197,12 +220,13 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             Dictionary<string, Guid> maintainableAssetIdsPerLocationId,
             Dictionary<string, Guid> budgets,
             List<string> treatments,
+            int[] years,
             Guid simulationId)
         {
             
             // Extract key components
             var locationId = SafeGetLocationIdentifier(rowValues, columnIndices, _networkKeyField, row);
-            var projectYear = SafeGetProjectYear(rowValues, columnIndices, CommittedProjectsColumnHeaders.Year, row);
+            var projectYear = SafeGetProjectYear(rowValues, columnIndices, years, CommittedProjectsColumnHeaders.Year, row);
             var treatment = SafeGetTreatment(rowValues, columnIndices, treatments, CommittedProjectsColumnHeaders.Treatment, row);
 
             var key = (locationIdentifier: locationId, projectYear);
@@ -366,7 +390,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                     ? cellValue.ToString()
                     : string.Empty;
 
-                if (string.IsNullOrWhiteSpace(value))
+                if (string.IsNullOrWhiteSpace(value) && kvp.Value != "PROJECTSOURCEID")
                 {
                     AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {column} ('{columnName}'): Value is null or empty.");
                 }
@@ -631,6 +655,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
         private int SafeGetProjectYear(
             Dictionary<int, object> rowValues,
             Dictionary<string, int> columnIndices,
+            int[] years,
             string columnName,
             int row)
         {
@@ -643,7 +668,7 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
             {
                 var projectYearStr = cellValue.ToString();
-                if (int.TryParse(projectYearStr, out var intValue) && intValue >= 1000 && intValue <= 9999)
+                if (int.TryParse(projectYearStr, out var intValue) && intValue >= years[0] && intValue <= years[1])
                 {
                     return intValue;
                 }

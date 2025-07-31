@@ -69,6 +69,15 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return investmentPlan != null ? investmentPlan.ToDto() : new InvestmentPlanDTO();
         }
 
+        public int[] GetInvestmentStartAndEndYears(Guid simulationId)
+        {
+            var startYear = _unitOfWork.Context.InvestmentPlan.AsNoTracking().Select(x => x.FirstYearOfAnalysisPeriod).FirstOrDefault();
+            var numYearsInAnalysis = _unitOfWork.Context.InvestmentPlan.AsNoTracking().Select(x => x.NumberOfYearsInAnalysisPeriod).FirstOrDefault();
+            var endYear = startYear + numYearsInAnalysis - 1;
+
+            return new int[] { startYear, endYear };
+        }
+
         public void UpsertInvestmentPlan(InvestmentPlanDTO dto, Guid simulationId)
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))

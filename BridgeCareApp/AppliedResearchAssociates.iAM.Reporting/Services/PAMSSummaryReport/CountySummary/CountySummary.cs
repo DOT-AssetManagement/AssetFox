@@ -41,22 +41,21 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             _uniqueDistrictCountyList = new List<DistrictCounty>();
         }
 
-        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation)
+        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
-            FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, simulation);
+            FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, simulation, keyCashFlowFundingDetails);
             worksheet.Cells.AutoFitColumns();
         }
 
         #region Private methods
 
-        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation)
+        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
             //fill unique district county list
             BuildUniqueDistrictCountyList(reportOutputData);
 
             //get data by district and county and build list
-            BuildDistrictCountyCostList(reportOutputData, simulationYears);
-
+            BuildDistrictCountyCostList(reportOutputData, simulationYears, keyCashFlowFundingDetails);
 
             //Fill Budget By County
             FillBudgetByCountyInExcel(worksheet, reportOutputData, simulationYears, simulation);
@@ -113,7 +112,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             }
         }
 
-        private void BuildDistrictCountyCostList(SimulationOutput reportOutputData, List<int> simulationYears)
+        private void BuildDistrictCountyCostList(SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
             //build empty list
             _districtCountyCostList = new List<DistrictCountyCost>();
@@ -125,8 +124,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                     foreach (var year in simulationYears)
                     {
                         //cost
-                        decimal sumOfCoveredCost = 0; var simulationYearDetail = reportOutputData.Years.Where(w => w.Year == year).FirstOrDefault();
-                        if(simulationYearDetail != null)
+                        decimal sumOfCoveredCost = 0;
+                        var simulationYearDetail = reportOutputData.Years.Where(w => w.Year == year).FirstOrDefault();
+                        if (simulationYearDetail != null)
                         {
                             //asset detail list
                             var assetDetailList = simulationYearDetail.Assets
@@ -134,9 +134,23 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                                                 && _summaryReportHelper.checkAndGetValue<string>(s.ValuePerTextAttribute, "COUNTY") == districtCountyObject.County).ToList();
 
                             //get cost
-                            if(assetDetailList?.Any() == true)
+                            if (assetDetailList?.Any() == true)
                             {
-                                sumOfCoveredCost = assetDetailList.Sum(s => s.TreatmentConsiderations.Sum(s => s.FundingCalculationOutput?.AllocationMatrix.Where(_ => _.Year == year).Sum(b => b.AllocatedAmount) ?? 0));
+                                foreach (var section in assetDetailList)
+                                {
+                                    var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
+                                    var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
+                                                  section.TreatmentStatus == TreatmentStatus.Progressed) ||
+                                                  (section.TreatmentCause == TreatmentCause.CashFlowProject &&
+                                                  section.TreatmentStatus == TreatmentStatus.Progressed) ||
+                                                  (section.TreatmentCause == TreatmentCause.CashFlowProject &&
+                                                  section.TreatmentStatus == TreatmentStatus.Applied)) ?
+                                                  keyCashFlowFundingDetails[crs] :
+                                                  section.TreatmentConsiderations ?? new();
+
+                                    sumOfCoveredCost += treatmentConsiderations.Sum(tc => tc.FundingCalculationOutput?.AllocationMatrix
+                                        .Where(_ => _.Year == year).Sum(b => b.AllocatedAmount) ?? 0);                                    
+                                }
                             }
                         }
 
@@ -152,31 +166,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                         //add to list
                         _districtCountyCostList.Add(districtCountyCostObject);
                     }
+                }
 
-                    //calculate district sum
-                    if (_districtCountyCostList?.Any() == true)
+                //calculate district sum
+                if (_districtCountyCostList?.Any() == true)
+                {
+                    var districtSums = _districtCountyCostList
+                        .GroupBy(d => new { d.District, d.Year })
+                        .ToDictionary(g => g.Key, g => g.Sum(i => i.Cost));
+
+                    foreach (var item in _districtCountyCostList)
                     {
-                        foreach (var year in simulationYears)
-                        {
-                            //cost
-                            var simulationYearDetail = reportOutputData.Years.Where(w => w.Year == year).FirstOrDefault();
-                            if (simulationYearDetail != null)
-                            {
-                                //filter district by year
-                                var _filteredDistrictCountyCostList = _districtCountyCostList
-                                                                        .Where(s => s.District == districtCountyObject.District)
-                                                                        .Where(s => s.Year == year).ToList();
-
-                                //calculate total district cost
-                                if (_filteredDistrictCountyCostList?.Any() == true)
-                                {
-                                    foreach(var districtCountyCostObject in _filteredDistrictCountyCostList)
-                                    {
-                                        districtCountyCostObject.DistrictSum = _filteredDistrictCountyCostList.Sum(s => s.Cost);
-                                    }
-                                }
-                            }
-                        }
+                        item.DistrictSum = districtSums[new { item.District, item.Year }];
                     }
                 }
             }

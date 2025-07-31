@@ -1447,7 +1447,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 hasInvestmentJustBeenSaved = true;               
             }           
         });
-        // $emitter.emit('InvestmentSettingsUpdated');
+        $emitter.emit('InvestmentSettingsUpdated');
         // $emitter.emit('switchedToNewInvestmentLibrary', sync);
     }
 

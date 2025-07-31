@@ -308,6 +308,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var budgetsDtos = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
             var simpleBudgetDetailDtos = _unitOfWork.BudgetRepo.GetScenarioSimpleBudgetDetails(simulationId);
             var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var spendingStrategy = analysisMethodDto.SpendingStrategy;
             var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
             var committedProjectsDtos = _unitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             var budgetPrioritiesDtos = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
@@ -401,7 +402,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
             // Fill Simulation parameters TAB
             _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulationDto, analysisMethodDto, investmentPlanDto, scenarioSelectableTreatmentsDtos, committedProjectsDtos, budgetPrioritiesDtos, cashFlowRulesDtos, budgetsDtos, reportOutputData);
-            checkCancelled(cancellationToken, simulationId);            
+            checkCancelled(cancellationToken, simulationId);
 
             // Funded Treatment List TAB
             reportDetailDto.Status = $"Creating Funded Treatment List TAB";
@@ -436,7 +437,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var bridgeWorkSummaryWorksheet = excelPackage.Workbook.Worksheets.Add("Bridge Work Summary");
-            var chartRowModel = _bridgeWorkSummary.Fill(bridgeWorkSummaryWorksheet, reportOutputData, simulationYears, workSummaryModel, yearlyBudgets, scenarioSelectableTreatmentsDtos, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
+            var chartRowModel = _bridgeWorkSummary.Fill(bridgeWorkSummaryWorksheet, reportOutputData, simulationYears, workSummaryModel, yearlyBudgets, scenarioSelectableTreatmentsDtos, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, spendingStrategy);
             checkCancelled(cancellationToken, simulationId);
 
             // Bridge work summary by Budget TAB
@@ -445,7 +446,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var summaryByBudgetWorksheet = excelPackage.Workbook.Worksheets.Add("Bridge Work Summary By Budget");
-            _bridgeWorkSummaryByBudget.Fill(summaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgets, scenarioSelectableTreatmentsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, simpleBudgetDetailDtos);
+            _bridgeWorkSummaryByBudget.Fill(summaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgets, scenarioSelectableTreatmentsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, simpleBudgetDetailDtos, spendingStrategy);
             checkCancelled(cancellationToken, simulationId);
 
             // District County Totals TAB
