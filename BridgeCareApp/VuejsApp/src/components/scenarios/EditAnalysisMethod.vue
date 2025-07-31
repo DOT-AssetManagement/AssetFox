@@ -386,6 +386,8 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     }
 
     function updateAssetCountString() {
+        console.log("updating asset count");
+        console.log(analysisMethod);
         if (hasValue(analysisMethod.value.lastKnownAssetCount) && analysisMethod.value.lastKnownAssetCount!=-1) {
             assetCountString.value = "Last known asset count: " + analysisMethod.value.lastKnownAssetCount;
         } else {
