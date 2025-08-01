@@ -60,14 +60,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                 "Risk Score",
             };
 
-        private List<string> GetSubHeaders()
-        {
-            return new List<string>
-            {
+        private static List<string> GetSubHeaders() =>
+            [
                 "OPI",
                 "IRI",
                 "Rut",
                 "Fault",
+                "Surface Type",
                 "Project Source",
                 "Project Id",
                 "Budget",
@@ -75,8 +74,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                 "Cost",
                 "Superseded Treatments",
                 "Comments"
-            };
-        }
+            ];
 
 
         public WorkSummaryModel Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
@@ -420,7 +418,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                 row++;
             }
 
-            int columnsToSubtract = 12;
+            int columnsToSubtract = 13;
             currentCell.Column = column++;
             currentCell.Row = initialRow;
             isInitialYear = true;
@@ -544,6 +542,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, PAMSAuditReportConstants.IRI)));
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(averageRutting), 3);
             worksheet.Cells[row, ++column].Value = Math.Round(Convert.ToDecimal(_summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, PAMSAuditReportConstants.FAULT)), 3);
+
+            // Surface Type
+            worksheet.Cells[row, ++column].Value = _summaryReportHelper.checkAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "SURFACEID").ToString() + "-" + _summaryReportHelper.checkAndGetValue<string>(selectedSection.ValuePerTextAttribute, "SURFACE_NAME");
 
             if (row % 2 == 0)
             {
