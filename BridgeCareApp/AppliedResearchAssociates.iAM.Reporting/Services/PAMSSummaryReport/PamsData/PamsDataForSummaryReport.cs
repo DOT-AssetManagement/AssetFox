@@ -283,11 +283,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
         private void FillDynamicData(ExcelWorksheet worksheet, SimulationOutput outputResults, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, List<BaseCommittedProjectDTO> committedProjectList, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
             //initial row to populate data.
-            const int initialRow = 4;
+            const int initialRow = 4;            
 
             var row = 4; // Data starts here
             var startingRow = row;
             var column = currentCell.Column;
+            var greenColor = Color.FromArgb(7384391);
 
             var workDoneData = new List<int>();
             if (outputResults.Years.Count > 0) { workDoneData = new List<int>(new int[outputResults.Years[0].Assets.Count]); }
@@ -299,26 +300,29 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             {
                 row = initialRow;
 
-                // Add work done cells
-                var previousYearCause = TreatmentCause.Undefined;
-                var previousYearTreatment = PAMSConstants.NoTreatment;
-                var previousYearTreatmentStatus = TreatmentStatus.Undefined;
+                // Add work done cells                
                 var i = 0;
                 foreach (var section in yearlySectionData.Assets)
                 {
                     TrackDataForParametersTAB(section.ValuePerNumericAttribute, section.ValuePerTextAttribute);
 
                     AssetDetail prevYearSection = null;
+                    var previousYearCause = TreatmentCause.Undefined;
+                    var previousYearTreatment = PAMSConstants.NoTreatment;
+                    var previousYearTreatmentStatus = TreatmentStatus.Undefined;
                     if (section.TreatmentCause == TreatmentCause.CommittedProject && !isInitialYear)
                     {
                         prevYearSection = outputResults.Years.FirstOrDefault(f => f.Year == yearlySectionData.Year - 1)
-                            .Assets.FirstOrDefault(_ => _.AssetName == section.AssetName);
+                            .Assets.FirstOrDefault(_ => _.AssetId == section.AssetId);
                         previousYearCause = prevYearSection.TreatmentCause;
                         previousYearTreatment = prevYearSection.AppliedTreatment;
                         previousYearTreatmentStatus = prevYearSection.TreatmentStatus;
                     }
 
-                    CheckConditions(section.AppliedTreatment, previousYearTreatment, previousYearCause, section.TreatmentCause, section.TreatmentStatus, previousYearTreatmentStatus, worksheet, row, column);
+                    // MPMS selected for consecuive yrs
+                    var range = worksheet.Cells[row, column, row, column + 1];
+                    var rangeWithPreviousColumn = worksheet.Cells[row, column - 2, row, column - 1];
+                    CheckConditions(section.AppliedTreatment, previousYearTreatment, previousYearCause, section.TreatmentCause, section.TreatmentStatus, previousYearTreatmentStatus, range, rangeWithPreviousColumn);
 
                     // Work done and cost for the given year                    
                     var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
@@ -370,18 +374,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     // Cash flow coloring
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(7384391));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], greenColor);
                         ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.White);
 
                         // Color the previous year project also
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, column - 2, row, column - 1], Color.FromArgb(7384391));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, column - 2, row, column - 1], greenColor);
                         ExcelHelper.SetTextColor(worksheet.Cells[row, column - 2, row, column - 1], Color.White);
                     }
                     if (yearlySectionData.Year == lastYear &&
                         section.TreatmentCause == TreatmentCause.SelectedTreatment &&
                         section.TreatmentStatus == TreatmentStatus.Progressed)
                     {
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], Color.FromArgb(7384391));
+                        ExcelHelper.ApplyColor(worksheet.Cells[row, column, row, column + 1], greenColor);
                         ExcelHelper.SetTextColor(worksheet.Cells[row, column, row, column + 1], Color.White);
                     }
 
@@ -438,11 +442,17 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
 
                     AssetDetail prevYearSection = null;
+                    var previousYearCause = TreatmentCause.Undefined;
+                    var previousYearTreatment = PAMSConstants.NoTreatment;
+                    var previousYearTreatmentStatus = TreatmentStatus.Undefined;
                     if (!isInitialYear)
                     {
                         prevYearSection = outputResults.Years.FirstOrDefault(f => f.Year == yearlySectionData.Year - 1)
-                            .Assets.FirstOrDefault(_ => _.AssetName == section.AssetName);
-                    }
+                            .Assets.FirstOrDefault(_ => _.AssetId == section.AssetId);
+                        previousYearCause = prevYearSection.TreatmentCause;
+                        previousYearTreatment = prevYearSection.AppliedTreatment;
+                        previousYearTreatmentStatus = prevYearSection.TreatmentStatus;
+                    }                    
 
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject && !isInitialYear)
                     {
@@ -512,17 +522,29 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                         ExcelHelper.ApplyColor(worksheet.Cells[row, initialColumnForShade, row, column], Color.LightGray);
                     }
 
+                    var range = worksheet.Cells[row, columnForAppliedTreatment];
+                    var rangeWithPreviousColumn = worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract];
                     // Cash flow coloring
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject)
                     {
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment], Color.FromArgb(7384391));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment], Color.White);
+                        ExcelHelper.ApplyColor(range, greenColor);
+                        ExcelHelper.SetTextColor(range, Color.White);
 
                         // Color the previous year project also
-                        ExcelHelper.ApplyColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.FromArgb(7384391));
-                        ExcelHelper.SetTextColor(worksheet.Cells[row, columnForAppliedTreatment - columnsToSubtract], Color.White);
+                        ExcelHelper.ApplyColor(rangeWithPreviousColumn, greenColor);
+                        ExcelHelper.SetTextColor(rangeWithPreviousColumn, Color.White);
+                    }
+                    if (yearlySectionData.Year == lastYear &&
+                        section.TreatmentCause == TreatmentCause.SelectedTreatment &&
+                        section.TreatmentStatus == TreatmentStatus.Progressed)
+                    {
+                        ExcelHelper.ApplyColor(range, greenColor);
+                        ExcelHelper.SetTextColor(range, Color.White);
                     }
 
+                    // MPMS selected for consecuive yrs
+                    CheckConditions(section.AppliedTreatment, previousYearTreatment, previousYearCause, section.TreatmentCause, section.TreatmentStatus, previousYearTreatmentStatus, range, rangeWithPreviousColumn);
+                    
                     column = column + 1;
                     row++;
                 }
@@ -628,14 +650,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             }
         }
 
-        public void CheckConditions(string treatment, string previousYearTreatment, TreatmentCause previousYearCause,
+        public static void CheckConditions(string treatment, string previousYearTreatment, TreatmentCause previousYearCause,
             TreatmentCause treatmentCause, TreatmentStatus treatmentStatus, TreatmentStatus previousYearTreatmentStatus,
-            ExcelWorksheet worksheet, int row, int column)
+            ExcelRange range, ExcelRange rangeWithPreviousColumn)
         {
             if (CommittedProjectsCashFlowed(treatment, previousYearTreatment, previousYearCause, treatmentCause, treatmentStatus, previousYearTreatmentStatus))
             {
-                var range = worksheet.Cells[row, column, row, column + 1];
-                var rangeWithPreviousColumn = worksheet.Cells[row, column - 2, row, column - 1];
                 CommittedForConsecutiveYears(rangeWithPreviousColumn);
                 CommittedForConsecutiveYears(range);
             }
@@ -656,7 +676,5 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             ExcelHelper.ApplyColor(range, Color.Orange);
             ExcelHelper.SetTextColor(range, Color.White);
         }
-
-
     }
 }
