@@ -17,6 +17,10 @@ namespace AssetFox.Core.Common.PerformanceMeasurement
         /// is no previous memo, the empty string is returned.</summary> 
         public static string Mark(this List<EventMemoModel> eventList, string text)
         {
+            if (text.Contains("Invalid cost 0 for treatment"))
+            {
+                return "";
+            }
             var memo = EventMemoModels.Now(text);
             eventList.Add(memo);
             if (eventList.Count > 1)
