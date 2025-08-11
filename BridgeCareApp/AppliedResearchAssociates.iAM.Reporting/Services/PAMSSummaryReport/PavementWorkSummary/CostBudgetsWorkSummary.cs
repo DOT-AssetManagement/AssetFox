@@ -1538,7 +1538,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             List<int> simulationYears,
             Dictionary<int, Dictionary<string, List<CommittedProjectMetaData>>> yearlyCostCommittedProj)
         {
-            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of Project Builder", "Project Builder Work Type");
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Cost of Project Builder Work", "Project Builder Work Type");
             var workTypeTotalDataProjectBuilder = AddCostsOfProjectBuilderWork(worksheet, simulationYears, currentCell, yearlyCostCommittedProj);
             return workTypeTotalDataProjectBuilder;
         }

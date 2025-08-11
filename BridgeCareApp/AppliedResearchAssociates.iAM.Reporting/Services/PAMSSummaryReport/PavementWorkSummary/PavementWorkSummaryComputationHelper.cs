@@ -5,7 +5,12 @@ using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.Reporting.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+using static System.Collections.Specialized.BitVector32;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary.PavementTreatmentHelper;
+using static Humanizer.In;
 using WorkSummaryByBudgetModel = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.WorkSummaryByBudgetModel;
 using YearsData = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.YearsData;
 
@@ -144,7 +149,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             {
                 costLengthPerSurfaceIdPerTreatmentPerYear.Add(yearData.Year, new Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>());
                 costAndLengthPerTreatmentGroupPerYear.Add(yearData.Year, new Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>());
-                yearlyCostCommittedProj[yearData.Year] = new Dictionary<string, List<CommittedProjectMetaData>>();
+
+                yearlyCostCommittedProj[yearData.Year] = [];
+
                 foreach (var section in yearData.Assets)
                 {
                     var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
@@ -184,12 +191,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             _.ProjectSource.ToString() == section.ProjectSource &&
                             _.LocationKeys["CRS"] == crs);
                         var projectSource = committedProject?.ProjectSource.ToString();
+                        var segmentLength = section.ValuePerNumericAttribute["SEGMENT_LENGTH"];
+                        var sectionMiles = segmentLength.FeetToMiles();
                         if (!yearlyCostCommittedProj[yearData.Year].TryGetValue(appliedTreatment, out var value))
                         {
                             var committedProjectMetaData = new List<CommittedProjectMetaData>() {
                                                                 new() { TreatmentCost = cost,
                                                                     ProjectSource = projectSource,
-                                                                    TreatmentCategory = treatmentCategory
+                                                                    TreatmentCategory = treatmentCategory,
+                                                                    SectionMiles = sectionMiles
                                                                 }};
                             yearlyCostCommittedProj[yearData.Year].Add(appliedTreatment, committedProjectMetaData);
                         }
@@ -199,7 +209,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             {
                                 TreatmentCost = cost,
                                 ProjectSource = projectSource,
-                                TreatmentCategory = treatmentCategory // Should this be committed proj's category in future - current working is correct per PAMS
+                                TreatmentCategory = treatmentCategory, // Should this be committed proj's category in future - current working is correct per PAMS
+                                SectionMiles = sectionMiles
                             });
                         }
 

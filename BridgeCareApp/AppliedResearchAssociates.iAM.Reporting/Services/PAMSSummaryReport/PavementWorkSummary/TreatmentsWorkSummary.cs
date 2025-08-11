@@ -8,6 +8,7 @@ using System.Linq;
 using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent;
 using static AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary.PavementTreatmentHelper;
+using NetTopologySuite.Algorithm;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 {
@@ -25,6 +26,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ExcelWorksheet worksheet,
             CurrentCell currentCell,
             List<int> simulationYears,
+            Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj,
             Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
             Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>> costAndLengthPerTreatmentGroupPerYear,
             List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments,
@@ -32,8 +34,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ChartRowsModel chartRowsModel,
             bool shouldBundleFeasibleTreatments)
 
-        {
+        {            
             ShouldBundleFeasibleTreatments = shouldBundleFeasibleTreatments;
+            // TODO CommittedProjectMetaData: use obj in display of section miles...
+            // Pavement Work Summary tab: add separate tables for committed projects miles and then add those up in Total Number of Section Miles table.
+            FillCommittedTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+            //FillMPMSTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+            //FillSAPTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+            //FillProjectBuilderTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+
             FillFullDepthAsphaltTreatments(worksheet, currentCell, simulationYears, costLengthPerSurfaceIdPerTreatmentPerYear, simulationTreatments);
             FillCompositeTreatments(worksheet, currentCell, simulationYears, costLengthPerSurfaceIdPerTreatmentPerYear, simulationTreatments);
             FillConcreteTreatments(worksheet, currentCell, simulationYears, costLengthPerSurfaceIdPerTreatmentPerYear, simulationTreatments);
@@ -42,6 +51,67 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             FillWorkTypeTotalsSection(worksheet, currentCell, simulationYears, workTypeTotals);
 
             return chartRowsModel;
+        }
+
+        private void FillCommittedTreatments(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj)
+        {
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of Committed Treatments", "Committed Treatments");
+
+            AddCommittedTreatmentsSegmentMiles(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+        }
+
+        private void AddCommittedTreatmentsSegmentMiles(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj)
+        {            
+            _pavementWorkSummaryCommon.SetRowColumns(currentCell, out var startRow, out var startColumn, out var row, out var column);
+            var startYear = simulationYears[0];
+            var uniqueTreatments = new Dictionary<string, int>();
+
+            var fromColumn = column + 1;
+            foreach (var yearlyItem in yearlyCostCommittedProj)
+            {
+                double totalLength = 0;
+                row = currentCell.Row;
+                foreach (var data in yearlyItem.Value)
+                {
+                    foreach (var committedProjectMetaData in data.Value)
+                    {
+                        if (committedProjectMetaData.ProjectSource == "Committed")
+                        {
+                            var key = data.Key.Contains("Bundle") ? data.Key : committedProjectMetaData.TreatmentCategory;
+                            var cellToEnterCost = yearlyItem.Key - startYear;
+                            if (!uniqueTreatments.TryGetValue(key, out var value))
+                            {
+                                uniqueTreatments.Add(key, currentCell.Row);
+                                worksheet.Cells[row++, column].Value = key;                                
+                                worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value =
+                                    Convert.ToInt32(committedProjectMetaData.SectionMiles);                               
+                                currentCell.Row += 1;
+                            }
+                            else
+                            {                                
+                                var currentValue = worksheet.Cells[value, column + cellToEnterCost + 2].Value;
+                                decimal toAdd = currentValue == null ? 0 : Convert.ToInt32(currentValue);
+                                worksheet.Cells[value, column + cellToEnterCost + 2].Value =
+                                    Convert.ToInt32(committedProjectMetaData.SectionMiles) + toAdd;
+                            }
+                            totalLength += Convert.ToInt32(committedProjectMetaData.SectionMiles);                            
+
+                            // setting up data for Work type totals section miles
+
+
+                            // 
+                        }
+                    }
+                }
+                
+                worksheet.Cells[row, column].Value = Convert.ToInt32(totalLength);
+            }
+                      
+            ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, column]);
+            ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, row, column], Color.FromArgb(180, 198, 231)); // treatment rows
+            ExcelHelper.ApplyColor(worksheet.Cells[row, fromColumn, row, column], Color.FromArgb(132, 151, 176)); // total row
+
+            _pavementWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, column);
         }
 
         private void FillFullDepthAsphaltTreatments(
