@@ -475,7 +475,7 @@ public sealed class SimulationRunner
         {
             if (Simulation.AnalysisMethod.ShouldDeteriorateDuringCashFlow)
             {
-                context.ApplyPerformanceCurves();
+                context.ApplyPerformanceCurves(null);
             }
         }
         else

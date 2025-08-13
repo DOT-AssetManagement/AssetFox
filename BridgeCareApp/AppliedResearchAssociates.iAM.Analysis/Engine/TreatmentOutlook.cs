@@ -179,6 +179,8 @@ internal sealed class TreatmentOutlook
 
         updateRemainingLife?.Invoke();
 
+        Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache = new();
+
         foreach (var year in Enumerable.Range(InitialYear + 1, AccumulationContext.SimulationRunner.Simulation.NumberOfYearsOfTreatmentOutlook))
         {
             var yearIsScheduled = AccumulationContext.EventSchedule.TryGetValue(year, out var scheduledEvent);
@@ -188,11 +190,21 @@ internal sealed class TreatmentOutlook
                 throw new InvalidOperationException(MessageStrings.TreatmentOutlookIsConsumingAProgressEvent);
             }
 
-            AccumulationContext.PrepareForTreatment(year);
+            AccumulationContext.PrepareForTreatment(
+                year,
+                performanceCurveCriterionEvaluationCache: performanceCurveCriterionEvaluationCache);
 
             if (yearIsScheduled && scheduledEvent.IsT1(out var treatment))
             {
                 ApplyTreatment(treatment, year);
+
+                // Generally, it is possible for a treatment to change attribute values that are
+                // (direct or indirect) dependencies of the criterion on any performance curve, thus
+                // invalidating this cache (or parts of it, anyway). It is also possible for the
+                // user to configure the simulation such that no treatment can change such
+                // attributes, in which case (a) this cache couldn't be invalidated and (b) clearing
+                // this cache wouldn't be necessary.
+                performanceCurveCriterionEvaluationCache.Clear();
             }
             else if (!SimulationRunner.Simulation.ShouldPreapplyPassiveTreatment)
             {

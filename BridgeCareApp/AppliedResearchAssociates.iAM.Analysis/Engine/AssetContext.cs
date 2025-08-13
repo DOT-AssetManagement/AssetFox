@@ -29,7 +29,10 @@ internal sealed class AssetContext : CalculateEvaluateScope
         EventSchedule.CopyFrom(original.EventSchedule);
         FirstUnshadowedYearForAnyTreatment = original.FirstUnshadowedYearForAnyTreatment;
         FirstUnshadowedYearForSameTreatment.CopyFrom(original.FirstUnshadowedYearForSameTreatment);
-        NumberCache.CopyFrom(original.NumberCache);
+        MostRecentAdjustmentFactorsForPerformanceCurves.CopyFrom(original.MostRecentAdjustmentFactorsForPerformanceCurves);
+
+        // Note that the cache-related members are not copied. Simulation experiments indicate that
+        // copying these members for reuse actually increases net runtime.
 
         InitializeCalculatedFields();
     }
@@ -58,9 +61,9 @@ internal sealed class AssetContext : CalculateEvaluateScope
         ApplyTreatment(SimulationRunner.Simulation.DesignatedPassiveTreatment, year);
     }
 
-    public void ApplyPerformanceCurves()
+    public void ApplyPerformanceCurves(Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
     {
-        var calculatorPerAttribute = GetPerformanceCurveCalculatorPerAttribute();
+        var calculatorPerAttribute = GetPerformanceCurveCalculatorPerAttribute(performanceCurveCriterionEvaluationCache);
 
         var dataUpdates = calculatorPerAttribute.Select(kv => (kv.Key, kv.Value())).ToArray();
 
@@ -186,7 +189,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
             AnalyzeForAttributeDependencies(
                 SimulationRunner.KeysAnalyzedForAttributeDependencies,
                 SimulationRunner.DependentKeysPerAttributeName,
-                key);
+                key,
+                null);
         }
 
         _ = GetNumber_ActiveKeysOfCurrentInvocation.Remove(key);
@@ -214,7 +218,19 @@ internal sealed class AssetContext : CalculateEvaluateScope
         Detail.TreatmentStatus = TreatmentStatus.Progressed;
     }
 
-    public void PrepareForTreatment(int year, bool historicalFallForward = false)
+    public void PrepareForTreatment(int year)
+        => PrepareForTreatment(year, false, null);
+
+    public void PrepareForTreatment(int year, bool historicalFallForward)
+        => PrepareForTreatment(year, historicalFallForward, null);
+
+    public void PrepareForTreatment(int year, Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
+        => PrepareForTreatment(year, false, performanceCurveCriterionEvaluationCache);
+
+    public void PrepareForTreatment(
+        int year,
+        bool historicalFallForward,
+        Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
     {
         FixCalculatedFieldValuesWithPreDeteriorationTiming();
 
@@ -223,7 +239,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
             FixCalculatedFieldValuesWithoutPreDeteriorationTiming();
         }
 
-        ApplyPerformanceCurves();
+        ApplyPerformanceCurves(performanceCurveCriterionEvaluationCache);
 
         if (SimulationRunner.Simulation.ShouldPreapplyPassiveTreatment)
         {
@@ -326,7 +342,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
         ConcurrentDictionary<string, object> analyzedItems,
         ConcurrentDictionary<string, ConcurrentDictionary<string, object>> dependentsPerAttributeName,
         string itemToAnalyze,
-        IEnumerable<string> directDependencies = null)
+        IEnumerable<string> directDependencies)
     {
         if (analyzedItems.TryAdd(itemToAnalyze, default))
         {
@@ -435,10 +451,10 @@ internal sealed class AssetContext : CalculateEvaluateScope
         Detail.TreatmentStatus = TreatmentStatus.Applied;
     }
 
-    private double CalculateValueOnCurve(PerformanceCurve curve, Action<double> handle)
+    private double CalculateValueOnCurve(PerformanceCurve curve)
     {
         var value = curve.Equation.Compute(this, curve, MostRecentAdjustmentFactorsForPerformanceCurves);
-        handle(value);
+        SendToSimulationLogIfNeeded(curve, value);
         return value;
     }
 
@@ -515,14 +531,36 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private void FixCalculatedFieldValuesWithPreDeteriorationTiming() => FixCalculatedFieldValues(SimulationRunner.CalculatedFieldsWithPreDeteriorationTiming);
 
-    private Func<double> GetCalculator(KeyValuePair<NumberAttribute, PerformanceCurve[]> curves)
+    private Func<double> GetCalculator(KeyValuePair<NumberAttribute, PerformanceCurve[]> curves, Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
     {
         List<PerformanceCurve> applicableCurves = new();
         List<PerformanceCurve> defaultCurves = new();
 
+        Func<PerformanceCurve, bool?>
+            evaluateCriterionWithoutCache,
+            evaluateCriterionWithCache;
+
+        evaluateCriterionWithoutCache = curve => Evaluate(curve.Criterion);
+
+        evaluateCriterionWithCache = curve =>
+        {
+            if (!performanceCurveCriterionEvaluationCache.TryGetValue(curve, out var evaluation))
+            {
+                evaluation = Evaluate(curve.Criterion);
+                performanceCurveCriterionEvaluationCache.Add(curve, evaluation);
+            }
+
+            return evaluation;
+        };
+
+        var evaluateCriterion =
+            performanceCurveCriterionEvaluationCache is null
+            ? evaluateCriterionWithoutCache
+            : evaluateCriterionWithCache;
+
         foreach (var curve in curves.Value)
         {
-            var evaluation = Evaluate(curve.Criterion);
+            var evaluation = evaluateCriterion(curve);
 
             if (!evaluation.HasValue)
             {
@@ -563,12 +601,14 @@ internal sealed class AssetContext : CalculateEvaluateScope
         }
 
         return curves.Key.IsDecreasingWithDeterioration
-            ? () => operativeCurves.Min(curve => CalculateValueOnCurve(curve, value => SendToSimulationLogIfNeeded(curve, value)))
-            : () => operativeCurves.Max(curve => CalculateValueOnCurve(curve, value => SendToSimulationLogIfNeeded(curve, value)));
+            ? () => operativeCurves.Min(CalculateValueOnCurve)
+            : () => operativeCurves.Max(CalculateValueOnCurve);
     }
 
-    private IDictionary<string, Func<double>> GetPerformanceCurveCalculatorPerAttribute()
-        => SimulationRunner.CurvesPerAttribute.ToDictionary(curves => curves.Key.Name, GetCalculator);
+    private IDictionary<string, Func<double>> GetPerformanceCurveCalculatorPerAttribute(Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
+        => SimulationRunner.CurvesPerAttribute.ToDictionary(
+            curves => curves.Key.Name,
+            curves => GetCalculator(curves, performanceCurveCriterionEvaluationCache));
 
     private void HandleTreatmentDuringRollForward(ConcurrentBag<RollForwardEventDetail> rollForwardEvents, int year, bool historicalFallForward)
     {
