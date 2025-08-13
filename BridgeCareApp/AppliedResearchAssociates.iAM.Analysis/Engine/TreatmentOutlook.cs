@@ -179,7 +179,10 @@ internal sealed class TreatmentOutlook
 
         updateRemainingLife?.Invoke();
 
-        Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache = new();
+        Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache =
+            SimulationRunner.AnyPerformanceCurveCriterionDependsOnAnyDeterioratingAttribute
+            ? null
+            : new();
 
         foreach (var year in Enumerable.Range(InitialYear + 1, AccumulationContext.SimulationRunner.Simulation.NumberOfYearsOfTreatmentOutlook))
         {
@@ -192,7 +195,7 @@ internal sealed class TreatmentOutlook
 
             AccumulationContext.PrepareForTreatment(
                 year,
-                performanceCurveCriterionEvaluationCache: performanceCurveCriterionEvaluationCache);
+                performanceCurveCriterionEvaluationCache);
 
             if (yearIsScheduled && scheduledEvent.IsT1(out var treatment))
             {

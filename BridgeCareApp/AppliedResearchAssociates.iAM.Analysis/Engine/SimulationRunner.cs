@@ -410,6 +410,8 @@ public sealed class SimulationRunner
 
     internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
 
+    internal bool AnyPerformanceCurveCriterionDependsOnAnyDeterioratingAttribute;
+
     #region supporting data structures for refined invalidation of numeric cache
 
     internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentKeysPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
