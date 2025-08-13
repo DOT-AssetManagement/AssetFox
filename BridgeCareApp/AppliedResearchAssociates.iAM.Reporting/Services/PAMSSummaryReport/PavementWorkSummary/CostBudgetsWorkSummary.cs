@@ -1296,7 +1296,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             }
 
             column = currentCell.Column;
-            worksheet.Cells[currentCell.Row, column].Value = "SAP Total";
+            worksheet.Cells[currentCell.Row, column].Value = PAMSConstants.SapTotal;
             column++;
 
             int firstTotalYear = TotalSAPSpent.Count > 0 ? TotalSAPSpent.Keys.Min() : startYear;
@@ -1405,7 +1405,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             }
 
             column = currentCell.Column;
-            worksheet.Cells[currentCell.Row, column].Value = "Project Builder Total";
+            worksheet.Cells[currentCell.Row, column].Value = PAMSConstants.ProjectBuilderTotal;
             column++;
             int firstTotalYear = TotalProjectBuilderSpent.Count > 0 ? TotalProjectBuilderSpent.Keys.Min() : startYear;
             var offsetForTotal = firstTotalYear - startYear;

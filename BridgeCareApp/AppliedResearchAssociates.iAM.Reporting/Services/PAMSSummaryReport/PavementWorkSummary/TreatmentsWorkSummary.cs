@@ -34,84 +34,110 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             ChartRowsModel chartRowsModel,
             bool shouldBundleFeasibleTreatments)
 
-        {            
+        {
             ShouldBundleFeasibleTreatments = shouldBundleFeasibleTreatments;
-            // TODO CommittedProjectMetaData: use obj in display of section miles...
-            // Pavement Work Summary tab: add separate tables for committed projects miles and then add those up in Total Number of Section Miles table.
+            // Tables for committed projects miles
             FillCommittedTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
-            //FillMPMSTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
-            //FillSAPTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
-            //FillProjectBuilderTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+            FillMpmsTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+            FillSapTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+            FillProjectBuilderTreatments(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
 
             FillFullDepthAsphaltTreatments(worksheet, currentCell, simulationYears, costLengthPerSurfaceIdPerTreatmentPerYear, simulationTreatments);
             FillCompositeTreatments(worksheet, currentCell, simulationYears, costLengthPerSurfaceIdPerTreatmentPerYear, simulationTreatments);
             FillConcreteTreatments(worksheet, currentCell, simulationYears, costLengthPerSurfaceIdPerTreatmentPerYear, simulationTreatments);
             FillTreatmentGroups(worksheet, currentCell, simulationYears, costAndLengthPerTreatmentGroupPerYear);
-
+                        
             FillWorkTypeTotalsSection(worksheet, currentCell, simulationYears, workTypeTotals);
 
             return chartRowsModel;
         }
 
+        private void FillProjectBuilderTreatments(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj)
+        {
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of Project Builder Treatments", "Project Builder Treatments");
+            AddCommittedProjectsSegmentMiles(worksheet, currentCell, simulationYears, yearlyCostCommittedProj, "ProjectBuilder", PAMSConstants.ProjectBuilderTotal);
+        }
+
+        private void FillSapTreatments(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj)
+        {
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of SAP Treatments", "SAP Treatments");
+            AddCommittedProjectsSegmentMiles(worksheet, currentCell, simulationYears, yearlyCostCommittedProj, "SAP", PAMSConstants.SapTotal);
+        }
+
+        private void FillMpmsTreatments(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj)
+        {
+            _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of MPMS Treatments", "MPMS Treatments");
+            AddCommittedProjectsSegmentMiles(worksheet, currentCell, simulationYears, yearlyCostCommittedProj, "MPMS", PAMSConstants.MpmsTotal);
+        }        
+
         private void FillCommittedTreatments(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj)
         {
             _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Section Miles of Committed Treatments", "Committed Treatments");
-
-            AddCommittedTreatmentsSegmentMiles(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
+            AddCommittedProjectsSegmentMiles(worksheet, currentCell, simulationYears, yearlyCostCommittedProj, "Committed", PAMSConstants.CommittedTotal);
         }
 
-        private void AddCommittedTreatmentsSegmentMiles(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj)
+        private void AddCommittedProjectsSegmentMiles(ExcelWorksheet worksheet, CurrentCell currentCell, List<int> simulationYears, Dictionary<int, Dictionary<string, List<Models.CommittedProjectMetaData>>> yearlyCostCommittedProj, string projectSource, string totalLabel)
         {            
             _pavementWorkSummaryCommon.SetRowColumns(currentCell, out var startRow, out var startColumn, out var row, out var column);
+            currentCell.Column = column;
             var startYear = simulationYears[0];
             var uniqueTreatments = new Dictionary<string, int>();
+            Dictionary<int, int> TotalCommittedLength = [];
 
-            var fromColumn = column + 1;
             foreach (var yearlyItem in yearlyCostCommittedProj)
             {
-                double totalLength = 0;
+                int totalLength = 0;
                 row = currentCell.Row;
+
                 foreach (var data in yearlyItem.Value)
                 {
                     foreach (var committedProjectMetaData in data.Value)
                     {
-                        if (committedProjectMetaData.ProjectSource == "Committed")
+                        if (committedProjectMetaData.ProjectSource == projectSource)
                         {
                             var key = data.Key.Contains("Bundle") ? data.Key : committedProjectMetaData.TreatmentCategory;
                             var cellToEnterCost = yearlyItem.Key - startYear;
+                            var sectionMiles = Convert.ToInt32(committedProjectMetaData.SectionMiles);
                             if (!uniqueTreatments.TryGetValue(key, out var value))
                             {
                                 uniqueTreatments.Add(key, currentCell.Row);
                                 worksheet.Cells[row++, column].Value = key;                                
-                                worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value =
-                                    Convert.ToInt32(committedProjectMetaData.SectionMiles);                               
+                                worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value = sectionMiles;                               
                                 currentCell.Row += 1;
                             }
                             else
                             {                                
                                 var currentValue = worksheet.Cells[value, column + cellToEnterCost + 2].Value;
                                 decimal toAdd = currentValue == null ? 0 : Convert.ToInt32(currentValue);
-                                worksheet.Cells[value, column + cellToEnterCost + 2].Value =
-                                    Convert.ToInt32(committedProjectMetaData.SectionMiles) + toAdd;
+                                worksheet.Cells[value, column + cellToEnterCost + 2].Value = sectionMiles + toAdd;
                             }
-                            totalLength += Convert.ToInt32(committedProjectMetaData.SectionMiles);                            
-
-                            // setting up data for Work type totals section miles
-
-
-                            // 
+                            totalLength += sectionMiles;
                         }
                     }
                 }
-                
-                worksheet.Cells[row, column].Value = Convert.ToInt32(totalLength);
+                TotalCommittedLength.Add(yearlyItem.Key, totalLength);
             }
-                      
-            ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, column]);
-            ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, row, column], Color.FromArgb(180, 198, 231)); // treatment rows
-            ExcelHelper.ApplyColor(worksheet.Cells[row, fromColumn, row, column], Color.FromArgb(132, 151, 176)); // total row
 
-            _pavementWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, column);
+            column = currentCell.Column;
+            worksheet.Cells[currentCell.Row, column].Value = totalLabel;
+            column++;
+            int firstTotalYear = TotalCommittedLength.Count > 0 ? TotalCommittedLength.Keys.Min() : startYear;
+            var offsetForTotal = firstTotalYear - startYear;
+            var fromColumn = column + offsetForTotal + 1;
+
+            foreach (var length in TotalCommittedLength)
+            {
+                worksheet.Cells[currentCell.Row, fromColumn++].Value = length.Value;
+            }
+            var committedLengthTotalRow = currentCell.Row;
+            fromColumn = column + 1;
+            var endColumn = simulationYears.Count + 2;
+
+            ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, endColumn]);
+            ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, row, endColumn], Color.FromArgb(180, 198, 231)); // treatment rows
+            ExcelHelper.ApplyColor(worksheet.Cells[committedLengthTotalRow, fromColumn, committedLengthTotalRow, endColumn], Color.FromArgb(132, 151, 176)); // total row
+
+            _pavementWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, endColumn);
         }
 
         private void FillFullDepthAsphaltTreatments(
@@ -374,7 +400,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     foreach (var treatmentGroup in treatmentGroups.Where(_ => _.GroupDescription.Equals(description)))
                     {
                         yearlyValues.Value.TryGetValue(treatmentGroup, out var costAndLength);
-                        treatmentLength += costAndLength.length;
+                        treatmentLength += Convert.ToInt32(costAndLength.length);
                     }
                     worksheet.Cells[row, column].Value = Convert.ToInt32(treatmentLength);
                     row++;
