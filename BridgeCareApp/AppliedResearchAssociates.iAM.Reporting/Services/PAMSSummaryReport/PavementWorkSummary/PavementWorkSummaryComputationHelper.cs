@@ -187,7 +187,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             _.LocationKeys["CRS"] == crs);
                         var projectSource = committedProject?.ProjectSource.ToString();
                         var segmentLength = section.ValuePerNumericAttribute["SEGMENT_LENGTH"];
-                        var sectionMiles = segmentLength.FeetToMiles(); // Convert.ToInt32(segmentLength.FeetToMiles());
+                        var sectionMiles = segmentLength.FeetToMiles();
                         if (!yearlyCostCommittedProj[yearData.Year].TryGetValue(appliedTreatment, out var value))
                         {
                             var committedProjectMetaData = new List<CommittedProjectMetaData>() {
@@ -316,7 +316,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             var appliedTreatment = section.AppliedTreatment;
             var compositeTreatmentCost = surfaceId == 62 ? cost : 0;
             var segmentLength = section.ValuePerNumericAttribute["SEGMENT_LENGTH"];
-            var segmentLengthInMiles = segmentLength.FeetToMiles(); // Convert.ToInt32(segmentLength.FeetToMiles());
+            var segmentLengthInMiles = segmentLength.FeetToMiles();
             if (!costLengthPerSurfaceIdPerTreatmentPerYear[year].ContainsKey(appliedTreatment))
             {
                 costLengthPerSurfaceIdPerTreatmentPerYear[year].Add(appliedTreatment,

@@ -86,7 +86,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
             foreach (var yearlyItem in yearlyCostCommittedProj)
             {
-                int totalLength = 0;
+                decimal totalLength = 0;
                 row = currentCell.Row;
 
                 foreach (var data in yearlyItem.Value)
@@ -97,25 +97,25 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         {
                             var key = data.Key.Contains("Bundle") ? data.Key : committedProjectMetaData.TreatmentCategory;
                             var cellToEnterCost = yearlyItem.Key - startYear;
-                            var sectionMiles = Convert.ToInt32(committedProjectMetaData.SectionMiles);
+                            var sectionMiles = Convert.ToDecimal(committedProjectMetaData.SectionMiles);
                             if (!uniqueTreatments.TryGetValue(key, out var value))
                             {
                                 uniqueTreatments.Add(key, currentCell.Row);
-                                worksheet.Cells[row++, column].Value = key;                                
-                                worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value = sectionMiles;                               
+                                worksheet.Cells[row++, column].Value = key;
+                                worksheet.Cells[uniqueTreatments[key], column + cellToEnterCost + 2].Value = sectionMiles;
                                 currentCell.Row += 1;
                             }
                             else
                             {                                
                                 var currentValue = worksheet.Cells[value, column + cellToEnterCost + 2].Value;
-                                decimal toAdd = currentValue == null ? 0 : Convert.ToInt32(currentValue);
-                                worksheet.Cells[value, column + cellToEnterCost + 2].Value = sectionMiles + toAdd;
+                                decimal toAdd = currentValue == null ? 0 : Convert.ToDecimal(currentValue);
+                                worksheet.Cells[value, column + cellToEnterCost + 2].Value = Convert.ToDecimal(sectionMiles + toAdd);
                             }
                             totalLength += sectionMiles;
                         }
                     }
                 }
-                TotalCommittedLength.Add(yearlyItem.Key, totalLength);
+                TotalCommittedLength.Add(yearlyItem.Key, Convert.ToInt32(totalLength));
             }
 
             column = currentCell.Column;
@@ -135,6 +135,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, endColumn]);
             ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, row, endColumn], Color.FromArgb(180, 198, 231)); // treatment rows
+            ExcelHelper.SetCustomFormat(worksheet.Cells[startRow, fromColumn, row, endColumn], ExcelHelperCellFormat.Number);
             ExcelHelper.ApplyColor(worksheet.Cells[committedLengthTotalRow, fromColumn, committedLengthTotalRow, endColumn], Color.FromArgb(132, 151, 176)); // total row
 
             _pavementWorkSummaryCommon.UpdateCurrentCell(currentCell, ++row, endColumn);

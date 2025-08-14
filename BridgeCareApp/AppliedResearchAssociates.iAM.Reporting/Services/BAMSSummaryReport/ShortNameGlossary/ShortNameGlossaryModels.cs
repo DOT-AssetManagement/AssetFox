@@ -40,9 +40,5 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Sho
                 StartRow = 1,
                 StartColumn = 1
             };
-
-        // TODO
-        //        Add disclaimer text in the output reports - BAMS and PAMS summary reports.It will be in the lower portion of the legend section.
-        //(Justin wants in the latest build)
     }
 }
