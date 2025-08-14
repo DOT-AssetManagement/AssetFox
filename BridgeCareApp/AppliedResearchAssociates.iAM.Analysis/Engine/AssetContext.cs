@@ -342,47 +342,14 @@ internal sealed class AssetContext : CalculateEvaluateScope
         ConcurrentDictionary<string, object> analyzedItems,
         ConcurrentDictionary<string, ConcurrentDictionary<string, object>> dependentsPerAttributeName,
         string itemToAnalyze,
-        IEnumerable<string> directDependencies)
+        IEnumerable<string> immediateDependencies)
     {
         if (analyzedItems.TryAdd(itemToAnalyze, default))
         {
-            // Determine all direct and indirect attribute dependencies of the item.
-
-            Stack<string> dependenciesToAnalyze;
-            if (directDependencies is null)
-            {
-                dependenciesToAnalyze = new();
-                dependenciesToAnalyze.Push(itemToAnalyze);
-            }
-            else
-            {
-                dependenciesToAnalyze = new(directDependencies);
-            }
-
-            HashSet<string> dependencies = new();
-
-            while (dependenciesToAnalyze.TryPop(out var dependency))
-            {
-                if (dependencies.Add(dependency) &&
-                    SimulationRunner.CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
-                {
-                    foreach (var valueSource in calculatedField.ValueSources)
-                    {
-                        foreach (var reference in valueSource.Criterion.ReferencedParameters)
-                        {
-                            dependenciesToAnalyze.Push(reference);
-                        }
-
-                        foreach (var reference in valueSource.Equation.ReferencedParameters)
-                        {
-                            dependenciesToAnalyze.Push(reference);
-                        }
-                    }
-                }
-            }
+            immediateDependencies ??= new[] { itemToAnalyze };
+            var dependencies = SimulationRunner.GetTerminalDependencies(immediateDependencies);
 
             // Register the item as a dependent of each of its attribute dependencies.
-
             foreach (var dependency in dependencies)
             {
                 var dependents = dependentsPerAttributeName.GetOrAdd(dependency,

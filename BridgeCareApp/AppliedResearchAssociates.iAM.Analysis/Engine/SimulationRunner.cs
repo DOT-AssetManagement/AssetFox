@@ -231,6 +231,8 @@ public sealed class SimulationRunner
 
         ObjectiveFunction = Simulation.AnalysisMethod.ObjectiveFunction;
 
+        AnalyzeDependenciesOfPerformanceCurveCriteria();
+
         Simulation.ClearResults();
 
         SimulationOutput output = new();
@@ -410,7 +412,63 @@ public sealed class SimulationRunner
 
     internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
 
-    internal bool AnyPerformanceCurveCriterionDependsOnAnyDeterioratingAttribute;
+    #region supporting fields and logic for caching logic
+
+    internal bool AnyPerformanceCurveCriterionDependsOnAnyDeterioratingAttribute = false;
+
+    internal HashSet<string> GetTerminalDependencies(IEnumerable<string> immediateDependencies)
+    {
+        HashSet<string> dependencies = new();
+
+        Stack<string> dependenciesToAnalyze = new(immediateDependencies);
+
+        while (dependenciesToAnalyze.TryPop(out var dependency))
+        {
+            if (CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
+            {
+                foreach (var valueSource in calculatedField.ValueSources)
+                {
+                    foreach (var reference in valueSource.Criterion.ReferencedParameters)
+                    {
+                        dependenciesToAnalyze.Push(reference);
+                    }
+
+                    foreach (var reference in valueSource.Equation.ReferencedParameters)
+                    {
+                        dependenciesToAnalyze.Push(reference);
+                    }
+                }
+            }
+            else
+            {
+                // The dependency is terminal.
+                _ = dependencies.Add(dependency);
+            }
+        }
+
+        return dependencies;
+    }
+
+    private void AnalyzeDependenciesOfPerformanceCurveCriteria()
+    {
+        var attributesDirectlySubjectToDeterioration =
+            Simulation.PerformanceCurves
+            .Select(curve => curve.Attribute.Name)
+            .ToHashSet();
+
+        foreach (var curve in Simulation.PerformanceCurves)
+        {
+            var dependencies = GetTerminalDependencies(curve.Criterion.ReferencedParameters);
+            dependencies.IntersectWith(attributesDirectlySubjectToDeterioration);
+            if (dependencies.Count > 0)
+            {
+                AnyPerformanceCurveCriterionDependsOnAnyDeterioratingAttribute = true;
+                break;
+            }
+        }
+    }
+
+    #endregion
 
     #region supporting data structures for refined invalidation of numeric cache
 
