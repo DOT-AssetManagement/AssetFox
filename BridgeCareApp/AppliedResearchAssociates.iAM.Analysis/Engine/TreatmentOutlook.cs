@@ -207,7 +207,7 @@ internal sealed class TreatmentOutlook
                 // user to configure the simulation such that no treatment can change such
                 // attributes, in which case (a) this cache couldn't be invalidated and (b) clearing
                 // this cache wouldn't be necessary.
-                performanceCurveCriterionEvaluationCache.Clear();
+                performanceCurveCriterionEvaluationCache?.Clear();
             }
             else if (!SimulationRunner.Simulation.ShouldPreapplyPassiveTreatment)
             {
