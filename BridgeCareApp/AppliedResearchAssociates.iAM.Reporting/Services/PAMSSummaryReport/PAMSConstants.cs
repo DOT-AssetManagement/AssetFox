@@ -61,6 +61,8 @@
         public const string ConcreteTotal = "PAMS Concrete Total";
         public const string CommittedTotal = "Committed Total";
         public const string MpmsTotal = "MPMS Total";
+        public const string SapTotal = "SAP Total";
+        public const string ProjectBuilderTotal = "Project Builder Total";
         public const string OPICalculationsTab = "Condition Data";
 
         public const string TotalWorkBudget = "Total Work Budget";
@@ -88,6 +90,6 @@
         public const string Bundled = "Bundled";
         public const string BundledTreatments = "Bundled Treatments";
         public const string Asphalt = "asphalt";
-        public const string Concrete = "concrete";
+        public const string Concrete = "concrete";        
     }
 }

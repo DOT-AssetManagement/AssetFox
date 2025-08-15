@@ -7,4 +7,6 @@ public class CommittedProjectMetaData
     public string ProjectSource { get; set; }
 
     public string TreatmentCategory { get; set; }
+
+    public double SectionMiles { get; set; }
 }

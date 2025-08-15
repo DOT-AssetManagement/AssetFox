@@ -144,7 +144,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             {
                 costLengthPerSurfaceIdPerTreatmentPerYear.Add(yearData.Year, new Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>());
                 costAndLengthPerTreatmentGroupPerYear.Add(yearData.Year, new Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>());
-                yearlyCostCommittedProj[yearData.Year] = new Dictionary<string, List<CommittedProjectMetaData>>();
+
+                yearlyCostCommittedProj[yearData.Year] = [];
+
                 foreach (var section in yearData.Assets)
                 {
                     var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
@@ -184,12 +186,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             _.ProjectSource.ToString() == section.ProjectSource &&
                             _.LocationKeys["CRS"] == crs);
                         var projectSource = committedProject?.ProjectSource.ToString();
+                        var segmentLength = section.ValuePerNumericAttribute["SEGMENT_LENGTH"];
+                        var sectionMiles = segmentLength.FeetToMiles();
                         if (!yearlyCostCommittedProj[yearData.Year].TryGetValue(appliedTreatment, out var value))
                         {
                             var committedProjectMetaData = new List<CommittedProjectMetaData>() {
                                                                 new() { TreatmentCost = cost,
                                                                     ProjectSource = projectSource,
-                                                                    TreatmentCategory = treatmentCategory
+                                                                    TreatmentCategory = treatmentCategory,
+                                                                    SectionMiles = sectionMiles
                                                                 }};
                             yearlyCostCommittedProj[yearData.Year].Add(appliedTreatment, committedProjectMetaData);
                         }
@@ -199,7 +204,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             {
                                 TreatmentCost = cost,
                                 ProjectSource = projectSource,
-                                TreatmentCategory = treatmentCategory // Should this be committed proj's category in future - current working is correct per PAMS
+                                TreatmentCategory = treatmentCategory, // Should this be committed proj's category in future - current working is correct per PAMS
+                                SectionMiles = sectionMiles
                             });
                         }
 
@@ -277,7 +283,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             }
         }
 
-        private void PopulateTreatmentGroupCostAndLength(
+        private static void PopulateTreatmentGroupCostAndLength(
             YearsData yearsData,
             Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>> costAndLengthPerTreatmentPerYear,
             List<(string TreatmentName, string AssetType, TreatmentCategory Category)> simulationTreatments)
@@ -336,7 +342,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             }
         }
 
-        private void PopulateTreatmentGroupCostAndLength(
+        private static void PopulateTreatmentGroupCostAndLength(
             int year,
             AssetDetail section,
             decimal cost,
@@ -438,8 +444,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     }
                 }
 
-                // Add committed projs to Work Type Totals categories, add 0 for lengths for now!
-                // TODO: question do we need lengths here? If yes we may need to add that to CommittedProjectMetaData and hydrate it initially
+                // Add committed projs to Work Type Totals categories
                 var yearlyCostCommittedProjValue = yearlyCostCommittedProj[yearlyValues.Key];
                 foreach (var committedProjectMetaDataSet in yearlyCostCommittedProjValue.Values)
                 {
@@ -448,11 +453,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         _ = Enum.TryParse(committedProjectMetaData.TreatmentCategory, out TreatmentCategory category);
                         category = SummaryReportHelper.GetCategory(category);
                         var cost = committedProjectMetaData.TreatmentCost;
+                        var length = committedProjectMetaData.SectionMiles; // Convert.ToInt32(committedProjectMetaData.SectionMiles);
                         if (!workTypeTotals.TryGetValue(category, out var keyValues))
                         {
                             workTypeTotals.Add(category, new SortedDictionary<int, (decimal treatmentCost, double length)>()
                         {
-                                { yearlyValues.Key, (cost, 0) }
+                                { yearlyValues.Key, (cost, length) }
                             });
                         }
                         else
@@ -463,7 +469,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             }
                             var value = keyValues[yearlyValues.Key];
                             value.treatmentCost += cost;
-                            value.length += 0;
+                            value.length += length;
                             keyValues[yearlyValues.Key] = value;
                         }
                     }
