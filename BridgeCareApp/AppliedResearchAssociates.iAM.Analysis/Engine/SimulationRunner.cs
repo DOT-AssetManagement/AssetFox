@@ -463,7 +463,7 @@ public sealed class SimulationRunner
             if (dependencies.Count > 0)
             {
                 var deterioratingDependencies = string.Join(", ", dependencies.OrderBy(name => name));
-                var messageDetail = $"A performance curve for attribute {curve.Attribute.Name} depends on other deteriorating attributes ({deterioratingDependencies}). Specialized caching of curve criteria during treatment outlook will be disabled.";
+                var messageDetail = $"A performance curve for attribute {curve.Attribute.Name} has a criterion that depends on other deteriorating attributes ({deterioratingDependencies}). Specialized caching of curve criteria during treatment outlook will be disabled.";
                 MessageBuilder = new SimulationMessageBuilder(messageDetail)
                 {
                     ItemName = curve.Attribute.Name,
