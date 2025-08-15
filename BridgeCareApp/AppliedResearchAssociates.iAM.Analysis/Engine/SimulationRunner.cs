@@ -418,7 +418,7 @@ public sealed class SimulationRunner
 
     internal HashSet<string> GetTerminalDependencies(IEnumerable<string> immediateDependencies)
     {
-        HashSet<string> dependencies = new();
+        HashSet<string> terminalDependencies = new();
 
         Stack<string> dependenciesToAnalyze = new(immediateDependencies);
 
@@ -441,12 +441,11 @@ public sealed class SimulationRunner
             }
             else
             {
-                // The dependency is terminal.
-                _ = dependencies.Add(dependency);
+                _ = terminalDependencies.Add(dependency);
             }
         }
 
-        return dependencies;
+        return terminalDependencies;
     }
 
     private void AnalyzeDependenciesOfPerformanceCurveCriteria()
