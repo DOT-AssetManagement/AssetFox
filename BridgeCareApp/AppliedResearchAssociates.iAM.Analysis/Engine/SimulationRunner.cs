@@ -462,6 +462,17 @@ public sealed class SimulationRunner
             dependencies.IntersectWith(attributesDirectlySubjectToDeterioration);
             if (dependencies.Count > 0)
             {
+                var deterioratingDependencies = string.Join(", ", dependencies.OrderBy(name => name));
+                var messageDetail = $"A performance curve for attribute {curve.Attribute.Name} depends on other deteriorating attributes ({deterioratingDependencies}). Specialized caching of curve criteria during treatment outlook will be disabled.";
+                MessageBuilder = new SimulationMessageBuilder(messageDetail)
+                {
+                    ItemName = curve.Attribute.Name,
+                    ItemId = curve.Id,
+                };
+
+                var warning = SimulationLogMessageBuilders.RuntimeWarning(MessageBuilder, Simulation.Id);
+                Send(warning);
+
                 AnyPerformanceCurveCriterionDependsOnAnyDeterioratingAttribute = true;
                 break;
             }
