@@ -61,9 +61,9 @@ internal sealed class AssetContext : CalculateEvaluateScope
         ApplyTreatment(SimulationRunner.Simulation.DesignatedPassiveTreatment, year);
     }
 
-    public void ApplyPerformanceCurves(Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
+    public void ApplyPerformanceCurves()
     {
-        var calculatorPerAttribute = GetPerformanceCurveCalculatorPerAttribute(performanceCurveCriterionEvaluationCache);
+        var calculatorPerAttribute = GetPerformanceCurveCalculatorPerAttribute();
 
         var dataUpdates = calculatorPerAttribute.Select(kv => (kv.Key, kv.Value())).ToArray();
 
@@ -218,19 +218,9 @@ internal sealed class AssetContext : CalculateEvaluateScope
         Detail.TreatmentStatus = TreatmentStatus.Progressed;
     }
 
-    public void PrepareForTreatment(int year)
-        => PrepareForTreatment(year, false, null);
+    public void PrepareForTreatment(int year) => PrepareForTreatment(year, false);
 
     public void PrepareForTreatment(int year, bool historicalFallForward)
-        => PrepareForTreatment(year, historicalFallForward, null);
-
-    public void PrepareForTreatment(int year, Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
-        => PrepareForTreatment(year, false, performanceCurveCriterionEvaluationCache);
-
-    public void PrepareForTreatment(
-        int year,
-        bool historicalFallForward,
-        Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
     {
         FixCalculatedFieldValuesWithPreDeteriorationTiming();
 
@@ -239,7 +229,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
             FixCalculatedFieldValuesWithoutPreDeteriorationTiming();
         }
 
-        ApplyPerformanceCurves(performanceCurveCriterionEvaluationCache);
+        ApplyPerformanceCurves();
 
         if (SimulationRunner.Simulation.ShouldPreapplyPassiveTreatment)
         {
@@ -320,7 +310,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     public bool YearIsWithinShadowForSameTreatment(int year, Treatment treatment) => FirstUnshadowedYearForSameTreatment.TryGetValue(treatment.Name, out var firstUnshadowedYear) && year < firstUnshadowedYear;
 
-    private readonly Dictionary<string, bool?> EvaluationCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, bool?> EvaluationCache = new(ReferenceEqualityComparer.Instance);
 
     private readonly Dictionary<string, int> FirstUnshadowedYearForSameTreatment = new();
 
@@ -347,7 +337,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
         if (analyzedItems.TryAdd(itemToAnalyze, default))
         {
             immediateDependencies ??= new[] { itemToAnalyze };
-            var dependencies = SimulationRunner.GetTerminalDependencies(immediateDependencies);
+            var dependencies = GetTerminalDependencies(immediateDependencies);
 
             // Register the item as a dependent of each of its attribute dependencies.
             foreach (var dependency in dependencies)
@@ -358,6 +348,38 @@ internal sealed class AssetContext : CalculateEvaluateScope
                 _ = dependents.TryAdd(itemToAnalyze, default);
             }
         }
+    }
+
+    private HashSet<string> GetTerminalDependencies(IEnumerable<string> immediateDependencies)
+    {
+        HashSet<string> terminalDependencies = new();
+
+        Stack<string> dependenciesToAnalyze = new(immediateDependencies);
+
+        while (dependenciesToAnalyze.TryPop(out var dependency))
+        {
+            if (SimulationRunner.CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
+            {
+                foreach (var valueSource in calculatedField.ValueSources)
+                {
+                    foreach (var reference in valueSource.Criterion.ReferencedParameters)
+                    {
+                        dependenciesToAnalyze.Push(reference);
+                    }
+
+                    foreach (var reference in valueSource.Equation.ReferencedParameters)
+                    {
+                        dependenciesToAnalyze.Push(reference);
+                    }
+                }
+            }
+            else
+            {
+                _ = terminalDependencies.Add(dependency);
+            }
+        }
+
+        return terminalDependencies;
     }
 
     private void ApplyTreatmentButNotMetadata(Treatment treatment)
@@ -498,36 +520,14 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private void FixCalculatedFieldValuesWithPreDeteriorationTiming() => FixCalculatedFieldValues(SimulationRunner.CalculatedFieldsWithPreDeteriorationTiming);
 
-    private Func<double> GetCalculator(KeyValuePair<NumberAttribute, PerformanceCurve[]> curves, Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
+    private Func<double> GetCalculator(KeyValuePair<NumberAttribute, PerformanceCurve[]> curves)
     {
         List<PerformanceCurve> applicableCurves = new();
         List<PerformanceCurve> defaultCurves = new();
 
-        Func<PerformanceCurve, bool?>
-            evaluateCriterionWithoutCache,
-            evaluateCriterionWithCache;
-
-        evaluateCriterionWithoutCache = curve => Evaluate(curve.Criterion);
-
-        evaluateCriterionWithCache = curve =>
-        {
-            if (!performanceCurveCriterionEvaluationCache.TryGetValue(curve, out var evaluation))
-            {
-                evaluation = Evaluate(curve.Criterion);
-                performanceCurveCriterionEvaluationCache.Add(curve, evaluation);
-            }
-
-            return evaluation;
-        };
-
-        var evaluateCriterion =
-            performanceCurveCriterionEvaluationCache is null
-            ? evaluateCriterionWithoutCache
-            : evaluateCriterionWithCache;
-
         foreach (var curve in curves.Value)
         {
-            var evaluation = evaluateCriterion(curve);
+            var evaluation = Evaluate(curve.Criterion);
 
             if (!evaluation.HasValue)
             {
@@ -572,10 +572,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
             : () => operativeCurves.Max(CalculateValueOnCurve);
     }
 
-    private IDictionary<string, Func<double>> GetPerformanceCurveCalculatorPerAttribute(Dictionary<PerformanceCurve, bool?> performanceCurveCriterionEvaluationCache)
-        => SimulationRunner.CurvesPerAttribute.ToDictionary(
-            curves => curves.Key.Name,
-            curves => GetCalculator(curves, performanceCurveCriterionEvaluationCache));
+    private IDictionary<string, Func<double>> GetPerformanceCurveCalculatorPerAttribute()
+        => SimulationRunner.CurvesPerAttribute.ToDictionary(curves => curves.Key.Name, GetCalculator);
 
     private void HandleTreatmentDuringRollForward(ConcurrentBag<RollForwardEventDetail> rollForwardEvents, int year, bool historicalFallForward)
     {
