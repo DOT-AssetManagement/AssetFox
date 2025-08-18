@@ -49,23 +49,6 @@
                         density="compact">
                     </v-select>                           
                 </v-col>
-                <v-col cols="4">
-                    <v-subheader class="ghd-md-gray ghd-control-label">
-                        Aggregation Rule
-                    </v-subheader>
-                    <v-select
-                        item-title="text"
-                        item-value="value"
-                        menu-icon=custom:GhdDownSvg
-                        id="Attributes-attributeAggregationRule-vselect"
-                        variant="outlined"
-                        class="ghd-select ghd-text-field ghd-text-field-border"
-                        :items='aggregationRuleSelectValues'
-                        v-model='selectedAttribute.aggregationRuleType'
-                        @update:model-value="onSetSelectedAttributeProperty('aggregationRuleType',$event)"
-                        density="compact">
-                    </v-select>                           
-                </v-col>
             </v-row>
         </v-col>
         <v-col cols="12" v-if="hasSelectedAttribute">
@@ -228,8 +211,7 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
     let hasSelectedAttribute = ref<boolean>(false);
     let hasEmptyDataSource: boolean = true;
     let selectAttributeItemValue = ref<string | null>(null);
-    let selectDatasourceItemValue = ref<string | null>(null);
-    let selectAggregationRuleTypeItems: SelectItem[] = [];
+    let selectDatasourceItemValue = ref<string | null>(null);    
     let selectExcelColumns = ref<SelectItem[]>([]);
     let selectedAttribute = ref<Attribute>(clone(emptyAttribute));
     let selectedDataSource: Datasource | undefined = clone(emptyDatasource);
@@ -239,17 +221,14 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
     let commandIsValid = ref<boolean>(true);
     let checkedCommand = ref<string>('');
     let setForAllAttributes = ref<boolean>(false);
-
-    let aggregationRuleSelectValues = ref<SelectItem[]>([]);    
+    
     let typeSelectValues = ref<SelectItem[]>([
         {text: 'STRING', value: 'STRING'},
         {text: 'NUMBER', value: 'NUMBER'}
     ]);
 
     let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes) ;
-    let stateDataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;    
-    let stateAggregationRules = computed<RuleDefinition[]>(() => store.state.attributeModule.aggregationRules) ;
-    let stateAggregationRulesForType = computed<string[]>(() => store.state.attributeModule.aggregationRulesForType) ;
+    let stateDataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;        
     let stateAttributeDataSourceTypes = computed<string[]>(() => store.state.attributeModule.attributeDataSourceTypes) ;
     let excelColumns = computed<RawDataColumns>(() => store.state.datasourceModule.excelColumns) ;
     let stateSelectedAttribute = computed<Attribute>(() => store.state.attributeModule.selectedAttribute) ;
@@ -260,9 +239,7 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
     
     async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
     async function getAttributes(payload?: any): Promise<any> {await store.dispatch('getAttributes', payload);}
-    async function getDataSourcesAction(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}
-    async function getAttributeAggregationRulesAction(payload?: any): Promise<any> {await store.dispatch('getAttributeAggregationRules', payload);}
-    async function getAggregationRulesForTypeAction(payload?: any): Promise<any> {await store.dispatch('getAggregationRulesForType', payload);}
+    async function getDataSourcesAction(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}    
     async function getAttributeDataSourceTypes(payload?: any): Promise<any> {await store.dispatch('getAttributeDataSourceTypes', payload);}
     async function getExcelSpreadsheetColumnHeadersAction(payload?: any): Promise<any> {await store.dispatch('getExcelSpreadsheetColumnHeaders', payload);}
     function selectAttributeAction(payload?: any) { store.dispatch('selectAttribute', payload);}
@@ -273,8 +250,7 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 
     created()
     function created() {
-        getAttributes();
-        getAttributeAggregationRulesAction();
+        getAttributes();        
         getAttributeDataSourceTypes();
         getDataSourcesAction();
     }
@@ -307,18 +283,9 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
     
     watch(selectedAttribute, () =>  {
         const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedAttribute.value, stateSelectedAttribute.value);
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
-
-        getAggregationRulesForTypeAction(selectedAttribute.value.type)
+        setHasUnsavedChangesAction({ value: hasUnsavedChanges });        
     })
-
-    watch(stateAggregationRulesForType, () => {
-        aggregationRuleSelectValues.value = stateAggregationRulesForType.value.map((rule: string) => ({
-            text: rule,
-            value: rule,
-        }));
-    })
-
+    
     watch(selectDatasourceItemValue, () => {
         if (any(propEq('id', selectDatasourceItemValue.value), stateDataSources.value)) {
             let ds = find(
@@ -405,8 +372,7 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 
     function disableCrudButtons() {
         let allValid = rules['generalRules'].valueIsNotEmpty(selectedAttribute.value.name) === true
-            && rules['generalRules'].valueIsNotEmpty(selectedAttribute.value.type) === true
-            && rules['generalRules'].valueIsNotEmpty(selectedAttribute.value.aggregationRuleType) === true
+            && rules['generalRules'].valueIsNotEmpty(selectedAttribute.value.type) === true            
             && rules['generalRules'].valueIsNotEmpty(selectedAttribute.value.defaultValue) === true
             && rules['generalRules'].valueIsNotEmpty(selectedAttribute.value.isCalculated) === true
             && rules['generalRules'].valueIsNotEmpty(selectedAttribute.value.isAscending) === true
