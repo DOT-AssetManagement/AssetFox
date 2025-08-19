@@ -206,13 +206,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "RISK_SCORE"); //Risk Score
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "DET_LENGTH"); //Detour Length
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "DETOUR_LENGTH"); //Detour Length
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "POST_STATUS") == 0 ? "OPEN" : "POSTED"; //Posting Status
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "POST_STATUS"); //Posting Status
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "SUFF_RATING"); //Suff Rating
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "SUFF_RATE"); //Suff Rating
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
                 worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "LeakingJnts"); //Leaking Joints
