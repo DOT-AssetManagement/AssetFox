@@ -654,16 +654,105 @@ public sealed class SimulationRunner
             }
         });
 
-        if (SpendingLimit != SpendingLimit.Zero && !ConditionGoalsAreMet(year))
+        if (SpendingLimit == SpendingLimit.Zero || ConditionGoalsAreMet(year))
         {
-            foreach (var priority in BudgetPrioritiesPerYear[year])
+            return;
+        }
+
+        List<Action> assetGroupFundingCancellationActions;
+        List<IEnumerable<TreatmentOption>> optionsByGroup, optionsByGroupAndTreatment;
+
+        if (Simulation.AssetGroupAttribute is null)
+        {
+            assetGroupFundingCancellationActions = null;
+
+            optionsByGroup = null;
+            optionsByGroupAndTreatment = null;
+        }
+        else
+        {
+            assetGroupFundingCancellationActions = new();
+
+            // reorder/reconstruct sequence of options
+            optionsByGroup = new();
+            optionsByGroupAndTreatment = new();
+        }
+
+        foreach (var context in BudgetContexts)
+        {
+            context.CostDeallocations = assetGroupFundingCancellationActions;
+        }
+
+        foreach (var priority in BudgetPrioritiesPerYear[year])
+        {
+            foreach (var context in BudgetContexts)
             {
-                foreach (var context in BudgetContexts)
+                context.SetPriority(priority);
+            }
+
+            var terminateConsiderations = false;
+
+            if (Simulation.AssetGroupAttribute is null)
+            {
+                considerGroup(treatmentOptions,
+                    ReasonForCancellationOfFunding.None);
+
+                if (terminateConsiderations)
                 {
-                    context.SetPriority(priority);
+                    break;
+                }
+            }
+            else
+            {
+                considerGroups(optionsByGroupAndTreatment,
+                    ReasonForCancellationOfFunding.CouldNotSelectSameTreatmentForAllOpenAssetsInGroup);
+
+                if (terminateConsiderations)
+                {
+                    break;
                 }
 
-                foreach (var option in treatmentOptions)
+                considerGroups(optionsByGroup,
+                    ReasonForCancellationOfFunding.CouldNotSelectTreatmentsForAllOpenAssetsInGroup);
+
+                if (terminateConsiderations)
+                {
+                    break;
+                }
+            }
+
+            void considerGroups(
+                List<IEnumerable<TreatmentOption>> optionGroups,
+                ReasonForCancellationOfFunding reasonIfFundingIsCancelled)
+            {
+                foreach (var options in optionGroups)
+                {
+                    considerGroup(options, reasonIfFundingIsCancelled);
+
+                    // check whether we need to cancel this group's fundings.
+                    if (false)
+                    {
+                        foreach (var cancellationAction in assetGroupFundingCancellationActions)
+                        {
+                            cancellationAction();
+                        }
+                    }
+
+                    assetGroupFundingCancellationActions.Clear();
+
+                    if (ConditionGoalsAreMet(year))
+                    {
+                        terminateConsiderations = true;
+                        return;
+                    }
+                }
+            }
+
+            void considerGroup(
+                IEnumerable<TreatmentOption> options,
+                ReasonForCancellationOfFunding reasonIfFundingIsCancelled)
+            {
+                foreach (var option in options)
                 {
                     var optionContextIsPending = workingContextPerBaselineContext.TryGetValue(option.Context, out var workingContext);
                     if (optionContextIsPending && priority.Criterion.EvaluateOrDefault(workingContext))
@@ -683,10 +772,29 @@ public sealed class SimulationRunner
                         }
                         else
                         {
+                            if (Simulation.AssetGroupAttribute is not null)
+                            {
+                                AssetContext workingContextIfFundingIsCancelled = new(workingContext);
+                                workingContextIfFundingIsCancelled.CopyDetailFrom(workingContext);
+
+                                assetGroupFundingCancellationActions.Add(() =>
+                                {
+                                    considerationDetail.ReasonForCancellationOfFunding = reasonIfFundingIsCancelled;
+                                    option.Context.Detail.TreatmentConsiderations.Add(considerationDetail);
+
+                                    workingContextPerBaselineContext.Add(
+                                        option.Context,
+                                        workingContextIfFundingIsCancelled);
+
+                                    _ = AssetContexts.Remove(workingContext);
+                                    _ = AssetContexts.Add(option.Context);
+                                });
+                            }
+
                             _ = workingContextPerBaselineContext.Remove(option.Context);
 
                             _ = AssetContexts.Remove(option.Context);
-                            AssetContexts.Add(workingContext);
+                            _ = AssetContexts.Add(workingContext);
 
                             workingContext.Detail.TreatmentCause = TreatmentCause.SelectedTreatment;
 
@@ -695,8 +803,9 @@ public sealed class SimulationRunner
                                 _ = workingContext.EventSchedule.TryAdd(year, option.CandidateTreatment);
                                 workingContext.ApplyTreatment(option.CandidateTreatment, year);
 
-                                if (ConditionGoalsAreMet(year))
+                                if (Simulation.AssetGroupAttribute is null && ConditionGoalsAreMet(year))
                                 {
+                                    terminateConsiderations = true;
                                     return;
                                 }
                             }
