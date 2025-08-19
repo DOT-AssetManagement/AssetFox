@@ -30,8 +30,6 @@ public sealed class Criterion : CompilableExpression
         return Evaluator?.Delegate(scope);
     }
 
-    public bool EvaluateOrDefault(CalculateEvaluateScope scope) => Evaluate(scope) ?? true;
-
     protected override void Compile()
     {
         if (ExpressionIsBlank)

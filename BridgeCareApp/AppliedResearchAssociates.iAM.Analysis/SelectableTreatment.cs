@@ -215,7 +215,7 @@ public sealed class SelectableTreatment : Treatment
 
     internal override double GetCost(AssetContext scope, bool shouldApplyMultipleFeasibleCosts)
     {
-        var feasibleCosts = Costs.Where(cost => cost.Criterion.EvaluateOrDefault(scope)).ToArray();
+        var feasibleCosts = Costs.Where(cost => scope.EvaluateOrDefault(cost.Criterion)).ToArray();
         if (feasibleCosts.Length == 0)
         {
             // [REVIEW] Is it correct to default to zero-cost when there are no feasible cost equations?
@@ -229,7 +229,7 @@ public sealed class SelectableTreatment : Treatment
 
     internal override IEnumerable<TreatmentScheduling> GetSchedulings() => Schedulings;
 
-    internal bool IsFeasible(AssetContext scope) => FeasibilityCriteria.Any(feasibility => feasibility.EvaluateOrDefault(scope));
+    internal bool IsFeasible(AssetContext scope) => FeasibilityCriteria.Any(scope.EvaluateOrDefault);
 
     internal void SetConsequencesPerAttribute() => ConsequencesPerAttribute = Consequences.ToLookup(c => c.Attribute);
 

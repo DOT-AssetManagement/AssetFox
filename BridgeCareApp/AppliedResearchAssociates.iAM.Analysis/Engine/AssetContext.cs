@@ -117,6 +117,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
         return result;
     }
 
+    public bool EvaluateOrDefault(Criterion criterion) => Evaluate(criterion) ?? true;
+
     public (double rawBenefit, double lruBenefit, double weight, double benefit) GetBenefitData()
     {
         var rawBenefit = GetNumber(AnalysisMethod.Benefit.Attribute.Name);

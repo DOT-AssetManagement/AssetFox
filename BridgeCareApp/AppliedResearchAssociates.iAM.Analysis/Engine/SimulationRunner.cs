@@ -185,7 +185,7 @@ public sealed class SimulationRunner
         {
             AssetContexts = Simulation.Network.Assets
                 .Select(asset => new AssetContext(asset, this))
-                .Where(context => Simulation.AnalysisMethod.Filter.EvaluateOrDefault(context))
+                .Where(context => context.EvaluateOrDefault(Simulation.AnalysisMethod.Filter))
                 .ToSortedSet(SelectionComparer<AssetContext>.Create(context => context.Asset.Id));
         }
         else
@@ -194,7 +194,7 @@ public sealed class SimulationRunner
                 .AsParallel()
                 .WithDegreeOfParallelism(MaxThreadsForSimulation)
                 .Select(asset => new AssetContext(asset, this))
-                .Where(context => Simulation.AnalysisMethod.Filter.EvaluateOrDefault(context))
+                .Where(context => context.EvaluateOrDefault(Simulation.AnalysisMethod.Filter))
                 .ToSortedSet(SelectionComparer<AssetContext>.Create(context => context.Asset.Id));
         }
 
@@ -711,7 +711,7 @@ public sealed class SimulationRunner
                 foreach (var option in treatmentOptions)
                 {
                     var optionContextIsPending = workingContextPerBaselineContext.TryGetValue(option.Context, out var workingContext);
-                    if (optionContextIsPending && priority.Criterion.EvaluateOrDefault(workingContext))
+                    if (optionContextIsPending && workingContext.EvaluateOrDefault(priority.Criterion))
                     {
                         var costCoverage = TryToPayForTreatment(
                             workingContext,
@@ -817,7 +817,7 @@ public sealed class SimulationRunner
             {
                 var remainingLifeCalculatorFactories = Enumerable.ToArray(
                     from limit in Simulation.AnalysisMethod.RemainingLifeLimits
-                    where limit.Criterion.EvaluateOrDefault(context)
+                    where context.EvaluateOrDefault(limit.Criterion)
                     group limit.Value by limit.Attribute into attributeLimitValues
                     select new RemainingLifeCalculator.Factory(attributeLimitValues));
 
@@ -906,7 +906,7 @@ public sealed class SimulationRunner
             var supersededTreatmentsQuery =
                 from treatment in treatments
                 from supersedeRule in treatment.SupersedeRules
-                where supersedeRule.Criterion.EvaluateOrDefault(context)
+                where context.EvaluateOrDefault(supersedeRule.Criterion)
                 select supersedeRule.Treatment;
 
             var supersededTreatments = supersededTreatmentsQuery.ToHashSet();
@@ -985,7 +985,7 @@ public sealed class SimulationRunner
         if (DisableParallelism)
         {
             return AssetContexts
-                .Where(context => goal.Criterion.EvaluateOrDefault(context))
+                .Where(context => context.EvaluateOrDefault(goal.Criterion))
                 .ToArray();
         }
         else
@@ -993,7 +993,7 @@ public sealed class SimulationRunner
             return AssetContexts
                 .AsParallel()
                 .WithDegreeOfParallelism(MaxThreadsForSimulation)
-                .Where(context => goal.Criterion.EvaluateOrDefault(context))
+                .Where(context => context.EvaluateOrDefault(goal.Criterion))
                 .ToArray();
         }
     }
@@ -1154,7 +1154,7 @@ public sealed class SimulationRunner
 
             var budgetConditionIsMet =
                 !ConditionsPerBudget.TryGetValue(budgetContext.Budget, out var budgetConditions) ||
-                budgetConditions.Any(condition => condition.Criterion.EvaluateOrDefault(assetContext));
+                budgetConditions.Any(condition => assetContext.EvaluateOrDefault(condition.Criterion));
 
             for (var t = 0; t < treatmentsToFund.Count; ++t)
             {
@@ -1190,7 +1190,7 @@ public sealed class SimulationRunner
         {
             var cashFlowConsideration = treatmentConsideration.CashFlowConsiderations.GetAdd(new(cashFlowRule.Name));
 
-            if (cashFlowRule.Criterion.EvaluateOrDefault(assetContext))
+            if (assetContext.EvaluateOrDefault(cashFlowRule.Criterion))
             {
                 cashFlowConsideration.ReasonAgainstCashFlow = scheduleCashFlowEvents is null
                     ? handleCashFlowRule(cashFlowRule, cashFlowConsideration)
