@@ -40,6 +40,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     public Dictionary<int, Choice<Treatment, TreatmentProgress>> EventSchedule { get; } = new();
 
+    public bool IsUntreated => Detail.TreatmentConsiderations.LastOrDefault()?.FundingCalculationOutput is null;
+
     public SimulationRunner SimulationRunner { get; }
 
     public AssetSummaryDetail SummaryDetail

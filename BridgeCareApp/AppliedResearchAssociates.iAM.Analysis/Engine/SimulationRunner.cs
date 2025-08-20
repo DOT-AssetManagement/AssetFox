@@ -753,8 +753,13 @@ public sealed class SimulationRunner
                 {
                     considerGroup(options, reasonIfFundingIsCancelled);
 
-                    // check whether we need to cancel this group's fundings.
-                    if (false)
+                    var anyAssetInGroupIsUntreated =
+                        options
+                        .Select(option => option.AssetContext)
+                        .Distinct()
+                        .Any(assetContext => assetContext.IsUntreated);
+
+                    if (anyAssetInGroupIsUntreated)
                     {
                         foreach (var cancellationAction in assetGroupFundingCancellationActions)
                         {
