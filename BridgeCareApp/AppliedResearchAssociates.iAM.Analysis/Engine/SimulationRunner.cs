@@ -422,7 +422,7 @@ public sealed class SimulationRunner
 
     internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentExpressionsPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
 
-    internal readonly ConcurrentDictionary<string, object> ExpressionsAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
+    internal readonly ConcurrentDictionary<string, object> ExpressionsAnalyzedForAttributeDependencies = new(ReferenceEqualityComparer.Instance);
 
     #endregion
 
