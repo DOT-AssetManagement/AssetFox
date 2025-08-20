@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AppliedResearchAssociates.iAM.DTOs.Abstract
 {
@@ -12,9 +10,9 @@ namespace AppliedResearchAssociates.iAM.DTOs.Abstract
 
         public string Type { get; set; }
 
-        public string AggregationRuleType { get; set; }
+        public string AggregationRuleType { get; set; } // Note: removed from UI
 
-        public string Command { get; set; }
+        public string Command { get; set; } // Note: removed from UI
 
         public string DefaultValue { get; set; }
 

@@ -4,6 +4,6 @@ namespace BridgeCareCore.Models
 {
     public class AllAttributeDTO : BaseAttributeDTO
     {
-        public AllDataSource DataSource {get;set;}
+        public AllDataSource DataSource {get;set; } // Note: removed from UI
     }
 }
