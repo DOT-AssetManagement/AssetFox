@@ -212,6 +212,15 @@ public sealed class SimulationRunner
 
         ObjectiveFunction = Simulation.AnalysisMethod.ObjectiveFunction;
 
+        var assetGroupAttributeName = Simulation.AssetGroupAttribute?.Name;
+        GetAssetGroup = Simulation.AssetGroupAttribute switch
+        {
+            INumericAttribute => assetContext => assetContext.GetNumber(assetGroupAttributeName).ToString(),
+            TextAttribute => assetContext => assetContext.GetText(assetGroupAttributeName),
+            null => null,
+            _ => throw new SimulationException("Invalid attribute for asset group determination.")
+        };
+
         Simulation.ClearResults();
 
         SimulationOutput output = new();
@@ -386,6 +395,10 @@ public sealed class SimulationRunner
     internal List<CalculatedField> CalculatedFieldsWithPreDeteriorationTiming;
 
     internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
+
+    private Func<AssetContext, string> GetAssetGroup;
+
+    private bool AssetsAreBeingGrouped => GetAssetGroup is not null;
 
     private enum CostCoverage
     {
@@ -660,22 +673,33 @@ public sealed class SimulationRunner
         }
 
         List<Action> assetGroupFundingCancellationActions;
-        List<IEnumerable<TreatmentOption>> optionsByGroup, optionsByGroupAndTreatment;
+        List<IEnumerable<TreatmentOption>> optionsByAssetGroupAndTreatment, optionsByAssetGroup;
 
-        if (Simulation.AssetGroupAttribute is null)
-        {
-            assetGroupFundingCancellationActions = null;
-
-            optionsByGroup = null;
-            optionsByGroupAndTreatment = null;
-        }
-        else
+        if (AssetsAreBeingGrouped)
         {
             assetGroupFundingCancellationActions = new();
 
-            // reorder/reconstruct sequence of options
-            optionsByGroup = new();
-            optionsByGroupAndTreatment = new();
+            optionsByAssetGroupAndTreatment =
+                treatmentOptions
+                .GroupBy(option => (GetAssetGroup(option.AssetContext), option.CandidateTreatment))
+                .OrderByDescending(group => group.Average(option => option.WeightedObjectiveValue))
+                .Select(group => group.AsEnumerable())
+                .ToList();
+
+            optionsByAssetGroup =
+                treatmentOptions
+                .GroupBy(option => GetAssetGroup(option.AssetContext))
+                .OrderByDescending(group => group
+                    .GroupBy(option => option.AssetContext)
+                    .Average(subgroup => subgroup.Average(option => option.WeightedObjectiveValue)))
+                .Select(group => group.AsEnumerable())
+                .ToList();
+        }
+        else
+        {
+            assetGroupFundingCancellationActions = null;
+            optionsByAssetGroupAndTreatment = null;
+            optionsByAssetGroup = null;
         }
 
         foreach (var context in BudgetContexts)
@@ -692,32 +716,32 @@ public sealed class SimulationRunner
 
             var terminateConsiderations = false;
 
-            if (Simulation.AssetGroupAttribute is null)
+            if (AssetsAreBeingGrouped)
+            {
+                considerGroups(optionsByAssetGroupAndTreatment,
+                    ReasonForCancellationOfFunding.CouldNotSelectSameTreatmentForAllOpenAssetsInGroup);
+
+                if (terminateConsiderations)
+                {
+                    return;
+                }
+
+                considerGroups(optionsByAssetGroup,
+                    ReasonForCancellationOfFunding.CouldNotSelectTreatmentsForAllOpenAssetsInGroup);
+
+                if (terminateConsiderations)
+                {
+                    return;
+                }
+            }
+            else
             {
                 considerGroup(treatmentOptions,
                     ReasonForCancellationOfFunding.None);
 
                 if (terminateConsiderations)
                 {
-                    break;
-                }
-            }
-            else
-            {
-                considerGroups(optionsByGroupAndTreatment,
-                    ReasonForCancellationOfFunding.CouldNotSelectSameTreatmentForAllOpenAssetsInGroup);
-
-                if (terminateConsiderations)
-                {
-                    break;
-                }
-
-                considerGroups(optionsByGroup,
-                    ReasonForCancellationOfFunding.CouldNotSelectTreatmentsForAllOpenAssetsInGroup);
-
-                if (terminateConsiderations)
-                {
-                    break;
+                    return;
                 }
             }
 
@@ -754,7 +778,7 @@ public sealed class SimulationRunner
             {
                 foreach (var option in options)
                 {
-                    var optionContextIsPending = workingContextPerBaselineContext.TryGetValue(option.Context, out var workingContext);
+                    var optionContextIsPending = workingContextPerBaselineContext.TryGetValue(option.AssetContext, out var workingContext);
                     if (optionContextIsPending && priority.Criterion.EvaluateOrDefault(workingContext))
                     {
                         var costCoverage = TryToPayForTreatment(
@@ -768,11 +792,11 @@ public sealed class SimulationRunner
 
                         if (costCoverage == CostCoverage.None)
                         {
-                            option.Context.Detail.TreatmentConsiderations.Add(considerationDetail);
+                            option.AssetContext.Detail.TreatmentConsiderations.Add(considerationDetail);
                         }
                         else
                         {
-                            if (Simulation.AssetGroupAttribute is not null)
+                            if (AssetsAreBeingGrouped)
                             {
                                 AssetContext workingContextIfFundingIsCancelled = new(workingContext);
                                 workingContextIfFundingIsCancelled.CopyDetailFrom(workingContext);
@@ -780,20 +804,20 @@ public sealed class SimulationRunner
                                 assetGroupFundingCancellationActions.Add(() =>
                                 {
                                     considerationDetail.ReasonForCancellationOfFunding = reasonIfFundingIsCancelled;
-                                    option.Context.Detail.TreatmentConsiderations.Add(considerationDetail);
+                                    option.AssetContext.Detail.TreatmentConsiderations.Add(considerationDetail);
 
                                     workingContextPerBaselineContext.Add(
-                                        option.Context,
+                                        option.AssetContext,
                                         workingContextIfFundingIsCancelled);
 
                                     _ = AssetContexts.Remove(workingContext);
-                                    _ = AssetContexts.Add(option.Context);
+                                    _ = AssetContexts.Add(option.AssetContext);
                                 });
                             }
 
-                            _ = workingContextPerBaselineContext.Remove(option.Context);
+                            _ = workingContextPerBaselineContext.Remove(option.AssetContext);
 
-                            _ = AssetContexts.Remove(option.Context);
+                            _ = AssetContexts.Remove(option.AssetContext);
                             _ = AssetContexts.Add(workingContext);
 
                             workingContext.Detail.TreatmentCause = TreatmentCause.SelectedTreatment;
@@ -803,7 +827,7 @@ public sealed class SimulationRunner
                                 _ = workingContext.EventSchedule.TryAdd(year, option.CandidateTreatment);
                                 workingContext.ApplyTreatment(option.CandidateTreatment, year);
 
-                                if (Simulation.AssetGroupAttribute is null && ConditionGoalsAreMet(year))
+                                if (!AssetsAreBeingGrouped && ConditionGoalsAreMet(year))
                                 {
                                     terminateConsiderations = true;
                                     return;
