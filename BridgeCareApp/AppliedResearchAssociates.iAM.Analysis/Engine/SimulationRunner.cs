@@ -412,15 +412,15 @@ public sealed class SimulationRunner
 
     #region supporting data structures for refined invalidation of numeric cache
 
-    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentKeysPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
+    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentKeysPerAttributeName = new(ReferenceEqualityComparer.Instance);
 
-    internal readonly ConcurrentDictionary<string, object> KeysAnalyzedForAttributeDependencies = new(StringComparer.OrdinalIgnoreCase);
+    internal readonly ConcurrentDictionary<string, object> KeysAnalyzedForAttributeDependencies = new(ReferenceEqualityComparer.Instance);
 
     #endregion
 
     #region supporting data structures for refined invalidation of evaluation cache
 
-    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentExpressionsPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
+    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentExpressionsPerAttributeName = new(ReferenceEqualityComparer.Instance);
 
     internal readonly ConcurrentDictionary<string, object> ExpressionsAnalyzedForAttributeDependencies = new(ReferenceEqualityComparer.Instance);
 
