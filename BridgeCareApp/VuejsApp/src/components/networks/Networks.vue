@@ -222,8 +222,7 @@ import { NIL } from 'uuid';
     let selectDataSourceItems = ref<SelectItem[]>([]);
     let noneDatasourceId: string = "";
     let attributeRows = ref<Attribute[]>([]);
-    let selectedAttributeRows = ref<Attribute[]>([]);
-
+    
     const confirmEditNetworkData = ref({
     showDialog: false
     });
@@ -274,8 +273,8 @@ import { NIL } from 'uuid';
     watch(stateAttributes, () => { 
         attributeRows.value = clone(stateAttributes.value);
         stateAttributes.value.forEach(_ => {
-        selectKeyAttributeItems.value.push({text:_.name,value:_.id})
-        })
+                selectKeyAttributeItems.value.push({text:_.name,value:_.id})
+            })
         });
 
     watch(stateDataSources, () => {  
@@ -357,7 +356,7 @@ import { NIL } from 'uuid';
 
     function aggregateNetworkData(){
         aggregateNetworkAction({
-            attributes: selectedAttributeRows.value, // TODO set all attrs from selected DS?
+            attributes: attributeRows.value,
             networkId: selectNetworkItemValue.value
         });
 
