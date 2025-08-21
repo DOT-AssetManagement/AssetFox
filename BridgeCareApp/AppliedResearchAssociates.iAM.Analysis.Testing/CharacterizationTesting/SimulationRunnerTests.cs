@@ -148,7 +148,7 @@ public class SimulationRunnerTests(ITestOutputHelper outputHelper)
             outputHelper.WriteLine($"[{validationResult.Status}] {validationResult.Message}");
         }
 
-        var runner = new SimulationRunner(input);
+        var runner = new SimulationRunner(input, true);
         runner.Progress += (sender, e) => outputHelper.WriteLine(e.ToString());
         runner.SimulationLog += (sender, e) => outputHelper.WriteLine(e.MessageBuilder.ToString());
         runner.Run();

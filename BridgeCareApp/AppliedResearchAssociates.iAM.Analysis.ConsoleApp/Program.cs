@@ -6,9 +6,10 @@ using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
 
 var inputArgument = new Argument<FileInfo>("input", "Existing JSON file containing a complete iAM scenario to run.").ExistingOnly();
-var rootCommand = new RootCommand { inputArgument };
+var outputOption = new Option<bool>("output-json", "If specified, simulation output JSON file will be written alongside input file.");
+var rootCommand = new RootCommand { inputArgument, outputOption };
 
-rootCommand.SetHandler(static inputArgumentValue =>
+rootCommand.SetHandler(static (inputArgumentValue, outputOptionValue) =>
 {
     var timer = Stopwatch.StartNew();
 
@@ -16,7 +17,7 @@ rootCommand.SetHandler(static inputArgumentValue =>
     var inputToRun = input.ConvertOut();
 
     var elapsedBeforeRun = timer.Elapsed;
-    Console.WriteLine($"{elapsedBeforeRun} - Input complete.");
+    Console.WriteLine($"[{elapsedBeforeRun}] Input complete.");
 
     var runner = new SimulationRunner(inputToRun);
     runner.Progress += (sender, eventArgs) => Console.WriteLine($"[{timer.Elapsed}] {eventArgs}");
@@ -25,20 +26,23 @@ rootCommand.SetHandler(static inputArgumentValue =>
 
     var elapsedThroughRun = timer.Elapsed;
     var elapsedDuringRun = elapsedThroughRun - elapsedBeforeRun;
-    Console.WriteLine($"{elapsedThroughRun} - Analysis complete. Duration: {elapsedDuringRun} ({elapsedDuringRun.TotalSeconds}s)");
+    Console.WriteLine($"[{elapsedThroughRun}] Analysis complete. Duration: {elapsedDuringRun} ({elapsedDuringRun.TotalSeconds}s)");
 
-    var output = inputToRun.Results;
-    var outputPath = Path.ChangeExtension(inputArgumentValue.FullName, $"output.{DateTime.Now:yyyy-MM-dd-HHmmssfff}.json");
-    using var outputStream = File.Create(outputPath);
-    JsonSerializer.Serialize(outputStream, output, new JsonSerializerOptions
+    if (outputOptionValue)
     {
-        Converters = { new JsonStringEnumConverter() },
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        WriteIndented = true,
-    });
+        var output = inputToRun.Results;
+        var outputPath = Path.ChangeExtension(inputArgumentValue.FullName, $"output.{DateTime.Now:yyyy-MM-dd-HHmmssfff}.json");
+        using var outputStream = File.Create(outputPath);
+        JsonSerializer.Serialize(outputStream, output, new JsonSerializerOptions
+        {
+            Converters = { new JsonStringEnumConverter() },
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            WriteIndented = true,
+        });
 
-    Console.WriteLine($"{timer.Elapsed} - Output complete.");
-}, inputArgument);
+        Console.WriteLine($"[{timer.Elapsed}] Output complete.");
+    }
+}, inputArgument, outputOption);
 
 return rootCommand.Invoke(args);
 
