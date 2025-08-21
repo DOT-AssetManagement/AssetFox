@@ -131,19 +131,6 @@ public sealed class SimulationRunner
             RunValidation();
         }
 
-        NumericAttributeNamesInOrder =
-            Simulation.Network.Explorer.NumericAttributes
-            .Select(a => a.Name)
-            .Append(Network.SpatialWeightIdentifier)
-            .OrderBy(_ => _)
-            .ToList();
-
-        TextAttributeNamesInOrder =
-            Simulation.Network.Explorer.TextAttributes
-            .Select(a => a.Name)
-            .OrderBy(_ => _)
-            .ToList();
-
         ActiveTreatments = Simulation.GetActiveTreatments();
 
         CalculatedFieldsWithoutPreDeteriorationTiming = Simulation.Network.Explorer.CalculatedFields.Where(cf => cf.Timing != CalculatedFieldTiming.PreDeterioration).ToList();
@@ -248,6 +235,8 @@ public sealed class SimulationRunner
 
         SimulationOutput output = new();
         output.RollForwardEvents.AddRange(rollForwardEvents.OrderBy(e => e.Year).ThenBy(e => e.AssetId));
+
+        InitializeAttributeNameSequencesForYearlyOutput();
 
         foreach (var year in Simulation.InvestmentPlan.YearsOfAnalysis)
         {
@@ -423,21 +412,19 @@ public sealed class SimulationRunner
 
     internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
 
-    internal List<string> NumericAttributeNamesInOrder;
+    internal List<string> OrderedNamesOfAllNumericAttributes;
 
-    internal List<string> TextAttributeNamesInOrder;
+    internal List<string> OrderedNamesOfAllTextAttributes;
 
-    #region supporting data structures for refined invalidation of numeric cache
+    internal List<string> OrderedNamesOfVariableNumericAttributes;
 
-    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentKeysPerAttributeName = new(ReferenceEqualityComparer.Instance);
+    internal List<string> OrderedNamesOfVariableTextAttributes;
 
-    internal readonly ConcurrentDictionary<string, object> KeysAnalyzedForAttributeDependencies = new(ReferenceEqualityComparer.Instance);
+    #region supporting data structures for refined invalidation of numeric & evaluation caches
 
-    #endregion
+    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentCalculatedFieldsPerAttributeName = new(ReferenceEqualityComparer.Instance);
 
-    #region supporting data structures for refined invalidation of evaluation cache
-
-    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentExpressionsPerAttributeName = new(ReferenceEqualityComparer.Instance);
+    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentEvaluationExpressionsPerAttributeName = new(ReferenceEqualityComparer.Instance);
 
     internal readonly ConcurrentDictionary<string, object> ExpressionsAnalyzedForAttributeDependencies = new(ReferenceEqualityComparer.Instance);
 
@@ -1401,4 +1388,112 @@ public sealed class SimulationRunner
     }
 
     #endregion
+
+    internal void AnalyzeForAttributeDependencies(
+        ConcurrentDictionary<string, object> analyzedItems,
+        ConcurrentDictionary<string, ConcurrentDictionary<string, object>> dependentsPerAttributeName,
+        string itemToAnalyze,
+        IEnumerable<string> immediateDependencies)
+    {
+        if (analyzedItems.TryAdd(itemToAnalyze, default))
+        {
+            immediateDependencies ??= new[] { itemToAnalyze };
+            var dependencies = GetTerminalDependencies(immediateDependencies);
+
+            // Register the item as a dependent of each of its attribute dependencies.
+            foreach (var dependency in dependencies)
+            {
+                var dependents = dependentsPerAttributeName.GetOrAdd(dependency,
+                    static key => new(StringComparer.OrdinalIgnoreCase));
+
+                _ = dependents.TryAdd(itemToAnalyze, default);
+            }
+        }
+    }
+
+    private HashSet<string> GetTerminalDependencies(IEnumerable<string> immediateDependencies)
+    {
+        HashSet<string> terminalDependencies = new();
+
+        Stack<string> dependenciesToAnalyze = new(immediateDependencies);
+
+        while (dependenciesToAnalyze.TryPop(out var dependency))
+        {
+            if (CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
+            {
+                foreach (var valueSource in calculatedField.ValueSources)
+                {
+                    foreach (var reference in valueSource.Criterion.ReferencedParameters)
+                    {
+                        dependenciesToAnalyze.Push(reference);
+                    }
+
+                    foreach (var reference in valueSource.Equation.ReferencedParameters)
+                    {
+                        dependenciesToAnalyze.Push(reference);
+                    }
+                }
+            }
+            else
+            {
+                _ = terminalDependencies.Add(dependency);
+            }
+        }
+
+        return terminalDependencies;
+    }
+
+    private void InitializeAttributeNameSequencesForYearlyOutput()
+    {
+        OrderedNamesOfAllNumericAttributes =
+            Simulation.Network.Explorer.NumericAttributes
+            .Select(a => a.Name)
+            .Append(Network.SpatialWeightIdentifier)
+            .ToList();
+
+        OrderedNamesOfAllTextAttributes =
+            Simulation.Network.Explorer.TextAttributes
+            .Select(a => a.Name)
+            .ToList();
+
+        OrderedNamesOfAllNumericAttributes.Sort();
+        OrderedNamesOfAllTextAttributes.Sort();
+
+        var attributesVariedByDeterioration =
+            Simulation.PerformanceCurves
+            .Select(PC => PC.Attribute.Name);
+
+        var attributesVariedByConsequences =
+            Simulation.Treatments
+            .SelectMany(t => t.Consequences.Select(c => c.Attribute.Name));
+
+        var allVariableAttributes =
+            attributesVariedByDeterioration.Concat(attributesVariedByConsequences)
+            .ToHashSet();
+
+        foreach (var CF in Simulation.Network.Explorer.CalculatedFields)
+        {
+            var TDs = GetTerminalDependencies(new[] { CF.Name });
+            foreach (var TD in TDs)
+            {
+                var dependentCFs = DependentCalculatedFieldsPerAttributeName.GetOrAdd(TD, static _ => new());
+                _ = dependentCFs.TryAdd(CF.Name, null);
+
+                if (allVariableAttributes.Contains(TD))
+                {
+                    _ = allVariableAttributes.Add(CF.Name);
+                }
+            }
+        }
+
+        OrderedNamesOfVariableNumericAttributes =
+            OrderedNamesOfAllNumericAttributes
+            .Intersect(allVariableAttributes)
+            .ToList();
+
+        OrderedNamesOfVariableTextAttributes =
+            OrderedNamesOfAllTextAttributes
+            .Intersect(allVariableAttributes)
+            .ToList();
+    }
 }
