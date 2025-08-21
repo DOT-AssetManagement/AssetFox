@@ -533,9 +533,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
                 !EqualityComparer<T>.Default.Equals(previousValue, currentValue))
             {
                 changedValues.Add(key, currentValue);
+                previousValues[key] = currentValue;
             }
-
-            previousValues[key] = currentValue;
         }
     }
 
