@@ -14,6 +14,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
         Asset = asset ?? throw new ArgumentNullException(nameof(asset));
         SimulationRunner = simulationRunner ?? throw new ArgumentNullException(nameof(simulationRunner));
 
+        DetailForChangeDetection = new(asset);
+
         ResetDetail();
 
         Initialize();
@@ -23,6 +25,10 @@ internal sealed class AssetContext : CalculateEvaluateScope
     {
         Asset = original.Asset;
         SimulationRunner = original.SimulationRunner;
+
+        DetailForChangeDetection = new(original.Asset);
+        DetailForChangeDetection.ValuePerNumericAttribute.CopyFrom(original.DetailForChangeDetection.ValuePerNumericAttribute);
+        DetailForChangeDetection.ValuePerTextAttribute.CopyFrom(original.DetailForChangeDetection.ValuePerTextAttribute);
 
         ResetDetail();
 
@@ -307,6 +313,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private readonly Dictionary<string, double> NumberCache_Override = new(KeyComparer);
 
+    private readonly AssetSummaryDetail DetailForChangeDetection;
+
     private Treatment AppliedTreatmentWithPendingMetadata;
 
     private int? FirstUnshadowedYearForAnyTreatment;
@@ -411,16 +419,39 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private void CopyAttributeValuesToDetail(AssetSummaryDetail detail)
     {
-        detail.ValuePerNumericAttribute.Add(Network.SpatialWeightIdentifier, GetNumber(Network.SpatialWeightIdentifier));
-
-        foreach (var attribute in SimulationRunner.Simulation.Network.Explorer.NumericAttributes)
+        foreach (var attributeName in SimulationRunner.NumericAttributeNamesInOrder)
         {
-            detail.ValuePerNumericAttribute.Add(attribute.Name, GetNumber(attribute.Name));
+            copyValueIfChanged(
+                DetailForChangeDetection.ValuePerNumericAttribute,
+                detail.ValuePerNumericAttribute,
+                attributeName,
+                GetNumber);
         }
 
-        foreach (var attribute in SimulationRunner.Simulation.Network.Explorer.TextAttributes)
+        foreach (var attributeName in SimulationRunner.TextAttributeNamesInOrder)
         {
-            detail.ValuePerTextAttribute.Add(attribute.Name, GetText(attribute.Name));
+            copyValueIfChanged(
+                DetailForChangeDetection.ValuePerTextAttribute,
+                detail.ValuePerTextAttribute,
+                attributeName,
+                GetText);
+        }
+
+        static void copyValueIfChanged<T>(
+            SortedList<string, T> previousValues,
+            SortedList<string, T> changedValues,
+            string key,
+            Func<string, T> getValue)
+        {
+            var currentValue = getValue(key);
+
+            if (!previousValues.TryGetValue(key, out var previousValue) ||
+                !EqualityComparer<T>.Default.Equals(previousValue, currentValue))
+            {
+                changedValues.Add(key, currentValue);
+            }
+
+            previousValues[key] = currentValue;
         }
     }
 

@@ -121,6 +121,19 @@ public sealed class SimulationRunner
             RunValidation();
         }
 
+        NumericAttributeNamesInOrder =
+            Simulation.Network.Explorer.NumericAttributes
+            .Select(a => a.Name)
+            .Append(Network.SpatialWeightIdentifier)
+            .OrderBy(_ => _)
+            .ToList();
+
+        TextAttributeNamesInOrder =
+            Simulation.Network.Explorer.TextAttributes
+            .Select(a => a.Name)
+            .OrderBy(_ => _)
+            .ToList();
+
         ActiveTreatments = Simulation.GetActiveTreatments();
 
         CalculatedFieldsWithoutPreDeteriorationTiming = Simulation.Network.Explorer.CalculatedFields.Where(cf => cf.Timing != CalculatedFieldTiming.PreDeterioration).ToList();
@@ -386,6 +399,10 @@ public sealed class SimulationRunner
     internal List<CalculatedField> CalculatedFieldsWithPreDeteriorationTiming;
 
     internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
+
+    internal List<string> NumericAttributeNamesInOrder;
+
+    internal List<string> TextAttributeNamesInOrder;
 
     private enum CostCoverage
     {
