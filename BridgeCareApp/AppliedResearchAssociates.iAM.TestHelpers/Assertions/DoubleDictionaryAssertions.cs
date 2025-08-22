@@ -10,8 +10,8 @@ namespace AppliedResearchAssociates.iAM.TestHelpers
     public static class DoubleDictionaryAssertions
     {
         public static void ApproximatelySame<T>(
-            Dictionary<T, double> expected,
-            Dictionary<T, double> actual,
+            IDictionary<T, double> expected,
+            IDictionary<T, double> actual,
             double tolerance = 1E-10)
             where T: IEquatable<T>
         {

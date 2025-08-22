@@ -46,8 +46,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         internal static void AddToDictionaries(
             ICollection<AssetSummaryDetailValueEntityIntId> assetSummaryDetailValues,
-            Dictionary<string, double> valuePerNumericAttribute,
-            Dictionary<string, string> valuePerTextAttribute,
+            IDictionary<string, double> valuePerNumericAttribute,
+            IDictionary<string, string> valuePerTextAttribute,
             Dictionary<Guid, string> attributeNameLookup)
         {
             foreach (var summary in assetSummaryDetailValues)
@@ -68,8 +68,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public static void AddToDictionary(
             AssetSummaryDetailValueEntityIntId summary,
-            Dictionary<string, double> valuePerNumericAttribute,
-            Dictionary<string, string> valuePerTextAttribute,
+            IDictionary<string, double> valuePerNumericAttribute,
+            IDictionary<string, string> valuePerTextAttribute,
             Dictionary<Guid, string> attributeNameLookup
             )
         {
@@ -90,7 +90,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public static List<AssetSummaryDetailValueEntityIntId> ToNumericEntityList(
             Guid assetSummaryDetailId,
-            Dictionary<string, double> assetSummaryDetailValues,
+            IDictionary<string, double> assetSummaryDetailValues,
             Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<AssetSummaryDetailValueEntityIntId>();
@@ -109,7 +109,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public static List<AssetSummaryDetailValueEntityIntId> ToTextEntityList(
             Guid assetSummaryDetailId,
-            Dictionary<string, string> assetSummaryDetailValues,
+            IDictionary<string, string> assetSummaryDetailValues,
             Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<AssetSummaryDetailValueEntityIntId>();
