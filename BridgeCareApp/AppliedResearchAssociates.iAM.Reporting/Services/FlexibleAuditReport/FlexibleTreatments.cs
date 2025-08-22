@@ -75,7 +75,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             currentCell.Column = columnNo;
         }
 
-        public List<string> GetHeadersRow(Dictionary<string, double> valuePerNumericAttribute, Dictionary<string, string> valuePerTextAttribute)
+        public List<string> GetHeadersRow(IDictionary<string, double> valuePerNumericAttribute, IDictionary<string, string> valuePerTextAttribute)
         {
             if (valuePerNumericAttribute == null)
             {

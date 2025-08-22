@@ -637,7 +637,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             }
         }
 
-        private void TrackDataForParametersTAB(Dictionary<string, double> valuePerNumericAttribute, Dictionary<string, string> valuePerTextAttribute)
+        private void TrackDataForParametersTAB(IDictionary<string, double> valuePerNumericAttribute, IDictionary<string, string> valuePerTextAttribute)
         {
             var structureLength = _summaryReportHelper.checkAndGetValue<double>(valuePerNumericAttribute, "SEGMENT_LENGTH");
 

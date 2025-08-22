@@ -17,7 +17,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
     {
         private List<int> _spacerColumnNumbers;
         private HighlightWorkDoneCells _highlightWorkDoneCells;
-        private Dictionary<MinCValue, Func<ExcelWorksheet, int, int, Dictionary<string, double>, int>> _valueForMinC;
+        private Dictionary<MinCValue, Func<ExcelWorksheet, int, int, IDictionary<string, double>, int>> _valueForMinC;
         private readonly List<int> _simulationYears = new List<int>();
         private SummaryReportHelper _summaryReportHelper;
         private ReportHelper _reportHelper;
@@ -353,11 +353,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             var column = currentCell.Column;
 
             // making dictionary to remove if else, which was used to enter value for MinC
-            _valueForMinC = new Dictionary<MinCValue, Func<ExcelWorksheet, int, int, Dictionary<string, double>, int>>();
-            _valueForMinC.Add(MinCValue.defaultValue, new Func<ExcelWorksheet, int, int, Dictionary<string, double>, int>(EnterDefaultMinCValue));
-            _valueForMinC.Add(MinCValue.valueEqualsCulv, new Func<ExcelWorksheet, int, int, Dictionary<string, double>, int>(EnterValueEqualsCulv));
-            _valueForMinC.Add(MinCValue.minOfDeckSubSuper, new Func<ExcelWorksheet, int, int, Dictionary<string, double>, int>(EnterMinDeckSuperSub));
-            _valueForMinC.Add(MinCValue.minOfCulvDeckSubSuper, new Func<ExcelWorksheet, int, int, Dictionary<string, double>, int>(EnterMinDeckSuperSubCulv));
+            _valueForMinC = new()
+            {
+                { MinCValue.defaultValue, EnterDefaultMinCValue },
+                { MinCValue.valueEqualsCulv, EnterValueEqualsCulv },
+                { MinCValue.minOfDeckSubSuper, EnterMinDeckSuperSub },
+                { MinCValue.minOfCulvDeckSubSuper, EnterMinDeckSuperSubCulv },
+            };
 
             var workDoneData = new List<int>();
             var previousYearSectionMinC = new List<double>();
@@ -1107,7 +1109,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             };
         }
 
-        private int EnterDefaultMinCValue(ExcelWorksheet worksheet, int row, int column, Dictionary<string, double> numericAttribute)
+        private int EnterDefaultMinCValue(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
         {
             worksheet.Cells[row, ++column].Value = "N";
             // It is a dummy value
@@ -1115,7 +1117,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             return column;
         }
 
-        private int EnterValueEqualsCulv(ExcelWorksheet worksheet, int row, int column, Dictionary<string, double> numericAttribute)
+        private int EnterValueEqualsCulv(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
         {
             var culvSeeded = _reportHelper.CheckAndGetValue<double>(numericAttribute, "CULV_SEEDED"); numericAttribute["CULV_SEEDED"] = culvSeeded;
             var minCond = _reportHelper.CheckAndGetValue<double>(numericAttribute, "MINCOND"); numericAttribute["MINCOND"] = minCond;
@@ -1125,7 +1127,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             return column;
         }
 
-        private int EnterMinDeckSuperSub(ExcelWorksheet worksheet, int row, int column, Dictionary<string, double> numericAttribute)
+        private int EnterMinDeckSuperSub(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
         {
             var minValue = Math.Min(_reportHelper.CheckAndGetValue<double>(numericAttribute, "DECK_SEEDED"),
                            Math.Min(_reportHelper.CheckAndGetValue<double>(numericAttribute, "SUP_SEEDED")
@@ -1135,7 +1137,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             return column;
         }
 
-        private int EnterMinDeckSuperSubCulv(ExcelWorksheet worksheet, int row, int column, Dictionary<string, double> numericAttribute)
+        private int EnterMinDeckSuperSubCulv(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
         {
             worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue<double>(numericAttribute, "MINCOND");
             return column;
@@ -1167,7 +1169,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             }
         }
 
-        private void TrackDataForParametersTAB(Dictionary<string, double> valuePerNumericAttribute, Dictionary<string, string> valuePerTextAttribute)
+        private void TrackDataForParametersTAB(IDictionary<string, double> valuePerNumericAttribute, IDictionary<string, string> valuePerTextAttribute)
         {
             // Track status for parameters TAB
             var postStatus = _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, "POST_STATUS").ToLower();

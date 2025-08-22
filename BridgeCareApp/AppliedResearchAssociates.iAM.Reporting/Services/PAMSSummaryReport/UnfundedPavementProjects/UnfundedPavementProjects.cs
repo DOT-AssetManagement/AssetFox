@@ -226,8 +226,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Unf
             currentCell.Column = columnNo;
         }
 
-        private double CheckGetValue(Dictionary<string, double> valuePerNumericAttribute, string attribute) => _summaryReportHelper.checkAndGetValue<double>(valuePerNumericAttribute, attribute);
+        private double CheckGetValue(IDictionary<string, double> valuePerNumericAttribute, string attribute) => _summaryReportHelper.checkAndGetValue<double>(valuePerNumericAttribute, attribute);
 
-        private string CheckGetTextValue(Dictionary<string, string> valuePerTextAttribute, string attribute) => _summaryReportHelper.checkAndGetValue<string>(valuePerTextAttribute, attribute);
+        private string CheckGetTextValue(IDictionary<string, string> valuePerTextAttribute, string attribute) => _summaryReportHelper.checkAndGetValue<string>(valuePerTextAttribute, attribute);
     }
 }

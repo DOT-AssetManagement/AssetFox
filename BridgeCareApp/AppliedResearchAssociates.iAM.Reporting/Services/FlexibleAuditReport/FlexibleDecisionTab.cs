@@ -310,8 +310,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             return decisionDataModel;
         }
 
-        private double CheckGetValue(Dictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
-        private string CheckGetTextValue(Dictionary<string, string> valuePerTextAttribute, string attribute) => _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, attribute);
+        private double CheckGetValue(IDictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
 
         private CurrentCell FillDataInWorksheet(ExcelWorksheet decisionsWorksheet, FlexibleDecisionDataModel decisionsDataModel, int budgetsCount, HashSet<string> currentAttributes, CurrentCell currentCell)
         {

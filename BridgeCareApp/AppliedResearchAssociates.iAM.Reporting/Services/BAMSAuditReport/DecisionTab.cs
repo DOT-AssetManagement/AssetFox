@@ -211,7 +211,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             return decisionDataModel;
         }
 
-        private double CheckGetValue(Dictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
+        private double CheckGetValue(IDictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
 
         private CurrentCell FillDataInWorksheet(ExcelWorksheet decisionsWorksheet, DecisionDataModel decisionsDataModel, int budgetsCount, HashSet<string> currentAttributes, int familyId, CurrentCell currentCell)
         {

@@ -97,8 +97,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                 ? CheckGetValue(assetSummary.ValuePerNumericAttribute, attribute)
                 : CheckGetTextValue(assetSummary.ValuePerTextAttribute, attribute);
 
-        private double CheckGetValue(Dictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
+        private double CheckGetValue(IDictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
 
-        private string CheckGetTextValue(Dictionary<string, string> valuePerTextAttribute, string attribute) => _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, attribute);
+        private string CheckGetTextValue(IDictionary<string, string> valuePerTextAttribute, string attribute) => _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, attribute);
     }
 }

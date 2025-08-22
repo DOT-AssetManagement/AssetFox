@@ -205,9 +205,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             return treatmentDataModel;
         }
 
-        private double CheckGetNumericValue(Dictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
+        private double CheckGetNumericValue(IDictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
 
-        private string CheckGetTextValue(Dictionary<string, string> valuePerTextAttribute, string attribute) =>
+        private string CheckGetTextValue(IDictionary<string, string> valuePerTextAttribute, string attribute) =>
           _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, attribute);
 
         private CurrentCell AddHeadersCells(ExcelWorksheet worksheet)
