@@ -117,8 +117,8 @@
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>Test</v-btn>
                         <v-btn id="DataSource-Save-vbtn"   :disabled="!sourceTypeItemSelected || !dataSourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onSaveDatasource">Save</v-btn>
-                        <v-btn id="DataSource-Load-vbtn"  :disabled="isNewDataSource" variant = "outlined" v-if="showExcel" 
-                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onLoadExcel">Load</v-btn>
+                        <!-- <v-btn id="DataSource-Load-vbtn"  :disabled="isNewDataSource" variant = "outlined" v-if="showExcel" 
+                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onLoadExcel">Load</v-btn> -->
                         <v-btn id="DataSource-Delete-vbtn"  :disabled="isNewDataSource || !sourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onDeleteClick">Delete</v-btn>
                     </v-row>
@@ -183,8 +183,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let getIdByUserNameGetter: any = store.getters.getIdByUserName ;
 
     let dsTypeItems = ref<string[]>([]);
-    let dsItems = ref<any>([]);
-    
+    let dsItems = ref<any>([]);    
     
     let assetNumber: number = 0;
     let invalidColumn = ref<string>('');
@@ -222,13 +221,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let datColumns = ref<string[]>([]);
 
     let connectionStringPlaceHolderMessage = ref<string>('');    
-
-/*     created();
-    function created() {
-        getDataSourcesAction();
-        getDataSourceTypesAction();
-    }
- */    
+ 
     onMounted(() => mounted())
     function mounted() {
 
@@ -286,14 +279,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
                 getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
-            }
-                                   
-            if(!isNewDataSource.value) {
-                getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
-                currentExcelDateColumn.value = currentDatasource.value.dateColumn;
-                currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
-            }
-            
+            }            
         }
     }, { deep: true })
 
@@ -374,16 +360,17 @@ import ConfirmDialog from 'primevue/confirmdialog';
         currentDatasource.value.locationColumn = currentExcelLocationColumn.value;
     })
 
-    function onLoadExcel() {
-        if ( hasValue(file.value)) {
-            importExcelSpreadsheetFileAction({
-            file: file.value,
-            id: currentDatasource.value.id
-        }).then((response: any) => {
-            getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
-        });
-        }
-    }
+    // function onLoadExcel() {
+    //     if ( hasValue(file.value)) {
+    //         importExcelSpreadsheetFileAction({
+    //         file: file.value,
+    //         id: currentDatasource.value.id
+    //     }).then((response: any) => {
+    //         getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+    //     });
+    //     }
+    // }
+
     function onSaveDatasource() {
         if (dataSourceTypeItem.value === DSSQL) {
             let sqldat : SqlDataSource = {
