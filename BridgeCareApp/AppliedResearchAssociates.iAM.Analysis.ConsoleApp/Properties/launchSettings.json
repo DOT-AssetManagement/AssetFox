@@ -6,7 +6,7 @@
     },
     "<root>": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\wrummler\\Downloads\\2025-06-11-120500443 iAM analysis input dump.json\""
+      "commandLineArgs": "\"C:\\replace\\this\\with\\path\\to\\your\\input.json\""
     }
   }
 }
