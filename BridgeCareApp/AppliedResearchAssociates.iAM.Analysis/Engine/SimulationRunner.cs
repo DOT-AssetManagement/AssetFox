@@ -59,7 +59,7 @@ public sealed class SimulationRunner
         if (numberOfErrors > 0)
         {
             var errorsWord = numberOfErrors == 1 ? "error" : "errors";
-            MessageBuilder = new SimulationMessageBuilder($"Simulation has {numberOfErrors} validation {errorsWord}. Download the log to see all validation results.")
+            MessageBuilder = new SimulationMessageBuilder($"Simulation has {numberOfErrors} validation {errorsWord}. Check the log to see all validation results.")
             {
                 ItemName = Simulation.Name,
                 ItemId = Simulation.Id,
@@ -343,9 +343,11 @@ public sealed class SimulationRunner
 
     public ValidationResultBag RunValidation()
     {
-        var simulationValidationResults = Simulation.GetAllValidationResults(Enumerable.Empty<string>());
+        var simulationValidationResults =
+            Simulation.Network.Explorer.GetAllValidationResults(Enumerable.Empty<string>());
 
         HandleValidationFailures(simulationValidationResults);
+
         return simulationValidationResults;
     }
 
