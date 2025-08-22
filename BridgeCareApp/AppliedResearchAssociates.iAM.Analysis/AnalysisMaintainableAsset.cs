@@ -28,7 +28,7 @@ public sealed class AnalysisMaintainableAsset : WeakEntity, IValidator
 
         if (string.IsNullOrWhiteSpace(AssetName))
         {
-            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(AssetName));
+            results.Add(ValidationStatus.Warning, "Name is blank.", this, nameof(AssetName));
         }
 
         return results;

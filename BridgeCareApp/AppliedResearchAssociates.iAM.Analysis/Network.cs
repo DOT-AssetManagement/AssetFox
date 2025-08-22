@@ -50,7 +50,7 @@ public sealed class Network : WeakEntity, IValidator
         }
         else if (Assets.Select(asset => asset.AssetName).Distinct().Count() < Assets.Count)
         {
-            results.Add(ValidationStatus.Error, "Multiple assets have the same name.", this, nameof(Assets));
+            results.Add(ValidationStatus.Warning, "Multiple assets have the same name.", this, nameof(Assets));
         }
 
         if (Simulations.Select(simulation => simulation.Name).Distinct().Count() < Simulations.Count)
