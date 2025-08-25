@@ -43,6 +43,7 @@ public static class InputCreation
         NameOfPassiveTreatment = "Forget about it",
         Network = new()
         {
+            Name = "Test network",
             AttributeSystem =
             {
                 NumberAttributes =
