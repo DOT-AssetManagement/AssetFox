@@ -119,6 +119,11 @@
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onSaveDatasource">Save</v-btn>
                         <!-- <v-btn id="DataSource-Load-vbtn"  :disabled="isNewDataSource" variant = "outlined" v-if="showExcel" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onLoadExcel">Load</v-btn> -->
+                    
+                            <!-- TODO -->
+                            <v-btn @click='showImportExportCommittedProjectsDialog = true' 
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Import Projects</v-btn>
+
                         <v-btn id="DataSource-Delete-vbtn"  :disabled="isNewDataSource || !sourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onDeleteClick">Delete</v-btn>
                     </v-row>
