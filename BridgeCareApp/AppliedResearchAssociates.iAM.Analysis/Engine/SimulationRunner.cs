@@ -1392,23 +1392,23 @@ public sealed class SimulationRunner
     #endregion
 
     internal void AnalyzeForAttributeDependencies(
-        ConcurrentDictionary<string, object> analyzedItems,
+        ConcurrentDictionary<string, object> analyzedDependents,
         ConcurrentDictionary<string, ConcurrentDictionary<string, object>> dependentsPerAttributeName,
-        string itemToAnalyze,
+        string dependentToAnalyze,
         IEnumerable<string> immediateDependencies)
     {
-        if (analyzedItems.TryAdd(itemToAnalyze, default))
+        if (analyzedDependents.TryAdd(dependentToAnalyze, default))
         {
-            immediateDependencies ??= new[] { itemToAnalyze };
+            immediateDependencies ??= new[] { dependentToAnalyze };
             var dependencies = GetTerminalDependencies(immediateDependencies);
 
-            // Register the item as a dependent of each of its attribute dependencies.
+            // Register the dependent with each of its attribute dependencies.
             foreach (var dependency in dependencies)
             {
                 var dependents = dependentsPerAttributeName.GetOrAdd(dependency,
-                    static key => new(StringComparer.OrdinalIgnoreCase));
+                    key => new(analyzedDependents.Comparer));
 
-                _ = dependents.TryAdd(itemToAnalyze, default);
+                _ = dependents.TryAdd(dependentToAnalyze, default);
             }
         }
     }
@@ -1478,7 +1478,10 @@ public sealed class SimulationRunner
             var TDs = GetTerminalDependencies(new[] { CF.Name });
             foreach (var TD in TDs)
             {
-                var dependentCFs = DependentCalculatedFieldsPerAttributeName.GetOrAdd(TD, static _ => new());
+                var dependentCFs =
+                    DependentCalculatedFieldsPerAttributeName
+                    .GetOrAdd(TD, static _ => new(StringComparer.OrdinalIgnoreCase));
+
                 _ = dependentCFs.TryAdd(CF.Name, null);
 
                 if (allVariableAttributes.Contains(TD))
