@@ -424,9 +424,9 @@ public sealed class SimulationRunner
 
     #region supporting data structures for refined invalidation of numeric & evaluation caches
 
-    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentCalculatedFieldsPerAttributeName = new(ReferenceEqualityComparer.Instance);
+    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentCalculatedFieldsPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
 
-    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentEvaluationExpressionsPerAttributeName = new(ReferenceEqualityComparer.Instance);
+    internal readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> DependentEvaluationExpressionsPerAttributeName = new(StringComparer.OrdinalIgnoreCase);
 
     internal readonly ConcurrentDictionary<string, object> ExpressionsAnalyzedForAttributeDependencies = new(ReferenceEqualityComparer.Instance);
 
