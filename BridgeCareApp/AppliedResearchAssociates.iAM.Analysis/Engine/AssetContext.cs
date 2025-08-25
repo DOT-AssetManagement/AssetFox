@@ -318,13 +318,13 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private readonly Dictionary<string, int> FirstUnshadowedYearForSameTreatment = new();
 
-    private readonly Dictionary<string, int> GetNumber_ActiveKeysOfCurrentInvocation = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<string, int> GetNumber_ActiveKeysOfCurrentInvocation = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly Dictionary<Attribute, double> MostRecentAdjustmentFactorsForPerformanceCurves = new();
 
-    private readonly Dictionary<string, double> NumberCache = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<string, double> NumberCache = new(StringComparer.OrdinalIgnoreCase);
 
-    private readonly Dictionary<string, double> NumberCache_Override = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<string, double> NumberCache_Override = new(StringComparer.OrdinalIgnoreCase);
 
     private Treatment AppliedTreatmentWithPendingMetadata;
 
