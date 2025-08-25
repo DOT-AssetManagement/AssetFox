@@ -136,7 +136,7 @@ Line 164 Delete,
                             <v-col>
                                 <v-row justify="space-between" style="padding: 10px;">
                                 <v-subheader class="ghd-control-label ghd-md-gray">                             
-                                    Criteria
+                                    Criteria ({{ assetCountString }})
                                 </v-subheader>
                                 <v-btn
                                     id="EditAnalysisMethod-criteriaEditor-btn"
@@ -249,7 +249,8 @@ import AnalysisMethodService from '@/services/analysis-method.service';
 
     const selectedScenarioId = ref<string>(getBlankGuid());
     const analysisMethod = ref<AnalysisMethod>(clone(emptyAnalysisMethod));
-    let benefit = computed<Benefit>(() => analysisMethod.value.benefit)//
+    let benefit = computed<Benefit>(() => analysisMethod.value.benefit);
+    let assetCountString = ref<string>("unknown asset count");
     const optimizationStrategy: SelectItem[] = [
         { text: 'Benefit', value: OptimizationStrategy.Benefit },
         {
@@ -358,6 +359,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         });
 
          setBenefitAttributeIfEmpty();
+         updateAssetCountString();
     }
 
     watch(stateSimulationAnalysisSetting, (newVal) => {
@@ -380,6 +382,16 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
             hasValue(benefitAttributes.value)
         ) {
             analysisMethod.value.benefit.attribute = benefitAttributes.value[0].value.toString();
+        }
+    }
+
+    function updateAssetCountString() {
+        console.log("updating asset count");
+        console.log(analysisMethod);
+        if (hasValue(analysisMethod.value.lastKnownAssetCount) && analysisMethod.value.lastKnownAssetCount!=-1) {
+            assetCountString.value = "Last known asset count: " + analysisMethod.value.lastKnownAssetCount;
+        } else {
+            assetCountString.value = "unknown asset count";
         }
     }
  
@@ -421,7 +433,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         };
     }
 
-    function onCriterionEditorDialogSubmit(criterionexpression: string) {
+    function onCriterionEditorDialogSubmit(criterionexpression: string, resultsCount: number | null) {
         criterionEditorDialogData.value = clone(
             emptyGeneralCriterionEditorDialogData,
         );
@@ -429,8 +441,10 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         if (!isNil(criterionexpression)) {
             if(analysisMethod.value.criterionLibrary.id == getBlankGuid())
                 analysisMethod.value.criterionLibrary.id = getNewGuid();
+            let assetCount = resultsCount == -1 ? analysisMethod.value.lastKnownAssetCount : resultsCount;
             analysisMethod.value = {
                 ...analysisMethod.value,
+                lastKnownAssetCount: assetCount ?? -1,
                 criterionLibrary: {...analysisMethod.value.criterionLibrary, mergedCriteriaExpression: criterionexpression} as CriterionLibrary,
             };
         }

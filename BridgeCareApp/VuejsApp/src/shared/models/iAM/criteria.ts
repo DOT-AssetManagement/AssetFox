@@ -47,6 +47,7 @@ export interface CriteriaConfigRule {
 export interface CriteriaEditorResult {
     validated: boolean;
     criteria: string | null;
+    resultsCount: number | null;
 }
 
 export const emptyCriteria: Criteria = {

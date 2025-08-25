@@ -26,6 +26,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public bool shouldAllowMultipleTreatments { get; set; }
 
+        public int LastKnownAssetCount { get; set; }
+
         public virtual SimulationEntity Simulation { get; set; }
 
         public virtual AttributeEntity Attribute { get; set; }

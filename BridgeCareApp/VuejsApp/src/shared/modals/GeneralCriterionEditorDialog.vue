@@ -64,6 +64,7 @@ const criteriaEditorData = ref<CriteriaEditorData>({
 const canUpdateOrCreate = ref<boolean>(false);
 
 let CriteriaExpressionToReturn: string | null = "";
+let ResultsCount: number | null = null;
 
   watch(dialogData,()=> {
         // const htmlTag: HTMLCollection = document.getElementsByTagName('html') as HTMLCollection;
@@ -96,13 +97,14 @@ let CriteriaExpressionToReturn: string | null = "";
 
         if (result.validated) {
             CriteriaExpressionToReturn = result.criteria
+            ResultsCount = result.resultsCount
         }
     }
 
     function onSubmit(submit: boolean) {
         if (submit) {
             if (!isNil(CriteriaExpressionToReturn)) {
-                emit('submit', CriteriaExpressionToReturn);
+                emit('submit', CriteriaExpressionToReturn, ResultsCount);
             }
         } else {
             dialogData.value.showDialog = false
