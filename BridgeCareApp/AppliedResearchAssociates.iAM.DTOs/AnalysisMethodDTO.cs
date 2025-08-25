@@ -60,5 +60,8 @@ namespace AppliedResearchAssociates.iAM.DTOs
         /// Defines the assets to be included in this simulation
         /// </summary>
         public CriterionLibraryDTO CriterionLibrary { get; set; }
+
+        /// <summary>Last known number of assets that match the criteria</summary>
+        public int LastKnownAssetCount { get; set; }
     }
 }

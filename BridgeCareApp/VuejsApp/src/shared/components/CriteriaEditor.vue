@@ -251,6 +251,7 @@ const tab = ref<any>(null);
     const subCriteriaClauses= ref<string[]>([]);
     let subCriterias:CriteriaType[] = []
 
+    const resultsCount = ref<number>(-1);
     const selectedSubCriteriaClauseIndex = ref<number>(-1);
     let selectedSubCriteriaClause= ref<Criteria |null>(null);
     const selectedRawSubCriteriaClause = ref<string>('');
@@ -651,6 +652,7 @@ const tab = ref<any>(null);
                     const message = `${result.resultsCount} result(s) returned`;
                     if (result.isValid) {
                         validCriteriaMessage.value = message;
+                        resultsCount.value = result.resultsCount;
                         cannotSubmit.value = false;
 
                         if (criteriaEditorData.value.isLibraryContext) {
@@ -660,6 +662,7 @@ const tab = ref<any>(null);
                             if (parsedCriteria) {
                                 emit('submitCriteriaEditorResult', {
                                     validated: true,
+                                    resultsCount: result.resultsCount,
                                     criteria: parsedCriteria.join(''),
                                 });
                             } else {
@@ -830,6 +833,7 @@ const tab = ref<any>(null);
                 emit(
                     'submitCriteriaEditorResult',
                     parsedCriteria.join(''),
+                    resultsCount.value,
                 );
             } else {
                 invalidCriteriaMessage.value = 'Unable to parse the criteria';

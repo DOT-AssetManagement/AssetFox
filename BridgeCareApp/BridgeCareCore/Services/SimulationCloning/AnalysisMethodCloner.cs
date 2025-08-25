@@ -5,7 +5,7 @@ namespace BridgeCareCore.Services
 {
     internal class AnalysisMethodCloner
     {
-        internal static AnalysisMethodDTO Clone(AnalysisMethodDTO analysisMethod, Guid ownerId)
+        internal static AnalysisMethodDTO Clone(AnalysisMethodDTO analysisMethod, Guid ownerId, bool isToSameNetwork)
         {
             var cloneBenefit = BenefitCloner.Clone(analysisMethod.Benefit);
             var cloneCriterionLibrary = CriterionLibraryCloner.CloneNullPropagating(analysisMethod.CriterionLibrary, ownerId);
@@ -22,7 +22,7 @@ namespace BridgeCareCore.Services
                 ShouldUseExtraFundsAcrossBudgets = analysisMethod.ShouldUseExtraFundsAcrossBudgets,
                 ShouldAllowMultipleTreatments = analysisMethod.ShouldAllowMultipleTreatments,
                 SpendingStrategy = analysisMethod.SpendingStrategy,
-
+                LastKnownAssetCount = isToSameNetwork ? analysisMethod.LastKnownAssetCount : -1,
             };
             return clone;
         }

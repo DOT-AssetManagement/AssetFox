@@ -103,7 +103,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     ShouldUseExtraFundsAcrossBudgets = false,
                     ShouldAllowMultipleTreatments = false,
                     Benefit = new BenefitDTO(),
-                    CriterionLibrary = new CriterionLibraryDTO()
+                    CriterionLibrary = new CriterionLibraryDTO(),
+                    LastKnownAssetCount = -1,
                 };
             }
 
@@ -121,6 +122,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
                 throw new RowNotInTableException("No simulation was found for the given scenario.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.CriterionLibrary.MergedCriteriaExpression) && dto.LastKnownAssetCount <= 0)
+            {
+                var simulation = _unitOfWork.Context.Simulation
+                    .AsNoTracking()
+                    .FirstOrDefault(s => s.Id == simulationId);
+                dto.LastKnownAssetCount = _unitOfWork.Context.MaintainableAsset.Count(ma => ma.NetworkId == simulation.NetworkId);
             }
 
             AttributeEntity attributeEntity = null;
