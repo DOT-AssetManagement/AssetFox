@@ -1,21 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
+using AppliedResearchAssociates.iAM.Analysis;
+using AppliedResearchAssociates.iAM.Common;
+using AppliedResearchAssociates.iAM.Common.Logging;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Analysis;
 using AppliedResearchAssociates.iAM.DTOs;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using System.Threading;
-using AppliedResearchAssociates.iAM.Common;
-using Microsoft.Data.SqlClient;
 
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
@@ -262,6 +261,12 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return (selectedSimulation == null) ? null : selectedSimulation.Name;
         }
 
+        public List<string> GetAllSimulationNames()
+        {
+            var simulationNames = _unitOfWork.Context.Simulation.AsNoTracking().Select(_ => _.Name).ToList();
+            return simulationNames;
+        }
+
         public bool GetSimulationRunSetting(Guid simulationId)
         {
             var result = false;
@@ -357,6 +362,31 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                _unitOfWork.Rollback();
                 throw;
             }
+        }
+
+        public void DeleteSimulationReports(Guid simulationId)
+        {
+            var simulationName = this.GetSimulationNameOrId(simulationId);
+
+            // Get path
+            var reportPath = Path.Combine(Environment.CurrentDirectory, "Reports", simulationId.ToString());
+            if (string.IsNullOrEmpty(reportPath) || string.IsNullOrWhiteSpace(reportPath))         
+                throw new Exception($"The report for {simulationName} did not include any results");
+            
+            // Throw an error if the path does not exist
+            if (!Directory.Exists(reportPath))            
+                throw new Exception($"The report path {reportPath} does not exist");           
+
+            // Delete the directory and all its contents
+            Directory.Delete(reportPath, true);
+
+            // Update all reports in the database to "Report Deleted" for the given simulationId
+                _unitOfWork.Context.Database.ExecuteSqlRaw(
+                "UPDATE SimulationReportDetail SET Status = {0} WHERE SimulationId = {1}",
+                "Report Deleted", simulationId);
+
+            // Save the changes
+                _unitOfWork.Context.SaveChanges();            
         }
 
         public void DeleteSimulationsByNetworkId(Guid networkId)

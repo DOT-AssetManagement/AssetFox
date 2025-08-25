@@ -42,10 +42,6 @@ public sealed class CashFlowDistributionRule : CompilableExpression
         {
             results.Add(ValidationStatus.Error, "Yearly percentages do not sum to 100.", this, nameof(YearlyPercentages));
         }
-        else if (YearlyPercentages.Count == 1)
-        {
-            results.Add(ValidationStatus.Warning, "Distribution spans only one year.", this, nameof(YearlyPercentages));
-        }
 
         return results;
     }
