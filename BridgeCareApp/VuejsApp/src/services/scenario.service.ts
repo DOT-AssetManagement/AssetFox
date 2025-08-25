@@ -38,6 +38,10 @@ export default class ScenarioService {
         return coreAxiosInstance.post(`${API.Scenario}/GetFastWorkQueuePage/`, data);
     }
 
+    static GetAllSimulationNames(): AxiosPromise {
+        return coreAxiosInstance.get(`${API.Scenario}/GetAllSimulationNames`)
+    }
+
     static createScenario(data: Scenario, networkId: string): AxiosPromise {
         return coreAxiosInstance.post(`${API.Scenario}/CreateScenario/${networkId}`, data);
     }

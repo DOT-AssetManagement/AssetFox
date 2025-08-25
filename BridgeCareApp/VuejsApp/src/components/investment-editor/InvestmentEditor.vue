@@ -304,7 +304,7 @@
 
         <EditBudgetsDialog :dialogData='editBudgetsDialogData' @submit='onSubmitEditBudgetsDialogResult' />
 
-        <ImportExportInvestmentBudgetsDialog :showDialog='showImportExportInvestmentBudgetsDialog' :show-success-dialog="showSuccessImportDialog"
+        <ImportExportInvestmentBudgetsDialog :showDialog='showImportExportInvestmentBudgetsDialog'
                                              @submit='onSubmitImportExportInvestmentBudgetsDialogResult' 
                                              @submit-success-import="onSuccessImportSubmit"/>
     </v-row>
@@ -513,7 +513,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     let uuidNIL: string = getBlankGuid();
     let rules: InputValidationRules = validationRules;
     let showImportExportInvestmentBudgetsDialog = ref<boolean>(false);
-    let showSuccessImportDialog = ref<boolean>(false);
     let hasScenario = ref<boolean>(false);
     let hasInvestmentPlanForScenario = ref<boolean>(false);
     let hasCreatedLibrary: boolean = false;
@@ -1378,10 +1377,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         }
     }
 
-    function onSuccessImportSubmit(isSuccess: boolean){
-        showSuccessImportDialog.value = isSuccess;
-    }
-
     function defaultOnEditBudgetYearValue(value: number | null) {
         editValue.value = value !== null ? value : 0;
     }
@@ -1706,8 +1701,10 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     }
 
     function resetPage() {
-        pagination.page = 1;
-        onPaginationChanged();
+        if(pagination.page == 1)
+            onPaginationChanged();
+        else
+            pagination.page = 1;
     }
 
     function checkHasUnsavedChanges() {
@@ -1782,8 +1779,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             initializePages().then(async () => {
                 setAlertMessageAction('');
                 isSuccessfulImportMutator(true);
-                if(importComp.areBudgetsOverWritten)
-                    showSuccessImportDialog.value = true;
                 await getBudgetLibrariesAction()
                 if(hasScenario.value){                
                     investmentPlanMutator(investmentPlan.value);

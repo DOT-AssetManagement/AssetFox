@@ -299,6 +299,23 @@ namespace BridgeCareCore.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Route("GetAllSimulationNames")]
+        [Authorize]
+        public async Task<IActionResult> GetAllSimulationNames()
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() => UnitOfWork.SimulationRepo.GetAllSimulationNames());
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::GetAllSimulationNames - {e.Message}", e);
+            }
+            return Ok();
+        }
+
         [HttpPost]
         [Route("CreateScenario/{networkId}")]
         [Authorize]

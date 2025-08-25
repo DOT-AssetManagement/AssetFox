@@ -30,6 +30,7 @@
                     variant="outlined"
                     density="compact"
                     v-model="dialogData.scenario.name"
+                    :error-messages="scenarioNameErrors"
                 ></v-text-field>
                 <v-checkbox v-model="shared" label="Share with all?" />
             </v-card-text>
@@ -43,7 +44,7 @@
                     >
                     <v-btn
                         id="CloneScenarioDialog-save-btn"
-                        :disabled="dialogData.scenario.name === '' || !isNetworkSelected"
+                        :disabled="isSaveButtonDisabled"
                         variant="outlined"
                         @click="onSubmit(true)"
                         class="ghd-button ghd-blue"
@@ -72,6 +73,10 @@ import { find, isNil, propEq, clone } from 'ramda';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
 import {CloneScenarioDialogData,CloneSimulationDialogData} from '@/shared/models/modals/clone-scenario-dialog-data';
 import { useStore } from 'vuex'; 
+import {
+    InputValidationRules,
+    rules as validationRules,
+} from '@/shared/utils/input-validation-rules';
 
     let store = useStore(); 
     const props = defineProps<{dialogData: CloneSimulationDialogData}>();
@@ -80,9 +85,11 @@ import { useStore } from 'vuex';
 
     const stateUsers =  computed<User[]>(() => store.state.userModule.users);
     const stateNetworks = computed<Network[]>(() => store.state.networkModule.networks);  
+    let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
     let shared =  ref<boolean>(false);
     async function cloneScenarioWithDestinationNetworkAction(payload?:any): Promise<any>{await store.dispatch('cloneScenarioWithDestinationNetwork',payload)}
     async function getCompatibleNetworksAction(payload?: any): Promise<any>{await store.dispatch('getCompatibleNetworks',payload)}
+    let rules: InputValidationRules = validationRules;
 
     let newScenario: CloneScenario = { ...emptyCloneScenario, id: getNewGuid() };
     let selectedNetworkId: string = getBlankGuid();
@@ -90,6 +97,7 @@ import { useStore } from 'vuex';
     let networkMetaData = ref<Network>({...emptyNetwork})
     let selectedNetworkName: string;
     let hasCompatibleNetworks: boolean = false;
+    const scenarioNameErrors = ref<string[]>([]);
 
     watch(dialogData,()=> {
         onModifyScenarioUserAccess();
@@ -105,7 +113,7 @@ import { useStore } from 'vuex';
 
     watch(shared, ()=> {
         onModifyScenarioUserAccess();
-    });
+    });    
 
     function selectedNetwork(networkName: string, networkId: string){
       selectedNetworkId = networkId;
@@ -156,6 +164,31 @@ import { useStore } from 'vuex';
             getCompatibleNetworksAction({networkId: props.dialogData.scenario.networkId});
         }
     }
+
+    function validateScenarioName() {
+        scenarioNameErrors.value = [];
+
+        if (!props.dialogData.scenario.name) {
+            scenarioNameErrors.value.push('This field is required');
+        }
+
+        const specialCharError = rules.generalRules.valueContainsNoCertainSpecialCharacters(props.dialogData.scenario.name);
+        if (specialCharError !== true) {
+            scenarioNameErrors.value.push(specialCharError as string);
+        }
+
+        if(stateScenarioNames.value.find(_ => _ == props.dialogData.scenario.name) != undefined)
+        {
+            scenarioNameErrors.value.push("There is already a scenario with that name")
+        }
+
+    }
+
+    const hasValidationErrors = computed(() => scenarioNameErrors.value.length > 0);
+    const isSaveButtonDisabled = computed(() => 
+        newScenario.name === '' || !isNetworkSelected.value || hasValidationErrors.value
+    );
+    watch(() => dialogData.value.scenario.name, validateScenarioName);
 
     function onSubmit(submit: boolean) {
         if (submit) {

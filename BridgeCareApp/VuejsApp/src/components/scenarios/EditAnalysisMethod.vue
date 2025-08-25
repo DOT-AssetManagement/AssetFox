@@ -82,7 +82,7 @@ Line 164 Delete,
                                 variant="outlined"
                                 density="compact"
                                 type="number"
-                                min="0"
+                                
                                 :value.number="benefit.limit"
                                 :rules="[
                                     rules['generalRules'].valueIsNotEmpty,

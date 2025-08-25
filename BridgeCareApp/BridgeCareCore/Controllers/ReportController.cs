@@ -401,6 +401,7 @@ namespace BridgeCareCore.Controllers
         public async Task<IActionResult> DeleteAllGeneratedReports(Guid simulationId)
         {
             var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
+         
             if (simulationId == Guid.Empty)
             {
                 var message = new List<string>() { $"No simulation or report name provided." };
@@ -413,41 +414,9 @@ namespace BridgeCareCore.Controllers
                 return CreateErrorListing(message);
             }
 
-            // Get path
-            var reportPath = Path.Combine(Environment.CurrentDirectory, "Reports", simulationId.ToString());
-            if (string.IsNullOrEmpty(reportPath) || string.IsNullOrWhiteSpace(reportPath))
-            {
-                var message = new List<string>() { $"The report for {simulationName} did not include any results" };
-                return CreateErrorListing(message);
-            }
-
-            // Throw an error if the path does not exist
-            if (!Directory.Exists(reportPath))
-            {
-                var message = new List<string>() { $"No reports exist for {simulationName}." };
-                return CreateErrorListing(message);  // Or throw an exception if you prefer
-            }
-
             try
             {
-                if (Directory.Exists(reportPath))
-                {
-                    // Delete the directory and all its contents
-                    Directory.Delete(reportPath, true);
-
-                    // Update all reports in the database to "Report Deleted" for the given simulationId
-                    await _unitOfWork.Context.Database.ExecuteSqlRawAsync(
-                        "UPDATE SimulationReportDetail SET Status = {0} WHERE SimulationId = {1}",
-                        "Report Deleted", simulationId);
-
-                    // Save the changes
-                    await _unitOfWork.Context.SaveChangesAsync();
-                }
-                else
-                {
-                    var message = new List<string>() { $"The report path {reportPath} does not exist" };
-                    return CreateErrorListing(message);
-                }
+                await Task.Run(() => UnitOfWork.SimulationRepo.DeleteSimulationReports(simulationId));
             }
             catch (Exception e)
             {
