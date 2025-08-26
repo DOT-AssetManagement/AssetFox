@@ -59,8 +59,13 @@
                     variant = "outlined"
                     density="compact"
                 ></v-text-field>
-                <v-btn id="DataSource-AddFile-vbtn" v-if="showExcel  && !isNewDataSource" 
+                <!-- <v-btn id="DataSource-AddFile-vbtn" v-if="showExcel  && !isNewDataSource" 
                     class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button Montserrat-font-family" style="margin-left:10px; margin-top: 2px;" variant = "outlined" @click="chooseFiles()">
+                    Add File
+                </v-btn> -->
+                <!-- TODO -->
+                <v-btn @click='showImportDataSourceDialog = true' v-if="showExcel  && !isNewDataSource"
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button Montserrat-font-family" style="margin-left:10px; margin-top: 2px;" variant = "outlined">
                     Add File
                 </v-btn>
                 <input @change="onSelect" id="file-select" type="file" hidden />
@@ -115,15 +120,15 @@
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' flat>Cancel</v-btn>
                         <v-btn id="DataSource-Test-vbtn"  @click="checkSQLConnection" v-if="showMssql" variant = "outlined"
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>Test</v-btn>
-                        <v-btn id="DataSource-Save-vbtn"   :disabled="!sourceTypeItemSelected || !dataSourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
+                        <v-btn id="DataSource-Save-vbtn" :disabled="!sourceTypeItemSelected || !dataSourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onSaveDatasource">Save</v-btn>
+<<<<<<< Updated upstream
+                        <v-btn id="DataSource-Load-vbtn"  :disabled="isNewDataSource" variant = "outlined" v-if="showExcel" 
+                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onLoadExcel">Load</v-btn>
+=======
                         <!-- <v-btn id="DataSource-Load-vbtn"  :disabled="isNewDataSource" variant = "outlined" v-if="showExcel" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onLoadExcel">Load</v-btn> -->
-                    
-                            <!-- TODO -->
-                            <v-btn @click='showImportExportCommittedProjectsDialog = true' 
-                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;" variant="outlined">Import Projects</v-btn>
-
+>>>>>>> Stashed changes
                         <v-btn id="DataSource-Delete-vbtn"  :disabled="isNewDataSource || !sourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onDeleteClick">Delete</v-btn>
                     </v-row>
@@ -133,6 +138,10 @@
         <CreateDataSourceDialog :dialogData='createDataSourceDialogData'
                                 @submit='onCreateNewDataSource' />
         <ConfirmDialog></ConfirmDialog>
+        <ImportDataSourceDialog
+            :show-dialog="showImportDataSourceDialog"
+            @submit="onSubmitImportDataSourceDialogResult"
+        />
     </v-row>
 </template>
 
@@ -164,6 +173,8 @@ import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
+import { ImportDataSourceDialogResult } from '@/shared/models/modals/import-datasource-dialog-result';
+import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog.vue';
 
     let store = useStore();
     const emit = defineEmits(['submit'])
@@ -188,7 +199,8 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let getIdByUserNameGetter: any = store.getters.getIdByUserName ;
 
     let dsTypeItems = ref<string[]>([]);
-    let dsItems = ref<any>([]);    
+    let dsItems = ref<any>([]);
+    
     
     let assetNumber: number = 0;
     let invalidColumn = ref<string>('');
@@ -226,7 +238,16 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let datColumns = ref<string[]>([]);
 
     let connectionStringPlaceHolderMessage = ref<string>('');    
- 
+
+/*     created();
+    function created() {
+        getDataSourcesAction();
+        getDataSourceTypesAction();
+    }
+ */    
+
+    const showImportDataSourceDialog = ref< boolean > (false);
+
     onMounted(() => mounted())
     function mounted() {
 
@@ -284,7 +305,14 @@ import ConfirmDialog from 'primevue/confirmdialog';
                 getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
-            }            
+            }
+                                   
+            if(!isNewDataSource.value) {
+                getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+                currentExcelDateColumn.value = currentDatasource.value.dateColumn;
+                currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
+            }
+            
         }
     }, { deep: true })
 
@@ -365,6 +393,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
         currentDatasource.value.locationColumn = currentExcelLocationColumn.value;
     })
 
+
     // function onLoadExcel() {
     //     if ( hasValue(file.value)) {
     //         importExcelSpreadsheetFileAction({
@@ -400,6 +429,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
                 unmodifiedDatasource.value = clone(currentDatasource.value);
             });
         } else {
+            alert('in SaveDS');
             currentDatasource.value = currentRefDatasource.value;
             let exldat : ExcelDataSource = {
             id: currentDatasource.value.id,
@@ -538,6 +568,40 @@ import ConfirmDialog from 'primevue/confirmdialog';
         }
 
         return false;
+    }
+
+    // Dialog function
+    function onSubmitImportDataSourceDialogResult(
+        result: ImportDataSourceDialogResult,
+    ) {
+        showImportDataSourceDialog.value = false;
+    // TODO
+    // LOAD onLoadExcel() {
+    //     if ( hasValue(file.value)) {
+    //         importExcelSpreadsheetFileAction({
+    //         file: file.value,
+    //         id: currentDatasource.value.id
+    //     }).then((response: any) => {
+    //         getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+    //     });
+    //     }
+    // }
+        if (hasValue(result)) {         
+            if (hasValue(result.file)) {
+                CommittedProjectsService.importCommittedProjects(
+                    result.file,
+                    scenarioId,
+                    ).then((response: any) =>{
+                        setAlertMessageAction("Committed project import has been added to the queue");                        
+                    })
+            } else {
+                addErrorNotificationAction({
+                    message: 'No file selected.',
+                    longMessage:
+                        'No file selected to upload the committed projects.',
+                });
+            }          
+        }
     }
 
 </script>
