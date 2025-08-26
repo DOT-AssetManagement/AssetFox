@@ -18,7 +18,7 @@
     {
       "Assets": [
         {
-          "ProjectSource": null,
+          "ProjectSource": "None",
           "AppliedTreatment": "Bundle[Lovecraftian Horror #1|Lovecraftian Horror #2]",
           "SpatialWeightForOrderingOptions": null,
           "TreatmentCause": "CommittedProject",

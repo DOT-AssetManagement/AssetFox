@@ -29,7 +29,10 @@ internal sealed class AssetContext : CalculateEvaluateScope
         EventSchedule.CopyFrom(original.EventSchedule);
         FirstUnshadowedYearForAnyTreatment = original.FirstUnshadowedYearForAnyTreatment;
         FirstUnshadowedYearForSameTreatment.CopyFrom(original.FirstUnshadowedYearForSameTreatment);
-        NumberCache.CopyFrom(original.NumberCache);
+        MostRecentAdjustmentFactorsForPerformanceCurves.CopyFrom(original.MostRecentAdjustmentFactorsForPerformanceCurves);
+
+        // Note that the cache-related members are not copied. Simulation experiments indicate that
+        // copying these members for reuse actually increases net runtime.
 
         InitializeCalculatedFields();
     }
@@ -103,10 +106,18 @@ internal sealed class AssetContext : CalculateEvaluateScope
         {
             result = criterion.Evaluate(this);
             EvaluationCache.Add(criterion.Expression, result);
+
+            AnalyzeForAttributeDependencies(
+                SimulationRunner.ExpressionsAnalyzedForAttributeDependencies,
+                SimulationRunner.DependentExpressionsPerAttributeName,
+                criterion.Expression,
+                criterion.ReferencedParameters);
         }
 
         return result;
     }
+
+    public bool EvaluateOrDefault(Criterion criterion) => Evaluate(criterion) ?? true;
 
     public (double rawBenefit, double lruBenefit, double weight, double benefit) GetBenefitData()
     {
@@ -176,6 +187,12 @@ internal sealed class AssetContext : CalculateEvaluateScope
             }
 
             NumberCache[key] = number;
+
+            AnalyzeForAttributeDependencies(
+                SimulationRunner.KeysAnalyzedForAttributeDependencies,
+                SimulationRunner.DependentKeysPerAttributeName,
+                key,
+                null);
         }
 
         _ = GetNumber_ActiveKeysOfCurrentInvocation.Remove(key);
@@ -203,7 +220,9 @@ internal sealed class AssetContext : CalculateEvaluateScope
         Detail.TreatmentStatus = TreatmentStatus.Progressed;
     }
 
-    public void PrepareForTreatment(int year, bool historicalFallForward = false)
+    public void PrepareForTreatment(int year) => PrepareForTreatment(year, false);
+
+    public void PrepareForTreatment(int year, bool historicalFallForward)
     {
         FixCalculatedFieldValuesWithPreDeteriorationTiming();
 
@@ -271,19 +290,19 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     public override void SetNumber(string key, double value)
     {
-        ClearCache();
+        ClearCache(key);
         base.SetNumber(key, value);
     }
 
     public override void SetNumber(string key, Func<double> getValue)
     {
-        ClearCache();
+        ClearCache(key);
         base.SetNumber(key, getValue);
     }
 
     public override void SetText(string key, string value)
     {
-        ClearCache();
+        ClearCache(key);
         base.SetText(key, value);
     }
 
@@ -293,9 +312,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     public bool YearIsWithinShadowForSameTreatment(int year, Treatment treatment) => FirstUnshadowedYearForSameTreatment.TryGetValue(treatment.Name, out var firstUnshadowedYear) && year < firstUnshadowedYear;
 
-    private static readonly StringComparer KeyComparer = StringComparer.OrdinalIgnoreCase;
-
-    private readonly Dictionary<string, bool?> EvaluationCache = new();
+    private readonly Dictionary<string, bool?> EvaluationCache = new(ReferenceEqualityComparer.Instance);
 
     private readonly Dictionary<string, int> FirstUnshadowedYearForSameTreatment = new();
 
@@ -303,15 +320,69 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private readonly Dictionary<Attribute, double> MostRecentAdjustmentFactorsForPerformanceCurves = new();
 
-    private readonly Dictionary<string, double> NumberCache = new(KeyComparer);
+    private readonly Dictionary<string, double> NumberCache = new(StringComparer.OrdinalIgnoreCase);
 
-    private readonly Dictionary<string, double> NumberCache_Override = new(KeyComparer);
+    private readonly Dictionary<string, double> NumberCache_Override = new(StringComparer.OrdinalIgnoreCase);
 
     private Treatment AppliedTreatmentWithPendingMetadata;
 
     private int? FirstUnshadowedYearForAnyTreatment;
 
     private AnalysisMethod AnalysisMethod => SimulationRunner.Simulation.AnalysisMethod;
+
+    private void AnalyzeForAttributeDependencies(
+        ConcurrentDictionary<string, object> analyzedItems,
+        ConcurrentDictionary<string, ConcurrentDictionary<string, object>> dependentsPerAttributeName,
+        string itemToAnalyze,
+        IEnumerable<string> immediateDependencies)
+    {
+        if (analyzedItems.TryAdd(itemToAnalyze, default))
+        {
+            immediateDependencies ??= new[] { itemToAnalyze };
+            var dependencies = GetTerminalDependencies(immediateDependencies);
+
+            // Register the item as a dependent of each of its attribute dependencies.
+            foreach (var dependency in dependencies)
+            {
+                var dependents = dependentsPerAttributeName.GetOrAdd(dependency,
+                    static key => new(StringComparer.OrdinalIgnoreCase));
+
+                _ = dependents.TryAdd(itemToAnalyze, default);
+            }
+        }
+    }
+
+    private HashSet<string> GetTerminalDependencies(IEnumerable<string> immediateDependencies)
+    {
+        HashSet<string> terminalDependencies = new();
+
+        Stack<string> dependenciesToAnalyze = new(immediateDependencies);
+
+        while (dependenciesToAnalyze.TryPop(out var dependency))
+        {
+            if (SimulationRunner.CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
+            {
+                foreach (var valueSource in calculatedField.ValueSources)
+                {
+                    foreach (var reference in valueSource.Criterion.ReferencedParameters)
+                    {
+                        dependenciesToAnalyze.Push(reference);
+                    }
+
+                    foreach (var reference in valueSource.Equation.ReferencedParameters)
+                    {
+                        dependenciesToAnalyze.Push(reference);
+                    }
+                }
+            }
+            else
+            {
+                _ = terminalDependencies.Add(dependency);
+            }
+        }
+
+        return terminalDependencies;
+    }
 
     private void ApplyTreatmentButNotMetadata(Treatment treatment)
     {
@@ -371,10 +442,10 @@ internal sealed class AssetContext : CalculateEvaluateScope
         Detail.TreatmentStatus = TreatmentStatus.Applied;
     }
 
-    private double CalculateValueOnCurve(PerformanceCurve curve, Action<double> handle)
+    private double CalculateValueOnCurve(PerformanceCurve curve)
     {
         var value = curve.Equation.Compute(this, curve, MostRecentAdjustmentFactorsForPerformanceCurves);
-        handle(value);
+        SendToSimulationLogIfNeeded(curve, value);
         return value;
     }
 
@@ -403,10 +474,23 @@ internal sealed class AssetContext : CalculateEvaluateScope
         }
     }
 
-    private void ClearCache()
+    private void ClearCache(string triggeringKey)
     {
-        NumberCache.Clear();
-        EvaluationCache.Clear();
+        if (SimulationRunner.DependentKeysPerAttributeName.TryGetValue(triggeringKey, out var dependentKeys))
+        {
+            foreach (var (key, _) in dependentKeys)
+            {
+                _ = NumberCache.Remove(key);
+            }
+        }
+
+        if (SimulationRunner.DependentExpressionsPerAttributeName.TryGetValue(triggeringKey, out var dependentExpressions))
+        {
+            foreach (var (expression, _) in dependentExpressions)
+            {
+                _ = EvaluationCache.Remove(expression);
+            }
+        }
     }
 
     private void CopyAttributeValuesToDetail(AssetSummaryDetail detail)
@@ -486,8 +570,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
         }
 
         return curves.Key.IsDecreasingWithDeterioration
-            ? () => operativeCurves.Min(curve => CalculateValueOnCurve(curve, value => SendToSimulationLogIfNeeded(curve, value)))
-            : () => operativeCurves.Max(curve => CalculateValueOnCurve(curve, value => SendToSimulationLogIfNeeded(curve, value)));
+            ? () => operativeCurves.Min(CalculateValueOnCurve)
+            : () => operativeCurves.Max(CalculateValueOnCurve);
     }
 
     private IDictionary<string, Func<double>> GetPerformanceCurveCalculatorPerAttribute()

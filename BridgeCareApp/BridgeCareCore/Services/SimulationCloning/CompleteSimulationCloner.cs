@@ -9,7 +9,8 @@ namespace BridgeCareCore.Services
     {
         public static CompleteSimulationDTO Clone(CompleteSimulationDTO completeSimulation, CloneSimulationDTO cloneRequest, Guid ownerId, string ownerName)
         {
-            var cloneAnalysisMethod = AnalysisMethodCloner.Clone(completeSimulation.AnalysisMethod, ownerId);            
+            var isToSameNetwork = completeSimulation.NetworkId == cloneRequest.NetworkId;
+            var cloneAnalysisMethod = AnalysisMethodCloner.Clone(completeSimulation.AnalysisMethod, ownerId, isToSameNetwork);            
             var cloneCashFlowFule = CashFlowRuleCloner.CloneList(completeSimulation.CashFlowRules, ownerId);
             var cloneInvestmentPlan = InvestmentPlanCloner.Clone(completeSimulation.InvestmentPlan);
             //var cloneReportIndex = new List<ReportIndexDTO>(); // ReportIndexCloner.CloneList(completeSimulation.ReportIndexes); // commenting for now, need to fix the report paths and handle actual coping of report files
