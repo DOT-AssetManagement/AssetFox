@@ -874,7 +874,28 @@ public sealed class SimulationRunner
 
                             if (costCoverage == CostCoverage.Full)
                             {
-                                _ = workingContext.EventSchedule.TryAdd(year, option.CandidateTreatment);
+                                if (workingContext.EventSchedule.TryAdd(year, option.CandidateTreatment))
+                                {
+                                    // There was no cash-flow. We used default single-year funding.
+                                }
+                                else if (workingContext.EventSchedule[year].IsT2(out var oneYearCashFlow) && oneYearCashFlow.Treatment == option.CandidateTreatment && oneYearCashFlow.IsComplete)
+                                {
+                                    // There was cash-flow. We used a single-year rule.
+                                }
+                                else
+                                {
+                                    // Something else happened, and that's not allowed.
+
+                                    MessageBuilder = new SimulationMessageBuilder("Incorrect internal handling of an asset event schedule.")
+                                    {
+                                        ItemName = workingContext.Asset.AssetName,
+                                        ItemId = workingContext.Asset.Id,
+                                    };
+
+                                    var logMessage = SimulationLogMessageBuilders.RuntimeFatal(MessageBuilder, Simulation.Id);
+                                    Send(logMessage);
+                                }
+
                                 workingContext.ApplyTreatment(option.CandidateTreatment, year);
 
                                 if (!AssetsAreBeingGrouped && ConditionGoalsAreMet(year))
