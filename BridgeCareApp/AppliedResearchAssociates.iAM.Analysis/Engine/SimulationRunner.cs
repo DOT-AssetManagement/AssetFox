@@ -799,10 +799,7 @@ public sealed class SimulationRunner
                     considerGroup(options, reasonIfFundingIsCancelled);
 
                     var anyAssetInGroupIsUntreated =
-                        options
-                        .Select(option => option.AssetContext)
-                        .Distinct()
-                        .Any(assetContext => assetContext.IsUntreated);
+                        options.Any(option => workingContextPerBaselineContext.ContainsKey(option.AssetContext));
 
                     if (anyAssetInGroupIsUntreated)
                     {
