@@ -1363,6 +1363,19 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            modelBuilder.Entity<DataSourceMappingEntity>(entity =>
+            {
+                entity.HasIndex(e => e.Id).IsUnique();
+                entity.HasIndex(e => e.DataSourceId);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                entity.Property(e => e.DataField).IsRequired();
+                entity.Property(e => e.DataSourceId).IsRequired();
+                entity.HasOne(e => e.DataSource)
+                    .WithMany(ds => ds.MappingData)
+                    .HasForeignKey(w => w.DataSourceId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
 
             modelBuilder.Entity<InvestmentPlanEntity>(entity =>
             {

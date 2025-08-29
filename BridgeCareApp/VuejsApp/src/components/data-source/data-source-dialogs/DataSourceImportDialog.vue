@@ -3,7 +3,7 @@
         <v-card class="div-padding">
             <v-row class="pa-2">
                     <v-row justify="space-between">
-                        <h3 class="Montserrat-font-family">Data Source</h3>
+                        <h3 class="Montserrat-font-family">Data Source File</h3>
                         <v-btn @click="onSubmit(false)" flat>
                         <i class="fas fa-times fa-2x"></i>
                         </v-btn>
@@ -11,15 +11,7 @@
                         <div style="margin: 40px;">
                         <DataSourceFileSelector :closed='closed' :useTreatment=false @submit='onSubmitFileSelectorFile' />
                         </div>                    
-                    </v-row>
-                    <v-row justify="center" style="margin: 5px;width: 100%;">
-                        <span class="div-warning-border" style="margin: 5px;">
-                            <v-row align="start" style="padding:8px;">
-                                <v-icon class="px-2 icon-color">fas fa-exclamation-triangle</v-icon>
-                                <h3 class="h3-color">Warning</h3>
-                            </v-row>                            
-                        </span>
-                    </v-row>
+                    </v-row>                    
                     <v-row justify="center" style="margin: 5px;">
                         <CancelButton @cancel="onSubmit(false)"/>
                         <UploadButton @upload="onSubmit(true)"/>
