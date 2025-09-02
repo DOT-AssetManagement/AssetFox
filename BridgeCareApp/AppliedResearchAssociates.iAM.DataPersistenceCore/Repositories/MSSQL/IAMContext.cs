@@ -165,6 +165,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         public virtual DbSet<EquationEntity> Equation { get; set; }
         public virtual DbSet<ExcelRawDataEntity> ExcelRawData { get; set; }
 
+        public virtual DbSet<DataSourceMappingEntity> DataSourceMapping { get; set; }
+
         public virtual DbSet<InvestmentPlanEntity> InvestmentPlan { get; set; }
 
         public virtual DbSet<MaintainableAssetEntity> MaintainableAsset { get; set; }
@@ -1371,7 +1373,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 entity.Property(e => e.DataField).IsRequired();
                 entity.Property(e => e.DataSourceId).IsRequired();
                 entity.HasOne(e => e.DataSource)
-                    .WithMany(ds => ds.MappingData)
+                    .WithMany(ds => ds.DataSourceMappings)
                     .HasForeignKey(w => w.DataSourceId)
                     .OnDelete(DeleteBehavior.Cascade);
             });

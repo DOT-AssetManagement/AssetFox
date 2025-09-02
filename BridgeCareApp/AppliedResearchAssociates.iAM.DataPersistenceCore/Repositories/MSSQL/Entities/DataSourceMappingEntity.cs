@@ -16,7 +16,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public virtual DataSourceEntity DataSource { get; set; }
     }
 }
-// Create migration for new entity
-// On upload of file to DS mapping table entries to be saved (if no mapping excel given - it will add all columns and try find attributes (what if it doesn't find? - Ask someone)
+// TODO
 
-// Edit mappings on DS table
+// On upload of file to DS mapping table entries to be saved
+// (if no mapping excel given - it will add all columns and try find attributes (what if it doesn't find? - Check with Tyler)
+
+// Edit mappings in DS UI

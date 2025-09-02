@@ -3,10 +3,12 @@
     <v-card>
       <v-card-title class="ghd-dialog-box-padding-top">
          <v-row justify-space-between align-center>
-            <div class="ghd-control-dialog-header">New Data Source</div>
+            <div class="ghd-control-dialog-header">Mappings</div>
           </v-row>
-        </v-card-title>           
-      <v-card-text class="ghd-dialog-box-padding-center">
+        </v-card-title> 
+        <br></br>          
+        <!--TODO check Edit Budgets as an example for this -->
+      <!-- <v-card-text class="ghd-dialog-box-padding-center">
         <v-row>
           <v-col>
             <v-text-field label="Name" id="CreateDataSourceDialog-Name-vtextField"
@@ -16,7 +18,7 @@
               class="ghd-text-field-border ghd-text-field"/>
           </v-col>
         </v-row>
-      </v-card-text>
+      </v-card-text> -->
       <v-card-actions class="ghd-dialog-box-padding-bottom">
         <v-row justify-center row>
           <v-btn id="CreateDataSourceDialog-Cancel-vbtn" @click="onSubmit(false)" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' style="margin-right:auto; margin-left:auto;" variant = "flat">Cancel</v-btn>
@@ -44,12 +46,15 @@ import { clone } from 'ramda';
   let getIdByUserNameGetter = store.getters.getIdByUserName ;
 
   const props = defineProps<{
-    dialogData: CreateDataSourceDialogData
+    dialogData: boolean //CreateDataSourceDialogData
   }>()
-  let showDialogComputed = computed(() => props.dialogData.showDialog);
+
+  let showDialogComputed = computed(() => props.dialogData);//.showDialog);
   const emit = defineEmits(['submit'])
 
-   const newDataSource = ref<Datasource>(emptyDatasource);
+  let showDataSourceMappingsDialogData = ref<boolean>(false);
+
+  const newDataSource = ref<Datasource>(emptyDatasource);
   let rules: InputValidationRules = validationRules;
   let datasourceName = ref<string>('New Data Source');
 

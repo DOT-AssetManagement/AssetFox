@@ -67,8 +67,11 @@ namespace BridgeCareCore.Controllers
                 {
                     HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWarning, result.WarningMessage);
                 }
-
-                // TODO On upload of file to DS mapping table entries to be saved
+                else
+                {
+                    // TODO On upload of file to DS mapping table entries to be saved
+                    _excelSpreadsheetImportService.ImportDataSourceMapping(dataSourceId, worksheet);
+                }
 
                 return Ok(result);
             }

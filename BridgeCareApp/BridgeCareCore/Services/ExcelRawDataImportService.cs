@@ -24,6 +24,11 @@ namespace BridgeCareCore.Services
             _unitOfWork = unitOfWork;
         }
 
+        public void ImportDataSourceMapping(Guid dataSourceId, ExcelWorksheet worksheet)
+        {
+            // TODO
+        }
+
         /// <summary>This import is not particularly generic. It skips over columns whose top cell is empty,
         /// effectively deleting them from the imported spreadsheet.</summary>
         public ExcelRawDataImportResultDTO ImportRawData(
@@ -103,6 +108,7 @@ namespace BridgeCareCore.Services
             var newId = Guid.NewGuid();
             var dto = ExcelRawDataSpreadsheetSerializationMapper.ToDTO(workseet, dataSourceId, newId);
             var returnId = _unitOfWork.ExcelWorksheetRepository.AddExcelRawData(dto);
+
             return new ExcelRawDataImportResultDTO
             {
                 RawDataId = returnId,

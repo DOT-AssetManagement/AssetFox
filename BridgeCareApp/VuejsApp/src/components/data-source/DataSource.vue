@@ -58,12 +58,7 @@
                     outline
                     variant = "outlined"
                     density="compact"
-                ></v-text-field>
-                <!-- <v-btn id="DataSource-AddFile-vbtn" v-if="showExcel  && !isNewDataSource" 
-                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button Montserrat-font-family" style="margin-left:10px; margin-top: 2px;" variant = "outlined" @click="chooseFiles()">
-                    Add File
-                </v-btn> -->
-                <!-- TODO -->
+                ></v-text-field>                
                 <v-btn @click='showImportDataSourceDialog = true' v-if="showExcel  && !isNewDataSource"
                     class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button Montserrat-font-family" style="margin-left:10px; margin-top: 2px;" variant = "outlined">
                     Add File
@@ -83,7 +78,7 @@
             variant = "outlined"
             density="compact">
             </v-select>
-            <v-subheader  v-if="showExcel  && !isNewDataSource" class="ghd-control-label ghd-md-gray Montserrat-font-family">Date Column</v-subheader>
+            <v-subheader v-if="showExcel && !isNewDataSource" class="ghd-control-label ghd-md-gray Montserrat-font-family">Date Column</v-subheader>
             <v-select
             menu-icon=custom:GhdDownSvg
             id="DataSource-Date-vselect"
@@ -113,6 +108,8 @@
                 <p class="assetFox-blue Montserrat-font-family" v-if="isNewDataSource && showExcel">Save new data source before loading file.</p>
                 <p class="p-fail Montserrat-font-family" v-if="false">Error! {{invalidColumn}} Column is invalid</p>
             </v-col>
+            <v-btn id="DataSource-Mappings-vbtn" :disabled="isNewDataSource" variant = "outlined" v-if="showExcel"
+                class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onShowDataSourceMappingsDialog">Mappings</v-btn>
             <v-row justify="center" style="margin-left: 2%; margin-top: 4%;" class="text-center">
                 <v-col align-self="center">
                     <v-row justify="center">
@@ -121,9 +118,7 @@
                         <v-btn id="DataSource-Test-vbtn"  @click="checkSQLConnection" v-if="showMssql" variant = "outlined"
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>Test</v-btn>
                         <v-btn id="DataSource-Save-vbtn" :disabled="!sourceTypeItemSelected || !dataSourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
-                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onSaveDatasource">Save</v-btn>
-                        <!-- <v-btn id="DataSource-Load-vbtn"  :disabled="isNewDataSource" variant = "outlined" v-if="showExcel" 
-                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onLoadExcel">Load</v-btn> -->
+                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onSaveDatasource">Save</v-btn>                        
                         <v-btn id="DataSource-Delete-vbtn"  :disabled="isNewDataSource || !sourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onDeleteClick">Delete</v-btn>
                     </v-row>
@@ -137,6 +132,8 @@
             :show-dialog="showImportDataSourceDialog"
             @submit="onSubmitImportDataSourceDialogResult"
         />
+        <DataSourceMappingsDialog :dialogData='showDataSourceMappingsDialogData'
+         @submit='UpdateDataSourceMappings' />
     </v-row>
 </template>
 
@@ -170,6 +167,8 @@ import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { ImportDataSourceDialogResult } from '@/shared/models/modals/import-datasource-dialog-result';
 import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog.vue';
+import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
+//import { DataSourceMappingsDialogData, emptyDataSourceMappingsDialog } from '@/shared/models/modals/add-network-dialog-data';
 
     let store = useStore();
     const emit = defineEmits(['submit'])
@@ -215,6 +214,7 @@ import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog
     let currentRefDatasource = ref<Datasource>(clone(emptyDatasource));
     let unmodifiedDatasource = ref<Datasource>(clone(emptyDatasource));
     const createDataSourceDialogData = ref<CreateDataSourceDialogData>(emptyCreateDataSourceDialogData);
+    const showDataSourceMappingsDialogData = ref<boolean>(false);//ref<DataSourceMappingsData>(emptyshowDataSourceMappingsDialogData);
 
     let selectedConnection = ref<string>('');
     let showMssql = ref<boolean>(false);
@@ -242,6 +242,7 @@ import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog
  */    
 
     const showImportDataSourceDialog = ref< boolean > (false);
+    const showDataSourceMappingsDialog = ref<boolean>(false);
 
     onMounted(() => mounted())
     function mounted() {
@@ -444,6 +445,10 @@ import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog
     function onShowCreateDataSourceDialog() {
         createDataSourceDialogData.value.showDialog = true;
     }
+    function onShowDataSourceMappingsDialog(){
+        //showDataSourceMappingsDialogData.value.showDialog = true;
+        showDataSourceMappingsDialogData.value = true;
+    }
     function onCreateNewDataSource(datasource: Datasource) {
         if(dataSourceTypeItem.value == "")
             dataSourceTypeItemSelected.value = false;
@@ -576,6 +581,11 @@ import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog
                 });
             }
         }
+    }
+
+    function UpdateDataSourceMappings()
+    {
+        // TODO
     }
 
 </script>

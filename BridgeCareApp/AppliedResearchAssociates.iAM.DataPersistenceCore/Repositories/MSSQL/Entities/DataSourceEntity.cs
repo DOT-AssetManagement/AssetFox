@@ -9,6 +9,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public DataSourceEntity()
         {
             ExcelRawData = new HashSet<ExcelRawDataEntity>();
+            DataSourceMappings = [];
         }
         public Guid Id { get; set; }
 
@@ -40,6 +41,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public virtual ICollection<ExcelRawDataEntity> ExcelRawData { get; set; }
 
-        public virtual ICollection<DataSourceMappingEntity> MappingData { get; set; }
+        public virtual ICollection<DataSourceMappingEntity> DataSourceMappings { get; set; }
     }
 }

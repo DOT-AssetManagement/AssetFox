@@ -21,7 +21,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
         }
 
         public Guid AddExcelRawData(ExcelRawDataDTO dto)
-        { // TODO check where this gets called, need to save to DataSourceMappingEntity -- dont change!!
+        {
             if (!_unitOfWork.Context.DataSource.Any(ds => ds.Id == dto.DataSourceId)) {
                 throw new InvalidOperationException($"There is no DataSource with id {dto.DataSourceId}");
             };
