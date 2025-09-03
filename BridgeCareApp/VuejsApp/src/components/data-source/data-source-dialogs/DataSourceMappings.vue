@@ -1,88 +1,132 @@
 <template>
-  <v-dialog max-width="450px" persistent v-model="showDialogComputed">
-    <v-card>
-      <v-card-title class="ghd-dialog-box-padding-top">
-         <v-row justify-space-between align-center>
-            <div class="ghd-control-dialog-header">Mappings</div>
+  <v-row>
+    <v-dialog style='max-width: 900px; max-height: 650px' persistent scrollable v-model ='dialogData.showDialog'>
+      <v-card>
+        <v-card-title class="ghd-dialog-box-padding-top">
+          <v-row justify-space-between align-center>
+              <div class="ghd-control-dialog-header">Edit Data Source Mappings</div>
+              <v-spacer></v-spacer>
+              <XButton @click="onSubmit(false)"/>
           </v-row>
-        </v-card-title> 
-        <br></br>          
-        <!--TODO check Edit Budgets as an example for this -->
-      <!-- <v-card-text class="ghd-dialog-box-padding-center">
-        <v-row>
-          <v-col>
-            <v-text-field label="Name" id="CreateDataSourceDialog-Name-vtextField"
-              variant = "outlined"
-              density="compact"
-              v-model="datasourceName"
-              class="ghd-text-field-border ghd-text-field"/>
-          </v-col>
-        </v-row>
-      </v-card-text> -->
-      <v-card-actions class="ghd-dialog-box-padding-bottom">
-        <v-row justify-center row>
-          <v-btn id="CreateDataSourceDialog-Cancel-vbtn" @click="onSubmit(false)" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' style="margin-right:auto; margin-left:auto;" variant = "flat">Cancel</v-btn>
-          <v-btn id="CreateDataSourceDialog-Save-vbtn" @click="onSubmit(true)"
-                 class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' style="margin-right:auto; margin-left:auto;" variant = "outlined">
-            Save
-          </v-btn>          
-        </v-row>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </v-card-title>
+        <div style='height: 600px; max-width:900px; margin-top:20px;' class="ghd-dialog-box-padding-center">
+          <div style='max-height: 500px; overflow-y:auto;'>
+            <v-data-table-server
+                      id="EditBudgetsDialog-budgets-dataTable"
+                      :headers='gridHeaders'
+                      :items="editDataSourceMappingsGridData"
+                      :items-length="editDataSourceMappingsGridData.length"
+                      sort-asc-icon="custom:GhdTableSortAscSvg"
+                      sort-desc-icon="custom:GhdTableSortDescSvg"
+                      hide-actions
+                      item-key='id'
+                      v-model='editDataSourceMappingsGridData'
+                      class="ghd-table hide_table_scroll">                      
+                      <template #bottom></template>                                  
+              <template slot='items' slot-scope='props' v-slot:item="props">
+                <tr>  
+                    <td align="center">
+                      <v-text-field
+                          v-model="props.item.Attribute"                            
+                          variant="underlined"
+                          readonly                          
+                      />
+                    </td>
+                    <td align="center">
+                      <v-row>
+                        <v-col>
+                          <v-select 
+                            :items="columnSelectItems"
+                                  menu-icon=custom:GhdDownSvg
+                                  label=""
+                                  variant="outlined"
+                                  item-title="text"  
+                                  item-value="value"
+                                  v-model="props.item.DataField"
+                                  style="width: 250px;padding-top: 5px;">
+                              </v-select>
+                        </v-col>
+                      </v-row>                        
+                    </td>             
+                </tr>    
+              </template>
+            </v-data-table-server>
+          </div>          
+        </div>
+        <v-card-actions class="ghd-dialog-box-padding-bottom">
+          <v-row justify="center">
+            <CancelButton @cancel="onSubmit(false)"/>
+            <SaveButton 
+              @save="onSubmit(true)"
+              :disabled='disableSubmitButton()'
+            />
+          </v-row>                    
+        </v-card-actions>      
+      </v-card>
+    </v-dialog>
+  </v-row>
 </template>
 
 <script setup lang="ts">
-import Vue, { computed, ref, Ref, shallowRef, ShallowRef, watch } from 'vue';
+import Vue, { computed, ref, toRefs, shallowRef, ShallowRef, watch } from 'vue';
 import {InputValidationRules, rules as validationRules} from '@/shared/utils/input-validation-rules';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
-import { Datasource, emptyDatasource, DSSQL } from '../../../shared/models/iAM/data-source';
-import { CreateDataSourceDialogData} from '@/shared/models/modals/data-source-dialog-data'
-import { getUserName } from '@/shared/utils/get-user-info';
+import { DataSourceMapping, DataSourceMappingGridData } from '../../../shared/models/iAM/data-source';
 import { useStore } from 'vuex';
 import { clone } from 'ramda';
+import { Attribute } from '@/shared/models/iAM/attribute';
+import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
+import CancelButton from '@/shared/components/buttons/CancelButton.vue';
+import SaveButton from '@/shared/components/buttons/SaveButton.vue';
+
+  const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
 
   let store = useStore();
-  let getIdByUserNameGetter = store.getters.getIdByUserName ;
+  let gridHeaders: any[] = [
+        { title: 'Attribute', key: 'attribute', sortable: false, align: 'center', class: '', width: '50%' },        
+        { title: 'Column', key: 'dataField', sortable: false, align: 'center', class: '', width: '50%' }
+    ];
 
+  let columnSelectItems = ref<string[]>([]); // TODO assign from dataSourceExcelColumns.value.locationColumn
   const props = defineProps<{
-    dialogData: boolean //CreateDataSourceDialogData
+    dialogData: EditDataSourceMappingsDialogData
   }>()
-
-  let showDialogComputed = computed(() => props.dialogData);//.showDialog);
-  const emit = defineEmits(['submit'])
-
-  let showDataSourceMappingsDialogData = ref<boolean>(false);
-
-  const newDataSource = ref<Datasource>(emptyDatasource);
+  const { dialogData } = toRefs(props);  
+  const emit = defineEmits(['submit'])  
+  let editDataSourceMappingsGridData = ref<DataSourceMappingGridData[]>([]);
   let rules: InputValidationRules = validationRules;
-  let datasourceName = ref<string>('New Data Source');
+  
+  watch(dialogData,() => {
+      // TODO // props.dialogData.dataSourceMappings.every(_=>_.);
+        editDataSourceMappingsGridData.value = [{ Attribute:'CRS', 
+        DataField: props.dialogData.dataSourceMappings[0].DataField, 
+        AttributeId: props.dialogData.dataSourceMappings[0].AttributeId, 
+        id: props.dialogData.dataSourceMappings[0].Id,
+        DataSourceId: props.dialogData.dataSourceMappings[0].DataSourceId },
+        { Attribute:'SURFACE_NAME', 
+        DataField: props.dialogData.dataSourceMappings[1].DataField, 
+        AttributeId: props.dialogData.dataSourceMappings[1].AttributeId, 
+        id: props.dialogData.dataSourceMappings[1].Id,
+        DataSourceId: props.dialogData.dataSourceMappings[1].DataSourceId }]  
+    });
 
-  watch(datasourceName, () => { 
-      newDataSource.value.name = datasourceName.value;
-  })
-
-  watch(showDialogComputed, () => {  
-    newDataSource.value = {
-        id: getNewGuid(),
-        createdBy: getIdByUserNameGetter(getUserName()),
-        name: datasourceName.value,
-        type: DSSQL,
-        connectionString: '',
-        dateColumn: '', 
-        locationColumn: '',
-        secure: false
-    };
-  })
-
+  function updateList(item: DataSourceMappingGridData) {
+    // TODO
+  }
+  
   function onSubmit(submit: boolean) {
     if (submit) {
-      emit('submit', newDataSource.value);
+        //emit('submit', budgetChanges.value);
     } else {
-      emit('submit', null);
+        emit('submit', null);
     }
 
-    props.dialogData.showDialog = false;
+    editDataSourceMappingsGridData.value = [];
   }
-
+  
+  function disableSubmitButton() {
+    // TODO?  
+    return false;  
+  }
+  
 </script>

@@ -44,6 +44,22 @@ export interface SqlCommandResponse {
     isValid: boolean;
     validationMessage: string
 }
+
+export interface DataSourceMapping{
+    Id: string;
+    DataField: string;
+    AttributeId: string;
+    DataSourceId: string;
+}
+
+export interface DataSourceMappingGridData{
+    id: string;
+    DataField: string;
+    AttributeId: string;
+    Attribute: string;
+    DataSourceId: string;
+}
+
 export const emptySqlCommandResponse: SqlCommandResponse = {
     isValid: false,
     validationMessage: ''

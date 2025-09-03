@@ -132,7 +132,7 @@
             :show-dialog="showImportDataSourceDialog"
             @submit="onSubmitImportDataSourceDialogResult"
         />
-        <DataSourceMappingsDialog :dialogData='showDataSourceMappingsDialogData'
+        <DataSourceMappingsDialog :dialogData='editDataSourceMappingsDialogData'
          @submit='UpdateDataSourceMappings' />
     </v-row>
 </template>
@@ -168,7 +168,8 @@ import ConfirmDialog from 'primevue/confirmdialog';
 import { ImportDataSourceDialogResult } from '@/shared/models/modals/import-datasource-dialog-result';
 import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog.vue';
 import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
-//import { DataSourceMappingsDialogData, emptyDataSourceMappingsDialog } from '@/shared/models/modals/add-network-dialog-data';
+import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
+import { getNewGuid } from '@/shared/utils/uuid-utils';
 
     let store = useStore();
     const emit = defineEmits(['submit'])
@@ -177,6 +178,7 @@ import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.
     let excelColumns = computed<RawDataColumns>(() => store.state.datasourceModule.excelColumns) ;
     let sqlCommandResponse = computed<SqlCommandResponse>(() => store.state.datasourceModule.sqlCommandResponse) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
+    let editDataSourceMappingsDialogData = ref<EditDataSourceMappingsDialogData>(clone(emptyEditDataSourceMappingsDialogData));
 
     async function getDataSourcesAction(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}
     async function getDataSourceTypesAction(payload?: any): Promise<any> {await store.dispatch('getDataSourceTypes', payload);}
@@ -193,8 +195,7 @@ import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.
     let getIdByUserNameGetter: any = store.getters.getIdByUserName ;
 
     let dsTypeItems = ref<string[]>([]);
-    let dsItems = ref<any>([]);
-    
+    let dsItems = ref<any>([]);    
     
     let assetNumber: number = 0;
     let invalidColumn = ref<string>('');
@@ -213,8 +214,7 @@ import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.
     let currentDatasource = ref<Datasource>(clone(emptyDatasource));
     let currentRefDatasource = ref<Datasource>(clone(emptyDatasource));
     let unmodifiedDatasource = ref<Datasource>(clone(emptyDatasource));
-    const createDataSourceDialogData = ref<CreateDataSourceDialogData>(emptyCreateDataSourceDialogData);
-    const showDataSourceMappingsDialogData = ref<boolean>(false);//ref<DataSourceMappingsData>(emptyshowDataSourceMappingsDialogData);
+    const createDataSourceDialogData = ref<CreateDataSourceDialogData>(emptyCreateDataSourceDialogData);       
 
     let selectedConnection = ref<string>('');
     let showMssql = ref<boolean>(false);
@@ -412,8 +412,7 @@ import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.
                 getDataSourcesAction();
                 unmodifiedDatasource.value = clone(currentDatasource.value);
             });
-        } else {
-            alert('in SaveDS');
+        } else {            
             currentDatasource.value = currentRefDatasource.value;
             let exldat : ExcelDataSource = {
             id: currentDatasource.value.id,
@@ -445,10 +444,18 @@ import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.
     function onShowCreateDataSourceDialog() {
         createDataSourceDialogData.value.showDialog = true;
     }
+    
     function onShowDataSourceMappingsDialog(){
-        //showDataSourceMappingsDialogData.value.showDialog = true;
-        showDataSourceMappingsDialogData.value = true;
+        editDataSourceMappingsDialogData.value.showDialog = true;
+        editDataSourceMappingsDialogData.value = {
+            showDialog: true,
+            // TODO assign mappings from DB
+            dataSourceMappings: [{ AttributeId: getNewGuid(), DataField: 'CRS_Data', DataSourceId: currentDatasource.value.id, Id: getNewGuid() },
+                { AttributeId: getNewGuid(), DataField: 'SURFACE NAME', DataSourceId: currentDatasource.value.id, Id: getNewGuid() }
+            ]             
+        }
     }
+
     function onCreateNewDataSource(datasource: Datasource) {
         if(dataSourceTypeItem.value == "")
             dataSourceTypeItemSelected.value = false;
@@ -561,8 +568,7 @@ import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.
     // Dialog function
     function onSubmitImportDataSourceDialogResult(
         result: ImportDataSourceDialogResult,
-    ) {
-        alert('in onSubmitImportDataSourceDialogResult');
+    ) {        
         showImportDataSourceDialog.value = false;
         // Load
         if (hasValue(result)) {
@@ -585,6 +591,7 @@ import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.
 
     function UpdateDataSourceMappings()
     {
+        editDataSourceMappingsDialogData.value.showDialog = false;
         // TODO
     }
 
