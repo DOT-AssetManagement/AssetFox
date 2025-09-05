@@ -50,6 +50,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
         private ICriterionLibraryRepository _criterionLibraryRepo;
         private IDeficientConditionGoalRepository _deficientConditionGoalRepo;
         private IExcelRawDataRepository _excelWorksheetRepo;
+        private IDataSourceMappingRepository _dataSourceMappingRepo;
         private IInvestmentPlanRepository _investmentPlanRepo;
         private IMaintainableAssetRepository _maintainableAssetRepo;
         private INetworkRepository _networkRepo;
@@ -108,6 +109,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 
         public IExcelRawDataRepository ExcelWorksheetRepository => _excelWorksheetRepo ?? new ExcelRawDataRepository(this);
 
+        public IDataSourceMappingRepository DataSourceMappingRepository => _dataSourceMappingRepo ?? new DataSourceMappingRepository(this);
+
         public IInvestmentPlanRepository InvestmentPlanRepo => _investmentPlanRepo ??= new InvestmentPlanRepository(this);
 
         public IMaintainableAssetRepository MaintainableAssetRepo => _maintainableAssetRepo ??= new MaintainableAssetRepository(this);
@@ -164,7 +167,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 
         public UserEntity UserEntity { get; private set; }
 
-        public IDbContextTransaction DbContextTransaction { get; private set; }        
+        public IDbContextTransaction DbContextTransaction { get; private set; }
 
         /// <summary><inheritdoc cref="IUnitOfWork.BeginTransaction"/></summary>
         public void BeginTransaction() => DbContextTransaction = Context.Database.BeginTransaction();

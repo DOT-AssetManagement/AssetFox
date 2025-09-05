@@ -98,6 +98,10 @@ import SaveButton from '@/shared/components/buttons/SaveButton.vue';
   
   watch(dialogData,() => {
       // TODO // props.dialogData.dataSourceMappings.every(_=>_.);
+      // do something like  selectNetworkItems.value = stateNetworks.value.map(_ => ({text: _.name, value: _.id}));  and for Attribute find from stateAttributes
+      // TODO stateAttributes wont be needed as we going to keep all attributes entries to mapping table and attribute name can be mapped
+      //  using .Attribute.Name in mappig entry
+      
         editDataSourceMappingsGridData.value = [{ Attribute:'CRS', 
         DataField: props.dialogData.dataSourceMappings[0].DataField, 
         AttributeId: props.dialogData.dataSourceMappings[0].AttributeId, 

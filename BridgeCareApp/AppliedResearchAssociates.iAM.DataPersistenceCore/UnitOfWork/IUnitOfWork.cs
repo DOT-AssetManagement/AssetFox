@@ -102,6 +102,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
         
         IExcelRawDataRepository ExcelWorksheetRepository { get; }
 
+        IDataSourceMappingRepository DataSourceMappingRepository { get; }
+
         ISimulationOutputJsonRepository SimulationOutputJsonRepo { get; }
 
         void SetUser(string username);

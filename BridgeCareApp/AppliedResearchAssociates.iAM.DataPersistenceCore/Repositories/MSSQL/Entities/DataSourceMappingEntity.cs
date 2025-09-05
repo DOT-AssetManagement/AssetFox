@@ -14,11 +14,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public Guid DataSourceId { get; set; }
 
         public virtual DataSourceEntity DataSource { get; set; }
+
+        public virtual AttributeEntity Attribute { get; set; }
     }
 }
-// TODO
 
-// On upload of file to DS mapping table entries to be saved
-// (if no mapping excel given - it will add all columns and try find attributes (what if it doesn't find? - Check with Tyler)
 
-// Edit mappings in DS UI

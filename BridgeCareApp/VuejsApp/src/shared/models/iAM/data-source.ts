@@ -1,5 +1,6 @@
 import { getNewGuid } from "@/shared/utils/uuid-utils";
 import { getBlankGuid } from "@/shared/utils/uuid-utils";
+import { Attribute } from "./attribute";
 
 export interface Datasource {
     id: string;
@@ -45,18 +46,19 @@ export interface SqlCommandResponse {
     validationMessage: string
 }
 
-export interface DataSourceMapping{
+export interface DataSourceMapping {
     Id: string;
     DataField: string;
     AttributeId: string;
     DataSourceId: string;
+    Attribute: Attribute;
 }
 
-export interface DataSourceMappingGridData{
+export interface DataSourceMappingGridData {
     id: string;
     DataField: string;
     AttributeId: string;
-    Attribute: string;
+    AttributeName: string;
     DataSourceId: string;
 }
 

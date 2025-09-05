@@ -170,6 +170,7 @@ import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog
 import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
 import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
 import { getNewGuid } from '@/shared/utils/uuid-utils';
+import { emptyAttribute } from '@/shared/models/iAM/attribute';
 
     let store = useStore();
     const emit = defineEmits(['submit'])
@@ -445,14 +446,14 @@ import { getNewGuid } from '@/shared/utils/uuid-utils';
         createDataSourceDialogData.value.showDialog = true;
     }
     
-    function onShowDataSourceMappingsDialog(){
+    function onShowDataSourceMappingsDialog() {
         editDataSourceMappingsDialogData.value.showDialog = true;
         editDataSourceMappingsDialogData.value = {
             showDialog: true,
-            // TODO assign mappings from DB
-            dataSourceMappings: [{ AttributeId: getNewGuid(), DataField: 'CRS_Data', DataSourceId: currentDatasource.value.id, Id: getNewGuid() },
-                { AttributeId: getNewGuid(), DataField: 'SURFACE NAME', DataSourceId: currentDatasource.value.id, Id: getNewGuid() }
-            ]             
+            // TODO assign mappings from DB - add apis to get mappings for DS
+            dataSourceMappings: [{ AttributeId: getNewGuid(), DataField: 'CRS_Data', DataSourceId: currentDatasource.value.id, Id: getNewGuid(), Attribute: emptyAttribute },
+                { AttributeId: getNewGuid(), DataField: 'SURFACE NAME', DataSourceId: currentDatasource.value.id, Id: getNewGuid(), Attribute: emptyAttribute }
+            ]
         }
     }
 
