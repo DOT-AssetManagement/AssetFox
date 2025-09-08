@@ -58,8 +58,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services
                 { "14", "14 - Urban - Other Principal Arterial" },
                 { "16", "16 - Urban - Minor Arterial" },
                 { "17", "17 - Urban - Collector" },
+                { "18", "18 - Urban - Minor Collector"},
                 { "19", "19 - Urban - Local" },
-                { "99", "99 - Urban - Ramp" }
+                { "99", "99 - Urban - Ramp" },
+                { "X", "X - Demolished" }
             };
 
         public string FullFunctionalClassDescription(string functionalClassAbbreviation)

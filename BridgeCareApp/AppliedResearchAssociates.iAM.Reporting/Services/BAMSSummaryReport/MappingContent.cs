@@ -83,7 +83,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
             case "Latex Concrete":
                 return "03 - Latex Concrete";
             case "P":
-                return "04 - Low Slump Concrete P PPC Overlay";
+                return "P - PPC Overlay";
             case "Epoxy Overlay":
                 return "05 - Epoxy Overlay";
             case "Bituminous":
@@ -96,6 +96,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
                 return "08 - Gravel";
             case "Other":
                 return "09 - Other";
+            case "Epoxy on top of LMC Overlay":
+                return "Q - Epoxy on top of LMC Overlay";
+            case "Q":
+                return "Q - Epoxy on top of LMC Overlay";
+            case "PPC Overlay":
+                return "P - PPC Overlay";
+            case "Low Slump Concrete":
+                return "04 - Low Slump Concrete";
             default: return name;
             }
         }
