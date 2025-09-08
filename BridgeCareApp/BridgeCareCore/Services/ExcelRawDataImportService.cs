@@ -53,25 +53,28 @@ namespace BridgeCareCore.Services
             }
 
             // mappings worksheet
-            var mappingsCells = mappingsWorksheet?.Cells;
-            var mappingsEnd = mappingsWorksheet?.Dimension.End;                        
             var attributeColumnCells = new Dictionary<string, string>();
-            for (var rowIndex = 2; rowIndex <= mappingsEnd.Row; rowIndex++)
+            if (mappingsWorksheet != null)
             {
-                var attributeCellValue = mappingsCells[rowIndex, 1].Value?.ToString();
-                var columnCellValue = mappingsCells[rowIndex, 2].Value?.ToString();
-
-                if (!string.IsNullOrEmpty(attributeCellValue) && !string.IsNullOrEmpty(columnCellValue))
+                var mappingsCells = mappingsWorksheet?.Cells;
+                var mappingsEnd = mappingsWorksheet?.Dimension.End;
+                for (var rowIndex = 2; rowIndex <= mappingsEnd.Row; rowIndex++)
                 {
-                    attributeColumnCells.Add(attributeCellValue.ToString(), columnCellValue.ToString());
+                    var attributeCellValue = mappingsCells[rowIndex, 1].Value?.ToString();
+                    var columnCellValue = mappingsCells[rowIndex, 2].Value?.ToString();
+
+                    if (!string.IsNullOrEmpty(attributeCellValue) && !string.IsNullOrEmpty(columnCellValue))
+                    {
+                        attributeColumnCells.Add(attributeCellValue.ToString(), columnCellValue.ToString());
+                    }
                 }
             }
-
-            // dtos to save
+                        
             // get non-calculted attributes
             var attributeDtos = _unitOfWork.AttributeRepo.GetAttributesAsync().Result?.Where(_ => !_.IsCalculated)?.ToList() ?? [];
-            var dataSourceMappingDtos = new List<DataSourceMappingDTO>();
 
+            // dtos to save
+            var dataSourceMappingDtos = new List<DataSourceMappingDTO>();
             foreach (var attributeDto in attributeDtos)
             {
                 var column = "None";
@@ -96,7 +99,7 @@ namespace BridgeCareCore.Services
                 });
             }
 
-            // Add to db
+            // upsert
             _unitOfWork.DataSourceMappingRepository.UpsertDataSourceMappings(dataSourceMappingDtos, dataSourceId);
 
             return result;

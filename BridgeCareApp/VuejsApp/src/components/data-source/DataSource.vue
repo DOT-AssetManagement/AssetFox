@@ -451,9 +451,10 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
         editDataSourceMappingsDialogData.value = {
             showDialog: true,
             // TODO assign mappings from DB - add apis to get mappings for DS
-            dataSourceMappings: [{ AttributeId: getNewGuid(), DataField: 'CRS_Data', DataSourceId: currentDatasource.value.id, Id: getNewGuid(), Attribute: emptyAttribute },
-                { AttributeId: getNewGuid(), DataField: 'SURFACE NAME', DataSourceId: currentDatasource.value.id, Id: getNewGuid(), Attribute: emptyAttribute }
-            ]
+            dataSourceMappings: clone(DataSourceMappings.value),
+            //dataSourceMappings: [{ AttributeId: getNewGuid(), DataField: 'CRS_Data', DataSourceId: currentDatasource.value.id, Id: getNewGuid(), Attribute: emptyAttribute },
+              //  { AttributeId: getNewGuid(), DataField: 'SURFACE NAME', DataSourceId: currentDatasource.value.id, Id: getNewGuid(), Attribute: emptyAttribute }
+            //]
         }
     }
 

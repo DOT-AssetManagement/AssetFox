@@ -69,10 +69,9 @@ namespace BridgeCareCore.Controllers
                 }
                 else
                 {
-                    // TODO On upload of file to DS mapping table entries to be saved
                     var mappingsResult = await Task.Factory.StartNew(() =>
                     {
-                        var mappingsWorksheet = excelPackage.Workbook.Worksheets[1]; // TODO test if its not present                        
+                        var mappingsWorksheet = excelPackage.Workbook.Worksheets.Count > 1 ? excelPackage.Workbook.Worksheets[1] : null;
                         return _excelSpreadsheetImportService.ImportDataSourceMapping(dataSourceId, worksheet, mappingsWorksheet);
                     });
                 }

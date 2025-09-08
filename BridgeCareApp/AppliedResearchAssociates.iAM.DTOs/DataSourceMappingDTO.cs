@@ -11,5 +11,7 @@ namespace AppliedResearchAssociates.iAM.DTOs
         public Guid AttributeId { get; set; }
 
         public Guid DataSourceId { get; set; }
+
+        public string AttributeName { get; set; }
     }
 }

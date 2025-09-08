@@ -47,5 +47,16 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             };
         }
 
+        public static DataSourceMappingDTO ToDTO(this DataSourceMappingEntity entity)
+        {
+            return new DataSourceMappingDTO
+            {
+                Id = entity.Id,
+                AttributeId = entity.AttributeId,
+                DataField = entity.DataField,
+                DataSourceId = entity.DataSourceId,
+                AttributeName = entity.Attribute.Name
+            };
+        }
     }
 }

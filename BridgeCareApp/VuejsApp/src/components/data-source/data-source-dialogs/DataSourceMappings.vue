@@ -102,12 +102,12 @@ import SaveButton from '@/shared/components/buttons/SaveButton.vue';
       // TODO stateAttributes wont be needed as we going to keep all attributes entries to mapping table and attribute name can be mapped
       //  using .Attribute.Name in mappig entry
       
-        editDataSourceMappingsGridData.value = [{ Attribute:'CRS', 
+        editDataSourceMappingsGridData.value = [{ AttributeName:'CRS', 
         DataField: props.dialogData.dataSourceMappings[0].DataField, 
         AttributeId: props.dialogData.dataSourceMappings[0].AttributeId, 
         id: props.dialogData.dataSourceMappings[0].Id,
         DataSourceId: props.dialogData.dataSourceMappings[0].DataSourceId },
-        { Attribute:'SURFACE_NAME', 
+        { AttributeName:'SURFACE_NAME', 
         DataField: props.dialogData.dataSourceMappings[1].DataField, 
         AttributeId: props.dialogData.dataSourceMappings[1].AttributeId, 
         id: props.dialogData.dataSourceMappings[1].Id,
