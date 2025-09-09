@@ -34,6 +34,8 @@ namespace BridgeCareCoreTests.Tests
             var mockInvestmentPlanRepo = new Mock<IInvestmentPlanRepository>();
             mockedTestUOW.Setup(u => u.InvestmentPlanRepo).Returns(mockInvestmentPlanRepo.Object);
             mockInvestmentPlanRepo.Setup(i => i.GetInvestmentPlan(TestDataForCommittedProjects.SimulationId)).Returns(TestDataForCommittedProjects.TestInvestmentPlan);
+            int[] years = { 2022, 2023 };
+            mockInvestmentPlanRepo.Setup(i => i.GetInvestmentStartAndEndYears(It.IsAny<Guid>())).Returns(years);
             var mockAssetDataRepository = new Mock<IAssetData>();
             mockAssetDataRepository.Setup(_ => _.KeyProperties).Returns(TestDataForCommittedProjects.KeyProperties);
             mockedTestUOW.Setup(_ => _.AssetDataRepository).Returns(mockAssetDataRepository.Object);
