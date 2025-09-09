@@ -151,6 +151,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             maintainableAssets.Add(maintainableAsset);
             var network = NetworkTestSetup.ModelForEntityInDbWithNewKeyTextAttribute(
                 TestHelper.UnitOfWork, maintainableAssets, networkId, keyAttributeId, keyAttributeName);
+            TestHelper.UnitOfWork.ClearCachedMaintainableAssetDataRepository();
             var attributeNames = $"{keyAttributeName},{unusedKeyAttributeName}";
             AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, network.Name, attributeNames, attributeNames);
             var attributes = new List<IamAttribute> { keyAttribute, resultAttribute };
