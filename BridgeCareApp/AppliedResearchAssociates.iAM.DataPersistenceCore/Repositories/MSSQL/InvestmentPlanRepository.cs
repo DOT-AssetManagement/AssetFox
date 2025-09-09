@@ -71,8 +71,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
 
         public int[] GetInvestmentStartAndEndYears(Guid simulationId)
         {
-            var startYear = _unitOfWork.Context.InvestmentPlan.AsNoTracking().Select(x => x.FirstYearOfAnalysisPeriod).FirstOrDefault();
-            var numYearsInAnalysis = _unitOfWork.Context.InvestmentPlan.AsNoTracking().Select(x => x.NumberOfYearsInAnalysisPeriod).FirstOrDefault();
+            var investmentPlan = _unitOfWork.Context.InvestmentPlan.AsNoTracking().FirstOrDefault(ip => ip.SimulationId == simulationId);
+            var startYear = investmentPlan.FirstYearOfAnalysisPeriod;
+            var numYearsInAnalysis = investmentPlan.NumberOfYearsInAnalysisPeriod;
             var endYear = startYear + numYearsInAnalysis - 1;
 
             return new int[] { startYear, endYear };
