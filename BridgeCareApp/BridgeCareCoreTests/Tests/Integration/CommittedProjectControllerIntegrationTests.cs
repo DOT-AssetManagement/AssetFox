@@ -33,6 +33,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             AdminSettingsTestSetup.SetupBamsAdminSettingsForTestNetwork(TestHelper.UnitOfWork, true);
             var simulationId = Guid.NewGuid();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
+            InvestmentPlanTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, null, 2025);
             var treatmentId = Guid.NewGuid();
             var treatmentName = RandomStrings.WithPrefix("treatment");
             var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId, treatmentId, treatmentName);
@@ -49,7 +50,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             var maintainableAsset = MaintainableAssets.InNetwork(NetworkTestSetup.NetworkId, TestAttributeNames.BrKey, assetId, sectionLocation);
             var maintainableAssets = new List<MaintainableAsset> { maintainableAsset };
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(maintainableAssets, NetworkTestSetup.NetworkId);
-            var committedProject = CommittedProjectTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, scenarioBudgetId, simulationId, locationKey, locationValue, treatmentName, 0);
+            var committedProject = CommittedProjectTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, scenarioBudgetId, simulationId, locationKey, locationValue, treatmentName, 2025);
             var committedProjectsBefore = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             Assert.NotEmpty(committedProjectsBefore);
 

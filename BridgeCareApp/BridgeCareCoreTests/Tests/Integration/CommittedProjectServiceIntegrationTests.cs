@@ -190,8 +190,8 @@ namespace BridgeCareCoreTests.Tests.Integration
                 ProjectSourceDTO.None,
                 treatmentName,
                 keyAttributeName,
-                location.LocationIdentifier);
-            committedProject.Year = 2023;
+                location.LocationIdentifier,
+                2023);
             committedProject.Cost = 31415926;
             List<SectionCommittedProjectDTO> sectionCommittedProjects = new List<SectionCommittedProjectDTO> { committedProject };
             TestHelper.UnitOfWork.CommittedProjectRepo.UpsertCommittedProjects(sectionCommittedProjects);
