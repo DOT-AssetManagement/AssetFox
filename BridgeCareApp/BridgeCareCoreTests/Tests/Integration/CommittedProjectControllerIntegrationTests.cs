@@ -49,7 +49,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             var maintainableAsset = MaintainableAssets.InNetwork(NetworkTestSetup.NetworkId, TestAttributeNames.BrKey, assetId, sectionLocation);
             var maintainableAssets = new List<MaintainableAsset> { maintainableAsset };
             TestHelper.UnitOfWork.MaintainableAssetRepo.CreateMaintainableAssets(maintainableAssets, NetworkTestSetup.NetworkId);
-            var committedProject = CommittedProjectTestSetup.ModelForEntityInDb(scenarioBudgetId, simulationId, locationKey, locationValue, treatmentName);
+            var committedProject = CommittedProjectTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, scenarioBudgetId, simulationId, locationKey, locationValue, treatmentName, 0);
             var committedProjectsBefore = TestHelper.UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
             Assert.NotEmpty(committedProjectsBefore);
 
