@@ -84,18 +84,21 @@
 ### flow per time step
 
 - start with last step's "final values"
-- deterioration applied where applicable
+- DETERIORATION
   - carries the attributes into the current phase of decision-making
   - previously .
-  - an asset may not deteriorate under certain conditions, e.g. active
-    cash-flow.
-- determine project options, including null project options based on the null treatment
+  - an asset or its attributes may not deteriorate under certain conditions,
+    e.g. active cash-flow.
+- determine project options, including null project options based on the null
+  treatment
   - check treatment feasibility criteria, shadows, etc
+  - could also consider 2 different cash flow periods as 2 different project
+    options
 - estimate the "objective value" of each project option
   - PLUG-IN: needs an input/output spec
-- determine selected projects (i.e. decide on funding, e.g. budgets, cash-flow)
+- determine selected projects (i.e. decide on funding, e.g. budgets, cash-flow?)
   - PLUG-IN: needs an input/output spec
-- apply all projects to the attribute-state of assets
+- PROJECT EFFECTS
 - done; next time step
 
 ### outputs
@@ -117,19 +120,18 @@
 ### misc remarks
 
 - treatment bundling should be implicitly performed by a CP abiding by
-  supersede/exclusion rules. it should not be handled by the framework.
+  supersede/concurrency rules. it should not be handled by the framework.
 - benefit/cost should reflect total cost of all "follow-up" (i.e. scheduled)
   treatments
-- need a list of AssetFox additions:
-  - calculated field timing
-  - treatment bundles
-  - asset grouping
 - the quasi-required "age" attribute is not technically required. It's only used
-  to facilitate handling of piecewise expressions as performance curves.
+  to facilitate handling of piecewise expressions as performance curves. In
+  other words, if that kind of "special" expression could include the dependency
+  attribute in its specification, there's no need to have "special" attributes.
+- alternative methods of defining functions may exist, e.g. "piecewise
+  expressions" as used by RoadCare and AssetFox.
 
 ### some potential new terms
 
-- null treatment: what we currently call some variant of "the no-treatment"
 - project: the combination of a treatment and an asset (i.e. the application of
   a treatment to an asset) over a certain time period (one or more time steps).
   - project activity: one time step of a project
@@ -138,71 +140,127 @@
   - selected project
   - committed project: defined by the user and by projects' treatments'
     required future treatments
-- 
+
 ## draft of content
 
 ### Overview
 
 - _Scenario_ | _Simulation_ | _Project Plan_
 
-### Terms & Concepts
+### Document Glossary
 
-- _Asset-Logical Expression (ALE)_
-  - an expression that evaluates to either true or false when _asset-attribute
-    state_ substitutes a value for each parameter referenced in the expression
-- _Asset-Numeric Expression (ANE)_
-  - an expression that evaluates to a number when an _asset-attribute snapshot_
-    substitutes values for each parameter referenced in the expression
+- _Inputs/Outputs/Aspects (IOA)_
 
-### Input Data
+### Framework Glossary
 
-- _Scenario_
-  - **Initial** _Asset-Attribute States_; each:
-    - Asset ID
-    - Attribute Values
-  - _Numeric Attribute Definitions_; each:
-    - Name
-    - Minimum Value (optional)
-    - Maximum Value (optional)
-    - _Deterioration Model_ (optional)
-      - Direction of Deterioration (increasing or decreasing)
-      - Default Function (optional if 1+ conditional functions)
-        - ANE
-      - Conditional Functions; each:
-        - ALE
-        - ANE
-      - The function-ANEs here are not allowed to reference (directly or
-        indirectly) any other attribute having a deterioration model.
-  - _Textual Attribute Definitions_; each:
-    - Name
-  - _Numeric Parameter Definitions_; each:
-    - Name
-    - Default Function (optional if 1+ conditional functions)
-      - ANE
-    - Conditional Functions; each:
-      - ALE
-      - ANE
-  - numeric attribute deterioration functions
-  - null treatment
-  - selectable treatments
-- _attribute deterioration function_
-  - target attribute
-  - application requirement
-    - asset-logical expression
-  - asset-numeric expression **with no direct or indirect references to other
-    deteriorating attributes**
-    - the expression may reference the target attribute and it may reference
-      non-deteriorating attributes and parameters.
-  - alternative methods of defining functions may exist, e.g. "piecewise
-    expressions" as used by RoadCare and AssetFox.
-- _treatment_
-  - consequences
-  - cost
-  - selection requirement
-    - asset-logical expression
-  - future treatment requirements
-    - future offset (greater than zero)
-    - treatment
+
+### Variable implementation details
+
+- how to handle multiple "true" predicates when evaluating a CFS
+  - e.g. abort the simulation; evaluate all the corresponding functions and take
+    the best or worst value
+- how to handle zero "true" predicates when evaluating a CFS with no default
+  - e.g. abort the simulation; if evaluating deterioration, fall back to a
+    "default value" on that attribute's definition
+- "default values" in numeric attribute definitions
+  - generally, only useful in initial total snapshot preparation when historical
+    data is incomplete; but, could be used in other implementation-specific
+    situations
+
+### RoadCare-specific IOA
+
+- "assets" are "segments" or "sections"
+
+### RoadCare- and AssetFox-specific IOA
+
+- "direction of deterioration"? could it be an implementation detail?
+- "default value" on each attribute definition
+- "AGE" attribute
+- age-dependent "piecewise" expressions for interpolated functions in
+  deterioration models
+- "value-change" expressions in treatment consequences
+- budget priority levels
+- budget order
+
+### AssetFox-specific IOA
+
+- performance curve adjustment factors
+- calculated field timing
+
+### Glossary of Terms & Structured Data
+
+Italicized text is used to indicate parts of a data structure. When such text is
+followed by a colon, the text after the colon clarifies the general type of data
+in the named part. If the part is optional, a question mark is shown.
+
+- **Simulation Time Sequence**
+  - This is the sequence of abstract time steps and sub-steps over which the
+    simulation operates.
+- **Asset**
+  - This is any object that (a) may deteriorate over time and (b) may be managed
+    or maintained by applying treatments to the object.
+  - Within the simulation, an asset is nothing more than its identity.
+- **Attribute Definition**
+  - This describes a property associated with some or all assets in the
+    simulation.
+- **Asset Snapshot**
+  - This is a set of values, one for each attribute definition, fully describing
+    a single asset at a single moment in the simulation time sequence.
+- **Total Snapshot**
+  - This is a set of asset snapshots, one for each asset in the scenario, for a
+    single step in the simulation time sequence.
+- **Asset Numeric Function**
+  - This is a function that applies to an asset snapshot and evaluates to a real
+    number.
+- **Asset Textual Function**
+  - This is a function that applies to an asset snapshot and evaluates to a text
+    string.
+- **Asset Predicate**
+  - This is a logical predicate that applies to an asset snapshot and evaluates
+    to a classical truth value (i.e. either "true" or "false").
+- **Conditional Function System (CFS)**
+  - This is a "default" asset function alongside a set of asset
+    predicate-function pairs.
+  - The default function is optional only if there is at least one
+    predicate-function pair.
+  - The asset functions in a single CFS must be either all numeric or all
+    textual.
+- **Numeric Attribute Definition**
+  - _Minimum Value_ : number (?)
+  - _Maximum Value_ : number (?)
+  - _Deterioration Model_ : numeric CFS (?)
+    - _Direction of Deterioration_ : negative or positive
+- **Textual Attribute Definition**
+- **Numeric Parameter Definition**
+  - _Value Model_ : CFS
+- **Attribute Value Effect**
+  - _Target Attribute_
+  - _Effect Model_ : CFS
+  - The target attribute and the effect model must match value-types. In other
+    words, the target is a numeric attribute and the effect model uses numeric
+    functions, or the target is a textual attribute and the effect model uses
+    textual functions; other combinations are invalid.
+- **Null Treatment**
+  - _Attribute Value Effects_ : (*)
+- **Selectable Treatment**
+  - _Attribute Value Effects_ : (+)
+  - _Cost Model_ : CFS
+  - _Selection Predicate_ : (?)
+  - _Allowed Budgets_ : (+)
+  - _Required Future Treatments_ : (*)
+- **Scenario**
+  - This is a container of all input required for a single execution of the
+    simulation algorithm.
+  - _Initial Total Snapshot_
+  - _Numeric Attribute Definitions_
+  - _Numeric Parameter Definitions_
+  - _Null Treatment_
+  - _Selectable Treatments_
+    - Required Future Treatments; each:
+      - Future Offset
+      - Required Treatment
+  - _Allowed Treatment Concurrencies_; each:
+    - Concurrently Allowed Treatments
 
 ### Output Data
 
