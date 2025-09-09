@@ -1,10 +1,17 @@
 import {AxiosPromise} from 'axios';
 import {API, coreAxiosInstance} from '@/shared/utils/axios-instance';
-import {ExcelDataSource, SqlDataSource} from '@/shared/models/iAM/data-source';
+import {DataSourceMappingData, ExcelDataSource, SqlDataSource} from '@/shared/models/iAM/data-source';
 import { TestStringData } from '@/shared/models/iAM/test-string';
+import { Gunzip } from 'zlib';
 
 
 export default class DataSourceService {
+    static upsertDataSourceMappings(dataSourceMappings: DataSourceMappingData[], dataSourceId: string): AxiosPromise {
+        return coreAxiosInstance.post(
+            `${API.DataSourceMapping}/UpsertDataSourceMappings/${dataSourceId}`,
+            dataSourceMappings,
+        );
+    }
     static getDataSourceTypes(): AxiosPromise {
         return coreAxiosInstance.get(`${API.DataSource}/GetDataSourceTypes`);
     }
@@ -56,6 +63,12 @@ export default class DataSourceService {
             `${API.RawData}/ImportExcelSpreadsheet/${id}`,
             formData,
             {headers: {'Content-Type': 'multipart/form-data'}},
+        );
+    }
+    static getDataSourceMappings(datasourceId: string
+    ): AxiosPromise {
+        return coreAxiosInstance.get(
+            `${API.DataSourceMapping}/GetDataSourceMappings/${datasourceId}`
         );
     }
 }

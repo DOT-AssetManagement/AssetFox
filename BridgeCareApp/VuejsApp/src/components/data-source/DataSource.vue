@@ -148,7 +148,8 @@ import {
     RawDataColumns, 
     SqlDataSource, 
     ExcelDataSource,
-    SqlCommandResponse
+    SqlCommandResponse,
+    DataSourceMappingData
 } from '@/shared/models/iAM/data-source';
 import { TestStringData } from '@/shared/models/iAM/test-string';
 import {hasValue} from '@/shared/utils/has-value-util';
@@ -160,7 +161,6 @@ import CreateDataSourceDialog from '@/components/data-source/data-source-dialogs
 import { getUserName } from '@/shared/utils/get-user-info';
 import { NIL } from 'uuid';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
-import DataSourceService from '@/services/data-source.service';
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useStore } from 'vuex';
@@ -169,17 +169,17 @@ import { ImportDataSourceDialogResult } from '@/shared/models/modals/import-data
 import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog.vue';
 import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
 import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
-import { getNewGuid } from '@/shared/utils/uuid-utils';
-import { emptyAttribute } from '@/shared/models/iAM/attribute';
+import DataSourceMappingsService from '@/services/data-source.service';
 
     let store = useStore();
     const emit = defineEmits(['submit'])
     let dataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;
-    let dataSourceTypes = computed<string[]>(() => store.state.datasourceModule.dataSourceTypes) ;
+    let dataSourceTypes = computed<string[]>(() => store.state.datasourceModule.dataSourceTypes) ;    
     let excelColumns = computed<RawDataColumns>(() => store.state.datasourceModule.excelColumns) ;
     let sqlCommandResponse = computed<SqlCommandResponse>(() => store.state.datasourceModule.sqlCommandResponse) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let editDataSourceMappingsDialogData = ref<EditDataSourceMappingsDialogData>(clone(emptyEditDataSourceMappingsDialogData));
+    let dataSourceMappings = computed<DataSourceMappingData[]>(() => store.state.datasourceModule.dataSourceMappings);
 
     async function getDataSourcesAction(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}
     async function getDataSourceTypesAction(payload?: any): Promise<any> {await store.dispatch('getDataSourceTypes', payload);}
@@ -189,6 +189,7 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
     async function importExcelSpreadsheetFileAction(payload?: any): Promise<any> {await store.dispatch('importExcelSpreadsheetFile', payload);}
     async function getExcelSpreadsheetColumnHeadersAction(payload?: any): Promise<any> {await store.dispatch('getExcelSpreadsheetColumnHeaders', payload);}
     async function checkSqlCommandAction(payload?: any): Promise<any> {await store.dispatch('checkSqlCommand', payload);}
+    async function getDataSourceMappingsAction(payload?: any): Promise<any> {await store.dispatch('getDataSourceMappings', payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
     function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);} 
 
@@ -197,8 +198,7 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
 
     let dsTypeItems = ref<string[]>([]);
     let dsItems = ref<any>([]);    
-    
-    let assetNumber: number = 0;
+        
     let invalidColumn = ref<string>('');
     let sqlResponse = ref<string | null>('');
     let sqlValid = ref<boolean>(false);
@@ -207,7 +207,6 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
     let sourceTypeItem = ref<string>('');
     let dataSourceTypeItem = ref<string | null>('');
     let dataSourceTypeItemSelected = ref<boolean>(false);
-    let datasourceNames = ref<string[]>([]);
     let dataSourceExcelColumns = ref<DataSourceExcelColumns>({ locationColumn: [], dateColumn: []});
 
     let currentExcelLocationColumn = ref<string>('');
@@ -223,7 +222,6 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
     let showSqlMessage = ref<boolean>(false);
     let showSaveMessage = ref<boolean>(false);
     let isNewDataSource = ref<boolean>(false);
-    let allowSaveData = ref<boolean>(false);
         
     let fileName = ref<string>('');
     let fileSelect: HTMLInputElement = {} as HTMLInputElement;
@@ -233,17 +231,9 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
     let locColumns = ref<string[]>([]);
     let datColumns = ref<string[]>([]);
 
-    let connectionStringPlaceHolderMessage = ref<string>('');    
-
-/*     created();
-    function created() {
-        getDataSourcesAction();
-        getDataSourceTypesAction();
-    }
- */    
+    let connectionStringPlaceHolderMessage = ref<string>('');   
 
     const showImportDataSourceDialog = ref< boolean > (false);
-    const showDataSourceMappingsDialog = ref<boolean>(false);
 
     onMounted(() => mounted())
     function mounted() {
@@ -300,12 +290,14 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
                         
             if(!isNewDataSource.value) {
                 getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+                getDataSourceMappingsAction(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
             }
                                    
             if(!isNewDataSource.value) {
                 getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+                getDataSourceMappingsAction(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
             }
@@ -348,6 +340,7 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
         showSqlMessage.value = false; showSaveMessage.value = false;
         if(!isNewDataSource.value) {
                 getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+                getDataSourceMappingsAction(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
             }
@@ -450,11 +443,8 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
         editDataSourceMappingsDialogData.value.showDialog = true;
         editDataSourceMappingsDialogData.value = {
             showDialog: true,
-            // TODO assign mappings from DB - add apis to get mappings for DS
-            dataSourceMappings: clone(DataSourceMappings.value),
-            //dataSourceMappings: [{ AttributeId: getNewGuid(), DataField: 'CRS_Data', DataSourceId: currentDatasource.value.id, Id: getNewGuid(), Attribute: emptyAttribute },
-              //  { AttributeId: getNewGuid(), DataField: 'SURFACE NAME', DataSourceId: currentDatasource.value.id, Id: getNewGuid(), Attribute: emptyAttribute }
-            //]
+            dataSourceMappings: dataSourceMappings.value,
+            columnSelectItems: excelColumns.value.columnHeaders
         }
     }
 
@@ -580,6 +570,7 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
                 id: currentDatasource.value.id
                 }).then((response: any) => {
                     getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+                    getDataSourceMappingsAction(currentDatasource.value.id);
                 });
             } else {
                 addErrorNotificationAction({
@@ -591,10 +582,13 @@ import { emptyAttribute } from '@/shared/models/iAM/attribute';
         }
     }
 
-    function UpdateDataSourceMappings()
+    async function UpdateDataSourceMappings(updatedDataSourceMappings: DataSourceMappingData[])
     {
         editDataSourceMappingsDialogData.value.showDialog = false;
-        // TODO
+        if(updatedDataSourceMappings != null)
+        {
+            await DataSourceMappingsService.upsertDataSourceMappings(editDataSourceMappingsDialogData.value.dataSourceMappings, currentDatasource.value.id);        
+        }
     }
 
 </script>

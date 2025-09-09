@@ -102,7 +102,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
         
         IExcelRawDataRepository ExcelWorksheetRepository { get; }
 
-        IDataSourceMappingRepository DataSourceMappingRepository { get; }
+        IDataSourceMappingRepository DataSourceMappingRepo { get; }
 
         ISimulationOutputJsonRepository SimulationOutputJsonRepo { get; }
 

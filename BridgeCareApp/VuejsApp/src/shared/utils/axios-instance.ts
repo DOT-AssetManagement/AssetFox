@@ -1,3 +1,4 @@
+import DataSourceMappings from '@/components/data-source/data-source-dialogs/DataSourceMappings.vue';
 import axios, {AxiosInstance} from 'axios';
 
 export const axiosInstance: AxiosInstance = axios.create({
@@ -48,5 +49,6 @@ export const API = {
     DataSource: '/api/DataSource',
     RawData: '/api/RawData',
     AdminSettings: '/api/AdminSiteSettings',
-    AdminData: '/api/AdminData'
+    AdminData: '/api/AdminData',
+    DataSourceMapping: '/api/DataSourceMapping',
 };

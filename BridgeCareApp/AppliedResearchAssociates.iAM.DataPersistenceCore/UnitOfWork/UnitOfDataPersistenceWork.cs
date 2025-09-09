@@ -109,7 +109,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 
         public IExcelRawDataRepository ExcelWorksheetRepository => _excelWorksheetRepo ?? new ExcelRawDataRepository(this);
 
-        public IDataSourceMappingRepository DataSourceMappingRepository => _dataSourceMappingRepo ?? new DataSourceMappingRepository(this);
+        public IDataSourceMappingRepository DataSourceMappingRepo => _dataSourceMappingRepo ?? new DataSourceMappingRepository(this);
 
         public IInvestmentPlanRepository InvestmentPlanRepo => _investmentPlanRepo ??= new InvestmentPlanRepository(this);
 

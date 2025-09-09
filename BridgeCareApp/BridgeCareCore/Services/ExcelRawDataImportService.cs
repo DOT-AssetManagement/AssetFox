@@ -100,7 +100,7 @@ namespace BridgeCareCore.Services
             }
 
             // upsert
-            _unitOfWork.DataSourceMappingRepository.UpsertDataSourceMappings(dataSourceMappingDtos, dataSourceId);
+            _unitOfWork.DataSourceMappingRepo.UpsertDataSourceMappings(dataSourceMappingDtos, dataSourceId);
 
             return result;
         }

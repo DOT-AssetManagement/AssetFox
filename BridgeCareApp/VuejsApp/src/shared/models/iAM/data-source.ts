@@ -54,8 +54,8 @@ export interface DataSourceMapping {
     Attribute: Attribute;
 }
 
-export interface DataSourceMappingGridData {
-    id: string;
+export interface DataSourceMappingData {
+    Id: string;
     DataField: string;
     AttributeId: string;
     AttributeName: string;
