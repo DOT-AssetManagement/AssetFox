@@ -71,4 +71,9 @@ export default class DataSourceService {
             `${API.DataSourceMapping}/GetDataSourceMappings/${datasourceId}`
         );
     }
+    static downloadDataSourceMappings(dataSourceId: string): AxiosPromise {
+        return coreAxiosInstance.get(
+            `${API.DataSourceMapping}/DownloadDataSourceMappings/${dataSourceId}`,
+        );
+    }
 }

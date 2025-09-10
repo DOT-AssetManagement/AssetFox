@@ -444,7 +444,8 @@ import DataSourceMappingsService from '@/services/data-source.service';
         editDataSourceMappingsDialogData.value = {
             showDialog: true,
             dataSourceMappings: dataSourceMappings.value,
-            columnSelectItems: excelColumns.value.columnHeaders
+            columnSelectItems: excelColumns.value.columnHeaders,
+            dataSourceId: currentDatasource.value.id
         }
     }
 

@@ -9,9 +9,10 @@ using System;
 using Microsoft.AspNetCore.Mvc;
 using HotChocolate.Authorization;
 using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Security;
-using Microsoft.Graph.Models;
 using System.Collections.Generic;
+using Microsoft.SqlServer.Dac.Model;
+using BridgeCareCore.Interfaces;
+using BridgeCareCore.Services;
 
 namespace BridgeCareCore.Controllers
 {
@@ -20,8 +21,10 @@ namespace BridgeCareCore.Controllers
     public class DataSourceMappingController : BridgeCareCoreBaseController
     {
         public const string DataSourceMappingError = "DataSourceMapping Error";
+        private IDataSourceMappingService _dataSourceMappingService;
 
         public DataSourceMappingController(
+            IDataSourceMappingService dataSourceMappingService,
             IEsecSecurity esecSecurity,
             IUnitOfWork unitOfWork,
             IHubService hubService,
@@ -31,7 +34,8 @@ namespace BridgeCareCore.Controllers
                   hubService,
                   contextAccessor)
         {
-        }        
+            _dataSourceMappingService = dataSourceMappingService ?? throw new ArgumentNullException(nameof(DataSourceMappingService));
+        }
 
         [HttpGet]
         [Route("GetDataSourceMappings/{dataSourceId}")]
@@ -67,6 +71,27 @@ namespace BridgeCareCore.Controllers
             catch (Exception e)
             {
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{DataSourceMappingError}::UpsertDataSourceMappings - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("DownloadDataSourceMappings/{dataSourceId}")]
+        [Authorize]
+        public async Task<IActionResult> DownloadDataSourceMappings(Guid dataSourceId)
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() =>
+                {
+                    return _dataSourceMappingService.DownloadDataSourceMappings(dataSourceId);
+                });
+
+                return Ok(result);
+            }            
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{DataSourceMappingError}::DownloadDataSourceMappings - {e.Message}", e);
             }
             return Ok();
         }

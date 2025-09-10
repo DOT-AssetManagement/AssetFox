@@ -4,9 +4,15 @@
       <v-card>
         <v-card-title class="ghd-dialog-box-padding-top">
           <v-row justify-space-between align-center>
+            <v-col>
               <div class="ghd-control-dialog-header">Edit Data Source Mappings</div>
               <v-spacer></v-spacer>
               <XButton @click="onSubmit(false)"/>
+              </v-col>
+              <v-col>
+                <v-btn @click='downloadDataSourceMappings' 
+                  class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button" style="margin: 5px;float: right;" variant="outlined">Download</v-btn>
+                </v-col>
           </v-row>
         </v-card-title>
         <div style='max-height: 700px; max-width:900px; margin-top:10px;' class="ghd-dialog-box-padding-center">
@@ -66,16 +72,17 @@
 
 <script setup lang="ts">
 import Vue, { computed, ref, toRefs, watch } from 'vue';
-import {InputValidationRules, rules as validationRules} from '@/shared/utils/input-validation-rules';
-import { DataSourceMapping, DataSourceMappingData } from '../../../shared/models/iAM/data-source';
+import { DataSourceMappingData } from '../../../shared/models/iAM/data-source';
 import { useStore } from 'vuex';
-import { clone } from 'ramda';
-import { Attribute } from '@/shared/models/iAM/attribute';
 import { EditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
-
-  const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
+import DataSourceService from '@/services/data-source.service';
+import { AxiosResponse } from 'axios';
+import { hasValue } from '@/shared/utils/has-value-util';
+import { FileInfo } from '@/shared/models/iAM/file-info';
+import FileDownload from 'js-file-download';
+import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 
   let store = useStore();
   let gridHeaders: any[] = [
@@ -90,16 +97,13 @@ import SaveButton from '@/shared/components/buttons/SaveButton.vue';
   const emit = defineEmits(['submit'])  
   let editDataSourceMappingsData = ref<DataSourceMappingData[]>([]);
   let columnSelectItems = ref<string[]>([]);
-  let rules: InputValidationRules = validationRules;
+  let dataSourceId = ref<string>();
   
   watch(dialogData,() => {      
       columnSelectItems.value = dialogData.value.columnSelectItems;
       editDataSourceMappingsData.value = dialogData.value.dataSourceMappings;
-    });
-
-  function updateList(item: DataSourceMappingData) {
-    // TODO ?
-  }
+      dataSourceId.value = dialogData.value.dataSourceId;
+  });
   
   function onSubmit(submit: boolean) {
     if (submit) {
@@ -114,6 +118,16 @@ import SaveButton from '@/shared/components/buttons/SaveButton.vue';
   function disableSubmitButton() {
     // TODO?  
     return false;  
+  }
+
+  function downloadDataSourceMappings(){
+  DataSourceService.downloadDataSourceMappings(dialogData.value.dataSourceId)
+      .then((response: AxiosResponse) => {
+          if (hasValue(response, 'data')) {
+              const fileInfo: FileInfo = response.data as FileInfo;
+              FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
+          }
+      });
   }
   
 </script>
