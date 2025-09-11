@@ -724,16 +724,32 @@ public sealed class SimulationRunner
         {
             assetGroupFundingCancellationActions = new();
 
+            // Note that this count includes only assets for which there exists at least one
+            // treatment option. Another intuitive count could include all not-yet-handled assets,
+            // but that is deliberately not chosen here, per PennDOT requirements, so that an asset
+            // with zero treatment options would not prevent the rest of its asset group from
+            // receiving treatments.
+            var assetGroupSizes =
+                treatmentOptions
+                .Select(option => option.AssetContext)
+                .Distinct()
+                .GroupBy(GetAssetGroup)
+                .ToDictionary(group => group.Key, group => group.Count());
+
+            // "consideration phase 1" option groups
             optionsByAssetGroupAndTreatment =
                 treatmentOptions
                 .GroupBy(option => (GetAssetGroup(option.AssetContext), option.CandidateTreatment))
+                .Where(group => group.DistinctBy(option => option.AssetContext).Count() == assetGroupSizes[group.Key.Item1])
                 .OrderByDescending(group => group.Average(option => option.WeightedObjectiveValue))
                 .Select(group => group.AsEnumerable())
                 .ToList();
 
+            // "consideration phase 2" option groups
             optionsByAssetGroup =
                 treatmentOptions
                 .GroupBy(option => GetAssetGroup(option.AssetContext))
+                .Where(group => group.DistinctBy(option => option.AssetContext).Count() == assetGroupSizes[group.Key])
                 .OrderByDescending(group => group
                     .GroupBy(option => option.AssetContext)
                     .Average(subgroup => subgroup.Average(option => option.WeightedObjectiveValue)))
