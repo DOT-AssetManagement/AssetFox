@@ -1,13 +1,16 @@
 # iAM Simulation Algorithm Framework (SAF)
 
-
+> The purpose of this document is not to describe any specific software
+> application or any specific body of software code. The purpose is to describe
+> a general algorithmic framework allowing various software implementations of
+> one simulation-based approach to asset management project planning.
 
 ## overall remarks
 
 - The simulation of iAM (formerly RoadCare) is an ARA algorithm framework (not
   code in itself, but still having an original reference implementation in the
-  RoadCare desktop application). In contrast, "AssetFox" is a specific PennDOT
-  web application that contains one implementation of that framework.
+  ARA RoadCare desktop application). In contrast, "AssetFox" is a specific
+  PennDOT web application that contains one implementation of that framework.
 - Certain aspects of AssetFox's implementation of the iAM simulation are not
   part of the iAM simulation framework. For example, "calculated field timing"
   is an AssetFox-specific item introduced by PennDOT into their implementation
@@ -81,26 +84,6 @@
   - assets allowed to deteriorate during cash-flow?
   - assets grouped for treatment selection?
 
-### flow per time step
-
-- start with last step's "final values"
-- DETERIORATION
-  - carries the attributes into the current phase of decision-making
-  - previously .
-  - an asset or its attributes may not deteriorate under certain conditions,
-    e.g. active cash-flow.
-- determine project options, including null project options based on the null
-  treatment
-  - check treatment feasibility criteria, shadows, etc
-  - could also consider 2 different cash flow periods as 2 different project
-    options
-- estimate the "objective value" of each project option
-  - PLUG-IN: needs an input/output spec
-- determine selected projects (i.e. decide on funding, e.g. budgets, cash-flow?)
-  - PLUG-IN: needs an input/output spec
-- PROJECT EFFECTS
-- done; next time step
-
 ### outputs
 
 - a project activity schedule that shows what treatment decisions were made when
@@ -157,22 +140,34 @@
 ### Variable implementation details
 
 - how to handle multiple "true" predicates when evaluating a CFS
-  - e.g. abort the simulation; evaluate all the corresponding functions and take
-    the best or worst value
+  - e.g. consider it an input error, abort the simulation; evaluate all the
+    corresponding functions and take the best or worst value
 - how to handle zero "true" predicates when evaluating a CFS with no default
-  - e.g. abort the simulation; if evaluating deterioration, fall back to a
-    "default value" on that attribute's definition
+  - e.g. consider it an input error, abort the simulation; if evaluating
+    deterioration, fall back to a "default value" on that attribute's definition
 - "default values" in numeric attribute definitions
   - generally, only useful in initial total snapshot preparation when historical
     data is incomplete; but, could be used in other implementation-specific
     situations
+- how to handle multiple project effects acting on a single attribute
+  - e.g. consider it an input error, abort the simulation.
 
-### RoadCare-specific IOA
+### Implementation details of RoadCare
 
 - "assets" are "segments" or "sections"
 
-### RoadCare- and AssetFox-specific IOA
+### Implementation details of both RoadCare and AssetFox
 
+- benefit??? seems like benefit attribute designation is also an implementation
+  detail. If you only use remaining-life, then benefit never gets used.
+- inflation rate handling
+- numeric parameters ("calculated fields"), which only exist (a) to make textual
+  expression construction more convenient and (b) to show "virtual attributes"
+  in asset snapshots. These are not essential to the framework.
+- textual attributes, which only exist (a) as additional data to operate on
+  within asset predicates and (b) to show in asset snapshots. These are also not
+  essential to the framework. They're an implementation detail.
+- terminology mapping, e.g. numeric parameter definitions => "calculated fields"
 - "direction of deterioration"? could it be an implementation detail?
 - "default value" on each attribute definition
 - "AGE" attribute
@@ -181,91 +176,141 @@
 - "value-change" expressions in treatment consequences
 - budget priority levels
 - budget order
+- "outlook" algorithm and its configuration, e.g. length of time etc.
+- "calculate-evaluate" expression language for user-friendly construction of
+  asset functions and predicates
 
-### AssetFox-specific IOA
+### Implementation details of AssetFox
 
+- minimum project cost limit
 - performance curve adjustment factors
 - calculated field timing
+- "pre-application" of the null treatment (just after deterioration, before
+  project selection)
 
 ### Glossary of Terms & Structured Data
 
 Italicized text is used to indicate parts of a data structure. When such text is
 followed by a colon, the text after the colon clarifies the general type of data
-in the named part. If the part is optional, a question mark is shown.
+in the named part. If the part is optional, a parenthesized question mark is
+shown. If the part comprises other items, a parenthesized minimum count is
+shown.
 
 - **Simulation Time Sequence**
-  - This is the sequence of abstract time steps and sub-steps over which the
-    simulation operates.
+  - This is the abstract sequence of time steps over which the simulation
+    operates.
 - **Asset**
-  - This is any object that (a) may deteriorate over time and (b) may be managed
-    or maintained by applying treatments to the object.
-  - Within the simulation, an asset is nothing more than its identity.
+  - This is any entity that (a) may deteriorate over time and (b) may be managed
+    or maintained by applying treatments to the entity.
+  - Within the simulation, an asset is nothing more than a unique identifier.
 - **Attribute Definition**
   - This describes a property associated with some or all assets in the
     simulation.
 - **Asset Snapshot**
   - This is a set of values, one for each attribute definition, fully describing
     a single asset at a single moment in the simulation time sequence.
+  - _Asset Identifier_
+  - _Attribute Values_, each:
+    - _Attribute Identifier_
+    - _Value_
 - **Total Snapshot**
   - This is a set of asset snapshots, one for each asset in the scenario, for a
     single step in the simulation time sequence.
-- **Asset Numeric Function**
+- **Asset Function (Numeric)**
   - This is a function that applies to an asset snapshot and evaluates to a real
     number.
-- **Asset Textual Function**
-  - This is a function that applies to an asset snapshot and evaluates to a text
-    string.
 - **Asset Predicate**
   - This is a logical predicate that applies to an asset snapshot and evaluates
     to a classical truth value (i.e. either "true" or "false").
-- **Conditional Function System (CFS)**
-  - This is a "default" asset function alongside a set of asset
-    predicate-function pairs.
-  - The default function is optional only if there is at least one
+- **Conditional Function System**
+  - This (abbreviated as CFS) is a "default" asset function alongside a set of
+    asset predicate-function pairs.
+  - The default function is optional if and only if there is at least one
     predicate-function pair.
-  - The asset functions in a single CFS must be either all numeric or all
-    textual.
-- **Numeric Attribute Definition**
+- **Attribute Definition (Numeric)**
+  - _Identifier_
   - _Minimum Value_ : number (?)
   - _Maximum Value_ : number (?)
   - _Deterioration Model_ : numeric CFS (?)
     - _Direction of Deterioration_ : negative or positive
-- **Textual Attribute Definition**
-- **Numeric Parameter Definition**
-  - _Value Model_ : CFS
+  - SAF implementations may define other kinds of attribute, e.g. text or date,
+    and they may also define "virtual attributes", e.g. based on asset
+    functions. These are not essential to the SAF, but may be useful within a
+    specific implementation.
 - **Attribute Value Effect**
   - _Target Attribute_
   - _Effect Model_ : CFS
-  - The target attribute and the effect model must match value-types. In other
-    words, the target is a numeric attribute and the effect model uses numeric
-    functions, or the target is a textual attribute and the effect model uses
-    textual functions; other combinations are invalid.
+- **Future Treatment Requirement**
+  - _Required Treatment_
+  - _Completion Time Offset_ : positive integer
 - **Null Treatment**
-  - _Attribute Value Effects_ : (*)
+  - _Attribute Value Effects_ : (0+)
+- **Treatment**
+  - _Identifier_
+  - _Attribute Value Effects_ : (1+)
+  - _Future Treatment Requirements_ : (0+)
 - **Selectable Treatment**
-  - _Attribute Value Effects_ : (+)
+  - _Treatment_
   - _Cost Model_ : CFS
   - _Selection Predicate_ : (?)
-  - _Allowed Budgets_ : (+)
-  - _Required Future Treatments_ : (*)
+  - _Allowed Budgets_ : (1+)
+- **Prohibited-Concurrency Treatment Class**
+  - _Applicability Predicate_ : (?)
+  - _Mutually Exclusive Treatments_ : (2+)
 - **Scenario**
-  - This is a container of all input required for a single execution of the
+  - This is a container of all input required for a single execution of a
     simulation algorithm.
+  - _Attribute Definitions_ : (1+)
   - _Initial Total Snapshot_
-  - _Numeric Attribute Definitions_
-  - _Numeric Parameter Definitions_
   - _Null Treatment_
-  - _Selectable Treatments_
-    - Required Future Treatments; each:
-      - Future Offset
-      - Required Treatment
-  - _Allowed Treatment Concurrencies_; each:
-    - Concurrently Allowed Treatments
+  - _Selectable Treatments_ : (1+)
+  - _Prohibited-Concurrency Treatment Classes_ : (0+)
+  - _Initial Committed Projects_ : (0+)
+- **Project**
+  - _Simulation Time Offset_ : non-negative integer
+  - _Asset Identifier_
+  - _Treatment_
+  - _Funding Structure_
+- **Selected Project**
+  - _Simulation Time Offset_ : non-negative integer
+  - _Asset Identifier_
+  - _Treatment_
+  - _Funding Structure_
+- **Committed Project**
+  - _Simulation Time Offset_ : non-negative integer
+  - _Asset Identifier_
+  - _Treatment_
+  - _Funding Structure_
+- **Project Option**
+  - _Projects_
+  - _Cost Per Time Step_
+    - reflecting cash flow arrangement
+  - _Estimated Selection Value_
+    - filled in based on treatment outlook in RoadCare/AssetFox.
+- **Project Activity**
 
 ### Output Data
 
-- _Project Plan_
+_Project Plan_
 
 ### Data Operations
 
-- _Simulation_
+_Simulation_
+
+- start with last step's "final values"
+- DETERIORATION
+  - carries the attributes into the current phase of decision-making
+  - previously .
+  - an asset or its attributes may not deteriorate under certain conditions,
+    e.g. active cash-flow.
+- determine project options, including null project options based on the null
+  treatment
+  - check treatment feasibility criteria, shadows, etc
+  - could also consider 2 different cash flow periods as 2 different project
+    options
+- estimate the "objective value" of each project option
+  - PLUG-IN: needs an input/output spec
+- determine selected projects (i.e. decide on funding, e.g. budgets, cash-flow?)
+  - PLUG-IN: needs an input/output spec
+- PROJECT EFFECTS
+- done; next time step
