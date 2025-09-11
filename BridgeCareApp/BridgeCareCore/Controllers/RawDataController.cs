@@ -74,6 +74,11 @@ namespace BridgeCareCore.Controllers
                         var mappingsWorksheet = excelPackage.Workbook.Worksheets.Count > 1 ? excelPackage.Workbook.Worksheets[1] : null;
                         return _excelSpreadsheetImportService.ImportDataSourceMapping(dataSourceId, worksheet, mappingsWorksheet);
                     });
+
+                    if (mappingsResult.WarningMessage != null)
+                    {
+                        HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWarning, mappingsResult.WarningMessage);
+                    }
                 }
 
                 return Ok(result);
