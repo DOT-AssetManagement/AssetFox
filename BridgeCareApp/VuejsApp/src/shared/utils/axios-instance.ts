@@ -1,4 +1,3 @@
-import DataSourceMappings from '@/components/data-source/data-source-dialogs/DataSourceMappings.vue';
 import axios, {AxiosInstance} from 'axios';
 
 export const axiosInstance: AxiosInstance = axios.create({
