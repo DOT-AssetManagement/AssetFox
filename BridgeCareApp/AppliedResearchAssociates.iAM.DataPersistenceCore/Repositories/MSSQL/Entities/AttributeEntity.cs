@@ -46,7 +46,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public string AggregationRuleType { get; set; }
 
-        public string Command { get; set; } // column
+        public string Command { get; set; }
 
         public ConnectionType ConnectionType { get; set; }
 
