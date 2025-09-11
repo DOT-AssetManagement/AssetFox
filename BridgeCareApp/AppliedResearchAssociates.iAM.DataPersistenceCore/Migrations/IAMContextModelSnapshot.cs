@@ -178,7 +178,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("LastKnownAssetCount")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasDefaultValue(-1);
 
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
