@@ -1216,15 +1216,13 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                         ...data,
                         id: selectedScenarioId,
                         currentUserCriteriaFilter: currentUserCriteriaFilter
-                    }).then(() => {
-                    });
+                    })
                 } else {
                     importLibraryPerformanceCurvesFileAction({
                         ...data,
                         id: selectedPerformanceCurveLibrary.value.id,
                         currentUserCriteriaFilter: currentUserCriteriaFilter
-                    }).then(() => {
-                    });
+                    })
                 }
 
             }

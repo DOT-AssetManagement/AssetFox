@@ -465,7 +465,15 @@ namespace BridgeCareCore.Controllers
                 }
 
                 var budgetLibraryId = Guid.Parse(libraryId.ToString());
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("An invalid file was used.");
+                }
                 var overwriteBudgets = false;
                 if (ContextAccessor.HttpContext.Request.Form.ContainsKey("overwriteBudgets"))
                 {
@@ -542,8 +550,17 @@ namespace BridgeCareCore.Controllers
                 }
 
                 var simulationId = Guid.Parse(id.ToString());
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::ImportScenarioInvestmentBudgetsExcelFile - {e.Message}", e);
+                    throw new Exception("An invalid file was used.");
+                }
 
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
 
                 var overwriteBudgets = false;
                 if (ContextAccessor.HttpContext.Request.Form.ContainsKey("overwriteBudgets"))
@@ -573,8 +590,6 @@ namespace BridgeCareCore.Controllers
                 var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
                 HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, simulationId.ToString());
-
-                return Ok();
             }
             catch (UnauthorizedAccessException e)
             {
@@ -582,7 +597,7 @@ namespace BridgeCareCore.Controllers
             }
             catch (Exception e)
             {
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::ImportScenarioInvestmentBudgetsExcelFile - { e.Message }", e);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::ImportScenarioInvestmentBudgetsExcelFile - { e.Message }", e);               
             }
             return Ok();
         }

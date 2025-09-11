@@ -1360,18 +1360,12 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                     id: selectedScenarioId,
                     currentUserCriteriaFilter: currentUserCriteriaFilter
                 })
-                .then((response: any) => {
-                        setAlertMessageAction("Investment Budgets import has been added to the queue.");
-                });
             } else {
                 importLibraryInvestmentBudgetsFileAction({
                     ...data,
                     id: selectedBudgetLibrary.value.id,
                     currentUserCriteriaFilter: currentUserCriteriaFilter
                 })
-                .then(() => {
-                        setAlertMessageAction("Investment Budgets import has been added to the queue.");                     
-                });
             }
 
             }
