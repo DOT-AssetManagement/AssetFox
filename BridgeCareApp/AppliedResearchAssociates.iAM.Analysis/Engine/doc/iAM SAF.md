@@ -2,8 +2,9 @@
 
 > The purpose of this document is not to describe any specific software
 > application or any specific body of software code. The purpose is to describe
-> a general algorithmic framework allowing various software implementations of
-> one simulation-based approach to asset management project planning.
+> a general framework allowing various software implementations of one overall
+> approach to a simulation algorithm that assists asset management project
+> planning.
 
 ## overall remarks
 
@@ -19,10 +20,10 @@
 
 ## plan of writing
 
-- We want something that's both high-level and detailed. We want to know why
-  things like "calculated field timing" exist (answer to that one: no idea), but
-  we don't necessarily care about describing how exactly that thing gets handled
-  at the code/book-keeping level.
+- We want something that's both high-level and detailed. We want to know the
+  purpose of things like "calculated field timing", but we don't necessarily
+  care about describing how exactly that thing gets handled at the
+  code/book-keeping level.
 - Also, note we're distinguishing the overall framework algorithm from the
   yearly decision-making (project-picking) algorithm. Each has its own
   required/suppplemental inputs and outputs.
@@ -235,26 +236,30 @@ shown.
     - _Direction of Deterioration_ : negative or positive
   - SAF implementations may define other kinds of attribute, e.g. text or date,
     and they may also define "virtual attributes", e.g. based on asset
-    functions. These are not essential to the SAF, but may be useful within a
-    specific implementation.
+    functions. These are not essential to the SAF, but may be useful to provide
+    additional features within a specific implementation.
 - **Attribute Value Effect**
   - _Target Attribute_
   - _Effect Model_ : CFS
 - **Future Treatment Requirement**
   - _Required Treatment_
-  - _Completion Time Offset_ : positive integer
+  - _Relative Time Offset_ : positive integer
+- **Future Treatment Exclusion Period**
+  - _Excluded Treatments_ : (1+)
+  - _Period Length_ : positive integer
 - **Null Treatment**
   - _Attribute Value Effects_ : (0+)
 - **Treatment**
   - _Identifier_
   - _Attribute Value Effects_ : (1+)
   - _Future Treatment Requirements_ : (0+)
-- **Selectable Treatment**
+  - _Future Treatment Exclusion Periods_ : (0+)
+- **Treatment Selection Rule**
   - _Treatment_
-  - _Cost Model_ : CFS
   - _Selection Predicate_ : (?)
+  - _Cost Model_ : CFS
   - _Allowed Budgets_ : (1+)
-- **Prohibited-Concurrency Treatment Class**
+- **Treatment Concurrency Exclusion Class**
   - _Applicability Predicate_ : (?)
   - _Mutually Exclusive Treatments_ : (2+)
 - **Scenario**
@@ -263,20 +268,11 @@ shown.
   - _Attribute Definitions_ : (1+)
   - _Initial Total Snapshot_
   - _Null Treatment_
-  - _Selectable Treatments_ : (1+)
-  - _Prohibited-Concurrency Treatment Classes_ : (0+)
-  - _Initial Committed Projects_ : (0+)
+  - _Treatments_ : (1+)
+  - _Treatment Selection Rules_ : (1+)
+  - _Treatment Concurrency Exclusion Classes_ : (0+)
+  - _Committed Projects_ : (0+)
 - **Project**
-  - _Simulation Time Offset_ : non-negative integer
-  - _Asset Identifier_
-  - _Treatment_
-  - _Funding Structure_
-- **Selected Project**
-  - _Simulation Time Offset_ : non-negative integer
-  - _Asset Identifier_
-  - _Treatment_
-  - _Funding Structure_
-- **Committed Project**
   - _Simulation Time Offset_ : non-negative integer
   - _Asset Identifier_
   - _Treatment_
@@ -300,7 +296,6 @@ _Simulation_
 - start with last step's "final values"
 - DETERIORATION
   - carries the attributes into the current phase of decision-making
-  - previously .
   - an asset or its attributes may not deteriorate under certain conditions,
     e.g. active cash-flow.
 - determine project options, including null project options based on the null
