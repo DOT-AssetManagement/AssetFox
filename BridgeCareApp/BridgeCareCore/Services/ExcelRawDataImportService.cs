@@ -73,8 +73,8 @@ namespace BridgeCareCore.Services
                 }
             }
 
-                // get non-calculted attributes
-                var attributeDtos = _unitOfWork.AttributeRepo.GetAttributesAsync().Result?.Where(_ => !_.IsCalculated)?.ToList() ?? [];
+            // get non-calculted attributes
+            var attributeDtos = _unitOfWork.AttributeRepo.GetAttributesAsync().Result?.Where(_ => !_.IsCalculated)?.ToList() ?? [];
 
             // dtos to save
             var dataSourceMappingDtos = new List<DataSourceMappingDTO>();

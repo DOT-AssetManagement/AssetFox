@@ -294,14 +294,6 @@ import DataSourceMappingsService from '@/services/data-source.service';
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
             }
-                                   
-            if(!isNewDataSource.value) {
-                getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
-                getDataSourceMappingsAction(currentDatasource.value.id);
-                currentExcelDateColumn.value = currentDatasource.value.dateColumn;
-                currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
-            }
-            
         }
     }, { deep: true })
 
