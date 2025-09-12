@@ -28,7 +28,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                 .Include(_ => _.Attribute)
                 .Where(_ => _.DataSourceId == dataSourceId)
                 .Select(_ => _.ToDTO())
-                .ToList();                
+                .ToList()
+                .OrderBy(_ => _.AttributeName)
+                .ToList();
 
             return dataSourceMappingDtos;
         }

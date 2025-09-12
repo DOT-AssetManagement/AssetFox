@@ -41,16 +41,7 @@ namespace BridgeCareCore.Services
                         
             // worksheet
             var cells = worksheet.Cells;
-            var end = worksheet.Dimension.End;
-            var columnsFromWorksheet = new List<string>();
-            for (int colIndex = 1; colIndex <= end.Column; colIndex++)
-            {
-                var column = cells[1, colIndex].Value?.ToString();
-                if (!string.IsNullOrEmpty(column))
-                {
-                    columnsFromWorksheet.Add(column);
-                }
-            }
+            var end = worksheet.Dimension.End;            
 
             // mappings worksheet
             var attributeColumnCells = new Dictionary<string, string>();
@@ -61,26 +52,41 @@ namespace BridgeCareCore.Services
                 for (var rowIndex = 2; rowIndex <= mappingsEnd.Row; rowIndex++)
                 {
                     var attributeCellValue = mappingsCells[rowIndex, 1].Value?.ToString();
-                    var columnCellValue = mappingsCells[rowIndex, 2].Value?.ToString();
+                    var columnCellValue = mappingsCells[rowIndex, 2].Value?.ToString() ?? "";
 
-                    if (!string.IsNullOrEmpty(attributeCellValue) && !string.IsNullOrEmpty(columnCellValue))
+                    if (!string.IsNullOrEmpty(attributeCellValue))
                     {
                         attributeColumnCells.Add(attributeCellValue.ToString(), columnCellValue.ToString());
                     }
                 }
             }
-                        
-            // get non-calculted attributes
-            var attributeDtos = _unitOfWork.AttributeRepo.GetAttributesAsync().Result?.Where(_ => !_.IsCalculated)?.ToList() ?? [];
+            var columnsFromWorksheet = new List<string>();
+            if (attributeColumnCells.Count == 0)
+            {                
+                for (int colIndex = 1; colIndex <= end.Column; colIndex++)
+                {
+                    var column = cells[1, colIndex].Value?.ToString();
+                    if (!string.IsNullOrEmpty(column))
+                    {
+                        columnsFromWorksheet.Add(column);
+                    }
+                }
+            }
+
+                // get non-calculted attributes
+                var attributeDtos = _unitOfWork.AttributeRepo.GetAttributesAsync().Result?.Where(_ => !_.IsCalculated)?.ToList() ?? [];
 
             // dtos to save
             var dataSourceMappingDtos = new List<DataSourceMappingDTO>();
             foreach (var attributeDto in attributeDtos)
             {
-                var column = "None";
-                if (attributeColumnCells.TryGetValue(attributeDto.Name, out var value))
+                var column = "";
+                if (attributeColumnCells.Count != 0)
                 {
-                    column = value;
+                    if (attributeColumnCells.TryGetValue(attributeDto.Name, out var value))
+                    {
+                        column = value;
+                    }
                 }
                 else
                 {
