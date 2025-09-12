@@ -34,33 +34,6 @@
 
 - To the simulation, there is no network or "explorer". It's just a set of
   assets and a set of attributes.
-- assets
-  - ID, name, description, whatever
-  - list of attribute-value pairs
-- attribute
-  - either number (double) or text (string)
-    - number type should probably be decimal, but it doesn't matter for the
-      sake of this doc.
-  - also, "calculated fields". Probably should be called "calculated
-    attributes". But "calculation" is too general at the conceptual level, even
-    though it has a specific meaning re CalculateEvaluate within the system.
-  - min, max
-    - no "default" within the simulation, as it's only used for attribute
-      value initialization.
-  - deterioration/performance curves
-    - target attribute (number only; not calculated)
-    - criterion for an asset to satisfy in order for this curve to apply to
-      the target attribute
-    - the curve itself is either
-      - an interpolated function of special automatic "age" attribute, or
-      - an "equation" expression that's a function of some subset of the asset's
-        current attributes; this dependency subset can contain the curve's
-        affected attribute, but it should not contain any other attribute which
-        is (or depends on) an attribute subject to deterioration.
-- treatment
-  - consequences
-  - cost
-  - list of budgets that are allowed to fund this treatment
 - budget
   - amount of new money per time step
   - list of criteria that an asset must satisfy in order to receive a
@@ -110,20 +83,10 @@
 - the quasi-required "age" attribute is not technically required. It's only used
   to facilitate handling of piecewise expressions as performance curves. In
   other words, if that kind of "special" expression could include the dependency
-  attribute in its specification, there's no need to have "special" attributes.
+  attribute(s) in its specification, there's no need to have "special"
+  attributes.
 - alternative methods of defining functions may exist, e.g. "piecewise
   expressions" as used by RoadCare and AssetFox.
-
-### some potential new terms
-
-- project: the combination of a treatment and an asset (i.e. the application of
-  a treatment to an asset) over a certain time period (one or more time steps).
-  - project activity: one time step of a project
-  - null project: a single-step project whose treatment is the null treatment.
-  - project option
-  - selected project
-  - committed project: defined by the user and by projects' treatments'
-    required future treatments
 
 ## draft of content
 
@@ -201,8 +164,8 @@ shown.
   - This is the abstract sequence of time steps over which the simulation
     operates.
 - **Asset**
-  - This is any entity that (a) may deteriorate over time and (b) may be managed
-    or maintained by applying treatments to the entity.
+  - This is any entity whose physical attributes (a) may deteriorate over time
+    and (b) may be managed or maintained by applying treatments to the entity.
   - Within the simulation, an asset is nothing more than a unique identifier.
 - **Attribute Definition**
   - This describes a property associated with some or all assets in the
@@ -224,10 +187,12 @@ shown.
   - This is a logical predicate that applies to an asset snapshot and evaluates
     to a classical truth value (i.e. either "true" or "false").
 - **Conditional Function System**
-  - This (abbreviated as CFS) is a "default" asset function alongside a set of
-    asset predicate-function pairs.
+  - This (abbreviated CFS) is a default asset function alongside a set of asset
+    predicate-function pairs.
   - The default function is optional if and only if there is at least one
     predicate-function pair.
+  - A CFS behaves like an individual asset function, in that it maps an asset
+    snapshot to a real number based on the results of the CFS predicates.
 - **Attribute Definition (Numeric)**
   - _Identifier_
   - _Minimum Value_ : number (?)
@@ -241,53 +206,73 @@ shown.
 - **Attribute Value Effect**
   - _Target Attribute_
   - _Effect Model_ : CFS
-- **Future Treatment Requirement**
-  - _Required Treatment_
+- **Prioritized Future Treatment Funding Rule**
+  - _Treatment Funding Rule_
   - _Relative Time Offset_ : positive integer
-- **Future Treatment Exclusion Period**
-  - _Excluded Treatments_ : (1+)
-  - _Period Length_ : positive integer
+- **Future Treatment Exclusion Rule**
+  - _Excluded Treatments_ : Treatment (1+)
+  - _Exclusion Period Length_ : positive integer
 - **Null Treatment**
   - _Attribute Value Effects_ : (0+)
 - **Treatment**
   - _Identifier_
   - _Attribute Value Effects_ : (1+)
-  - _Future Treatment Requirements_ : (0+)
-  - _Future Treatment Exclusion Periods_ : (0+)
-- **Treatment Selection Rule**
+- **Treatment Funding Rule**
+  - _Applicability Predicate_ : (?)
   - _Treatment_
-  - _Selection Predicate_ : (?)
   - _Cost Model_ : CFS
   - _Allowed Budgets_ : (1+)
-- **Treatment Concurrency Exclusion Class**
+  - _Future Treatment Exclusion Rules_ : (0+)
+  - _Prioritized Future Treatment Funding Rules_ : (0+)
+- **Treatment Concurrency Exclusion Rule**
   - _Applicability Predicate_ : (?)
   - _Mutually Exclusive Treatments_ : (2+)
 - **Scenario**
   - This is a container of all input required for a single execution of a
     simulation algorithm.
+    - Some input data is transitively included, e.g. treatments.
   - _Attribute Definitions_ : (1+)
   - _Initial Total Snapshot_
-  - _Null Treatment_
-  - _Treatments_ : (1+)
-  - _Treatment Selection Rules_ : (1+)
-  - _Treatment Concurrency Exclusion Classes_ : (0+)
   - _Committed Projects_ : (0+)
-- **Project**
-  - _Simulation Time Offset_ : non-negative integer
-  - _Asset Identifier_
-  - _Treatment_
-  - _Funding Structure_
+  - _Null Treatment_
+  - _Treatment Funding Rules_ : (1+)
+  - _Treatment Concurrency Exclusion Rules_ : (0+)
+  - _BUDGETS_
+  - _CONDITION GOALS_
+  - _CASH FLOW RULES_
+  - **Configuration**
+    - project option generation logic (TFR -> PO)
+      - project option value estimation logic
+    - project option selection logic
 - **Project Option**
-  - _Projects_
-  - _Cost Per Time Step_
-    - reflecting cash flow arrangement
-  - _Estimated Selection Value_
-    - filled in based on treatment outlook in RoadCare/AssetFox.
+  - _Source_ : Treatment Funding Rule
+  - _Asset Identifier_
+  - _Cost Sequence_ : (1+)
+    - multiple via cash-flow
+  - _Non-deteriorating Attributes_ : (0+)
+    - applicable if two or more costs in sequence
+    - but where does it come from? the treatment? the effects?
+    - maybe it's an implementation detail. but cash-flow is woefully incomplete
+      without this configurability.
+  - _Objective Value_
+    - estimated total "value" for the usual selection mode of maximizing value
+      (derived from "benefit" or "remaining life") while respecting budget
+      constraints
+    - estimated total cost for the less usual selection mode of minimizing cost
+      while achieving goal constraints and respecting budget constraints
 - **Project Activity**
+  - _Source_ : Project Option
+  - _Simulation Time Step_ : positive integer
+  - _Funding Structure_
+    - a set of budget-amount pairs, where the amount is the money spent from the
+      budget to fund this project.
 
 ### Output Data
 
-_Project Plan_
+At the framework level (ignoring additional output requirements imposed by SAF
+implementations), the only output is a project activity matrix.
+
+_Initial Total Snapshot_ + _Project Activity Matrix_ = _Final Total Snapshot_
 
 ### Data Operations
 
@@ -300,6 +285,10 @@ _Simulation_
     e.g. active cash-flow.
 - determine project options, including null project options based on the null
   treatment
+  - There needs to be a single function that maps from TFR to PO. The
+    implementation of this function does not need to be defined at the framework
+    level, but it should be defined separately at least for the existing
+    implementation in AssetFox.
   - check treatment feasibility criteria, shadows, etc
   - could also consider 2 different cash flow periods as 2 different project
     options
