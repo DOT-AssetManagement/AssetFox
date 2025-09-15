@@ -18,6 +18,10 @@
   of the iAM simulation. Another example is "performance curve adjustment
   factors".
 
+This is the overall _conceptual structure_ of the data and logic in the iAM SAF.
+Individual SAF implementations (SAFIs) may use additional data or less data, and
+they may adjust/add/remove some logic.
+
 ## plan of writing
 
 - We want something that's both high-level and detailed. We want to know the
@@ -103,18 +107,10 @@
 
 ### Variable implementation details
 
-- how to handle multiple "true" predicates when evaluating a CFS
-  - e.g. consider it an input error, abort the simulation; evaluate all the
-    corresponding functions and take the best or worst value
-- how to handle zero "true" predicates when evaluating a CFS with no default
-  - e.g. consider it an input error, abort the simulation; if evaluating
-    deterioration, fall back to a "default value" on that attribute's definition
 - "default values" in numeric attribute definitions
   - generally, only useful in initial total snapshot preparation when historical
     data is incomplete; but, could be used in other implementation-specific
     situations
-- how to handle multiple project effects acting on a single attribute
-  - e.g. consider it an input error, abort the simulation.
 
 ### Implementation details of RoadCare
 
@@ -143,14 +139,20 @@
 - "outlook" algorithm and its configuration, e.g. length of time etc.
 - "calculate-evaluate" expression language for user-friendly construction of
   asset functions and predicates
+- benefit weighting, spatial weighting
+- inflation rate percentage
 
 ### Implementation details of AssetFox
 
+- In AssetFox, cost models are (via a global option) allowed to be summing AFSs
 - minimum project cost limit
 - performance curve adjustment factors
 - calculated field timing
 - "pre-application" of the null treatment (just after deterioration, before
   project selection)
+  - frankly, this looks like an awkward attempt to patch up incomplete
+    deterioration rules
+- minimum project cost limit
 
 ### Glossary of Terms & Structured Data
 
@@ -159,6 +161,11 @@ followed by a colon, the text after the colon clarifies the general type of data
 in the named part. If the part is optional, a parenthesized question mark is
 shown. If the part comprises other items, a parenthesized minimum count is
 shown.
+
+Also, some of the structures shown here have explicit "identifier" fields, which
+is really only to make it clear that instances of those structures are referred
+to in other structures. However, in a given implementation, all structures could
+have identifiers, and it's probably beneficial to make it so.
 
 - **Simulation Time Sequence**
   - This is the abstract sequence of time steps over which the simulation
@@ -171,8 +178,10 @@ shown.
   - This describes a property associated with some or all assets in the
     simulation.
 - **Asset Snapshot**
-  - This is a set of values, one for each attribute definition, fully describing
-    a single asset at a single moment in the simulation time sequence.
+  - This is a set of values fully describing a single asset at a single moment
+    in the simulation time sequence.
+  - This does not necessarily have a value for each attribute, as some
+    attributes may be inapplicable to some assets.
   - _Asset Identifier_
   - _Attribute Values_, each:
     - _Attribute Identifier_
@@ -186,26 +195,53 @@ shown.
 - **Asset Predicate**
   - This is a logical predicate that applies to an asset snapshot and evaluates
     to a classical truth value (i.e. either "true" or "false").
-- **Conditional Function System**
-  - This (abbreviated CFS) is a default asset function alongside a set of asset
-    predicate-function pairs.
+- **Asset Function System (AFS)**
+  - This is a default asset function alongside a set of asset predicate-function
+    pairs.
   - The default function is optional if and only if there is at least one
     predicate-function pair.
-  - A CFS behaves like an individual asset function, in that it maps an asset
-    snapshot to a real number based on the results of the CFS predicates.
+  - An AFS **is** an asset function. It maps an asset snapshot to a real number
+    based on the results of the predicates.
+  - Abstractly, an AFS can **contain** other AFS. Whether and how to do this is
+    up to the SAFI.
+  - A specific AFS can be made to do anything with its internal functions. Here
+    are some examples of AFS types:
+    - **Switching AFS**
+      - This AFS produces the result of exactly one function in the AFS.
+      - If there are multiple satisfied predicates, that's considered an input
+        error.
+      - If there are no results (no default and no satisfied predicates), that's
+        considered an input error.
+    - **Summing AFS**
+      - This AFS produces the result of summing the default function result (if
+        present) with all results from functions whose predicates are satisfied.
+      - If there are no results (no default and no satisfied predicates), that's
+        considered an input error.
+    - **Minimizing AFS**
+      - This AFS produces the minimum result among all results from the default
+        function and any functions whose predicates are satisfied.
+      - If there are no results (no default and no satisfied predicates), that's
+        considered an input error.
+    - **Maximizing AFS**
+      - This AFS produces the maximum result among all results from the default
+        function and any functions whose predicates are satisfied.
+      - If there are no results (no default and no satisfied predicates), that's
+        considered an input error.
 - **Attribute Definition (Numeric)**
   - _Identifier_
   - _Minimum Value_ : number (?)
   - _Maximum Value_ : number (?)
-  - _Deterioration Model_ : numeric CFS (?)
+  - _Deterioration Model_ : asset function (?)
     - _Direction of Deterioration_ : negative or positive
-  - SAF implementations may define other kinds of attribute, e.g. text or date,
-    and they may also define "virtual attributes", e.g. based on asset
-    functions. These are not essential to the SAF, but may be useful to provide
-    additional features within a specific implementation.
+      - This is probably unnecessary in general? What framework-level parts
+        actually require it?
+  - SAFIs may define other kinds of attribute, e.g. text or date, and they may
+    also define "virtual attributes", e.g. based on asset functions. These are
+    not essential to the SAF, but may be useful to provide additional features
+    within a specific SAFI.
 - **Attribute Value Effect**
   - _Target Attribute_
-  - _Effect Model_ : CFS
+  - _Effect Model_ : asset function
 - **Prioritized Future Treatment Funding Rule**
   - _Treatment Funding Rule_
   - _Relative Time Offset_ : positive integer
@@ -217,10 +253,12 @@ shown.
 - **Treatment**
   - _Identifier_
   - _Attribute Value Effects_ : (1+)
+  - _Non-deteriorating Attributes_ : (0+)
+    - applicable if part of a multi-step project
 - **Treatment Funding Rule**
   - _Applicability Predicate_ : (?)
   - _Treatment_
-  - _Cost Model_ : CFS
+  - _Cost Model_ : asset function
   - _Allowed Budgets_ : (1+)
   - _Future Treatment Exclusion Rules_ : (0+)
   - _Prioritized Future Treatment Funding Rules_ : (0+)
@@ -237,64 +275,101 @@ shown.
   - _Null Treatment_
   - _Treatment Funding Rules_ : (1+)
   - _Treatment Concurrency Exclusion Rules_ : (0+)
-  - _BUDGETS_
+  - _Budgets_
+  - _Cash Flow Rules_
   - _CONDITION GOALS_
-  - _CASH FLOW RULES_
   - **Configuration**
-    - project option generation logic (TFR -> PO)
-      - project option value estimation logic
-    - project option selection logic
+    - _Allow multiple budgets to fund a single project_
+    - _Allow budget remainders to carry forward_
+- **Budget**
+  - _Applicability Predicate_ : (?)
+  - _Investment Sequence_ : (1+)
+- **Cash Flow Rule**
+  - _Applicability Predicate_ : (?)
+  - _Distribution Rules_, each:
+    - _Cost Ceiling_
+    - _Percentage Sequence_ : (1+)
 - **Project Option**
-  - _Source_ : Treatment Funding Rule
+  - _Source Rule_ : Treatment Funding Rule
   - _Asset Identifier_
   - _Cost Sequence_ : (1+)
     - multiple via cash-flow
-  - _Non-deteriorating Attributes_ : (0+)
-    - applicable if two or more costs in sequence
-    - but where does it come from? the treatment? the effects?
-    - maybe it's an implementation detail. but cash-flow is woefully incomplete
-      without this configurability.
   - _Objective Value_
-    - estimated total "value" for the usual selection mode of maximizing value
-      (derived from "benefit" or "remaining life") while respecting budget
-      constraints
-    - estimated total cost for the less usual selection mode of minimizing cost
-      while achieving goal constraints and respecting budget constraints
-- **Project Activity**
-  - _Source_ : Project Option
+    - possible interpretations:
+      - estimated total "value" for the usual selection mode of maximizing value
+        (derived from "benefit" or "remaining life") while respecting budget
+        constraints
+      - estimated total cost for the less usual selection mode of minimizing
+        cost while achieving goal constraints and respecting budget constraints
+        - further bits are needed to evaluate goal constraints
+- **Project**
   - _Simulation Time Step_ : positive integer
+  - _Asset Identifier_
+  - _Treatment_
   - _Funding Structure_
-    - a set of budget-amount pairs, where the amount is the money spent from the
-      budget to fund this project.
+    - basically a matrix of numeric entries. columns are relative time steps,
+      rows are budgets, and entries are amounts spent from a budget in a time
+      step.
+
+outstanding modeling problems & solutions:
+
+- prioritization handling needs to be kept simple. all that prioritization means
+  is that you get a "first round" of decisions that uses only the current crop
+  of prioritized TFRs on the respective assets.
+  - "deferrals" are something to consider, e.g. when a prioritized TFR can't
+    apply "in time" due to applicability predicate failure or due to
+    non-selection of its project option (i.e. budget limitations or lack of
+    necessity re goals), it's simply pushed back to the next time step.
+- treatment concurrency needs to be the default mode. specifically, we cannot
+  think of a cash-flow period as a hands-off period (which it is, currently in
+  AssetFox). things can still be worked on. the solution is to lean back on
+  concurrency exclusion rules, with the added sub-rule that a treatment cannot
+  be re-applied while the treatment is being performed, and the treatment is
+  "present" for exclusion-checking during the cash-flow.
+- how to handle multiple project effects acting on a single attribute?
+  - e.g. consider it an input error, abort the simulation.
+  - Yeah, even if the two effects are coming from different projects, it kinda
+    implies that the two treatments should have been mutually exclusive.
+
+### Responsibilities of the SAFI
+
+- (possibly) how to generate a project option from a TFR
+  - really, I don't think we should "officially" open this up. if the objective
+    value estimation needs extra stuff from this step, that's fine, the SAFI can
+    allow the extra stuff to be tracked/calculated.
+  - keeping this aspect closed and well-defined will make the documentation that
+    much clearer and the framework that much more usable.
+- how to estimate "objective value" of project options
+  - basically the "outlook algorithm"
+- how to select from a set of project options
+  - basically the "consideration loop"
 
 ### Output Data
 
 At the framework level (ignoring additional output requirements imposed by SAF
-implementations), the only output is a project activity matrix.
+implementations), the only output is a set of projects.
 
-_Initial Total Snapshot_ + _Project Activity Matrix_ = _Final Total Snapshot_
+_Initial Total Snapshot_ + _Projects (Committed & Selected)_ = _Final Total Snapshot_
+
+A design goal is that the user should be able to easily (with little or no
+effort) feed some or all of the output project activity _back into_ the
+simulation as "committed project" input. In other words, when the user is
+crafting committed project input, they should be crafting nearly the same
+structure as what appears in the output. Note that this flexibility needs to
+also include cash-flow. Users need to be able to clearly and intuitively specify
+cash-flow committed projects.
+- This has been achieved, I think.
 
 ### Data Operations
 
 _Simulation_
 
-- start with last step's "final values"
-- DETERIORATION
-  - carries the attributes into the current phase of decision-making
-  - an asset or its attributes may not deteriorate under certain conditions,
-    e.g. active cash-flow.
-- determine project options, including null project options based on the null
-  treatment
-  - There needs to be a single function that maps from TFR to PO. The
-    implementation of this function does not need to be defined at the framework
-    level, but it should be defined separately at least for the existing
-    implementation in AssetFox.
-  - check treatment feasibility criteria, shadows, etc
-  - could also consider 2 different cash flow periods as 2 different project
-    options
-- estimate the "objective value" of each project option
-  - PLUG-IN: needs an input/output spec
-- determine selected projects (i.e. decide on funding, e.g. budgets, cash-flow?)
-  - PLUG-IN: needs an input/output spec
-- PROJECT EFFECTS
-- done; next time step
+1. DETERIORATION
+2. PRIORITIZED PROJECT SELECTION
+   - Using per-asset prioritized TFRs only, determine project options, estimate
+     objective values, and determine selections.
+3. PROJECT SELECTION
+   - Using all TFRs over all assets, determine project options, estimate
+     objective values, and determine selections.
+4. PROJECT EFFECTS
+   - Apply the effects of completed projects.
