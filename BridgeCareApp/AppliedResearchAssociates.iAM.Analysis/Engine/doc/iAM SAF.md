@@ -34,6 +34,10 @@ they may adjust/add/remove some logic.
 
 ## sketch of content
 
+Very general overview of basic inputs and logic.
+
+Top-to-bottom "structured glossary".
+
 ### inputs
 
 - To the simulation, there is no network or "explorer". It's just a set of
@@ -82,8 +86,8 @@ they may adjust/add/remove some logic.
 
 - treatment bundling should be implicitly performed by a CP abiding by
   supersede/concurrency rules. it should not be handled by the framework.
-- benefit/cost should reflect total cost of all "follow-up" (i.e. scheduled)
-  treatments
+- benefit/cost could reflect total of all "follow-up" (i.e. scheduled)
+  treatments, but it's up to the SAFI.
 - the quasi-required "age" attribute is not technically required. It's only used
   to facilitate handling of piecewise expressions as performance curves. In
   other words, if that kind of "special" expression could include the dependency
@@ -141,6 +145,10 @@ they may adjust/add/remove some logic.
   asset functions and predicates
 - benefit weighting, spatial weighting
 - inflation rate percentage
+- "until conditions met" strategies. they require linear selection strategies
+  (like the greedy heuristic one currently in RoadCare/AssetFox).
+  - can't be a framework level thing, as the framework should not impose
+    requirements on the selection strategy of the implementations.
 
 ### Implementation details of AssetFox
 
@@ -178,14 +186,10 @@ have identifiers, and it's probably beneficial to make it so.
   - This describes a property associated with some or all assets in the
     simulation.
 - **Asset Snapshot**
-  - This is a set of values fully describing a single asset at a single moment
-    in the simulation time sequence.
-  - This does not necessarily have a value for each attribute, as some
+  - This is a set of values, at most one per attribute, describing a single
+    asset at a single moment in the simulation time sequence.
+  - A snapshot does not necessarily have a value for each attribute, as some
     attributes may be inapplicable to some assets.
-  - _Asset Identifier_
-  - _Attribute Values_, each:
-    - _Attribute Identifier_
-    - _Value_
 - **Total Snapshot**
   - This is a set of asset snapshots, one for each asset in the scenario, for a
     single step in the simulation time sequence.
@@ -202,43 +206,67 @@ have identifiers, and it's probably beneficial to make it so.
     predicate-function pair.
   - An AFS **is** an asset function. It maps an asset snapshot to a real number
     based on the results of the predicates.
-  - Abstractly, an AFS can **contain** other AFS. Whether and how to do this is
+  - Abstractly, an AFS can **contain** other AFSs. Whether and how to do this is
     up to the SAFI.
   - A specific AFS can be made to do anything with its internal functions. Here
     are some examples of AFS types:
     - **Switching AFS**
       - This AFS produces the result of exactly one function in the AFS.
-      - If there are multiple satisfied predicates, that's considered an input
-        error.
-      - If there are no results (no default and no satisfied predicates), that's
-        considered an input error.
+      - If there are multiple satisfied predicates, that can be considered an
+        input error.
+      - If there are no results (no default and no satisfied predicates), that
+        can be considered an input error.
     - **Summing AFS**
       - This AFS produces the result of summing the default function result (if
         present) with all results from functions whose predicates are satisfied.
-      - If there are no results (no default and no satisfied predicates), that's
-        considered an input error.
+      - If there are no results (no default and no satisfied predicates), that
+        can be considered an input error.
     - **Minimizing AFS**
       - This AFS produces the minimum result among all results from the default
         function and any functions whose predicates are satisfied.
-      - If there are no results (no default and no satisfied predicates), that's
-        considered an input error.
+      - If there are no results (no default and no satisfied predicates), that
+        can be considered an input error.
     - **Maximizing AFS**
       - This AFS produces the maximum result among all results from the default
         function and any functions whose predicates are satisfied.
-      - If there are no results (no default and no satisfied predicates), that's
-        considered an input error.
+      - If there are no results (no default and no satisfied predicates), that
+        can be considered an input error.
 - **Attribute Definition (Numeric)**
   - _Identifier_
   - _Minimum Value_ : number (?)
   - _Maximum Value_ : number (?)
+  - _Multiple Effect Handling_
+    - This specifies how to handle multiple simultaneous effects on this
+      attribute (e.g. when multiple project options with overlapping attribute
+      value effects on this attribute may be selected for a single asset in a
+      single time step).
+    - Any method may be specified, as long as it is consistent and well-defined.
+    - Some examples:
+      - "exclusive": Do not allow multiple effects. Mutually exclude the
+        causative project options, or abort/invalidate if multiple effects come
+        from committed projects.
+      - "additive": Apply a change equal to the sum of all changes.
+      - "multiplicative": Apply a change ratio equal to the product of all
+        change ratios.
+      - "minimum": Take the most negative change.
+      - "maximum": Take the most positive change.
   - _Deterioration Model_ : asset function (?)
     - _Direction of Deterioration_ : negative or positive
-      - This is probably unnecessary in general? What framework-level parts
-        actually require it?
-  - SAFIs may define other kinds of attribute, e.g. text or date, and they may
-    also define "virtual attributes", e.g. based on asset functions. These are
-    not essential to the SAF, but may be useful to provide additional features
-    within a specific SAFI.
+    - _Target Condition Goals_ : (0+)
+    - _Deficient Condition Goals_ : (0+)
+  - Note that SAFIs may define other kinds of attribute, e.g. text or date, and
+    they may also define "virtual attributes", e.g. based on asset functions.
+    These are not essential to the SAF, but may be useful to provide additional
+    features within a specific SAFI.
+- **Target Condition Goal**
+  - _Predicate_ : (?)
+  - _Condition Limit_ : number
+  - _Simulation Time Step_ : positive integer (?)
+    - Optional; if not present, goal is applicable to all time steps.
+- **Deficient Condition Goal**
+  - _Predicate_ : (?)
+  - _Condition Limit_ : number
+  - _Deficiency Limit_ : percentage value in $[0,100)$
 - **Attribute Value Effect**
   - _Target Attribute_
   - _Effect Model_ : asset function
@@ -250,20 +278,22 @@ have identifiers, and it's probably beneficial to make it so.
   - _Exclusion Period Length_ : positive integer
 - **Null Treatment**
   - _Attribute Value Effects_ : (0+)
+    - No more than one per attribute.
 - **Treatment**
   - _Identifier_
   - _Attribute Value Effects_ : (1+)
+    - No more than one per attribute.
   - _Non-deteriorating Attributes_ : (0+)
-    - applicable if part of a multi-step project
+    - applicable when part of a multi-step project
 - **Treatment Funding Rule**
-  - _Applicability Predicate_ : (?)
+  - _Predicate_ : (?)
   - _Treatment_
   - _Cost Model_ : asset function
   - _Allowed Budgets_ : (1+)
   - _Future Treatment Exclusion Rules_ : (0+)
   - _Prioritized Future Treatment Funding Rules_ : (0+)
 - **Treatment Concurrency Exclusion Rule**
-  - _Applicability Predicate_ : (?)
+  - _Predicate_ : (?)
   - _Mutually Exclusive Treatments_ : (2+)
 - **Scenario**
   - This is a container of all input required for a single execution of a
@@ -277,31 +307,35 @@ have identifiers, and it's probably beneficial to make it so.
   - _Treatment Concurrency Exclusion Rules_ : (0+)
   - _Budgets_
   - _Cash Flow Rules_
-  - _CONDITION GOALS_
   - **Configuration**
     - _Allow multiple budgets to fund a single project_
     - _Allow budget remainders to carry forward_
 - **Budget**
-  - _Applicability Predicate_ : (?)
+  - _Predicate_ : (?)
   - _Investment Sequence_ : (1+)
 - **Cash Flow Rule**
-  - _Applicability Predicate_ : (?)
+  - _Predicate_ : (?)
   - _Distribution Rules_, each:
-    - _Cost Ceiling_
-    - _Percentage Sequence_ : (1+)
+    - _Cost Ceiling_ : positive number
+    - _Percentage Sequence_ : (1+), individually in $[0,100]$, must sum to 100
 - **Project Option**
   - _Source Rule_ : Treatment Funding Rule
   - _Asset Identifier_
   - _Cost Sequence_ : (1+)
     - multiple via cash-flow
   - _Objective Value_
-    - possible interpretations:
-      - estimated total "value" for the usual selection mode of maximizing value
-        (derived from "benefit" or "remaining life") while respecting budget
-        constraints
-      - estimated total cost for the less usual selection mode of minimizing
+    - Calculation and interpretation are completely the responsibility of the
+      SAFI.
+    - example interpretations:
+      - estimated total "value" for the typical selection mode of maximizing
+        value (derived from "benefit" or "remaining life") while respecting
+        budget constraints
+      - estimated total cost for the less typical selection mode of minimizing
         cost while achieving goal constraints and respecting budget constraints
-        - further bits are needed to evaluate goal constraints
+        - in this mode, what if there are no feasible solutions (that achieve
+          goals)? do you fall back to maximizing value? do you abort? do you
+          optimize on the goals? the latter sounds the most appealing, but can
+          it be done? it's multi-objective optimization due to multiple goals.
 - **Project**
   - _Simulation Time Step_ : positive integer
   - _Asset Identifier_
@@ -326,10 +360,6 @@ outstanding modeling problems & solutions:
   concurrency exclusion rules, with the added sub-rule that a treatment cannot
   be re-applied while the treatment is being performed, and the treatment is
   "present" for exclusion-checking during the cash-flow.
-- how to handle multiple project effects acting on a single attribute?
-  - e.g. consider it an input error, abort the simulation.
-  - Yeah, even if the two effects are coming from different projects, it kinda
-    implies that the two treatments should have been mutually exclusive.
 
 ### Responsibilities of the SAFI
 
@@ -346,10 +376,15 @@ outstanding modeling problems & solutions:
 
 ### Output Data
 
-At the framework level (ignoring additional output requirements imposed by SAF
-implementations), the only output is a set of projects.
+At the framework level (ignoring additional output requirements imposed by
+SAFIs), the only output is a set of projects.
 
 _Initial Total Snapshot_ + _Projects (Committed & Selected)_ = _Final Total Snapshot_
+
+Decision-making rationale output should be part of logging, not part of the
+primary output. (Currently, in AssetFox, rationale output is bundled with
+project output, and the bundle's large size has been a technical obstacle on the
+project.)
 
 A design goal is that the user should be able to easily (with little or no
 effort) feed some or all of the output project activity _back into_ the
@@ -365,6 +400,10 @@ cash-flow committed projects.
 _Simulation_
 
 1. DETERIORATION
+   1. For each asset,
+      1. For each deteriorating attribute (excluding non-deteriorating
+         attributes of any projects active on this asset),
+         - Deteriorate the attribute.
 2. PRIORITIZED PROJECT SELECTION
    - Using per-asset prioritized TFRs only, determine project options, estimate
      objective values, and determine selections.
