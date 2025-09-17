@@ -1,26 +1,155 @@
-# iAM Simulation Algorithm Framework (SAF)
+# iAM Simulation Algorithm Framework
 
-> The purpose of this document is not to describe any specific software
-> application or any specific body of software code. The purpose is to describe
-> a general framework allowing various software implementations of one overall
-> approach to a simulation algorithm that assists asset management project
-> planning.
+The iAM _simulation algorithm framework_ (SAF) is an abstract, customizable
+procedure using extensible data definitions that facilitates automated selection
+of _projects_ to optimize the maintenance of _deteriorating assets_ over a
+period of time. An _SAF implementation_ (SAFI) is an artifact that uses the SAF
+procedure and data, respectively customized and extended according to all
+requirements of the SAFI.
+
+The basic procedure in the SAF is a sequence of _simulation time steps_. Each
+simulation time step comprises four phases:
+
+1. Deterioration of assets.
+2. Selection of prioritized projects.
+3. Selection of other projects.
+4. Application of effects from completed projects.
+
+The SAF fully specifies behavioral profiles for phases 1 and 4. For phases 2 and
+3, an SAFI must provide certain behaviors to fully specify behavioral profiles.
+
+## Concepts & Data Structures
+
+### Asset Snapshot
+
+An asset snapshot is the full set of attribute values associated with a single
+asset at a single moment in the sequence of steps and phases constituting the
+simulation time sequence.
+
+### Predicate
+
+In the SAF, a predicate is a mapping from an asset snapshot to a classical truth
+value, i.e. "true" or "false".
+
+### Function
+
+In the SAF, a function is a mapping from an asset snapshot to a number.
+
+#### Function System
+
+> Wait a sec. This is an implementation detail.
+
+In the SAF, a function system is a function comprising several other functions
+and predicates. A function system has one _default function_ and zero or more
+_conditional functions_. A conditional function is paired with a predicate. The
+default function is optional if and only if there is at least one conditional
+function.
+
+A function system (abbreviated FS here) can be defined to do anything with its
+internal functions. Here are some examples:
+
+- **Switching FS**: This FS produces the result of the one conditional function
+  in the FS whose predicate is satisfied. If multiple predicates are satisfied,
+  it could be considered an input error. If no predicates are satisfied, the
+  default function is used. If there is no default function when it is required,
+  it could be considered an input error.
+- **Summing AFS**: This FS produces the result of summing the default function
+  result (if present) with all results from functions whose predicates are
+  satisfied. If there are no results (no default function and no satisfied
+  predicates), it could be considered an input error.
+- **Minimizing AFS**: This FS produces the minimum result among all results from
+  the default function and any functions whose predicates are satisfied. If
+  there are no results (no default function and no satisfied predicates), it
+  could be considered an input error.
+- **Maximizing AFS**: This AFS produces the maximum result among all results
+  from the default function and any functions whose predicates are satisfied. If
+  there are no results (no default function and no satisfied predicates), it
+  could be considered an input error.
+
+### Scenario
+
+A scenario is a container of all input data required for a single simulation
+within an SAFI.
+
+#### Data
+
+- _Attribute Definitions_: **one or more**
+- _Initial Total Snapshot_: **required**
+- _Committed Projects_: **zero or more**
+- _Null Treatment_: **required**
+- _Treatment Funding Rules_: **one or more**
+- _Treatment Concurrency Exclusion Rules_: **zero or more**
+- _Budgets_: **one or more**
+- _Cash Flow Rules_: **zero or more**
+
+#### Configuration
+
+- Are multiple budgets allowed to fund a single project?
+- Are budget remainders allowed to carry forward to the next simulation time
+  step?
+
+### Attribute Definition
+
+An attribute definition describes a property associated with some or all assets
+in the scope of the scenario. In the SAF, only numeric attributes are specified,
+but SAFIs may freely define and incorporate other kinds of attribute, e.g. text
+or date or virtual.
+
+#### Data
+
+- _Minimum Value_: **optional**
+- _Maximum Value_: **optional**
+- _Deterioration Profile_: **optional**
+
+#### Configuration
+
+- How are multiple simultaneous effects (on this attribute within a single
+  asset) handled?
+  - Any method may be specified, as long as it is consistent and well-defined.
+    Examples include:
+    - "Exclusive": Do not allow multiple effects. Mutually exclude the sources
+      (project options and/or committed projects) of the effects. Since
+      committed projects are obligatory, a project P1 whose completion coincides
+      with that of a committed project P2 (on the same asset) will be excluded
+      from selection if P1 and P2 have effects that overlap on one or more
+      attributes. If P1 and P2 are both committed projects when there is such
+      overlap, it is an input error.
+    - "Additive": Apply a change equal to the sum of all effects' changes.
+    - "Multiplicative": Apply a change ratio equal to the product of all
+      effects' change ratios.
+    - "Minimum": Take the most negative effect result.
+    - "Maximum": Take the most positive effect result.
+
+### Deterioration Profile
+
+A deterioration profile describes how an attribute value changes over time as an
+asset with that attribute deteriorates. The profile may include information
+about "goals" for the attribute value, to guide project selection.
+
+#### Data
+
+- _Deterioration Function_: **required**
+- _Direction of Deterioration_: **negative or positive**
+- _Target Condition Goals_: **zero or more**
+- _Deficient Condition Goals_: **zero or more**
+
+### Target Condition Goal
+
+### Deficient Condition Goal
+
+### Total Snapshot
+
+### Project
+
+---
 
 ## overall remarks
 
-- The simulation of iAM (formerly RoadCare) is an ARA algorithm framework (not
-  code in itself, but still having an original reference implementation in the
-  ARA RoadCare desktop application). In contrast, "AssetFox" is a specific
-  PennDOT web application that contains one implementation of that framework.
 - Certain aspects of AssetFox's implementation of the iAM simulation are not
   part of the iAM simulation framework. For example, "calculated field timing"
   is an AssetFox-specific item introduced by PennDOT into their implementation
   of the iAM simulation. Another example is "performance curve adjustment
   factors".
-
-This is the overall _conceptual structure_ of the data and logic in the iAM SAF.
-Individual SAF implementations (SAFIs) may use additional data or less data, and
-they may adjust/add/remove some logic.
 
 ## plan of writing
 
@@ -36,7 +165,8 @@ they may adjust/add/remove some logic.
 
 Very general overview of basic inputs and logic.
 
-Top-to-bottom "structured glossary".
+Top-to-bottom "structured glossary". In glossary term discussion, focus on
+**purpose** of the entity.
 
 ### inputs
 
@@ -98,69 +228,6 @@ Top-to-bottom "structured glossary".
 
 ## draft of content
 
-### Overview
-
-- _Scenario_ | _Simulation_ | _Project Plan_
-
-### Document Glossary
-
-- _Inputs/Outputs/Aspects (IOA)_
-
-### Framework Glossary
-
-
-### Variable implementation details
-
-- "default values" in numeric attribute definitions
-  - generally, only useful in initial total snapshot preparation when historical
-    data is incomplete; but, could be used in other implementation-specific
-    situations
-
-### Implementation details of RoadCare
-
-- "assets" are "segments" or "sections"
-
-### Implementation details of both RoadCare and AssetFox
-
-- benefit??? seems like benefit attribute designation is also an implementation
-  detail. If you only use remaining-life, then benefit never gets used.
-- inflation rate handling
-- numeric parameters ("calculated fields"), which only exist (a) to make textual
-  expression construction more convenient and (b) to show "virtual attributes"
-  in asset snapshots. These are not essential to the framework.
-- textual attributes, which only exist (a) as additional data to operate on
-  within asset predicates and (b) to show in asset snapshots. These are also not
-  essential to the framework. They're an implementation detail.
-- terminology mapping, e.g. numeric parameter definitions => "calculated fields"
-- "direction of deterioration"? could it be an implementation detail?
-- "default value" on each attribute definition
-- "AGE" attribute
-- age-dependent "piecewise" expressions for interpolated functions in
-  deterioration models
-- "value-change" expressions in treatment consequences
-- budget priority levels
-- budget order
-- "outlook" algorithm and its configuration, e.g. length of time etc.
-- "calculate-evaluate" expression language for user-friendly construction of
-  asset functions and predicates
-- benefit weighting, spatial weighting
-- inflation rate percentage
-- "until conditions met" strategies. they require linear selection strategies
-  (like the greedy heuristic one currently in RoadCare/AssetFox).
-  - can't be a framework level thing, as the framework should not impose
-    requirements on the selection strategy of the implementations.
-
-### Implementation details of AssetFox
-
-- In AssetFox, cost models are (via a global option) allowed to be summing AFSs
-- minimum project cost limit
-- performance curve adjustment factors
-- calculated field timing
-- "pre-application" of the null treatment (just after deterioration, before
-  project selection)
-  - frankly, this looks like an awkward attempt to patch up incomplete
-    deterioration rules
-- minimum project cost limit
 
 ### Glossary of Terms & Structured Data
 
@@ -182,9 +249,6 @@ have identifiers, and it's probably beneficial to make it so.
   - This is any entity whose physical attributes (a) may deteriorate over time
     and (b) may be managed or maintained by applying treatments to the entity.
   - Within the simulation, an asset is nothing more than a unique identifier.
-- **Attribute Definition**
-  - This describes a property associated with some or all assets in the
-    simulation.
 - **Asset Snapshot**
   - This is a set of values, at most one per attribute, describing a single
     asset at a single moment in the simulation time sequence.
@@ -231,33 +295,6 @@ have identifiers, and it's probably beneficial to make it so.
         function and any functions whose predicates are satisfied.
       - If there are no results (no default and no satisfied predicates), that
         can be considered an input error.
-- **Attribute Definition (Numeric)**
-  - _Identifier_
-  - _Minimum Value_ : number (?)
-  - _Maximum Value_ : number (?)
-  - _Multiple Effect Handling_
-    - This specifies how to handle multiple simultaneous effects on this
-      attribute (e.g. when multiple project options with overlapping attribute
-      value effects on this attribute may be selected for a single asset in a
-      single time step).
-    - Any method may be specified, as long as it is consistent and well-defined.
-    - Some examples:
-      - "exclusive": Do not allow multiple effects. Mutually exclude the
-        causative project options, or abort/invalidate if multiple effects come
-        from committed projects.
-      - "additive": Apply a change equal to the sum of all changes.
-      - "multiplicative": Apply a change ratio equal to the product of all
-        change ratios.
-      - "minimum": Take the most negative change.
-      - "maximum": Take the most positive change.
-  - _Deterioration Model_ : asset function (?)
-    - _Direction of Deterioration_ : negative or positive
-    - _Target Condition Goals_ : (0+)
-    - _Deficient Condition Goals_ : (0+)
-  - Note that SAFIs may define other kinds of attribute, e.g. text or date, and
-    they may also define "virtual attributes", e.g. based on asset functions.
-    These are not essential to the SAF, but may be useful to provide additional
-    features within a specific SAFI.
 - **Target Condition Goal**
   - _Predicate_ : (?)
   - _Condition Limit_ : number
@@ -295,21 +332,6 @@ have identifiers, and it's probably beneficial to make it so.
 - **Treatment Concurrency Exclusion Rule**
   - _Predicate_ : (?)
   - _Mutually Exclusive Treatments_ : (2+)
-- **Scenario**
-  - This is a container of all input required for a single execution of a
-    simulation algorithm.
-    - Some input data is transitively included, e.g. treatments.
-  - _Attribute Definitions_ : (1+)
-  - _Initial Total Snapshot_
-  - _Committed Projects_ : (0+)
-  - _Null Treatment_
-  - _Treatment Funding Rules_ : (1+)
-  - _Treatment Concurrency Exclusion Rules_ : (0+)
-  - _Budgets_
-  - _Cash Flow Rules_
-  - **Configuration**
-    - _Allow multiple budgets to fund a single project_
-    - _Allow budget remainders to carry forward_
 - **Budget**
   - _Predicate_ : (?)
   - _Investment Sequence_ : (1+)
