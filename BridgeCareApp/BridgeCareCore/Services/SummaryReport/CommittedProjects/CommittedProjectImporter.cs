@@ -159,8 +159,6 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
                     File.WriteAllBytes(filePath, bin);
                 }
             }
-            
-            NotifyValidationErrors(userId);
 
             return _projectsPerKey.Values.ToList();
         }
@@ -751,49 +749,6 @@ namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
             }
 
             return columnIndices;
-        }
-
-        private void NotifyValidationErrors(string userId)
-        {
-            if (_validationErrorMessages == null || !_validationErrorMessages.Any())
-            {
-                return;
-            }
-                        
-            foreach (var errorType in _validationErrorMessages.Keys)
-            {
-                var errors = _validationErrorMessages[errorType].Distinct().ToList();
-                var errorCount = errors.Count;
-
-                if (errorCount > 0)
-                {
-                    var messagesToShow = errors.Take(MAX_ERROR_BATCH_SIZE).ToList();
-
-                    if (errorCount > MAX_ERROR_BATCH_SIZE)
-                    {
-                        messagesToShow.Add($"... and {errorCount - MAX_ERROR_BATCH_SIZE} more errors");
-                    }
-
-                    var errorTitle = GetErrorTitle(errorType, errorCount);
-
-                    _hubService.SendRealTimeMessage(
-                        userId,
-                        HubConstant.BroadcastWarning,
-                        $"{errorTitle}\n{string.Join("\n", messagesToShow)}"
-                    );
-
-
-                    //var message = new StringBuilder();
-                    //messagesToShow.ForEach(m => message.AppendLine(m));
-
-                    //_hubService.SendRealTimeMessage(
-                    //    userId,
-                    //    HubConstant.BroadcastWarning,
-                    //    errorTitle,
-                    //    message.ToString()
-                    //);
-                }
-            }
         }
 
         private static bool IsRowBlank(Dictionary<int, object> rowValues)
