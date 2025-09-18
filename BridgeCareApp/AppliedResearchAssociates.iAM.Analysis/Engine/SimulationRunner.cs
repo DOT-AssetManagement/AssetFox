@@ -718,7 +718,7 @@ public sealed class SimulationRunner
         }
 
         List<Action> assetGroupFundingCancellationActions;
-        List<IEnumerable<TreatmentOption>> optionsByAssetGroupAndTreatment, optionsByAssetGroup;
+        List<IEnumerable<TreatmentOption>> optionsByAssetGroup;
 
         if (AssetsAreBeingGrouped)
         {
@@ -749,7 +749,6 @@ public sealed class SimulationRunner
         else
         {
             assetGroupFundingCancellationActions = null;
-            optionsByAssetGroupAndTreatment = null;
             optionsByAssetGroup = null;
         }
 
@@ -771,21 +770,16 @@ public sealed class SimulationRunner
             {
                 considerGroups(optionsByAssetGroup,
                     ReasonForCancellationOfFunding.CouldNotSelectTreatmentsForAllOpenAssetsInGroup);
-
-                if (terminateConsiderations)
-                {
-                    return;
-                }
             }
             else
             {
                 considerGroup(treatmentOptions,
                     ReasonForCancellationOfFunding.None);
+            }
 
-                if (terminateConsiderations)
-                {
-                    return;
-                }
+            if (terminateConsiderations)
+            {
+                return;
             }
 
             void considerGroups(
