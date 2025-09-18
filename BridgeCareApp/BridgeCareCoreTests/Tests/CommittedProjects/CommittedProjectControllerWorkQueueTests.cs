@@ -36,6 +36,9 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
             var simulationId = Guid.NewGuid();
             var simulationDto = SimulationDtos.Dto(simulationId, "test simulation");
             TestHelper.UnitOfWork.SimulationRepo.CreateSimulation(networkId, simulationDto);
+            var analysisMethod = TestHelper.UnitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
+            var investmentPlanDto = InvestmentPlanDtos.Dto(simulationId, 2025, 1);
+            TestHelper.UnitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(investmentPlanDto, simulationId);
             var keyAttributeNames = $"{TestAttributeNames.BrKey},{TestAttributeNames.BmsId}";
             AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, network.Name, keyAttributeNames, keyAttributeNames);
             var serviceProvider = ServiceProviders.AdminControllersWithSimulationIdAndFiles(simulationId, formFile);

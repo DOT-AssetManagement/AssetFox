@@ -151,6 +151,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             maintainableAssets.Add(maintainableAsset);
             var network = NetworkTestSetup.ModelForEntityInDbWithNewKeyTextAttribute(
                 TestHelper.UnitOfWork, maintainableAssets, networkId, keyAttributeId, keyAttributeName);
+            TestHelper.UnitOfWork.ClearCachedMaintainableAssetDataRepository();
             var attributeNames = $"{keyAttributeName},{unusedKeyAttributeName}";
             AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, network.Name, attributeNames, attributeNames);
             var attributes = new List<IamAttribute> { keyAttribute, resultAttribute };
@@ -189,8 +190,8 @@ namespace BridgeCareCoreTests.Tests.Integration
                 ProjectSourceDTO.None,
                 treatmentName,
                 keyAttributeName,
-                location.LocationIdentifier);
-            committedProject.Year = 2023;
+                location.LocationIdentifier,
+                2023);
             committedProject.Cost = 31415926;
             List<SectionCommittedProjectDTO> sectionCommittedProjects = new List<SectionCommittedProjectDTO> { committedProject };
             TestHelper.UnitOfWork.CommittedProjectRepo.UpsertCommittedProjects(sectionCommittedProjects);
