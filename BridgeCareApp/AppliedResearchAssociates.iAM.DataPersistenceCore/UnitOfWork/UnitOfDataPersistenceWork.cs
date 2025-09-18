@@ -14,6 +14,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
 {
     public class UnitOfDataPersistenceWork : IDisposable, IUnitOfWork
     {
+        public void ClearCachedMaintainableAssetDataRepository()
+        {
+            _assetDataRepository = null;
+        }
         public void ClearAttributeIdNameCache()
         {
             AttributeRepository.ClearIdNameCache();

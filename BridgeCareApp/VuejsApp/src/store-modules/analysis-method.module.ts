@@ -55,7 +55,7 @@ const actions = {
                 if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
                     commit('analysisMethodMutator', payload.analysisMethod);
                     dispatch('addSuccessNotification', {
-                        message: 'Upserted analysis method',
+                        message: 'Analysis method saved successfully',
                 });
                 }
                 return response.data;

@@ -74,7 +74,16 @@ namespace BridgeCareCore.Controllers
                 }
 
                 var simulationId = Guid.Parse(id.ToString());
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("An invalid file was used.");
+                }
                 var filename = ContextAccessor.HttpContext.Request.Form.Files[0].FileName;
 
                 var simulationName = "";

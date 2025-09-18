@@ -752,7 +752,8 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
 
     function onAddTaskCompletedNotification(data: any) {
 
-        const taskMessage = data.task;
+        const taskMessage = data.task as string;
+        const taskMessageLowerCase = taskMessage.toLowerCase();
         addTaskCompletedNotificationAction({
             message: 'Task Completed',
             longMessage: taskMessage
@@ -760,19 +761,21 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
 
         const stringData = JSON.stringify(data);
 
-        if (taskMessage.includes('Analysis')) {
+        if (taskMessageLowerCase.includes('analysis')) {
             $emitter.emit('SimulationRunSettingUpdated');
 
             // Extract the simulation name from data.task
             const simulationName = extractSimulationName(taskMessage);
-
-            onShowRunAnalysisCompletedAlert(simulationName);
+            if(!taskMessageLowerCase.includes("cancel"))
+                onShowRunAnalysisCompletedAlert(simulationName);
+            else
+                onShowRunAnalysisCancelledAlert(simulationName)
         }
     }
 
     function extractSimulationName(taskMessage: string): string {
         // Assuming taskMessage is in the format "Analysis on [Simulation Name] has completed"
-        const regex = /^Analysis on (.+?) has completed$/;
+        const regex = /^Analysis on (.+?) has (.+?)$/;
         const match = taskMessage.match(regex);
         if (match && match[1]) {
             return match[1].trim();
@@ -786,6 +789,15 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
             heading: 'Success',
             choice: false,
             message: `The Analysis on ${simulationName} has been completed`,        
+        };
+    }
+
+    function onShowRunAnalysisCancelledAlert(simulationName:string) {
+        ConfirmRunAnalysisCompleted.value = {
+            showDialog: true,
+            heading: 'Cancelled',
+            choice: false,
+            message: `The Analysis on ${simulationName} has been cancelled`,        
         };
     }
 

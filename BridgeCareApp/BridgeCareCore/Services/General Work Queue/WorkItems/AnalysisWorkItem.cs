@@ -35,6 +35,8 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
 
     private readonly ILog _log = new DoNotLog();
 
+    private bool canceled = false;
+
     public AnalysisWorkItem(
         Guid networkId,
         Guid simulationId,
@@ -277,6 +279,7 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
         RunValidation(runner);
 
         markAndLog("RunValidation");
+        
         runner.Run(false, cancellationToken);
         markAndLog("Run complete");
         var timingsOutput = memos.ToMultilineString();
@@ -305,7 +308,7 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
 
         bool CheckCanceled()
         {
-            var canceled = cancellationToken.IsCancellationRequested;
+            canceled = cancellationToken.IsCancellationRequested;
             if (canceled)
             {
                 ReportCanceled();
@@ -344,6 +347,7 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
             updateStatusOnHandle.Invoke(simulationAnalysisDetail.Status);
         }
         setSimulationReportDetailStatus(_unitOfWork).Wait();
+        canceled = cancellationToken.IsCancellationRequested;
     }
 
     public void OnFault(IServiceProvider serviceProvider, string errorMessage)
@@ -373,7 +377,10 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
     {
         using var scope = serviceProvider.CreateScope();
         var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
-        _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastTaskCompleted, $"Analysis on {ScenarioName} has completed");
+        if(!canceled)
+            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastTaskCompleted, $"Analysis on {ScenarioName} has completed");
+        else
+            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastTaskCompleted, $"Analysis on {ScenarioName} has been cancelled");
     }
 
     public async Task setSimulationReportDetailStatus(IUnitOfWork unitOfWork)

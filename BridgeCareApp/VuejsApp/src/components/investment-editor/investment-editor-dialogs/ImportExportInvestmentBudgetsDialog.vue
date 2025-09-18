@@ -25,21 +25,6 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-dialog max-width='450px' persistent v-model='showSuccessDialog'>
-            <v-card>
-                <v-card-title class="title-padding">
-                    <v-row justify="center">
-                        <h6 class="ghd-control-label">Budgets have been replaced.  Please update budget priorities</h6>
-                    </v-row>
-                </v-card-title>
-                <v-card-actions>
-                    <v-row justify="center">
-                        <OkButton @ok="successSubmit()"/>
-                    </v-row>
-                </v-card-actions>
-                
-            </v-card>
-        </v-dialog>
     </v-row>
 </template>
 
@@ -60,9 +45,8 @@ let store = useStore();
 const emit = defineEmits(['submit', 'submitSuccessImport'])
 const props = defineProps<{
     showDialog: boolean,
-    showSuccessDialog: boolean
     }>()
-const { showDialog, showSuccessDialog } = toRefs(props);
+const { showDialog } = toRefs(props);
 
 async function addErrorNotificationAction(payload?: any): Promise<any> {await store.dispatch('getAvailableReports');}
 function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImportMutator', payload);}
