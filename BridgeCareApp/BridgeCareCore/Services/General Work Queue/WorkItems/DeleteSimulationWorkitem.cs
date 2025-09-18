@@ -37,6 +37,7 @@ namespace BridgeCareCore.Services.General_Work_Queue.WorkItems
             var _queueLogger = new GeneralWorkQueueLogger(_hubService, UserId, updateStatusOnHandle, WorkId);
 
            _unitOfWork.SimulationRepo.DeleteSimulation(SimulationId, cancellationToken, _queueLogger);
+           _unitOfWork.SimulationRepo.DeleteSimulationReports(SimulationId);
         }
 
         public void OnFault(IServiceProvider serviceProvider, string errorMessage)

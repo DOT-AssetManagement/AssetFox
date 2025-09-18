@@ -135,32 +135,13 @@
                                                 size="large"
                                                 lazy
                                                 persistent
-                                                v-model:return-value="nameUpdate"
-                                                :initial-name="nameUpdate"
-                                                @save="
-                                                    onEditScenarioName(
-                                                        props.item,
-                                                        nameUpdate,
-                                                    )
-                                                "
-                                                @open="prepareForNameEdit( props.item.name,)"
+                                                :selected-scenario="props.item"
+                                                @save=onEditScenarioName
                                             >
                                                 {{ props.item.name }}
 
                                                 <template v-slot:input>
-                                                    <v-text-field
-                                                        label="Edit"
-                                                        single-line
-                                                        v-model="nameUpdate"
-                                                        :rules="[
-                                                            rules[
-                                                                'generalRules'
-                                                            ].valueIsNotEmpty,
-                                                            rules[
-                                                                'generalRules'
-                                                            ].valueContainsNoSpecialCharacters,
-                                                        ]"
-                                                    />
+                                                    
                                                 </template>
                                             </editScenarioNameDialog>
                                         </td>
@@ -363,35 +344,13 @@
                                                 size="large"
                                                 lazy
                                                 persistent
-                                                v-model:return-value="nameUpdate"
-                                                :initial-name="props.item.name"
-                                                @save="
-                                                    onEditScenarioName(
-                                                        props.item,
-                                                        nameUpdate,
-                                                    )
-                                                "
-                                                @open="
-                                                    prepareForNameEdit(
-                                                        props.item.name,
-                                                    )
-                                                "
+                                                :selected-scenario="props.item"
+                                                @save=onEditScenarioName
                                             >
                                                 {{ props.item.name }}
+
                                                 <template v-slot:input>
-                                                    <v-text-field
-                                                        label="Edit"
-                                                        single-line
-                                                        v-model="nameUpdate"
-                                                        :rules="[
-                                                            rules[
-                                                                'generalRules'
-                                                            ].valueIsNotEmpty,
-                                                            rules[
-                                                                'generalRules'
-                                                            ].valueContainsNoSpecialCharacters,
-                                                        ]"
-                                                    />
+                                                    
                                                 </template>
                                             </editScenarioNameDialog>
                                         </td>
@@ -833,6 +792,8 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     const stateSharedScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentSharedScenariosPage) ;
     const stateUserScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentUserScenarioPage) ;
 
+    let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
+
     let stateTotalSharedScenarios = computed<number>(() => store.state.scenarioModule.totalSharedScenarios) ;
     let stateTotalUserScenarios = computed<number>(() => store.state.scenarioModule.totalUserScenarios) ;
 
@@ -851,12 +812,12 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     function addWarningNotificationAction(payload?: any){ store.dispatch('addWarningNotification', payload)}
     function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
     function addInfoNotificationAction(payload?: any){ store.dispatch('addInfoNotification', payload)}
-    async function getScenariosAction(payload?: any): Promise<any>{await store.dispatch('getScenarios', payload)}
     async function getSharedScenariosPageAction(payload?: any): Promise<any>{await store.dispatch('getSharedScenariosPage', payload)}
     async function createScenarioAction(payload?: any): Promise<any>{await store.dispatch('createScenario', payload)}
     async function cloneScenarioAction(payload?: any): Promise<any>{await store.dispatch('cloneScenario', payload)}
     async function cloneScenarioWithDestinationNetworkAction(payload?:any): Promise<any>{await store.dispatch('cloneScenarioWithDestinationNetwork',payload)}
     async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
+    async function getAllScenarioNamesAction(payload?: any): Promise<any> {return await store.dispatch('getAllScenarioNames', payload)}
 
     async function updateScenarioAction(payload?: any): Promise<any>{await store.dispatch('updateScenario', payload)}
     async function deleteScenarioAction(payload?: any): Promise<any>{await store.dispatch('deleteScenario', payload)}
@@ -1062,7 +1023,6 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     let tab = ref('');
     let availableActions: any;
     let availableSimulationActions: any;
-    let nameUpdate = ref('');
 
     let scenarios: Scenario[] = [];
     let scenarioForReportDeletion = ref<Scenario | null>(null);
@@ -1131,6 +1091,8 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     let showFilterScenarioList = ref(false);
     let showSharedFilterScenarioList = ref(false)
     let availableScenarioIds = ref(['']);
+
+    let scenarioNames: string[] = [];
 
     watch(stateNetworks, onstateNetworksChanged) 
     function onstateNetworksChanged() {
@@ -1601,6 +1563,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
         await getWorkQueuePageAction(workQueueRequest)
         await getScenariosReportSettings();
         await getFastWorkQueuePageAction(workQueueRequest)
+        await getAllScenarioNamesAction();
         initializing = false;
         initializingWorkQueue = false;
         initializingFastWorkQueue = false;
@@ -1612,6 +1575,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
         currentSharedScenariosPage.value = clone(stateSharedScenariosPage.value);
         currentWorkQueuePage.value = clone(stateWorkQueuePage.value);
         currentFastWorkQueuePage.value = clone(stateFastWorkQueuePage.value);
+        scenarioNames = clone(stateScenarioNames.value);
     }
 
     function formatDate(dateToFormat: Date) {
@@ -1649,19 +1613,17 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
         scenario.name = name;
         if (hasValue(scenario.name)) {
             updateScenarioAction({ scenario: scenario }).then(() => {
-                if(tab.value == tabItems[0].name)
-                    onUserScenariosPagination();
-                else
-                    onSharedScenariosPagination();
+                getAllScenarioNamesAction().then(() => {
+                    if(tab.value == tabItems[0].name)
+                        onUserScenariosPagination();
+                    else
+                        onSharedScenariosPagination();
+                })               
             });
         } else {
             scenarios = [];
             setTimeout(() => (scenarios = clone(stateScenarios.value)));
         }
-    }
-
-    function prepareForNameEdit(name: string) {
-        nameUpdate.value = name;
     }
 
     function onShowConfirmAnalysisRunAlert(scenario: Scenario) {
@@ -2020,15 +1982,14 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
             deleteScenarioAction({
                 scenarioId: selectedScenario.id,
                 scenarioName: selectedScenario.name,
-            }).then(async () => {
-                deleteAllReports(selectedScenario.id);
+            }).then(() => {
                 selectedScenario = clone(emptyScenario); 
             });
         }
     }
 
-    async function deleteAllReports(_scenario: any) {
-        await ReportsService.deleteAllGeneratedReports(_scenario)
+    async function deleteAllReports(_scenario: Scenario) {
+        await ReportsService.deleteAllGeneratedReports(_scenario.id)
             .then((response: AxiosResponse<any>) => {
                 if (hasValue(response, 'data')) {
                     if (!response.data.includes("No reports exist")) {
@@ -2178,8 +2139,8 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     function importCompleted(data: any){
         
         var workType = data.workType as WorkType
-        if(workType  === WorkType.DeleteSimulation ){
-            onScenariosPagination()
+        if(workType === WorkType.DeleteSimulation ){
+            getAllScenarioNamesAction().then(() => onScenariosPagination())   
         }        
     }
 
@@ -2204,7 +2165,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                 scenario: scenario,
                 networkId: scenario.networkId,
             }).then(() => {
-                onScenariosPagination();
+                getAllScenarioNamesAction().then(() => onScenariosPagination());              
             });
         }
     }

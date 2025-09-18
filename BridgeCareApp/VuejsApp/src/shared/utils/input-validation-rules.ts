@@ -27,6 +27,9 @@ const generalRules = {
     },
     'valueContainsNoSpecialCharacters': (value: string) => {
         return /^[a-zA-Z0-9\s]*$/.test(value) || 'Value must not contain special characters';
+    },
+    'valueContainsNoCertainSpecialCharacters': (value: string) => {
+        return /^[ \w\-$()+=[\];#@~,&']*$/.test(value) || 'Value must not contain certain special characters';
     }
 };
 /***********************************************CASH FLOW RULES********************************************************/
