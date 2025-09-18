@@ -28,7 +28,6 @@ using AppliedResearchAssociates.Validation;
 using System.Collections.Generic;
 using BridgeCareCore.Models.Validation;
 using ValidationResult = AppliedResearchAssociates.Validation.ValidationResult;
-using static Google.Protobuf.WireFormat;
 using AppliedResearchAssociates.iAM.Common;
 
 namespace BridgeCareCore.Controllers
@@ -755,8 +754,9 @@ namespace BridgeCareCore.Controllers
                         validationResultList.AddRange(validationResultBag.AsEnumerable().ToList());
                         GetPreChecksValidationResults(preChecksValidationResults, validationResultList);
                     }
+                    
+                    preChecksValidationResults = System.Linq.Enumerable.DistinctBy(preChecksValidationResults, _ => _.Message).ToList();
                 });
-                
                 return Ok(preChecksValidationResults);
             }
             catch (UnauthorizedAccessException e)
