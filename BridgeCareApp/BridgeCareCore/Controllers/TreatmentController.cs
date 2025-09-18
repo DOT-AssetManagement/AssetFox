@@ -516,7 +516,15 @@ namespace BridgeCareCore.Controllers
                 }
 
                 var treatmentLibraryId = Guid.Parse(libraryId.ToString());
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("An invalid file was used.");
+                }
 
                 var libraryName = "";
                 await Task.Factory.StartNew(() =>
@@ -576,8 +584,16 @@ namespace BridgeCareCore.Controllers
                 }
 
                 var treatmentLibraryId = Guid.Parse(libraryId.ToString());
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
-  
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("An invalid file was used.");
+                }
+
                 var libraryName = "";
                 await Task.Factory.StartNew(() =>
                 {
@@ -696,7 +712,15 @@ namespace BridgeCareCore.Controllers
                     throw new ConstraintException("Request contained no simulation id.");
                 }
 
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("An invalid file was used.");
+                }
                 var simulationId = Guid.Parse(id.ToString());
 
                 var simulationName = "";
@@ -746,7 +770,15 @@ namespace BridgeCareCore.Controllers
                     throw new ConstraintException("Request contained no simulation id.");
                 }
 
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("An invalid file was used.");
+                }
                 var simulationId = Guid.Parse(id.ToString());
 
                 var simulationName = "";
@@ -759,9 +791,7 @@ namespace BridgeCareCore.Controllers
                 ImportScenarioTreatmentWorkitem workItem = new ImportScenarioTreatmentWorkitem(simulationId, excelPackage, UserInfo.Name, simulationName);
                 var analysisHandle = _generalWorkQueueService.CreateAndRunInHiddenUploadQueue(workItem);
 
-                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, simulationId.ToString());
-
-                return Ok();
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastFastWorkQueueUpdate, simulationId.ToString());               
             }
             catch (UnauthorizedAccessException e)
             {
@@ -851,7 +881,15 @@ namespace BridgeCareCore.Controllers
                     throw new ConstraintException("Request contained no simulation id.");
                 }
 
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("An invalid file was used.");
+                }
                 var simulationId = Guid.Parse(id.ToString());
                 var simulationName = "";
                 await Task.Factory.StartNew(() =>
@@ -977,7 +1015,15 @@ namespace BridgeCareCore.Controllers
                     throw new ConstraintException("Request contained no library id.");
                 }
 
-                var excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                ExcelPackage excelPackage;
+                try
+                {
+                    excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("An invalid file was used.");
+                }
                 var libraryId = Guid.Parse(id.ToString());
                 var libraryName = string.Empty;
                 await Task.Factory.StartNew(() =>

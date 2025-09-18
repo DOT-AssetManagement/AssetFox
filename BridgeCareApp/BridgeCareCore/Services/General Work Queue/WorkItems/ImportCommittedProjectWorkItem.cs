@@ -45,7 +45,7 @@ namespace BridgeCareCore.Services.General_Work_Queue.WorkItems
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
 
-            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{CommittedProjectController.CommittedProjectError}::ImportCommittedProjects - {errorMessage}");
+            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{CommittedProjectController.CommittedProjectError}::ImportCommittedProjects - Something was wrong with the provided file");
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)
