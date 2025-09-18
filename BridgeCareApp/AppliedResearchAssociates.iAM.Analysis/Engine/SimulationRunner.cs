@@ -736,16 +736,6 @@ public sealed class SimulationRunner
                 .GroupBy(GetAssetGroup)
                 .ToDictionary(group => group.Key, group => group.Count());
 
-            // "consideration phase 1" option groups
-            optionsByAssetGroupAndTreatment =
-                treatmentOptions
-                .GroupBy(option => (GetAssetGroup(option.AssetContext), option.CandidateTreatment))
-                .Where(group => group.DistinctBy(option => option.AssetContext).Count() == assetGroupSizes[group.Key.Item1])
-                .OrderByDescending(group => group.Average(option => option.WeightedObjectiveValue))
-                .Select(group => group.AsEnumerable())
-                .ToList();
-
-            // "consideration phase 2" option groups
             optionsByAssetGroup =
                 treatmentOptions
                 .GroupBy(option => GetAssetGroup(option.AssetContext))
@@ -779,14 +769,6 @@ public sealed class SimulationRunner
 
             if (AssetsAreBeingGrouped)
             {
-                considerGroups(optionsByAssetGroupAndTreatment,
-                    ReasonForCancellationOfFunding.CouldNotSelectSameTreatmentForAllOpenAssetsInGroup);
-
-                if (terminateConsiderations)
-                {
-                    return;
-                }
-
                 considerGroups(optionsByAssetGroup,
                     ReasonForCancellationOfFunding.CouldNotSelectTreatmentsForAllOpenAssetsInGroup);
 
