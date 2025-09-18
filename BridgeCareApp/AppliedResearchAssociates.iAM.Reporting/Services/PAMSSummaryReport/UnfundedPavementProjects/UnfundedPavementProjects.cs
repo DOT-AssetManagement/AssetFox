@@ -58,7 +58,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Unf
         }
 
         private static List<string> GetHeadersRow() => new()
-        {
+        {                
+                "CRSeg",
                 "CRS",
                 "County",
                 "Route",
@@ -173,6 +174,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Unf
             var rowNo = currentCell.Row; var columnNo = currentCell.Column;
             var valuePerNumericAttribute = section.ValuePerNumericAttribute;
             var valuePerTextAttribute = section.ValuePerTextAttribute;
+
+            worksheet.Cells[rowNo, columnNo++].Value = CheckGetTextValue(valuePerTextAttribute, "CRSeg");
             var crs = CheckGetTextValue(valuePerTextAttribute, "CRS");
             worksheet.Cells[rowNo, columnNo++].Value = crs;            
             worksheet.Cells[rowNo, columnNo++].Value = CheckGetTextValue(valuePerTextAttribute, "COUNTY");
