@@ -14,6 +14,6 @@ namespace BridgeCareCore.Services.Aggregation
             ChannelWriter<AggregationStatusMemo> writer,
             Guid networkId,
             AggregationState state,
-            List<AttributeDTO> attributes, CancellationToken? cancellationToken = null);
+            Guid dataSourceId, CancellationToken? cancellationToken = null);
     }
 }

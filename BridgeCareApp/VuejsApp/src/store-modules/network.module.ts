@@ -85,7 +85,7 @@ const actions = {
             });
     },
     async createNetwork({dispatch, commit}: any, payload: any) {
-        return await NetworkService.createNetwork(payload.network.name, payload.parameters)
+        return await NetworkService.createNetwork(payload.network.name, payload.dataSourceId, payload.parameters)
             .then((response: AxiosResponse) => {
                 if (hasValue(response, 'data')) {
                     const message: string = any(
@@ -145,7 +145,7 @@ const actions = {
         });
     },
     async aggregateNetworkData({dispatch, commit}: any, payload: any){
-        return await AggregationService.AggregateNetworkData(payload.attributes, payload.networkId)
+        return await AggregationService.AggregateNetworkData(payload.dataSource, payload.networkId)
             .then((response: AxiosResponse) => {
                 if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {               
                   dispatch('addSuccessNotification', {

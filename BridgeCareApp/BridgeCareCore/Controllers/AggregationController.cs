@@ -46,20 +46,18 @@ namespace BridgeCareCore.Controllers
         }
 
         [HttpPost]
-        [Route("AggregateNetworkData/{networkId}")]
+        [Route("AggregateNetworkData/{dataSource}/{networkId}")]
         [ClaimAuthorize("NetworkAggregateAccess")]
-        public async Task<IActionResult> AggregateNetworkData(Guid networkId, List<AllAttributeDTO> attributes)
+        public async Task<IActionResult> AggregateNetworkData(Guid networkId, Guid dataSource)
         {
             try
             {
                 var networkName = "";
-                var specificAttributes = new List<AttributeDTO>();
                 await Task.Factory.StartNew(() =>
                 {
-                    specificAttributes = AttributeService.ConvertAllAttributeList(attributes);
                     networkName = UnitOfWork.NetworkRepo.GetNetworkName(networkId);
                 });
-                AggregationWorkitem workItem = new AggregationWorkitem(networkId, UserInfo.Name, networkName, specificAttributes);
+                AggregationWorkitem workItem = new AggregationWorkitem(networkId, UserInfo.Name, networkName, dataSource);
                 var analysisHandle = _generalWorkQueueService.CreateAndRun(workItem);
 
                 Debug.WriteLine($"Aggregation started at {DateTime.Now}");

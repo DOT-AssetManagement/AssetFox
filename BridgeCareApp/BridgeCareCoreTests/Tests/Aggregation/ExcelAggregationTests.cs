@@ -85,9 +85,9 @@ namespace BridgeCareCoreTests.Tests
             var aggregationService = new AggregationService(unitOfWork, doNotLog);
             var channel = Channel.CreateUnbounded<AggregationStatusMemo>();
             var aggregationState = new AggregationState();
-            var attributes = new List<AttributeDTO> { districtAttribute };
+            var dataSourceId = dataSourceDto.Id;
 
-            var aggregationResult = await aggregationService.AggregateNetworkData(channel.Writer, networkId, aggregationState, attributes);
+            var aggregationResult = await aggregationService.AggregateNetworkData(channel.Writer, networkId, aggregationState, dataSourceId);
 
             Assert.True(aggregationResult);
             var addCall = aggregatedResultRepo.SingleInvocationWithName(nameof(IAggregatedResultRepository.AddAggregatedResults));

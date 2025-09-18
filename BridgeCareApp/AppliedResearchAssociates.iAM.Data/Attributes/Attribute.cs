@@ -40,11 +40,11 @@ namespace AppliedResearchAssociates.iAM.Data.Attributes
                 throw new InvalidOperationException($"Data type {dataType} is not valid for attribute {name}");
             }
             DataType = dataType;
-            if (!validAggregationRules.Any(_ => _.RuleName == ruleType.ToUpper()))
+            /*if (!validAggregationRules.Any(_ => _.RuleName == ruleType.ToUpper()))
             {
                 throw new InvalidOperationException($"Attribute {name} cannot have a rule of {ruleType}");
-            }
-            AggregationRuleType = ruleType;
+            }*/
+            AggregationRuleType = ruleType ?? "PREDOMINANT";
             Command = command;
             ConnectionType = connectionType;
             ConnectionString = connectionString;

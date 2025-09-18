@@ -36,7 +36,7 @@
         <v-divider />
         <v-col cols = "12" class="ghd-constant-header" v-show="hasSelectedNetwork">
             <v-row>
-                <v-col cols = "5" style="align-items: right;" v-show="!isNewNetwork">
+                <v-col cols = "5" style="align-items: right;">
                     <v-row>
                         <v-subheader class="ghd-md-gray ghd-control-label" >Data Source</v-subheader>
                     </v-row>
@@ -356,7 +356,7 @@ import { NIL } from 'uuid';
 
     function aggregateNetworkData(){
         aggregateNetworkAction({
-            attributes: attributeRows.value,
+            dataSource: selectDataSourceId.value,
             networkId: selectNetworkItemValue.value
         });
 
@@ -409,6 +409,7 @@ import { NIL } from 'uuid';
 
         createNetworkAction({
             network: selectedNetwork.value,
+            dataSourceId: selectDataSourceId.value,
             parameters: {
                 defaultEquation: spatialWeightingEquationValue.value.expression,
                 networkDefinitionAttribute: selectedKeyAttribute.value

@@ -335,6 +335,25 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             return dtos;
         }
 
+        public List<AttributeDTO> GetAttributesWithNamesUnabbreviated(List<string> attributeNames)
+        {
+            var entities = _unitOfWork.Context.Attribute.AsNoTracking().AsEnumerable();
+            var dtos = new List<AttributeDTO>();
+            foreach (var entity in entities)
+            {
+                foreach (var name in attributeNames)
+                {
+                    if (name.Equals(entity.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var dto = AttributeMapper.ToDtoNullPropagating(entity, GetEncryptionKey());
+                        dtos.Add(dto);
+                        continue;
+                    }
+                }
+            }
+            return dtos;
+        }
+
         public List<AttributeDTO> GetAllAttributesAbbreviated()
         {
             var dtos = _unitOfWork.Context.Attribute.AsEnumerable()
