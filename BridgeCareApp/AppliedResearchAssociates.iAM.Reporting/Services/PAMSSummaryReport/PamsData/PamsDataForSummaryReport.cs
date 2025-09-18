@@ -78,7 +78,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             ];
 
 
-        public WorkSummaryModel Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
+        public WorkSummaryModel Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, bool shouldBundleFeasibleTreatments, List<BaseCommittedProjectDTO> committedProjectList, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
             // Add data to excel.
             reportOutputData.Years.ForEach(_ => _simulationYears.Add(_.Year));
@@ -92,7 +92,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             }
 
             FillData(worksheet, reportOutputData, currentCell);
-            FillDynamicData(worksheet, reportOutputData, currentCell, shouldBundleFeasibleTreatments, committedProjectList, keyCashFlowFundingDetails);
+            FillDynamicData(worksheet, reportOutputData, currentCell, shouldBundleFeasibleTreatments, committedProjectList, keyCashFlowFundingDetails, primaryKey);
             worksheet.Cells.AutoFitColumns();
 
             const double minimumColumnWidth = 15;
@@ -280,7 +280,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
             currentCell.Row = rowNo; currentCell.Column = columnNo;
         }
 
-        private void FillDynamicData(ExcelWorksheet worksheet, SimulationOutput outputResults, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, List<BaseCommittedProjectDTO> committedProjectList, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
+        private void FillDynamicData(ExcelWorksheet worksheet, SimulationOutput outputResults, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, List<BaseCommittedProjectDTO> committedProjectList, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
             //initial row to populate data.
             const int initialRow = 4;            
@@ -295,7 +295,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
 
             var isInitialYear = true;
             var lastYear = outputResults.Years.Last().Year;
-            //Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+
             foreach (var yearlySectionData in outputResults.Years)
             {
                 row = initialRow;
@@ -325,9 +325,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     CheckConditions(section.AppliedTreatment, previousYearTreatment, previousYearCause, section.TreatmentCause, section.TreatmentStatus, previousYearTreatmentStatus, range, rangeWithPreviousColumn);
 
                     // Work done and cost for the given year                    
-                    var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
-                    // Build keyCashFlowFundingDetails
-                    //_summaryReportHelper.BuildKeyCashFlowFundingDetails(yearlySectionData, section, crs, keyCashFlowFundingDetails);
+                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
 
                     // If CF then use obj from keyCashFlowFundingDetails otherwise from section
                     var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
@@ -336,7 +334,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                                                   section.TreatmentStatus == TreatmentStatus.Progressed) ||
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                                   section.TreatmentStatus == TreatmentStatus.Applied)) ?
-                                                  keyCashFlowFundingDetails[crs] :
+                                                  keyCashFlowFundingDetails[primaryKeyValue] :
                                                   section.TreatmentConsiderations ?? new();
 
                     var treatmentConsideration = shouldBundleFeasibleTreatments ?
@@ -439,7 +437,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                              AddSimulationYearData(worksheet, row, column, null, section, true)
                              : AddSimulationYearData(worksheet, row, column, null, section);
                     var initialColumnForShade = column;
-                    var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
+                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
 
                     AssetDetail prevYearSection = null;
                     var previousYearCause = TreatmentCause.Undefined;
@@ -465,7 +463,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     {
                         // Add Project Source
                         var committedProject = committedProjectList.FirstOrDefault(_ => _.Treatment.All(_ => section.AppliedTreatment.Contains(_))
-                            && _.Year == yearlySectionData.Year && _.LocationKeys["CRS"] == crs.ToString());
+                            && _.Year == yearlySectionData.Year && _.LocationKeys[primaryKey] == primaryKeyValue.ToString());
                         var projectSource = committedProject?.ProjectSource.ToString() ?? string.Empty;
                         worksheet.Cells[row, ++column].Value = MappingContent.GetNonCashFlowProjectPick(section.TreatmentCause, projectSource); //Project Pick
 
@@ -481,7 +479,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                                                   section.TreatmentStatus == TreatmentStatus.Progressed) ||
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                                   section.TreatmentStatus == TreatmentStatus.Applied)) ?
-                                                  keyCashFlowFundingDetails[crs] :
+                                                  keyCashFlowFundingDetails[primaryKeyValue] :
                                                   section.TreatmentConsiderations ?? new();
 
                     var treatmentConsideration = shouldBundleFeasibleTreatments ?

@@ -338,7 +338,9 @@ namespace AppliedResearchAssociates.iAM.Reporting
             }            
             var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PAMSData_Tab);
             var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
-            var workSummaryModel = _pamsDataForSummaryReport.Fill(worksheet, reportOutputData, shouldBundleFeasibleTreatments, committedProjectList, keyCashFlowFundingDetails);
+            var primaryKeyFields = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+            var firstPrimaryKey = primaryKeyFields[0].ToString();
+            var workSummaryModel = _pamsDataForSummaryReport.Fill(worksheet, reportOutputData, shouldBundleFeasibleTreatments, committedProjectList, keyCashFlowFundingDetails, firstPrimaryKey);
             checkCancelled(cancellationToken, simulationId);
 
             // Filling up parameters tab
@@ -360,7 +362,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pavementWorkSummaryByBudgetWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummaryByBudget_Tab);
-            _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, yearlyCostCommittedProj, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails);
+            _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, yearlyCostCommittedProj, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails, firstPrimaryKey);
             checkCancelled(cancellationToken, simulationId);
 
             // Unfunded Pavement Projects TAB
