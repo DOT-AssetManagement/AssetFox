@@ -1,5 +1,6 @@
 ﻿using AppliedResearchAssociates.iAM.DTOs.Enums;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using System;
 
 namespace AppliedResearchAssociates.iAM.DTOs
 {
@@ -51,6 +52,11 @@ namespace AppliedResearchAssociates.iAM.DTOs
         public bool ShouldAllowMultipleTreatments { get; set; }
 
         /// <summary>
+        /// Enables Super Asset feature
+        /// </summary>
+        public bool ShouldUseSuperAssets { get; set; }
+
+        /// <summary>
         /// Describes the attribute used to determine the benefit based
         /// on the improvement to conditions of this specific attribute
         /// </summary>
@@ -63,5 +69,10 @@ namespace AppliedResearchAssociates.iAM.DTOs
 
         /// <summary>Last known number of assets that match the criteria</summary>
         public int LastKnownAssetCount { get; set; }
+
+        /// <summary>
+        /// Defines which attribute serves as Super Asset ID
+        /// </summary>
+        public Guid? SuperAssetAttribute { get; set; }
     }
 }

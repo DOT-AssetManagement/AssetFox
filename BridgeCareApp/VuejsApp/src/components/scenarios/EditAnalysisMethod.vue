@@ -1,5 +1,3 @@
-Line 164 Delete,
-
 <template>
     <v-card height="800px" class="elevation-0 vcard-main-layout">
         <v-row>
@@ -119,6 +117,35 @@ Line 164 Delete,
                     
                     </v-row>
                     <v-row>
+                        <v-col cols = "3">
+                            <v-switch 
+                            id="EditAnalysisMethod-useSuperAssets-switch"
+                            class="ghd-checkbox"
+                            color="#2A578D"
+                            label="Enable Super Assets"
+                            v-model="analysisMethod.shouldUseSuperAssets"
+                            @update:model-value='onSetAnalysisMethodProperty("shouldUseSuperAssets",$event)'/>
+                        </v-col>
+                        <template v-if="analysisMethod.shouldUseSuperAssets">
+                            <v-col cols = "3">
+                                <v-subheader class="ghd-control-label ghd-md-gray">Super Asset Attribute</v-subheader>
+                                <v-select
+                                    id="EditAnalysisMethod-superAssetAttribute-select"
+                                    class="ghd-select ghd-control-border ghd-control-text"
+                                    :items="superAssetAttributes"
+                                    variant="outlined"
+                                    item-title="text"
+                                    item-value="value"
+                                    density="compact"
+                                    menu-icon=custom:GhdDownSvg
+                                    v-model="superAssetAttributeModel"
+                                    clearable
+                                    @update:model-value="onSetAnalysisMethodProperty('superAssetAttribute',$event)">
+                                </v-select>
+                            </v-col>
+                        </template>
+                    </v-row>
+                    <v-row>
                         <v-row justify="space-between" style="padding-left: 10px;">
                             <v-col>
                                 <v-subheader class="ghd-control-label ghd-md-gray">Description</v-subheader>
@@ -233,6 +260,7 @@ import AnalysisMethodService from '@/services/analysis-method.service';
 
     const stateAnalysisMethod = computed<AnalysisMethod>(() => store.state.analysisMethodModule.analysisMethod) ;
     const stateNumericAttributes = computed<Attribute[]>( ()=> store.state.attributeModule.numericAttributes) ;
+    const stateAttributes = computed<Attribute[]>( ()=> store.state.attributeModule.attributes) ;
     const stateSimulationAnalysisSetting = computed<boolean>( ()=> store.state.analysisMethodModule.simulationAnalysisSetting);
 
     const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ; 
@@ -285,6 +313,7 @@ import AnalysisMethodService from '@/services/analysis-method.service';
     ];
     const benefitAttributes = ref<SelectItem[]>([]);
     const weightingAttributes = ref<SelectItem[]>([{ text: '', value: '' }]);
+    const superAssetAttributes = ref<SelectItem[]>([]);
     const simulationName = ref<string>();
     const networkName = ref<string>();
     const criterionEditorDialogData = ref<GeneralCriterionEditorDialogData>(clone(emptyGeneralCriterionEditorDialogData));
@@ -293,6 +322,22 @@ import AnalysisMethodService from '@/services/analysis-method.service';
     const criteriaIsIntentionallyEmpty = ref<boolean>(false);
     let hasUnsavedChanges = ref<boolean>(false);
     let ConfirmEmptyCriteria = ref(clone(emptyAlertData));
+
+    const superAssetAttributeModel = computed<string | null>({
+        get() {
+            const val = analysisMethod.value.superAssetAttribute;
+            // Map blank GUID (or empty) to null so the UI shows nothing
+            return !val || val === getBlankGuid() ? null : val;
+        },
+        set(newVal) {
+            // Store blank GUID when cleared (null) to keep backend expectations
+            analysisMethod.value = setItemPropertyValue(
+            'superAssetAttribute',
+            newVal ?? getBlankGuid(),
+            analysisMethod.value,
+            );
+        },
+    });
 
     //beforeRouteEnter(to: any, from: any, next: any) {
        //next((vm: any) => {
@@ -332,6 +377,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
 
         if (hasValue(stateNumericAttributes.value)) {
             setBenefitAndWeightingAttributes();
+            setSuperAssetAttributes();
         }
     });
 
@@ -372,6 +418,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     watch(stateNumericAttributes, () => {
         if (hasValue(stateNumericAttributes.value)) {
             setBenefitAndWeightingAttributes();
+            setSuperAssetAttributes();
             setBenefitAttributeIfEmpty();
         }
     });
@@ -401,6 +448,14 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
             value,
             analysisMethod.value,
         );
+
+        if (property === 'shouldUseSuperAssets' && !value) {
+                analysisMethod.value = setItemPropertyValue(
+                'superAssetAttribute',
+                getBlankGuid(), // clear to blank GUID; consistent with the rest of the app
+                analysisMethod.value,
+            );
+        }
     }
 
     function onSetBenefitProperty(property: string, value: any) {
@@ -424,6 +479,16 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
             weightingAttributes.value[0],
             ...numericAttributeSelectItems,
         ];
+    }
+
+    function setSuperAssetAttributes() {
+        const superAssetAttributeSelectItems: SelectItem[] = stateAttributes.value.map(
+            (attribute: Attribute) => ({
+                text: attribute.name,
+                value: attribute.id,
+            }),
+        );
+        superAssetAttributes.value = [...superAssetAttributeSelectItems];
     }
 
     function onShowCriterionEditorDialog() {

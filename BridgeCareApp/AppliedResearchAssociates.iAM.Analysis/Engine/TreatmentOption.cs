@@ -4,17 +4,17 @@ namespace AppliedResearchAssociates.iAM.Analysis.Engine;
 
 internal sealed class TreatmentOption
 {
-    public TreatmentOption(AssetContext context, Treatment candidateTreatment, double cost, double benefit, double? remainingLife, double conditionChange)
+    public TreatmentOption(AssetContext assetContext, Treatment candidateTreatment, double cost, double benefit, double? remainingLife, double conditionChange)
     {
-        Context = context ?? throw new ArgumentNullException(nameof(context));
+        AssetContext = assetContext ?? throw new ArgumentNullException(nameof(assetContext));
         CandidateTreatment = candidateTreatment ?? throw new ArgumentNullException(nameof(candidateTreatment));
         Cost = cost;
         Benefit = benefit;
         RemainingLife = remainingLife;
         ConditionChange = conditionChange;
 
-        var unweightedObjectiveValue = context.SimulationRunner.ObjectiveFunction(this);
-        var spatialWeight = context.Detail.SpatialWeightForOrderingOptions ?? double.NaN;
+        var unweightedObjectiveValue = assetContext.SimulationRunner.ObjectiveFunction(this);
+        var spatialWeight = assetContext.Detail.SpatialWeightForOrderingOptions ?? double.NaN;
 
         WeightedObjectiveValue = unweightedObjectiveValue * spatialWeight;
     }
@@ -25,7 +25,7 @@ internal sealed class TreatmentOption
 
     public double ConditionChange { get; }
 
-    public AssetContext Context { get; }
+    public AssetContext AssetContext { get; }
 
     public double Cost { get; }
 

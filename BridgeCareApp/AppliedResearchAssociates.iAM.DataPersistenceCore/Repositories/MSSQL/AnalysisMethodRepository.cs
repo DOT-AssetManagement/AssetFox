@@ -102,9 +102,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
                     ShouldDeteriorateDuringCashFlow = false,
                     ShouldUseExtraFundsAcrossBudgets = false,
                     ShouldAllowMultipleTreatments = false,
+                    ShouldUseSuperAssets = false,
                     Benefit = new BenefitDTO(),
                     CriterionLibrary = new CriterionLibraryDTO(),
                     LastKnownAssetCount = -1,
+                    SuperAssetAttribute = new Guid(),
                 };
             }
 

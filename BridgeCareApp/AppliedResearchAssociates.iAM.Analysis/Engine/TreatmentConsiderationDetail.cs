@@ -50,6 +50,8 @@ public sealed class TreatmentConsiderationDetail
 
     public FundingCalculationOutput FundingCalculationOutput { get; set; }
 
+    public ReasonForCancellationOfFunding ReasonForCancellationOfFunding { get; set; }
+
     /// <summary>
     ///     The treatment being considered.
     /// </summary>

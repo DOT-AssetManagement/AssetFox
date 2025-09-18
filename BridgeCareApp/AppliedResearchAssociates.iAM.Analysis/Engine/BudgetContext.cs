@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AppliedResearchAssociates.iAM.Analysis.Engine;
@@ -33,11 +34,11 @@ internal sealed class BudgetContext
 
     public Budget Budget { get; }
 
+    public List<Action> CostDeallocations { get; set; }
+
     public decimal CurrentAmount => AmountPerYear[CurrentYearIndex];
 
     public decimal? CurrentPriorityAmount { get; private set; }
-
-    public void AllocateCost(decimal cost) => _AllocateCost(cost, CurrentYearIndex);
 
     public void AllocateCost(decimal cost, int targetYear) => _AllocateCost(cost, targetYear - FirstYearOfAnalysisPeriod);
 
@@ -89,11 +90,11 @@ internal sealed class BudgetContext
                     {
                         if (cost <= availableAmount)
                         {
-                            AmountPerYear[yearIndex] -= cost;
+                            allocateAndPrepareDeallocation(yearIndex, cost);
                             return;
                         }
 
-                        AmountPerYear[yearIndex] -= availableAmount;
+                        allocateAndPrepareDeallocation(yearIndex, availableAmount);
 
                         cost -= availableAmount;
                         if (cost < 0)
@@ -103,18 +104,32 @@ internal sealed class BudgetContext
                     }
                 }
 
-                AmountPerYear[CurrentYearIndex] -= cost;
+                allocateAndPrepareDeallocation(CurrentYearIndex, cost);
 
-                CurrentPriorityAmount -= cost;
+                allocateAndPrepareDeallocation(null, cost);
             }
             else
             {
-                AmountPerYear[targetYearIndex] -= cost;
+                allocateAndPrepareDeallocation(targetYearIndex, cost);
 
                 if (targetYearIndex == CurrentYearIndex)
                 {
-                    CurrentPriorityAmount -= cost;
+                    allocateAndPrepareDeallocation(null, cost);
                 }
+            }
+        }
+
+        void allocateAndPrepareDeallocation(int? yearIndex, decimal cost)
+        {
+            if (yearIndex is int i)
+            {
+                AmountPerYear[i] -= cost;
+                CostDeallocations?.Add(() => AmountPerYear[i] += cost);
+            }
+            else
+            {
+                CurrentPriorityAmount -= cost;
+                CostDeallocations?.Add(() => CurrentPriorityAmount += cost);
             }
         }
     }
