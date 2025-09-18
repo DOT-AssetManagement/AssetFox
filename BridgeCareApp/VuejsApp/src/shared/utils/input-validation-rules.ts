@@ -84,6 +84,8 @@ const investmentRules = {
         return !contains(budget.name, otherBudgetNames) || 'Budget name must be unique';
     },
     'minCostLimitGreaterThanZero': (minCostLimit: any) => {
+        if(!hasValue(minCostLimit))
+            minCostLimit = '';
         const parsedValue: number = parseFloat(minCostLimit.toString().replace(/(\$*)(\,*)/g, ''));
         return parsedValue > 0 || 'Minimum project cost limit must be greater than zero';
     }
