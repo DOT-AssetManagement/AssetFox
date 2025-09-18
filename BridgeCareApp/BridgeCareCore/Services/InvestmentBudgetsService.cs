@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using AppliedResearchAssociates.iAM.Common.Logging;
 using System.Threading;
+using AppliedResearchAssociates.iAM.Common.Logging;
+using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.DTOs.Abstract;
@@ -348,6 +349,8 @@ namespace BridgeCareCore.Services
                 return new ScenarioBudgetImportResultDTO();
             queueLog.UpdateWorkQueueStatus("Adding New Budgets");
             _unitOfWork.BudgetRepo.AddScenarioBudgets(simulationId, newBudgets);
+
+            _unitOfWork.SelectableTreatmentRepo.AddTreatmentBudgets(simulationId, newBudgets.Select(_ => _.Id).ToList());
             _unitOfWork.BudgetRepo.AddScenarioBudgetAmounts(newBudgetAmounts);
             var values = budgetAmountsPerBudgetYearTuple.Values.ToList();
             _unitOfWork.BudgetRepo.UpdateScenarioBudgetAmounts(simulationId, values);
