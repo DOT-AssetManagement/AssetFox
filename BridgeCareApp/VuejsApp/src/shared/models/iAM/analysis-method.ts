@@ -32,10 +32,12 @@ export interface AnalysisMethod {
     shouldApplyMultipleFeasibleCosts: boolean;
     shouldDeteriorateDuringCashFlow: boolean;
     shouldUseExtraFundsAcrossBudgets: boolean;
-    shouldAllowMultipleTreatments: boolean
+    shouldAllowMultipleTreatments: boolean;
+    shouldUseSuperAssets: boolean;
     attribute: string;
     benefit: Benefit;
     criterionLibrary: CriterionLibrary;
+    superAssetAttribute: string;
     lastKnownAssetCount: number;
 }
 
@@ -54,7 +56,9 @@ export const emptyAnalysisMethod: AnalysisMethod = {
     shouldDeteriorateDuringCashFlow: false,
     shouldUseExtraFundsAcrossBudgets: false,
     shouldAllowMultipleTreatments: false,
+    shouldUseSuperAssets: false,
     attribute: '',
+    superAssetAttribute: '',
     benefit: clone(emptyBenefit),
     criterionLibrary: clone(emptyCriterionLibrary),
     lastKnownAssetCount: -1,
