@@ -35,7 +35,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
         }
 
         private static List<string> GetHeaders() => new()
-        {
+        {                
+                "CRSeg",
                 "CRS",
                 "County",
                 "Route",
@@ -242,8 +243,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                 var valuePerNumericAttribute = sectionSummary.ValuePerNumericAttribute;
                 var valuePerTextAttribute = sectionSummary.ValuePerTextAttribute;
 
+                worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<string>(valuePerTextAttribute, "CRSeg");
                 var crs = _summaryReportHelper.checkAndGetValue<string>(valuePerTextAttribute, "CRS");
-                worksheet.Cells[rowNo, columnNo++].Value = crs;
+                worksheet.Cells[rowNo, columnNo++].Value = crs;                
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<string>(valuePerTextAttribute, "COUNTY");
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<string>(valuePerTextAttribute, "SR");
                 worksheet.Cells[rowNo, columnNo++].Value = _summaryReportHelper.checkAndGetValue<string>(valuePerTextAttribute, "DISTRICT");
