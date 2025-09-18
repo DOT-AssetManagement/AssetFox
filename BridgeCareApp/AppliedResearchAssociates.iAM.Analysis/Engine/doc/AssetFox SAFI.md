@@ -4,12 +4,40 @@
 
 # sketch/draft content
 
+- amazingly, I think the null treatment (i.e. "no treatment") is an
+  implementation detail. Makes sense, given that conceptually it has no
+  real-world analogue other than deterioriation, which is where its effects
+  should incorporated.
+
+### misc remarks
+
+- initial attribute values on each asset
+  - This is fundamentally **input**, not necessarily a part of simulation logic.
+    Currently, the simulation handles the calculation of initial attribute
+    values based on historical attribute values, but it should be decoupled to a
+    preprocessing step.
+- SAFI-specific metadata, like budget priority levels, budget order, etc.
+- treatment bundling should be implicitly performed by a CP abiding by
+  supersede/concurrency rules.
+- benefit/cost could reflect total of all "follow-up" (i.e. scheduled)
+  treatments, but it's up to the SAFI.
+- the quasi-required "age" attribute is not technically required. It's only used
+  to facilitate handling of piecewise expressions as performance curves. In
+  other words, if that kind of "special" expression could include the dependency
+  attribute(s) in its specification, there's no need to have "special"
+  attributes.
+- alternative methods of defining functions may exist, e.g. "piecewise
+  expressions" as used by RoadCare and AssetFox.
+
 ### Variable implementation details
 
 - "default values" in numeric attribute definitions
   - generally, only useful in initial total snapshot preparation when historical
     data is incomplete; but, could be used in other implementation-specific
     situations
+- EXTENSIVE "decision rationale" output. Adds lots of complexity, but the
+  primary issue with it is that it's intermixed with the project selection
+  output, which bloats the latter significantly.
 
 ### Implementation details of RoadCare
 
