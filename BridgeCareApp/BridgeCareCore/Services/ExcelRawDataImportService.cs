@@ -5,6 +5,8 @@ using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage;
 using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using AppliedResearchAssociates.iAM.DTOs;
+using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using Microsoft.Graph.Models;
 using OfficeOpenXml;
 
 namespace BridgeCareCore.Services
@@ -22,6 +24,91 @@ namespace BridgeCareCore.Services
             )
         {
             _unitOfWork = unitOfWork;
+        }
+                
+        public WarningServiceResultDTO ImportDataSourceMapping(Guid dataSourceId, ExcelWorksheet worksheet, ExcelWorksheet mappingsWorksheet)
+        {
+            var result = new WarningServiceResultDTO();            
+            
+            var dataSource = _unitOfWork.DataSourceRepo.GetDataSource(dataSourceId);
+            if (dataSource == null)
+            {
+                return new WarningServiceResultDTO
+                {
+                    WarningMessage = $"{DataSourceDoesNotExist} {dataSourceId}"
+                };
+            }
+                        
+            // worksheet
+            var cells = worksheet.Cells;
+            var end = worksheet.Dimension.End;            
+
+            // mappings worksheet
+            var attributeColumnCells = new Dictionary<string, string>();
+            if (mappingsWorksheet != null)
+            {
+                var mappingsCells = mappingsWorksheet?.Cells;
+                var mappingsEnd = mappingsWorksheet?.Dimension.End;
+                for (var rowIndex = 2; rowIndex <= mappingsEnd.Row; rowIndex++)
+                {
+                    var attributeCellValue = mappingsCells[rowIndex, 1].Value?.ToString();
+                    var columnCellValue = mappingsCells[rowIndex, 2].Value?.ToString() ?? "";
+
+                    if (!string.IsNullOrEmpty(attributeCellValue))
+                    {
+                        attributeColumnCells.Add(attributeCellValue.ToString(), columnCellValue.ToString());
+                    }
+                }
+            }
+            var columnsFromWorksheet = new List<string>();
+            if (attributeColumnCells.Count == 0)
+            {                
+                for (int colIndex = 1; colIndex <= end.Column; colIndex++)
+                {
+                    var column = cells[1, colIndex].Value?.ToString();
+                    if (!string.IsNullOrEmpty(column))
+                    {
+                        columnsFromWorksheet.Add(column);
+                    }
+                }
+            }
+
+            // get non-calculted attributes
+            var attributeDtos = _unitOfWork.AttributeRepo.GetAttributesAsync().Result?.Where(_ => !_.IsCalculated)?.ToList() ?? [];
+
+            // dtos to save
+            var dataSourceMappingDtos = new List<DataSourceMappingDTO>();
+            foreach (var attributeDto in attributeDtos)
+            {
+                var column = "";
+                if (attributeColumnCells.Count != 0)
+                {
+                    if (attributeColumnCells.TryGetValue(attributeDto.Name, out var value))
+                    {
+                        column = value;
+                    }
+                }
+                else
+                {
+                    if (columnsFromWorksheet.Contains(attributeDto.Name))
+                    {
+                        column = attributeDto.Name;
+                    }
+                }
+
+                dataSourceMappingDtos.Add(new DataSourceMappingDTO
+                {
+                    Id = Guid.NewGuid(),
+                    DataField = column,
+                    DataSourceId = dataSourceId,
+                    AttributeId = attributeDto.Id
+                });
+            }
+
+            // upsert
+            _unitOfWork.DataSourceMappingRepo.UpsertDataSourceMappings(dataSourceMappingDtos, dataSourceId);
+
+            return result;
         }
 
         /// <summary>This import is not particularly generic. It skips over columns whose top cell is empty,
@@ -103,6 +190,7 @@ namespace BridgeCareCore.Services
             var newId = Guid.NewGuid();
             var dto = ExcelRawDataSpreadsheetSerializationMapper.ToDTO(workseet, dataSourceId, newId);
             var returnId = _unitOfWork.ExcelWorksheetRepository.AddExcelRawData(dto);
+
             return new ExcelRawDataImportResultDTO
             {
                 RawDataId = returnId,

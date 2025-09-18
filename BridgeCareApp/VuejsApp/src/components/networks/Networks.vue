@@ -36,80 +36,75 @@
         <v-divider />
         <v-col cols = "12" class="ghd-constant-header" v-show="hasSelectedNetwork">
             <v-row>
-                    <v-subheader class="ghd-md-gray ghd-control-label" >Key Attribute</v-subheader>
-            </v-row>
-            <v-row justify-space-between>
-                <v-col cols = "6" sm="5">
-                    <v-row column>
-                        <v-select
-                            item-title="text"
-                            menu-icon=custom:GhdDownSvg
-                            item-value="value"
-                            id="Networks-KeyAttribute-vselect"
-                            variant="outlined"
-                            class="ghd-select ghd-text-field ghd-text-field-border"
-                            :disabled="!isNewNetwork"
-                            append-icon="@/assets/icons/down.svg"
-                            v-model="selectedKeyAttributeItem"
-                            :items='selectKeyAttributeItems'
-                            density="compact">
-                        </v-select>  
-                    </v-row>                         
-                </v-col>
                 <v-col cols = "5" style="align-items: right;" v-show="!isNewNetwork">
                     <v-row>
-                    <v-subheader class="ghd-md-gray ghd-control-label" >Data Source</v-subheader>
+                        <v-subheader class="ghd-md-gray ghd-control-label" >Data Source</v-subheader>
                     </v-row>
-                <v-row>
-                    <v-select
-                        id="Networks-DataSource-vselect"
-                        variant="outlined"
-                        item-title="text"
-                        item-value="value"
-                        menu-icon=custom:GhdDownSvg
-                        :items="selectDataSourceItems"                       
-                        class="ghd-select ghd-text-field ghd-text-field-border shifted-label"
-                        v-model="selectDataSourceId"
-                        density="compact">
-                    </v-select>  
-                    <v-btn style="margin-top: 2px !important; margin-left: 20px;"  
-                        id="Networks-SelectAllFromSource-vbtn"
-                        class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' variant = "outlined"
-                        @click="selectAllFromSource">
-                        Select All From Source
-                    </v-btn>                            
-                </v-row>  
-                </v-col>       
+                    <v-row>
+                        <v-select
+                            id="Networks-DataSource-vselect"
+                            variant="outlined"
+                            item-title="text"
+                            item-value="value"
+                            menu-icon=custom:GhdDownSvg
+                            :items="selectDataSourceItems"                       
+                            class="ghd-select ghd-text-field ghd-text-field-border shifted-label"
+                            v-model="selectDataSourceId"
+                            density="compact">
+                        </v-select>                        
+                    </v-row>  
+                </v-col>
             </v-row>
-        </v-col>
-        <!-- Data source combobox -->
-        <v-col cols = "12" v-show="hasSelectedNetwork">
-            <v-row justify-space-between>
-                <v-col cols = "5" >
-                    <v-row column>
-                        <v-row style="height=12px;padding-bottom:0px;">
-                                <v-col cols = "12" class="ghd-constant-header" style="height=12px;padding-bottom:0px">
-                                    <v-subheader class="ghd-control-label ghd-md-gray" style="padding-top: 14px !important;">                             
-                                        Spatial Weighting Equation</v-subheader>
-                                </v-col>
-                                <v-row style="width: 70% !important; margin-bottom: 5px; margin-left: 1px;; padding-top: 10px" >
-                                    <v-text-field style="margin-left: 10px; margin-right: 10px" 
-                                    :disabled="!isNewNetwork" density="compact" 
-                                    id="Networks-EditSpatialWeightingEquation-vtextfield"
-                                    variant="outlined" 
-                                    class="ghd-text-field-border ghd-text-field" 
-                                    v-model="spatialWeightingEquationValue.expression"/>
-
-                                    <btn id="Networks-EditSpatialWeightingEquation-vbtn"
-                                        style="margin-top: 10px; margin-right: 32px; cursor: pointer;"
-                                        class="edit-icon ghd-control-label" 
-                                        :disabled="!isNewNetwork"
-                                        append-icon="ghd-blue"
-                                        @click="onShowEquationEditorDialog">
-                                        <v-icon v-if="isNewNetwork" class="ghd-blue" variant = "outlined">fas fa-edit</v-icon>
-                                    </btn>
-                                </v-row>
+            <v-row>
+                <v-col>
+                    <v-row>
+                        <v-subheader class="ghd-md-gray ghd-control-label" >Key Attribute</v-subheader>
+                    </v-row>
+                    <v-row justify-space-between> 
+                        <v-col cols = "5" sm="5">
+                            <v-row column>
+                                <v-select
+                                    item-title="text"
+                                    menu-icon=custom:GhdDownSvg
+                                    item-value="value"
+                                    id="Networks-KeyAttribute-vselect"
+                                    variant="outlined"
+                                    class="ghd-select ghd-text-field ghd-text-field-border"
+                                    :disabled="!isNewNetwork"
+                                    append-icon="@/assets/icons/down.svg"
+                                    v-model="selectedKeyAttributeItem"
+                                    :items='selectKeyAttributeItems'
+                                    density="compact">
+                                </v-select>  
                             </v-row>
+                        </v-col>
+                    </v-row>
+                </v-col>
+            </v-row>
+            <v-row>                  
+                <v-col>
+                    <v-row>                                       
+                            <v-subheader class="ghd-md-gray ghd-control-label" >Spatial Weighting Equation</v-subheader>
+                    </v-row>                
+                    <v-row justify-space-between> 
+                        <v-col cols = "5">
+                            <v-row column>
+                                <v-text-field style="margin-right: 10px" 
+                                :disabled="!isNewNetwork" density="compact" 
+                                id="Networks-EditSpatialWeightingEquation-vtextfield"
+                                variant="outlined" 
+                                class="ghd-text-field-border ghd-text-field" 
+                                v-model="spatialWeightingEquationValue.expression"/>
+                            </v-row>
+                        </v-col>
+                        <btn id="Networks-EditSpatialWeightingEquation-vbtn"
+                            style="margin-top: 10px; margin-right: 32px; cursor: pointer;"
+                            class="edit-icon ghd-control-label" 
+                            :disabled="!isNewNetwork"
+                            append-icon="ghd-blue"
+                            @click="onShowEquationEditorDialog">
+                            <v-icon v-if="isNewNetwork" class="ghd-blue" variant = "outlined">fas fa-edit</v-icon>
+                        </btn>
                     </v-row>
                     <v-row v-show="hasStartedAggregation">
                         <v-col>
@@ -128,51 +123,7 @@
                                             >
                                         </v-progress-linear>
                         </v-col>
-                    </v-row>
-                </v-col>
-                <v-col cols = "5">
-                    <v-row column>
-                        <div class='priorities-data-table' v-show="!isNewNetwork">
-                            <v-row justify-center>
-                                <v-btn style="margin-left: 130px" id="Networks-AddAll-vbtn" variant = "flat" class='ghd-blue ghd-button-text ghd-separated-button ghd-button'
-                                    @click="onAddAll">
-                                    Add All
-                                </v-btn>
-                                <v-divider class="investment-divider" inset vertical>
-                                </v-divider>
-                                <v-btn id="Networks-RemoveAll-vbtn" variant = "flat" class='ghd-blue ghd-button-text ghd-separated-button ghd-button'
-                                    @click="onRemoveAll">
-                                    Remove All
-                                </v-btn>
-                            </v-row>
-                            <v-data-table id="Networks-Attributes-vdatatable" :headers='dataSourceGridHeaders' :items='attributeRows'
-                                class='v-table__overflow ghd-table' item-key='id'
-                                v-model="selectedAttributeRows"
-                                sort-asc-icon="custom:GhdTableSortAscSvg"
-                                sort-desc-icon="custom:GhdTableSortDescSvg"
-                                :must-sort='true'
-                                return-object
-                                show-select
-                                :pagination.sync="pagination">
-                                <template slot='items' slot-scope='props' v-slot:item="{item}">
-                                    <tr>
-                                        <td>
-                                            <v-checkbox v-model="selectedAttributeRows"
-                                            :value="item" 
-                                            id="Networks-SelectAttribute-vcheckbox" hide-details primary></v-checkbox>
-                                        </td>
-                                        <td>
-                                            {{
-                                                item.name 
-                                            }}
-                                        </td> 
-                                        <td>{{ item.dataSource.name}}</td> 
-                                        <td>{{ item.dataSource.type}}</td> 
-                                    </tr>
-                                </template>
-                            </v-data-table>    
-                        </div>               
-                    </v-row>
+                    </v-row>                    
                 </v-col>
             </v-row>
         </v-col>
@@ -242,9 +193,6 @@ import { useStore } from 'vuex';
 import mitt, { Emitter, EventType } from 'mitt';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { NIL } from 'uuid';
-import { text } from 'stream/consumers';
-import Alert from '@/shared/modals/Alert.vue';
-import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
 
     let store = useStore();
     let stateNetworks = computed<Network[]>(()=>store.state.networkModule.networks);
@@ -253,7 +201,6 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
     let stateDataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
-
     
     async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
     async function getDataSources(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}
@@ -265,35 +212,20 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
         await store.dispatch('editNetworkName', payload);}
     async function aggregateNetworkAction(payload?: any): Promise<any> {await store.dispatch('aggregateNetworkData', payload);}
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-    async function getUserNameByIdGetter(payload?: any): Promise<any> {await store.dispatch('getUserNameById', payload);}
-    function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
-
+    
     let rules = ref<InputValidationRules>(validationRules);
-
-    let dataSourceGridHeaders: any[] = [
-    { title: 'Name', key: 'name', align: 'left', sortable: true, class: '', width: '' },
-    { title: 'Data Source', key: 'dataSource.name', align: 'left', sortable: true, class: '', width: '' },
-    { title: 'Data Source Type', key: 'dataSource.type', align: 'left', sortable: true, class: '', width: '' },
-];
 
     const addNetworkDialogData = reactive<AddNetworkDialogData>(emptyAddNetworkDialogData);
     let pagination: Pagination = emptyPagination;
     const selectNetworkItems = ref<SelectItem[]>([]);
     let selectKeyAttributeItems = ref<SelectItem[]>([]);
     let selectDataSourceItems = ref<SelectItem[]>([]);
+    let noneDatasourceId: string = "";
     let attributeRows = ref<Attribute[]>([]);
-    let cleanAttributes: Attribute[] = [];
-    let attributes: Attribute[] = [];
-    let selectedAttributeRows = ref<Attribute[]>([]);
-    const confirmDeleteNetworkData = ref<AlertData>(clone(emptyAlertData));
-
+    
     const confirmEditNetworkData = ref({
     showDialog: false
-    });    let dataSourceSelectValues: SelectItem[] = [
-        {text: 'SQL', value: 'SQL'},
-        {text: 'Excel', value: 'Excel'},
-        {text: 'None', value: 'None'}
-    ]; 
+    });
 
     let networkDataAssignmentPercentage = ref<number>(0);
     let networkDataAssignmentStatus = ref<string>('Waiting on server.');
@@ -303,11 +235,9 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
     const selectedNetwork = ref<Network>(clone(emptyNetwork));
     const selectNetworkItemValue = ref<string>('');
     const selectDataSourceId = ref<string>('');
-    const editNetworkNameData = ref<string>('');
     const hasSelectedNetwork = ref<boolean>(false);
     const isNewNetwork = ref<boolean>(false);
     const hasStartedAggregation = ref<boolean>(false);
-    const isKeyPropertySelectedAttribute = ref<boolean>(false);
     const spatialWeightingEquationValue = ref<Equation>(clone(emptyEquation)); //placeholder until network dto and api changes
     const equationEditorDialogData = ref(clone(
         emptyEquationEditorDialogData,
@@ -343,13 +273,16 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
     watch(stateAttributes, () => { 
         attributeRows.value = clone(stateAttributes.value);
         stateAttributes.value.forEach(_ => {
-        selectKeyAttributeItems.value.push({text:_.name,value:_.id})
-        })
+                selectKeyAttributeItems.value.push({text:_.name,value:_.id})
+            })
         });
 
     watch(stateDataSources, () => {  
         stateDataSources.value.forEach(_ => {
-            selectDataSourceItems.value.push({text:_.name,value:_.id})
+            selectDataSourceItems.value.push({text:_.name,value:_.id});
+            if(_.name == "None") {
+                noneDatasourceId = _.id;
+            }
         })
     })
 
@@ -363,16 +296,6 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
         if(selectNetworkItemValue.value == getBlankGuid() && isNewNetwork.value)
             isNewNetwork.value = false;
     })
-
-    watch(selectedAttributeRows, () => 
-    {
-        if(any(propEq('id', selectedNetwork.value.keyAttribute), selectedAttributeRows.value)) {
-            isKeyPropertySelectedAttribute.value = true;
-        }
-        else {
-            isKeyPropertySelectedAttribute.value  = false;
-        }
-    })
     
     watch(stateSelectedNetwork, () => {
         if (!isNewNetwork.value) {           
@@ -381,7 +304,6 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
     })
 
     watch(selectedNetwork, () => { 
-        selectedAttributeRows.value = [];
         hasStartedAggregation.value  = false;
         if(selectedNetwork.value.id !== getBlankGuid())
             selectNetworkItemValue.value = selectedNetwork.value.id;
@@ -431,18 +353,10 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
             equation: spatialWeightingEquationValue.value,
         };      
     }
-    function selectAllFromSource(){
-        selectedAttributeRows.value = clone(attributeRows.value.filter(_ => _.dataSource.id == selectDataSourceId.value));
-    }
-    function onAddAll(){
-        selectedAttributeRows.value = clone(attributeRows.value)
-    }
-    function onRemoveAll(){
-        selectedAttributeRows.value = [];
-    }
+
     function aggregateNetworkData(){
         aggregateNetworkAction({
-            attributes: selectedAttributeRows.value,
+            attributes: attributeRows.value,
             networkId: selectNetworkItemValue.value
         });
 
@@ -483,10 +397,9 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
         return !allValid;
     }
     function disableCrudButtonsAggregate() {
-        let isKeyPropertySelectedAttribute: Boolean = any(propEq('id', selectedNetwork.value.keyAttribute), selectedAttributeRows.value);
-        let allValid = rules.value['generalRules'].valueIsNotEmpty(selectedNetwork.value.name) === true
-            && rules.value['generalRules'].valueIsNotEmpty(selectedAttributeRows.value) === true
-            && isKeyPropertySelectedAttribute === true
+        let allValid = rules.value['generalRules'].valueIsNotEmpty(selectedNetwork.value.name) === true            
+            && rules.value['generalRules'].valueIsNotEmpty(selectDataSourceId.value) === true
+            && selectDataSourceId.value != noneDatasourceId
             && hasStartedAggregation.value === false;
 
         return !allValid;
@@ -501,7 +414,6 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
                 networkDefinitionAttribute: selectedKeyAttribute.value
             }
         })
-
     }
 
     function getDataAggregationStatus(data: any) {
@@ -511,14 +423,6 @@ import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
             networkDataAssignmentPercentage.value = data.percentage as number;
         }
     }
-    
-    function pages() {
-        pagination.totalItems = attributeRows.value.length
-        if (pagination.rowsPerPage == null || pagination.totalItems == null) 
-            return 0
-
-        return Math.ceil(pagination.totalItems / pagination.rowsPerPage)
-    }  
 </script>
 
 <style>

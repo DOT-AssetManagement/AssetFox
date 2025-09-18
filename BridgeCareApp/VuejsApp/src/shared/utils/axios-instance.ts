@@ -48,5 +48,6 @@ export const API = {
     DataSource: '/api/DataSource',
     RawData: '/api/RawData',
     AdminSettings: '/api/AdminSiteSettings',
-    AdminData: '/api/AdminData'
+    AdminData: '/api/AdminData',
+    DataSourceMapping: '/api/DataSourceMapping',
 };

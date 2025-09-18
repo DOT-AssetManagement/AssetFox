@@ -58,9 +58,9 @@
                     outline
                     variant = "outlined"
                     density="compact"
-                ></v-text-field>
-                <v-btn id="DataSource-AddFile-vbtn" v-if="showExcel  && !isNewDataSource" 
-                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button Montserrat-font-family" style="margin-left:10px; margin-top: 2px;" variant = "outlined" @click="chooseFiles()">
+                ></v-text-field>                
+                <v-btn @click='showImportDataSourceDialog = true' v-if="showExcel  && !isNewDataSource"
+                    class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button Montserrat-font-family" style="margin-left:10px; margin-top: 2px;" variant = "outlined">
                     Add File
                 </v-btn>
                 <input @change="onSelect" id="file-select" type="file" hidden />
@@ -78,7 +78,7 @@
             variant = "outlined"
             density="compact">
             </v-select>
-            <v-subheader  v-if="showExcel  && !isNewDataSource" class="ghd-control-label ghd-md-gray Montserrat-font-family">Date Column</v-subheader>
+            <v-subheader v-if="showExcel && !isNewDataSource" class="ghd-control-label ghd-md-gray Montserrat-font-family">Date Column</v-subheader>
             <v-select
             menu-icon=custom:GhdDownSvg
             id="DataSource-Date-vselect"
@@ -108,6 +108,8 @@
                 <p class="assetFox-blue Montserrat-font-family" v-if="isNewDataSource && showExcel">Save new data source before loading file.</p>
                 <p class="p-fail Montserrat-font-family" v-if="false">Error! {{invalidColumn}} Column is invalid</p>
             </v-col>
+            <v-btn id="DataSource-Mappings-vbtn" :disabled="isNewDataSource" variant = "outlined" v-if="showExcel"
+                class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onShowDataSourceMappingsDialog">Mappings</v-btn>
             <v-row justify="center" style="margin-left: 2%; margin-top: 4%;" class="text-center">
                 <v-col align-self="center">
                     <v-row justify="center">
@@ -115,10 +117,8 @@
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' flat>Cancel</v-btn>
                         <v-btn id="DataSource-Test-vbtn"  @click="checkSQLConnection" v-if="showMssql" variant = "outlined"
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>Test</v-btn>
-                        <v-btn id="DataSource-Save-vbtn"   :disabled="!sourceTypeItemSelected || !dataSourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
-                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onSaveDatasource">Save</v-btn>
-                        <v-btn id="DataSource-Load-vbtn"  :disabled="isNewDataSource" variant = "outlined" v-if="showExcel" 
-                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onLoadExcel">Load</v-btn>
+                        <v-btn id="DataSource-Save-vbtn" :disabled="!sourceTypeItemSelected || !dataSourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
+                            class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onSaveDatasource">Save</v-btn>                        
                         <v-btn id="DataSource-Delete-vbtn"  :disabled="isNewDataSource || !sourceTypeItemSelected" v-if="showMssql || showExcel" variant = "outlined" 
                             class='btn-opts ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center' @click="onDeleteClick">Delete</v-btn>
                     </v-row>
@@ -128,6 +128,12 @@
         <CreateDataSourceDialog :dialogData='createDataSourceDialogData'
                                 @submit='onCreateNewDataSource' />
         <ConfirmDialog></ConfirmDialog>
+        <ImportDataSourceDialog
+            :show-dialog="showImportDataSourceDialog"
+            @submit="onSubmitImportDataSourceDialogResult"
+        />
+        <DataSourceMappingsDialog :dialogData='editDataSourceMappingsDialogData'
+         @submit='UpdateDataSourceMappings' />
     </v-row>
 </template>
 
@@ -142,7 +148,8 @@ import {
     RawDataColumns, 
     SqlDataSource, 
     ExcelDataSource,
-    SqlCommandResponse
+    SqlCommandResponse,
+    DataSourceMappingData
 } from '@/shared/models/iAM/data-source';
 import { TestStringData } from '@/shared/models/iAM/test-string';
 import {hasValue} from '@/shared/utils/has-value-util';
@@ -154,19 +161,25 @@ import CreateDataSourceDialog from '@/components/data-source/data-source-dialogs
 import { getUserName } from '@/shared/utils/get-user-info';
 import { NIL } from 'uuid';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
-import DataSourceService from '@/services/data-source.service';
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
+import { ImportDataSourceDialogResult } from '@/shared/models/modals/import-datasource-dialog-result';
+import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog.vue';
+import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
+import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
+import DataSourceMappingsService from '@/services/data-source.service';
 
     let store = useStore();
     const emit = defineEmits(['submit'])
     let dataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;
-    let dataSourceTypes = computed<string[]>(() => store.state.datasourceModule.dataSourceTypes) ;
+    let dataSourceTypes = computed<string[]>(() => store.state.datasourceModule.dataSourceTypes) ;    
     let excelColumns = computed<RawDataColumns>(() => store.state.datasourceModule.excelColumns) ;
     let sqlCommandResponse = computed<SqlCommandResponse>(() => store.state.datasourceModule.sqlCommandResponse) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
+    let editDataSourceMappingsDialogData = ref<EditDataSourceMappingsDialogData>(clone(emptyEditDataSourceMappingsDialogData));
+    let dataSourceMappings = computed<DataSourceMappingData[]>(() => store.state.datasourceModule.dataSourceMappings);
 
     async function getDataSourcesAction(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}
     async function getDataSourceTypesAction(payload?: any): Promise<any> {await store.dispatch('getDataSourceTypes', payload);}
@@ -176,6 +189,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
     async function importExcelSpreadsheetFileAction(payload?: any): Promise<any> {await store.dispatch('importExcelSpreadsheetFile', payload);}
     async function getExcelSpreadsheetColumnHeadersAction(payload?: any): Promise<any> {await store.dispatch('getExcelSpreadsheetColumnHeaders', payload);}
     async function checkSqlCommandAction(payload?: any): Promise<any> {await store.dispatch('checkSqlCommand', payload);}
+    async function getDataSourceMappingsAction(payload?: any): Promise<any> {await store.dispatch('getDataSourceMappings', payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
     function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);} 
 
@@ -183,10 +197,8 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let getIdByUserNameGetter: any = store.getters.getIdByUserName ;
 
     let dsTypeItems = ref<string[]>([]);
-    let dsItems = ref<any>([]);
-    
-    
-    let assetNumber: number = 0;
+    let dsItems = ref<any>([]);    
+        
     let invalidColumn = ref<string>('');
     let sqlResponse = ref<string | null>('');
     let sqlValid = ref<boolean>(false);
@@ -195,7 +207,6 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let sourceTypeItem = ref<string>('');
     let dataSourceTypeItem = ref<string | null>('');
     let dataSourceTypeItemSelected = ref<boolean>(false);
-    let datasourceNames = ref<string[]>([]);
     let dataSourceExcelColumns = ref<DataSourceExcelColumns>({ locationColumn: [], dateColumn: []});
 
     let currentExcelLocationColumn = ref<string>('');
@@ -203,7 +214,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let currentDatasource = ref<Datasource>(clone(emptyDatasource));
     let currentRefDatasource = ref<Datasource>(clone(emptyDatasource));
     let unmodifiedDatasource = ref<Datasource>(clone(emptyDatasource));
-    const createDataSourceDialogData = ref<CreateDataSourceDialogData>(emptyCreateDataSourceDialogData);
+    const createDataSourceDialogData = ref<CreateDataSourceDialogData>(emptyCreateDataSourceDialogData);       
 
     let selectedConnection = ref<string>('');
     let showMssql = ref<boolean>(false);
@@ -211,7 +222,6 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let showSqlMessage = ref<boolean>(false);
     let showSaveMessage = ref<boolean>(false);
     let isNewDataSource = ref<boolean>(false);
-    let allowSaveData = ref<boolean>(false);
         
     let fileName = ref<string>('');
     let fileSelect: HTMLInputElement = {} as HTMLInputElement;
@@ -221,14 +231,10 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let locColumns = ref<string[]>([]);
     let datColumns = ref<string[]>([]);
 
-    let connectionStringPlaceHolderMessage = ref<string>('');    
+    let connectionStringPlaceHolderMessage = ref<string>('');   
 
-/*     created();
-    function created() {
-        getDataSourcesAction();
-        getDataSourceTypesAction();
-    }
- */    
+    const showImportDataSourceDialog = ref< boolean > (false);
+
     onMounted(() => mounted())
     function mounted() {
 
@@ -284,16 +290,10 @@ import ConfirmDialog from 'primevue/confirmdialog';
                         
             if(!isNewDataSource.value) {
                 getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+                getDataSourceMappingsAction(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
             }
-                                   
-            if(!isNewDataSource.value) {
-                getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
-                currentExcelDateColumn.value = currentDatasource.value.dateColumn;
-                currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
-            }
-            
         }
     }, { deep: true })
 
@@ -332,6 +332,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
         showSqlMessage.value = false; showSaveMessage.value = false;
         if(!isNewDataSource.value) {
                 getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+                getDataSourceMappingsAction(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
             }
@@ -374,16 +375,6 @@ import ConfirmDialog from 'primevue/confirmdialog';
         currentDatasource.value.locationColumn = currentExcelLocationColumn.value;
     })
 
-    function onLoadExcel() {
-        if ( hasValue(file.value)) {
-            importExcelSpreadsheetFileAction({
-            file: file.value,
-            id: currentDatasource.value.id
-        }).then((response: any) => {
-            getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
-        });
-        }
-    }
     function onSaveDatasource() {
         if (dataSourceTypeItem.value === DSSQL) {
             let sqldat : SqlDataSource = {
@@ -407,7 +398,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
                 getDataSourcesAction();
                 unmodifiedDatasource.value = clone(currentDatasource.value);
             });
-        } else {
+        } else {            
             currentDatasource.value = currentRefDatasource.value;
             let exldat : ExcelDataSource = {
             id: currentDatasource.value.id,
@@ -439,6 +430,17 @@ import ConfirmDialog from 'primevue/confirmdialog';
     function onShowCreateDataSourceDialog() {
         createDataSourceDialogData.value.showDialog = true;
     }
+    
+    function onShowDataSourceMappingsDialog() {
+        editDataSourceMappingsDialogData.value.showDialog = true;
+        editDataSourceMappingsDialogData.value = {
+            showDialog: true,
+            dataSourceMappings: dataSourceMappings.value,
+            columnSelectItems: excelColumns.value.columnHeaders,
+            dataSourceId: currentDatasource.value.id
+        }
+    }
+
     function onCreateNewDataSource(datasource: Datasource) {
         if(dataSourceTypeItem.value == "")
             dataSourceTypeItemSelected.value = false;
@@ -546,6 +548,40 @@ import ConfirmDialog from 'primevue/confirmdialog';
         }
 
         return false;
+    }
+
+    // Dialog function
+    function onSubmitImportDataSourceDialogResult(
+        result: ImportDataSourceDialogResult,
+    ) {        
+        showImportDataSourceDialog.value = false;
+        // Load
+        if (hasValue(result)) {
+            if ( hasValue(result.file)) {
+                importExcelSpreadsheetFileAction({
+                file: result.file,
+                id: currentDatasource.value.id
+                }).then((response: any) => {
+                    getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
+                    getDataSourceMappingsAction(currentDatasource.value.id);
+                });
+            } else {
+                addErrorNotificationAction({
+                    message: 'No file selected.',
+                    longMessage:
+                        'No file selected to upload the committed projects.',
+                });
+            }
+        }
+    }
+
+    async function UpdateDataSourceMappings(updatedDataSourceMappings: DataSourceMappingData[])
+    {
+        editDataSourceMappingsDialogData.value.showDialog = false;
+        if(updatedDataSourceMappings != null)
+        {
+            await DataSourceMappingsService.upsertDataSourceMappings(editDataSourceMappingsDialogData.value.dataSourceMappings, currentDatasource.value.id);        
+        }
     }
 
 </script>

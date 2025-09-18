@@ -40,6 +40,7 @@ namespace BridgeCareCore.StartupExtension
             services.AddScoped<IUnitOfWork>(x => x.GetRequiredService<UnitOfDataPersistenceWork>());
 
             services.AddScoped<ISimulationRepository, SimulationRepository>();
+            services.AddScoped<IDataSourceMappingService, DataSourceMappingService>();
         }
     }
 }

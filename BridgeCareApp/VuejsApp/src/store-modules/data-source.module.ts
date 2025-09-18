@@ -8,7 +8,8 @@ import {
     SqlDataSource, 
     SqlCommandResponse, 
     emptySqlCommandResponse,
-    noneDatasource
+    noneDatasource,
+    DataSourceMappingData
 } from '@/shared/models/iAM/data-source';
 import {hasValue} from '@/shared/utils/has-value-util';
 import DataSourceService from '@/services/data-source.service';
@@ -21,7 +22,8 @@ const state = {
     dataSourceTypes: [] as string[],
     excelColumns: [] as any[],
     isSuccessfulImport: false as boolean,
-    sqlCommandResponse: emptySqlCommandResponse as SqlCommandResponse
+    sqlCommandResponse: emptySqlCommandResponse as SqlCommandResponse,
+    dataSourceMappings: [] as DataSourceMappingData[],
 };
 
 const mutations = {
@@ -40,7 +42,10 @@ const mutations = {
     },
     checkSqlCommandMutator(state: any, sqlresponse: SqlCommandResponse) {
         state.sqlCommandResponse = sqlresponse;
-    }
+    },
+    dataSourceMappingsMutator(state: any, dataSourceMappings: DataSourceMappingData[]) {
+        state.dataSourceMappings = clone(dataSourceMappings);
+    },
 }
 const actions = {
     async getDataSources({commit}: any) {
@@ -159,6 +164,20 @@ const actions = {
                 });
             }
         });
+    },
+    async getDataSourceMappings(
+        {commit}: any,
+        payload: string
+    ) {
+        await DataSourceService.getDataSourceMappings(
+            payload
+        ).then((response: AxiosResponse) => {
+        if (
+            hasValue(response, 'status')
+        ) {
+            commit('dataSourceMappingsMutator', response.data);
+        }
+    });
     },
 };
 export default {

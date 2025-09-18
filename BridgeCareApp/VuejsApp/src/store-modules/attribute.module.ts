@@ -45,7 +45,9 @@ const mutations = {
                   state.attributes,
               )
             : append(attribute, state.attributes);
-        (state.attributes as Attribute[]).sort((one, two) => (one.name.toUpperCase() < two.name.toUpperCase() ? -1 : 1));
+        // Below was giving error in console and this method was getting interrupted and failing to send action confirmation
+        //(state.attributes as Attribute[]).sort((one, two) => (one.name.toUpperCase() < two.name.toUpperCase() ? -1 : 1));
+        (state.attributes as Attribute[]).sort((one, two) => (one.name < two.name ? -1 : 1));
     },
     attributesMutatorClone(state: any,attributes: Attribute[]){
         let cleanAttributes = attributes.map( attr => {
@@ -149,23 +151,24 @@ const actions = {
     },
     async upsertAttribute(
         { dispatch, commit }: any,
-        attribute: Attribute
+        attributeData: any
     ) {
-        await AttributeService.upsertAttribute(attribute).then(
+        const attributeObj : Attribute = attributeData.attribute;
+        await AttributeService.upsertAttribute(attributeData).then(
             (response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
                     http2XX.test(response.status.toString())
-                ) {
+                ) {                    
                     const message: string = any(
-                        propEq('id', attribute.id),
+                        propEq('id', attributeObj.id),
                         state.attributes,
                     )
                         ? 'Updated attribute'
                         : 'Added attribute';
 
-                    commit('attributesMutator', attribute);
-                    commit('selectedAttributeMutator', attribute.id);
+                    commit('attributesMutator', attributeObj);
+                    commit('selectedAttributeMutator', attributeObj.id);
                     commit('stringAttributesMutator', state.attributes
                         .filter((attribute: Attribute) => attribute.type === 'STRING'));
                     commit('numericAttributesMutator', state.attributes
@@ -174,7 +177,7 @@ const actions = {
                 }
             },
         );
-    },    
+    },
     async getAttributeAggregationRules({commit}: any) {
         await AttributeService.GetAttributeAggregationRules()
             .then((response: AxiosResponse) => {
