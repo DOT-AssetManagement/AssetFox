@@ -937,7 +937,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             int totalSpendingRow,
             WorkSummaryByBudgetModel workSummaryByBudgetModel,
             SimulationOutput reportOutputData,
-            List<SectionCommittedProjectDTO> committedProjects)
+            List<SectionCommittedProjectDTO> committedProjects,
+            string primaryKey)
         {
             var headerRange = new Range(currentCell.Row, currentCell.Row + 1);
             _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "", "Budget Total");
@@ -969,7 +970,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                         section.AppliedTreatment.ToLower() != PAMSConstants.NoTreatment)
                         {
-                            var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
+                            var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
                             foreach (var consideration in section.TreatmentConsiderations)
                             {
                                 foreach (var budgetUsage in consideration.FundingCalculationOutput?.AllocationMatrix.Where(bu => bu.BudgetName.Equals(workSummaryByBudgetModel.BudgetName, StringComparison.OrdinalIgnoreCase) && bu.Year == year))
@@ -977,7 +978,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                     var projectSource = committedProjects.FirstOrDefault(_ => _.Year == year &&
                                                                                          _.Treatment.All(_ => budgetUsage.TreatmentName.Contains(_)) &&
                                                                                          _.ScenarioBudgetName == budgetUsage.BudgetName &&
-                                                                                         _.LocationKeys["CRS"] == crs)?.ProjectSource;
+                                                                                         _.LocationKeys[primaryKey] == primaryKeyValue)?.ProjectSource;
                                     switch (projectSource)
                                     {
                                     case ProjectSourceDTO.Committed:

@@ -137,7 +137,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
                 List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments,
                 bool shouldBundleFeasibleTreatments,
-                Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
+                Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails,
+                string primaryKey)
         {
             //Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
             foreach (var yearData in reportOutputData.Years)
@@ -149,7 +150,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
                 foreach (var section in yearData.Assets)
                 {
-                    var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
+                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
 
                     // Build keyCashFlowFundingDetails
                     //_summaryReportHelper.BuildKeyCashFlowFundingDetails(yearData, section, crs, keyCashFlowFundingDetails);
@@ -161,7 +162,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                                                   section.TreatmentStatus == TreatmentStatus.Progressed) ||
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                                   section.TreatmentStatus == TreatmentStatus.Applied)) ?
-                                                  keyCashFlowFundingDetails[crs] :
+                                                  keyCashFlowFundingDetails[primaryKeyValue] :
                                                   section.TreatmentConsiderations ?? new();
 
                     var treatmentConsideration = shouldBundleFeasibleTreatments ?
@@ -184,7 +185,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         var committedProject = committedProjectsForWorkOutsideScope.FirstOrDefault(_ => _.Treatment.All(_ => appliedTreatment.Contains(_)) &&
                             _.Year == yearData.Year &&
                             _.ProjectSource.ToString() == section.ProjectSource &&
-                            _.LocationKeys["CRS"] == crs);
+                            _.LocationKeys[primaryKey] == primaryKeyValue);
                         var projectSource = committedProject?.ProjectSource.ToString();
                         var segmentLength = section.ValuePerNumericAttribute["SEGMENT_LENGTH"];
                         var sectionMiles = segmentLength.FeetToMiles();
