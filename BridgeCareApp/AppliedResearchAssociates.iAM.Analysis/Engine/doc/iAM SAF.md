@@ -16,11 +16,11 @@ SAFI.
     - [2.2.1. Configuration](#221-configuration)
   - [2.3. Attribute Value Function](#23-attribute-value-function)
   - [2.4. Budget](#24-budget)
-  - [2.5. Deficient Condition Goal](#25-deficient-condition-goal)
-  - [2.6. Deterioration Profile](#26-deterioration-profile)
-  - [2.7. Distribution-Cost Grade](#27-distribution-cost-grade)
-  - [2.8. Function](#28-function)
-  - [2.9. Funding Distribution Rule](#29-funding-distribution-rule)
+  - [2.5. Cost Distribution Grade](#25-cost-distribution-grade)
+  - [2.6. Cost Distribution Rule](#26-cost-distribution-rule)
+  - [2.7. Deficient Condition Goal](#27-deficient-condition-goal)
+  - [2.8. Deterioration Profile](#28-deterioration-profile)
+  - [2.9. Function](#29-function)
   - [2.10. Future Prioritized Project Option Creation Rule](#210-future-prioritized-project-option-creation-rule)
   - [2.11. Future Treatment Exclusion Rule](#211-future-treatment-exclusion-rule)
   - [2.12. Predicate](#212-predicate)
@@ -160,7 +160,26 @@ A budget describes a "pot of money" that can be used to fund projects.
 - _Predicate_: **optional**
   - If omitted, this budget is available for all assets.
 
-### 2.5. Deficient Condition Goal
+### 2.5. Cost Distribution Grade
+
+- _Cost Ceiling_: **required**
+  - If a treatment cost is less than or equal to this value, then the associated
+    distribution sequence may be used to define cost per time step and duration
+    of a project option using that treatment.
+- _Distribution Sequence_: **one or more**
+  - This is a sequence of percentage values, individually in the closed interval
+    [0, 100], collectively summing to exactly 100.
+
+### 2.6. Cost Distribution Rule
+
+A cost distribution rule specifies a set of "grades" that determine the cost per
+time step (and duration) of a project option.
+
+- _Predicate_: **optional**
+  - If omitted, this rule is applicable to all assets.
+- _Cost Distribution Grades_: **one or more**
+
+### 2.7. Deficient Condition Goal
 
 A deficient condition goal for an attribute is a statement that the SAF should
 try to select projects such that the portion of applicable assets, each having a
@@ -174,7 +193,7 @@ specified condition limit, is no larger than a specified deficiency limit.
 - _Predicate_: **optional**
   - If omitted, this goal is applicable to all assets.
 
-### 2.6. Deterioration Profile
+### 2.8. Deterioration Profile
 
 A deterioration profile describes how an attribute value changes over time as an
 asset with that attribute undergoes deterioration. The profile may include
@@ -188,28 +207,9 @@ information about "goals" for the attribute value, to guide project selection.
 - _Target Condition Goals_: **zero or more**
 - _Deficient Condition Goals_: **zero or more**
 
-### 2.7. Distribution-Cost Grade
-
-- _Cost Ceiling_: **required**
-  - If a treatment cost is less than or equal to this value, then the associated
-    distribution sequence may be used to define funding and duration of a
-    project using that treatment.
-- _Distribution Sequence_: **one or more**
-  - This is a sequence of percentage values, individually in the closed interval
-    [0, 100], collectively summing to exactly 100.
-
-### 2.8. Function
+### 2.9. Function
 
 In the SAF, a function is a mapping from asset snapshots to numbers.
-
-### 2.9. Funding Distribution Rule
-
-A funding distribution rule specifies a set of "grades" that determine the cost
-per time step and duration of a project option.
-
-- _Predicate_: **optional**
-  - If omitted, this rule is applicable to all assets.
-- _Distribution-Cost Grades_: **one or more**
 
 ### 2.10. Future Prioritized Project Option Creation Rule
 
@@ -288,7 +288,7 @@ within an SAFI.
 - _Project Option Creation Rules_: **one or more**
 - _Treatment Concurrency Exclusion Rules_: **zero or more**
 - _Budgets_: **one or more**
-- _Funding Distribution Rules_: **zero or more**
+- _Cost Distribution Rules_: **zero or more**
 
 #### 2.16.1. Configuration
 
