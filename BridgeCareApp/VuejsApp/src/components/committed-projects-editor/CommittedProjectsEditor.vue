@@ -1118,7 +1118,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     result.file,
                     scenarioId,
                     ).then((response: any) =>{
-                        setAlertMessageAction("Committed project import has been added to the queue");                        
+                        if(!isNil(response))
+                            setAlertMessageAction("Committed project import has been added to the queue");                        
                     })
             } else {
                 addErrorNotificationAction({

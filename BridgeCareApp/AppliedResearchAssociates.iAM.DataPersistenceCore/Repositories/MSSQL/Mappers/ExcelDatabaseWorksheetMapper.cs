@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
@@ -41,6 +34,29 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 return null;
             }
             return ToDTO(entity);
+        }
+
+        public static DataSourceMappingEntity ToEntity(this DataSourceMappingDTO dto)
+        {
+            return new DataSourceMappingEntity
+            {
+                Id = dto.Id,
+                AttributeId = dto.AttributeId,
+                DataField = dto.DataField,
+                DataSourceId = dto.DataSourceId
+            };
+        }
+
+        public static DataSourceMappingDTO ToDTO(this DataSourceMappingEntity entity)
+        {
+            return new DataSourceMappingDTO
+            {
+                Id = entity.Id,
+                AttributeId = entity.AttributeId,
+                DataField = entity.DataField,
+                DataSourceId = entity.DataSourceId,
+                AttributeName = entity.Attribute.Name
+            };
         }
     }
 }

@@ -15,7 +15,7 @@ namespace AppliedResearchAssociates.iAM.Data.Attributes
         private ExcelRawDataColumn _dateColumn = null;
         private ExcelRawDataColumn _dataColumn = null;
 
-        public ExcelAttributeConnection(Attribute attribute, BaseDataSourceDTO dataSource, ExcelRawDataSpreadsheet sourceData) : base(attribute, dataSource)
+        public ExcelAttributeConnection(Attribute attribute, DataSourceMappingDTO dataSourceMapping, BaseDataSourceDTO dataSource, ExcelRawDataSpreadsheet sourceData) : base(attribute, dataSource)
         {
             if (dataSource is ExcelDataSourceDTO)
             {
@@ -34,7 +34,7 @@ namespace AppliedResearchAssociates.iAM.Data.Attributes
                     {
                         _dateColumn = column;
                     }
-                    if (columnName == attribute.Command)
+                    if (columnName == dataSourceMapping.DataField)
                     {
                         _dataColumn = column;
                     }

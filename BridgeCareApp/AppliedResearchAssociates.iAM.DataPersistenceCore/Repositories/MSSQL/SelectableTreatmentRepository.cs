@@ -1114,6 +1114,17 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             }
         }
 
+        public void AddTreatmentBudgets(Guid simulationId, List<Guid> budgetIds)
+        {
+            var treatmentIds = _unitOfWork.Context.ScenarioSelectableTreatment.Where(_ => _.SimulationId == simulationId).Select(_ => _.Id).ToList();
+            var treatmentBudgets = new List<ScenarioSelectableTreatmentScenarioBudgetEntity>();
+            treatmentIds.ForEach(_ =>
+            {
+                budgetIds.ForEach(__ => treatmentBudgets.Add(new ScenarioSelectableTreatmentScenarioBudgetEntity() { ScenarioBudgetId = __, ScenarioSelectableTreatmentId = _ }));
+            });
+            _unitOfWork.Context.AddAll(treatmentBudgets, _unitOfWork.CurrentUser?.Id);
+        }
+
         public void UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers(TreatmentLibraryDTO dto, bool isNewLibrary, Guid userId)
         {
             _unitOfWork.AsTransaction(() =>

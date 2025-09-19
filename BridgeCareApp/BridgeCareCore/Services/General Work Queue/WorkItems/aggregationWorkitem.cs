@@ -22,7 +22,7 @@ using System.Diagnostics;
 
 namespace BridgeCareCore.Services
 {
-    public record AggregationWorkitem(Guid NetworkId, string UserId, string NetworkName, List<AttributeDTO> Attributes) : IWorkSpecification<WorkQueueMetadata>
+    public record AggregationWorkitem(Guid NetworkId, string UserId, string NetworkName, Guid dataSourceId) : IWorkSpecification<WorkQueueMetadata>
 
     {
         public string WorkId => WorkQueueWorkIdFactory.CreateId(NetworkId, WorkType.Aggregation);
@@ -51,7 +51,7 @@ namespace BridgeCareCore.Services
                  
             try
             {              
-                _aggregationService.AggregateNetworkData(channel.Writer, NetworkId, state, Attributes, cancellationToken).Wait();
+                _aggregationService.AggregateNetworkData(channel.Writer, NetworkId, state, dataSourceId, cancellationToken).Wait();
             }
             catch (Exception e)
             {

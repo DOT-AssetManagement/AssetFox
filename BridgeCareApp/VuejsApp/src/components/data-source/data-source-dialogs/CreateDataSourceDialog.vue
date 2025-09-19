@@ -7,12 +7,14 @@
           </v-row>
         </v-card-title>           
       <v-card-text class="ghd-dialog-box-padding-center">
-        <v-row column>
-          <v-text-field label="Name" id="CreateDataSourceDialog-Name-vtextField"
-            variant = "outlined"
-            density="compact"
-            v-model="datasourceName"
-            class="ghd-text-field-border ghd-text-field"/>
+        <v-row>
+          <v-col>
+            <v-text-field label="Name" id="CreateDataSourceDialog-Name-vtextField"
+              variant = "outlined"
+              density="compact"
+              v-model="datasourceName"
+              class="ghd-text-field-border ghd-text-field"/>
+          </v-col>
         </v-row>
       </v-card-text>
       <v-card-actions class="ghd-dialog-box-padding-bottom">

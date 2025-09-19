@@ -39,6 +39,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
         /// simply does not return an attribute for that name. Also, this method is necessarily somewhat
         /// inefficient. To perform the case-insensitive comparison, it pulls everything into memory.</summary>
         List<AttributeDTO> GetAttributesWithNames(List<string> attributeNames);
+        List<AttributeDTO> GetAttributesWithNamesUnabbreviated(List<string> attributeNames);
 
         void DeleteAttributesShouldNeverBeNeededButSometimesIs(List<Guid> attributeIdsToDelete);
 

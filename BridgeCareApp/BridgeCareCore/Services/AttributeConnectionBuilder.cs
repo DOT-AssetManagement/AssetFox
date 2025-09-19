@@ -13,25 +13,25 @@ namespace BridgeCareCore.Services
 {
     public static class AttributeConnectionBuilder
     {
-        public static AttributeConnection Build(Attribute attribute, BaseDataSourceDTO dataSource, IUnitOfWork unitOfWork, ExcelRawDataDTO excelSpreadsheet = null)
+        public static AttributeConnection Build(Attribute attribute, DataSourceMappingDTO dataSourceMapping, BaseDataSourceDTO dataSource, IUnitOfWork unitOfWork, ExcelRawDataDTO excelSpreadsheet = null)
         {
             if (dataSource is AllDataSource)
             {
                 throw new InvalidOperationException("DataSource passed into AttributeConnection should not be an AllDataSource");
             }
-            switch (attribute.ConnectionType)
+            switch (dataSource.Type)
             {
-            case ConnectionType.MSSQL:
+            case "MSSQL":
                 return new SqlAttributeConnection(attribute, dataSource);
 
-            case ConnectionType.EXCEL:
+            case "Excel":
                 if (excelSpreadsheet == null)
                 {
                     var warningMessage = $@"Found DataSource {dataSource.Name}. The DataSource was of type ""EXCEL"". However, we did not find an ExcelRawData for that data source.";
                     throw new RowNotInTableException(warningMessage);
                 }
                 var worksheet = ExcelRawDataSpreadsheetSerializer.Deserialize(excelSpreadsheet.SerializedWorksheetContent).Worksheet;
-                return new ExcelAttributeConnection(attribute, dataSource, worksheet);
+                return new ExcelAttributeConnection(attribute, dataSourceMapping, dataSource, worksheet);
             default:
                 throw new InvalidOperationException($"Invalid Connection type \"{attribute.ConnectionType}\".");
             }

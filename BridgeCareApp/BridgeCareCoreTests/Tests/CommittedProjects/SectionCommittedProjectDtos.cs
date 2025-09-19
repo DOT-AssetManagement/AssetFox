@@ -17,7 +17,8 @@ namespace BridgeCareCoreTests.Tests
             ProjectSourceDTO projectSource = ProjectSourceDTO.None,
             string treatment = null,
             string locationKey = null,
-            string locationValue = null)
+            string locationValue = null,
+            int year = 0)
         {
             var resolveId = id ?? Guid.NewGuid();
             Dictionary<string, string> locationKeys = new Dictionary<string, string>();
@@ -36,6 +37,7 @@ namespace BridgeCareCoreTests.Tests
                 Treatment = [treatment],
                 LocationKeys = locationKeys,
                 ProjectId = "",
+                Year = year,
             };
             return dto;
         }

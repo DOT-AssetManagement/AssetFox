@@ -6,15 +6,15 @@ export interface Attribute {
     id: string
     name: string;
     type: string;
-    aggregationRuleType: string;
-    command: string;
+    aggregationRuleType: string; // Note: removed from UI
+    command: string; // Note: removed from UI
     defaultValue: string;
     minimum: number | null;
     maximum: number | null;
     isCalculated: boolean;
     isAscending: boolean;
     setForAllAttributes: boolean;
-    dataSource: Datasource;
+    dataSource: Datasource; // Note: removed from UI
 }
 
 export interface RuleDefinition {

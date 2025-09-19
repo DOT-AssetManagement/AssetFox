@@ -10,6 +10,8 @@ public sealed class Simulation : WeakEntity, IValidator
 {
     public AnalysisMethod AnalysisMethod { get; }
 
+    public Attribute AssetGroupAttribute { get; set; }
+
     public ICollection<CommittedProject> CommittedProjects { get; } = new SetWithoutNulls<CommittedProject>();
 
     public SelectableTreatment DesignatedPassiveTreatment { get; internal set; }

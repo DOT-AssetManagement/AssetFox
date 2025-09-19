@@ -81,6 +81,7 @@ import { find, isNil, propEq } from 'ramda';
 
   let store = useStore(); 
   async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload);}
+  let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
 
   let rules: InputValidationRules = validationRules;
   const scenarioNameErrors = ref<string[]>([]);
@@ -102,6 +103,7 @@ import { find, isNil, propEq } from 'ramda';
     watch(() => props.showDialog,()=> onShowDialogChanged())
     function onShowDialogChanged() {
         onModifyScenarioUserAccess();
+        validateScenarioName();
     }
 
     watch(shared, ()=> onSetPublic())
@@ -163,10 +165,16 @@ import { find, isNil, propEq } from 'ramda';
             scenarioNameErrors.value.push('This field is required');
         }
 
-        const specialCharError = rules.generalRules.valueContainsNoSpecialCharacters(newScenario.value.name);
+        const specialCharError = rules.generalRules.valueContainsNoCertainSpecialCharacters(newScenario.value.name);
         if (specialCharError !== true) {
             scenarioNameErrors.value.push(specialCharError as string);
         }
+
+        if(stateScenarioNames.value.find(_ => _ == newScenario.value.name) != undefined)
+        {
+            scenarioNameErrors.value.push("There is already a scenario with that name")
+        }
+
     }
 
     const hasValidationErrors = computed(() => scenarioNameErrors.value.length > 0);

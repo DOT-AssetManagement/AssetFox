@@ -1,5 +1,6 @@
 import { getNewGuid } from "@/shared/utils/uuid-utils";
 import { getBlankGuid } from "@/shared/utils/uuid-utils";
+import { Attribute } from "./attribute";
 
 export interface Datasource {
     id: string;
@@ -44,6 +45,23 @@ export interface SqlCommandResponse {
     isValid: boolean;
     validationMessage: string
 }
+
+export interface DataSourceMapping {
+    Id: string;
+    DataField: string;
+    AttributeId: string;
+    DataSourceId: string;
+    Attribute: Attribute;
+}
+
+export interface DataSourceMappingData {
+    Id: string;
+    DataField: string;
+    AttributeId: string;
+    AttributeName: string;
+    DataSourceId: string;
+}
+
 export const emptySqlCommandResponse: SqlCommandResponse = {
     isValid: false,
     validationMessage: ''

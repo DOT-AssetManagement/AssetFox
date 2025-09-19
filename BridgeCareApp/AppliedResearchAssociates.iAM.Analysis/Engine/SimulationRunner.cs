@@ -231,6 +231,15 @@ public sealed class SimulationRunner
 
         ObjectiveFunction = Simulation.AnalysisMethod.ObjectiveFunction;
 
+        var assetGroupAttributeName = Simulation.AssetGroupAttribute?.Name;
+        GetAssetGroup = Simulation.AssetGroupAttribute switch
+        {
+            INumericAttribute => assetContext => assetContext.GetNumber(assetGroupAttributeName).ToString(),
+            TextAttribute => assetContext => assetContext.GetText(assetGroupAttributeName),
+            null => null,
+            _ => throw new SimulationException("Invalid attribute for asset group determination.")
+        };
+
         Simulation.ClearResults();
 
         SimulationOutput output = new();
@@ -414,6 +423,10 @@ public sealed class SimulationRunner
 
     internal List<CalculatedField> CalculatedFieldsWithPostDeteriorationTiming;
 
+    private Func<AssetContext, string> GetAssetGroup;
+
+    private bool AssetsAreBeingGrouped => GetAssetGroup is not null;
+    
     internal List<string> OrderedNamesOfAllNumericAttributes;
 
     internal List<string> OrderedNamesOfAllTextAttributes;
@@ -705,18 +718,112 @@ public sealed class SimulationRunner
             }
         });
 
-        if (SpendingLimit != SpendingLimit.Zero && !ConditionGoalsAreMet(year))
+        if (SpendingLimit == SpendingLimit.Zero || ConditionGoalsAreMet(year))
         {
-            foreach (var priority in BudgetPrioritiesPerYear[year])
-            {
-                foreach (var context in BudgetContexts)
-                {
-                    context.SetPriority(priority);
-                }
+            return;
+        }
 
-                foreach (var option in treatmentOptions)
+        List<Action> assetGroupFundingCancellationActions;
+        List<IEnumerable<TreatmentOption>> optionsByAssetGroup;
+
+        if (AssetsAreBeingGrouped)
+        {
+            assetGroupFundingCancellationActions = new();
+
+            // Note that this count includes only assets for which there exists at least one
+            // treatment option. Another intuitive count could include all not-yet-handled assets,
+            // but that is deliberately not chosen here, per PennDOT requirements, so that an asset
+            // with zero treatment options would not prevent the rest of its asset group from
+            // receiving treatments.
+            var assetGroupSizes =
+                treatmentOptions
+                .Select(option => option.AssetContext)
+                .Distinct()
+                .GroupBy(GetAssetGroup)
+                .ToDictionary(group => group.Key, group => group.Count());
+
+            optionsByAssetGroup =
+                treatmentOptions
+                .GroupBy(option => GetAssetGroup(option.AssetContext))
+                .Where(group => group.DistinctBy(option => option.AssetContext).Count() == assetGroupSizes[group.Key])
+                .OrderByDescending(group => group
+                    .GroupBy(option => option.AssetContext)
+                    .Average(subgroup => subgroup.Average(option => option.WeightedObjectiveValue)))
+                .Select(group => group.AsEnumerable())
+                .ToList();
+        }
+        else
+        {
+            assetGroupFundingCancellationActions = null;
+            optionsByAssetGroup = null;
+        }
+
+        foreach (var context in BudgetContexts)
+        {
+            context.CostDeallocations = assetGroupFundingCancellationActions;
+        }
+
+        foreach (var priority in BudgetPrioritiesPerYear[year])
+        {
+            foreach (var context in BudgetContexts)
+            {
+                context.SetPriority(priority);
+            }
+
+            var terminateConsiderations = false;
+
+            if (AssetsAreBeingGrouped)
+            {
+                considerGroups(optionsByAssetGroup,
+                    ReasonForCancellationOfFunding.CouldNotSelectTreatmentsForAllOpenAssetsInGroup);
+            }
+            else
+            {
+                considerGroup(treatmentOptions,
+                    ReasonForCancellationOfFunding.None);
+            }
+
+            if (terminateConsiderations)
+            {
+                return;
+            }
+
+            void considerGroups(
+                List<IEnumerable<TreatmentOption>> optionGroups,
+                ReasonForCancellationOfFunding reasonIfFundingIsCancelled)
+            {
+                foreach (var options in optionGroups)
                 {
-                    var optionContextIsPending = workingContextPerBaselineContext.TryGetValue(option.Context, out var workingContext);
+                    considerGroup(options, reasonIfFundingIsCancelled);
+
+                    var anyAssetInGroupIsUntreated =
+                        options.Any(option => workingContextPerBaselineContext.ContainsKey(option.AssetContext));
+
+                    if (anyAssetInGroupIsUntreated)
+                    {
+                        foreach (var cancellationAction in assetGroupFundingCancellationActions)
+                        {
+                            cancellationAction();
+                        }
+                    }
+
+                    assetGroupFundingCancellationActions.Clear();
+
+                    if (ConditionGoalsAreMet(year))
+                    {
+                        terminateConsiderations = true;
+                        return;
+                    }
+                }
+            }
+
+            void considerGroup(
+                IEnumerable<TreatmentOption> options,
+                ReasonForCancellationOfFunding reasonIfFundingIsCancelled)
+            {
+                foreach (var option in options)
+                {
+                    var optionContextIsPending = workingContextPerBaselineContext.TryGetValue(option.AssetContext, out var workingContext);
                     if (optionContextIsPending && workingContext.EvaluateOrDefault(priority.Criterion))
                     {
                         var costCoverage = TryToPayForTreatment(
@@ -730,24 +837,65 @@ public sealed class SimulationRunner
 
                         if (costCoverage == CostCoverage.None)
                         {
-                            option.Context.Detail.TreatmentConsiderations.Add(considerationDetail);
+                            option.AssetContext.Detail.TreatmentConsiderations.Add(considerationDetail);
                         }
                         else
                         {
-                            _ = workingContextPerBaselineContext.Remove(option.Context);
+                            if (AssetsAreBeingGrouped)
+                            {
+                                AssetContext workingContextIfFundingIsCancelled = new(workingContext);
+                                workingContextIfFundingIsCancelled.CopyDetailFrom(workingContext);
 
-                            _ = AssetContexts.Remove(option.Context);
-                            AssetContexts.Add(workingContext);
+                                assetGroupFundingCancellationActions.Add(() =>
+                                {
+                                    considerationDetail.ReasonForCancellationOfFunding = reasonIfFundingIsCancelled;
+                                    option.AssetContext.Detail.TreatmentConsiderations.Add(considerationDetail);
+
+                                    workingContextPerBaselineContext.Add(
+                                        option.AssetContext,
+                                        workingContextIfFundingIsCancelled);
+
+                                    _ = AssetContexts.Remove(workingContext);
+                                    _ = AssetContexts.Add(option.AssetContext);
+                                });
+                            }
+
+                            _ = workingContextPerBaselineContext.Remove(option.AssetContext);
+
+                            _ = AssetContexts.Remove(option.AssetContext);
+                            _ = AssetContexts.Add(workingContext);
 
                             workingContext.Detail.TreatmentCause = TreatmentCause.SelectedTreatment;
 
                             if (costCoverage == CostCoverage.Full)
                             {
-                                _ = workingContext.EventSchedule.TryAdd(year, option.CandidateTreatment);
+                                if (workingContext.EventSchedule.TryAdd(year, option.CandidateTreatment))
+                                {
+                                    // There was no cash-flow. We used default single-year funding.
+                                }
+                                else if (workingContext.EventSchedule[year].IsT2(out var oneYearCashFlow) && oneYearCashFlow.Treatment == option.CandidateTreatment && oneYearCashFlow.IsComplete)
+                                {
+                                    // There was cash-flow. We used a single-year rule.
+                                }
+                                else
+                                {
+                                    // Something else happened, and that's not allowed.
+
+                                    MessageBuilder = new SimulationMessageBuilder("Incorrect internal handling of an asset event schedule.")
+                                    {
+                                        ItemName = workingContext.Asset.AssetName,
+                                        ItemId = workingContext.Asset.Id,
+                                    };
+
+                                    var logMessage = SimulationLogMessageBuilders.RuntimeFatal(MessageBuilder, Simulation.Id);
+                                    Send(logMessage);
+                                }
+
                                 workingContext.ApplyTreatment(option.CandidateTreatment, year);
 
-                                if (ConditionGoalsAreMet(year))
+                                if (!AssetsAreBeingGrouped && ConditionGoalsAreMet(year))
                                 {
+                                    terminateConsiderations = true;
                                     return;
                                 }
                             }

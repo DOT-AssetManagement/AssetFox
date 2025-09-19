@@ -1447,16 +1447,12 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
                 importScenarioTreatmentsFileAction({
                     ...data,
                     id: selectedScenarioId
-                }).then(() => {
-                                   
-                });
+                })
             } else {
                 importLibraryTreatmentsFileAction({
                     ...data,
                     id: selectedTreatmentLibrary.value.id
-                }).then(() => {
-                                   
-                });;
+                })
             }
         }
      }
@@ -1517,14 +1513,12 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
                 importScenarioTreatmentSupersedeRulesFileAction({
                     ...data,
                     id: selectedScenarioId
-                }).then(() => {                                 
-                });
+                })
             } else {
                 importLibraryTreatmentSupersedeRulesFileAction({
                     ...data,
                     id: selectedTreatmentLibrary.value.id
-                }).then(() => {                                   
-                });
+                })
             }
         }
      }

@@ -24,11 +24,15 @@ const state = {
     totalFastQueuedItems: 0 as number,
     simulationRunSettingId: 0 as number,
     simulationRunSettingName: '' as string,
+    scenarioNames: [] as string[]
 };
 
 const mutations = {
     scenariosMutator(state: any, scenarios: Scenario[]) {
         state.scenarios = clone(scenarios);
+    },
+    scenarioNamesMutator(state: any, scenarioNames: string[]) {
+        state.scenarioNames = clone(scenarioNames);
     },
     UserScenarioPageMutator(state: any, scenarios: PagingPage<Scenario>){
         state.currentUserScenarioPage = clone(scenarios.items);
@@ -210,6 +214,14 @@ const actions = {
             .then((response: AxiosResponse) => {
                 if (hasValue(response, 'data')) {
                     commit('UserScenarioPageMutator', response.data as PagingPage<Scenario>);
+                }
+            });
+    },
+    async getAllScenarioNames({commit}: any) {
+        await ScenarioService.GetAllSimulationNames()
+            .then((response: AxiosResponse) => {
+                if (hasValue(response, 'data')) {
+                    commit('scenarioNamesMutator', response.data as string[]);
                 }
             });
     },

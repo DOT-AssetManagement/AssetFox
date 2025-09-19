@@ -9,6 +9,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public DataSourceEntity()
         {
             ExcelRawData = new HashSet<ExcelRawDataEntity>();
+            DataSourceMappings = [];
         }
         public Guid Id { get; set; }
 
@@ -31,7 +32,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
         public bool Secure { get; set; }
 
         /// <summary>
-        /// JSON formatted string containing the implementation details of the data source
+        /// JSON formatted string containing the implementation details of the data source i.e. LocationColumn & DateColumn
         /// </summary>
         /// <example>
         /// The details for a SQL data source would be the connection string
@@ -40,5 +41,6 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public virtual ICollection<ExcelRawDataEntity> ExcelRawData { get; set; }
 
+        public virtual ICollection<DataSourceMappingEntity> DataSourceMappings { get; set; }
     }
 }

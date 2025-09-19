@@ -10,6 +10,7 @@ using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
 using BridgeCareCore.Services;
 using BridgeCareCore.Services.DefaultData;
 using BridgeCareCoreTests.Helpers;
+using BridgeCareCoreTests.Tests.Treatment;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -388,6 +389,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var treatmentRepo = SelectableTreatmentMock.New(unitOfWork);
             var criterionLibraryRepo = CriterionLibraryRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var service = CreateService(unitOfWork);
@@ -513,6 +515,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var treatmentRepo = SelectableTreatmentMock.New(unitOfWork);
             var criterionLibraryRepo = CriterionLibraryRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var service = CreateService(unitOfWork);
@@ -672,6 +675,7 @@ namespace BridgeCareCoreTests.Tests
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
             var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var treatmentRepo = SelectableTreatmentMock.New(unitOfWork);
             var criterionLibraryRepo = CriterionLibraryRepositoryMocks.New(unitOfWork);
             var simulationId = Guid.NewGuid();
             var service = CreateService(unitOfWork);

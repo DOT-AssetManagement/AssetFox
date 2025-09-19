@@ -8,8 +8,8 @@ export default class NetworkService {
         return coreAxiosInstance.get(`${API.Network}/GetAllNetworks`);
     }
 
-    static createNetwork(networkName: any, data: Attribute): AxiosPromise {
-        return coreAxiosInstance.post(`${API.Network}/CreateNetwork/${networkName}`, data);
+    static createNetwork(networkName: any, dataSourceId: string, data: Attribute): AxiosPromise {
+        return coreAxiosInstance.post(`${API.Network}/CreateNetwork/${networkName}/${dataSourceId}`, data);
     }
 
     static deleteNetwork(netowrkId: string): AxiosPromise {

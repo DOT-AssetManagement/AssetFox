@@ -38,6 +38,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
             simulation.AnalysisMethod.ShouldDeteriorateDuringCashFlow = entity.ShouldDeteriorateDuringCashFlow;
             simulation.AnalysisMethod.AllowFundingFromMultipleBudgets = entity.ShouldUseExtraFundsAcrossBudgets;
 
+            var superAssetAttributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.SuperAssetAttribute);
+            simulation.AssetGroupAttribute = simulation.Network.Explorer.AllAttributes.FirstOrDefault(_ => _.Name == superAssetAttributeName);
+
             var specifiedFilter = entity.CriterionLibraryAnalysisMethodJoin?.CriterionLibrary.MergedCriteriaExpression ?? string.Empty;
             var combinedCriteria = string.IsNullOrEmpty(specifiedFilter) ? userCriteria : $"({userCriteria}) AND ({specifiedFilter})";
             simulation.AnalysisMethod.Filter.Expression =
@@ -90,8 +93,10 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldDeteriorateDuringCashFlow = dto.ShouldDeteriorateDuringCashFlow,
                 ShouldUseExtraFundsAcrossBudgets = dto.ShouldUseExtraFundsAcrossBudgets,
                 shouldAllowMultipleTreatments = dto.ShouldAllowMultipleTreatments,
+                ShouldUseSuperAssets = dto.ShouldUseSuperAssets,
                 AttributeId = attributeId,
                 LastKnownAssetCount = dto.LastKnownAssetCount,
+                SuperAssetAttribute = dto.SuperAssetAttribute,
             };
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;
@@ -127,7 +132,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
                 ShouldDeteriorateDuringCashFlow = entity.ShouldDeteriorateDuringCashFlow,
                 ShouldAllowMultipleTreatments = entity.shouldAllowMultipleTreatments,
                 ShouldUseExtraFundsAcrossBudgets = entity.ShouldUseExtraFundsAcrossBudgets,
+                ShouldUseSuperAssets = entity.ShouldUseSuperAssets,
                 Attribute = attributeName,
+                SuperAssetAttribute = entity.SuperAssetAttribute,
                 Benefit = entity.Benefit?.ToDto(attributeNameLookup) ?? new BenefitDTO(),
                 LastKnownAssetCount = entity.LastKnownAssetCount,
                 CriterionLibrary = entity.CriterionLibraryAnalysisMethodJoin != null

@@ -35,7 +35,7 @@ namespace BridgeCareCore.Services.Aggregation
         }
 
         /// <summary>AggregationState can be just new AggregationState() object. Purpose is to allow calling class to access the state.</summary>
-        public async Task<bool> AggregateNetworkData(Writer writer, Guid networkId, AggregationState state, List<AttributeDTO> attributes, CancellationToken? cancellationToken = null)
+        public async Task<bool> AggregateNetworkData(Writer writer, Guid networkId, AggregationState state, Guid dataSourceId, CancellationToken? cancellationToken = null)
         {
             state.NetworkId = networkId;
             var isError = false;
@@ -63,7 +63,15 @@ namespace BridgeCareCore.Services.Aggregation
                     _unitOfWork.NetworkRepo.UpsertNetworkRollupDetail(networkId, state.Status);  // DbUpdateException here -- "The wait operation timed out."
 
                     // Get/create configurable attributes
-                    var configurationAttributes = AttributeDtoDomainMapper.ToDomainList(attributes, _unitOfWork.EncryptionKey);
+                    var dataSourceMap = _unitOfWork.DataSourceMappingRepo.GetDataSourceMappings(dataSourceId);
+
+                    var dataSourceAttributeList = dataSourceMap
+                        .Where(m => !string.IsNullOrWhiteSpace(m.DataField))
+                        .Select(m => m.AttributeName)
+                        .ToList();
+
+                    var dataSourceAttributes = _unitOfWork.AttributeRepo.GetAttributesWithNamesUnabbreviated(dataSourceAttributeList);
+                    var configurationAttributes = AttributeDtoDomainMapper.ToDomainList(dataSourceAttributes, _unitOfWork.EncryptionKey);
 
                     var checkForDuplicateIDs = configurationAttributes.Select(_ => _.Id).ToList();
 
@@ -107,36 +115,30 @@ namespace BridgeCareCore.Services.Aggregation
                     try
                     {
 
-                        var uniqueDataSources = attributes
-                            .Where(attr => attr.DataSource != null)
-                            .Select(attr => attr.DataSource)
-                            .DistinctBy(ds => ds.Id)
-                            .ToList();
+                        var dataSource = _unitOfWork.DataSourceRepo.GetDataSource(dataSourceId);
+                        //var dataSourceAttributes = attributes.Where(_ => _.DataSource == dataSource);
+                        //var dataSourceConfigurationAttributes = configurationAttributes.Where(_ => dataSource.Id == _.DataSourceId);
 
-                        foreach (var dataSource in uniqueDataSources)
+                        if (dataSource.Type == "Excel")
                         {
-                            //var dataSourceAttributes = attributes.Where(_ => _.DataSource == dataSource);
-                            var dataSourceConfigurationAttributes = configurationAttributes.Where(_ => dataSource.Id == _.DataSourceId);
+                            var excelSpreadsheet = _unitOfWork.ExcelWorksheetRepository.GetExcelRawDataByDataSourceId(dataSource.Id);
 
-                            if (dataSource.Type == "Excel")
+                            foreach (var attribute in configurationAttributes)
                             {
-                                var excelSpreadsheet = _unitOfWork.ExcelWorksheetRepository.GetExcelRawDataByDataSourceId(dataSource.Id);
-
-                                foreach (var attribute in dataSourceConfigurationAttributes)
-                                {
-                                    var specificData = AttributeDataBuilder
-                                        .GetData(AttributeConnectionBuilder.Build(attribute, dataSource, _unitOfWork, excelSpreadsheet));
-                                    attributeData.AddRange(specificData);
-                                }
+                                var mapping = dataSourceMap.FirstOrDefault(x => x.AttributeName == attribute.Name);
+                                var specificData = AttributeDataBuilder
+                                    .GetData(AttributeConnectionBuilder.Build(attribute, mapping, dataSource, _unitOfWork, excelSpreadsheet));
+                                attributeData.AddRange(specificData);
                             }
-                            else if (dataSource.Type == "SQL")
+                        }
+                        else if (dataSource.Type == "SQL")
+                        {
+                            foreach (var attribute in configurationAttributes)
                             {
-                                foreach (var attribute in dataSourceConfigurationAttributes)
-                                {
-                                    var specificData = AttributeDataBuilder
-                                        .GetData(AttributeConnectionBuilder.Build(attribute, dataSource, _unitOfWork));
-                                    attributeData.AddRange(specificData);
-                                }
+                                var mapping = dataSourceMap.FirstOrDefault(x => x.AttributeName == attribute.Name);
+                                var specificData = AttributeDataBuilder
+                                    .GetData(AttributeConnectionBuilder.Build(attribute, mapping, dataSource, _unitOfWork));
+                                attributeData.AddRange(specificData);
                             }
                         }
                     }

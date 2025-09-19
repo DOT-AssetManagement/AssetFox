@@ -10,6 +10,7 @@ import {
     clone,
     find,
     findIndex,
+    isNil,
     propEq,
     reject,
     update,
@@ -276,7 +277,8 @@ const actions = {
             payload.id,
             true
         ).then((response: AxiosResponse) => {
-            dispatch('setAlertMessage', "A treatment import has been added to the queue");
+            if(!isNil(response))
+                dispatch('setAlertMessage', "A treatment import has been added to the queue");
         });
     },
     async importLibraryTreatmentsFile(
@@ -288,7 +290,8 @@ const actions = {
             payload.id,
             false
         ).then((response: AxiosResponse) => {
-            dispatch('setAlertMessage', "A treatment import has been added to the queue");
+            if(!isNil(response))
+                dispatch('setAlertMessage', "A treatment import has been added to the queue");
         });
     },
     async importScenarioTreatmentSupersedeRulesFile(
@@ -300,7 +303,8 @@ const actions = {
             payload.id,
             true
         ).then((response: AxiosResponse) => {
-            dispatch('setAlertMessage', "A supersede import has been added to the queue");
+            if(!isNil(response))
+                dispatch('setAlertMessage', "A supersede import has been added to the queue");
         });
     },
     async importLibraryTreatmentSupersedeRulesFile(
@@ -312,7 +316,8 @@ const actions = {
             payload.id,
             false
         ).then((response: AxiosResponse) => {
-            dispatch('setAlertMessage', "A supersede import has been added to the queue");
+            if(!isNil(response))
+                dispatch('setAlertMessage', "A supersede import has been added to the queue");
         });
     },
     async deleteTreatment(

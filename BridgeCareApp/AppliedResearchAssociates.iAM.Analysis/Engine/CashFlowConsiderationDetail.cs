@@ -23,7 +23,10 @@ public sealed class CashFlowConsiderationDetail : IEquatable<CashFlowConsiderati
         CashFlowRuleName = original.CashFlowRuleName;
         ReasonAgainstCashFlow = original.ReasonAgainstCashFlow;
 
-        FundingCalculationInputSupplement = new(original.FundingCalculationInputSupplement);
+        if (original.FundingCalculationInputSupplement is not null)
+        {
+            FundingCalculationInputSupplement = new(original.FundingCalculationInputSupplement);
+        }
     }
 
     /// <summary>

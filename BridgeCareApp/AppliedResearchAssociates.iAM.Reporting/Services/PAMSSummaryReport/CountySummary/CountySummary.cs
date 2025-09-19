@@ -41,21 +41,21 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             _uniqueDistrictCountyList = new List<DistrictCounty>();
         }
 
-        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
+        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
-            FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, simulation, keyCashFlowFundingDetails);
+            FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, simulation, keyCashFlowFundingDetails, primaryKey);
             worksheet.Cells.AutoFitColumns();
         }
 
         #region Private methods
 
-        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
+        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
             //fill unique district county list
             BuildUniqueDistrictCountyList(reportOutputData);
 
             //get data by district and county and build list
-            BuildDistrictCountyCostList(reportOutputData, simulationYears, keyCashFlowFundingDetails);
+            BuildDistrictCountyCostList(reportOutputData, simulationYears, keyCashFlowFundingDetails, primaryKey);
 
             //Fill Budget By County
             FillBudgetByCountyInExcel(worksheet, reportOutputData, simulationYears, simulation);
@@ -112,7 +112,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             }
         }
 
-        private void BuildDistrictCountyCostList(SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
+        private void BuildDistrictCountyCostList(SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
             //build empty list
             _districtCountyCostList = new List<DistrictCountyCost>();
@@ -138,14 +138,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                             {
                                 foreach (var section in assetDetailList)
                                 {
-                                    var crs = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, "CRS");
+                                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
                                     var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
                                                   section.TreatmentStatus == TreatmentStatus.Progressed) ||
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                                   section.TreatmentStatus == TreatmentStatus.Progressed) ||
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                                   section.TreatmentStatus == TreatmentStatus.Applied)) ?
-                                                  keyCashFlowFundingDetails[crs] :
+                                                  keyCashFlowFundingDetails[primaryKeyValue] :
                                                   section.TreatmentConsiderations ?? new();
 
                                     sumOfCoveredCost += treatmentConsiderations.Sum(tc => tc.FundingCalculationOutput?.AllocationMatrix
