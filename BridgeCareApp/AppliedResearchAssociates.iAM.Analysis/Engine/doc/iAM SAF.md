@@ -1,83 +1,117 @@
-# iAM Simulation Algorithm Framework
+# iAM Simulation Algorithm Framework <!-- omit in toc -->
 
 The iAM _simulation algorithm framework_ (SAF) is an abstract, customizable
 procedure using extensible data definitions that facilitates automated selection
 of _projects_ to optimize the maintenance of _deteriorating assets_ over a
-period of time. An _SAF implementation_ (SAFI) is an artifact that uses the SAF
-procedure and data, respectively customized and extended according to all
-requirements of the SAFI.
+period of time.
 
-The basic procedure in the SAF is a sequence of _simulation time steps_. Each
+An _SAF implementation_ (SAFI) is an artifact that uses the SAF procedure and
+data, respectively customized and extended according to all requirements of the
+SAFI.
+
+- [1. Overview of Procedure](#1-overview-of-procedure)
+- [2. Concepts \& Data Structures](#2-concepts--data-structures)
+  - [2.1. Asset Snapshot](#21-asset-snapshot)
+  - [2.2. Attribute Definition](#22-attribute-definition)
+    - [2.2.1. Configuration](#221-configuration)
+  - [2.3. Attribute Value Function](#23-attribute-value-function)
+  - [2.4. Budget](#24-budget)
+  - [2.5. Deficient Condition Goal](#25-deficient-condition-goal)
+  - [2.6. Deterioration Profile](#26-deterioration-profile)
+  - [2.7. Distribution-Cost Grade](#27-distribution-cost-grade)
+  - [2.8. Function](#28-function)
+  - [2.9. Funding Distribution Rule](#29-funding-distribution-rule)
+  - [2.10. Future Prioritized Project Option Creation Rule](#210-future-prioritized-project-option-creation-rule)
+  - [2.11. Future Treatment Exclusion Rule](#211-future-treatment-exclusion-rule)
+  - [2.12. Predicate](#212-predicate)
+  - [2.13. Project](#213-project)
+  - [2.14. Project Option](#214-project-option)
+  - [2.15. Project Option Creation Rule](#215-project-option-creation-rule)
+  - [2.16. Scenario](#216-scenario)
+    - [2.16.1. Configuration](#2161-configuration)
+  - [2.17. Target Condition Goal](#217-target-condition-goal)
+  - [2.18. Total Snapshot](#218-total-snapshot)
+  - [2.19. Treatment](#219-treatment)
+  - [2.20. Treatment Concurrency Exclusion Rule](#220-treatment-concurrency-exclusion-rule)
+
+## 1. Overview of Procedure
+
+An input dataset for the SAF is called a _scenario_. Acting on this dataset, the
+basic procedure in the SAF is a sequence of _simulation time steps_. Each
 simulation time step comprises four phases in sequence:
 
-1. Deterioration of assets.
-2. Selection of prioritized projects.
-3. Selection of other projects.
-4. Application of effects from completed projects.
+1. **Deterioration of assets**
+   - The _deterioration profile_ of each _attribute definition_ is used across
+     all assets in the simulation, excluding any currently _non-deteriorating
+     attributes_ per asset.
+2. **Selection of prioritized project options**
+   - A pool of _prioritized project option creation rules_ is maintained for
+     each asset during the simulation. Each prioritization is defined by a
+     _treatment_ and is added to an asset's pool by a corresponding _project_
+     when the latter is completed.
+   - All _currently due_ prioritized project option creation rules are evaluated
+     to generate a set of _prioritized project options_ from which selections
+     are made in this phase.
+   - If a prioritized project option is selected during this phase, the option's
+     creation rule is removed from the asset's pool. If the option is not
+     selected, the option's creation rule is deferred to the next time step's
+     prioritized selection phase.
+3. **Selection of other project options**
+   - All _project option creation rules_ are evaluated against all assets to
+     determine the set of _project options_ from which selections are made.
+4. **Attribute value updates due to completed projects**
+   - For each active project whose duration ends in this time step, the
+     attribute value functions of that project's treatment are used to update
+     the attribute values on that project's asset.
 
-The SAF fully specifies the behavior of phases 1 and 4. Within phases 2 and 3,
-an SAFI must specify certain aspects of the behavior.
+The SAF specifies the full behavior of phases 1 and 4 but only the general
+behavior of phases 2 and 3. Within phases 2 and 3, an SAFI must specify two
+major details of behavior:
 
-> This document describes the intent and basic data of the SAF. It does not
-> describe or prescribe the customizations and extensions of any SAFI.
+1. **Calculation of _Estimated Objective Value (EOV)_**
+   - EOV is a numeric value assigned to each project option based on
+     characteristics of the project, e.g. attribute value updates due to the
+     treatment; cost of the treatment; etc.
+   - The "meaning" of EOV is entirely decided by an SAFI providing the
+     calculation. The SAF does not prescribe the interpretation of EOV in any
+     way.
+   - To offer some examples, EOV might represent a desirable quantity to
+     maximize, representing "benefit" or "remaining life" (optionally as a ratio
+     against another metric like cost), or EOV might represent an undesirable
+     quantity to minimize, perhaps representing long-term cost.
+   - Calculation and interpretation of EOV is called an _EOV method_.
+   - An SAFI may provide multiple EOV methods, and each EOV method may be
+     configurable.
+2. **Implementations of project option selection strategies based on EOV**
+   - _Optimize selection subject to no constraints_
+   - _Optimize selection subject to budget constraints_
+   - _Optimize selection subject to goal constraints_
+   - _Optimize selection subject to budget & goal constraints_
+   - Budget constraints can always be met (by selecting no project options, thus
+     spending no money).
+   - Goal constraints can't always be met. When they can't be met, an SAFI has
+     to decide what to do, i.e. continue somehow or abort.
 
-## Concepts & Data Structures
+After the final simulation time step, the primary output of an SAFI is the set
+of projects selected during the simulation. The total set of projects for a
+simulation period may include projects that were pre-selected as part of the
+input dataset.
 
-The subsections here are ordered for sequential reading. For later reference,
-here is an alphabetized list of links to each subsection:
+An SAFI may provide supplemental output data, such as a log describing internal
+events and intermediate data.
 
-- [Asset Snapshot](#asset-snapshot)
-- [Predicate](#predicate)
-- [Function](#function)
-- [Scenario](#scenario)
-- [Attribute Definition](#attribute-definition)
-- [Deterioration Profile](#deterioration-profile)
-- [Target Condition Goal](#target-condition-goal)
-- [Deficient Condition Goal](#deficient-condition-goal)
-- [Total Snapshot](#total-snapshot)
-- [Project](#project)
+## 2. Concepts & Data Structures
 
+The subsections here are ordered for sequential reading. For reference, here is
+an alphabetized list of links to each subsection:
 
-### Asset Snapshot
+### 2.1. Asset Snapshot
 
 An asset snapshot is the full set of attribute values associated with a single
 asset at a single moment in the sequence of steps and phases constituting the
 simulation time sequence.
 
-### Predicate
-
-In the SAF, a predicate is a mapping from an asset snapshot to a classical truth
-value, i.e. "true" or "false".
-
-### Function
-
-In the SAF, a function is a mapping from an asset snapshot to a number.
-
-### Attribute Value Function
-
-An attribute value function is an association between a function and an
-attribute. The function's output is always a value for the associated attribute.
-
-### Scenario
-
-A scenario is a container of all input data required for a single simulation
-within an SAFI.
-
-- _Attribute Definitions_: **one or more**
-- _Initial Total Snapshot_: **required**
-- _Committed Projects_: **zero or more**
-- _Project Option Creation Rules_: **one or more**
-- _Treatment Concurrency Exclusion Rules_: **zero or more**
-- _Budgets_: **one or more**
-- _Funding Distribution Rules_: **zero or more**
-
-#### Configuration
-
-- Are multiple budgets allowed to fund a single project?
-- Are budget remainders allowed to carry forward to the next simulation time
-  step?
-
-### Attribute Definition
+### 2.2. Attribute Definition
 
 An attribute definition describes a property associated with some or all assets
 in the scope of the scenario. In the SAF, only numeric attributes are specified,
@@ -91,12 +125,12 @@ or date or virtual.
 - _Deterioration Profile_: **optional**
   - If omitted, this attribute never deteriorates.
 
-#### Configuration
+#### 2.2.1. Configuration
 
 - For this attribute on a given asset, how are multiple simultaneous updates
   handled?
-  - Any method may be specified, as long as it is consistent and well-defined.
-    Example methods might include:
+  - Any handling may be specified, as long as it is consistent and well-defined.
+    Examples of handling might include:
     - "Exclusive": Do not allow multiple simultaneous updates. Mutually exclude
       the sources (project options and/or committed projects) of the updates.
       Since committed projects are pre-selected, a project P1 whose completion
@@ -110,7 +144,37 @@ or date or virtual.
     - "Minimum": Take the most negative effect result.
     - "Maximum": Take the most positive effect result.
 
-### Deterioration Profile
+### 2.3. Attribute Value Function
+
+An attribute value function is an association between a function and an
+attribute. The function's output is always a value for the associated attribute.
+
+### 2.4. Budget
+
+A budget describes a "pot of money" that can be used to fund projects.
+
+- _Investment Sequence_: **one or more**
+  - This is a sequence of money amounts, one per simulation time step. At each
+    time step, the corresponding money amount is made available as part of this
+    budget.
+- _Predicate_: **optional**
+  - If omitted, this budget is available for all assets.
+
+### 2.5. Deficient Condition Goal
+
+A deficient condition goal for an attribute is a statement that the SAF should
+try to select projects such that the portion of applicable assets, each having a
+value for this attribute that is "worse" (i.e. more deteriorated) than a
+specified condition limit, is no larger than a specified deficiency limit.
+
+- _Condition Limit_: **required**
+- _Deficiency Limit_: **required**
+  - The SAFI determines the interpretation of this limit. For example, it could
+    be a percentage or a count.
+- _Predicate_: **optional**
+  - If omitted, this goal is applicable to all assets.
+
+### 2.6. Deterioration Profile
 
 A deterioration profile describes how an attribute value changes over time as an
 asset with that attribute undergoes deterioration. The profile may include
@@ -124,39 +188,56 @@ information about "goals" for the attribute value, to guide project selection.
 - _Target Condition Goals_: **zero or more**
 - _Deficient Condition Goals_: **zero or more**
 
-### Target Condition Goal
+### 2.7. Distribution-Cost Grade
 
-A target condition goal for an attribute is a statement that the SAF should try
-to select projects such that the average value of the attribute (across all
-assets satisfying an optionally specified predicate) is not "worse" (i.e. more
-deteriorated) than a specified condition limit.
+- _Cost Ceiling_: **required**
+  - If a treatment cost is less than or equal to this value, then the associated
+    distribution sequence may be used to define funding and duration of a
+    project using that treatment.
+- _Distribution Sequence_: **one or more**
+  - This is a sequence of percentage values, individually in the closed interval
+    [0, 100], collectively summing to exactly 100.
 
-- _Condition Limit_: **required**
-- _Simulation Time Step_: **optional**
-  - If omitted, this goal is applicable to all time steps.
+### 2.8. Function
+
+In the SAF, a function is a mapping from asset snapshots to numbers.
+
+### 2.9. Funding Distribution Rule
+
+A funding distribution rule specifies a set of "grades" that determine the cost
+per time step and duration of a project option.
+
 - _Predicate_: **optional**
-  - If omitted, this goal is applicable to all assets.
+  - If omitted, this rule is applicable to all assets.
+- _Distribution-Cost Grades_: **one or more**
 
-### Deficient Condition Goal
+### 2.10. Future Prioritized Project Option Creation Rule
 
-A deficient condition goal for an attribute is a statement that the SAF should
-try to select projects such that the portion of applicable assets having a value
-for this attribute that is "worse" (i.e. more deteriorated) than a specified
-condition limit is no larger than a specified deficiency limit.
+A future prioritized project option creation rule specifies a time after the
+completion of a project at which point a specified project option creation rule
+will be used to create a prioritized project option for the completed project's
+associated asset.
 
-- _Condition Limit_: **required**
-- _Deficiency Limit_: **required**
-  - The SAFI determines the interpretation of this limit. For example, it could
-    be a percentage or a count.
-- _Predicate_: **optional**
-  - If omitted, this goal is applicable to all assets.
+- _Project Option Creation Rule_: **required**
+- _Relative Time Offset_: **required**
+  - This is a positive integer representing a number of simulation time steps.
 
-### Total Snapshot
+### 2.11. Future Treatment Exclusion Rule
 
-This is a set of asset snapshots, one for each asset in the scenario, for a
-single moment in the sequence of simulation time steps and phases.
+A future treatment exclusion rule specifies a length of time after the
+completion of a project in which one or more specified treatments are not
+allowed to be applied to the project's associated asset.
 
-### Project
+- _Excluded Treatments_: **one or more**
+- _Exclusion Period Length_: **required**
+  - This is a positive integer representing a number of simulation time steps.
+
+### 2.12. Predicate
+
+In the SAF, a predicate is a mapping from asset snapshots to classical truth
+values, i.e. "true" or "false".
+
+### 2.13. Project
 
 A project specifies funding for a treatment applied to an asset at a certain
 time for a certain length of time.
@@ -170,7 +251,70 @@ time for a certain length of time.
     from which project funding is drawn. Each entry is the amount spent from one
     budget in one time step to fund this project's treatment.
 
-### Treatment
+### 2.14. Project Option
+
+A project option is associated with one asset and describes a project available
+for selection.
+
+- _Creation Rule_: **required**
+- _Cost Sequence_ : **required**
+  - This is a sequence of costs, one per time step going forward, that must be
+    paid in order to select this project option. The length of this sequence is
+    the time step duration of the project this option represents.
+- _Estimated Objective Value (EOV)_
+
+### 2.15. Project Option Creation Rule
+
+A project option creation rule specifies how to calculate total cost of a
+treatment applied to an asset.
+
+- _Predicate_: **optional**
+  - If omitted, this rule is applicable to all assets.
+- _Treatment_: **required**
+- _Cost Function_: **required**
+- _Allowed Budgets_: **one or more**
+  - If (a) a budget is on this list and (b) that budget's predicate is satisfied
+    by an asset, then the project option created by this rule for that asset is
+    allowed to receive funding from that budget.
+
+### 2.16. Scenario
+
+A scenario is a container of all input data required for a single simulation
+within an SAFI.
+
+- _Attribute Definitions_: **one or more**
+- _Initial Total Snapshot_: **required**
+- _Committed Projects_: **zero or more**
+- _Project Option Creation Rules_: **one or more**
+- _Treatment Concurrency Exclusion Rules_: **zero or more**
+- _Budgets_: **one or more**
+- _Funding Distribution Rules_: **zero or more**
+
+#### 2.16.1. Configuration
+
+- Are multiple budgets allowed to fund a single project?
+- Are budget remainders allowed to carry forward to the next simulation time
+  step?
+
+### 2.17. Target Condition Goal
+
+A target condition goal for an attribute is a statement that the SAF should try
+to select projects such that the average value of the attribute (across all
+assets satisfying an optionally specified predicate) is not "worse" (i.e. more
+deteriorated) than a specified condition limit.
+
+- _Condition Limit_: **required**
+- _Simulation Time Step_: **optional**
+  - If omitted, this goal is applicable to all time steps.
+- _Predicate_: **optional**
+  - If omitted, this goal is applicable to all assets.
+
+### 2.18. Total Snapshot
+
+This is a set of asset snapshots, one for each asset in the scenario, for a
+single moment in the sequence of simulation time steps and phases.
+
+### 2.19. Treatment
 
 A treatment specifies how the attribute values of an asset are updated when the
 treatment is fully applied at the end of a project.
@@ -183,142 +327,14 @@ treatment is fully applied at the end of a project.
 - _Future Treatment Exclusion Rules_: **zero or more**
 - _Future Prioritized Project Option Creation Rules_: **zero or more**
 
-### Future Treatment Exclusion Rule
+### 2.20. Treatment Concurrency Exclusion Rule
 
-A future treatment exclusion rule specifies a length of time after the
-completion of a project in which one or more specified treatments are not
-allowed to be applied to the project's associated asset.
+A treatment concurrency exclusion rule specifies a set of mutually exclusive
+treatments. In other words, no two projects with treatments from this set are
+allowed to be active on the same asset at any one time. (Note that a treatment
+is always self-exclusive, regardless of the presence or absence of exclusion
+rules.)
 
-- _Excluded Treatments_: **one or more**
-- _Exclusion Period Length_: **required**
-  - This is a positive integer representing a number of simulation time steps.
-
-### Future Prioritized Project Option Creation Rule
-
-A future prioritized project option creation rule specifies a time after the
-completion of a project at which point a specified project option creation rule
-will be used to create a prioritized project option associated with 
-
-- _Project Option Creation Rule_: **required**
-- _Relative Time Offset_: **required**
-  - This is a positive integer representing a number of simulation time steps.
-  - Adding the offset to the current simulation time step gives the future
-    simulation time step in which the associated project option creation rule
-    will participate in the prioritized project selection phase.
-
-### Project Option Creation Rule
-
+- _Mutually Exclusive Treatments_: **two or more**
 - _Predicate_: **optional**
   - If omitted, this rule is applicable to all assets.
-- _Treatment_: **required**
-- _Cost Function_: **required**
-- _Allowed Budgets_: **one or more**
-
-### Treatment Concurrency Exclusion Rule
-
-- _Predicate_: **optional**
-  - If omitted, this rule is applicable to all assets.
-- _Mutually Exclusive Treatments_ : (2+)
-
-### Budget
-
-- _Predicate_: **optional**
-  - If omitted, this budget is available for all assets.
-- _Investment Sequence_ : (1+)
-
-### Funding Distribution Rule
-
-- _Predicate_: **optional**
-  - If omitted, this rule is applicable to all assets.
-- _Distribution Rules_, each:
-  - _Cost Ceiling_ : positive number
-  - _Percentage Sequence_ : (1+), individually in $[0,100]$, must sum to 100
-
-### Project Option
-
-A project option is associated with one asset and describes a project available
-for selection.
-
-- _Creation Rule_: **required**
-- _Cost Sequence_ : **required**
-  - This is a sequence of costs, one per time step going forward, that must be
-    paid in order to select this project option. The length of this sequence is
-    the time step duration of the project this option represents.
-- _Estimated Objective Value (EOV)_
-  - Calculation and interpretation of the EOV are entirely the responsibility of
-    an SAFI. For example, the EOV might be positive, measuring "benefit" or
-    "remaining life" (optionally as a ratio against another metric like cost),
-    or the EOV might be negative (directly measuring long-term cost). Or it can
-    be positive regardless, and the optimization can switch between maximizing
-    and minimizing.
-  - (put this into detail section about the 4 phases) Despite the major
-    responsibility of an SAFI to specify and use the EOV, the SAF can delineate
-    some general selection strategies:
-    - Optimize total EOV with no constraints
-    - Optimize total EOV with budget constraints
-    - Optimize total EOV with goal constraints
-    - Optimize total EOV with budget & goal constraints
-    - No selection
-  - An SAFI must provide the logic for each of the SAF selection strategies.
-  - Budget constraints can always be met (by selecting nothing and spending
-    nothing). Goal constraints can't always be met. When they can't be met, an
-    SAFI has to decide what to do, e.g. continue somehow or abort.
-
----
-
-## sketch of content
-
-Top-to-bottom "structured glossary". In glossary term discussion, focus on
-**purpose** of the entity.
-
-### Glossary of Terms & Structured Data
-
-outstanding modeling problems & solutions:
-
-- prioritization handling needs to be kept simple. all that prioritization means
-  is that you get a "first round" of decisions that uses only the current crop
-  of prioritized TFRs on the respective assets.
-  - "deferrals" are something to consider, e.g. when a prioritized TFR can't
-    apply "in time" due to applicability predicate failure or due to
-    non-selection of its project option (i.e. budget limitations or lack of
-    necessity re goals), it's simply pushed back to the next time step.
-- treatment concurrency needs to be the default mode. specifically, we cannot
-  think of a cash-flow period as a hands-off period (which it is, currently in
-  AssetFox). things can still be worked on. the solution is to lean back on
-  concurrency exclusion rules, with the added sub-rule that a treatment cannot
-  be re-applied while the treatment is being performed, and the treatment is
-  "present" for exclusion-checking during the cash-flow.
-
-### Responsibilities of the SAFI
-
-- (possibly) how to generate a project option from a TFR
-  - really, I don't think we should "officially" open this up. if the objective
-    value estimation needs extra stuff from this step, that's fine, the SAFI can
-    allow the extra stuff to be tracked/calculated.
-  - keeping this aspect closed and well-defined will make the documentation that
-    much clearer and the framework that much more usable.
-- how to estimate "objective value" of project options
-  - basically the "outlook algorithm"
-- how to select from a set of project options
-  - basically the "consideration loop"
-
-### Output Data
-
-At the framework level (ignoring additional output requirements imposed by
-SAFIs), the only output is a set of projects.
-
-_Initial Total Snapshot_ + _Projects (Committed & Selected)_ = _Final Total Snapshot_
-
-Decision-making rationale output should be part of logging, not part of the
-primary output. (Currently, in AssetFox, rationale output is bundled with
-project output, and the bundle's large size has been a technical obstacle on the
-project.)
-
-A design goal is that the user should be able to easily (with little or no
-effort) feed some or all of the output project activity _back into_ the
-simulation as "committed project" input. In other words, when the user is
-crafting committed project input, they should be crafting nearly the same
-structure as what appears in the output. Note that this flexibility needs to
-also include cash-flow. Users need to be able to clearly and intuitively specify
-cash-flow committed projects.
-- This has been achieved, I think.
