@@ -2,6 +2,19 @@
 
 ---
 
+### Responsibilities of the SAFI
+
+- (possibly) how to generate a project option from a TFR
+  - really, I don't think we should "officially" open this up. if the objective
+    value estimation needs extra stuff from this step, that's fine, the SAFI can
+    allow the extra stuff to be tracked/calculated.
+  - keeping this aspect closed and well-defined will make the documentation that
+    much clearer and the framework that much more usable.
+- how to estimate "objective value" of project options
+  - basically the "outlook algorithm"
+- how to select from a set of project options
+  - basically the "consideration loop"
+
 # sketch/draft content
 
 - amazingly, I think the null treatment (i.e. "no treatment") is an
