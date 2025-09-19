@@ -98,7 +98,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             SimulationOutput reportOutputData,
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
             List<SectionCommittedProjectDTO> committedProjects,
-            bool shouldBundleFeasibleTreatments)
+            bool shouldBundleFeasibleTreatments,
+            string primaryKey)
         {
             var budgetAnalysisRow = currentCell.Row + 1;
             currentCell.Row += 11;
@@ -114,7 +115,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             FillTreatmentGroupTotalsSection(worksheet, currentCell, simulationYears, costAndLengthPerTreatmentGroupPerYear);
             var workTypeTotalsWorkOutsideScope = AddCostOfWorkOutsideScope(committedProjectsForWorkOutsideScope);
             FillWorkTypeTotalsSectionByBudget(worksheet, currentCell, simulationYears, workTypeTotals, workTypeTotalsWorkOutsideScope, yearlyBudgetAmount, out var totalSpendingRow, workSummaryByBudgetModel);
-            FillBudgetTotalSectionByBudget(worksheet, currentCell, simulationYears, totalSpendingRow, workSummaryByBudgetModel, reportOutputData, committedProjects);
+            FillBudgetTotalSectionByBudget(worksheet, currentCell, simulationYears, totalSpendingRow, workSummaryByBudgetModel, reportOutputData, committedProjects, primaryKey);
 
             var currentRow = currentCell.Row + 1;
             currentCell.Row = budgetAnalysisRow;
