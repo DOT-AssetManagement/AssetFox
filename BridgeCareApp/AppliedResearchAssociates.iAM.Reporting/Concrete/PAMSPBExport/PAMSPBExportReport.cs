@@ -165,6 +165,8 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
             var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);
             var committedProjectList = _unitOfWork.CommittedProjectRepo.GetCommittedProjectsForExport(simulationId);
+            var primaryKeyFields = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+            var firstPrimaryKey = primaryKeyFields[0].ToString();
 
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSPBExportReportData.xlsx"));
@@ -183,7 +185,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var simulationOutput = _unitOfWork.SimulationOutputRepo.GetSimulationOutputViaRelation(simulationId, attributeDtos: attributeDtos);
             var treatmentsWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.TreatmentTab);
             var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
-            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, shouldBundleFeasibleTreatments, committedProjectList);
+            _treatmentTab.Fill(treatmentsWorksheet, simulationOutput, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, shouldBundleFeasibleTreatments, committedProjectList, firstPrimaryKey);
 
             checkCancelled(cancellationToken, simulationId);            
 

@@ -71,9 +71,9 @@ namespace BridgeCareCore.Controllers
         }
 
         [HttpPost]
-        [Route("CreateNetwork/{networkName}")]
+        [Route("CreateNetwork/{networkName}/{dataSourceId}")]
         [ClaimAuthorize("NetworkAddAccess")]
-        public IActionResult CreateNetwork(string networkName, NetworkCreationParameters parameters)
+        public IActionResult CreateNetwork(string networkName, Guid dataSourceId, NetworkCreationParameters parameters)
         {
             try
             {
@@ -87,8 +87,9 @@ namespace BridgeCareCore.Controllers
                 }
 
                 // create network domain model from attribute data created from the network attribute
-                var allDataSource = parameters.NetworkDefinitionAttribute.DataSource;
-                var mappedDataSource = AllDataSourceMapper.ToSpecificDto(allDataSource);
+                var dataSource = _unitOfWork.DataSourceRepo.GetDataSource(dataSourceId);
+                var dataSourceMapping = _unitOfWork.DataSourceMappingRepo.GetDataSourceMappings(dataSourceId);
+                var keyAttributeMapping = dataSourceMapping.FirstOrDefault(x => x.AttributeId == attribute.Id);
                 var attributeConnection = getAttributeConnection();
                 var attributeData = AttributeDataBuilder.GetData(attributeConnection);
 
@@ -105,6 +106,7 @@ namespace BridgeCareCore.Controllers
                 var network = NetworkFactory.CreateNetworkFromAttributeDataRecords(attributeData, parameters.DefaultEquation);
                 network.Name = networkName;
                 network.KeyAttributeId = parameters.NetworkDefinitionAttribute.Id;
+                
 
                 // insert network domain data into the data source
                 UnitOfWork.NetworkRepo.CreateNetwork(network);
@@ -115,12 +117,12 @@ namespace BridgeCareCore.Controllers
 
                 AttributeConnection getAttributeConnection() {
 
-                    if (mappedDataSource.Type == "Excel")
+                    if (dataSource.Type == "Excel")
                     {
-                        var excelSpreadsheet = _unitOfWork.ExcelWorksheetRepository.GetExcelRawDataByDataSourceId(mappedDataSource.Id);
-                        return AttributeConnectionBuilder.Build(attribute, mappedDataSource, UnitOfWork, excelSpreadsheet);
+                        var excelSpreadsheet = _unitOfWork.ExcelWorksheetRepository.GetExcelRawDataByDataSourceId(dataSource.Id);
+                        return AttributeConnectionBuilder.Build(attribute, keyAttributeMapping, dataSource, UnitOfWork, excelSpreadsheet);
                     }
-                    return AttributeConnectionBuilder.Build(attribute, mappedDataSource, UnitOfWork);
+                    return AttributeConnectionBuilder.Build(attribute, keyAttributeMapping, dataSource, UnitOfWork);
                 }
             }
             catch (Exception e)

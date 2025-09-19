@@ -137,7 +137,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                     reportOutputData,
                     committedProjectsForWorkOutsideScope,
                     committedProjects,
-                    shouldBundleFeasibleTreatments);
+                    shouldBundleFeasibleTreatments,
+                    primaryKey);
 
                 // Finally, advance for next budget label
                 currentCell.Row++;
