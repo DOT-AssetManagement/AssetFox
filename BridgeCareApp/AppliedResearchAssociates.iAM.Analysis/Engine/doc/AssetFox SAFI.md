@@ -1,26 +1,61 @@
 # AssetFox Implementation of iAM SAF
 
+## SAFI Term-Concept Map
+
+| AssetFox SAFI Term                  | iAM SAF Concept                                 |
+| ----------------------------------- | ----------------------------------------------- |
+| "Explorer"                          | n/a                                             |
+| "The No-Treatment"                  | n/a                                             |
+| Active Treatment                    | treatment                                       |
+| Attribute Value History             | n/a                                             |
+| Benefit                             | EOV                                             |
+| Budget Order                        | n/a                                             |
+| Budget Priority Level               | n/a                                             |
+| Calculated Field                    | n/a                                             |
+| Calculated Field Timing             | n/a                                             |
+| Cash Flow Distribution Rule         | cost distribution grade                         |
+| Cash Flow Rule                      | cost distribution rule                          |
+| Network                             | assets                                          |
+| Number Attribute                    | attribute definition                            |
+| Passive Treatment                   | n/a                                             |
+| Performance Curve                   | deterioration model                             |
+| Performance Curve Adjustment Factor | n/a                                             |
+| Performance Curve Shift             | n/a                                             |
+| Remaining Life                      | EOV                                             |
+| Roll-Forward                        | n/a                                             |
+| Text Attribute                      | n/a                                             |
+| Treatment Bundle                    | implicit concurrency of projects                |
+| Treatment Consequence               | attribute value function                        |
+| Treatment Consideration Loop        | SAFI project option selection                   |
+| Treatment Option                    | project option                                  |
+| Treatment Outlook                   | SAFI EOV calculation                            |
+| Treatment Scheduling                | future prioritized project option creation rule |
+| Treatment Shadow                    | future treatment exclusion rule                 |
+| Treatment Supersede Rule            | treatment concurrency exclusion rule            |
+
 ---
-
-### Responsibilities of the SAFI
-
-- (possibly) how to generate a project option from a TFR
-  - really, I don't think we should "officially" open this up. if the objective
-    value estimation needs extra stuff from this step, that's fine, the SAFI can
-    allow the extra stuff to be tracked/calculated.
-  - keeping this aspect closed and well-defined will make the documentation that
-    much clearer and the framework that much more usable.
-- how to estimate "objective value" of project options
-  - basically the "outlook algorithm"
-- how to select from a set of project options
-  - basically the "consideration loop"
 
 # sketch/draft content
 
-- amazingly, I think the null treatment (i.e. "no treatment") is an
-  implementation detail. Makes sense, given that conceptually it has no
-  real-world analogue other than deterioriation, which is where its effects
-  should incorporated.
+
+## differences that are part of the EOV/selection logic
+
+- benefit
+  - attribute
+  - limit
+- remaining life
+  - attribute
+  - limit
+- "outlook" & its configuration
+  - number of years
+- "consideration" & its configuration
+  - budget order
+  - budget priority levels
+
+## differences that are insane and probably wrong/buggy/obsolete
+
+- calculated field timing
+- "pre-application" of passive treatment
 
 ### misc remarks
 
