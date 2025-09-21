@@ -207,7 +207,7 @@ information about "goals" for the attribute value, to guide project selection.
 
 ### 2.9. Function
 
-In the SAF, a function is a mapping from asset snapshots to numbers.
+In the SAF, a function is a map from asset snapshots to numbers.
 
 ### 2.10. Future Prioritized Project Option Creation Rule
 
@@ -232,8 +232,8 @@ allowed to be applied to the project's associated asset.
 
 ### 2.12. Predicate
 
-In the SAF, a predicate is a mapping from asset snapshots to classical truth
-values, i.e. "true" or "false".
+In the SAF, a predicate is a map from asset snapshots to classical truth values,
+i.e. "true" or "false".
 
 ### 2.13. Project
 
