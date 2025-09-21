@@ -10,7 +10,7 @@ data, respectively customized and extended according to all requirements of the
 SAFI.
 
 - [1. Overview of Procedure](#1-overview-of-procedure)
-- [2. Concepts \& Data Structures](#2-concepts--data-structures)
+- [2. Concepts \& Data Definitions](#2-concepts--data-definitions)
   - [2.1. Asset Snapshot](#21-asset-snapshot)
   - [2.2. Attribute Definition](#22-attribute-definition)
     - [2.2.1. Configuration](#221-configuration)
@@ -19,7 +19,7 @@ SAFI.
   - [2.5. Cost Distribution Grade](#25-cost-distribution-grade)
   - [2.6. Cost Distribution Rule](#26-cost-distribution-rule)
   - [2.7. Deficient Condition Goal](#27-deficient-condition-goal)
-  - [2.8. Deterioration Profile](#28-deterioration-profile)
+  - [2.8. Deterioration Model](#28-deterioration-model)
   - [2.9. Function](#29-function)
   - [2.10. Future Prioritized Project Option Creation Rule](#210-future-prioritized-project-option-creation-rule)
   - [2.11. Future Treatment Exclusion Rule](#211-future-treatment-exclusion-rule)
@@ -41,21 +41,21 @@ basic procedure in the SAF is a sequence of _simulation time steps_. Each
 simulation time step comprises four phases in sequence:
 
 1. **Deterioration of assets**
-   - The _deterioration profile_ of each _attribute definition_ is used across
-     all assets in the simulation, excluding any currently _non-deteriorating
+   - The _deterioration model_ of each _attribute definition_ is used across all
+     assets in the simulation, excluding any currently _non-deteriorating
      attributes_ per asset.
 2. **Selection of prioritized project options**
-   - A pool of _prioritized project option creation rules_ is maintained for
-     each asset during the simulation. Each prioritization is defined by a
-     _treatment_ and is added to an asset's pool by a corresponding _project_
-     when the latter is completed.
+   - A fluctuating pool of _prioritized project option creation rules_ is
+     maintained for each asset during the simulation. Each prioritization is
+     defined by a _treatment_ and is added to an asset's pool by a corresponding
+     _project_ when the latter is completed.
    - All _currently due_ prioritized project option creation rules are evaluated
      to generate a set of _prioritized project options_ from which selections
      are made in this phase.
    - If a prioritized project option is selected during this phase, the option's
      creation rule is removed from the asset's pool. If the option is not
-     selected, the option's creation rule is deferred to the next time step's
-     prioritized selection phase.
+     selected, the option's creation rule is kept in the pool and deferred to
+     the next time step's prioritized selection phase.
 3. **Selection of other project options**
    - All _project option creation rules_ are evaluated against all assets to
      determine the set of _project options_ from which selections are made.
@@ -94,16 +94,13 @@ major details of behavior:
 
 After the final simulation time step, the primary output of an SAFI is the set
 of projects selected during the simulation. The total set of projects for a
-simulation period may include projects that were pre-selected as part of the
-input dataset.
+simulation period may include _committed projects_ that were pre-selected as
+part of the input dataset.
 
 An SAFI may provide supplemental output data, such as a log describing internal
 events and intermediate data.
 
-## 2. Concepts & Data Structures
-
-The subsections here are ordered for sequential reading. For reference, here is
-an alphabetized list of links to each subsection:
+## 2. Concepts & Data Definitions
 
 ### 2.1. Asset Snapshot
 
@@ -122,7 +119,7 @@ or date or virtual.
   - If omitted, this attribute has no minimum value.
 - _Maximum Value_: **optional**
   - If omitted, this attribute has no maximum value.
-- _Deterioration Profile_: **optional**
+- _Deterioration Model_: **optional**
   - If omitted, this attribute never deteriorates.
 
 #### 2.2.1. Configuration
@@ -172,12 +169,13 @@ A budget describes a "pot of money" that can be used to fund projects.
 
 ### 2.6. Cost Distribution Rule
 
-A cost distribution rule specifies a set of "grades" that determine the cost per
-time step (and duration) of a project option.
+A cost distribution rule specifies a set of "grades", each of which can
+determine the cost per time step (and duration) of a project option.
 
 - _Predicate_: **optional**
   - If omitted, this rule is applicable to all assets.
 - _Cost Distribution Grades_: **one or more**
+  - Each grade
 
 ### 2.7. Deficient Condition Goal
 
@@ -193,15 +191,15 @@ specified condition limit, is no larger than a specified deficiency limit.
 - _Predicate_: **optional**
   - If omitted, this goal is applicable to all assets.
 
-### 2.8. Deterioration Profile
+### 2.8. Deterioration Model
 
-A deterioration profile describes how an attribute value changes over time as an
-asset with that attribute undergoes deterioration. The profile may include
+A deterioration model describes how an attribute value changes over time as an
+asset with that attribute undergoes deterioration. The model may include
 information about "goals" for the attribute value, to guide project selection.
 
 - _Attribute Value Function_: **required**
   - This function's associated attribute is the one whose definition contains
-    this deterioration profile.
+    this deterioration model.
 - _Direction of Deterioration_: **negative or positive**
   - This is required for interpretation of goal condition limits.
 - _Target Condition Goals_: **zero or more**
@@ -259,8 +257,11 @@ for selection.
 - _Creation Rule_: **required**
 - _Cost Sequence_ : **required**
   - This is a sequence of costs, one per time step going forward, that must be
-    paid in order to select this project option. The length of this sequence is
-    the time step duration of the project this option represents.
+    paid in order to select this project option.
+  - This sequence is determined by evaluating the scenario's cost distribution
+    rules against the asset and total cost of the project option.
+  - The length of this sequence is the time step duration of the project this
+    option represents.
 - _Estimated Objective Value (EOV)_
 
 ### 2.15. Project Option Creation Rule
