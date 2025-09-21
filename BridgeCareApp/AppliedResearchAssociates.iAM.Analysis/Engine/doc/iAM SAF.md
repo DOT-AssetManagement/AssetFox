@@ -275,7 +275,7 @@ treatment applied to an asset.
 - _Cost Function_: **required**
 - _Allowed Budgets_: **one or more**
   - If (a) a budget is on this list and (b) that budget's predicate is satisfied
-    by an asset, then the project option created by this rule for that asset is
+    by an asset, then a project option created by this rule for that asset is
     allowed to receive funding from that budget.
 
 ### 2.16. Scenario
