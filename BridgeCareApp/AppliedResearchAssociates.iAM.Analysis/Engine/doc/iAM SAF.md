@@ -1,16 +1,16 @@
 # iAM Simulation Algorithm Framework <!-- omit in toc -->
 
 The iAM _simulation algorithm framework_ (SAF) is an abstract, customizable
-procedure using extensible data definitions that facilitates automated selection
-of _projects_ to optimize the maintenance of _deteriorating assets_ over a
-period of time.
+procedure using extensible data definitions, facilitating automated selection of
+_projects_ to optimize maintenance of _deteriorating assets_ over a period of
+time.
 
 An _SAF implementation_ (SAFI) is an artifact that uses the SAF procedure and
-data, respectively customized and extended according to all requirements of the
-SAFI.
+data, respectively customized and extended according to all special requirements
+of the SAFI.
 
 - [1. Overview of Procedure](#1-overview-of-procedure)
-- [2. Concepts \& Data Definitions](#2-concepts--data-definitions)
+- [2. Terms \& Definitions](#2-terms--definitions)
   - [2.1. Asset Snapshot](#21-asset-snapshot)
   - [2.2. Attribute Definition](#22-attribute-definition)
     - [2.2.1. Configuration](#221-configuration)
@@ -82,7 +82,7 @@ major details of behavior:
    - Calculation and interpretation of EOV is called an _EOV method_.
    - An SAFI may provide multiple EOV methods, and each EOV method may be
      configurable.
-2. **Implementations of project option selection strategies based on EOV**
+2. **Implementations of project option selection methods based on EOV**
    - _Optimize selection subject to no constraints_
    - _Optimize selection subject to budget constraints_
    - _Optimize selection subject to goal constraints_
@@ -100,7 +100,7 @@ part of the input dataset.
 An SAFI may provide supplemental output data, such as a log describing internal
 events and intermediate data.
 
-## 2. Concepts & Data Definitions
+## 2. Terms & Definitions
 
 ### 2.1. Asset Snapshot
 
@@ -285,7 +285,11 @@ within an SAFI.
 
 - _Attribute Definitions_: **one or more**
 - _Initial Total Snapshot_: **required**
+  - This represents the state of all simulation assets in the implicit time step
+    just before the first simulation time step.
 - _Committed Projects_: **zero or more**
+  - These are projects whose funding has been pre-determined for certain
+    treatments on certain assets at certain time steps.
 - _Project Option Creation Rules_: **one or more**
 - _Treatment Concurrency Exclusion Rules_: **zero or more**
 - _Budgets_: **one or more**
