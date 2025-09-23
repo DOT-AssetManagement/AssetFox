@@ -1,4 +1,4 @@
-# AssetFox's SAFI <!-- omit in toc -->
+# AssetFox SAFI <!-- omit in toc -->
 
 AssetFox is an asset management web application that contains an implementation
 of the iAM SAF.
@@ -7,7 +7,23 @@ of the iAM SAF.
 
 ### EOV Calculation
 
+- benefit
+  - attribute
+  - limit
+  - weighting
+- remaining life
+  - attribute
+  - limit
+- either benefit or RL, not both
+- can do a ratio against estimated cost
+- "outlook" & its configuration
+  - number of years
+
 ### Project Option Selection
+
+- "consideration" & its configuration
+  - budget order
+  - budget priority levels
 
 ## Unique SAFI Terms & Corresponding SAF Concepts
 
@@ -32,7 +48,7 @@ of the iAM SAF.
 | Passive Treatment                   | -                                               |
 | Performance Curve                   | deterioration model function                    |
 | Performance Curve Adjustment Factor | -                                               |
-| Performance Curve Shift             | -                                               |
+| Performance Curve Shift Mode        | -                                               |
 | Remaining Life                      | an interpretation of EOV                        |
 | Roll-Forward                        | -                                               |
 | Selectable Treatment                | project option creation rule                    |
@@ -55,15 +71,18 @@ of the iAM SAF.
     _roll-forward_.
 - **Attribute Value History**
   - This is an extension on a scenario, replacing the initial total snapshot.
-  - The attribute value history is used to accomplish _roll-forward_, which is a
+  - Attribute value history is used to accomplish _roll-forward_, which is a
     preprocessing step that calculates the initial total snapshot.
-  - The attribute value history can contain asset attribute values for the first
-    simulation time step and for time steps before the first simulation time
-    step.
+  - Conceptually, attribute value history is a set of 4-tuples, each with the
+    following shape:
+    - `(time step, asset, attribute, value)`
+  - Attribute value history can contain any asset's attribute values for the
+    first simulation time step and for time steps before the first simulation
+    time step.
   - Each value in the history is interpreted as being from a snapshot taken just
-    after phase 1 (deterioration) of the corresponding time step. In other
-    words, it allows overriding the effects of deterioration in the first
-    simulation time step.
+    after phase 1 (deterioration) of the corresponding time step.
+    - This allows the effects of deterioration in the first simulation time step
+      to be ignored.
 - **Benefit**
 - **Budget Order**
   - This is the order in which budgets are examined when the SAFI is attempting
@@ -90,109 +109,122 @@ of the iAM SAF.
     easily.
 - **Performance Curve Adjustment Factor**
   - On a single asset, the adjustment factor associated with a performance curve
-    modifies the rate of deterioration _if that performance curve is defined by
+    modifies the rate of deterioration _if that curve's function is defined by
     an age-dependent spline_.
   - A factor above one decreases the rate of deterioration and a factor below
     one increases the rate of deterioration. For example, if an asset has aged
-    by 1.0 time steps, an adjustment factor of 2.0 will effectively change the
-    age difference to 0.5 time steps.
+    by 1.0 (which is the typical aging from one time step to the next), an
+    adjustment factor of 2.0 will effectively change the age difference to 0.5.
   - An adjustment factor is associated with a performance curve by the
     application of treatments to an asset. Each asset maintains its own set of
     associations.
-- **Performance Curve Shift**
+- **Performance Curve Shift Mode**
   - This is a mode associated with each performance curve, specified as part of
     the scenario and unchanging over the course of the simulation.
-  - When enabled, 
+  - Shift mode is only applicable to a performance curve _if that curve's
+    function is defined by an age-dependent spline_.
+  - Conceptually, shift mode is intended to allow an attribute to deterioriate
+    based on its current value rather than based on the asset's age, since it is
+    possible for an asset to underperform or overperform relative to age-based
+    expectations.
+    - Note that deterioration based on current value is already possible (and
+      more naturally formulated) by defining the curve's function with a
+      mathematical expression (which has the entire asset snapshot in scope)
+      rather than a piecewise expression (which has only the "age" attribute in
+      scope).
+  - When shift mode is enabled for a performance curve, the deterioration
+    calculation is slightly modified. Normally, the deteriorating asset's "age"
+    value is mapped directly to an attribute value on the spline, and then that
+    value replaces the current value of that attribute. In this mode, the
+    current attribute value on the asset is mapped to an "apparent age" value
+    via the spline's inverse function. (It is an input requirement that all
+    performance curve splines be invertible.) The "previous age" is then
+    calculated (using the curve adjustment factor, if present) and used to
+    determine a ratio of apparent age to previous age. The current age is
+    multiplied by this ratio, giving a "shifted age" which is finally mapped to
+    the new attribute value on the spline.
+- **Roll-Forward**
+  - This is a preprocessing step that translates the SAFI's _attribute value
+    history_ into the SAF's required _initial total snapshot_.
+  - Roll-forward is basically a sequence of partial simulation time steps that
+    happen before the first simulation time step. During each of these time
+    steps, only phases 1 (deterioriation) and 4 (project completion) occur. In
+    other words, there is no project option selection during roll-forward.
+    - Committed projects are allowed during roll-forward.
+  - The first roll-forward time step is the earliest time step in the attribute
+    value history. Attribute values on each asset are pulled from that time step
+    in history.
+    - If there is no value for a certain attribute on a certain asset in the
+      first time step, then the value "falls forward" to the earliest historical
+      time step with a value for that attribute on that asset. If there is no
+      such time step, the attribute's default value is used.
+  - The first roll-forward time step skips phase 1 because historical attribute
+    values are interpreted as being from snapshots just after phase 1 of each
+    time step.
+  - On each subsequent roll-forward time step, just after phase 1, each
+    attribute value is replaced if and only if the history contains a value for
+    that attribute on the corresponding asset in the current time step.
+- **Text Attribute**
+  - This is another kind of attribute definition provided by this SAFI.
+  - A text attribute has none of the properties of SAF numeric attributes.
+  - A text attribute can have a default value.
 
 ## Expressing Criteria & Equations
 
-This SAFI primarily uses an external expression language called
-"Calculate-Evaluate" to allow flexible definition of its criteria and
-equations.
+This SAFI primarily uses a mathematical expression language called
+"Calculate-Evaluate" to allow flexible definition of its criteria and equations.
 
-A small "change expression" language is available for simpler definitions of
+A small "change expression" language is available for simpler definition of
 attribute value functions on treatments.
 
 A basic "piecewise expression" language is also available for defining
-functions, particularly deterioration functions. Such an expression contains a
-series of 2D points defining a linear spline. Within an asset snapshot, the
+functions, usually deterioration functions. Such an expression contains a series
+of 2D points defining a linear spline. Within an asset snapshot, the
 corresponding function has exactly one dependency attribute, "age", an attribute
 definition for which the scenario is required to provide.
 
 ## Pending Clarifications
 
 - **Calculated Field Timing**
-  - Why? Post-deterioration is useless and pre-deterioration is conceptually
-    unmoored.
+  - Why have this? What is its purpose? "Post-deterioration timing" is useless
+    and "pre-deterioration timing" is conceptually unmoored.
 - **Passive Treatment**
-  - Why? Deterioration suffices.
+  - Why have this? Deterioration suffices.
   - This is perhaps a legacy of older versions of the RoadCare SAFI having only
-    age-dependent piecewise expressions for defining deterioration functions, in
-    which case "age deterioration" had no other representation.
+    piecewise expressions for defining deterioration functions as age-dependent
+    splines. If such versions existed, then the natural advancement of age had
+    no representation other than being a consequence of this "treatment".
+  - **"Pre-application" after phase 1**
+    - Allegedly for compatibility with the RoadCare SAFI. Regardless, the domain
+      concept and justification for this behavior is unknown.
 
 ---
 
-# sketch/draft content
+# possible content
 
+In the SAF, a function system is a function comprising several other functions
+and predicates. A function system has one _default function_ and zero or more
+_conditional functions_. A conditional function is paired with a predicate. The
+default function is optional if and only if there is at least one conditional
+function.
 
+A function system (abbreviated FS here) can be defined to do anything with its
+internal functions. Here are some examples:
 
-## differences that are part of the EOV/selection logic
-
-- benefit
-  - attribute
-  - limit
-- remaining life
-  - attribute
-  - limit
-- "outlook" & its configuration
-  - number of years
-- "consideration" & its configuration
-  - budget order
-  - budget priority levels
-
-## differences that are insane and probably wrong/buggy/obsolete
-
-- calculated field timing
-- "pre-application" of passive treatment
-
-### misc remarks
-
-- the quasi-required "age" attribute is not technically required. It's only used
-  to facilitate handling of piecewise expressions as performance curves. In
-  other words, if that kind of "special" expression could include the dependency
-  attribute(s) in its specification, there's no need to have "special"
-  attributes.
-- alternative methods of defining functions may exist, e.g. "piecewise
-  expressions" as used by RoadCare and AssetFox.
-
-### Implementation details of both RoadCare and AssetFox
-
-- benefit??? seems like benefit attribute designation is also an implementation
-  detail. If you only use remaining-life, then benefit never gets used.
-- inflation rate handling
-- numeric parameters ("calculated fields"), which only exist (a) to make textual
-  expression construction more convenient and (b) to show "virtual attributes"
-  in asset snapshots. These are not essential to the framework.
-- textual attributes, which only exist (a) as additional data to operate on
-  within asset predicates and (b) to show in asset snapshots. These are also not
-  essential to the framework. They're an implementation detail.
-- "AGE" attribute
-- age-dependent "piecewise" expressions for interpolated functions in
-  deterioration models
-- "value-change" expressions in treatment consequences
-- "outlook" algorithm and its configuration, e.g. length of time etc.
-- "calculate-evaluate" expression language for user-friendly construction of
-  asset functions and predicates
-- benefit weighting, spatial weighting
-- inflation rate percentage
-
-### Implementation details of AssetFox
-
-- In AssetFox, cost models are (via a global option) allowed to be summing AFSs
-- performance curve adjustment factors
-- calculated field timing
-- "pre-application" of the null treatment (just after deterioration, before
-  project selection)
-  - frankly, this looks like an awkward attempt to patch up incomplete
-    deterioration rules
-- minimum project cost limit
+- **Switching FS**: This FS produces the result of the one conditional function
+  in the FS whose predicate is satisfied. If multiple predicates are satisfied,
+  it could be considered an input error. If no predicates are satisfied, the
+  default function is used. If there is no default function when it is required,
+  it could be considered an input error.
+- **Summing AFS**: This FS produces the result of summing the default function
+  result (if present) with all results from functions whose predicates are
+  satisfied. If there are no results (no default function and no satisfied
+  predicates), it could be considered an input error.
+- **Minimizing AFS**: This FS produces the minimum result among all results from
+  the default function and any functions whose predicates are satisfied. If
+  there are no results (no default function and no satisfied predicates), it
+  could be considered an input error.
+- **Maximizing AFS**: This FS produces the maximum result among all results from
+  the default function and any functions whose predicates are satisfied. If
+  there are no results (no default function and no satisfied predicates), it
+  could be considered an input error.
