@@ -138,12 +138,20 @@ public static class AnalysisInputLoading
         if (!afterSimulation())
         {
             return null;
-        }
+        }        
 
         // load
         try
         {
             simulation = network.Simulations.Single(_ => _.Id == simulationId);
+
+            // adminSettings KeyFields
+            var keyFields = unitOfWork.AdminSettingsRepo.GetKeyFields();
+            foreach (var keyField in keyFields)
+            {
+                _ = simulation.KeyFields.Add(keyField);
+            }
+
             unitOfWork.InvestmentPlanRepo.GetSimulationInvestmentPlan(simulation);
         }
         catch (Exception ex)

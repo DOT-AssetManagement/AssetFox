@@ -20,7 +20,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             _pavementWorkSummaryComputationHelper = new PavementWorkSummaryComputationHelper();
         }
 
-        private void AddSegmentMilesForBPN(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails, BPNName bpn, ChartRowsModel chartRowsModel = null)
+        private void AddSegmentMilesForBPN(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialAssetSummaries, List<AssetDetail> sectionDetails, BPNName bpn, ChartRowsModel chartRowsModel = null)
         {
             var bpnKey = bpn.ToMatchInDictionary();
             double excellentMiles = 0;
@@ -30,10 +30,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
             if (bpnKey != string.Empty)
             {
-                excellentMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(sectionDetails, bpnKey, _ => _.OpiConditionIsExcellent(bpnKey));
-                goodMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(sectionDetails, bpnKey, _ => _.OpiConditionIsGood(bpnKey));
-                fairMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(sectionDetails, bpnKey, _ => _.OpiConditionIsFair(bpnKey));
-                poorMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(sectionDetails, bpnKey, _ => _.OpiConditionIsPoor(bpnKey));
+                excellentMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(initialAssetSummaries, sectionDetails, bpnKey, _ => _.OpiConditionIsExcellent(bpnKey));
+                goodMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(initialAssetSummaries, sectionDetails, bpnKey, _ => _.OpiConditionIsGood(bpnKey));
+                fairMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(initialAssetSummaries, sectionDetails, bpnKey, _ => _.OpiConditionIsFair(bpnKey));
+                poorMiles = _pavementWorkSummaryComputationHelper.CalculateSegmentMilesForBPNWithCondition(initialAssetSummaries, sectionDetails, bpnKey, _ => _.OpiConditionIsPoor(bpnKey));
             }
             else
             {
@@ -92,7 +92,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             foreach (var yearlyData in reportOutputData.Years)
             {
                 row = startRow;
-                AddSegmentMilesForBPN(worksheet, row, column, yearlyData.Assets, bpn, chartRowsModel);
+                AddSegmentMilesForBPN(worksheet, row, column, reportOutputData.InitialAssetSummaries, yearlyData.Assets, bpn, chartRowsModel);
                 column = ++column;
             }
 

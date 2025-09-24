@@ -325,7 +325,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pam
                     CheckConditions(section.AppliedTreatment, previousYearTreatment, previousYearCause, section.TreatmentCause, section.TreatmentStatus, previousYearTreatmentStatus, range, rangeWithPreviousColumn);
 
                     // Work done and cost for the given year                    
-                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
+                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue(section.ValuePerTextAttribute, primaryKey);
 
                     // If CF then use obj from keyCashFlowFundingDetails otherwise from section
                     var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&

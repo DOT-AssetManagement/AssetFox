@@ -27,7 +27,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
            value >= low && value <= high;
 
         private static double IriCondition(this AssetDetail detail) =>
-            Math.Round(_summaryReportHelper.checkAndGetValue<double>(detail.ValuePerNumericAttribute, "ROUGHNESS"));
+            Math.Round(_summaryReportHelper.checkAndGetValue(detail.ValuePerNumericAttribute, "ROUGHNESS"));
 
         public static bool IriConditionIsExcellent(this AssetDetail detail, string bpnKey) =>
             bpnKey switch
@@ -122,11 +122,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             _summaryReportHelper = new SummaryReportHelper();
         }
 
-        internal double CalculateSegmentMilesForBPNWithCondition(List<AssetDetail> sectionSummaries, string bpn, Func<AssetDetail, bool> conditionFunction)
+        internal double CalculateSegmentMilesForBPNWithCondition(List<AssetSummaryDetail> initialAssetSummaries, List<AssetDetail> sectionSummaries, string bpn, Func<AssetDetail, bool> conditionFunction)
         {
-            var postedSegments = !string.IsNullOrEmpty(bpn) ? sectionSummaries.FindAll(b => _summaryReportHelper.checkAndGetValue<string>(b.ValuePerTextAttribute, "BUSIPLAN") == bpn) : sectionSummaries;
+            var postedSegmentsInitial = !string.IsNullOrEmpty(bpn) ? initialAssetSummaries.FindAll(b => _summaryReportHelper.checkAndGetValue(b.ValuePerTextAttribute, "BUSIPLAN") == bpn) : initialAssetSummaries;
+            var postedSegmentsInitialAssetIds = postedSegmentsInitial.Select(segment => segment.AssetId).ToList();
+            var postedSegments = sectionSummaries.Where(_ => postedSegmentsInitialAssetIds.Contains(_.AssetId)).ToList();
             var selectedSegments = postedSegments.FindAll(section => conditionFunction(section));
-            return selectedSegments.Sum(_ => _summaryReportHelper.checkAndGetValue<double>(_.ValuePerNumericAttribute, "SEGMENT_LENGTH")).FeetToMiles();
+            var selectedSegmentsAssetIds = selectedSegments.Select(segment => segment.AssetId).ToList();
+            var selectedSegmentsInitial = postedSegmentsInitial.Where(_ => selectedSegmentsAssetIds.Contains(_.AssetId)).ToList();
+            return selectedSegmentsInitial.Sum(_ => _summaryReportHelper.checkAndGetValue(_.ValuePerNumericAttribute, "SEGMENT_LENGTH")).FeetToMiles();
         }
 
         internal void FillDataToUseInExcel(SimulationOutput reportOutputData,
@@ -140,7 +144,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                 Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails,
                 string primaryKey)
         {
-            //Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+            var initialAssetSummaries = reportOutputData.InitialAssetSummaries;
             foreach (var yearData in reportOutputData.Years)
             {
                 costLengthPerSurfaceIdPerTreatmentPerYear.Add(yearData.Year, new Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>());
@@ -150,11 +154,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
 
                 foreach (var section in yearData.Assets)
                 {
-                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
-
-                    // Build keyCashFlowFundingDetails
-                    //_summaryReportHelper.BuildKeyCashFlowFundingDetails(yearData, section, crs, keyCashFlowFundingDetails);
-
+                    var initialAssetSummary = initialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId);
+                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue(section.ValuePerTextAttribute, primaryKey);                    
+                    
                     // If CF then use obj from keyCashFlowFundingDetails otherwise from section                    
                     var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
                                                   section.TreatmentStatus == TreatmentStatus.Progressed) ||
@@ -187,7 +189,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                             _.ProjectSource.ToString() == section.ProjectSource &&
                             _.LocationKeys[primaryKey] == primaryKeyValue);
                         var projectSource = committedProject?.ProjectSource.ToString();
-                        var segmentLength = section.ValuePerNumericAttribute["SEGMENT_LENGTH"];
+                        var segmentLength = initialAssetSummary.ValuePerNumericAttribute["SEGMENT_LENGTH"];
                         var sectionMiles = segmentLength.FeetToMiles();
                         if (!yearlyCostCommittedProj[yearData.Year].TryGetValue(appliedTreatment, out var value))
                         {
@@ -216,8 +218,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
                         continue;
                     }
 
-                    PopulateTreatmentCostAndLength(yearData.Year, section, cost, costLengthPerSurfaceIdPerTreatmentPerYear);
-                    PopulateTreatmentGroupCostAndLength(yearData.Year, section, cost, costAndLengthPerTreatmentGroupPerYear, simulationTreatments);
+                    PopulateTreatmentCostAndLength(yearData.Year, section, cost, costLengthPerSurfaceIdPerTreatmentPerYear, initialAssetSummary);
+                    PopulateTreatmentGroupCostAndLength(yearData.Year, section, cost, costAndLengthPerTreatmentGroupPerYear, simulationTreatments, initialAssetSummary);
                 }
             }
         }
@@ -310,13 +312,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             int year,
             AssetDetail section,
             decimal cost,
-            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear
+            Dictionary<int, Dictionary<string, Dictionary<int, (decimal treatmentCost, decimal compositeTreatmentCost, double length)>>> costLengthPerSurfaceIdPerTreatmentPerYear,
+            AssetSummaryDetail initialAssetSummary
             )
         {
             var surfaceId = (int)section.ValuePerNumericAttribute["SURFACEID"];
             var appliedTreatment = section.AppliedTreatment;
             var compositeTreatmentCost = surfaceId == 62 ? cost : 0;
-            var segmentLength = section.ValuePerNumericAttribute["SEGMENT_LENGTH"];
+            var segmentLength = initialAssetSummary.ValuePerNumericAttribute["SEGMENT_LENGTH"]; 
             var segmentLengthInMiles = segmentLength.FeetToMiles();
             if (!costLengthPerSurfaceIdPerTreatmentPerYear[year].ContainsKey(appliedTreatment))
             {
@@ -348,9 +351,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Pav
             AssetDetail section,
             decimal cost,
             Dictionary<int, Dictionary<TreatmentGroup, (decimal treatmentCost, double length)>> costAndLengthPerTreatmentPerYear,
-            List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments)
+            List<(string Name, string AssetType, TreatmentCategory Category)> simulationTreatments,
+            AssetSummaryDetail initialAssetSummary)
         {
-            var segmentLength = section.ValuePerNumericAttribute["SEGMENT_LENGTH"];
+            var segmentLength = initialAssetSummary.ValuePerNumericAttribute["SEGMENT_LENGTH"];
             var treatmentGroup = GetTreatmentGroup(section.AppliedTreatment, simulationTreatments);
             if (!costAndLengthPerTreatmentPerYear[year].ContainsKey(treatmentGroup))
             {

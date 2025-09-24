@@ -256,7 +256,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             {
                 foreach (var section in yearData.Assets)
                 {
-                    var primaryKeyValue = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, firstPrimaryKey);
+                    var primaryKeyValue = _reportHelper.CheckAndGetValue(section.ValuePerTextAttribute, firstPrimaryKey);
                     summaryReportHelperForCashFlow.BuildKeyCashFlowFundingDetails(yearData, section, primaryKeyValue, keyCashFlowFundingDetails);
                 }
             }
@@ -264,16 +264,14 @@ namespace AppliedResearchAssociates.iAM.Reporting
             //get treatment category lookup
             var treatmentCategoryLookup = new Dictionary<string, string>();
             var treatmentList = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsWithCriterionLibrary(simulationId);
-            if (treatmentList?.Any() == true)
+            if (treatmentList?.Count > 0)
             {
-
                 reportDetailDto.Status = $"Checking treatment list";
 
                 workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
                 _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
                 foreach (var treatmentObject in treatmentList)
                 {
-
                     checkCancelled(cancellationToken, simulationId);
                     if (!treatmentCategoryLookup.ContainsKey(treatmentObject.Name))
                     {
@@ -327,17 +325,17 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpdateSimulationAnalysisDetail(reportDetailDto);
             // Sort data to get rows in InitialAssetSummaries and assets in Years aligned
             reportOutputData.InitialAssetSummaries.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, "CRS")
-                    .CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, "CRS"))
+                    (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerTextAttribute, "CRS")
+                    .CompareTo(_reportHelper.CheckAndGetValue(b.ValuePerTextAttribute, "CRS"))
                     );
 
             foreach (var yearlySectionData in reportOutputData.Years)
             {
                 yearlySectionData.Assets.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, "CRS")
+                    (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerTextAttribute, "CRS")
                     .CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, "CRS"))
                     );
-            }            
+            }
             var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PAMSData_Tab);
             var shouldBundleFeasibleTreatments = analysisMethodDto.ShouldAllowMultipleTreatments;
             
