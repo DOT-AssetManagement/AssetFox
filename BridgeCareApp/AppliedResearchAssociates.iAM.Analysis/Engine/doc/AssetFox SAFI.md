@@ -1,11 +1,46 @@
 # AssetFox SAFI <!-- omit in toc -->
 
-AssetFox is an asset management web application that contains an implementation
-of the iAM SAF.
+AssetFox is an asset management web application that contains an SAFI (i.e. an
+implementation of the iAM SAF).
 
-## Overview of Method Implementations
+## Overview of SAF Implementation
 
-### EOV Calculation
+### EOV Methods
+
+This SAFI provides two primary EOV methods:
+
+- _Cumulative Benefit_
+- _Remaining Life_
+
+Both of these EOV methods perform their calculations during an _outlook loop_,
+which is basically an asset-localized partial simulation (only phases 1 and 4 of
+each time step) going forward from the moment of EOV calculation by a fixed
+number of time steps. Typically, the outlook loop goes 100 time steps into the
+future, but this is potentially configurable.
+
+#### EOV Calculation for Cumulative Benefit
+
+To calculate cumulative benefit, additional scenario configuration is required.
+A _benefit attribute_ must be designated, along with a _benefit limit_ and an
+optionally designated _benefit weighting attribute_.
+
+During the outlook loop, a time series of benefit values is collected. At any
+moment in the outlook loop, the benefit value is equal to the distance from the
+current value of the benefit attribute to the benefit limit in the direction of
+deterioration for the benefit attribute. If this distance is negative (i.e. the
+current value of the benefit attribute is deteriorated beyond the benefit
+limit), the benefit value is zero. If a benefit weighting attribute has been
+designated, the benefit value is multiplied by the current value of the benefit
+weighting attribute.
+
+At the end of the outlook loop, the cumulative benefit is equal to the numeric
+integral of the linear spline defined by the time series of benefit values.
+
+#### EOV Calculation for Remaining Life
+
+#### EOV Relative to Cumulative Cost
+
+#### outline
 
 - benefit
   - attribute
@@ -83,7 +118,6 @@ of the iAM SAF.
     after phase 1 (deterioration) of the corresponding time step.
     - This allows the effects of deterioration in the first simulation time step
       to be ignored.
-- **Benefit**
 - **Budget Order**
   - This is the order in which budgets are examined when the SAFI is attempting
     to construct the funding matrix for selection of a project option under

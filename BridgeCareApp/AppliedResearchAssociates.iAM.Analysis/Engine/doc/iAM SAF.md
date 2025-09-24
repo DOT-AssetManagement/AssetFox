@@ -58,11 +58,16 @@ simulation time step comprises four phases in sequence:
      the next time step's prioritized selection phase.
 3. **Selection of other project options**
    - All _project option creation rules_ are evaluated against all assets to
-     determine the set of _project options_ from which selections are made.
-4. **Attribute value updates due to completed projects**
+     determine the set of _project options_ from which selections are made in
+     this phase.
+4. **Updates due to completed projects**
    - For each active project whose duration ends in this time step, the
-     attribute value functions of that project's treatment are used to update
-     the attribute values on that project's asset.
+     following occurs:
+     - Attribute value functions of the project's treatment are used to update
+       the attribute values on the project's asset.
+     - Future prioritized project option creation rules and future treatment
+       exclusion rules of the project's treatment are applied and attached to
+       the project's asset.
 
 The SAF specifies the full behavior of phases 1 and 4 but only the general
 behavior of phases 2 and 3. Within phases 2 and 3, an SAFI must specify two
@@ -124,8 +129,8 @@ or date or virtual.
 
 #### 2.2.1. Configuration
 
-- For this attribute on a given asset, how are multiple simultaneous updates
-  handled?
+- _"For this attribute on a given asset, how are multiple simultaneous updates
+  handled?"_
   - Any handling may be specified, as long as it is consistent and well-defined.
     Examples of handling might include:
     - "Exclusive": Do not allow multiple simultaneous updates. Mutually exclude
@@ -155,6 +160,8 @@ A budget describes a "pot of money" that can be used to fund projects.
     time step, the corresponding money amount is made available as part of this
     budget.
 - _Predicate_: **optional**
+  - Given an asset snapshot, this evaluates to true if and only if this budget
+    is available.
   - If omitted, this budget is available for all assets.
 
 ### 2.5. Cost Distribution Grade
@@ -172,10 +179,12 @@ A budget describes a "pot of money" that can be used to fund projects.
 A cost distribution rule specifies a set of "grades", each of which can
 determine the cost per time step (and duration) of a project option.
 
-- _Predicate_: **optional**
-  - If omitted, this rule is applicable to all assets.
 - _Cost Distribution Grades_: **one or more**
   - Each grade
+- _Predicate_: **optional**
+  - Given an asset snapshot, this evaluates to true if and only if this rule is
+    applicable.
+  - If omitted, this rule is applicable to all assets.
 
 ### 2.7. Deficient Condition Goal
 
@@ -189,6 +198,8 @@ specified condition limit, is no larger than a specified deficiency limit.
   - The SAFI determines the interpretation of this limit. For example, it could
     be a percentage or a count.
 - _Predicate_: **optional**
+  - Given an asset snapshot, this evaluates to true if and only if this goal is
+    applicable.
   - If omitted, this goal is applicable to all assets.
 
 ### 2.8. Deterioration Model
@@ -269,14 +280,16 @@ for selection.
 A project option creation rule specifies how to calculate total cost of a
 treatment applied to an asset.
 
-- _Predicate_: **optional**
-  - If omitted, this rule is applicable to all assets.
 - _Treatment_: **required**
 - _Cost Function_: **required**
 - _Allowed Budgets_: **one or more**
   - If (a) a budget is on this list and (b) that budget's predicate is satisfied
     by an asset, then a project option created by this rule for that asset is
     allowed to receive funding from that budget.
+- _Predicate_: **optional**
+  - Given an asset snapshot, this evaluates to true if and only if this rule is
+    applicable.
+  - If omitted, this rule is applicable to all assets.
 
 ### 2.16. Scenario
 
@@ -297,9 +310,9 @@ within an SAFI.
 
 #### 2.16.1. Configuration
 
-- Are multiple budgets allowed to fund a single project?
-- Are budget remainders allowed to carry forward to the next simulation time
-  step?
+- _"Are multiple budgets allowed to fund a single project?"_
+- _"Are budget remainders allowed to carry forward to the next simulation time
+  step?"_
 
 ### 2.17. Target Condition Goal
 
@@ -312,6 +325,8 @@ deteriorated) than a specified condition limit.
 - _Simulation Time Step_: **optional**
   - If omitted, this goal is applicable to all time steps.
 - _Predicate_: **optional**
+  - Given an asset snapshot, this evaluates to true if and only if this goal is
+    applicable.
   - If omitted, this goal is applicable to all assets.
 
 ### 2.18. Total Snapshot
@@ -335,11 +350,13 @@ treatment is fully applied at the end of a project.
 ### 2.20. Treatment Concurrency Exclusion Rule
 
 A treatment concurrency exclusion rule specifies a set of mutually exclusive
-treatments. In other words, no two projects with treatments from this set are
-allowed to be active on the same asset at any one time. (Note that a treatment
-is always self-exclusive, regardless of the presence or absence of exclusion
-rules.)
+treatments. In other words, for any asset satisfying this rule's predicate, no
+two projects with treatments from this set are allowed to be active at any one
+time. (Note that a treatment is always self-exclusive, regardless of the
+presence or absence of exclusion rules.)
 
 - _Mutually Exclusive Treatments_: **two or more**
 - _Predicate_: **optional**
+  - Given an asset snapshot, this evaluates to true if and only if this rule is
+    applicable.
   - If omitted, this rule is applicable to all assets.
