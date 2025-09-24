@@ -34,7 +34,8 @@ designated, the benefit value is multiplied by the current value of the benefit
 weighting attribute.
 
 At the end of the outlook loop, the cumulative benefit is equal to the numeric
-integral of the linear spline defined by the time series of benefit values.
+integral of the piecewise linear spline defined by the time series of benefit
+values.
 
 #### EOV Calculation for Remaining Life
 
@@ -213,7 +214,7 @@ attribute value functions on treatments.
 
 A basic "piecewise expression" language is also available for defining
 functions, usually deterioration functions. Such an expression contains a series
-of 2D points defining a linear spline. Within an asset snapshot, the
+of 2D points defining a piecewise linear spline. Within an asset snapshot, the
 corresponding function has exactly one dependency attribute, "age", an attribute
 definition for which the scenario is required to provide.
 
