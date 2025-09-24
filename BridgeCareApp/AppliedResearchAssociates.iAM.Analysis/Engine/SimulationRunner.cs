@@ -431,9 +431,9 @@ public sealed class SimulationRunner
 
     internal List<string> OrderedNamesOfAllTextAttributes;
 
-    internal List<string> OrderedNamesOfVariableNumericAttributes;
+    internal List<string> OrderedNamesOfYearlyOutputNumericAttributes;
 
-    internal List<string> OrderedNamesOfVariableTextAttributes;
+    internal List<string> OrderedNamesOfYearlyOutputTextAttributes;
 
     #region supporting data structures for refined invalidation of numeric & evaluation caches
 
@@ -1617,9 +1617,11 @@ public sealed class SimulationRunner
             Simulation.Treatments
             .SelectMany(t => t.Consequences.Select(c => c.Attribute.Name));
 
-        var allVariableAttributes =
-            attributesVariedByDeterioration.Concat(attributesVariedByConsequences)
-            .ToHashSet();
+        var yearlyOutputAttributes =
+            attributesVariedByDeterioration
+            .Concat(attributesVariedByConsequences)
+            .Concat(Simulation.KeyFields)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (var CF in Simulation.Network.Explorer.CalculatedFields)
         {
@@ -1632,21 +1634,21 @@ public sealed class SimulationRunner
 
                 _ = dependentCFs.TryAdd(CF.Name, null);
 
-                if (allVariableAttributes.Contains(TD))
+                if (yearlyOutputAttributes.Contains(TD))
                 {
-                    _ = allVariableAttributes.Add(CF.Name);
+                    _ = yearlyOutputAttributes.Add(CF.Name);
                 }
             }
         }
 
-        OrderedNamesOfVariableNumericAttributes =
+        OrderedNamesOfYearlyOutputNumericAttributes =
             OrderedNamesOfAllNumericAttributes
-            .Intersect(allVariableAttributes)
+            .Intersect(yearlyOutputAttributes)
             .ToList();
 
-        OrderedNamesOfVariableTextAttributes =
+        OrderedNamesOfYearlyOutputTextAttributes =
             OrderedNamesOfAllTextAttributes
-            .Intersect(allVariableAttributes)
+            .Intersect(yearlyOutputAttributes)
             .ToList();
     }
 }

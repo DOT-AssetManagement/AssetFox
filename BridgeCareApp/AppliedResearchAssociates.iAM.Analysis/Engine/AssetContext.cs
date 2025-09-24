@@ -435,8 +435,8 @@ internal sealed class AssetContext : CalculateEvaluateScope
         List<string> numericAttributeNames, textAttributeNames;
         if (variableAttributesOnly)
         {
-            numericAttributeNames = SimulationRunner.OrderedNamesOfVariableNumericAttributes;
-            textAttributeNames = SimulationRunner.OrderedNamesOfVariableTextAttributes;
+            numericAttributeNames = SimulationRunner.OrderedNamesOfYearlyOutputNumericAttributes;
+            textAttributeNames = SimulationRunner.OrderedNamesOfYearlyOutputTextAttributes;
         }
         else
         {
