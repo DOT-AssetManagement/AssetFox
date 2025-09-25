@@ -377,7 +377,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var _countySummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.CountySummary_Tab);
-            _countySummary.Fill(_countySummaryWorksheet, reportOutputData, simulationYears, simulationDto, keyCashFlowFundingDetails, firstPrimaryKey);
+            _countySummary.Fill(_countySummaryWorksheet, reportOutputData, simulationYears, keyCashFlowFundingDetails, firstPrimaryKey);
             checkCancelled(cancellationToken, simulationId);
 
             //Graph TABs

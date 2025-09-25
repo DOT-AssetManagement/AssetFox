@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Common.Logging;
@@ -10,12 +9,9 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using OfficeOpenXml;
-using System.Data;
 using AppliedResearchAssociates.iAM.Data.Networking;
 using AppliedResearchAssociates.iAM.Reporting.Services.NetworkExportReport;
-using Newtonsoft.Json.Linq;
 using AppliedResearchAssociates.iAM.Reporting.Services;
-using AppliedResearchAssociates.iAM.Analysis;
 
 namespace AppliedResearchAssociates.iAM.Reporting
 {
@@ -147,7 +143,10 @@ namespace AppliedResearchAssociates.iAM.Reporting
         private string GenerateNetworkExportReport(IWorkQueueLog workQueueLog, List<MaintainableAsset> maintainableAssets, Guid networkId, Dictionary<Guid, List<AssetAttributeValuePair>> aggregatedResults, Guid scenarioId, CancellationToken? cancellationToken = null)
         {
             if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+            {
                 throw new Exception("Report was cancelled");
+            }
+
             var reportPath = string.Empty;
             var reportDetailDto = new SimulationReportDetailDTO
             {
@@ -183,33 +182,15 @@ namespace AppliedResearchAssociates.iAM.Reporting
             workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, SimulationID);
 
-
             return reportPath;
         }
 
         private void UpsertSimulationReportDetail(SimulationReportDetailDTO dto) => _unitOfWork.SimulationReportDetailRepo.UpsertSimulationReportDetail(dto);
 
-        private void UpdateSimulationAnalysisDetail(SimulationReportDetailDTO dto) => _unitOfWork.SimulationReportDetailRepo.UpsertSimulationReportDetail(dto);
-
-        private void UpdateSimulationAnalysisDetailWithStatus(SimulationReportDetailDTO dto, string message)
-        {
-            dto.Status = message;
-            UpdateSimulationAnalysisDetail(dto);
-            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, dto.Status, dto.SimulationId);
-        }
-
         private void IndicateError()
         {
             Status = "Network Export output report completed with errors";
             IsComplete = true;
-        }
-
-        private void checkCancelled(CancellationToken? cancellationToken, Guid simulationId)
-        {
-            if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
-            {
-                throw new Exception("Report was cancelled");
-            }
         }
     }
 }

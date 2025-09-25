@@ -8,7 +8,6 @@ using AppliedResearchAssociates.iAM.DTOs;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Models.PAMSPBExport;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
 using OfficeOpenXml;
 
@@ -51,7 +50,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
                     }
 
                     // Generate data model                    
-                    var treatmentDataModel = GenerateTreatmentDataModel(assetId, year, section, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, keyCashFlowFundingDetails, shouldBundleFeasibleTreatments, committedProjectList, primaryKey);
+                    var treatmentDataModel = GenerateTreatmentDataModel(assetId, year, section, simulationId, networkId, scenarioSelectableTreatmentsDtos, networkMaintainableAssets, keyCashFlowFundingDetails, shouldBundleFeasibleTreatments, committedProjectList, primaryKey, initialAssetSummary);
 
                     // Fill in excel
                     currentCell = FillDataInWorksheet(treatmentsWorksheet, treatmentDataModel, currentCell);
@@ -108,7 +107,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
 
         private static void SetDecimalFormat(ExcelRange cell) => ExcelHelper.SetCustomFormat(cell, ExcelHelperCellFormat.DecimalPrecision3);
 
-        private TreatmentDataModel GenerateTreatmentDataModel(Guid assetId, SimulationYearDetail year, AssetDetail section, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList, string primaryKey)
+        private TreatmentDataModel GenerateTreatmentDataModel(Guid assetId, SimulationYearDetail year, AssetDetail section, Guid simulationId, Guid networkId, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, List<MaintainableAsset> networkMaintainableAssets, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList, string primaryKey, AssetSummaryDetail initialAssetSummary)
         {
             var appliedTreatment = section.AppliedTreatment;
             TreatmentDataModel treatmentDataModel = new TreatmentDataModel
@@ -129,7 +128,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             var direction = string.Empty;
             if (!string.IsNullOrEmpty(locationIdentifier))
             {
-                var parts = locationIdentifier.Split(new char[] { '_' });
+                var parts = locationIdentifier.Split(['_']);
                 direction = parts[2];
                 var fromTo = parts.Last()?.Split('-');
                 fromSection = fromTo?.First();
@@ -139,12 +138,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             treatmentDataModel.ToSection = toSection;
 
             var valuePerTextAttribute = section.ValuePerTextAttribute;
-            treatmentDataModel.District = CheckGetTextValue(valuePerTextAttribute, "DISTRICT");
-            treatmentDataModel.Cnty = CheckGetTextValue(valuePerTextAttribute, "CNTY");
-            treatmentDataModel.Route = CheckGetTextValue(valuePerTextAttribute, "SR");
+            var initialSummaryValuePerTextAttribute = initialAssetSummary.ValuePerTextAttribute;
+            treatmentDataModel.District = CheckGetTextValue(initialSummaryValuePerTextAttribute, "DISTRICT");
+            treatmentDataModel.Cnty = CheckGetTextValue(initialSummaryValuePerTextAttribute, "CNTY");
+            treatmentDataModel.Route = CheckGetTextValue(initialSummaryValuePerTextAttribute, "SR");
             treatmentDataModel.Direction = direction; //CheckGetTextValue(valuePerTextAttribute, "DIRECTION");
-            treatmentDataModel.RiskScore = CheckGetNumericValue(section.ValuePerNumericAttribute, "RISKSCORE");
-            treatmentDataModel.Interstate = CheckGetTextValue(valuePerTextAttribute, "INTERSTATE");
+            treatmentDataModel.RiskScore = CheckGetNumericValue(initialAssetSummary.ValuePerNumericAttribute, "RISKSCORE");
+            treatmentDataModel.Interstate = CheckGetTextValue(initialSummaryValuePerTextAttribute, "INTERSTATE");
 
             var treatmentOption = section.TreatmentOptions.FirstOrDefault(_ => _.TreatmentName == appliedTreatment);            
             treatmentDataModel.Benefit = treatmentOption != null ? treatmentOption.Benefit : 0;
@@ -164,7 +164,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
                                           (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                           section.TreatmentStatus == TreatmentStatus.Applied)) ?
                                           keyCashFlowFundingDetails[primaryKeyValue] :
-                                          section.TreatmentConsiderations ?? new();
+                                          section.TreatmentConsiderations ?? [];
 
             var treatmentConsideration = shouldBundleFeasibleTreatments ?
                                          treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
@@ -200,7 +200,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             var treatmentAttributeValues = new List<double>();
             foreach (var treatmentAttribute in treatmentAttributes)
             {
-                treatmentAttributeValues.Add(CheckGetNumericValue(section.ValuePerNumericAttribute, treatmentAttribute));
+                var treatmentAttributeValue = section.ValuePerNumericAttribute.ContainsKey(treatmentAttribute)
+                    ? CheckGetNumericValue(section.ValuePerNumericAttribute, treatmentAttribute)
+                    : CheckGetNumericValue(initialAssetSummary.ValuePerNumericAttribute, treatmentAttribute);
+                treatmentAttributeValues.Add(treatmentAttributeValue);
             }
             treatmentDataModel.TreatmentAttributeValues = treatmentAttributeValues;
 

@@ -6,8 +6,6 @@ using OfficeOpenXml;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using System.Drawing;
 using CurrentCell = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.CurrentCell;
-using AppliedResearchAssociates.iAM.DTOs;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.CountySummary
 {
@@ -39,18 +37,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             if (_summaryReportHelper == null) { throw new ArgumentNullException(nameof(_summaryReportHelper)); }
 
             //create list object
-            _uniqueDistrictCountyList = new List<DistrictCounty>();
+            _uniqueDistrictCountyList = [];
         }
 
-        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
+        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
-            FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, simulation, keyCashFlowFundingDetails, primaryKey);
+            FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, keyCashFlowFundingDetails, primaryKey);
             worksheet.Cells.AutoFitColumns();
         }
 
         #region Private methods
 
-        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
+        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
             //fill unique district county list
             BuildUniqueDistrictCountyList(reportOutputData);
@@ -85,7 +83,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             if (reportOutputData?.InitialAssetSummaries?.Any() == true)
             {
                 //create object
-                IList<DistrictCounty> districtCountyList = new List<DistrictCounty>();
+                IList<DistrictCounty> districtCountyList = [];
 
                 foreach (var sectionSummary in reportOutputData.InitialAssetSummaries)
                 {
