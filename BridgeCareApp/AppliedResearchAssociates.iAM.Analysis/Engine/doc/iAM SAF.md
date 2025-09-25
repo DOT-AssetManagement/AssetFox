@@ -13,7 +13,6 @@ of the SAFI.
 - [2. Terms \& Definitions](#2-terms--definitions)
   - [2.1. Asset Snapshot](#21-asset-snapshot)
   - [2.2. Attribute Definition](#22-attribute-definition)
-    - [2.2.1. Configuration](#221-configuration)
   - [2.3. Attribute Value Function](#23-attribute-value-function)
   - [2.4. Budget](#24-budget)
   - [2.5. Cost Distribution Grade](#25-cost-distribution-grade)
@@ -28,7 +27,6 @@ of the SAFI.
   - [2.14. Project Option](#214-project-option)
   - [2.15. Project Option Creation Rule](#215-project-option-creation-rule)
   - [2.16. Scenario](#216-scenario)
-    - [2.16.1. Configuration](#2161-configuration)
   - [2.17. Target Condition Goal](#217-target-condition-goal)
   - [2.18. Total Snapshot](#218-total-snapshot)
   - [2.19. Treatment](#219-treatment)
@@ -127,7 +125,7 @@ or date or virtual.
 - _Deterioration Model_: **optional**
   - If omitted, this attribute never deteriorates.
 
-#### 2.2.1. Configuration
+#### Configuration <!-- omit in toc -->
 
 - _"For this attribute on a given asset, how are multiple simultaneous updates
   handled?"_
@@ -308,7 +306,7 @@ within an SAFI.
 - _Budgets_: **one or more**
 - _Cost Distribution Rules_: **zero or more**
 
-#### 2.16.1. Configuration
+#### Configuration <!-- omit in toc -->
 
 - _"Are multiple budgets allowed to fund a single project?"_
 - _"Are budget remainders allowed to carry forward to the next simulation time
