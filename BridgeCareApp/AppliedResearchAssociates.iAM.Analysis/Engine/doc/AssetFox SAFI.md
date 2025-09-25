@@ -294,10 +294,11 @@ definition for which the scenario is required to provide.
 - **Passive Treatment**
   - Given the flexibility of deterioration model function definition, the
     justification for this aspect of the input is unclear.
-  - This is perhaps a legacy of older versions of the RoadCare SAFI having only
-    piecewise expressions for defining deterioration functions as age-dependent
-    splines. If such versions existed, then the natural advancement of age had
-    no representation other than being a consequence of this "treatment".
+  - This is perhaps a legacy from older versions of the RoadCare SAFI having
+    only piecewise expressions for defining deterioration functions as
+    age-dependent splines. If such versions existed, then the natural
+    advancement of age had no representation other than being a consequence of
+    this "treatment".
   - **"Pre-application" after phase 1**
     - Allegedly for compatibility with the RoadCare SAFI. Regardless, the domain
       concept and justification for this behavior is unclear.
