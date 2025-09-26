@@ -63,7 +63,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
                 Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
-                // TODO should we update to consider keyFields primary key in this report?
+                // TODO should we update to consider keyFields primary key in this report? // Will we need to have data displayed by which 1st column is based on key?
                 var crs = _reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, "CRS");                                
 
                 // Year 0
