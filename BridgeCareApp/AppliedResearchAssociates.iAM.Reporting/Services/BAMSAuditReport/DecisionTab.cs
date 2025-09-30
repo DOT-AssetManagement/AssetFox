@@ -26,7 +26,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, HashSet<string> performanceCurvesAttributes, AnalysisMethodDTO analysisMethodDto, List<TreatmentDTO> scenarioSelectableTreatmentsDtos)
+        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, HashSet<string> performanceCurvesAttributes, AnalysisMethodDTO analysisMethodDto, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, string primaryKey)
         {
             columnNumbersBudgetsUsed = new List<int>();
             // Distinct performance curves' attributes
@@ -44,7 +44,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             var currentCell = AddHeadersCells(decisionsWorksheet, currentAttributes, budgets, treatments);
 
             // Fill data in excel
-            FillDynamicDataInWorkSheet(simulationOutput, currentAttributes, budgets, treatments, decisionsWorksheet, currentCell, analysisMethodDto.ShouldAllowMultipleTreatments);
+            FillDynamicDataInWorkSheet(simulationOutput, currentAttributes, budgets, treatments, decisionsWorksheet, currentCell, analysisMethodDto.ShouldAllowMultipleTreatments, primaryKey);
 
             performanceCurvesAttributes.Clear();
             scenarioSelectableTreatmentsDtos.Clear();
@@ -54,13 +54,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             PerformPostAutofitAdjustments(decisionsWorksheet, columnNumbersBudgetsUsed);
         }
 
-        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, ExcelWorksheet decisionsWorksheet, CurrentCell currentCell, bool shouldBundleFeasibleTreatments)
+        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, ExcelWorksheet decisionsWorksheet, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, string primaryKey)
         {
             var years = simulationOutput.Years.OrderBy(yr => yr.Year);
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
                 Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
-                var brKey = CheckGetValue(initialAssetSummary.ValuePerNumericAttribute, "BRKEY_");
+                var brKey = CheckGetValue(initialAssetSummary.ValuePerNumericAttribute, primaryKey);
                 var familyId = int.Parse(_reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, "FAMILY_ID"));                
 
                 // Year 0
@@ -70,7 +70,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
                 var yearZeroRow = currentCell.Row++;
                 foreach (var year in years)
                 {
-                    var section = year.Assets.FirstOrDefault(_ => CheckGetValue(_.ValuePerNumericAttribute, "BRKEY_") == brKey);
+                    var section = year.Assets.FirstOrDefault(_ => _.AssetId == initialAssetSummary.AssetId);
                     if (section.TreatmentCause == TreatmentCause.CommittedProject)
                     {
                         continue;

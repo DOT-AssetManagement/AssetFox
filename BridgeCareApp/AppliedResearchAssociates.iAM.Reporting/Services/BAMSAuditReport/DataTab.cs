@@ -33,7 +33,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             _bridgesUnfundedTreatments = new BridgesUnfundedTreatments(_unitOfWork);
         }        
 
-        public void Fill(ExcelWorksheet bridgesWorksheet, SimulationOutput simulationOutput)
+        public void Fill(ExcelWorksheet bridgesWorksheet, SimulationOutput simulationOutput, string primaryKey)
         {
             // Add excel headers to excel.
             var currentCell = _bridgesUnfundedTreatments.AddHeadersCells(bridgesWorksheet);
@@ -47,18 +47,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
 
             bridgesWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
 
-            AddDynamicDataCells(bridgesWorksheet, simulationOutput, currentCell);
+            AddDynamicDataCells(bridgesWorksheet, simulationOutput, currentCell, primaryKey);
 
             bridgesWorksheet.Cells.AutoFitColumns();
             _bridgesUnfundedTreatments.PerformPostAutofitAdjustments(bridgesWorksheet);
         }        
 
-        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell)
+        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell, string primaryKey)
         {               
             // TODO bridges in data tab need to match with bridges in Decision tab           
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
-                var brKey = CheckGetValue(initialAssetSummary.ValuePerNumericAttribute, "BRKEY_");
+                var brKey = CheckGetValue(initialAssetSummary.ValuePerNumericAttribute, primaryKey);
 
                 // Generate data model
                 var bridgeDataModel = GenerateBridgeDataModel(brKey, initialAssetSummary);

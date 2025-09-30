@@ -142,7 +142,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                             {
                                 foreach (var section in assetDetailList)
                                 {
-                                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
+                                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue(section.ValuePerTextAttribute, primaryKey);
                                     var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
                                                   section.TreatmentStatus == TreatmentStatus.Progressed) ||
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&

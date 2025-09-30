@@ -27,7 +27,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, HashSet<string> performanceCurvesAttributes, AnalysisMethodDTO analysisMethodDto, List<TreatmentDTO> scenarioSelectableTreatmentsDtos)
+        public void Fill(ExcelWorksheet decisionsWorksheet, SimulationOutput simulationOutput, HashSet<string> performanceCurvesAttributes, AnalysisMethodDTO analysisMethodDto, List<TreatmentDTO> scenarioSelectableTreatmentsDtos, string primaryKey)
         {
             columnNumbersBudgetsUsed = new List<int>();
             // Distinct performance curves' attributes
@@ -47,7 +47,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             var currentCell = AddHeadersCells(decisionsWorksheet, currentAttributes, budgets, treatments);
 
             // Fill data in excel
-            FillDynamicDataInWorkSheet(simulationOutput, currentAttributes, budgets, treatments, decisionsWorksheet, currentCell);
+            FillDynamicDataInWorkSheet(simulationOutput, currentAttributes, budgets, treatments, decisionsWorksheet, currentCell, primaryKey);
 
             performanceCurvesAttributes.Clear();
             scenarioSelectableTreatmentsDtos.Clear();
@@ -57,14 +57,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             PerformPostAutofitAdjustments(decisionsWorksheet, columnNumbersBudgetsUsed);
         }
 
-        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, ExcelWorksheet decisionsWorksheet, CurrentCell currentCell)
+        private void FillDynamicDataInWorkSheet(SimulationOutput simulationOutput, HashSet<string> currentAttributes, HashSet<string> budgets, List<string> treatments, ExcelWorksheet decisionsWorksheet, CurrentCell currentCell, string primaryKey)
         {
             var years = simulationOutput.Years.OrderBy(yr => yr.Year);
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
-                Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
-                // TODO should we update to consider keyFields primary key in this report? // Will we need to have data displayed by which 1st column is based on key?
-                var crs = _reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, "CRS");                                
+                Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();                
+                // TODO do we later need to have data displayed by which 1st column is based on key? // Note: handling it partially currently to consider key
+                var crs = _reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, primaryKey);                                
 
                 // Year 0
                 var PAMSdecisionDataModel = GetInitialDecisionDataModel(currentAttributes, crs, years.FirstOrDefault().Year - 1, initialAssetSummary);
@@ -73,7 +73,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
                 var yearZeroRow = currentCell.Row++;                
                 foreach (var year in years)
                 {
-                    var section = year.Assets.FirstOrDefault(_ => CheckGetTextValue(_.ValuePerTextAttribute, "CRS") == crs);
+                    var section = year.Assets.FirstOrDefault(_ => _.AssetId == initialAssetSummary.AssetId);
                     if (section.TreatmentCause == TreatmentCause.CommittedProject)
                     {
                         continue;

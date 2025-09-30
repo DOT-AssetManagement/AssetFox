@@ -29,7 +29,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
             _pavementUnfundedTreatments = new PavementUnfundedTreatments(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet pavementWorksheet, SimulationOutput simulationOutput)
+        public void Fill(ExcelWorksheet pavementWorksheet, SimulationOutput simulationOutput, string primaryKey)
         {
             // Add excel headers to excel.
             var currentCell = _pavementUnfundedTreatments.AddHeadersCells(pavementWorksheet);
@@ -43,18 +43,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
 
             pavementWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
 
-            AddDynamicDataCells(pavementWorksheet, simulationOutput, currentCell);
+            AddDynamicDataCells(pavementWorksheet, simulationOutput, currentCell, primaryKey);
 
             pavementWorksheet.Cells.AutoFitColumns();
             _pavementUnfundedTreatments.PerformPostAutofitAdjustments(pavementWorksheet);
         }
 
-        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell)
+        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell, string primaryKey)
         {
             // TODO bridges in data tab need to match with bridges in Decision tab           
             foreach (var initialAssetSummary in simulationOutput.InitialAssetSummaries)
             {
-                var CRS = CheckGetValue(initialAssetSummary.ValuePerNumericAttribute, "CRS");
+                var CRS = CheckGetValue(initialAssetSummary.ValuePerNumericAttribute, primaryKey);
 
                 // Generate data model
                 var bridgeDataModel = GeneratePavementDataModel(CRS, initialAssetSummary);
