@@ -23,7 +23,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Unf
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet unfundedTreatmentTimeWorksheet, SimulationOutput simulationOutput)
+        public void Fill(ExcelWorksheet unfundedTreatmentTimeWorksheet, SimulationOutput simulationOutput, string primaryKey)
         {
             // Add excel headers to excel.
             var currentCell = _unfundedTreatmentCommon.AddHeadersCells(unfundedTreatmentTimeWorksheet);
@@ -46,7 +46,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Unf
 
             unfundedTreatmentTimeWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
 
-            AddDynamicDataCells(unfundedTreatmentTimeWorksheet, simulationOutput, currentCell);
+            AddDynamicDataCells(unfundedTreatmentTimeWorksheet, simulationOutput, currentCell, primaryKey);
 
             unfundedTreatmentTimeWorksheet.Cells.AutoFitColumns();
             _unfundedTreatmentCommon.PerformPostAutofitAdjustments(unfundedTreatmentTimeWorksheet);
@@ -54,7 +54,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Unf
 
         #region Private methods
 
-        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell)
+        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell, string primaryKey)
         {
             // facilityId, year, section, treatment
             var treatmentsPerSection = new SortedDictionary<int, Tuple<SimulationYearDetail, AssetDetail, TreatmentOptionDetail>>();
@@ -69,19 +69,19 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Unf
                 if (firstYear)
                 {
                     validFacilityIds.AddRange(
-                        year.Assets.Select(_ => Convert.ToInt32(_reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, "BRKEY_")))
-                            .Except(treatedSections.Select(_ => Convert.ToInt32(_reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, "BRKEY_"))))
+                        year.Assets.Select(_ => Convert.ToInt32(_reportHelper.CheckAndGetValue(_.ValuePerNumericAttribute, primaryKey)))
+                            .Except(treatedSections.Select(_ => Convert.ToInt32(_reportHelper.CheckAndGetValue(_.ValuePerNumericAttribute, primaryKey))))
                     );
                     firstYear = false;
                 }
                 else
                 {
-                    validFacilityIds = validFacilityIds.Except(treatedSections.Select(_ => Convert.ToInt32(_reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, "BRKEY_")))).ToList();
+                    validFacilityIds = validFacilityIds.Except(treatedSections.Select(_ => Convert.ToInt32(_reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, primaryKey)))).ToList();
                 }
 
                 foreach (var section in untreatedSections)
                 {
-                    var facilityId = Convert.ToInt32(_reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "BRKEY_"));
+                    var facilityId = Convert.ToInt32(_reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, primaryKey));
                     if (!treatmentsPerSection.ContainsKey(facilityId)) // skip if we already have a treatment for this section
                     {
                         var treatmentOptions = section.TreatmentOptions.
@@ -111,7 +111,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Unf
                 var year = facilityTuple.Item1;
                 var treatment = facilityTuple.Item3;
                 //Shade the BRKeys group
-                _unfundedTreatmentCommon.FillDataInWorkSheet(worksheet, currentCell, section, year.Year, treatment, color);
+                var initialAssetSummary = simulationOutput.InitialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId);
+                _unfundedTreatmentCommon.FillDataInWorkSheet(worksheet, currentCell, section, year.Year, treatment, color, initialAssetSummary);
                 currentCell.Row++;
                 currentCell.Column = 1;
                 color = color == Color.White ? Color.LightGray : Color.White;

@@ -42,7 +42,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
         public WorkSummaryModel Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData
-            , Dictionary<string, string> treatmentCategoryLookup, bool allowFundingFromMultipleBudgets, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
+            , Dictionary<string, string> treatmentCategoryLookup, bool allowFundingFromMultipleBudgets, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList, string primaryKey)
         {
             //set default width
             worksheet.DefaultColWidth = 13;
@@ -65,7 +65,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             }
 
             AddBridgeDataModelsCells(worksheet, reportOutputData, currentCell);
-            AddDynamicDataCells(worksheet, reportOutputData, currentCell, treatmentCategoryLookup, allowFundingFromMultipleBudgets, shouldBundleFeasibleTreatments, committedProjectList);
+            AddDynamicDataCells(worksheet, reportOutputData, currentCell, treatmentCategoryLookup, allowFundingFromMultipleBudgets, shouldBundleFeasibleTreatments, committedProjectList, primaryKey);
 
             //autofit columns
             worksheet.Cells.AutoFitColumns();
@@ -104,131 +104,131 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 rowNo++; columnNo = 1;
 
                 //--------------------- Asset ID ---------------------
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "INTERNET_REPORT"); //Internet Report 
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "INTERNET_REPORT"); //Internet Report 
                 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "BRIDGE_TYPE"); //Bridge (B/C)
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "BRIDGE_TYPE"); //Bridge (B/C)
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "BMSID"); //Bridge ID
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "BMSID"); //Bridge ID
                 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "BRKEY_"); //BRKey
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "BRKEY_"); //BRKey
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);                
 
                 //--------------------- Ownership ---------------------
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "DISTRICT"); //District
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "DISTRICT"); //District
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "COUNTY"); //County
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "COUNTY"); //County
 
-                var ownerName = ""; var ownerCode = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "OWNER_CODE"); //Owner Code
+                var ownerName = ""; var ownerCode = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "OWNER_CODE"); //Owner Code
                 if (!string.IsNullOrEmpty(ownerCode) && !string.IsNullOrWhiteSpace(ownerCode)) { ownerName = MappingContent.OwnerCodeForReport(ownerCode); }
                 worksheet.Cells[rowNo, columnNo++].Value = ownerName;
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "SUBM_AGENCY"); //Submitting Agency
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "SUBM_AGENCY"); //Submitting Agency
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
                
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "MPO_NAME"); // Planning Partner
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "MPO_NAME"); // Planning Partner
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "TOWN_PLACE"); // City/Town/Place
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "TOWN_PLACE"); // City/Town/Place
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "FEATURE_INTERSECTED"); //Feature Intersected
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "FEATURE_INTERSECTED"); //Feature Intersected
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "FEATURE_CARRIED"); //Feature Carried
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "FEATURE_CARRIED"); //Feature Carried
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "LOCATION"); // Location / Structure Name
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "LOCATION"); // Location / Structure Name
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "CUSTODIAN"); //Maintenance Responsibility                
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "CUSTODIAN"); //Maintenance Responsibility                
 
                 //--------------------- Structure ---------------------
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "LENGTH"); //Structure Length
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "LENGTH"); //Structure Length
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "DECK_AREA"); //Deck Area
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "DECK_AREA"); //Deck Area
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "LARGE_BRIDGE"); //Large Bridge
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "LARGE_BRIDGE"); //Large Bridge
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
                 
-                var spanType = ""; var spanTypeName = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "SPANTYPE"); //Span Type
+                var spanType = ""; var spanTypeName = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "SPANTYPE"); //Span Type
                 if (!string.IsNullOrEmpty(spanTypeName) && !string.IsNullOrWhiteSpace(spanTypeName)) {
                     spanType = spanTypeName == SpanType.M.ToSpanTypeName() ? MappingContent.SpanTypeMap[SpanType.M] : MappingContent.SpanTypeMap[SpanType.S];
                 }
                 worksheet.Cells[rowNo, columnNo++].Value = spanType;
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "FAMILY_ID"); //Bridge Family
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "FAMILY_ID"); //Bridge Family
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "STRUCTURE_TYPE"); //Structure Type
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "STRUCTURE_TYPE"); //Structure Type
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "FRACT_CRIT"); //Fractural Critical
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "FRACT_CRIT"); //Fractural Critical
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "PARALLEL") > 0 ? "Y" : "N"; //Parallel Structure
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "PARALLEL") > 0 ? "Y" : "N"; //Parallel Structure
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
                 //--------------------- Network ---------------------
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.FullFunctionalClassDescription(_reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "FUNC_CLASS")); //Functional Class
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.FullFunctionalClassDescription(_reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "FUNC_CLASS")); //Functional Class
 
-                worksheet.Cells[rowNo, columnNo++].Value = int.TryParse(_reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "NHS_IND"), out var numericValue) && numericValue > 0 ? "Y" : "N"; //NHS
+                worksheet.Cells[rowNo, columnNo++].Value = int.TryParse(_reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "NHS_IND"), out var numericValue) && numericValue > 0 ? "Y" : "N"; //NHS
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "NBISLEN"); //NBIS Len
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "NBISLEN"); //NBIS Len
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "BUS_PLAN_NETWORK"); //BPN
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "BUS_PLAN_NETWORK"); //BPN
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "INTERSTATE"); //Interstate
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "INTERSTATE"); //Interstate
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
                 //--------------------- Asset Attibutes ---------------------
-                worksheet.Cells[rowNo, columnNo++].Value = MappingContent.GetDeckSurfaceType(_reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "DECKSURF_TYPE")); //Deck Surface Type
+                worksheet.Cells[rowNo, columnNo++].Value = MappingContent.GetDeckSurfaceType(_reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "DECKSURF_TYPE")); //Deck Surface Type
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "WS_SEEDED"); // Wearing Surface Cond
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "WS_SEEDED"); // Wearing Surface Cond
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "PAINT_COND"); //Paint Cond
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "PAINT_COND"); //Paint Cond
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "PAINT_EXTENT"); //Paint Ext
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "PAINT_EXTENT"); //Paint Ext
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = (int)_reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "YEAR_BUILT"); //Year Built
+                worksheet.Cells[rowNo, columnNo++].Value = (int)_reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "YEAR_BUILT"); //Year Built
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "AGE"); //Age
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "AGE"); //Age
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "ADTTOTAL"); //ADT
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "ADTTOTAL"); //ADT
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "RISK_SCORE"); //Risk Score
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "RISK_SCORE"); //Risk Score
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "DET_LENGTH"); //Detour Length
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "DET_LENGTH"); //Detour Length
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "POST_STATUS") == 0 ? "OPEN" : "POSTED"; //Posting Status
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "POST_STATUS") == 0 ? "OPEN" : "POSTED"; //Posting Status
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "SUFF_RATING"); //Suff Rating
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "SUFF_RATING"); //Suff Rating
                 ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "LeakingJnts"); //Leaking Joints
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "LeakingJnts"); //Leaking Joints
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "Scour_Crit_Cat"); //Scour Critical
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "Scour_Crit_Cat"); //Scour Critical
 
                 //--------------------- Funding ---------------------
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "HBRR_ELIG"); //HBRR Elig
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "HBRR_ELIG"); //HBRR Elig
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "P3") > 0 ? "Y" : "N"; //P3
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "P3") > 0 ? "Y" : "N"; //P3
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "FEDAID"); //Federal Aid
+                worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(sectionSummary.ValuePerTextAttribute, "FEDAID"); //Federal Aid
 
-                _previousYearInitialMinC.Add(_reportHelper.CheckAndGetValue<double>(sectionSummary.ValuePerNumericAttribute, "MINCOND"));
+                _previousYearInitialMinC.Add(_reportHelper.CheckAndGetValue(sectionSummary.ValuePerNumericAttribute, "MINCOND"));
 
                 // Bridge Funding
                 var columnForStyle = columnNo;
@@ -256,7 +256,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             var initialColumnForShade = column + 1;
             var selectedSection = initialSection ?? section;
             var minCActionCallDecider = MinCValue.minOfCulvDeckSubSuper;
-            int.TryParse(_reportHelper.CheckAndGetValue<string>(selectedSection.ValuePerTextAttribute, "FAMILY_ID"), out var familyId);
+            int.TryParse(_reportHelper.CheckAndGetValue(selectedSection.ValuePerTextAttribute, "FAMILY_ID"), out var familyId);
             var familyIdLessThanEleven = familyId < 11;
             if (familyId > 10)
             {
@@ -279,15 +279,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             }
             else
             {
-                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "DECK_SEEDED");
-                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "SUP_SEEDED");
-                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "SUB_SEEDED");
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "DECK_SEEDED");
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_SEEDED");
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_SEEDED");
                 ExcelHelper.SetCustomFormat(worksheet.Cells[row, column - 2, row, column], ExcelHelperCellFormat.DecimalPrecision3);
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column - 2, row, column]);
 
-                worksheet.Cells[row, column + 2].Value = (int)_reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "DECK_DURATION_N");
-                worksheet.Cells[row, column + 3].Value = (int)_reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "SUP_DURATION_N");
-                worksheet.Cells[row, column + 4].Value = (int)_reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N");
+                worksheet.Cells[row, column + 2].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "DECK_DURATION_N");
+                worksheet.Cells[row, column + 3].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_DURATION_N");
+                worksheet.Cells[row, column + 4].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N");
             }
             if (familyIdLessThanEleven)
             {
@@ -305,10 +305,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             }
             else
             {
-                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "CULV_SEEDED");
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "CULV_SEEDED");
                 ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.DecimalPrecision3);
 
-                worksheet.Cells[row, column + 4].Value = (int)_reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "CULV_DURATION_N");
+                worksheet.Cells[row, column + 4].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "CULV_DURATION_N");
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column + 4]);
             }
             column += 4; // this will take us to "Min cond" column
@@ -318,12 +318,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.DecimalPrecision3);
             var minCondColumn = column;
 
-            if (_reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "P3") > 0 && _reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "MINCOND") < 5)
+            if (_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "P3") > 0 && _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND") < 5)
             {
                 ExcelHelper.ApplyColor(worksheet.Cells[row, column], Color.Yellow);
                 ExcelHelper.SetTextColor(worksheet.Cells[row, column], Color.Black);
             }
-            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "MINCOND") < 5 ? BAMSConstants.Yes : BAMSConstants.No; //poor
+            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND") < 5 ? BAMSConstants.Yes : BAMSConstants.No; //poor
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column]);
 
             if (row % 2 == 0)
@@ -333,19 +333,19 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             }
 
             // Setting color of MinCond over here, to avoid Color.LightGray overriding it
-            if (_reportHelper.CheckAndGetValue<double>(selectedSection.ValuePerNumericAttribute, "MINCOND") <= 3.5)
+            if (_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND") <= 3.5)
             {
                 ExcelHelper.ApplyColor(worksheet.Cells[row, minCondColumn], Color.FromArgb(112, 48, 160));
                 ExcelHelper.SetTextColor(worksheet.Cells[row, minCondColumn], Color.White);
             }
 
-            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue<string>(selectedSection.ValuePerTextAttribute, "POST_STATUS") == "POSTED" ? "Y" : "N"; //Posted
+            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerTextAttribute, "POST_STATUS") == "POSTED" ? "Y" : "N"; //Posted
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column]);
 
             return column;
         }
 
-        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput outputResults, CurrentCell currentCell, Dictionary<string, string> treatmentCategoryLookup, bool allowFundingFromMultipleBudgets, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList)
+        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput outputResults, CurrentCell currentCell, Dictionary<string, string> treatmentCategoryLookup, bool allowFundingFromMultipleBudgets, bool shouldBundleFeasibleTreatments, List<DTOs.Abstract.BaseCommittedProjectDTO> committedProjectList, string primaryKey)
         {
             var initialRow = 6;
             var row = initialRow; // Data starts here
@@ -386,10 +386,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 var i = 0; double section_BRKEY = 0;
                 foreach (var section in yearlySectionData.Assets)
                 {
-                    TrackDataForParametersTAB(section.ValuePerNumericAttribute, section.ValuePerTextAttribute);
+                    var initialAssetSummary = outputResults.InitialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId);
+                    TrackDataForParametersTAB(initialAssetSummary.ValuePerNumericAttribute, initialAssetSummary.ValuePerTextAttribute);
 
                     //get unique key (brkey) to compare
-                    section_BRKEY = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "BRKEY_");
+                    section_BRKEY = _reportHelper.CheckAndGetValue(section.ValuePerNumericAttribute, primaryKey);
 
                     if (!_bpnPoorOnPerYear.ContainsKey(yearlySectionData.Year))
                     {
@@ -406,12 +407,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                         _nonNhsPoorOnPerYear.Add(yearlySectionData.Year, 0);
                     }
 
-                    bool isNHS = int.TryParse(_reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "NHS_IND"), out var numericValue) && numericValue > 0;
+                    bool isNHS = int.TryParse(_reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "NHS_IND"), out var numericValue) && numericValue > 0;
 
                     int nhsOrNonPoorOnCount = isNHS ? _nhsPoorOnPerYear[yearlySectionData.Year] : _nonNhsPoorOnPerYear[yearlySectionData.Year];
 
                     Dictionary<string, int> bpnPoorOnDictionary = _bpnPoorOnPerYear[yearlySectionData.Year];
-                    var busPlanNetwork = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
+                    var busPlanNetwork = _reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
                     int bpnPoorOnCount;
                     // Create/Update BPN info for this Section/Year
                     if (!bpnPoorOnDictionary.ContainsKey(busPlanNetwork))
@@ -424,7 +425,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                         bpnPoorOnCount = bpnPoorOnDictionary[busPlanNetwork];
                     }
 
-                    var thisYrMinc = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "MINCOND");
+                    var thisYrMinc = _reportHelper.CheckAndGetValue(section.ValuePerNumericAttribute, "MINCOND");
                     // poor on off Rate
                     var prevYrMinc = 0.0;
                     if (index == 1)
@@ -439,7 +440,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     if (section.TreatmentCause == TreatmentCause.CommittedProject && !isInitialYear)
                     {
                         prevYearSection = outputResults.Years.FirstOrDefault(f => f.Year == yearlySectionData.Year - 1)
-                            .Assets.FirstOrDefault(_ => _reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, "BRKEY_") == section_BRKEY);
+                            .Assets.FirstOrDefault(_ => _reportHelper.CheckAndGetValue(_.ValuePerNumericAttribute, primaryKey) == section_BRKEY);
                         previousYearCause = prevYearSection.TreatmentCause;
                         previousYearTreatment = prevYearSection.AppliedTreatment;
                         previousYearTreatmentStatus = prevYearSection.TreatmentStatus;
@@ -458,7 +459,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                                   section.TreatmentStatus == TreatmentStatus.Applied)) ?
                                                   keyCashFlowFundingDetails[section_BRKEY] :
-                                                  section.TreatmentConsiderations ?? new();
+                                                  section.TreatmentConsiderations ?? [];
                     
                     var treatmentConsideration = shouldBundleFeasibleTreatments ?
                                                  treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
@@ -469,7 +470,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                                                     _.TreatmentName == section.AppliedTreatment);
 
                     var appliedTreatment = treatmentConsideration?.TreatmentName ?? section.AppliedTreatment;
-                    var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? new();
+                    var allocationMatrix = treatmentConsideration?.FundingCalculationOutput?.AllocationMatrix ?? [];
                     var cost = allocationMatrix?.Where(_ => _.Year == yearlySectionData.Year).Sum(_ => _.AllocatedAmount) ?? 0;
                     var workCell = worksheet.Cells[row, column];                    
                     workCell.Value = appliedTreatment.ToLower() == BAMSConstants.NoTreatment ? "--" : appliedTreatment.ToLower();
@@ -604,12 +605,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     var initialColumnForShade = column;
 
                     //get unique key (brkey) to compare
-                    var section_BRKEY = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "BRKEY_");
+                    var section_BRKEY = _reportHelper.CheckAndGetValue(section.ValuePerNumericAttribute, primaryKey);
                     AssetDetail prevYearSection = null;
                     if (!isInitialYear)
                     {
                         prevYearSection = outputResults.Years.FirstOrDefault(f => f.Year == yearlySectionData.Year - 1)?
-                            .Assets.FirstOrDefault(_ => _reportHelper.CheckAndGetValue<double>(_.ValuePerNumericAttribute, "BRKEY_") == section_BRKEY);
+                            .Assets.FirstOrDefault(_ => _reportHelper.CheckAndGetValue(_.ValuePerNumericAttribute, primaryKey) == section_BRKEY);
                     }
 
                     if (section.TreatmentCause == TreatmentCause.CashFlowProject && !isInitialYear)
@@ -623,7 +624,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     {
                         var committedProject = committedProjectList.FirstOrDefault(_ => _.Treatment.All(_ => section.AppliedTreatment.Contains(_)) &&
                                                _.Year == yearlySectionData.Year &&
-                                               _.LocationKeys["BRKEY_"] == section_BRKEY.ToString());
+                                               _.LocationKeys[primaryKey] == section_BRKEY.ToString());
                         var projectSource = committedProject?.ProjectSource.ToString() ?? string.Empty;
                         worksheet.Cells[row, ++column].Value = MappingContent.GetNonCashFlowProjectPick(section.TreatmentCause, projectSource);
 
@@ -1119,8 +1120,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
         private int EnterValueEqualsCulv(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
         {
-            var culvSeeded = _reportHelper.CheckAndGetValue<double>(numericAttribute, "CULV_SEEDED"); numericAttribute["CULV_SEEDED"] = culvSeeded;
-            var minCond = _reportHelper.CheckAndGetValue<double>(numericAttribute, "MINCOND"); numericAttribute["MINCOND"] = minCond;
+            var culvSeeded = _reportHelper.CheckAndGetValue(numericAttribute, "CULV_SEEDED"); numericAttribute["CULV_SEEDED"] = culvSeeded;
+            var minCond = _reportHelper.CheckAndGetValue(numericAttribute, "MINCOND"); numericAttribute["MINCOND"] = minCond;
 
             numericAttribute["MINCOND"] = numericAttribute["CULV_SEEDED"];
             worksheet.Cells[row, ++column].Value = numericAttribute["MINCOND"];
@@ -1129,9 +1130,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
         private int EnterMinDeckSuperSub(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
         {
-            var minValue = Math.Min(_reportHelper.CheckAndGetValue<double>(numericAttribute, "DECK_SEEDED"),
-                           Math.Min(_reportHelper.CheckAndGetValue<double>(numericAttribute, "SUP_SEEDED")
-                                    , _reportHelper.CheckAndGetValue<double>(numericAttribute, "SUB_SEEDED")));
+            var minValue = Math.Min(_reportHelper.CheckAndGetValue(numericAttribute, "DECK_SEEDED"),
+                           Math.Min(_reportHelper.CheckAndGetValue(numericAttribute, "SUP_SEEDED")
+                                    , _reportHelper.CheckAndGetValue(numericAttribute, "SUB_SEEDED")));
             worksheet.Cells[row, ++column].Value = minValue;
             numericAttribute["MINCOND"] = minValue;
             return column;
@@ -1139,7 +1140,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
         private int EnterMinDeckSuperSubCulv(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
         {
-            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue<double>(numericAttribute, "MINCOND");
+            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(numericAttribute, "MINCOND");
             return column;
         }
 
@@ -1172,21 +1173,21 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         private void TrackDataForParametersTAB(IDictionary<string, double> valuePerNumericAttribute, IDictionary<string, string> valuePerTextAttribute)
         {
             // Track status for parameters TAB
-            var postStatus = _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, "POST_STATUS").ToLower();
+            var postStatus = _reportHelper.CheckAndGetValue(valuePerTextAttribute, "POST_STATUS").ToLower();
             if (!_parametersModel.Status.Contains(postStatus)) { _parametersModel.Status.Add(postStatus); }
 
             // Track P3 for parameters TAB
-            var p3 = _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, "P3");
+            var p3 = _reportHelper.CheckAndGetValue(valuePerNumericAttribute, "P3");
             if (p3 > 0 && _parametersModel.P3 != 1) { _parametersModel.P3 = (int)p3; }
 
-            var ownerCode = _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, "OWNER_CODE");
+            var ownerCode = _reportHelper.CheckAndGetValue(valuePerTextAttribute, "OWNER_CODE");
             if (!_parametersModel.OwnerCode.Contains(ownerCode)) { _parametersModel.OwnerCode.Add(ownerCode); }
 
-            var structureLength = (int)_reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, "LENGTH");
+            var structureLength = (int)_reportHelper.CheckAndGetValue(valuePerNumericAttribute, "LENGTH");
             if (structureLength > 20 && _parametersModel.LengthGreaterThan20 != "Y") { _parametersModel.LengthGreaterThan20 = "Y"; }
             if (structureLength >= 8 && structureLength <= 20 && _parametersModel.LengthBetween8and20 != "Y") { _parametersModel.LengthBetween8and20 = "Y"; }
 
-            var functionalClass = _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, "FUNC_CLASS");
+            var functionalClass = _reportHelper.CheckAndGetValue(valuePerTextAttribute, "FUNC_CLASS");
             if (!_parametersModel.FunctionalClass.Contains(functionalClass)) { _parametersModel.FunctionalClass.Add(functionalClass); }
         }
 

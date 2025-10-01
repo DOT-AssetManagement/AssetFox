@@ -250,7 +250,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             foreach (var yearlyData in reportOutputData.Years)
             {
                 column = ++column;
-                worksheet.Cells[row, column].Value = _bridgeWorkSummaryComputationHelper.CalculateTotalPoorBridgesDeckArea(yearlyData);
+                worksheet.Cells[row, column].Value = _bridgeWorkSummaryComputationHelper.CalculateTotalPoorBridgesDeckArea(yearlyData, reportOutputData.InitialAssetSummaries);
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, column]);
             ExcelHelper.SetCustomFormat(worksheet.Cells[startRow, startColumn + 1, row, column], ExcelHelperCellFormat.Number);

@@ -325,15 +325,15 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpdateSimulationAnalysisDetail(reportDetailDto);
             // Sort data to get rows in InitialAssetSummaries and assets in Years aligned
             reportOutputData.InitialAssetSummaries.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerTextAttribute, "CRS")
-                    .CompareTo(_reportHelper.CheckAndGetValue(b.ValuePerTextAttribute, "CRS"))
+                    (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerTextAttribute, firstPrimaryKey)
+                    .CompareTo(_reportHelper.CheckAndGetValue(b.ValuePerTextAttribute, firstPrimaryKey))
                     );
 
             foreach (var yearlySectionData in reportOutputData.Years)
             {
                 yearlySectionData.Assets.Sort(
-                    (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerTextAttribute, "CRS")
-                    .CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, "CRS"))
+                    (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerTextAttribute, firstPrimaryKey)
+                    .CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
                     );
             }
             var worksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PAMSData_Tab);

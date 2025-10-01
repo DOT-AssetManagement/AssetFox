@@ -392,7 +392,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport.Tr
             currentCell.Column = columnNo;
         }
 
-        public double CheckAndGetValue(IDictionary<string, double> valuePerNumericAttribute, IDictionary<string, double> initialSummaryValuePerNumericAttribute, string attribute) =>
+        private double CheckAndGetValue(IDictionary<string, double> valuePerNumericAttribute, IDictionary<string, double> initialSummaryValuePerNumericAttribute, string attribute) =>
             valuePerNumericAttribute.ContainsKey(attribute)
                 ? _reportHelper.CheckAndGetValue(valuePerNumericAttribute, attribute)
                 : _reportHelper.CheckAndGetValue(initialSummaryValuePerNumericAttribute, attribute);
