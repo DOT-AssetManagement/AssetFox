@@ -226,13 +226,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 var totalPoorBridgesCount = _bridgeWorkSummaryComputationHelper.TotalSectionalPoorBridgesCount(yearlyData);
                 worksheet.Cells[row++, column].Value = totalPoorBridgesCount;
 
-                var poorBridgesNHSCount = _bridgeWorkSummaryComputationHelper.SectionalNHSBridgePoorCountOrArea(yearlyData.Assets, true);
+                var poorBridgesNHSCount = _bridgeWorkSummaryComputationHelper.SectionalNHSBridgePoorCountOrArea(yearlyData.Assets, reportOutputData.InitialAssetSummaries, true);
                 worksheet.Cells[row++, column].Value = poorBridgesNHSCount;
                 worksheet.Cells[row++, column].Value = totalPoorBridgesCount - poorBridgesNHSCount;
 
                 for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
                 {
-                    worksheet.Cells[row++, column].Value = _bridgeWorkSummaryComputationHelper.CalculatePoorCountOrAreaForBPN(yearlyData.Assets, bpnName.ToMatchInDictionary(), true);
+                    worksheet.Cells[row++, column].Value = _bridgeWorkSummaryComputationHelper.CalculatePoorCountOrAreaForBPN(yearlyData.Assets, reportOutputData.InitialAssetSummaries, bpnName.ToMatchInDictionary(), true);
                 }
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row, column]);
@@ -334,7 +334,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                AddTotalDeckArea(worksheet, yearlyData, row, column);
+                AddTotalDeckArea(worksheet, yearlyData, row, column, reportOutputData.InitialAssetSummaries);
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + 3, column]);
             ExcelHelper.SetCustomFormat(worksheet.Cells[startRow, startColumn + 1, row + 3, column], ExcelHelperCellFormat.Number);
@@ -356,18 +356,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             worksheet.Cells[row + 1, column].Value = fairCount;
         }
 
-        private void AddTotalDeckArea(ExcelWorksheet worksheet, SimulationYearDetail yearlyData, int row, int column)
+        private void AddTotalDeckArea(ExcelWorksheet worksheet, SimulationYearDetail yearlyData, int row, int column, List<AssetSummaryDetail> initialAssetSummaries)
         {
-            var goodCount = _bridgeWorkSummaryComputationHelper.CalculateTotalGoodDeckArea(yearlyData);
+            var goodCount = _bridgeWorkSummaryComputationHelper.CalculateTotalGoodDeckArea(yearlyData, initialAssetSummaries);
             worksheet.Cells[row, column].Value = goodCount;
 
-            var poorCount = _bridgeWorkSummaryComputationHelper.CalculateTotalPoorDeckArea(yearlyData);
+            var poorCount = _bridgeWorkSummaryComputationHelper.CalculateTotalPoorDeckArea(yearlyData, initialAssetSummaries);
             worksheet.Cells[row + 2, column].Value = poorCount;
 
-            var closedCount = _bridgeWorkSummaryComputationHelper.CalculateTotalClosedDeckArea(yearlyData);
+            var closedCount = _bridgeWorkSummaryComputationHelper.CalculateTotalClosedDeckArea(yearlyData, initialAssetSummaries);
             worksheet.Cells[row + 3, column].Value = closedCount;
 
-            var fairCount = _bridgeWorkSummaryComputationHelper.CalculateTotalDeckArea(yearlyData) - (goodCount + poorCount);
+            var fairCount = _bridgeWorkSummaryComputationHelper.CalculateTotalDeckArea(yearlyData, initialAssetSummaries) - (goodCount + poorCount);
             worksheet.Cells[row + 1, column].Value = fairCount;
         }
 

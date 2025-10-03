@@ -446,7 +446,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             UpsertSimulationReportDetail(reportDetailDto);
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             var summaryByBudgetWorksheet = excelPackage.Workbook.Worksheets.Add("Bridge Work Summary By Budget");
-            _bridgeWorkSummaryByBudget.Fill(summaryByBudgetWorksheet, simulationOutput, simulationYears, yearlyBudgets, scenarioSelectableTreatmentsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, simpleBudgetDetailDtos, spendingStrategy);
+            _bridgeWorkSummaryByBudget.Fill(summaryByBudgetWorksheet, simulationOutput, simulationYears, yearlyBudgets, scenarioSelectableTreatmentsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, simpleBudgetDetailDtos, spendingStrategy, firstPrimaryKey);
             checkCancelled(cancellationToken, simulationId);
 
             // District County Totals TAB

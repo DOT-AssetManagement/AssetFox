@@ -77,7 +77,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                AddNHSBridgeCount(worksheet, row, column, null, yearlyData.Assets);
+                AddNHSBridgeCount(worksheet, row, column, reportOutputData.InitialAssetSummaries, yearlyData.Assets);
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + 3, column]);
             _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + 4, column);
@@ -152,28 +152,28 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
         private void AddNHSBridgeCount(ExcelWorksheet worksheet, int row, int column,
-            List<AssetSummaryDetail> initialSectionSummaries, List<AssetDetail> sectionDetails)
+            List<AssetSummaryDetail> initialAssetSummaries, List<AssetDetail> sectionDetails)
         {
             int goodCount;
             int poorCount;
             int closedCount;
-            if (initialSectionSummaries != null)
+            if (sectionDetails == null)
             {
-                goodCount = (int)_bridgeWorkSummaryComputationHelper.InitialNHSBridgeGoodCountOrArea(initialSectionSummaries, true);
-                poorCount = (int)_bridgeWorkSummaryComputationHelper.InitialNHSBridgePoorCountOrArea(initialSectionSummaries, true);
-                closedCount = (int)_bridgeWorkSummaryComputationHelper.InitialNHSBridgeClosedCountOrArea(initialSectionSummaries, true);
+                goodCount = (int)_bridgeWorkSummaryComputationHelper.InitialNHSBridgeGoodCountOrArea(initialAssetSummaries, true);
+                poorCount = (int)_bridgeWorkSummaryComputationHelper.InitialNHSBridgePoorCountOrArea(initialAssetSummaries, true);
+                closedCount = (int)_bridgeWorkSummaryComputationHelper.InitialNHSBridgeClosedCountOrArea(initialAssetSummaries, true);
             }
             else
             {
-                goodCount = (int)_bridgeWorkSummaryComputationHelper.SectionalNHSBridgeGoodCountOrArea(sectionDetails, true);
-                poorCount = (int)_bridgeWorkSummaryComputationHelper.SectionalNHSBridgePoorCountOrArea(sectionDetails, true);
-                closedCount = (int)_bridgeWorkSummaryComputationHelper.SectionalNHSBridgeClosedCountOrArea(sectionDetails, true);
+                goodCount = (int)_bridgeWorkSummaryComputationHelper.SectionalNHSBridgeGoodCountOrArea(sectionDetails, initialAssetSummaries, true);
+                poorCount = (int)_bridgeWorkSummaryComputationHelper.SectionalNHSBridgePoorCountOrArea(sectionDetails, initialAssetSummaries, true);
+                closedCount = (int)_bridgeWorkSummaryComputationHelper.SectionalNHSBridgeClosedCountOrArea(sectionDetails, initialAssetSummaries, true);
             }
             worksheet.Cells[row, column].Value = goodCount;
             worksheet.Cells[row + 2, column].Value = poorCount;
             worksheet.Cells[row + 3, column].Value = closedCount;
 
-            var yNHSCount = _bridgeWorkSummaryComputationHelper.TotalNHSBridgeCountOrArea(initialSectionSummaries, sectionDetails, true);
+            var yNHSCount = _bridgeWorkSummaryComputationHelper.TotalNHSBridgeCountOrArea(initialAssetSummaries, true);
             var fairCount = yNHSCount - (goodCount + poorCount);
             worksheet.Cells[row + 1, column].Value = fairCount;
         }
@@ -240,7 +240,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                AddNHSBridgeDeckArea(worksheet, row, column, null, yearlyData.Assets);
+                AddNHSBridgeDeckArea(worksheet, row, column, reportOutputData.InitialAssetSummaries, yearlyData.Assets);
             }
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + 3, column]);
             ExcelHelper.SetCustomFormat(worksheet.Cells[startRow, startColumn + 1, row + 3, column], ExcelHelperCellFormat.Number);
@@ -248,28 +248,28 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
         private void AddNHSBridgeDeckArea(ExcelWorksheet worksheet, int row, int column,
-            List<AssetSummaryDetail> initialSectionSummaries, List<AssetDetail> sectionDetails)
+            List<AssetSummaryDetail> initialAssetSummaries, List<AssetDetail> sectionDetails)
         {
             double goodDeckArea;
             double poorDeckArea;
             double closedDeckArea;
-            if (initialSectionSummaries != null)
+            if (sectionDetails == null)
             {
-                goodDeckArea = _bridgeWorkSummaryComputationHelper.InitialNHSBridgeGoodCountOrArea(initialSectionSummaries, false);
-                poorDeckArea = _bridgeWorkSummaryComputationHelper.InitialNHSBridgePoorCountOrArea(initialSectionSummaries, false);
-                closedDeckArea = _bridgeWorkSummaryComputationHelper.InitialNHSBridgeClosedCountOrArea(initialSectionSummaries, false);
+                goodDeckArea = _bridgeWorkSummaryComputationHelper.InitialNHSBridgeGoodCountOrArea(initialAssetSummaries, false);
+                poorDeckArea = _bridgeWorkSummaryComputationHelper.InitialNHSBridgePoorCountOrArea(initialAssetSummaries, false);
+                closedDeckArea = _bridgeWorkSummaryComputationHelper.InitialNHSBridgeClosedCountOrArea(initialAssetSummaries, false);
             }
             else
             {
-                goodDeckArea = _bridgeWorkSummaryComputationHelper.SectionalNHSBridgeGoodCountOrArea(sectionDetails, false);
-                poorDeckArea = _bridgeWorkSummaryComputationHelper.SectionalNHSBridgePoorCountOrArea(sectionDetails, false); ;
-                closedDeckArea = _bridgeWorkSummaryComputationHelper.SectionalNHSBridgeClosedCountOrArea(sectionDetails, false); ;
+                goodDeckArea = _bridgeWorkSummaryComputationHelper.SectionalNHSBridgeGoodCountOrArea(sectionDetails, initialAssetSummaries, false);
+                poorDeckArea = _bridgeWorkSummaryComputationHelper.SectionalNHSBridgePoorCountOrArea(sectionDetails, initialAssetSummaries, false); ;
+                closedDeckArea = _bridgeWorkSummaryComputationHelper.SectionalNHSBridgeClosedCountOrArea(sectionDetails, initialAssetSummaries, false); ;
             }
             worksheet.Cells[row, column].Value = goodDeckArea;
             worksheet.Cells[row + 2, column].Value = poorDeckArea;
             worksheet.Cells[row + 3, column].Value = closedDeckArea;
 
-            var totalDeckArea = _bridgeWorkSummaryComputationHelper.TotalNHSBridgeCountOrArea(initialSectionSummaries, sectionDetails, false);
+            var totalDeckArea = _bridgeWorkSummaryComputationHelper.TotalNHSBridgeCountOrArea(initialAssetSummaries, false);
             var fairDeckArea = totalDeckArea - (goodDeckArea + poorDeckArea);
             worksheet.Cells[row + 1, column].Value = fairDeckArea;
         }

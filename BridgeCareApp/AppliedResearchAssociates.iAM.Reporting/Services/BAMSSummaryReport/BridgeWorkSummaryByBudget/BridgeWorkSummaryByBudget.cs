@@ -38,7 +38,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
         public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, BudgetDTO> yearlyBudgets
-            , List<TreatmentDTO> selectableTreatments, Dictionary<string, string> treatmentCategoryLookup, List<BaseCommittedProjectDTO> committedProjectList, List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, bool shouldBundleFeasibleTreatments, List<SimpleBudgetDetailDTO> scenarioSimpleBudgets, SpendingStrategy spendingStrategy)
+            , List<TreatmentDTO> selectableTreatments, Dictionary<string, string> treatmentCategoryLookup, List<BaseCommittedProjectDTO> committedProjectList, List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, bool shouldBundleFeasibleTreatments, List<SimpleBudgetDetailDTO> scenarioSimpleBudgets, SpendingStrategy spendingStrategy, string primaryKey)
         {
             var startYear = simulationYears[0];
             var currentCell = new CurrentCell { Row = 1, Column = 1 };
@@ -77,7 +77,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     var assets = yearData.Assets.Where(_ => _.TreatmentCause != TreatmentCause.NoSelection);
                     foreach (var section in assets)
                     {
-                        var section_BRKEY = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "BRKEY_");
+                        var section_BRKEY = _reportHelper.CheckAndGetValue(section.ValuePerNumericAttribute, primaryKey);
+                        var initialAssetSummary = reportOutputData.InitialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId);
 
                         // Build keyCashFlowFundingDetails                    
                         _reportHelper.BuildKeyCashFlowFundingDetails(yearData, section, section_BRKEY, keyCashFlowFundingDetails);
@@ -90,7 +91,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                                                       (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                                       section.TreatmentStatus == TreatmentStatus.Applied)) ?
                                                       keyCashFlowFundingDetails[section_BRKEY] :
-                                                      section.TreatmentConsiderations ?? new();
+                                                      section.TreatmentConsiderations ?? [];
 
                         var treatmentConsideration = shouldBundleFeasibleTreatments ?
                                                      treatmentConsiderations.FirstOrDefault(_ => _.FundingCalculationOutput != null &&
@@ -107,7 +108,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                                            Where(_ => _.BudgetName == summaryData.Budget && _.Year == yearData.Year).
                                            Sum(b => b.AllocatedAmount) ?? 0);
                         
-                        var bpnName = _reportHelper.CheckAndGetValue<string>(section?.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
+                        var bpnName = _reportHelper.CheckAndGetValue(initialAssetSummary?.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
                         if (section.TreatmentCause == TreatmentCause.CommittedProject &&
                             appliedTreatment.ToLower() != BAMSConstants.NoTreatment)
                         {
