@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace AppliedResearchAssociates.iAM.ExcelHelpers
 {
     public static class ExcelValueModels
@@ -36,5 +31,8 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
 
         public static ExcelRichTextModel RichString(string text, bool bold = false, int? fontSize = null)
             => new ExcelRichTextModel { Text = text, Bold = bold, FontSize = fontSize };
+
+        public static ExcelFormulaModel HyperLinkString(string link, string text)
+            => ExcelFormulaModels.Text($"=HYPERLINK({link}, {text})");
     }
 }

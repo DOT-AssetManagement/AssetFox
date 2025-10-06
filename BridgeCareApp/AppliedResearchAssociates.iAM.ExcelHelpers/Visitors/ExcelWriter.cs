@@ -103,6 +103,7 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
         public Unit Visit(ExcelFontColorModel model, ExcelRange cells)
         {
             cells.Style.Font.Color.SetColor(model.Color);
+            cells.Style.Font.UnderLine = model.FontStyle == System.Drawing.FontStyle.Underline;
             return Unit.Default;
         }
 

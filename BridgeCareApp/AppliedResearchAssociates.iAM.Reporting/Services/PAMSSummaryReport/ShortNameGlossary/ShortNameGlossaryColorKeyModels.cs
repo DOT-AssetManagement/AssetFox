@@ -18,6 +18,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Sho
             TwoByOneRow(ColoredText("Project is being cashed flowed.", Color.White, Color.FromArgb(7384391))),
 
             TwoByOneRow(ExcelValueModels.Nothing),
+            LeftHeader("Please reference pub 242 and the website,"),
+            LeftHeaderLink("\"https://www.pa.gov/content/dam/copapwp-pagov/en/penndot/documents/public/pubsforms/publications/pub-242/pub%20242%20index%20page.pdf\"", "\"Publication 242-Pavement Policy Manual\""),
             CenteredLongHeader("This software is provided on “as is” basis, and by using the software you acknowledge and agree that you are doing so at your own risk. While reasonable efforts have been made to ensure the accuracy and reliability of the software, no guarantee is made regarding the correctness, completeness, or suitability of any models, predictions or results it generates. Under no circumstances shall the software developers or distributors be held liable for any loss, damage, or other consequences arising from the use of the software or its outputs. Users assume full responsibility for any decisions made based on software use.")
         );
 
@@ -42,6 +44,30 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Sho
                         ExcelStyleModels.Bold,
                         ExcelStyleModels.HorizontalCenter),
                     Size = new ExcelRangeSize(2, 1)
+                });
+
+        private static ExcelRowModel LeftHeader(string text)
+            => ExcelRowModels.WithCells(
+                new RelativeExcelRangeModel
+                {
+                    Content = StackedExcelModels.Stacked(
+                        ExcelValueModels.String(text),
+                        ExcelStyleModels.Bold,
+                        ExcelStyleModels.Left,
+                        ExcelStyleModels.WrapText),
+                    Size = new ExcelRangeSize(10, 1)
+                });
+
+        private static ExcelRowModel LeftHeaderLink(string link, string text)
+            => ExcelRowModels.WithCells(
+                new RelativeExcelRangeModel
+                {
+                    Content = StackedExcelModels.Stacked(
+                        ExcelValueModels.HyperLinkString(link, text),
+                        ExcelStyleModels.FontColor(Color.Blue, FontStyle.Underline),
+                        ExcelStyleModels.Left,
+                        ExcelStyleModels.WrapText),
+                    Size = new ExcelRangeSize(10, 1)
                 });
 
         private static IExcelModel ColoredText(string text, Color textColor, Color fillColor)
