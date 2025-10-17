@@ -66,7 +66,7 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
             => new ExcelWrapTextModel
             {
                 Wrap = true,
-            };
+            };        
 
         public static ExcelBorderModel ThinBorder
             => new ExcelBorderModel
@@ -106,11 +106,12 @@ namespace AppliedResearchAssociates.iAM.ExcelHelpers
                 Alignment = ExcelHorizontalAlignment.Right,
             };
 
-        public static ExcelFontColorModel FontColor(Color color)
-            => new ExcelFontColorModel
+        public static ExcelFontColorModel FontColor(Color color, FontStyle style = FontStyle.Regular)
+            => new()
             {
                 Color = color,
-            };
+                FontStyle = style,
+            };        
 
         public static ExcelFontSizeModel FontSize(float fontSize)
             => new ExcelFontSizeModel
