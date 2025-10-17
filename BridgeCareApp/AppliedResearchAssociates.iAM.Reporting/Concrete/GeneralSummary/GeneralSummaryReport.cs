@@ -228,26 +228,26 @@ namespace AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary
             if (isPrimaryKeyNumeric)
             {
                 simulationOutput.InitialAssetSummaries.Sort(
-                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue(b.ValuePerNumericAttribute, firstPrimaryKey))
                         );
 
                 foreach (var yearlySectionData in simulationOutput.Years)
                 {
                     yearlySectionData.Assets.Sort(
-                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue(b.ValuePerNumericAttribute, firstPrimaryKey))
                         );
                 }
             }
             else
             {
                 simulationOutput.InitialAssetSummaries.Sort(
-                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue(b.ValuePerTextAttribute, firstPrimaryKey))
                         );
 
                 foreach (var yearlySectionData in simulationOutput.Years)
                 {
                     yearlySectionData.Assets.Sort(
-                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        (a, b) => _reportHelper.CheckAndGetValue(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue(b.ValuePerTextAttribute, firstPrimaryKey))
                         );
                 }
             }

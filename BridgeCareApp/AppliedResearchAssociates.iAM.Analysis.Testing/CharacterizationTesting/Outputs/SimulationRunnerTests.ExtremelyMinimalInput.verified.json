@@ -4,8 +4,8 @@
       "AssetId": "00000000-0000-0000-0000-000000000000",
       "AssetName": "LA 1",
       "ValuePerNumericAttribute": {
-        "AREA": 1,
         "AGE": 25,
+        "AREA": 1,
         "HEALTH": 85
       },
       "ValuePerTextAttribute": {}
@@ -72,7 +72,6 @@
           "AssetId": "00000000-0000-0000-0000-000000000000",
           "AssetName": "LA 1",
           "ValuePerNumericAttribute": {
-            "AREA": 1,
             "AGE": 25,
             "HEALTH": 95
           },

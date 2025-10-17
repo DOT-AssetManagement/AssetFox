@@ -29,14 +29,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
-        public T CheckAndGetValue<T>(IDictionary itemsArray, string itemName)
+        public T CheckAndGetValue<T>(IDictionary<string, T> itemsArray, string itemName)
         {
             var itemValue = default(T);
 
             if (itemsArray == null) { return itemValue; }
             if (string.IsNullOrEmpty(itemName) || string.IsNullOrWhiteSpace(itemName)) { return itemValue; }
 
-            if (itemsArray.Contains(itemName)) { itemValue = (T)itemsArray[itemName]; }
+            if (itemsArray.ContainsKey(itemName)) { itemValue = (T)itemsArray[itemName]; }
 
             //return value
             return itemValue;
@@ -420,7 +420,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services
             }
         }        
 
-        public bool IsPrimaryKeyNumberic(Dictionary<string, string> valuePerTextAttribute, Dictionary<string, double> valuePerNumericAttribute, string primaryKey)
+        public bool IsPrimaryKeyNumberic(IDictionary<string, string> valuePerTextAttribute, IDictionary<string, double> valuePerNumericAttribute, string primaryKey)
         {            
             var primaryKeyTextValue = CheckAndGetValue<string>(valuePerTextAttribute, primaryKey);
             var primaryKeyNumericValue = CheckAndGetValue<double>(valuePerNumericAttribute, primaryKey);

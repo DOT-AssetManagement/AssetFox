@@ -47,31 +47,31 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                AddPoorDeckArea(worksheet, row, column, yearlyData.Assets);
+                AddPoorDeckArea(worksheet, row, column, yearlyData.Assets, reportOutputData.InitialAssetSummaries);
             }
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + bpnNames.Count - 1, column]);
             _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + bpnNames.Count, column);
         }
 
-        private void AddInitialPoorDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialSectionSummaries)
+        private void AddInitialPoorDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var poorDeckArea = _bridgeWorkSummaryComputationHelper.CalculatePoorCountOrAreaForBPN(initialSectionSummaries, bpnKey, false);
+                var poorDeckArea = _bridgeWorkSummaryComputationHelper.CalculatePoorCountOrAreaForBPN(initialAssetSummaries, bpnKey, false);
                 worksheet.Cells[row++, column].Value = poorDeckArea;
             }
         }
 
-        private void AddPoorDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails)
+        private void AddPoorDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var poorDeckArea = _bridgeWorkSummaryComputationHelper.CalculatePoorCountOrAreaForBPN(sectionDetails, bpnKey, false);
+                var poorDeckArea = _bridgeWorkSummaryComputationHelper.CalculatePoorCountOrAreaForBPN(sectionDetails, initialAssetSummaries, bpnKey, false);
                 worksheet.Cells[row++, column].Value = poorDeckArea;
             }
         }

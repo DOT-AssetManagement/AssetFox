@@ -137,8 +137,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
                         {
                             continue;
                         }
-                        
-                        yearWorksheet.Cells[dataRow, dataColumn].Value = GetAttributeValue(asset, attribute);
+
+                        yearWorksheet.Cells[dataRow, dataColumn].Value = GetAttributeValue(asset, assetSummary, attribute);
                         ExcelHelper.ApplyBorder(yearWorksheet.Cells[dataRow, dataColumn++]);
                     }
 
@@ -148,13 +148,17 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
             }
         }
 
-        private object GetAttributeValue(AssetSummaryDetail assetSummary, string attribute) =>
-            assetSummary.ValuePerNumericAttribute.Any(_ => _.Key == attribute)
-                ? CheckGetValue(assetSummary.ValuePerNumericAttribute, attribute)
-                : CheckGetTextValue(assetSummary.ValuePerTextAttribute, attribute);        
-                
-        private double CheckGetValue(Dictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
+        private object GetAttributeValue(AssetDetail asset, AssetSummaryDetail assetSummary, string attribute) =>            
+            asset.ValuePerNumericAttribute.ContainsKey(attribute) || asset.ValuePerTextAttribute.ContainsKey(attribute)
+                ? asset.ValuePerNumericAttribute.Any(_ => _.Key == attribute)
+                    ? CheckGetValue(asset.ValuePerNumericAttribute, attribute)
+                    : CheckGetTextValue(asset.ValuePerTextAttribute, attribute)
+                : assetSummary.ValuePerNumericAttribute.Any(_ => _.Key == attribute)
+                    ? CheckGetValue(assetSummary.ValuePerNumericAttribute, attribute)
+                    : CheckGetTextValue(assetSummary.ValuePerTextAttribute, attribute);
 
-        private string CheckGetTextValue(Dictionary<string, string> valuePerTextAttribute, string attribute) => _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, attribute);
+        private double CheckGetValue(IDictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
+
+        private string CheckGetTextValue(IDictionary<string, string> valuePerTextAttribute, string attribute) => _reportHelper.CheckAndGetValue<string>(valuePerTextAttribute, attribute);
     }
 }

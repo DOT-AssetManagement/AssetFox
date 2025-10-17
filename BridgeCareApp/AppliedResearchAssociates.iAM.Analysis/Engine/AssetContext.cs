@@ -50,7 +50,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
         get
         {
             var detail = new AssetSummaryDetail(Asset);
-            CopyAttributeValuesToDetail(detail);
+            CopyAttributeValuesToDetail(detail, false);
             return detail;
         }
     }
@@ -96,7 +96,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
         }
     }
 
-    public void CopyAttributeValuesToDetail() => CopyAttributeValuesToDetail(Detail);
+    public void CopyAttributeValuesToDetail() => CopyAttributeValuesToDetail(Detail, true);
 
     public void CopyDetailFrom(AssetContext other) => Detail = new AssetDetail(other.Detail);
 
@@ -107,9 +107,9 @@ internal sealed class AssetContext : CalculateEvaluateScope
             result = criterion.Evaluate(this);
             EvaluationCache.Add(criterion.Expression, result);
 
-            AnalyzeForAttributeDependencies(
+            SimulationRunner.AnalyzeForAttributeDependencies(
                 SimulationRunner.ExpressionsAnalyzedForAttributeDependencies,
-                SimulationRunner.DependentExpressionsPerAttributeName,
+                SimulationRunner.DependentEvaluationExpressionsPerAttributeName,
                 criterion.Expression,
                 criterion.ReferencedParameters);
         }
@@ -156,7 +156,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
             var invocationText = string.Join(" to ", invocationStack);
 
-            var messageBuilder = new SimulationMessageBuilder("Loop encountered during number calculation: " + invocationText)
+            var messageBuilder = new SimulationMessageBuilder("Loop encountered during calculation: " + invocationText)
             {
                 AssetName = Asset.AssetName,
                 AssetId = Asset.Id,
@@ -169,30 +169,27 @@ internal sealed class AssetContext : CalculateEvaluateScope
             SimulationRunner.Send(logBuilder);
         }
 
-        if (!NumberCache_Override.TryGetValue(key, out var number) && !NumberCache.TryGetValue(key, out number))
+        double number;
+
+        if (SimulationRunner.CalculatedFieldsByName.ContainsKey(key))
+        {
+            if (!CalculatedFieldCache_Override.TryGetValue(key, out number) &&
+                !CalculatedFieldCache.TryGetValue(key, out number))
+            {
+                number = base.GetNumber(key);
+                CalculatedFieldCache[key] = number;
+            }
+        }
+        else
         {
             number = base.GetNumber(key);
 
             if (SimulationRunner.NumberAttributeByName.TryGetValue(key, out var attribute))
             {
-                if (attribute.Minimum.HasValue)
-                {
-                    number = Math.Max(number, attribute.Minimum.Value);
-                }
-
-                if (attribute.Maximum.HasValue)
-                {
-                    number = Math.Min(number, attribute.Maximum.Value);
-                }
+                number = Math.Clamp(number,
+                    attribute.Minimum ?? double.MinValue,
+                    attribute.Maximum ?? double.MaxValue);
             }
-
-            NumberCache[key] = number;
-
-            AnalyzeForAttributeDependencies(
-                SimulationRunner.KeysAnalyzedForAttributeDependencies,
-                SimulationRunner.DependentKeysPerAttributeName,
-                key,
-                null);
         }
 
         _ = GetNumber_ActiveKeysOfCurrentInvocation.Remove(key);
@@ -290,23 +287,17 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     public override void SetNumber(string key, double value)
     {
-        ClearCache(key);
+        ClearCaches(key);
         base.SetNumber(key, value);
-    }
-
-    public override void SetNumber(string key, Func<double> getValue)
-    {
-        ClearCache(key);
-        base.SetNumber(key, getValue);
     }
 
     public override void SetText(string key, string value)
     {
-        ClearCache(key);
+        ClearCaches(key);
         base.SetText(key, value);
     }
 
-    public void UnfixCalculatedFieldValues() => NumberCache_Override.Clear();
+    public void UnfixCalculatedFieldValues() => CalculatedFieldCache_Override.Clear();
 
     public bool YearIsWithinShadowForAnyTreatment(int year) => year < FirstUnshadowedYearForAnyTreatment;
 
@@ -320,69 +311,15 @@ internal sealed class AssetContext : CalculateEvaluateScope
 
     private readonly Dictionary<Attribute, double> MostRecentAdjustmentFactorsForPerformanceCurves = new();
 
-    private readonly Dictionary<string, double> NumberCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, double> CalculatedFieldCache = new(StringComparer.OrdinalIgnoreCase);
 
-    private readonly Dictionary<string, double> NumberCache_Override = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, double> CalculatedFieldCache_Override = new(StringComparer.OrdinalIgnoreCase);
 
     private Treatment AppliedTreatmentWithPendingMetadata;
 
     private int? FirstUnshadowedYearForAnyTreatment;
 
     private AnalysisMethod AnalysisMethod => SimulationRunner.Simulation.AnalysisMethod;
-
-    private void AnalyzeForAttributeDependencies(
-        ConcurrentDictionary<string, object> analyzedItems,
-        ConcurrentDictionary<string, ConcurrentDictionary<string, object>> dependentsPerAttributeName,
-        string itemToAnalyze,
-        IEnumerable<string> immediateDependencies)
-    {
-        if (analyzedItems.TryAdd(itemToAnalyze, default))
-        {
-            immediateDependencies ??= new[] { itemToAnalyze };
-            var dependencies = GetTerminalDependencies(immediateDependencies);
-
-            // Register the item as a dependent of each of its attribute dependencies.
-            foreach (var dependency in dependencies)
-            {
-                var dependents = dependentsPerAttributeName.GetOrAdd(dependency,
-                    static key => new(StringComparer.OrdinalIgnoreCase));
-
-                _ = dependents.TryAdd(itemToAnalyze, default);
-            }
-        }
-    }
-
-    private HashSet<string> GetTerminalDependencies(IEnumerable<string> immediateDependencies)
-    {
-        HashSet<string> terminalDependencies = new();
-
-        Stack<string> dependenciesToAnalyze = new(immediateDependencies);
-
-        while (dependenciesToAnalyze.TryPop(out var dependency))
-        {
-            if (SimulationRunner.CalculatedFieldsByName.TryGetValue(dependency, out var calculatedField))
-            {
-                foreach (var valueSource in calculatedField.ValueSources)
-                {
-                    foreach (var reference in valueSource.Criterion.ReferencedParameters)
-                    {
-                        dependenciesToAnalyze.Push(reference);
-                    }
-
-                    foreach (var reference in valueSource.Equation.ReferencedParameters)
-                    {
-                        dependenciesToAnalyze.Push(reference);
-                    }
-                }
-            }
-            else
-            {
-                _ = terminalDependencies.Add(dependency);
-            }
-        }
-
-        return terminalDependencies;
-    }
 
     private void ApplyTreatmentButNotMetadata(Treatment treatment)
     {
@@ -474,37 +411,47 @@ internal sealed class AssetContext : CalculateEvaluateScope
         }
     }
 
-    private void ClearCache(string triggeringKey)
+    private void ClearCaches(string triggeringKey)
     {
-        if (SimulationRunner.DependentKeysPerAttributeName.TryGetValue(triggeringKey, out var dependentKeys))
+        if (SimulationRunner.DependentCalculatedFieldsPerAttributeName.TryGetValue(triggeringKey, out var dependentCalculatedFields))
         {
-            foreach (var (key, _) in dependentKeys)
+            foreach (var (calculatedFieldName, _) in dependentCalculatedFields)
             {
-                _ = NumberCache.Remove(key);
+                _ = CalculatedFieldCache.Remove(calculatedFieldName);
             }
         }
 
-        if (SimulationRunner.DependentExpressionsPerAttributeName.TryGetValue(triggeringKey, out var dependentExpressions))
+        if (SimulationRunner.DependentEvaluationExpressionsPerAttributeName.TryGetValue(triggeringKey, out var dependentEvaluationExpressions))
         {
-            foreach (var (expression, _) in dependentExpressions)
+            foreach (var (evaluationExpression, _) in dependentEvaluationExpressions)
             {
-                _ = EvaluationCache.Remove(expression);
+                _ = EvaluationCache.Remove(evaluationExpression);
             }
         }
     }
 
-    private void CopyAttributeValuesToDetail(AssetSummaryDetail detail)
+    private void CopyAttributeValuesToDetail(AssetSummaryDetail detail, bool variableAttributesOnly)
     {
-        detail.ValuePerNumericAttribute.Add(Network.SpatialWeightIdentifier, GetNumber(Network.SpatialWeightIdentifier));
-
-        foreach (var attribute in SimulationRunner.Simulation.Network.Explorer.NumericAttributes)
+        List<string> numericAttributeNames, textAttributeNames;
+        if (variableAttributesOnly)
         {
-            detail.ValuePerNumericAttribute.Add(attribute.Name, GetNumber(attribute.Name));
+            numericAttributeNames = SimulationRunner.OrderedNamesOfYearlyOutputNumericAttributes;
+            textAttributeNames = SimulationRunner.OrderedNamesOfYearlyOutputTextAttributes;
+        }
+        else
+        {
+            numericAttributeNames = SimulationRunner.OrderedNamesOfAllNumericAttributes;
+            textAttributeNames = SimulationRunner.OrderedNamesOfAllTextAttributes;
         }
 
-        foreach (var attribute in SimulationRunner.Simulation.Network.Explorer.TextAttributes)
+        foreach (var attributeName in numericAttributeNames)
         {
-            detail.ValuePerTextAttribute.Add(attribute.Name, GetText(attribute.Name));
+            detail.ValuePerNumericAttribute.Add(attributeName, GetNumber(attributeName));
+        }
+
+        foreach (var attributeName in textAttributeNames)
+        {
+            detail.ValuePerTextAttribute.Add(attributeName, GetText(attributeName));
         }
     }
 
@@ -512,7 +459,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
     {
         foreach (var calculatedField in calculatedFields)
         {
-            NumberCache_Override[calculatedField.Name] = GetNumber(calculatedField.Name);
+            CalculatedFieldCache_Override[calculatedField.Name] = GetNumber(calculatedField.Name);
         }
     }
 
@@ -664,7 +611,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
             SetNumber(calculatedField.Name, calculate);
         }
 
-        base.SetNumber(Network.SpatialWeightIdentifier, GetSpatialWeight);
+        SetNumber(Network.SpatialWeightIdentifier, GetSpatialWeight);
     }
 
     private void PreapplyPassiveTreatment()
@@ -727,7 +674,7 @@ internal sealed class AssetContext : CalculateEvaluateScope
     {
         foreach (var calculatedField in SimulationRunner.CalculatedFieldsWithoutPreDeteriorationTiming)
         {
-            _ = NumberCache_Override.Remove(calculatedField.Name);
+            _ = CalculatedFieldCache_Override.Remove(calculatedField.Name);
         }
     }
 }

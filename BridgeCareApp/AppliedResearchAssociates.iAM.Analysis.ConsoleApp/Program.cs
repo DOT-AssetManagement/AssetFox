@@ -6,7 +6,7 @@ using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
 
 var inputArgument = new Argument<FileInfo>("input", "Existing JSON file containing a complete iAM scenario to run.").ExistingOnly();
-var outputOption = new Option<bool>("output-json", "If specified, simulation output JSON file will be written alongside input file.");
+var outputOption = new Option<bool>("--output-json", "If specified, simulation output JSON file will be written alongside input file.");
 var rootCommand = new RootCommand { inputArgument, outputOption };
 
 rootCommand.SetHandler(static (inputArgumentValue, outputOptionValue) =>

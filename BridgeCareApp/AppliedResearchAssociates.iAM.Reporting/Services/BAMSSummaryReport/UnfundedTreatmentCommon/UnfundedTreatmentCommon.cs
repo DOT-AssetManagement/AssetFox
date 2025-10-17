@@ -24,9 +24,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void FillDataInWorkSheet(ExcelWorksheet worksheet, CurrentCell currentCell, AssetDetail section, int Year, TreatmentOptionDetail treatment, Color color)
+        public void FillDataInWorkSheet(ExcelWorksheet worksheet, CurrentCell currentCell, AssetDetail section, int Year, TreatmentOptionDetail treatment, Color color, AssetSummaryDetail initialAssetSummary)
         {
-            _treatmentCommon.FillDataInWorkSheet(worksheet, currentCell, section, Year);
+            _treatmentCommon.FillDataInWorkSheet(worksheet, currentCell, initialAssetSummary);
 
             var row = currentCell.Row;
             var columnNo = currentCell.Column;

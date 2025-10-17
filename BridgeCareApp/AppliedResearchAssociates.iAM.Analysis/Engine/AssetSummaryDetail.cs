@@ -40,12 +40,12 @@ public class AssetSummaryDetail
     /// <summary>
     ///     List the current values of each numeric attribute for the asset.
     /// </summary>
-    public Dictionary<string, double> ValuePerNumericAttribute { get; } = new();
+    public SortedList<string, double> ValuePerNumericAttribute { get; } = new();
 
     /// <summary>
     ///     List the current values of each text attribute for the asset.
     /// </summary>
-    public Dictionary<string, string> ValuePerTextAttribute { get; } = new();
+    public SortedList<string, string> ValuePerTextAttribute { get; } = new();
 
     internal AssetSummaryDetail(AssetSummaryDetail original)
     {

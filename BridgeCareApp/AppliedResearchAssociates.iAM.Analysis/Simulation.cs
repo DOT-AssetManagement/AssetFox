@@ -18,6 +18,13 @@ public sealed class Simulation : WeakEntity, IValidator
 
     public InvestmentPlan InvestmentPlan { get; }
 
+    /// <summary>
+    ///     This is a set of names for the "key field" attributes that should always be included in
+    ///     yearly asset details, which normally include only attributes that can change due to
+    ///     consequences and/or deterioration.
+    /// </summary>
+    public HashSet<string> KeyFields { get; } = new();
+
     public DateTime LastModifiedDate { get; set; }
 
     public DateTime LastRun { get; set; }

@@ -46,7 +46,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public static List<AssetDetailValueEntityIntId> ToNumericEntityList(
             Guid assetDetailId,
-            Dictionary<string, double> assetDetailValues,
+            IDictionary<string, double> assetDetailValues,
             Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<AssetDetailValueEntityIntId>();
@@ -64,7 +64,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public static List<AssetDetailValueEntityIntId> ToTextEntityList(
             Guid assetDetailId,
-            Dictionary<string, string> assetDetailValues,
+            IDictionary<string, string> assetDetailValues,
             Dictionary<string, Guid> attributeIdLookup, int runId)
         {
             var entities = new List<AssetDetailValueEntityIntId>();
@@ -78,8 +78,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public static void AddToDictionaries(
             ICollection<AssetDetailValueEntityIntId> entityCollection,
-            Dictionary<string, string> valuePerTextAttribute,
-            Dictionary<string, double> valuePerNumericAttribute,
+            IDictionary<string, string> valuePerTextAttribute,
+            IDictionary<string, double> valuePerNumericAttribute,
             Dictionary<Guid, string> attributeNameLookup)
         {
             foreach (var entity in entityCollection)
@@ -100,8 +100,8 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.M
 
         public static void AddToDictionary(
             AssetDetailValueEntityIntId entity,
-            Dictionary<string, string> valuePerTextAttribute,
-            Dictionary<string, double> valuePerNumericAttribute,
+            IDictionary<string, string> valuePerTextAttribute,
+            IDictionary<string, double> valuePerNumericAttribute,
             Dictionary<Guid, string> attributeNameLookup)
         {
             var attributeName = attributeNameLookup[entity.AttributeId];

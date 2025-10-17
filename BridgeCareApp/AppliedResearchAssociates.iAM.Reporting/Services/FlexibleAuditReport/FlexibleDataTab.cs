@@ -136,6 +136,6 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
             AssetSummaryDetail = initialAssetSummary
         };
 
-        private double CheckGetValue(Dictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
+        private double CheckGetValue(IDictionary<string, double> valuePerNumericAttribute, string attribute) => _reportHelper.CheckAndGetValue<double>(valuePerNumericAttribute, attribute);
     }
 }

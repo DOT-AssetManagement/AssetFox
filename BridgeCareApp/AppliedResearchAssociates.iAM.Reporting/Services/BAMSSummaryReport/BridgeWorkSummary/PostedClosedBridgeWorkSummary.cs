@@ -45,7 +45,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                AddPostedBridgesCountBPN(worksheet, row, column, yearlyData.Assets);
+                AddPostedBridgesCountBPN(worksheet, row, column, yearlyData.Assets, reportOutputData.InitialAssetSummaries);
             }
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + bpnNames.Count - 1, column]);
@@ -53,24 +53,24 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
 
-        private void AddInitialPostedBridgesCountBPN(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialSectionSummaries)
+        private void AddInitialPostedBridgesCountBPN(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var postedBPNCount = _bridgeWorkSummaryComputationHelper.CalculatePostedCountOrDeckAreaForBPN(initialSectionSummaries, bpnKey, true);
+                var postedBPNCount = _bridgeWorkSummaryComputationHelper.CalculatePostedCountOrDeckAreaForBPN(initialAssetSummaries, bpnKey, true);
                 worksheet.Cells[row++, column].Value = postedBPNCount;
             }
         }
 
-        private void AddPostedBridgesCountBPN(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails)
+        private void AddPostedBridgesCountBPN(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var postedBPNCount = _bridgeWorkSummaryComputationHelper.CalculatePostedCountOrDeckAreaForBPN(sectionDetails, bpnKey, true);
+                var postedBPNCount = _bridgeWorkSummaryComputationHelper.CalculatePostedCountOrDeckAreaForBPN(sectionDetails, initialAssetSummaries, bpnKey, true);
                 worksheet.Cells[row++, column].Value = postedBPNCount;
             }
         }
@@ -95,31 +95,31 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                AddPostedBridgesDeckArea(worksheet, row, column, yearlyData.Assets);
+                AddPostedBridgesDeckArea(worksheet, row, column, yearlyData.Assets, reportOutputData.InitialAssetSummaries);
             }
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + bpnNames.Count - 1, column]);
             _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + bpnNames.Count, column);
         }
 
-        private void AddInitialPostedBridgesDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialSectionSummaries)
+        private void AddInitialPostedBridgesDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var postedDeckArea = _bridgeWorkSummaryComputationHelper.CalculatePostedCountOrDeckAreaForBPN(initialSectionSummaries, bpnKey, false);
+                var postedDeckArea = _bridgeWorkSummaryComputationHelper.CalculatePostedCountOrDeckAreaForBPN(initialAssetSummaries, bpnKey, false);
                 worksheet.Cells[row++, column].Value = postedDeckArea;
             }
         }
 
-        private void AddPostedBridgesDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails)
+        private void AddPostedBridgesDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var postedDeckArea = _bridgeWorkSummaryComputationHelper.CalculatePostedCountOrDeckAreaForBPN(sectionDetails, bpnKey, false);
+                var postedDeckArea = _bridgeWorkSummaryComputationHelper.CalculatePostedCountOrDeckAreaForBPN(sectionDetails, initialAssetSummaries, bpnKey, false);
                 worksheet.Cells[row++, column].Value = postedDeckArea;
             }
         }
@@ -145,7 +145,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                AddClosedBridgesCountBPN(worksheet, row, column, yearlyData.Assets);
+                AddClosedBridgesCountBPN(worksheet, row, column, yearlyData.Assets, reportOutputData.InitialAssetSummaries);
             }
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + bpnNames.Count - 1, column]);
@@ -153,24 +153,24 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
 
-        private void AddInitialClosedBridgesCountBPN(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialSectionSummaries)
+        private void AddInitialClosedBridgesCountBPN(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var closedDecArea = _bridgeWorkSummaryComputationHelper.CalculateClosedCountOrDeckAreaForBPN(initialSectionSummaries, bpnKey, true);
+                var closedDecArea = _bridgeWorkSummaryComputationHelper.CalculateClosedCountOrDeckAreaForBPN(initialAssetSummaries, bpnKey, true);
                 worksheet.Cells[row++, column].Value = closedDecArea;
             }
         }
 
-        private void AddClosedBridgesCountBPN(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails)
+        private void AddClosedBridgesCountBPN(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var closedDeckArea = _bridgeWorkSummaryComputationHelper.CalculateClosedCountOrDeckAreaForBPN(sectionDetails, bpnKey, true);
+                var closedDeckArea = _bridgeWorkSummaryComputationHelper.CalculateClosedCountOrDeckAreaForBPN(sectionDetails, initialAssetSummaries, bpnKey, true);
                 worksheet.Cells[row++, column].Value = closedDeckArea;
             }
         }
@@ -195,31 +195,31 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             {
                 row = startRow;
                 column = ++column;
-                AddClosedBridgesDeckArea(worksheet, row, column, yearlyData.Assets);
+                AddClosedBridgesDeckArea(worksheet, row, column, yearlyData.Assets, reportOutputData.InitialAssetSummaries);
             }
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row + bpnNames.Count - 1, column]);
             _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + bpnNames.Count, column);
         }
 
-        private void AddInitialClosedBridgesDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialSectionSummaries)
+        private void AddInitialClosedBridgesDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var closedDeckArea = _bridgeWorkSummaryComputationHelper.CalculateClosedCountOrDeckAreaForBPN(initialSectionSummaries, bpnKey, false);
+                var closedDeckArea = _bridgeWorkSummaryComputationHelper.CalculateClosedCountOrDeckAreaForBPN(initialAssetSummaries, bpnKey, false);
                 worksheet.Cells[row++, column].Value = closedDeckArea;
             }
         }
 
-        private void AddClosedBridgesDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails)
+        private void AddClosedBridgesDeckArea(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> sectionDetails, List<AssetSummaryDetail> initialAssetSummaries)
         {
             var bpnNames = EnumExtensions.GetValues<BPNName>();
             for (var bpnName = bpnNames[0]; bpnName <= bpnNames.Last(); bpnName++)
             {
                 var bpnKey = bpnName.ToMatchInDictionary();
-                var closedDeckArea = _bridgeWorkSummaryComputationHelper.CalculateClosedCountOrDeckAreaForBPN(sectionDetails, bpnKey, false);
+                var closedDeckArea = _bridgeWorkSummaryComputationHelper.CalculateClosedCountOrDeckAreaForBPN(sectionDetails, initialAssetSummaries, bpnKey, false);
                 worksheet.Cells[row++, column].Value = closedDeckArea;
             }
         }
@@ -260,16 +260,16 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
 
 
         internal ChartRowsModel FillMoneyNeededByBPN(ExcelWorksheet worksheet, CurrentCell currentCell,
-            List<int> simulationYears, SimulationOutput reportOutputData, ChartRowsModel chartRowsModel)
+            List<int> simulationYears, SimulationOutput reportOutputData, ChartRowsModel chartRowsModel, string primaryKey)
         {
             _bridgeWorkSummaryCommon.AddBridgeHeaders(worksheet, currentCell, simulationYears, "Dollar Needs By BPN", false);
             chartRowsModel.TotalCashNeededByBPNYearsRow = currentCell.Row;
-            AddDetailsForMoneyNeededByBPN(worksheet, currentCell, reportOutputData);
+            AddDetailsForMoneyNeededByBPN(worksheet, currentCell, reportOutputData, primaryKey);
             return chartRowsModel;
         }
 
         private void AddDetailsForMoneyNeededByBPN(ExcelWorksheet worksheet, CurrentCell currentCell,
-            SimulationOutput reportOutputData)
+            SimulationOutput reportOutputData, string primaryKey)
         {
             int startRow, startColumn, row, column;
 
@@ -292,7 +292,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 row = startRow;
                 column = ++column;
 
-                var totalMoneyPerYear = MoneyNeededBPNColumnForAssets(worksheet, row, column, yearlyData.Assets, reportOutputData, yearlyData);
+                var totalMoneyPerYear = MoneyNeededBPNColumnForAssets(worksheet, row, column, yearlyData.Assets, reportOutputData, yearlyData, primaryKey);
 
                 totalMoney += totalMoneyPerYear;
             }
@@ -315,14 +315,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row + bpnRowCount, column);
         }
 
-        private double MoneyNeededBPNColumnForAssets(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> assets, SimulationOutput simulationOutput, SimulationYearDetail currentYearDetail)
+        private double MoneyNeededBPNColumnForAssets(ExcelWorksheet worksheet, int row, int column, List<AssetDetail> assets, SimulationOutput simulationOutput, SimulationYearDetail currentYearDetail, string primaryKey)
         {
             var totalMoney = 0.0;
 
             var bpnKeys = EnumExtensions.GetValues<BPNName>().Select(_ => _.ToMatchInDictionary());
             foreach (var bpnKey in bpnKeys)
             {
-                var moneyForBPN = _bridgeWorkSummaryComputationHelper.CalculateMoneyNeededByBPN(assets, bpnKey, simulationOutput, currentYearDetail);
+                var moneyForBPN = _bridgeWorkSummaryComputationHelper.CalculateMoneyNeededByBPN(assets, bpnKey, simulationOutput, currentYearDetail, primaryKey);
                 worksheet.Cells[row++, column].Value = moneyForBPN;
                 totalMoney += moneyForBPN;
             }

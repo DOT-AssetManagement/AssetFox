@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using OfficeOpenXml;
+using System.Collections.Generic;
 
 using AppliedResearchAssociates.iAM.Analysis.Engine;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
@@ -14,9 +14,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Dis
 
         internal static IExcelModel DistrictTableContent(
             SimulationYearDetail year,
-            Func<AssetDetail, bool> inclusionPredicate)
+            List<AssetSummaryDetail> initialAssetSummaries,
+            Func<AssetDetail, AssetSummaryDetail, bool> inclusionPredicate)
         {
-            var totalMoney = DistrictTableContentValue(year, inclusionPredicate);
+            var totalMoney = DistrictTableContentValue(year, initialAssetSummaries, inclusionPredicate);
             return StackedExcelModels.Stacked(
                 ExcelValueModels.Money(totalMoney),
                 ExcelStyleModels.Right,
@@ -28,7 +29,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Dis
 
         internal static decimal DistrictTableContentValue(
             SimulationYearDetail year,
-            Func<AssetDetail, bool> inclusionPredicate)
+            List<AssetSummaryDetail> initialAssetSummaries,
+            Func<AssetDetail, AssetSummaryDetail, bool> inclusionPredicate)
         {
             decimal totalMoney = 0;
             var sections = year.Assets;
@@ -36,7 +38,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Dis
             {
                 try
                 {
-                    if (inclusionPredicate(section))
+                    if (inclusionPredicate(section, initialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId)))
                     {
                         var cost = TotalCost(section, year.Year);
                         totalMoney += cost;

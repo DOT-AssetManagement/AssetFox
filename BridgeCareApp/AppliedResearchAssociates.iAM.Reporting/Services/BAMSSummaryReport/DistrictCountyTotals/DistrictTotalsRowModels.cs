@@ -144,15 +144,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Dis
             public List<decimal> rowEntries { get; internal set; }
         }
 
-        internal static List<CountyRow> DistrictCountyValues(SimulationOutput output, int district, Func<AssetDetail, int, string, bool> districtCountyFunction)
+        internal static List<CountyRow> DistrictCountyValues(SimulationOutput output, int district, Func<AssetDetail, AssetSummaryDetail, int, string, bool> districtCountyFunction)
         {
             var counties = CountiesForDistrict(district);
 
             var countyRows = new List<CountyRow>();
             foreach (var county in counties)
             {
-                Func<AssetDetail, bool> predicate = detail => districtCountyFunction(detail, district, county);
-                var values = output.Years.Select(year => DistrictTotalsExcelModels.DistrictTableContentValue(year, predicate)).ToList();
+                Func<AssetDetail, AssetSummaryDetail, bool> predicate = (detail, assetSummary) => districtCountyFunction(detail, assetSummary, district, county);
+                var values = output.Years.Select(year => DistrictTotalsExcelModels.DistrictTableContentValue(year, output.InitialAssetSummaries, predicate)).ToList();
                 var rowModel = new CountyRow
                 {
                     District = district,
@@ -215,34 +215,34 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Dis
 
         internal static List<CountyRow> MpmsTableDistrictValues(SimulationOutput output, int district)
         {
-            Func<AssetDetail, int, string, bool> predicate = (detail, district, county) =>
-                    DistrictTotalsSectionDetailPredicates.IsNumberedDistrictMpmsTable(detail, district) &&
-                    DistrictTotalsSectionDetailPredicates.IsCounty(detail, county);
+            Func<AssetDetail, AssetSummaryDetail, int, string, bool> predicate = (detail, assetSummary, district, county) =>
+                    DistrictTotalsSectionDetailPredicates.IsNumberedDistrictMpmsTable(detail, assetSummary, district) &&
+                    DistrictTotalsSectionDetailPredicates.IsCounty(detail, assetSummary, county);
             var countyRows = DistrictCountyValues(output, district, predicate);
             return countyRows;
          }
 
         internal static List<CountyRow> BamsTableDistrictValues(SimulationOutput output, int district)
         {
-            Func<AssetDetail, int, string, bool> predicate = (detail, district, county) =>
-                DistrictTotalsSectionDetailPredicates.IsNumberedDistrictBamsTable(detail, district) &&
-                DistrictTotalsSectionDetailPredicates.IsCounty(detail, county);
+            Func<AssetDetail, AssetSummaryDetail, int, string, bool> predicate = (detail, assetSummary, district, county) =>
+                DistrictTotalsSectionDetailPredicates.IsNumberedDistrictBamsTable(detail, assetSummary, district) &&
+                DistrictTotalsSectionDetailPredicates.IsCounty(detail, assetSummary, county);
             var countyRows = DistrictCountyValues(output, district, predicate);
             return countyRows;
         }
 
         internal static List<CountyRow> OverallDollarsTableDistrictValues(SimulationOutput output, int district)
         {
-            Func<AssetDetail, int, string, bool> predicate = (detail, district, county ) =>
-                DistrictTotalsSectionDetailPredicates.IsDistrictNotTurnpike(detail, district) &&
-                DistrictTotalsSectionDetailPredicates.IsCounty(detail, county);
+            Func<AssetDetail, AssetSummaryDetail, int, string, bool> predicate = (detail, assetSummary, district, county ) =>
+                DistrictTotalsSectionDetailPredicates.IsDistrictNotTurnpike(detail, assetSummary, district) &&
+                DistrictTotalsSectionDetailPredicates.IsCounty(detail, assetSummary, county);
             var countyRows = DistrictCountyValues(output, district, predicate);
             return countyRows;
         }
 
-        public static CountyRow TurnpikeRowValue(SimulationOutput output, Func<AssetDetail, bool> predicate)
+        public static CountyRow TurnpikeRowValue(SimulationOutput output, Func<AssetDetail, AssetSummaryDetail, bool> predicate)
         {
-            var values = output.Years.Select(year => DistrictTotalsExcelModels.DistrictTableContentValue(year, predicate)).ToList();
+            var values = output.Years.Select(year => DistrictTotalsExcelModels.DistrictTableContentValue(year, output.InitialAssetSummaries, predicate)).ToList();
             var turnpikeRow = new CountyRow
             {
                 District = 0,

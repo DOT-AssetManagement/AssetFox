@@ -10,8 +10,8 @@ namespace AppliedResearchAssociates.iAM.TestHelpers
     public static class DictionaryAssertions
     {
         public static void Same<T, U>(
-            Dictionary<T, U> expected,
-            Dictionary<T, U> actual)
+            IDictionary<T, U> expected,
+            IDictionary<T, U> actual)
             where T: IEquatable<T>
             where U: IEquatable<U>
         {

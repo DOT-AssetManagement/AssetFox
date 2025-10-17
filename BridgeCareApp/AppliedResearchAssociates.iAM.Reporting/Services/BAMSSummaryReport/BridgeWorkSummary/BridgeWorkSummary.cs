@@ -41,7 +41,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         public ChartRowsModel Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData,
             List<int> simulationYears, WorkSummaryModel workSummaryModel, Dictionary<string, BudgetDTO> yearlyBudgets,
             List<TreatmentDTO> selectableTreatments, Dictionary<string, string> treatmentCategoryLookup,
-            List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, bool shouldBundleFeasibleTreatments, SpendingStrategy spendingStrategy)
+            List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope, bool shouldBundleFeasibleTreatments, SpendingStrategy spendingStrategy, string primaryKey)
         {
             var currentCell = new CurrentCell { Row = 10, Column = 1 };
 
@@ -69,7 +69,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             var countForCompletedProject = new Dictionary<int, Dictionary<string, int>>();
             var countForCompletedCommittedProject = new Dictionary<int, Dictionary<string, int>>();
             FillDataToUseInExcel(reportOutputData, costPerBPNPerYear, costAndCountPerTreatmentPerYear, yearlyCostCommittedProj,
-                countForCompletedProject, countForCompletedCommittedProject, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments);
+                countForCompletedProject, countForCompletedCommittedProject, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, primaryKey);
 
             #endregion Initial work to set some data, which will be used throughout the Work summary TAB
 
@@ -92,7 +92,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             chartRowsModel = _postedClosedBridgeWorkSummary.FillClosedBridgesCountByBPN(worksheet, currentCell, simulationYears, reportOutputData, chartRowsModel);
             chartRowsModel = _postedClosedBridgeWorkSummary.FillClosedBridgesDeckAreaByBPN(worksheet, currentCell, simulationYears, reportOutputData, chartRowsModel);
             _postedClosedBridgeWorkSummary.FillPostedAndClosedBridgesTotalCount(worksheet, currentCell, simulationYears, reportOutputData, chartRowsModel);
-            chartRowsModel = _postedClosedBridgeWorkSummary.FillMoneyNeededByBPN(worksheet, currentCell, simulationYears, reportOutputData, chartRowsModel);
+            chartRowsModel = _postedClosedBridgeWorkSummary.FillMoneyNeededByBPN(worksheet, currentCell, simulationYears, reportOutputData, chartRowsModel, primaryKey);
 
             worksheet.Calculate();
             worksheet.Cells.AutoFitColumns();
@@ -110,10 +110,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
          Dictionary<int, Dictionary<string, int>> countForCompletedCommittedProject,
          Dictionary<string, string> treatmentCategoryLookup,
          List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
-         bool shouldBundleFeasibleTreatments)
+         bool shouldBundleFeasibleTreatments,
+         string primaryKey)
         {
             var isInitialYear = true;
-            Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
+            Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = [];
+            var initialAssetSummaries = reportOutputData.InitialAssetSummaries;
             foreach (var yearData in reportOutputData.Years)
             {
                 costAndCountPerTreatmentPerYear.Add(yearData.Year, new Dictionary<string, (decimal treatmentCost, int bridgeCount)>());
@@ -123,10 +125,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 countForCompletedCommittedProject.Add(yearData.Year, new Dictionary<string, int>());
                 foreach (var section in yearData.Assets)
                 {
-                    var section_BRKEY = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "BRKEY_");
+                    var initialAssetSummary = initialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId);
+                    var section_BRKEY = _reportHelper.CheckAndGetValue(section.ValuePerNumericAttribute, primaryKey);
                     
                     //get business plan network
-                    var busPlanNetwork = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
+                    var busPlanNetwork = _reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
 
                     if (!costPerBPNPerYear[yearData.Year].ContainsKey(busPlanNetwork))
                     {
@@ -212,9 +215,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                     }
                     //[TODO] - ask Jake regarding cash flow project. It won't have anything in the TreartmentOptions barring 1st year
                                         
-                    PopulateWorkedOnCostAndCount(yearData.Year, section, costAndCountPerTreatmentPerYear, cost);
+                    PopulateWorkedOnCostAndCount(yearData.Year, section, initialAssetSummary, costAndCountPerTreatmentPerYear, cost);
 
-                    PopulateCompletedProjectCount(yearData.Year, section, countForCompletedProject);
+                    PopulateCompletedProjectCount(yearData.Year, section, initialAssetSummary, countForCompletedProject);
 
                     RemoveBridgesForCashFlowedProj(countForCompletedProject, section, isInitialYear, yearData.Year);
 
@@ -227,14 +230,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
         }
 
         private void PopulateWorkedOnCostAndCount(int year, AssetDetail section,
-            Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> costAndCountPerTreatmentPerYear, decimal cost)
+            AssetSummaryDetail initialAssetSummary, Dictionary<int, Dictionary<string, (decimal treatmentCost, int bridgeCount)>> costAndCountPerTreatmentPerYear, decimal cost)
         {
             if (section.TreatmentCause == TreatmentCause.NoSelection)
             {
                 var culvert = BAMSConstants.CulvertBridgeType;
                 var nonCulvert = BAMSConstants.NonCulvertBridgeType;
                 // If Bridge type is culvert
-                if (_reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "BRIDGE_TYPE") == culvert)
+                if (_reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "BRIDGE_TYPE") == culvert)
                 {
                     AddKeyValueForWorkedOn(costAndCountPerTreatmentPerYear[year], culvert, section.AppliedTreatment, cost);
                 }
@@ -266,13 +269,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             }
         }
 
-        private void PopulateCompletedProjectCount(int year, AssetDetail section, Dictionary<int, Dictionary<string, int>> countForCompletedProject)
+        private void PopulateCompletedProjectCount(int year, AssetDetail section, AssetSummaryDetail initialAssetSummary, Dictionary<int, Dictionary<string,    int>> countForCompletedProject)
         {
             if (section.TreatmentCause == TreatmentCause.NoSelection)
             {
                 var culvert = BAMSConstants.CulvertBridgeType;
                 // If Bridge type is culvert
-                if (_reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "BRIDGE_TYPE") == culvert)
+                if (_reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "BRIDGE_TYPE") == culvert)
                 {
                     AddKeyValue(countForCompletedProject[year], culvert, section.AppliedTreatment);
                 }

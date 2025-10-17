@@ -165,6 +165,38 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var performanceCurvesDtos = _unitOfWork.PerformanceCurveRepo.GetScenarioPerformanceCurves(simulationId);
             var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);
 
+            var primaryKeyFields = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+            var firstPrimaryKey = primaryKeyFields[0].ToString();
+            var isPrimaryKeyNumeric = _reportHelper.IsPrimaryKeyNumberic(simulationOutput.InitialAssetSummaries[0].ValuePerTextAttribute, simulationOutput.InitialAssetSummaries[0].ValuePerNumericAttribute, firstPrimaryKey);
+
+            // Sort data
+            if (isPrimaryKeyNumeric)
+            {
+                simulationOutput.InitialAssetSummaries.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+
+                foreach (var yearlySectionData in simulationOutput.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<double>(a.ValuePerNumericAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<double>(b.ValuePerNumericAttribute, firstPrimaryKey))
+                        );
+                }
+            }
+            else
+            {
+                simulationOutput.InitialAssetSummaries.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+
+                foreach (var yearlySectionData in simulationOutput.Years)
+                {
+                    yearlySectionData.Assets.Sort(
+                        (a, b) => _reportHelper.CheckAndGetValue<string>(a.ValuePerTextAttribute, firstPrimaryKey).CompareTo(_reportHelper.CheckAndGetValue<string>(b.ValuePerTextAttribute, firstPrimaryKey))
+                        );
+                }
+            }
+
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSAuditReportData.xlsx"));
 
@@ -177,7 +209,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var pavementWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSAuditReportConstants.PavementTab);
             var dataTabRequiredAttributes = PAMSDataTab.GetRequiredAttributes();
             ValidateSections(simulationOutput, reportDetailDto, simulationId, dataTabRequiredAttributes);
-            _dataTab.Fill(pavementWorksheet, simulationOutput);
+            _dataTab.Fill(pavementWorksheet, simulationOutput, firstPrimaryKey);
 
             checkCancelled(cancellationToken, simulationId);
             // Fill Decisions TAB
@@ -189,7 +221,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             var performanceCurvesAttributes = _reportHelper.GetPerformanceCurvesAttributes(performanceCurvesDtos);
             performanceCurvesDtos.Clear();
             ValidateSections(simulationOutput, reportDetailDto, simulationId, new HashSet<string>(performanceCurvesAttributes.Except(dataTabRequiredAttributes)));
-            _decisionTab.Fill(decisionsWorksheet, simulationOutput, performanceCurvesAttributes, analysisMethodDto, scenarioSelectableTreatmentsDtos);  
+            _decisionTab.Fill(decisionsWorksheet, simulationOutput, performanceCurvesAttributes, analysisMethodDto, scenarioSelectableTreatmentsDtos, firstPrimaryKey);  
 
             checkCancelled(cancellationToken, simulationId);
             // Check and generate folder

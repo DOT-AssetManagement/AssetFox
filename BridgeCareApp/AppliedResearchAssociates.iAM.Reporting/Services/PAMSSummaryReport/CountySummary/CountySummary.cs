@@ -6,7 +6,6 @@ using OfficeOpenXml;
 using AppliedResearchAssociates.iAM.ExcelHelpers;
 using System.Drawing;
 using CurrentCell = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.CurrentCell;
-using AppliedResearchAssociates.iAM.DTOs;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.CountySummary
 {
@@ -38,18 +37,18 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             if (_summaryReportHelper == null) { throw new ArgumentNullException(nameof(_summaryReportHelper)); }
 
             //create list object
-            _uniqueDistrictCountyList = new List<DistrictCounty>();
+            _uniqueDistrictCountyList = [];
         }
 
-        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
+        public void Fill(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
-            FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, simulation, keyCashFlowFundingDetails, primaryKey);
+            FillDataToUseInExcel(worksheet, reportOutputData, simulationYears, keyCashFlowFundingDetails, primaryKey);
             worksheet.Cells.AutoFitColumns();
         }
 
         #region Private methods
 
-        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
+        private void FillDataToUseInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails, string primaryKey)
         {
             //fill unique district county list
             BuildUniqueDistrictCountyList(reportOutputData);
@@ -58,10 +57,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             BuildDistrictCountyCostList(reportOutputData, simulationYears, keyCashFlowFundingDetails, primaryKey);
 
             //Fill Budget By County
-            FillBudgetByCountyInExcel(worksheet, reportOutputData, simulationYears, simulation);
+            FillBudgetByCountyInExcel(worksheet, simulationYears);
 
             //Fill Budget Percent By County
-            FillBudgetPercentByCountyInExcel(worksheet, reportOutputData, simulationYears, simulation);
+            FillBudgetPercentByCountyInExcel(worksheet, simulationYears);
         }
 
         private List<string> GetHeaders(List<int> simulationYears)
@@ -84,14 +83,14 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             if (reportOutputData?.InitialAssetSummaries?.Any() == true)
             {
                 //create object
-                IList<DistrictCounty> districtCountyList = new List<DistrictCounty>();
+                IList<DistrictCounty> districtCountyList = [];
 
                 foreach (var sectionSummary in reportOutputData.InitialAssetSummaries)
                 {
                     //get and configure field values
-                    var strDistrict = _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "DISTRICT");
+                    var strDistrict = _summaryReportHelper.checkAndGetValue(sectionSummary.ValuePerTextAttribute, "DISTRICT");
                     var district = 0; if (!string.IsNullOrEmpty(strDistrict) && !string.IsNullOrWhiteSpace(strDistrict)) { district = Convert.ToInt16(strDistrict); }
-                    var county = _summaryReportHelper.checkAndGetValue<string>(sectionSummary.ValuePerTextAttribute, "COUNTY");
+                    var county = _summaryReportHelper.checkAndGetValue(sectionSummary.ValuePerTextAttribute, "COUNTY");
 
                     //check item in the list
                     var checkResultObject = districtCountyList
@@ -129,16 +128,21 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                         if (simulationYearDetail != null)
                         {
                             //asset detail list
-                            var assetDetailList = simulationYearDetail.Assets
-                                        .Where(s => _summaryReportHelper.checkAndGetValue<string>(s.ValuePerTextAttribute, "DISTRICT") == districtCountyObject.District.ToString()
-                                                && _summaryReportHelper.checkAndGetValue<string>(s.ValuePerTextAttribute, "COUNTY") == districtCountyObject.County).ToList();
-
+                            var yearAssetIds = simulationYearDetail.Assets.Select(_ => _.AssetId).ToList();
+                            var initialAssetSummaries = reportOutputData.InitialAssetSummaries.Where(_ => yearAssetIds.Contains(_.AssetId)).ToList();
+                            var initialAssetDetailList = initialAssetSummaries
+                                        .Where(s => _summaryReportHelper.checkAndGetValue(s.ValuePerTextAttribute, "DISTRICT")
+                                            == districtCountyObject.District.ToString()
+                                        && _summaryReportHelper.checkAndGetValue(s.ValuePerTextAttribute, "COUNTY")
+                                            == districtCountyObject.County).ToList();
+                            var initialAssetDetailListAssetIds = initialAssetDetailList.Select(_ => _.AssetId).ToList();
+                            var assetDetailList = simulationYearDetail.Assets.Where(_ => initialAssetDetailListAssetIds.Contains(_.AssetId));
                             //get cost
                             if (assetDetailList?.Any() == true)
                             {
                                 foreach (var section in assetDetailList)
                                 {
-                                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue<string>(section.ValuePerTextAttribute, primaryKey);
+                                    var primaryKeyValue = _summaryReportHelper.checkAndGetValue(section.ValuePerTextAttribute, primaryKey);
                                     var treatmentConsiderations = ((section.TreatmentCause == TreatmentCause.SelectedTreatment &&
                                                   section.TreatmentStatus == TreatmentStatus.Progressed) ||
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&
@@ -146,7 +150,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
                                                   (section.TreatmentCause == TreatmentCause.CashFlowProject &&
                                                   section.TreatmentStatus == TreatmentStatus.Applied)) ?
                                                   keyCashFlowFundingDetails[primaryKeyValue] :
-                                                  section.TreatmentConsiderations ?? new();
+                                                  section.TreatmentConsiderations ?? [];
 
                                     sumOfCoveredCost += treatmentConsiderations.Sum(tc => tc.FundingCalculationOutput?.AllocationMatrix
                                         .Where(_ => _.Year == year).Sum(b => b.AllocatedAmount) ?? 0);                                    
@@ -184,7 +188,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
         }
 
 
-        private void FillBudgetByCountyInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation)
+        private void FillBudgetByCountyInExcel(ExcelWorksheet worksheet, List<int> simulationYears)
         {
             //Build Budget By County Headers
             var headers = GetHeaders(simulationYears);
@@ -294,7 +298,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Cou
             currentCell.Row = rowNo; currentCell.Column = columnNo;
         }
 
-        private void FillBudgetPercentByCountyInExcel(ExcelWorksheet worksheet, SimulationOutput reportOutputData, List<int> simulationYears, SimulationDTO simulation)
+        private void FillBudgetPercentByCountyInExcel(ExcelWorksheet worksheet, List<int> simulationYears)
         {
             //Build Budget By County Headers
             var headers = GetHeaders(simulationYears);

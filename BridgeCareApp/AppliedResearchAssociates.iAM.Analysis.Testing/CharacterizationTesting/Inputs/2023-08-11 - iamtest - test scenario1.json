@@ -622,8 +622,8 @@
         },
         {
           "IsDecreasingWithDeterioration": true,
-          "MaximumValue": 0,
-          "MinimumValue": 100,
+          "MaximumValue": 100,
+          "MinimumValue": 0,
           "DefaultValue": 0,
           "Name": "MAXSPAN"
         },

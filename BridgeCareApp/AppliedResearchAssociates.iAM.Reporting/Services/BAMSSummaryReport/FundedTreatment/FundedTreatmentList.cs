@@ -25,7 +25,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
-        public void Fill(ExcelWorksheet fundedTreatmentWorksheet, SimulationOutput simulationOutput, bool shouldBundleFeasibleTreatments)
+        public void Fill(ExcelWorksheet fundedTreatmentWorksheet, SimulationOutput simulationOutput, bool shouldBundleFeasibleTreatments, string primaryKey)
         {
             var currentCell = AddHeadersCells(fundedTreatmentWorksheet);
             
@@ -38,7 +38,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
 
             fundedTreatmentWorksheet.Cells.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Bottom;
 
-            AddDynamicDataCells(fundedTreatmentWorksheet, simulationOutput, currentCell, shouldBundleFeasibleTreatments);
+            AddDynamicDataCells(fundedTreatmentWorksheet, simulationOutput, currentCell, shouldBundleFeasibleTreatments, primaryKey);
             fundedTreatmentWorksheet.Calculate();
 
             // Highlight BRKey column with green
@@ -114,7 +114,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
 
         private const string CostFormat = @"_($* #,##0_);_($*  #,##0);_($* "" - ""??_);(@_)";
 
-        private void FillDataInWorksheet(ExcelWorksheet worksheet, CurrentCell currentCell, FundedTreatmentReportInfo treatmentInfo, SimulationOutput simulationOutput)
+        private void FillDataInWorksheet(ExcelWorksheet worksheet, CurrentCell currentCell, FundedTreatmentReportInfo treatmentInfo, SimulationOutput simulationOutput, string primaryKey)
         {
             var section = treatmentInfo.Asset;
             var year = treatmentInfo.Year.Year;
@@ -122,7 +122,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
             var treatmentOption = treatmentInfo.TreatmentOption;
             var treatmentConsideration = treatmentInfo.TreatmentConsideration;
 
-            _treatmentCommon.FillDataInWorkSheet(worksheet, currentCell, section, year);
+            var initialAssetSummary = simulationOutput.InitialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId);
+            _treatmentCommon.FillDataInWorkSheet(worksheet, currentCell, initialAssetSummary);
 
             var (row, columnNo) = (currentCell.Row, currentCell.Column);
 
@@ -188,9 +189,9 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
             // "Prior GCR" (GCR for the year previous to Analysis Year(s)/Start)
             IEnumerable<AssetSummaryDetail> priorYearAssets = simulationOutput.Years.FirstOrDefault(y => y.Year == year - 1)?.Assets;
             priorYearAssets ??= simulationOutput.InitialAssetSummaries;
-            var priorSection = priorYearAssets.First(asset => asset.ValuePerNumericAttribute["BRKEY_"] == section.ValuePerNumericAttribute["BRKEY_"]);
+            var priorSection = priorYearAssets.First(asset => asset.ValuePerNumericAttribute[primaryKey] == section.ValuePerNumericAttribute[primaryKey]);
 
-            FillGCRData(worksheet, currentCell, priorSection);
+            FillGCRData(worksheet, currentCell, priorSection, initialAssetSummary);
 
             // "Resulting GCR" (GCR for Analysis Year(s)/End)
             AssetSummaryDetail resultSection = null;
@@ -201,10 +202,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
                 if (resultYearDetail != null)
                 {
                     IEnumerable<AssetSummaryDetail> resultYearAssets = resultYearDetail.Assets;
-                    resultSection = resultYearAssets.First(asset => asset.ValuePerNumericAttribute["BRKEY_"] == section.ValuePerNumericAttribute["BRKEY_"]);
+                    resultSection = resultYearAssets.First(asset => asset.ValuePerNumericAttribute[primaryKey] == section.ValuePerNumericAttribute[primaryKey]);
                 }
 
-                FillGCRData(worksheet, currentCell, resultSection, treatmentInfo.IsAnalysisLengthExceeded);
+                FillGCRData(worksheet, currentCell, resultSection, initialAssetSummary, treatmentInfo.IsAnalysisLengthExceeded);
             }
 
             if (row % 2 == 0)
@@ -214,28 +215,29 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
             ExcelHelper.ApplyBorder(worksheet.Cells[row, 1, row, currentCell.Column - 1]);
         }
 
-        private void FillGCRData(ExcelWorksheet worksheet, CurrentCell currentCell, AssetSummaryDetail section, bool leaveEmpty = false)
+        private void FillGCRData(ExcelWorksheet worksheet, CurrentCell currentCell, AssetSummaryDetail section, AssetSummaryDetail initialAssetSummary, bool leaveEmpty = false)
         {
             var (row, columnNo) = (currentCell.Row, currentCell.Column);
 
             object empty = leaveEmpty ? "" : null;
-
-            var familyId = int.Parse(_reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "FAMILY_ID"));
+            var valuePerNumericAttribute = section.ValuePerNumericAttribute;
+            var initialSummaryValuePerNumericAttribute = initialAssetSummary.ValuePerNumericAttribute;
+            var familyId = int.Parse(CheckAndGetTextValue(section.ValuePerTextAttribute, initialAssetSummary.ValuePerTextAttribute, "FAMILY_ID"));
             if (familyId < 11)
             {
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0.000";
-                var deck = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "DECK_SEEDED");
+                var deck = _reportHelper.CheckAndGetValue(valuePerNumericAttribute, "DECK_SEEDED");
                 worksheet.Cells[row, columnNo++].Value = empty ?? deck;
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0.000";
-                var sup = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "SUP_SEEDED");
+                var sup = _reportHelper.CheckAndGetValue(valuePerNumericAttribute, "SUP_SEEDED");
                 worksheet.Cells[row, columnNo++].Value = empty ?? sup;
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0.000";
-                var sub = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "SUB_SEEDED");
+                var sub = _reportHelper.CheckAndGetValue(valuePerNumericAttribute, "SUB_SEEDED");
                 worksheet.Cells[row, columnNo++].Value = empty ?? sub;
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
@@ -283,7 +285,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
             public bool IsAnalysisLengthExceeded { get; set; } = false;
         }
 
-        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell, bool shouldBundleFeasibleTreatments)
+        private void AddDynamicDataCells(ExcelWorksheet worksheet, SimulationOutput simulationOutput, CurrentCell currentCell, bool shouldBundleFeasibleTreatments, string primaryKey)
         {
             // facilityId, year, section, treatment
             var treatmentsPerSection = new SortedDictionary<int, List<FundedTreatmentReportInfo>>();
@@ -297,11 +299,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
                         && !(section.TreatmentCause is TreatmentCause.CommittedProject && section.AppliedTreatment.ToLower() == BAMSConstants.NoTreatment.ToLower()))
                     .ToList();
 
-                var facilityIds = treatedSections.Select(section => Convert.ToInt32(_reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "BRKEY_")));
+                var facilityIds = treatedSections.Select(section => Convert.ToInt32(_reportHelper.CheckAndGetValue(section.ValuePerNumericAttribute, primaryKey)));
 
                 treatedSections.ForEach(asset =>
                 {
-                    var id = Convert.ToInt32(_reportHelper.CheckAndGetValue<double>(asset.ValuePerNumericAttribute, "BRKEY_"));
+                    var id = Convert.ToInt32(_reportHelper.CheckAndGetValue(asset.ValuePerNumericAttribute, primaryKey));
                     var treatmentOption = asset.TreatmentOptions.FirstOrDefault(o => o.TreatmentName == asset.AppliedTreatment);
 
                     // Build keyCashFlowFundingDetails
@@ -385,7 +387,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
 
             foreach (var treatmentInfo in treatmentsPerSection.Values.SelectMany(a => a))
             {
-                FillDataInWorksheet(worksheet, currentCell, treatmentInfo, simulationOutput);
+                FillDataInWorksheet(worksheet, currentCell, treatmentInfo, simulationOutput, primaryKey);
                 
                 currentCell.Row++;
                 currentCell.Column = 1;
@@ -435,6 +437,16 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
             "SUB",
             "CULV"
         };
+
+        private double CheckAndGetValue(IDictionary<string, double> valuePerNumericAttribute, IDictionary<string, double> initialSummaryValuePerNumericAttribute, string attribute) =>
+            valuePerNumericAttribute.ContainsKey(attribute)
+                ? _reportHelper.CheckAndGetValue(valuePerNumericAttribute, attribute)
+                : _reportHelper.CheckAndGetValue(initialSummaryValuePerNumericAttribute, attribute);
+
+        private string CheckAndGetTextValue(IDictionary<string, string> valuePerTextAttribute, IDictionary<string, string> initialSummaryValuePerTextAttribute, string attribute) =>
+            valuePerTextAttribute.ContainsKey(attribute)
+                ? _reportHelper.CheckAndGetValue(valuePerTextAttribute, attribute)
+                : _reportHelper.CheckAndGetValue(initialSummaryValuePerTextAttribute, attribute);
 
         #endregion Private methods
     }

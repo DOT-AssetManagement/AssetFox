@@ -55,15 +55,15 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
             return new CurrentCell { Row = 3, Column = headersRow.Count + 1 };
         }
 
-        public void FillDataInWorkSheet(ExcelWorksheet worksheet, CurrentCell currentCell, AssetDetail section, int Year)
+        public void FillDataInWorkSheet(ExcelWorksheet worksheet, CurrentCell currentCell, AssetSummaryDetail assetSummary)
         {
             var row = currentCell.Row;
             var columnNo = currentCell.Column;
 
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "BMSID");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "BMSID");
 
-            var latitude = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "LAT");
-            var longitude = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "LONG");
+            var latitude = _reportHelper.CheckAndGetValue(assetSummary.ValuePerNumericAttribute, "LAT");
+            var longitude = _reportHelper.CheckAndGetValue(assetSummary.ValuePerNumericAttribute, "LONG");
 
             // LAT and LONG appear to be in Degree/Minute/Second form, but concatenated into a single number without delimiters.
 
@@ -82,11 +82,11 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
             worksheet.Cells[row, columnNo].Style.Font.UnderLine = true;
             worksheet.Cells[row, columnNo].Style.Font.Color.SetColor(Color.Blue);
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            var key = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "BRKEY_");
+            var key = _reportHelper.CheckAndGetValue(assetSummary.ValuePerNumericAttribute, "BRKEY_");
             worksheet.Cells[row, columnNo++].Formula = $"HYPERLINK(\"https://www.google.com/maps/place/{lat_string},{long_string}/data=!3m1!1e3\", \"{key}\")";
 
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            var district_string = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "DISTRICT");
+            var district_string = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "DISTRICT");
             if (int.TryParse(district_string, out var district_int))
             {
                 worksheet.Cells[row, columnNo++].Value = district_int;
@@ -96,31 +96,31 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
                 worksheet.Cells[row, columnNo++].Value = district_string;
             }
 
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "COUNTY");
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "MPO_NAME");
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "TOWN_PLACE"); // City/Town/Place
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "FEATURE_INTERSECTED");
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "FEATURE_CARRIED");
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "LOCATION");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "COUNTY");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "MPO_NAME");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "TOWN_PLACE"); // City/Town/Place
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "FEATURE_INTERSECTED");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "FEATURE_CARRIED");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "LOCATION");
 
             worksheet.Cells[row, columnNo].Style.Numberformat.Format = "###,###,###,###,##0";
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "LENGTH");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerNumericAttribute, "LENGTH");
 
             worksheet.Cells[row, columnNo].Style.Numberformat.Format = "###,###,###,###,##0";
-            var deckArea = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "DECK_AREA");
+            var deckArea = _reportHelper.CheckAndGetValue(assetSummary.ValuePerNumericAttribute, "DECK_AREA");
             worksheet.Cells[row, columnNo++].Value = deckArea;
 
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
             worksheet.Cells[row, columnNo++].Value = deckArea >= 28500 ? BAMSConstants.Yes : BAMSConstants.No; // Large Bridge
 
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "STRUCTURE_TYPE");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "STRUCTURE_TYPE");
 
-            var functionalClassAbbr = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "FUNC_CLASS");
+            var functionalClassAbbr = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "FUNC_CLASS");
             var functionalClassDescription = _reportHelper.FullFunctionalClassDescription(functionalClassAbbr);
             worksheet.Cells[row, columnNo++].Value = functionalClassDescription;
 
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            var bpn_string = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
+            var bpn_string = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "BUS_PLAN_NETWORK");
             if (int.TryParse(bpn_string, out var bpn_int))
             {
                 worksheet.Cells[row, columnNo++].Value = bpn_int;
@@ -130,12 +130,12 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
                 worksheet.Cells[row, columnNo++].Value = bpn_string;
             }
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "NHS_IND") == "0" ? "N" : "Y";
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "NHS_IND") == "0" ? "N" : "Y";
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "INTERSTATE");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerTextAttribute, "INTERSTATE");
 
             worksheet.Cells[row, columnNo].Style.Numberformat.Format = "###,###,###,###,##0";
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "RISK_SCORE");
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue(assetSummary.ValuePerNumericAttribute, "RISK_SCORE");
 
             if (row % 2 == 0)
             {
