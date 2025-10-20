@@ -32,22 +32,22 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
             var columnNo = currentCell.Column;
 
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingNHPP(section) ? BAMSConstants.Yes : BAMSConstants.No;
+            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingNHPP(initialAssetSummary) ? BAMSConstants.Yes : BAMSConstants.No;
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingSTP(section) ? BAMSConstants.Yes : BAMSConstants.No;
+            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingSTP(initialAssetSummary) ? BAMSConstants.Yes : BAMSConstants.No;
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingBOF(section) ? BAMSConstants.Yes : BAMSConstants.No;
+            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingBOF(initialAssetSummary) ? BAMSConstants.Yes : BAMSConstants.No;
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingBRIP(section) ? BAMSConstants.Yes : BAMSConstants.No;
+            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingBRIP(initialAssetSummary) ? BAMSConstants.Yes : BAMSConstants.No;
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingState(section) ? BAMSConstants.Yes : BAMSConstants.No;
+            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingState(initialAssetSummary) ? BAMSConstants.Yes : BAMSConstants.No;
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingNotApplicable(section) ? BAMSConstants.Yes : BAMSConstants.No;
+            worksheet.Cells[row, columnNo++].Value = _summaryReportHelper.BridgeFundingNotApplicable(initialAssetSummary) ? BAMSConstants.Yes : BAMSConstants.No;
 
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
             worksheet.Cells[row, columnNo++].Value = Year;
 
-            var familyId = int.Parse(_reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "FAMILY_ID"));
+            var familyId = int.Parse(_reportHelper.CheckAndGetValue<string>(initialAssetSummary.ValuePerTextAttribute, "FAMILY_ID"));
             if (familyId < 11)
             {
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
@@ -66,13 +66,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0";
-                worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "DECK_DURATION_N");
+                worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(initialAssetSummary.ValuePerNumericAttribute, "DECK_DURATION_N");
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0";
-                worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "SUP_DURATION_N");
+                worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(initialAssetSummary.ValuePerNumericAttribute, "SUP_DURATION_N");
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0";
-                worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(section.ValuePerNumericAttribute, "SUB_DURATION_N");
+                worksheet.Cells[row, columnNo++].Value = _reportHelper.CheckAndGetValue<double>(initialAssetSummary.ValuePerNumericAttribute, "SUB_DURATION_N");
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0";
@@ -106,7 +106,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0";
-                worksheet.Cells[row, columnNo++].Value = section.ValuePerNumericAttribute["CULV_DURATION_N"];
+                worksheet.Cells[row, columnNo++].Value = initialAssetSummary.ValuePerNumericAttribute["CULV_DURATION_N"];
             }
 
             worksheet.Cells[row, columnNo++].Value = treatment?.TreatmentName;
