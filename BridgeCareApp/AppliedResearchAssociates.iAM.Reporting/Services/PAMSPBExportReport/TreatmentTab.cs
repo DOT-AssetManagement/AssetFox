@@ -71,6 +71,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.District;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Cnty;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Route;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.CRS;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.AssetName;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Direction;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.FromSection;
@@ -142,6 +143,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             treatmentDataModel.District = CheckGetTextValue(initialSummaryValuePerTextAttribute, "DISTRICT");
             treatmentDataModel.Cnty = CheckGetTextValue(initialSummaryValuePerTextAttribute, "CNTY");
             treatmentDataModel.Route = CheckGetTextValue(initialSummaryValuePerTextAttribute, "SR");
+            treatmentDataModel.CRS = CheckGetTextValue(initialSummaryValuePerTextAttribute, "CRS");
             treatmentDataModel.Direction = direction; //CheckGetTextValue(valuePerTextAttribute, "DIRECTION");
             treatmentDataModel.RiskScore = CheckGetNumericValue(initialAssetSummary.ValuePerNumericAttribute, "RISKSCORE");
             treatmentDataModel.Interstate = CheckGetTextValue(initialSummaryValuePerTextAttribute, "INTERSTATE");
@@ -227,6 +229,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             worksheet.Cells[headerRow, column++].Value = "District";
             worksheet.Cells[headerRow, column++].Value = "Cnty";
             worksheet.Cells[headerRow, column++].Value = "Route";
+            worksheet.Cells[headerRow, column++].Value = "CRS";
             worksheet.Cells[headerRow, column++].Value = "Asset";
             worksheet.Cells[headerRow, column++].Value = "Direction";
             worksheet.Cells[headerRow, column++].Value = "FromSection";

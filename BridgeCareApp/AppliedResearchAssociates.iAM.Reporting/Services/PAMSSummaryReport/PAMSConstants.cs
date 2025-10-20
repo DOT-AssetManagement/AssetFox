@@ -9,6 +9,9 @@
         public const string PAMSData_Tab = "PAMS Data"; //tabular data
         public const string PAMSData_Tab_Title = "";
 
+        public const string SectionSummary_Tab = "Section Summary"; //tabular data
+        public const string SectionSummary_Tab_Title = "";
+
         public const string UnfundedPavementProjects_Tab = "Unfunded Pavement Projects"; //tabular data
         public const string UnfundedPavementProjects_Tab_Title = "";
 
