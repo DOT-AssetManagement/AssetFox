@@ -178,7 +178,6 @@ A cost distribution rule specifies a set of "grades", each of which can
 determine the cost per time step (and duration) of a project option.
 
 - _Cost Distribution Grades_: **one or more**
-  - Each grade
 - _Predicate_: **optional**
   - Given an asset snapshot, this evaluates to true if and only if this rule is
     applicable.
