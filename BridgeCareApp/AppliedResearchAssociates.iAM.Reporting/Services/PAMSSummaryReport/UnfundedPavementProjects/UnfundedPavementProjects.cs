@@ -109,24 +109,24 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Unf
                 //get untreated sections
                 var untreatedSections = GetUntreatedSections(year);
                 var untreatedSectionsAssetIds = untreatedSections.Select(_ => _.AssetId).ToList();
-                var untreatedIntialAssetSummaries = simulationOutput.InitialAssetSummaries.Where(_ => untreatedSectionsAssetIds.Contains(_.AssetId));
+                var untreatedInitialAssetSummaries = simulationOutput.InitialAssetSummaries.Where(_ => untreatedSectionsAssetIds.Contains(_.AssetId));
 
                 //get unfunded IDs
                 if (firstYear)
                 {
-                    validFacilityIds.AddRange(untreatedSections.Select(_ => Convert.ToInt32(_summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "CNTY") + _summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "SR") + _.AssetName)));
+                    validFacilityIds.AddRange(untreatedInitialAssetSummaries.Select(_ => Convert.ToInt32(_summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "CNTY") + _summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "SR") + _.AssetName)));
                     firstYear = false; if (simulationOutput.Years.Count > 1) { continue; }
                 }
                 else
                 {
                     validFacilityIds = validFacilityIds.Count != 0 ?
-                        validFacilityIds.Intersect(untreatedIntialAssetSummaries.Select(_ => Convert.ToInt32(_summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "CNTY") + _summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "SR") + _.AssetName))).ToList() :
-                        untreatedIntialAssetSummaries.Select(_ => Convert.ToInt32(_summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "CNTY") + _summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "SR") + _.AssetName)).ToList();
+                        validFacilityIds.Intersect(untreatedInitialAssetSummaries.Select(_ => Convert.ToInt32(_summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "CNTY") + _summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "SR") + _.AssetName))).ToList() :
+                        untreatedInitialAssetSummaries.Select(_ => Convert.ToInt32(_summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "CNTY") + _summaryReportHelper.checkAndGetValue(_.ValuePerTextAttribute, "SR") + _.AssetName)).ToList();
                 }
 
                 foreach (var section in untreatedSections)
                 {
-                    var untreatedIntialAssetSummary = untreatedIntialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId);
+                    var untreatedIntialAssetSummary = untreatedInitialAssetSummaries.FirstOrDefault(_ => _.AssetId == section.AssetId);
                     var segmentNumber = _summaryReportHelper.checkAndGetValue(untreatedIntialAssetSummary.ValuePerTextAttribute, "CNTY");
                     segmentNumber += _summaryReportHelper.checkAndGetValue(untreatedIntialAssetSummary.ValuePerTextAttribute, "SR");
                     segmentNumber += section.AssetName;
