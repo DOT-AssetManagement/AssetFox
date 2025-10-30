@@ -205,7 +205,7 @@
                                         style="padding-top: 13px;"
                                         flat
                                         icon>
-                                        <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                        <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                     </v-btn>
                                 </v-row>
                                 <div v-if="header.key === 'action'" style="margin-bottom: 8px;">

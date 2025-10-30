@@ -255,7 +255,7 @@
                                     style="padding-top: 15px"
                                     icon
                                 >
-                                <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
                             </td>
                             <td class="text-xs-left">
@@ -298,7 +298,7 @@
                                     style="padding-top: 15px"
                                     icon
                                 >
-                                <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
                             </td>
                             <td class="text-xs-left">
