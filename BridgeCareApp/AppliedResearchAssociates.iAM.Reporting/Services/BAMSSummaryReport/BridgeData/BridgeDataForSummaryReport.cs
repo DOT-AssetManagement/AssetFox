@@ -251,14 +251,13 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             currentCell.Column = columnNo;
         }
 
-        private int AddSimulationYearData(ExcelWorksheet worksheet, int row, int column, AssetSummaryDetail initialSection, AssetDetail section, bool updateColumn = false)
+        private int AddSimulationYearData(ExcelWorksheet worksheet, int row, int column, AssetSummaryDetail initialSection, AssetDetail section)
         {
             var initialColumnForShade = column + 1;
-            var selectedSection = initialSection ?? section;
+            var selectedSection = section ?? initialSection;
             var minCActionCallDecider = MinCValue.minOfCulvDeckSubSuper;
-            int.TryParse(_reportHelper.CheckAndGetValue(selectedSection.ValuePerTextAttribute, "FAMILY_ID"), out var familyId);
-            var familyIdLessThanEleven = familyId < 11;
-            if (familyId > 10)
+            var bridgeType = _reportHelper.CheckAndGetValue(initialSection.ValuePerTextAttribute, "BRIDGE_TYPE");            
+            if (bridgeType == BAMSConstants.CulvertBridgeType)
             {
                 var columnForStyle = column + 1;
                 worksheet.Cells[row, ++column].Value = "N"; // deck cond
@@ -289,7 +288,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 worksheet.Cells[row, column + 3].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_DURATION_N");
                 worksheet.Cells[row, column + 4].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N");
             }
-            if (familyIdLessThanEleven)
+            if (bridgeType == BAMSConstants.NonCulvertBridgeType)
             {
                 worksheet.Cells[row, ++column].Value = "N"; // culv cond
                 worksheet.Cells[row, column + 4].Value = "N"; // culv seeded
@@ -318,7 +317,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.DecimalPrecision3);
             var minCondColumn = column;
 
-            if (_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "P3") > 0 && _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND") < 5)
+            if (_reportHelper.CheckAndGetValue(initialSection.ValuePerNumericAttribute, "P3") > 0 && _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND") < 5)
             {
                 ExcelHelper.ApplyColor(worksheet.Cells[row, column], Color.Yellow);
                 ExcelHelper.SetTextColor(worksheet.Cells[row, column], Color.Black);
@@ -339,7 +338,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 ExcelHelper.SetTextColor(worksheet.Cells[row, minCondColumn], Color.White);
             }
 
-            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerTextAttribute, "POST_STATUS") == "POSTED" ? "Y" : "N"; //Posted
+            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(initialSection.ValuePerTextAttribute, "POST_STATUS") == "POSTED" ? "Y" : "N"; //Posted
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column]);
 
             return column;
@@ -583,7 +582,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
             foreach (var intialsection in outputResults.InitialAssetSummaries)
             {
                 TrackInitialYearDataForParametersTAB(intialsection);
-                column = initialColumn; // This is to reset the column
+                column = initialColumn; // This is to reset the column                
                 column = AddSimulationYearData(worksheet, row, column, intialsection, null);
                 row++;
             }
@@ -599,9 +598,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Bri
                 foreach (var section in yearlySectionData.Assets)
                 {
                     column = currentCell.Column;
-                    column = isInitialYear ?
-                             AddSimulationYearData(worksheet, row, column, null, section, true)
-                             : AddSimulationYearData(worksheet, row, column, null, section);
+                    var initialSection = outputResults.InitialAssetSummaries.FirstOrDefault(_=>_.AssetId == section.AssetId);
+                    column = AddSimulationYearData(worksheet, row, column, initialSection, section);
                     var initialColumnForShade = column;
 
                     //get unique key (brkey) to compare
