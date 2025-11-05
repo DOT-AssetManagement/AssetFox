@@ -29,7 +29,7 @@
                                         class="edit-icon ghd-blue"
                                         flat
                                     >
-                                    <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                     </v-btn>                                
                                 </v-row>
                                 <v-row>  
@@ -58,7 +58,7 @@
                                         class="edit-icon ghd-blue"
                                         flat
                                     >
-                                    <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                     </v-btn>
                                 </v-row> 
                                 <v-row >              

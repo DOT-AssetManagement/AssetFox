@@ -16,6 +16,7 @@ using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.CountySummary;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.GraphTabs;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PamsData;
+using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.SectionSummary;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Parameters;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary;
 using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummaryByBudget;
@@ -33,6 +34,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
 
         private readonly SummaryReportParameters _summaryReportParameters;
         private readonly PamsDataForSummaryReport _pamsDataForSummaryReport;
+        private readonly SectionSummary _sectionSummary;
         private readonly PavementWorkSummary _pavementWorkSummary;
         private readonly PavementWorkSummaryByBudget _pavementWorkSummaryByBudget;
         private readonly UnfundedPavementProjects _unfundedPavementProjects;
@@ -75,6 +77,7 @@ namespace AppliedResearchAssociates.iAM.Reporting
             //create summary report objects
             _pamsDataForSummaryReport = new PamsDataForSummaryReport();
             _summaryReportParameters = new SummaryReportParameters();
+            _sectionSummary = new SectionSummary();
             _pavementWorkSummary = new PavementWorkSummary();
             _pavementWorkSummaryByBudget = new PavementWorkSummaryByBudget();
             _unfundedPavementProjects = new UnfundedPavementProjects();
@@ -345,6 +348,18 @@ namespace AppliedResearchAssociates.iAM.Reporting
             // Filling up parameters tab
             _summaryReportParameters.Fill(parametersWorksheet, simulationYearsCount, workSummaryModel.ParametersModel, simulationDto, analysisMethodDto, investmentPlanDto, budgetPrioritiesDtos, cashFlowRulesDtos, budgetsDtos);
             checkCancelled(cancellationToken, simulationId);
+
+            if(analysisMethodDto.ShouldUseSuperAssets)
+            {
+                // Section Summary TAB
+                reportDetailDto.Status = $"Creating Section Summary TAB";
+                workQueueLog.UpdateWorkQueueStatus(reportDetailDto.Status);
+                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                UpdateSimulationAnalysisDetail(reportDetailDto);
+                var sectionSummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.SectionSummary_Tab);
+                _sectionSummary.Fill(sectionSummaryWorksheet, reportOutputData, simulationYears, treatmentCategoryLookup, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails, firstPrimaryKey);
+                checkCancelled(cancellationToken, simulationId);
+            }
 
             // Pavement Work Summary TAB
             reportDetailDto.Status = $"Creating Pavement Work Summary TAB";

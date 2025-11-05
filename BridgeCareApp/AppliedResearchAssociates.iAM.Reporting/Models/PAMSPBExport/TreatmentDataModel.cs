@@ -17,6 +17,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Models.PAMSPBExport
 
         public string Route { get; set; }
 
+        public string CRS { get; set; }
+
         public string AssetName { get; set; }
 
         public string Direction { get; set; }

@@ -139,7 +139,7 @@
                                 style="margin-top: 12px; padding-top: 13px;"
                                 flat
                                 icon>
-                                <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                             </v-btn>
                             </v-row>
                         </td>
