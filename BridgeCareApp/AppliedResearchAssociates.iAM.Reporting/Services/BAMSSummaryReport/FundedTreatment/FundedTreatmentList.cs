@@ -221,9 +221,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Fun
 
             object empty = leaveEmpty ? "" : null;
             var valuePerNumericAttribute = section.ValuePerNumericAttribute;
-            var initialSummaryValuePerNumericAttribute = initialAssetSummary.ValuePerNumericAttribute;
-            var familyId = int.Parse(CheckAndGetTextValue(section.ValuePerTextAttribute, initialAssetSummary.ValuePerTextAttribute, "FAMILY_ID"));
-            if (familyId < 11)
+            var bridgeType = CheckAndGetTextValue(section.ValuePerTextAttribute, initialAssetSummary.ValuePerTextAttribute, "BRIDGE_TYPE");
+            if (bridgeType == BAMSConstants.NonCulvertBridgeType)
             {
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0.000";

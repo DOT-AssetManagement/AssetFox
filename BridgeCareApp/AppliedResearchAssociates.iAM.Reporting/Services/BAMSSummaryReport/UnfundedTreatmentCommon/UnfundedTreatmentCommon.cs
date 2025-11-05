@@ -47,8 +47,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
             worksheet.Cells[row, columnNo++].Value = Year;
 
-            var familyId = int.Parse(_reportHelper.CheckAndGetValue<string>(section.ValuePerTextAttribute, "FAMILY_ID"));
-            if (familyId < 11)
+            var bridgeType = _reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "BRIDGE_TYPE");
+            if (bridgeType == BAMSConstants.NonCulvertBridgeType)
             {
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0.000";
