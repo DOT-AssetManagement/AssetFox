@@ -6,6 +6,7 @@ using AppliedResearchAssociates.iAM.Reporting.Models;
 using AppliedResearchAssociates.iAM.Reporting.Models.BAMSAuditReport;
 using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
 using System;
+using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
 
 namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
 {
@@ -45,10 +46,10 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
             worksheet.Cells[row, columnNo++].Value = _reportHelper.BridgeFundingState(assetSummaryDetail) ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No;
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
-            worksheet.Cells[row, columnNo++].Value = _reportHelper.BridgeFundingNotApplicable(assetSummaryDetail) ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No;            
+            worksheet.Cells[row, columnNo++].Value = _reportHelper.BridgeFundingNotApplicable(assetSummaryDetail) ? BAMSAuditReportConstants.Yes : BAMSAuditReportConstants.No;
 
-            var familyId = int.Parse(_reportHelper.CheckAndGetValue<string>(assetSummaryDetail.ValuePerTextAttribute, "FAMILY_ID"));
-            if (familyId < 11)
+            var bridgeType = _reportHelper.CheckAndGetValue(assetSummaryDetail.ValuePerTextAttribute, "BRIDGE_TYPE");
+            if (bridgeType == BAMSConstants.NonCulvertBridgeType)
             {
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnNo]);
                 worksheet.Cells[row, columnNo].Style.Numberformat.Format = "0.000";
