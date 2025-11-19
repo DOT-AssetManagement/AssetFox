@@ -1104,6 +1104,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
             {
                 treatments.ForEach(_ =>
                 {
+                    _.PerformanceFactors.ForEach(__ =>  __.Id = Guid.NewGuid());
                     var factorsToBeRemoved = _.PerformanceFactors.Where(p => !distinctPerformanceCurves.Contains(p.Attribute)).Select(__ => __.Attribute).ToList();
                     var factorsToBeAdded = distinctPerformanceCurves.Where(dpc => _.PerformanceFactors.FirstOrDefault(__ => __.Attribute == dpc) == null).ToList();
                     if (factorsToBeAdded.Count > 0)

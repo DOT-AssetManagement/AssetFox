@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using BridgeCareCore.Models.Validation;
 using ValidationResult = AppliedResearchAssociates.Validation.ValidationResult;
 using AppliedResearchAssociates.iAM.Common;
+using BridgeCareCore.Security;
 
 namespace BridgeCareCore.Controllers
 {
@@ -317,7 +318,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpPost]
         [Route("CreateScenario/{networkId}")]
-        [Authorize]
+        [ClaimAuthorize("SimulationCreateAccess")]
         public async Task<IActionResult> CreateSimulation(Guid networkId, [FromBody] SimulationDTO dto)
         {
             try
@@ -329,6 +330,10 @@ namespace BridgeCareCore.Controllers
                 });
 
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::CreateSimulation {dto.Name} - {HubService.errorList["Unauthorized"]}", e);
             }
             catch (Exception e)
             {

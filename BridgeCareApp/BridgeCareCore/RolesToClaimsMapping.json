@@ -18,6 +18,7 @@
             "NetworkViewAccess",
             "NetworkDeleteAccess",
             "EditNetworkNameAccess",
+            "SimulationCreateAccess",
             "SimulationUpdateAnyAccess",
             "SimulationDeleteAnyAccess",
             "SimulationRunAnyAccess",
@@ -104,6 +105,7 @@
             "SimulationClonePermittedAccess",
             "SimulationViewPermittedAccess",
             "SimulationValidatePermittedAccess",
+            "SimulationCreateAccess",
             "AnnouncementViewAccess",
             "BudgetPriorityAddPermittedFromLibraryAccess",
             "BudgetPriorityUpdatePermittedFromLibraryAccess",
@@ -232,7 +234,7 @@
           ]
         },
         {
-          "IPRoles": [ "ReadOnly", "PD-PAMSViewers" ],
+          "IPRoles": [ "ReadOnly", "PD-PAMS-Viewers" ],
           "InternalRole": "ReadOnly",
           "Claims": [
             "AttributesViewAccess",
@@ -317,6 +319,7 @@
             "SimulationCloneAnyAccess",
             "SimulationViewAnyAccess",
             "SimulationValidateAnyAccess",
+            "SimulationCreateAccess",
             "AnnouncementModifyAccess",
             "AnnouncementViewAccess",
             "BudgetPriorityAddAnyFromLibraryAccess",
@@ -391,6 +394,7 @@
           "Claims": [
             "AttributesViewAccess",
             "NetworkViewAccess",
+            "SimulationCreateAccess",
             "SimulationUpdatePermittedAccess",
             "SimulationDeletePermittedAccess",
             "SimulationRunPermittedAccess",

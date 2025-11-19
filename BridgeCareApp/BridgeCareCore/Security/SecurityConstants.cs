@@ -99,6 +99,7 @@
             public const string NetworkDeleteAccess = "NetworkDeleteAccess";
             public const string EditNetworkNameAccess = "EditNetworkNameAccess";
             public const string NetworkViewAccess = "NetworkViewAccess";
+            public const string SimulationCreateAccess = "SimulationCreateAccess";
             public const string SimulationUpdateAnyAccess = "SimulationUpdateAnyAccess";
             public const string SimulationDeleteAnyAccess = "SimulationDeleteAnyAccess";
             public const string SimulationRunAnyAccess = "SimulationRunAnyAccess";

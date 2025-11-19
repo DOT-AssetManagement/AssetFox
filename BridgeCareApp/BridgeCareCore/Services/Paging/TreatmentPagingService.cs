@@ -88,44 +88,50 @@ namespace BridgeCareCore.Services
         protected override List<TreatmentDTO> GetLibraryRows(Guid libraryId) => _unitOfWork.SelectableTreatmentRepo.GetSelectableTreatments(libraryId);
         protected override List<TreatmentDTO> CreateAsNewDataset(List<TreatmentDTO> rows)
         {
-            rows.ForEach(_ =>
+            // Dictionary to map Names to the new Guids for O(1) lookup
+            var nameIdMap = new Dictionary<string, Guid>();
+
+            // PASS 1: Assign IDs and populate the Map
+            foreach (var row in rows)
             {
-                _.Id = Guid.NewGuid();
-                if (_.CriterionLibrary != null)
+                row.Id = Guid.NewGuid();
+
+                if (!string.IsNullOrEmpty(row.Name) && !nameIdMap.ContainsKey(row.Name))
                 {
-                    _.CriterionLibrary.Id = Guid.NewGuid();
+                    nameIdMap.Add(row.Name, row.Id);
                 }
-                if (_.Consequences != null)
+
+                // Handle Children
+                if (row.CriterionLibrary != null) row.CriterionLibrary.Id = Guid.NewGuid();
+
+                row.Consequences?.ForEach(c =>
                 {
-                    _.Consequences.ForEach(__ =>
+                    c.Id = Guid.NewGuid();
+                    if (c.CriterionLibrary != null) c.CriterionLibrary.Id = Guid.NewGuid();
+                    if (c.Equation != null) c.Equation.Id = Guid.NewGuid();
+                });
+
+                row.Costs?.ForEach(c =>
+                {
+                    c.Id = Guid.NewGuid();
+                    if (c.Equation != null) c.Equation.Id = Guid.NewGuid();
+                    if (c.CriterionLibrary != null) c.CriterionLibrary.Id = Guid.NewGuid();
+                });
+            }
+
+            // PASS 2: Resolve supersede references using the Map
+            foreach (var row in rows)
+            {
+                if (row.SupersedeRules == null) continue;
+
+                foreach (var rule in row.SupersedeRules)
+                {
+                    if (rule.treatment != null && nameIdMap.TryGetValue(rule.treatment.Name, out Guid newId))
                     {
-                        __.Id = Guid.NewGuid();
-                        if (__.CriterionLibrary != null)
-                        {
-                            __.CriterionLibrary.Id = Guid.NewGuid();
-                        }
-                        if (__.Equation != null)
-                        {
-                            __.Equation.Id = Guid.NewGuid();
-                        }
-                    });
+                        rule.treatment.Id = newId;
+                    }
                 }
-                if (_.Costs != null)
-                {
-                    _.Costs.ForEach(__ =>
-                    {
-                        __.Id = Guid.NewGuid();
-                        if (__.Equation != null)
-                        {
-                            __.Equation.Id = Guid.NewGuid();
-                        }
-                        if (__.CriterionLibrary != null)
-                        {
-                            __.CriterionLibrary.Id = Guid.NewGuid();
-                        }
-                    });
-                }
-            });
+            }
 
             return rows;
         }
