@@ -167,7 +167,7 @@
           ]
         },
         {
-          "IPRoles": [ "PD-BAMS-CWOPA", "PD-PAMS-CWOPA" ],
+          "IPRoles": [ "None" ],
           "InternalRole": "SimulationPowerUser",
           "Claims": [
             "SimulationAccess",
@@ -234,7 +234,7 @@
           ]
         },
         {
-          "IPRoles": [ "ReadOnly", "PD-PAMS-Viewers" ],
+          "IPRoles": [ "ReadOnly", "PD-PAMS-Viewers", "PD-BAMS-CWOPA", "PD-PAMS-CWOPA"],
           "InternalRole": "ReadOnly",
           "Claims": [
             "AttributesViewAccess",
