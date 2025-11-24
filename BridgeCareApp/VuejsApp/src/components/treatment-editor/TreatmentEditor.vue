@@ -567,6 +567,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
  function setAlertMessageAction(payload?: any): void {
    store.dispatch('setAlertMessage', payload);
 }
+async function getHasPermittedAccessAction(payload?: any): Promise<any>{await store.dispatch('getHasPermittedAccess', payload)}
 
 
  function addedOrUpdatedTreatmentLibraryMutator(payload?: any) {
@@ -649,6 +650,7 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
     beforeRouteEnter();
     async function beforeRouteEnter() {
         const activeStatus = await AuthenticationService.getActiveStatus();
+        await getHasPermittedAccessAction();
         if(activeStatus.data == true)
         {
             librarySelectItemValue.value = "";

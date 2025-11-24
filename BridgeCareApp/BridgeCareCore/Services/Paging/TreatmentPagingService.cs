@@ -117,6 +117,11 @@ namespace BridgeCareCore.Services
                     if (c.Equation != null) c.Equation.Id = Guid.NewGuid();
                     if (c.CriterionLibrary != null) c.CriterionLibrary.Id = Guid.NewGuid();
                 });
+
+                row.PerformanceFactors?.ForEach(p =>
+                {
+                    p.Id = Guid.NewGuid();
+                });
             }
 
             // PASS 2: Resolve supersede references using the Map
@@ -126,6 +131,8 @@ namespace BridgeCareCore.Services
 
                 foreach (var rule in row.SupersedeRules)
                 {
+                    rule.Id = Guid.NewGuid();
+
                     if (rule.treatment != null && nameIdMap.TryGetValue(rule.treatment.Name, out Guid newId))
                     {
                         rule.treatment.Id = newId;

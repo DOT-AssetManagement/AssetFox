@@ -51,7 +51,7 @@ namespace BridgeCareCore.Controllers
 
         [HttpGet]
         [Route("GetTreatmentLibraryModifiedDate/{libraryId}")]
-        [Authorize(Policy = Policy.ModifyInvestmentFromLibrary)]
+        [Authorize(Policy = Policy.ViewTreatmentFromLibrary)]
         public async Task<IActionResult> GetTreatmentLibraryDate(Guid libraryId)
         {
             try

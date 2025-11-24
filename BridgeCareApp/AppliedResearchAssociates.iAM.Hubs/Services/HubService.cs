@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 using AppliedResearchAssociates.iAM.Hubs;
 using AppliedResearchAssociates.iAM.Hubs.Interfaces;
 using Microsoft.AspNetCore.SignalR;
@@ -36,14 +37,21 @@ namespace AppliedResearchAssociates.iAM.Hubs.Services
 
         public void SendRealTimeErrorMessage(string username, string arg, Exception e)
         {
+            Task sendTask;
+
             if (string.IsNullOrEmpty(username))
             {
-                _hubContext?.Clients?.All?.SendAsync(HubConstant.BroadcastError, arg, e.StackTrace);
+                sendTask = _hubContext?.Clients?.All?.SendAsync(HubConstant.BroadcastError, arg, e.StackTrace);
             }
             else
             {
-                _hubContext?.Clients?.Group(username)?.SendAsync(HubConstant.BroadcastError, arg, e.StackTrace);
+                sendTask = _hubContext?.Clients?.Group(username)?.SendAsync(HubConstant.BroadcastError, arg, e.StackTrace);
             }
+
+            sendTask ??= Task.CompletedTask;
+
+            sendTask.GetAwaiter().GetResult();
+
             var edi = ExceptionDispatchInfo.Capture(e);
             edi.Throw();
         }

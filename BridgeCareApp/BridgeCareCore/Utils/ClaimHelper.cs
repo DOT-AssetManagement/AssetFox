@@ -200,7 +200,7 @@ namespace BridgeCareCore.Utils
         {
             if (RequirePermittedCheck())
             {
-                if (!accessModel.HasAccess(userId, LibraryAccessLevel.Owner))
+                if (!accessModel.HasAccess(userId, LibraryAccessLevel.Read))
                 {
                     throw new UnauthorizedAccessException(LibraryUserListGetUnauthorizedMessage);
                 }
