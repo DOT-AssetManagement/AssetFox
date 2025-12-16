@@ -1,4 +1,4 @@
-namespace AssetFox.iAM
+namespace AssetFox.Core.Common
 {
     public static class AttributeTypeNames
     {

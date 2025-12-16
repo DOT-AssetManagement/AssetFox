@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using AssetFox.Core.Analysis;
+using AssetFox.Core.Common;
 using AssetFox.Core.Common.PerformanceMeasurement;
 using AssetFox.Core.Data.Attributes;
 using AssetFox.Core.DataPersistenceCore.Repositories.Attributes;

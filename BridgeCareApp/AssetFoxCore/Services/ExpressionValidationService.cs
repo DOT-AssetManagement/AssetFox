@@ -4,7 +4,6 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using AssetFox.CalculateEvaluate;
-using AssetFox.iAM;
 using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;

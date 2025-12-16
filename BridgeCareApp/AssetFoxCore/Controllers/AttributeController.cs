@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using AssetFox.iAM;
 using AssetFox.Core.Analysis;
 using AssetFox.Core.DataPersistenceCore.Repositories;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
@@ -26,6 +25,7 @@ using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AssetFox.Core.Data.Attributes;
 using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.Common;
 
 namespace AssetFoxCore.Controllers
 {

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace AssetFox.iAM
+namespace AssetFox.Core.Common
 {
     [Serializable]
     public class InvalidAttributeUpsertException : Exception
