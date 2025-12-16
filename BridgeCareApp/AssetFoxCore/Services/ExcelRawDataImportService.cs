@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.Data.ExcelDatabaseStorage;
+using AssetFox.Core.Data.ExcelDatabaseStorage.CellData;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
 using Microsoft.Graph.Models;
 using OfficeOpenXml;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class ExcelRawDataImportService : IExcelRawDataImportService
     {

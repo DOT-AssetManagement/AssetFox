@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+namespace AssetFox.Core.Analysis.Input.DataTransfer;
 
 public sealed class AnalysisMethod
 {

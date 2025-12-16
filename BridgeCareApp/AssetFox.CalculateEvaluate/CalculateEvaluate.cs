@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.CalculateEvaluate
+namespace AssetFox.CalculateEvaluate
 {
     internal static class CalculateEvaluate
     {

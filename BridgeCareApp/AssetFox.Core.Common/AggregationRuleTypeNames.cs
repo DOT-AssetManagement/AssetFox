@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM
+namespace AssetFox.iAM
 {
     public static class AggregationRuleTypeNames
     {

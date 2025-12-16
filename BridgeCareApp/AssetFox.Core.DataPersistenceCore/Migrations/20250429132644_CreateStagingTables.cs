@@ -1,11 +1,11 @@
-ï»¿using System;
+using System;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
+namespace AssetFox.Core.DataPersistenceCore.Migrations
 {
     /// <inheritdoc />
     public partial class CreateStagingTables : Migration
@@ -92,7 +92,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     CLOSE dc; DEALLOCATE dc;
 
                     /* -------------------------------------------------------------------- *
-                     * 4.  Reâ€‘create PRIMARY KEY and UNIQUE constraintsÂ (partitionâ€‘aware)   *
+                     * 4.  Re-create PRIMARY KEY and UNIQUE constraints (partition-aware)   *
                      * -------------------------------------------------------------------- */
                     DECLARE
                             @cName     sysname,
@@ -101,7 +101,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                             @cIsClst   bit,
                             @cCols     nvarchar(max),
                             @dspace2    sysname,
-                            @ds_type2   nvarchar(60), -- ''PARTITION_SCHEME''Â | ''FG''Â |Â â€¦
+                            @ds_type2   nvarchar(60), -- ''PARTITION_SCHEME'' | ''FG'' | …
                             @part_cols2 nvarchar(max),
                             @cSql      nvarchar(max);
 
@@ -547,7 +547,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
         }
 
         // -------------------------------------------------------------------------
-        // 3)  DOWN  â€“ clean up everything we created in Up
+        // 3)  DOWN  – clean up everything we created in Up
         // -------------------------------------------------------------------------
         protected override void Down(MigrationBuilder migrationBuilder)
         {

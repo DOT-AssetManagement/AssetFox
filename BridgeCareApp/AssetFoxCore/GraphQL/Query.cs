@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Reporting;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Reporting;
 using HotChocolate;
 using HotChocolate.Data;
 
-namespace BridgeCareCore.GraphQL
+namespace AssetFoxCore.GraphQL
 {
     /// <summary>
     /// The GraphQL query.

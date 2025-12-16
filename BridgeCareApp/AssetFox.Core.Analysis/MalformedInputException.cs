@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public class MalformedInputException : Exception
 {

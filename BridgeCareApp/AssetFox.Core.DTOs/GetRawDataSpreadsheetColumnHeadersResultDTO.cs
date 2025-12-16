@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     public class GetRawDataSpreadsheetColumnHeadersResultDTO: WarningServiceResultDTO
     {

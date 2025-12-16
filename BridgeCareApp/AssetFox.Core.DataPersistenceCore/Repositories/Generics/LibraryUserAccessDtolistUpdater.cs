@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics
+namespace AssetFox.Core.DataPersistenceCore.Repositories.Generics
 {
     public static class LibraryUserDtolists
     {

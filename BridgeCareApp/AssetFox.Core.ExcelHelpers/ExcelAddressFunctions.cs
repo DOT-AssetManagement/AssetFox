@@ -1,6 +1,6 @@
-﻿using System.Linq;
+using System.Linq;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public static class ExcelAddressFunctions
     {

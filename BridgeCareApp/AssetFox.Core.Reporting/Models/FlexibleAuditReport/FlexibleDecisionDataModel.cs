@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.FlexibleAuditReport
+namespace AssetFox.Core.Reporting.Models.FlexibleAuditReport
 {
     public class FlexibleDecisionDataModel
     {

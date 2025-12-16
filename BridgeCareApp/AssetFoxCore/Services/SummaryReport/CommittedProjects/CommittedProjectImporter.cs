@@ -1,10 +1,10 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Utils;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Utils;
 using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using System;
@@ -15,7 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
 {
     /// <summary>
     /// Handles the import of committed projects from an Excel worksheet.

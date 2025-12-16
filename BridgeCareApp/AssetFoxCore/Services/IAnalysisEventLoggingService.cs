@@ -1,4 +1,4 @@
-﻿namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public interface IAnalysisEventLoggingService
     {

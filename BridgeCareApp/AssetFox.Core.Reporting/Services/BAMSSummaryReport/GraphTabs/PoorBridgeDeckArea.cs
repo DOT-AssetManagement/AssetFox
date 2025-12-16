@@ -1,8 +1,8 @@
-﻿using System.Drawing;
+using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.GraphTabs
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.GraphTabs
 {
     public class PoorBridgeDeckArea
     {

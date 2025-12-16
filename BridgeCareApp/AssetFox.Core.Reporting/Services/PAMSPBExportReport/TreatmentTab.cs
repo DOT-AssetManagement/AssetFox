@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSPBExport;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Models.PAMSPBExport;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
+namespace AssetFox.Core.Reporting.Services.PAMSPBExport
 {
     public class TreatmentTab
     {
@@ -151,7 +151,7 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
             var treatmentOption = section.TreatmentOptions.FirstOrDefault(_ => _.TreatmentName == appliedTreatment);            
             treatmentDataModel.Benefit = treatmentOption != null ? treatmentOption.Benefit : 0;
             // TODO remove infinity condition once fix is available for such edge cases
-            treatmentDataModel.RemainingLife = treatmentOption != null && treatmentOption.RemainingLife?.ToString() != "-∞" ? treatmentOption.RemainingLife : 0;
+            treatmentDataModel.RemainingLife = treatmentOption != null && treatmentOption.RemainingLife?.ToString() != "-8" ? treatmentOption.RemainingLife : 0;
 
             var primaryKeyValue = CheckGetTextValue(section.ValuePerTextAttribute, primaryKey);
 

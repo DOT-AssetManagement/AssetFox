@@ -2,10 +2,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.CalculateEvaluate;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.CalculateEvaluate;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Engine;
+namespace AssetFox.Core.Analysis.Engine;
 
 internal sealed class AssetContext : CalculateEvaluateScope
 {

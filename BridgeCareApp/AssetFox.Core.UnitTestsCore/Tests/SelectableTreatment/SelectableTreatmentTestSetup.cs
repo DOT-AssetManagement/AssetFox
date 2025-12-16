@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
+namespace AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment
 {
     public class SelectableTreatmentTestSetup
     {

@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Security.Cryptography.X509Certificates;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataUnitTests;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DataUnitTests;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
+namespace AssetFox.Core.UnitTestsCore.Tests.Attributes
 {
     public static class AttributeDtos
     {

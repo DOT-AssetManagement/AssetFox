@@ -1,9 +1,9 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.Core.DTOs;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public static class ServiceProviders
     {

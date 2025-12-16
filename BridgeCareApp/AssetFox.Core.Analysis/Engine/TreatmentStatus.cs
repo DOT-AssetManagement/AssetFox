@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Analysis.Engine;
+namespace AssetFox.Core.Analysis.Engine;
 
 /// <summary>
 ///     Represents the status of the application of a treatment. Most often used to describe

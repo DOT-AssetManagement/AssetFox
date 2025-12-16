@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
+namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
 {
     public static class SectionCommittedProjectDtos
     {

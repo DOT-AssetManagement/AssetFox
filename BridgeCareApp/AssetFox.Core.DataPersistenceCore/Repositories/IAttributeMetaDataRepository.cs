@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Data.Attributes;
+using System.Collections.Generic;
+using AssetFox.Core.Data.Attributes;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     public interface IAttributeMetaDataRepository
     {

@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     /// <summary>
     /// Contains the logic used in decision making (i.e., query)

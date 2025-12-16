@@ -1,23 +1,23 @@
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services;
-using BridgeCareCore.Utils.Interfaces;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.General_Work_Queue;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Extensions;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services;
+using AssetFoxCore.Utils.Interfaces;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.General_Work_Queue;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class SimulationControllerTests
     {

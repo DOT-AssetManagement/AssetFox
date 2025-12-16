@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using AppliedResearchAssociates.iAM.Data.Networking;
+using AssetFox.Core.Data.Networking;
 
-namespace AppliedResearchAssociates.iAM.Data.Aggregation
+namespace AssetFox.Core.Data.Aggregation
 {
     public interface IAggregatedResult
     {

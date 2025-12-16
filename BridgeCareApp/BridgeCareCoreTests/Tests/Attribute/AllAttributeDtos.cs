@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Models;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Models;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
+namespace AssetFox.Core.UnitTestsCore.Tests.Attributes
 {
     public static class AllAttributeDtos
     {

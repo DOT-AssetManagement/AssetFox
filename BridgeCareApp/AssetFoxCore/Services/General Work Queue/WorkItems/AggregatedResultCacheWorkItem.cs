@@ -3,22 +3,22 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Models;
+using AssetFox.Core.Common.PerformanceMeasurement;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Models;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Graph.Models;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.Common;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class AggregatedResultCacheWorkItem : IWorkSpecification<WorkQueueMetadata>
     {

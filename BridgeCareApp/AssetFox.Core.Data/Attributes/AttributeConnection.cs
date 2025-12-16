@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace AppliedResearchAssociates.iAM.Data.Attributes
+namespace AssetFox.Core.Data.Attributes
 {
     public abstract class AttributeConnection
     {

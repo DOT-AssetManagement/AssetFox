@@ -1,5 +1,5 @@
-﻿using Azure.Identity;
-using BridgeCareCore.Security.Interfaces;
+using Azure.Identity;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace BridgeCareCore.Security
+namespace AssetFoxCore.Security
 {
     public class GraphApiClientService: IGraphApiClientService
     {

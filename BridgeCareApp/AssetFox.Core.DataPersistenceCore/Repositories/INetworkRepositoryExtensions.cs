@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     public static class INetworkRepositoryExtensions
     {

@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.DataSources;
-using AppliedResearchAssociates.Validation;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.DataSources;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore
+namespace AssetFox.Core.UnitTestsCore
 {
     public static class TreatmentCostDtos
     {

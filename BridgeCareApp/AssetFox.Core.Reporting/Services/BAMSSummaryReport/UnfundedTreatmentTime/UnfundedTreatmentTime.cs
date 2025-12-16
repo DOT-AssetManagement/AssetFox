@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Drawing;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.UnfundedTreatmentTime
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.UnfundedTreatmentTime
 {
     public class UnfundedTreatmentTime
     {

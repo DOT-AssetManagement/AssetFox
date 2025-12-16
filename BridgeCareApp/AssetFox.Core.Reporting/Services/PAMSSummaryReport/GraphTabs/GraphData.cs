@@ -1,8 +1,8 @@
-﻿using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Misc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.GraphTabs
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.GraphTabs
 {
     public class GraphData
     {

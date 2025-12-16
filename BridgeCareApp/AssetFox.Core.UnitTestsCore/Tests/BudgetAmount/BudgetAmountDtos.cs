@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
+namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public static class BudgetAmountDtos
     {

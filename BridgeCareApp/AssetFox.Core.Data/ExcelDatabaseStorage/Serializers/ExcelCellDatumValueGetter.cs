@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData;
-using AppliedResearchAssociates.iAM.Data.Helpers;
+using AssetFox.Core.Data.ExcelDatabaseStorage.CellData;
+using AssetFox.Core.Data.Helpers;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers
+namespace AssetFox.Core.Data.ExcelDatabaseStorage.Serializers
 {
     public class ExcelCellDatumValueGetter : IExcelCellDatumVisitor<Unit, object>
     {

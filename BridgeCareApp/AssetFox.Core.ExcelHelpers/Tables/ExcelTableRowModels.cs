@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.ExcelHelpers.Tables;
+using AssetFox.Core.ExcelHelpers.Tables;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public static class ExcelTableRowModels
     {

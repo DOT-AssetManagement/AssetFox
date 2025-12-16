@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates
+namespace AssetFox
 {
     public static class Extensions
     {

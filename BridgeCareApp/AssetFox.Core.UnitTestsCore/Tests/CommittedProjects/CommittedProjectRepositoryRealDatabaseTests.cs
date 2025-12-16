@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using AppliedResearchAssociates.iAM.DataUnitTests;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.DataUnitTests;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment;
+using AssetFox.Core.UnitTestsCore.Tests.User;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
-using MaintainableAsset = AppliedResearchAssociates.iAM.Data.Networking.MaintainableAsset;
+using MaintainableAsset = AssetFox.Core.Data.Networking.MaintainableAsset;
 
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
+namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
 {
     public class CommittedProjectRepositoryRealDatabaseTests
     {

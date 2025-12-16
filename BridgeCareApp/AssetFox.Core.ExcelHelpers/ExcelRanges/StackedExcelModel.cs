@@ -1,8 +1,8 @@
 
 ﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.ExcelHelpers;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public class StackedExcelModel: IExcelModel
     {

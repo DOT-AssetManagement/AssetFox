@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Engine;
+namespace AssetFox.Core.Analysis.Engine;
 
 /// <summary>
 ///     The logic used to determine if a specific treatment should be funded through the cash flow

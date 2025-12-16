@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.Validation;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     public sealed class TreatmentScheduling : IValidator
     {

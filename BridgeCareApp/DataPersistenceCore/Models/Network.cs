@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Models
+namespace AssetFox.Core.DataPersistenceCore.Models
 {
     public class Network
     {

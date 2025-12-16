@@ -1,15 +1,15 @@
-﻿using System.Security.Claims;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests.Helpers;
+using System.Security.Claims;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class NetworkTests
     {
@@ -24,11 +24,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy("NetworkViewClaim",
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.NetworkViewAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.NetworkViewAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Editor });
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Editor });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, "NetworkViewClaim");
@@ -46,11 +46,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy("NetworkAddClaim",
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.NetworkAddAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.NetworkAddAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, "NetworkAddClaim");
@@ -68,11 +68,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy("NetworkAggregateClaim",
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.NetworkAggregateAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.NetworkAggregateAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.ReadOnly });
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.ReadOnly });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, "NetworkAggregateClaim");
@@ -90,11 +90,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy("NetworkViewClaim",
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.NetworkViewAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.NetworkViewAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, "NetworkViewClaim");

@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     public class SimulationAnalysisDetailDTO
     {

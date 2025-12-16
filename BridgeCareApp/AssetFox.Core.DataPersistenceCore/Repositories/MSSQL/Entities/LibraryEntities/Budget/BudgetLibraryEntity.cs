@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
+using System.Collections.Generic;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Migrations;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Budget
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Budget
 {
     public class BudgetLibraryEntity : LibraryEntity
     {

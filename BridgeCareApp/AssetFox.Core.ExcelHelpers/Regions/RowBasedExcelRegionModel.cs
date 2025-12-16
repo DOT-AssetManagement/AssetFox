@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public class RowBasedExcelRegionModel
     {

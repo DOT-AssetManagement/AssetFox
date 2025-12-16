@@ -1,8 +1,8 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs.Abstract;
 using System;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     public class LastNewsAccessDateDTO : BaseDTO
     {

@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
+namespace AssetFox.Core.DataPersistenceCore.Migrations
 {
     /// <inheritdoc />
     public partial class AddRunIdToOutput : Migration

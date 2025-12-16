@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Analysis.Logic;
+namespace AssetFox.Core.Analysis.Logic;
 
 public static partial class Funding
 {

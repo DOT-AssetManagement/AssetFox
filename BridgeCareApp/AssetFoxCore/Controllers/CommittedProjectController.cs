@@ -3,32 +3,32 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using BridgeCareCore.Controllers.BaseController;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Security.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
-using BridgeCareCore.Utils.Interfaces;
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.General_Work_Queue.WorkItems;
+using AssetFoxCore.Utils.Interfaces;
+using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.General_Work_Queue.WorkItems;
 using System.IO;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Models;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CommittedProjectController : BridgeCareCoreBaseController
+    public class CommittedProjectController : AssetFoxCoreBaseController
     {
         public const string CommittedProjectError = "Committed Project Error";
         public const string RequestMimeTypeIsInvalid = "Request MIME type is invalid.";

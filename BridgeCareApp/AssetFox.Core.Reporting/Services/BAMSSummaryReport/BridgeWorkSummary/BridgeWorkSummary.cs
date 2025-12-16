@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
     public class BridgeWorkSummary
     {

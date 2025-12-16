@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
+using System;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User
+namespace AssetFox.Core.UnitTestsCore.Tests.User
 {
     public static class UserCriteriaDtos
     {

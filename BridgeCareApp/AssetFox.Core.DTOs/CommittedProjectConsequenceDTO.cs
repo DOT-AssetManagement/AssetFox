@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using System;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     /// <summary>
     /// Describes the consequences of a particular treatment applied to a specific committed project

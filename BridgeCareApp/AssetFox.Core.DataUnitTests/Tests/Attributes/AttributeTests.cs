@@ -1,10 +1,10 @@
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 using Xunit;
 using Moq;
 using System;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using AssetFox.Core.DataUnitTests.TestUtils;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Attributes
+namespace AssetFox.Core.DataUnitTests.Tests.Attributes
 {
     public class AttributeTests
     {

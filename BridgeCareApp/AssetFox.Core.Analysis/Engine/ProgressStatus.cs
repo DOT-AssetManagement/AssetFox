@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Analysis.Engine;
+namespace AssetFox.Core.Analysis.Engine;
 
 public enum ProgressStatus
 {

@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataUnitTests;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DataUnitTests;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
+namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public class Aes256GcmTests
     {

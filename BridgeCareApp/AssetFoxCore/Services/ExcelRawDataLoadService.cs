@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Data.ExcelDatabaseStorage;
+using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class ExcelRawDataLoadService : IExcelRawDataLoadService
     {

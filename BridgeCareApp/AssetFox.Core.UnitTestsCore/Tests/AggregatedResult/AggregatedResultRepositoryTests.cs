@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
-using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using IamAttribute = AssetFox.Core.Data.Attributes.Attribute;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.AggregatedResult
+namespace AssetFox.Core.UnitTestsCore.Tests.AggregatedResult
 {
     public class AggregatedResultRepositoryTests
     {

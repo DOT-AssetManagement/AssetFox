@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data.Helpers;
+using AssetFox.Core.Data.Helpers;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Parsing
+namespace AssetFox.Core.DataUnitTests.Tests.Parsing
 {
     public class DoubleParseHelperTests
     {

@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DataMiner.Attributes;
+using AssetFox.Core.DataMiner.Attributes;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Models
+namespace AssetFox.Core.DataPersistenceCore.Models
 {
     public class Segment
     {

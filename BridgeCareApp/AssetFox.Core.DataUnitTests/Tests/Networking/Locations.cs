@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data;
+using AssetFox.Core.Data;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests
+namespace AssetFox.Core.DataUnitTests.Tests
 {
     public static class Locations
     {

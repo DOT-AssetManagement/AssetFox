@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Common
+namespace AssetFox.Core.Common
 {
     public class SimulationCloningCommittedProjectErrors
     {

@@ -1,13 +1,13 @@
-﻿using System.Security.Claims;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests.Helpers;
+using System.Security.Claims;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using static BridgeCareCore.Security.SecurityConstants;
+using static AssetFoxCore.Security.SecurityConstants;
 
-namespace BridgeCareCoreTests.Tests.Treatment
+namespace AssetFoxCoreTests.Tests.Treatment
 {
     public class TreatmentAuthorizationTests
     {
@@ -24,7 +24,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.TreatmentViewAnyFromLibraryAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.TreatmentViewAnyFromLibraryAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
@@ -46,8 +46,8 @@ namespace BridgeCareCoreTests.Tests.Treatment
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.TreatmentModifyAnyFromScenarioAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.TreatmentModifyPermittedFromScenarioAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.TreatmentModifyAnyFromScenarioAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.TreatmentModifyPermittedFromScenarioAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
@@ -68,8 +68,8 @@ namespace BridgeCareCoreTests.Tests.Treatment
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.TreatmentDeletePermittedFromLibraryAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.TreatmentDeleteAnyFromLibraryAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.TreatmentDeletePermittedFromLibraryAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.TreatmentDeleteAnyFromLibraryAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
@@ -89,7 +89,7 @@ namespace BridgeCareCoreTests.Tests.Treatment
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.TreatmentViewAnyFromLibraryAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.TreatmentViewAnyFromLibraryAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();

@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Reporting.Models;
+using AssetFox.Core.Common;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.Data;
+using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Reporting.Models;
 using Microsoft.VisualBasic;
 using NetTopologySuite.Algorithm;
 using Newtonsoft.Json;
@@ -18,7 +18,7 @@ using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public class PAMSInventorySegmentsReport : IReport
     {

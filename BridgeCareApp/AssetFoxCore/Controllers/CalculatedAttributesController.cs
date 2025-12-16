@@ -1,32 +1,32 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using BridgeCareCore.Controllers.BaseController;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Security;
-using BridgeCareCore.Security.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Security;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BridgeCareCore.Models;
-using BridgeCareCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Interfaces;
 
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
+using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
 using Microsoft.SqlServer.Dac.Model;
-using BridgeCareCore.Utils.Interfaces;
-using BridgeCareCore.Utils;
-using BridgeCareCore.Services;
+using AssetFoxCore.Utils.Interfaces;
+using AssetFoxCore.Utils;
+using AssetFoxCore.Services;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CalculatedAttributesController : BridgeCareCoreBaseController
+    public class CalculatedAttributesController : AssetFoxCoreBaseController
     {
         public const string CalculatedAttributeError = "Calculated Attribute Error";
         private readonly ICalculatedAttributesRepository calculatedAttributesRepo;

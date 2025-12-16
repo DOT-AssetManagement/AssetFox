@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.RemainingLifeLimit
+namespace AssetFox.Core.UnitTestsCore.Tests.RemainingLifeLimit
 {
     public static class RemainingLifeLimitLibraryDtos
     {

@@ -1,25 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using BridgeCareCore.Services;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using IamAttribute = AssetFox.Core.Data.Attributes.Attribute;
+using AssetFoxCore.Services;
 using Xunit;
-using BridgeCareCore.Models;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using AssetFoxCore.Models;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DataUnitTests.TestUtils;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public class AttributeServiceIntegrationTests
     {

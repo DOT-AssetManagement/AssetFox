@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services.SimulationCloning;
+namespace AssetFoxCore.Services.SimulationCloning;
 
 internal class SimulationAnalysisDetailCloner
 {

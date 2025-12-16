@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public interface IAttributeValueHistory
 {

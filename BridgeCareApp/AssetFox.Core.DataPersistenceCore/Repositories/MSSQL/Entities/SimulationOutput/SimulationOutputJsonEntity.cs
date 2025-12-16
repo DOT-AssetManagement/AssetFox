@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums;
+using System;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Enums;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
 {
     public class SimulationOutputJsonEntity : BaseEntity
     {

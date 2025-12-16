@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OfficeOpenXml;
 
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Reporting.Models;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Reporting.Models;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
     public class BridgesCulvertsWorkSummary
     {

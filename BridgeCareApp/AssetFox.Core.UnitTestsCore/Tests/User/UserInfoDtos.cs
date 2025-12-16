@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore
+namespace AssetFox.Core.UnitTestsCore
 {
     public static class UserInfoDtos
     {

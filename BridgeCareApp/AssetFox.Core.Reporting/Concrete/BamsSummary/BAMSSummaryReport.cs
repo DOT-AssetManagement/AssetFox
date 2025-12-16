@@ -4,28 +4,28 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Parameters;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.ShortNameGlossary;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeData;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.UnfundedTreatmentFinalList;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.UnfundedTreatmentTime;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryByBudget;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.GraphTabs;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using BridgeCareCore.Services;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.FundedTreatment;
-using AppliedResearchAssociates.iAM.Reporting.Services;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.Parameters;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.ShortNameGlossary;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.UnfundedTreatmentFinalList;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.UnfundedTreatmentTime;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryByBudget;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.GraphTabs;
+using AssetFox.Core.ExcelHelpers;
+using AssetFoxCore.Services;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment;
+using AssetFox.Core.Reporting.Services;
 using System.Threading;
-using AppliedResearchAssociates.iAM.Common.Logging;
+using AssetFox.Core.Common.Logging;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public class BAMSSummaryReport : IReport
     {

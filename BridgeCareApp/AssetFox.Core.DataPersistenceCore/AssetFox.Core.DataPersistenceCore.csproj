@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>AppliedResearchAssociates.iAM.DataPersistenceCore</AssemblyName>
-    <RootNamespace>AppliedResearchAssociates.iAM.DataPersistenceCore</RootNamespace>
+    <AssemblyName>AssetFox.Core.DataPersistenceCore</AssemblyName>
+    <RootNamespace>AssetFox.Core.DataPersistenceCore</RootNamespace>
     <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
   </PropertyGroup>
 
@@ -42,11 +42,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Common\AppliedResearchAssociates.iAM.Common.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Data\AppliedResearchAssociates.iAM.Data.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.DTOs\AppliedResearchAssociates.iAM.DTOs.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Analysis\AppliedResearchAssociates.iAM.Analysis.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Hubs\AppliedResearchAssociates.iAM.Hubs.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Common\AssetFox.Core.Common.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Data\AssetFox.Core.Data.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.DTOs\AssetFox.Core.DTOs.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Analysis\AssetFox.Core.Analysis.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Hubs\AssetFox.Core.Hubs.csproj" />
   </ItemGroup>
 
   <ItemGroup>

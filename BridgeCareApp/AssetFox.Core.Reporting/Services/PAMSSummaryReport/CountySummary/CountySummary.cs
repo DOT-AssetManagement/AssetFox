@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.ExcelHelpers;
 using System.Drawing;
-using CurrentCell = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.CurrentCell;
+using CurrentCell = AssetFox.Core.Reporting.Models.PAMSSummaryReport.CurrentCell;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.CountySummary
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.CountySummary
 {
     public class DistrictCounty
     {

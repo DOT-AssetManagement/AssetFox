@@ -1,13 +1,13 @@
 using System;
 using System.Data;
 using System.Linq;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests.Benefit;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
+namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public class BenefitRepositoryTests
     {

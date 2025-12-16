@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Networking;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Networking;
 
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests
+namespace AssetFox.Core.DataUnitTests.Tests
 {
     public static class MaintainableAssetLists
     {

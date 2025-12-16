@@ -1,13 +1,13 @@
-﻿using Xunit;
+using Xunit;
 using Moq;
 using System;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using AssetFox.Core.Data.Attributes;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Attributes
+namespace AssetFox.Core.DataUnitTests.Tests.Attributes
 {
     public class AttributeDataBuilderTests
     {

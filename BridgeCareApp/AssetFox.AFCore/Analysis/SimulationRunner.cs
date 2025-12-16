@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using AppliedResearchAssociates.Validation;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAMCore.Analysis
+namespace AssetFox.AFCore.Analysis
 {
     public sealed class SimulationRunner
     {

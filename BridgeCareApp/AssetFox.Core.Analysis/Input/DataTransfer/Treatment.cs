@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+namespace AssetFox.Core.Analysis.Input.DataTransfer;
 
 public class Treatment
 {

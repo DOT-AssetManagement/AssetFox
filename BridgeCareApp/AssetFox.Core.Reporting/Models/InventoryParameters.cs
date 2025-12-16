@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public class InventoryParameters
     {

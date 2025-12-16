@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
 {
     public abstract class CommittedTreatmentEntity : BaseEntity
     {

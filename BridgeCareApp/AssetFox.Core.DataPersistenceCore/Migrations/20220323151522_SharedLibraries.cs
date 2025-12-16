@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
+namespace AssetFox.Core.DataPersistenceCore.Migrations
 {
     public partial class SharedLibraries : Migration
     {

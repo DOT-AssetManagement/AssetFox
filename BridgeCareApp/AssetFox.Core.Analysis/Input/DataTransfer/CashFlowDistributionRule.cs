@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+namespace AssetFox.Core.Analysis.Input.DataTransfer;
 
 public sealed class CashFlowDistributionRule
 {

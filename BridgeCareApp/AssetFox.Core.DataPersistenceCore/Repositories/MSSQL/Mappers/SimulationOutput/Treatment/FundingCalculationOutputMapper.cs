@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
     public static class FundingCalculationOutputMapper
     {

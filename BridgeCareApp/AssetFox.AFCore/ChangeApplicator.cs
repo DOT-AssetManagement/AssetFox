@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     internal sealed class ChangeApplicator
     {

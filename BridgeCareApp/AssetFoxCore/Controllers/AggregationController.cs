@@ -5,29 +5,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Controllers.BaseController;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Security;
-using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.Aggregation;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.Common;
+using AssetFox.Core.Data;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Security;
+using AssetFoxCore.Security.Interfaces;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.Aggregation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AggregationController : BridgeCareCoreBaseController
+    public class AggregationController : AssetFoxCoreBaseController
     {
         public const string AggregationError = "Aggregation Error";
         private readonly ILog _log;

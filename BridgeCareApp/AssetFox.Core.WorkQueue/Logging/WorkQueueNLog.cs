@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Common;
 using NLog;
 
-namespace AppliedResearchAssociates.iAM.WorkQueue.Logging
+namespace AssetFox.Core.WorkQueue.Logging
 {
     public class WorkQueueNLog : ILog
     {

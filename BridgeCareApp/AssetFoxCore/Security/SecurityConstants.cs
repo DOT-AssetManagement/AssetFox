@@ -1,4 +1,4 @@
-﻿namespace BridgeCareCore.Security
+namespace AssetFoxCore.Security
 {
     public static class SecurityConstants
     {

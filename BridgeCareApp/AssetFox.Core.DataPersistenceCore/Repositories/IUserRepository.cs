@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     public interface IUserRepository
     {

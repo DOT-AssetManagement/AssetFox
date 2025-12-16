@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.Analysis;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.Analysis;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
     public static class MaintainableAssetMapper
     {

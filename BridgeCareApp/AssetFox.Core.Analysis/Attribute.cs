@@ -1,6 +1,6 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public class Attribute
 {

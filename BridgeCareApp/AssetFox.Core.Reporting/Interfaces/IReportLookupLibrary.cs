@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Reporting.Interfaces;
+using System.Collections.Generic;
+using AssetFox.Core.Reporting.Interfaces;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public interface IReportLookupLibrary
     {

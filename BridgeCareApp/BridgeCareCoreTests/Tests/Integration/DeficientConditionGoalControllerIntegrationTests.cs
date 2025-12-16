@@ -1,19 +1,19 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.DeficientConditionGoal;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.DeficientConditionGoal;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services;
 using Microsoft.Data.SqlClient;
 using Moq;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public class DeficientConditionGoalControllerIntegrationTests
     {

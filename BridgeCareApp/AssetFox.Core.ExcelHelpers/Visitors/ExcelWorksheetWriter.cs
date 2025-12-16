@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using OfficeOpenXml;
 
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public class ExcelWorksheetWriter: IExcelWorksheetModelVisitor<ExcelWorksheet, ExcelWorksheet>
     {

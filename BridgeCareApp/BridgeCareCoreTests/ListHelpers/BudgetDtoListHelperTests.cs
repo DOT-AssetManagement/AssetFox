@@ -1,8 +1,8 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Services;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Services;
 using Xunit;
 
-namespace BridgeCareCoreTests.ListHelpers
+namespace AssetFoxCoreTests.ListHelpers
 {
     public class BudgetDtoListHelperTests
     {

@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.DTOs.Enums
+namespace AssetFox.Core.DTOs.Enums
 {
     public enum SimulationLogSubject
     {

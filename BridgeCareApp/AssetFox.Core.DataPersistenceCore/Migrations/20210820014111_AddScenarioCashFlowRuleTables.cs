@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
+namespace AssetFox.Core.DataPersistenceCore.Migrations
 {
     public partial class AddScenarioCashFlowRuleTables : Migration
     {

@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.Graph.Models;
 
-namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
 {
     public class CommittedProjectsColumnHeaders
     {

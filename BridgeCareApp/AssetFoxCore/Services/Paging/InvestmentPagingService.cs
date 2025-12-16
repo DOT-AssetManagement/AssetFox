@@ -1,13 +1,13 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Models;
 using System.Collections.Generic;
 using System;
-using BridgeCareCore.Interfaces.DefaultData;
-using BridgeCareCore.Interfaces;
+using AssetFoxCore.Interfaces.DefaultData;
+using AssetFoxCore.Interfaces;
 using System.Linq;
 
-namespace BridgeCareCore.Services.Paging
+namespace AssetFoxCore.Services.Paging
 {
     public class InvestmentPagingService : IInvestmentPagingService
     {

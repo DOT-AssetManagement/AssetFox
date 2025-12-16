@@ -1,18 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.Tests.User;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
-using AppliedResearchAssociates.iAM.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment;
+using AssetFox.Core.TestHelpers;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Treatment
+namespace AssetFox.Core.UnitTestsCore.Tests.Treatment
 {
     public class TreatmentRepositoryTests
     {

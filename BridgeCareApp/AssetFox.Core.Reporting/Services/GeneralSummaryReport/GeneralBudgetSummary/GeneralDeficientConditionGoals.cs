@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.GeneralSummaryReport.GeneralBudgetSummary
+namespace AssetFox.Core.Reporting.Services.GeneralSummaryReport.GeneralBudgetSummary
 {
     public class GeneralDeficientConditionGoals
     {

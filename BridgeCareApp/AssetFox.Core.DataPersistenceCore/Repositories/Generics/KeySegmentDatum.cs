@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics
+namespace AssetFox.Core.DataPersistenceCore.Repositories.Generics
 {
     public class KeySegmentDatum
     {

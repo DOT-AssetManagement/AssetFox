@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
 
-namespace AppliedResearchAssociates.iAM.StressTesting
+namespace AssetFox.Core.StressTesting
 {
     public class FileReader
     {

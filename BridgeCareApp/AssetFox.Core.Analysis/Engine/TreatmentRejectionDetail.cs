@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Engine;
+namespace AssetFox.Core.Analysis.Engine;
 
 /// <summary>
 ///     The reason a specific treatment was rejected.

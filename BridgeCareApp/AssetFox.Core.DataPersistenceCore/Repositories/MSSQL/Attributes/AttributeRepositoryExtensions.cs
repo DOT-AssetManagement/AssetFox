@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.DTOs;
-using DataAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.DTOs;
+using DataAttribute = AssetFox.Core.Data.Attributes.Attribute;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     public static class AttributeRepositoryExtensions
     {

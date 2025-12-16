@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class GetConditionAttributesService
     {

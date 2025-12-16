@@ -1,16 +1,16 @@
 using System.Data;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.DefaultData;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.Treatment;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Extensions;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.DefaultData;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.Treatment;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -18,7 +18,7 @@ using Moq;
 using OfficeOpenXml;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class InvestmentBudgetServiceTests
     {

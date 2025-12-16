@@ -1,16 +1,16 @@
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs.Services;
-using AppliedResearchAssociates.iAM.Reporting;
-using AppliedResearchAssociates.iAM.Reporting.Interfaces;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
-using BridgeCareCore.Security;
-using BridgeCareCore.Services.Aggregation;
-using BridgeCareCore.StartupExtension;
-using BridgeCareCore.GraphQL;
+using AssetFox.Core.Common;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Hubs.Services;
+using AssetFox.Core.Reporting;
+using AssetFox.Core.Reporting.Interfaces;
+using AssetFox.Core.Reporting.Logging;
+using AssetFoxCore.Security;
+using AssetFoxCore.Services.Aggregation;
+using AssetFoxCore.StartupExtension;
+using AssetFoxCore.GraphQL;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -20,13 +20,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using BridgeCareCore.Services;
-using AppliedResearchAssociates.iAM.Reporting.Concrete.GeneralSummary;
-using BridgeCareCore.Interfaces;
-using static BridgeCareCore.Security.SecurityConstants;
+using AssetFoxCore.Services;
+using AssetFox.Core.Reporting.Concrete.GeneralSummary;
+using AssetFoxCore.Interfaces;
+using static AssetFoxCore.Security.SecurityConstants;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
-namespace BridgeCareCore
+namespace AssetFoxCore
 {
     public class Startup
     {

@@ -1,4 +1,4 @@
-﻿namespace BridgeCareCore.Services.Treatment
+namespace AssetFoxCore.Services.Treatment
 {
     public static class TreatmentExportStringConstants
     {

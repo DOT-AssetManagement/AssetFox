@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Data.Attributes;
+using System;
+using AssetFox.Core.Data.Attributes;
 
-namespace AppliedResearchAssociates.iAM.Data
+namespace AssetFox.Core.Data
 {
     public static class LocationBuilder
     {

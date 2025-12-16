@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
+namespace AssetFox.Core.DataPersistenceCore.Migrations
 {
     /// <inheritdoc />
     public partial class CreateSwitchOutPartition_usp : Migration
@@ -45,14 +45,14 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                     DECLARE @fqTmp nvarchar(261) = QUOTENAME(@schema) + ''.'' + QUOTENAME(@tmp);
                     DECLARE @fqSrc nvarchar(261) = QUOTENAME(@schema) + ''.'' + QUOTENAME(@base);
 
-                    /* 2b. All indexes, PK/UQ, FK –- reuse logic from staging proc
+                    /* 2b. All indexes, PK/UQ, FK �- reuse logic from staging proc
                            by calling it inline with the temp name */
                     EXEC dbo.usp_CreateStagingTableForPartitionedTable @SourceTable = @fqSrc, @Stage = @tmp;
 
                     /* --------------------------------------------------
                        3. Remove the placeholder CK (do not add a new one)
                     -------------------------------------------------- */
-                    /* temp table is already partition‑aligned;
+                    /* temp table is already partition-aligned;
                        extra CHECK constraints would block the switch */
                     DECLARE @dropCk nvarchar(max);
                     SELECT  @dropCk =

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.DTOs.Abstract
+namespace AssetFox.Core.DTOs.Abstract
 {
     /// <summary>
     /// A base project DTO class that all projects derive from.

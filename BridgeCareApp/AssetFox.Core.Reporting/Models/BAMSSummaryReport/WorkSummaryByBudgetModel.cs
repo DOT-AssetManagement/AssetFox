@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport
+namespace AssetFox.Core.Reporting.Models.BAMSSummaryReport
 {
     public class WorkSummaryByBudgetModel
     {

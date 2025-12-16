@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using System.Collections.Generic;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
     public class AssetDetailEntityFamily
     {

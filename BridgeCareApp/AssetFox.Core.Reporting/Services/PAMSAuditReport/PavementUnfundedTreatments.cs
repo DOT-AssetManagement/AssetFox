@@ -1,16 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSAuditReport;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Models.PAMSAuditReport;
 using System;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Reporting.Services.BAMSAuditReport;
+using AssetFox.Core.Analysis.Engine;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport
+namespace AssetFox.Core.Reporting.Services.PAMSAuditReport
 {
     public class PavementUnfundedTreatments
     {

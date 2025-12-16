@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Security.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
-namespace BridgeCareCore.Controllers.BaseController
+namespace AssetFoxCore.Controllers.BaseController
 {
-    public class BridgeCareCoreBaseController : ControllerBase
+    public class AssetFoxCoreBaseController : ControllerBase
     {
-        public const string BridgeCareCoreBaseError = "BridgeCareCoreBase Error";
+        public const string AssetFoxCoreBaseError = "AssetFoxCoreBase Error";
 
         protected readonly IEsecSecurity EsecSecurity;
 
@@ -29,7 +29,7 @@ namespace BridgeCareCore.Controllers.BaseController
             "UserTokens", "RevokeToken", "RefreshToken"
         };
 
-        public BridgeCareCoreBaseController(IEsecSecurity esecSecurity, IUnitOfWork unitOfWork, IHubService hubService, IHttpContextAccessor contextAccessor)
+        public AssetFoxCoreBaseController(IEsecSecurity esecSecurity, IUnitOfWork unitOfWork, IHubService hubService, IHttpContextAccessor contextAccessor)
         {
             EsecSecurity = esecSecurity ?? throw new ArgumentNullException(nameof(esecSecurity));
             UnitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -60,12 +60,12 @@ namespace BridgeCareCore.Controllers.BaseController
             }
             catch(SecurityTokenExpiredException)
             {
-                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWarning, $"{BridgeCareCoreBaseError}::The token is expired. Please re-login by pressing the button \"Go to login page\".");
+                HubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastWarning, $"{AssetFoxCoreBaseError}::The token is expired. Please re-login by pressing the button \"Go to login page\".");
                 throw;
             }
             catch (Exception exception)
             {
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{BridgeCareCoreBaseError}::SetUserInfo - {exception.Message}", exception);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{AssetFoxCoreBaseError}::SetUserInfo - {exception.Message}", exception);
             }
         }
 

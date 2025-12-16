@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSPBExportReport
+namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport
 {
     public static class PBExportReportTabNames
     {

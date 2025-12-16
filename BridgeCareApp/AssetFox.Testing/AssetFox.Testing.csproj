@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.Choice\AppliedResearchAssociates.Choice.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Comparison\AppliedResearchAssociates.Comparison.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.CycleDetection\AppliedResearchAssociates.CycleDetection.csproj" />
+    <ProjectReference Include="..\AssetFox.Choice\AssetFox.Choice.csproj" />
+    <ProjectReference Include="..\AssetFox.Comparison\AssetFox.Comparison.csproj" />
+    <ProjectReference Include="..\AssetFox.CycleDetection\AssetFox.CycleDetection.csproj" />
   </ItemGroup>
 
 </Project>

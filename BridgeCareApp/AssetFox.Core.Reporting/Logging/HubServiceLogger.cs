@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
+using AssetFox.Core.Common;
+using AssetFox.Core.Hubs.Interfaces;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Logging
+namespace AssetFox.Core.Reporting.Logging
 {
     public class HubServiceLogger : ILog
     {

@@ -1,6 +1,6 @@
-﻿using System.Drawing;
+using System.Drawing;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public class ExcelFontColorModel : IExcelModel
     {

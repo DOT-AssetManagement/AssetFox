@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage
+namespace AssetFox.Core.Data.ExcelDatabaseStorage
 {
     public static class ExcelRawDataSpreadsheetSerializationMapper
     {

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Data.Helpers
+namespace AssetFox.Core.Data.Helpers
 {
     public class DatumLog
     {

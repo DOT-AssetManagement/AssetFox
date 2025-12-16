@@ -1,17 +1,19 @@
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Utils;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Utils;
 using Xunit;
 using Assert = Xunit.Assert;
 using System.Security.Claims;
 using System.Collections.Generic;
-using BridgeCareCore.Security;
+using AssetFoxCore.Security;
 using System;
-using BridgeCareCoreTests.Tests.SecurityUtilsClasses;
-using BridgeCareCore.Interfaces;
-using Moq;using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFoxCoreTests.Tests.SecurityUtilsClasses;
+using AssetFoxCore.Interfaces;
+
+using Moq;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using Microsoft.AspNetCore.Http;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class ClaimHelperTests
     {

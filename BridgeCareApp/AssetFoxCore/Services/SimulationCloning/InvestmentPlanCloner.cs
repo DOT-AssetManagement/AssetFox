@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     internal class InvestmentPlanCloner
     {

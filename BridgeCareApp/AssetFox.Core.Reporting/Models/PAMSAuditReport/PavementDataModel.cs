@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.PAMSAuditReport
+namespace AssetFox.Core.Reporting.Models.PAMSAuditReport
 {
     public class PavementDataModel
     {

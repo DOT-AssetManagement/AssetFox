@@ -1,25 +1,25 @@
-﻿using System;
-using TNetwork = AppliedResearchAssociates.iAM.Data.Networking.Network;
+using System;
+using TNetwork = AssetFox.Core.Data.Networking.Network;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.TestHelpers;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.TestHelpers;
 using Xunit;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DataUnitTests;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DataUnitTests;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using IamAttribute = AssetFox.Core.Data.Attributes.Attribute;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.Data.Aggregation;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.DataUnitTests.TestUtils;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
+namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public class NetworkGetTests
     {

@@ -1,11 +1,11 @@
-﻿using System.Collections;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using System.Collections;
+using AssetFox.Core.Analysis.Engine;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs.Enums;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport
 {
     public class SummaryReportHelper
     {

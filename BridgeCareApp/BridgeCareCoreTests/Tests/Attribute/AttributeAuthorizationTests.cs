@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Services;
-using BridgeCareCore.Utils;
-using BridgeCareCore.Utils.Interfaces;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Services;
+using AssetFoxCore.Utils;
+using AssetFoxCore.Utils.Interfaces;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,9 +17,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
+using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
 
     public class AttributeAuthorizationTests
@@ -37,13 +37,13 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.AttributesUpdateAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.AttributesAddAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.AttributesViewAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.AttributesUpdateAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.AttributesAddAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.AttributesViewAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Editor });
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Editor });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
@@ -61,11 +61,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.AttributesViewAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.AttributesViewAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
@@ -82,11 +82,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.AttributesViewAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.AttributesViewAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);

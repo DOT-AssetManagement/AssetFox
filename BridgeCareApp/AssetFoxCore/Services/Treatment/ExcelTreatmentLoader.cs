@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models.Validation;
-using BridgeCareCore.Utils;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models.Validation;
+using AssetFoxCore.Utils;
 using OfficeOpenXml;
 
-namespace BridgeCareCore.Services.Treatment
+namespace AssetFoxCore.Services.Treatment
 {
     public class ExcelTreatmentLoader
     {

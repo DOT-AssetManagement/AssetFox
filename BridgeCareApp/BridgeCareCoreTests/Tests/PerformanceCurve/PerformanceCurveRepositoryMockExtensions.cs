@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DTOs;
 using Moq;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public static class PerformanceCurveRepositoryMockExtensions
     {

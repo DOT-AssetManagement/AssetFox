@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace AppliedResearchAssociates.iAM.DTOs.Abstract
+namespace AssetFox.Core.DTOs.Abstract
 {
     /// <summary>
     /// A base library DTO class that all libraries derive from.

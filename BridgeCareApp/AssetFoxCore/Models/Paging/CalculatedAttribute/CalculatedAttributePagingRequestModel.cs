@@ -1,6 +1,6 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
-namespace BridgeCareCore.Models
+using System;
+using AssetFox.Core.DTOs;
+namespace AssetFoxCore.Models
 {
     public class CalculatedAttributePagingRequestModel : BasePagingRequest
     {

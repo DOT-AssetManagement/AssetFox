@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Security.Claims;
 
-namespace BridgeCareCore.Utils.Interfaces
+namespace AssetFoxCore.Utils.Interfaces
 {
     public interface IRoleClaimsMapper
     {

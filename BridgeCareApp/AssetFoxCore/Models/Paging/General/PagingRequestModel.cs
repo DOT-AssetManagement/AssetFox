@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace BridgeCareCore.Models
+namespace AssetFoxCore.Models
 {
     public class PagingRequestModel<T> : BasePagingRequest
     {

@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace BridgeCareCore.Models
+namespace AssetFoxCore.Models
 {
     public class LibraryUpsertPagingRequestModel<T, Y> : BaseLibraryUpsertPagingRequest<T>
     {

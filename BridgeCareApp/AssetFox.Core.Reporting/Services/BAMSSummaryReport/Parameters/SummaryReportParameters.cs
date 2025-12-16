@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.Parameters
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.Parameters
 {
     public class SummaryReportParameters
     {        

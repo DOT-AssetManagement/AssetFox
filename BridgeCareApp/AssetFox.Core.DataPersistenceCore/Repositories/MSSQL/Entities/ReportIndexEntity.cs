@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
+using System;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
 {
     /// <summary>
     /// Domain object representing record in data persistence for report data that should be persisted

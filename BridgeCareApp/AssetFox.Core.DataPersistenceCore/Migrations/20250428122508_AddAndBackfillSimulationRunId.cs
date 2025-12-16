@@ -1,9 +1,9 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
+namespace AssetFox.Core.DataPersistenceCore.Migrations
 {
     /// <inheritdoc />
     public partial class AddAndBackfillSimulationRunId : Migration

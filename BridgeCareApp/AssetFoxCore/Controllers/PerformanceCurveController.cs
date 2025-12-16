@@ -3,32 +3,32 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Controllers.BaseController;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.General_Work_Queue.WorkItems;
-using BridgeCareCore.Utils.Interfaces;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Security.Interfaces;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.General_Work_Queue.WorkItems;
+using AssetFoxCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph.Models;
 using OfficeOpenXml;
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
+using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PerformanceCurveController : BridgeCareCoreBaseController
+    public class PerformanceCurveController : AssetFoxCoreBaseController
     {
         public const string DeteriorationModelError = "Deterioration Model Error";
 

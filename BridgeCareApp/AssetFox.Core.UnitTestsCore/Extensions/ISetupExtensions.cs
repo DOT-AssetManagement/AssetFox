@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Common;
 using Moq;
 using Moq.Language.Flow;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Extensions
+namespace AssetFox.Core.UnitTestsCore.Extensions
 {
     public static class ISetupExtensions
     {

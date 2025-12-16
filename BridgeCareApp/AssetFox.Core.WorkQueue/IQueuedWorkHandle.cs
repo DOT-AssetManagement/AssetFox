@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.WorkQueue;
+namespace AssetFox.Core.WorkQueue;
 
 public interface IQueuedWorkHandle<T>
 {

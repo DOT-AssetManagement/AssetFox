@@ -1,12 +1,12 @@
-﻿using Xunit;
+using Xunit;
 using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataUnitTests.TestUtils;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Networking
+namespace AssetFox.Core.DataUnitTests.Tests.Networking
 {
     public class NetworkFactoryTests
     {

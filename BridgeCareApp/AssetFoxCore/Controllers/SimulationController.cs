@@ -1,41 +1,41 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs.Static;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Controllers.BaseController;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Models.General_Work_Queue;
-using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.General_Work_Queue.WorkItems;
-using BridgeCareCore.Utils.Interfaces;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs.Static;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Models.General_Work_Queue;
+using AssetFoxCore.Security.Interfaces;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.General_Work_Queue.WorkItems;
+using AssetFoxCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.SqlServer.Dac.Model;
 using MoreLinq;
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
-using AppliedResearchAssociates.Validation;
+using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
+using AssetFox.Validation;
 using System.Collections.Generic;
-using BridgeCareCore.Models.Validation;
-using ValidationResult = AppliedResearchAssociates.Validation.ValidationResult;
-using AppliedResearchAssociates.iAM.Common;
-using BridgeCareCore.Security;
+using AssetFoxCore.Models.Validation;
+using ValidationResult = AssetFox.Validation.ValidationResult;
+using AssetFox.Core.Common;
+using AssetFoxCore.Security;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SimulationController : BridgeCareCoreBaseController
+    public class SimulationController : AssetFoxCoreBaseController
     {
         public const string SimulationError = "Scenario Error";
         public const string workQueueError = "Work Queue Error";

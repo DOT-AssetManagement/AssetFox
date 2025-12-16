@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AppliedResearchAssociates.iAM.WorkQueue
+namespace AssetFox.Core.WorkQueue
 {
     public class FastSequentialworkQueue<T> : SequentialWorkQueue<T>
     {

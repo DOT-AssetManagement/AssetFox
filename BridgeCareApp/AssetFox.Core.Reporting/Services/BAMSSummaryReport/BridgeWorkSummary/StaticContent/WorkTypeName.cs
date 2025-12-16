@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
     public static class WorkTypeNamesExtensions
     {

@@ -1,9 +1,9 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using System;
+using AssetFox.Core.DTOs.Enums;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.DTOs.Static
+namespace AssetFox.Core.DTOs.Static
 {
     public static class SimulationLogDtos
     {

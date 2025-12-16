@@ -1,9 +1,9 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.Tests;
 using Moq;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
+namespace AssetFox.Core.UnitTestsCore.TestUtils
 {
     public static class UnitOfWorkMocks
     {

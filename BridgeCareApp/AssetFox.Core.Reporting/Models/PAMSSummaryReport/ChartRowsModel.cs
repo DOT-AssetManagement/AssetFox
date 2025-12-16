@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport
+namespace AssetFox.Core.Reporting.Models.PAMSSummaryReport
 {
     public class ChartConditionModel
     {

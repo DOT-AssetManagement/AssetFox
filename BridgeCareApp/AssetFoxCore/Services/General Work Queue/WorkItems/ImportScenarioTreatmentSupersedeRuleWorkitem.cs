@@ -1,19 +1,19 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
+using System;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Reporting.Logging;
 using System.Threading;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 
-namespace BridgeCareCore.Services.General_Work_Queue.WorkItems
+namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
 {
     public record ImportScenarioTreatmentSupersedeRuleWorkitem(Guid SimulationId, ExcelPackage ExcelPackage, string UserId, string simulationName) : IWorkSpecification<WorkQueueMetadata>
     {

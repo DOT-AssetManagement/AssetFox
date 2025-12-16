@@ -1,6 +1,6 @@
 using OfficeOpenXml;
 
-namespace BridgeCareCore.Utils
+namespace AssetFoxCore.Utils
 {
     public static class ExcelWorksheetExtensions
     {

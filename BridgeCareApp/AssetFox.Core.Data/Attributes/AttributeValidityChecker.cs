@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Data.Attributes
+namespace AssetFox.Core.Data.Attributes
 {
     public static class AttributeValidityChecker
     {

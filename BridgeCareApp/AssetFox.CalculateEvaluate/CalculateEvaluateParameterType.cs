@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.CalculateEvaluate
+namespace AssetFox.CalculateEvaluate
 {
     public enum CalculateEvaluateParameterType
     {

@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
+using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
 
-namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
 {
     public class CommittedProjectsExporter
     {

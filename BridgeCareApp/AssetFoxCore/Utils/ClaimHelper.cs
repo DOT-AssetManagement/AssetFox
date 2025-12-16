@@ -1,19 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Security;
-using BridgeCareCore.Utils.Interfaces;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFoxCore.Interfaces;
+
+using AssetFoxCore.Security;
+using AssetFoxCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Http;
 
-namespace BridgeCareCore.Utils
+namespace AssetFoxCore.Utils
 {
     public class ClaimHelper: IClaimHelper
     {
@@ -76,8 +78,10 @@ namespace BridgeCareCore.Utils
                 }
             }
         }
-
-
+
+
+
+
         /// <summary>
         /// Checks if user need permitted check, if so checks further if it is authorized to perform action.
         /// </summary>
@@ -88,16 +92,21 @@ namespace BridgeCareCore.Utils
         public void CheckUserSimulationCancelAnalysisAuthorization(Guid simulationId, string userName, bool checkSimulationAccess)
         {            
             if (RequirePermittedCheck() && !(checkSimulationAccess && HasSimulationAccess()))
-            {
-                var simulation = UnitOfWork.SimulationRepo.GetSimulation(simulationId);
-                var simulationOwner = simulation.Owner;
+            {
+
+                var simulation = UnitOfWork.SimulationRepo.GetSimulation(simulationId);
+
+                var simulationOwner = simulation.Owner;
+
                 if (userName != simulationOwner)
                 {
                     throw new UnauthorizedAccessException(userName + " is not authorized to cancel analysis for simulation - " + simulation.Name + ".");
                 }
             }
-        }
-
+        }
+
+
+
 
         /// <summary>
         /// Checks if user need permitted check, if so checks further if it is authorized to perform action.
@@ -210,7 +219,8 @@ namespace BridgeCareCore.Utils
         public bool RequirePermittedCheck()
         {
             return !HasAdminAccess();
-        }
+        }
+
 
         private SimulationDTO GetSimulationWithUsers(Guid simulationId)
         {

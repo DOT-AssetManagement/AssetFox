@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.GraphTabs.Condition
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.GraphTabs.Condition
 {
     public class ConditionChart
     {

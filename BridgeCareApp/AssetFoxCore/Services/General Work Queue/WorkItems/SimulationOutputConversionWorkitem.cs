@@ -1,19 +1,19 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.WorkQueue;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.WorkQueue;
 using Microsoft.SqlServer.Dac.Model;
 using System.Threading;
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
-using BridgeCareCore.Models;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Services;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.Reporting.Logging;
+using AssetFoxCore.Models;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Services;
 using Microsoft.Graph.Models;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public record SimulationOutputConversionWorkitem(Guid ScenarioId, string UserId, string ScenarioName) : IWorkSpecification<WorkQueueMetadata>
 

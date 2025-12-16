@@ -1,33 +1,33 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using AppliedResearchAssociates.iAM;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Controllers.BaseController;
-using BridgeCareCore.Models;
-using BridgeCareCore.Models.Validation;
-using BridgeCareCore.Security;
-using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.Services;
+using AssetFox.iAM;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFoxCore.Models;
+using AssetFoxCore.Models.Validation;
+using AssetFoxCore.Security;
+using AssetFoxCore.Security.Interfaces;
+using AssetFoxCore.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     public class CreateAttributeRequest
     {
@@ -37,7 +37,7 @@ namespace BridgeCareCore.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    public class AttributeController : BridgeCareCoreBaseController
+    public class AttributeController : AssetFoxCoreBaseController
     {
         public const string AttributeError = "Attribute Error";
         private readonly AttributeService _attributeService;
@@ -263,7 +263,7 @@ namespace BridgeCareCore.Controllers
 
         private void checkAttributeNameValidity(AttributeDTO attr)
         {
-            if (attr.Name == null || !AppliedResearchAssociates.iAM.Analysis.Attribute.NamePattern.IsMatch(attr.Name))
+            if (attr.Name == null || !AssetFox.Core.Analysis.Attribute.NamePattern.IsMatch(attr.Name))
             {
                 throw new MalformedInputException($"Invalid name {attr.Name}. A valid attribute name must be alphanumeric and have no spaces");
             }

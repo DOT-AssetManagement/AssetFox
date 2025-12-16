@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests
+namespace AssetFox.Core.DataUnitTests.Tests
 {
     public static class ExcelRawDataSetup
     {

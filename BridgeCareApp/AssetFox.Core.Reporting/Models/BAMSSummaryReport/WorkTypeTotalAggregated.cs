@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport
+namespace AssetFox.Core.Reporting.Models.BAMSSummaryReport
 {
     public class WorkTypeTotalAggregated
     {

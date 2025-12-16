@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -10,9 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.Choice\AppliedResearchAssociates.Choice.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Comparison\AppliedResearchAssociates.Comparison.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates\AppliedResearchAssociates.csproj" />
+    <ProjectReference Include="..\AssetFox.Choice\AssetFox.Choice.csproj" />
+    <ProjectReference Include="..\AssetFox.Comparison\AssetFox.Comparison.csproj" />
+    <ProjectReference Include="..\AssetFox\AssetFox.csproj" />
   </ItemGroup>
 
 </Project>

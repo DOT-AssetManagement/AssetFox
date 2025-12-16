@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 
-namespace AppliedResearchAssociates.iAMCore.Analysis
+namespace AssetFox.AFCore.Analysis
 {
     public class SimulationException : Exception
     {

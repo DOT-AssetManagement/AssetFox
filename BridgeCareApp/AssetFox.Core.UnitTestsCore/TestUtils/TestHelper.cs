@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Diagnostics;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DataUnitTests;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataUnitTests;
 using Microsoft.EntityFrameworkCore;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
+namespace AssetFox.Core.UnitTestsCore.TestUtils
 {
     public static class TestHelper
     {

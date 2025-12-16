@@ -1,7 +1,7 @@
-﻿using System.Diagnostics.Eventing.Reader;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using System.Diagnostics.Eventing.Reader;
+using AssetFox.Core.Analysis.Engine;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals
 {
     public static class DistrictTotalsSectionDetailPredicates
     {

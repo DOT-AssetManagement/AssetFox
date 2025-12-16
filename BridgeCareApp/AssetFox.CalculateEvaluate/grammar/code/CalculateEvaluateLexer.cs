@@ -19,7 +19,7 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
-namespace AppliedResearchAssociates.CalculateEvaluate {
+namespace AssetFox.CalculateEvaluate {
 using System;
 using System.IO;
 using System.Text;
@@ -275,4 +275,4 @@ public partial class CalculateEvaluateLexer : Lexer {
 
 
 }
-} // namespace AppliedResearchAssociates.CalculateEvaluate
+} // namespace AssetFox.CalculateEvaluate

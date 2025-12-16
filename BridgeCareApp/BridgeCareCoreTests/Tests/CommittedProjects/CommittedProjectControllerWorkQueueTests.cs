@@ -1,21 +1,21 @@
-﻿using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.DataUnitTests;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Models;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.Integration;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataUnitTests;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Models;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.Integration;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests.CommittedProjects
+namespace AssetFoxCoreTests.Tests.CommittedProjects
 {
     public class CommittedProjectControllerWorkQueueTests
     {

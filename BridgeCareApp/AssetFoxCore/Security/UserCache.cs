@@ -1,7 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System;
 
-namespace BridgeCareCore.Security;
+namespace AssetFoxCore.Security;
 
 public class UserCache
 {

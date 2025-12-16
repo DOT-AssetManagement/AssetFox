@@ -2,18 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Analysis;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
+using AssetFox.Core.Data.Aggregation;
 using System.Text;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
     public class AggregatedResultRepository : IAggregatedResultRepository
     {

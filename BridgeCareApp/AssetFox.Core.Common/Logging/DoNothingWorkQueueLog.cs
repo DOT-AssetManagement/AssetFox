@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AppliedResearchAssociates.iAM.Common.Logging
+namespace AssetFox.Core.Common.Logging
 {
     public class DoNothingWorkQueueLog : IWorkQueueLog
     {

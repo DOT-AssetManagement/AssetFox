@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Data.Aggregation;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     public interface IAggregatedResultRepository
     {

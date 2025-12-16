@@ -6,17 +6,17 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Extensions;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Common;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.Common.PerformanceMeasurement;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Enums;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
 using EFCore.BulkExtensions;
 using Humanizer;
 using Microsoft.Data.SqlClient;
@@ -29,10 +29,10 @@ using Newtonsoft.Json.Converters;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using FundingCalculationInput = AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput;
-using FundingCalculationOutput = AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput;
+using FundingCalculationInput = AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput;
+using FundingCalculationOutput = AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
     public class SimulationOutputRepository : ISimulationOutputRepository
     {

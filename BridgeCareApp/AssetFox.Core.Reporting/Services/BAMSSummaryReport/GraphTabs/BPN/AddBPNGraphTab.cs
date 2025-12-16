@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.GraphTabs.BPN
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.GraphTabs.BPN
 {
     public class AddBPNGraphTab
     {

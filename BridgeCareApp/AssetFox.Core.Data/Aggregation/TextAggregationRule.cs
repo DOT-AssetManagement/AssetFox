@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using System.Collections.Generic;
+using AssetFox.Core.Data.Attributes;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 
-namespace AppliedResearchAssociates.iAM.Data.Aggregation
+namespace AssetFox.Core.Data.Aggregation
 {
     public abstract class TextAggregationRule : AggregationRule<string>
     {

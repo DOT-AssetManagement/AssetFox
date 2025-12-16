@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 
-namespace AppliedResearchAssociates.PciDistress.Benchmarks
+namespace AssetFox.PciDistress.Benchmarks
 {
     public class CharacterizationTestInputs // For now, only a small sample of all characterization test inputs.
     {

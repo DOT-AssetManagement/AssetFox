@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates
+namespace AssetFox
 {
     public static class SelectionEqualityComparer<TSource>
     {

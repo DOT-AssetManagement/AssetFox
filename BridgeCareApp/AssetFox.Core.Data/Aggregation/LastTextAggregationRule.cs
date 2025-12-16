@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.Attributes;
+using AssetFox.Core.Data.Attributes;
 
-namespace AppliedResearchAssociates.iAM.Data.Aggregation
+namespace AssetFox.Core.Data.Aggregation
 {
     public class LastTextAggregationRule : TextAggregationRule
     {

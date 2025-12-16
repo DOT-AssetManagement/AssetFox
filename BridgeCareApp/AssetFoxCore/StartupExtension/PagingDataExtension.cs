@@ -1,11 +1,11 @@
-﻿using BridgeCareCore.Interfaces;
-using BridgeCareCore.Interfaces.DefaultData;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.DefaultData;
-using BridgeCareCore.Services.Paging;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Interfaces.DefaultData;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.DefaultData;
+using AssetFoxCore.Services.Paging;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BridgeCareCore.StartupExtension
+namespace AssetFoxCore.StartupExtension
 {
     public static class PagingDataExtension
     {

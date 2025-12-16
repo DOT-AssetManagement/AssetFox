@@ -1,6 +1,6 @@
-﻿using System.Text;
+using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Logic.Testing;
+namespace AssetFox.Core.Analysis.Logic.Testing;
 
 public static class DebuggingExtensions
 {

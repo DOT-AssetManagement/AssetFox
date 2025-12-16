@@ -1,4 +1,4 @@
-namespace AppliedResearchAssociates.iAM.DTOs.Abstract
+namespace AssetFox.Core.DTOs.Abstract
 {
     public class WarningServiceResultDTO
     {

@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
 {
     public class NumericAttributeValueHistoryEntity : AttributeValueHistoryEntity
     {

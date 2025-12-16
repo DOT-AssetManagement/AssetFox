@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DataMiner;
+using System;
+using AssetFox.Core.DataMiner;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Models
+namespace AssetFox.Core.DataPersistenceCore.Models
 {
     public class Attribute
     {

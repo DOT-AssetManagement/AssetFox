@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace AppliedResearchAssociates.Validation
+namespace AssetFox.Validation
 {
     public static class Validation
     {

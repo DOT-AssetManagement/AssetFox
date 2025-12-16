@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.GraphTabs.NHSConditionCharts
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.GraphTabs.NHSConditionCharts
 {
     public class ConditionPercentageChart
     {

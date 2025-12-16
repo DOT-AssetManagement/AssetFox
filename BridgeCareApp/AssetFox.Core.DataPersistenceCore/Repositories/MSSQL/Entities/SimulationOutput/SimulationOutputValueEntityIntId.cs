@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
 {
     public abstract class SimulationOutputValueEntityIntId
     {

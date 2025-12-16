@@ -424,3 +424,9 @@ BridgeCareApp/AppliedResearchAssociates.iAM.TestHelpers/testConnections.json
 /BridgeCareApp/BridgeCareCore/LoadTimingsMaster.txt
 /BridgeCareApp/BridgeCareCore/SaveTimings.txt
 /BridgeCareApp/BridgeCareCore/LoadTimings.txt
+/BridgeCareApp/AssetFoxCore/b2c.json
+/BridgeCareApp/AssetFoxCore/coreConnection.Development.json
+/BridgeCareApp/AssetFoxCore/coreConnection.json
+/BridgeCareApp/AssetFoxCore/esec.json
+/BridgeCareApp/AssetFoxCore/testConnections.json.json
+/BridgeCareApp/AssetFox.Core.DataPersistenceCore/Repositories/MSSQL/migrationConnection.json

@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.CalculateEvaluate;
+using System;
+using AssetFox.CalculateEvaluate;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     public sealed class Criterion : CompilableExpression
     {

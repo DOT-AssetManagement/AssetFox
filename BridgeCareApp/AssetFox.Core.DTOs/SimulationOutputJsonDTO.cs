@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using System;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     public class SimulationOutputJsonDTO: BaseDTO
     {

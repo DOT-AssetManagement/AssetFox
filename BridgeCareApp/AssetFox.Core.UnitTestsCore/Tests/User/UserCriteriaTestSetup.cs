@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using System;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User
+namespace AssetFox.Core.UnitTestsCore.Tests.User
 {
     public class UserCriteriaTestSetup
     {

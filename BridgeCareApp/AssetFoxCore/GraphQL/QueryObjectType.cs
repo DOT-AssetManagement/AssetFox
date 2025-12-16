@@ -1,8 +1,8 @@
 using HotChocolate.Types;
 using HotChocolate.Authorization;
-using static BridgeCareCore.Security.SecurityConstants;
+using static AssetFoxCore.Security.SecurityConstants;
 
-namespace BridgeCareCore.GraphQL
+namespace AssetFoxCore.GraphQL
 {
     public class QueryObjectType : ObjectType<Query>
     {

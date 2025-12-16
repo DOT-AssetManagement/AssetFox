@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.CalculateEvaluate
+namespace AssetFox.CalculateEvaluate
 {
     internal sealed class FinalActor<T>
     {

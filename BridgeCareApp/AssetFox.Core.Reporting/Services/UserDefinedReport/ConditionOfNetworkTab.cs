@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.UserDefinedReport
+namespace AssetFox.Core.Reporting.Services.UserDefinedReport
 {
     internal class ConditionOfNetworkTab
     {

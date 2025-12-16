@@ -1,7 +1,7 @@
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 using Newtonsoft.Json;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Testing;
+namespace AssetFox.Core.Analysis.Testing;
 
 public class SimulationOutputTests
 {

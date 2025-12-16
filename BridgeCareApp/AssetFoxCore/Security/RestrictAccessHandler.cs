@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using MoreLinq;
 
-namespace BridgeCareCore.Security
+namespace AssetFoxCore.Security
 {
     public class RestrictAccessHandler : AuthorizationHandler<UserHasAllowedRoleRequirement>
     {

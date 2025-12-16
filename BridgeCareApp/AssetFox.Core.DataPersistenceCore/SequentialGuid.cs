@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Common;
 using Microsoft.EntityFrameworkCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore
+namespace AssetFox.Core.DataPersistenceCore
 {
     internal static class SequentialGuid
     {

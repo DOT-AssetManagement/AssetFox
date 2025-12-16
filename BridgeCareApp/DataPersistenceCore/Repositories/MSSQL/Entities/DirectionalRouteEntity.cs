@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DataMiner.Attributes;
+using AssetFox.Core.DataMiner.Attributes;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
 {
     public class DirectionalRouteEntity : RouteEntity
     {

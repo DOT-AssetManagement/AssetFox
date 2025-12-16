@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAMCore.Analysis
+namespace AssetFox.AFCore.Analysis
 {
     public sealed class SimulationYearDetail
     {

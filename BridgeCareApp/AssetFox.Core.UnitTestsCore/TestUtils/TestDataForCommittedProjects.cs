@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
+using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.Tests;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
+namespace AssetFox.Core.UnitTestsCore.TestUtils
 {
     public class TestDataForCommittedProjects
     {

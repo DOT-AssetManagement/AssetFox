@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.Validation;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public sealed class AnalysisMaintainableAsset : WeakEntity, IValidator
 {

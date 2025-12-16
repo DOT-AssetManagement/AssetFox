@@ -19,7 +19,7 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
-namespace AppliedResearchAssociates.CalculateEvaluate {
+namespace AssetFox.CalculateEvaluate {
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
 using IToken = Antlr4.Runtime.IToken;
@@ -190,4 +190,4 @@ public interface ICalculateEvaluateParserVisitor<Result> : IParseTreeVisitor<Res
 	/// <return>The visitor result.</return>
 	Result VisitLiteral([NotNull] CalculateEvaluateParser.LiteralContext context);
 }
-} // namespace AppliedResearchAssociates.CalculateEvaluate
+} // namespace AssetFox.CalculateEvaluate

@@ -1,9 +1,9 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Analysis.Input.DataTransfer;
 
 var inputArgument = new Argument<FileInfo>("input", "Existing JSON file containing a complete iAM scenario to run.").ExistingOnly();
 var outputOption = new Option<bool>("--output-json", "If specified, simulation output JSON file will be written alongside input file.");

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AppliedResearchAssociates.iAM.TestHelpers { 
+namespace AssetFox.Core.TestHelpers { 
     public static class RandomStrings
     {
         public static string Length11()

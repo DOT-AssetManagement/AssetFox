@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAMCore.Analysis
+namespace AssetFox.AFCore.Analysis
 {
     public sealed class TargetConditionGoalDetail : ConditionGoalDetail
     {

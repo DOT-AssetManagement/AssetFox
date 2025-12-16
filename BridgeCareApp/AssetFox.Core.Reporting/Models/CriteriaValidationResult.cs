@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Reporting.Models;
+namespace AssetFox.Core.Reporting.Models;
 public class CriteriaValidationResult
 {
     public bool IsValid { get; set; }

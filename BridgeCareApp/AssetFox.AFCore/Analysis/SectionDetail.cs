@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace AppliedResearchAssociates.iAMCore.Analysis
+namespace AssetFox.AFCore.Analysis
 {
     public sealed class SectionDetail : SectionSummaryDetail
     {

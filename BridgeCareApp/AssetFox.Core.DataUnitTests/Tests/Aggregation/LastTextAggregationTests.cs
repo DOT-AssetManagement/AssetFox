@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Aggregation;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.DataUnitTests.TestUtils;
 using Xunit;
 using Moq;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Aggregation
+namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
 {
     public  class LastTextAggregationTests
     {

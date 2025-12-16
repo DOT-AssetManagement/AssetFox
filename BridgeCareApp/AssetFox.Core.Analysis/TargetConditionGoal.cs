@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public sealed class TargetConditionGoal : ConditionGoal
 {

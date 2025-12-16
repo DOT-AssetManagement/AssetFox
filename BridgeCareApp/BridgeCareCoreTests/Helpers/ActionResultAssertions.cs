@@ -1,8 +1,8 @@
-﻿using AppliedResearchAssociates.iAM.TestHelpers;
+using AssetFox.Core.TestHelpers;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
-namespace BridgeCareCoreTests.Helpers
+namespace AssetFoxCoreTests.Helpers
 {
     public static class ActionResultAssertions
     {

@@ -1,11 +1,11 @@
 using Xunit;
 using Moq;
 using System;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
+using AssetFox.Core.Data.Aggregation;
 using System.Reflection;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Aggregation
+namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
 {
     public class AggregationRuleFactoryTests
     {

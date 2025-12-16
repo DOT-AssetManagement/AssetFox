@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using AssetFox.Core.Data.Attributes;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 
-namespace AppliedResearchAssociates.iAM.Data.Aggregation
+namespace AssetFox.Core.Data.Aggregation
 {
     public class PredominantNumericAggregationRule : NumericAggregationRule
     {

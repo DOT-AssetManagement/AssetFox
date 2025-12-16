@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Common.Logging;
+using AssetFox.Core.Common.Logging;
 using System.Threading;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 using OfficeOpenXml;
 
-namespace BridgeCareCore.Interfaces
+namespace AssetFoxCore.Interfaces
 {
     public interface ICommittedProjectService
     {

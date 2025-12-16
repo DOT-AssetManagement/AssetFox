@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
     public class CostBudgetsWorkSummary
     {

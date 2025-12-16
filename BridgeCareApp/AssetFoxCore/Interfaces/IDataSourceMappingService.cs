@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Interfaces
+namespace AssetFoxCore.Interfaces
 {
     public interface IDataSourceMappingService
     {

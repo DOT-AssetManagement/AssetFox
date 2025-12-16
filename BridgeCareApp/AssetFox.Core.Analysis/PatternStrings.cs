@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 internal static class PatternStrings
 {

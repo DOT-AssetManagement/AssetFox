@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Moq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
+namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
 {
     public class MaintainableAssetDataRepositoryTests
     {

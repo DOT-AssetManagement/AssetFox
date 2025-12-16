@@ -1,6 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Testing.CharacterizationTesting;
+namespace AssetFox.Core.Analysis.Testing.CharacterizationTesting;
 
 public class ScenarioJsonFileNames : IEnumerable<object[]>
 {

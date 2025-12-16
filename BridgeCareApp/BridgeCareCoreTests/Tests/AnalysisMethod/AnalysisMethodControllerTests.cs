@@ -1,21 +1,21 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.UnitTestsCore;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Interfaces.DefaultData;
-using BridgeCareCore.Models.DefaultData;
-using BridgeCareCore.Utils.Interfaces;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.AnalysisMethod;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.UnitTestsCore;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Interfaces.DefaultData;
+using AssetFoxCore.Models.DefaultData;
+using AssetFoxCore.Utils.Interfaces;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.AnalysisMethod;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class AnalysisMethodControllerTests
     {

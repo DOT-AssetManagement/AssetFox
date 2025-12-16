@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Static;
+using System;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Static;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 { 
     internal class CriterionLibraryCloner
     {

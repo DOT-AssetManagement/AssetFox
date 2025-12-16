@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     /// <summary>
     /// Creates objects that run specific reports

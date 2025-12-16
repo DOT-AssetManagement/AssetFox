@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
-using AppliedResearchAssociates.CalculateEvaluate;
-using AppliedResearchAssociates.Validation;
+using AssetFox.CalculateEvaluate;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public sealed class AttributeValueChange : CompilableExpression
 {

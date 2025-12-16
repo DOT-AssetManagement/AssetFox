@@ -1,10 +1,10 @@
-﻿using System.Drawing;
+using System.Drawing;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeData
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
 {
     public class HighlightWorkDoneCells
     {

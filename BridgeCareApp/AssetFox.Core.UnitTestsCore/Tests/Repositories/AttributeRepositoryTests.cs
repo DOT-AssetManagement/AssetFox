@@ -1,26 +1,26 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Attributes;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.Data.Aggregation;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.Repositories.Attributes;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
-using DataAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using DataAttribute = AssetFox.Core.Data.Attributes.Attribute;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.DataUnitTests.TestUtils;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
+namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
 {
     public class AttributeRepositoryTests
     {
@@ -248,7 +248,7 @@ namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
                 Command = "Command",
                 DataSource = dataSource,
                 Name = attributeName,
-                Type = "STRING"//AppliedResearchAssociates.iAM.AttributeTypeNames.String
+                Type = "STRING"//AssetFox.Core.AttributeTypeNames.String
             };
             TestHelper.UnitOfWork.AttributeRepo.UpsertAttributes(attributeDto);
             var attributeAfter = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(attributeId);

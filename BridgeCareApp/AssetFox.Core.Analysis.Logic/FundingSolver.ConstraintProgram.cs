@@ -1,6 +1,6 @@
-﻿using Google.OrTools.Sat;
+using Google.OrTools.Sat;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Logic;
+namespace AssetFox.Core.Analysis.Logic;
 
 partial record FundingSolver
 {

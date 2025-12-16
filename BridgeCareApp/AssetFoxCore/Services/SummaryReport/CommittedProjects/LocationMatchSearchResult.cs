@@ -1,4 +1,4 @@
-﻿namespace BridgeCareCore.Services.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     public class LocationMatchSearchResult
     {

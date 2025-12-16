@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.Data.ExcelDatabaseStorage;
+using AssetFox.Core.Data.ExcelDatabaseStorage.CellData;
 
-namespace AppliedResearchAssociates.iAM.Data.Attributes
+namespace AssetFox.Core.Data.Attributes
 {
     public class ExcelAttributeConnection : AttributeConnection
     {

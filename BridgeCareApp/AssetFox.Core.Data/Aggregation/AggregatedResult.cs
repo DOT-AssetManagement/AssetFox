@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using AssetFox.Core.Data.Networking;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 
-namespace AppliedResearchAssociates.iAM.Data.Aggregation
+namespace AssetFox.Core.Data.Aggregation
 {
     public class AggregatedResult<T> : IAggregatedResult
     {

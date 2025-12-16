@@ -1,22 +1,22 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.DeficientConditionGoal;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests.DeficientConditionGoal;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services;
+using AssetFoxCoreTests.Helpers;
 using Moq;
 using Xunit;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 
-namespace BridgeCareCoreTests.Tests.PerformanceCurve
+namespace AssetFoxCoreTests.Tests.PerformanceCurve
 {
     public class PerformanceCurvePagingServiceTests
     {

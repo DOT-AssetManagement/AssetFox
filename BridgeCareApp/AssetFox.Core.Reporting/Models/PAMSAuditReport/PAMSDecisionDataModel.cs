@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.PAMSAuditReport
+namespace AssetFox.Core.Reporting.Models.PAMSAuditReport
 {
     public class PAMSDecisionDataModel
     {

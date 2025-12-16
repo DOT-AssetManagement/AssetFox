@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Testing.CharacterizationTesting;
+namespace AssetFox.Core.Analysis.Testing.CharacterizationTesting;
 
 public static class Serialization
 {

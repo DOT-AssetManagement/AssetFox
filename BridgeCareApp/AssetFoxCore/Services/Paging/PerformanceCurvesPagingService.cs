@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Services.Paging.Generics;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Services.Paging.Generics;
 using MoreLinq;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class PerformanceCurvesPagingService : PagingService<PerformanceCurveDTO, PerformanceCurveLibraryDTO> , IPerformanceCurvesPagingService
     {

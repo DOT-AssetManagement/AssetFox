@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     /// <summary>
     /// Funding for a specific budget in a specific year

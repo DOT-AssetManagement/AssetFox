@@ -1,8 +1,8 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs.Abstract;
 using System;
 
-namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     /// <summary>
     /// Describe the general settings used in a simulation

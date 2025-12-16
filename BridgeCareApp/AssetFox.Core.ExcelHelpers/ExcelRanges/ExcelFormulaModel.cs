@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.ExcelHelpers;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public class ExcelFormulaModel: IExcelModel
     {

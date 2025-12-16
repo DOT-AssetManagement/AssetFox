@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests
+namespace AssetFox.Core.DataUnitTests
 {
     public class TestAttributeIds
     {

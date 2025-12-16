@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Common;
+using System;
+using AssetFox.Core.Common;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class CallbackLogger : ILog
     {

@@ -1,19 +1,19 @@
 using Xunit;
 using Moq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using BridgeCareCore.Services;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFoxCore.Services;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DTOs.Abstract;
 using System.Data;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using BridgeCareCore.Services.SummaryReport.CommittedProjects;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFoxCore.Services.SummaryReport.CommittedProjects;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class CommittedProjectServiceTests : IClassFixture<ExcelAccess>
     {

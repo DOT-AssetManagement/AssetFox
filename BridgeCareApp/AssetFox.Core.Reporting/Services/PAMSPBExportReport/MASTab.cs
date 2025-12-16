@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSPBExport;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Models.PAMSPBExport;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSPBExport
+namespace AssetFox.Core.Reporting.Services.PAMSPBExport
 {
     public class MASTab
     {

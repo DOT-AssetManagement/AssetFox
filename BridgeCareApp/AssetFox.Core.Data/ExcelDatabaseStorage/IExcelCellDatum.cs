@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage
+namespace AssetFox.Core.Data.ExcelDatabaseStorage
 {
     /// <summary><para>Do NOT use this if you want to write to a spreadsheet.</para>
     /// This is different from the excel-related interfaces

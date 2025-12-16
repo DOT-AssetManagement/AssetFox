@@ -1,18 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs;
+using AssetFox.Core.Common;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Hubs;
 using NLog;
-using AppliedResearchAssociates.iAM.Hubs.Services;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.Hubs.Services;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Logging
+namespace AssetFox.Core.Reporting.Logging
 {
     public class GeneralWorkQueueLogger : IWorkQueueLog
     {

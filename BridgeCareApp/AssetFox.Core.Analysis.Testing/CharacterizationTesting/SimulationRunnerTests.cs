@@ -1,11 +1,11 @@
-﻿using System.Text.Json;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.Validation;
+using System.Text.Json;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Analysis.Input.DataTransfer;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Validation;
 using Xunit.Abstractions;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Testing.CharacterizationTesting;
+namespace AssetFox.Core.Analysis.Testing.CharacterizationTesting;
 
 [UsesVerify]
 public class SimulationRunnerTests(ITestOutputHelper outputHelper)

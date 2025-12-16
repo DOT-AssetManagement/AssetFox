@@ -1,21 +1,21 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Reporting.Models;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Reporting.Models;
 using System;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryByBudget
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryByBudget
 {
     public class BridgeWorkSummaryByBudget
     {

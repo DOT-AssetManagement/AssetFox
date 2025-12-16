@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class GeneralWorkQueueService : IGeneralWorkQueueService
     {

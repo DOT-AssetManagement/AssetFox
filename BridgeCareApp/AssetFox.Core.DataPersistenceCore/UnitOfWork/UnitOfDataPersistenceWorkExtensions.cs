@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork
+namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
 {
     public static class UnitOfDataPersistenceWorkExtensions
     {

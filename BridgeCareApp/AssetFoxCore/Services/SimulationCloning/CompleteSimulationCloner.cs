@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Services.SimulationCloning;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Services.SimulationCloning;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class CompleteSimulationCloner
     {

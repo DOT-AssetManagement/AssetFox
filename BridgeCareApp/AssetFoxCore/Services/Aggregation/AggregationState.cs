@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 
-namespace BridgeCareCore.Services.Aggregation
+namespace AssetFoxCore.Services.Aggregation
 {
     public class AggregationState
     {

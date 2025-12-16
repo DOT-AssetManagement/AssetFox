@@ -1,9 +1,9 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using FluentAssertions;
 using FluentAssertions.Equivalency;  // Licensed under Apache 2.0. Seems to be compatible with AGPL 3.
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.TestHelpers
+namespace AssetFox.Core.TestHelpers
 {
     public static class ObjectAssertions
     {

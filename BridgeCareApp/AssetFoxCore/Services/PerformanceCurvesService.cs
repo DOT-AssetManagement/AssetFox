@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using AppliedResearchAssociates.iAM.Common.Logging;
+using AssetFox.Core.Common.Logging;
 using System.Threading;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models.Validation;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models.Validation;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class PerformanceCurvesService : IPerformanceCurvesService
     {

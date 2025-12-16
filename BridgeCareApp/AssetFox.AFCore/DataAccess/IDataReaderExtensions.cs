@@ -1,6 +1,6 @@
-﻿using System.Data;
+using System.Data;
 
-namespace AppliedResearchAssociates.iAMCore.DataAccess
+namespace AssetFox.AFCore.DataAccess
 {
     internal static class IDataReaderExtensions
     {

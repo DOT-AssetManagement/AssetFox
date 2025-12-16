@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
+namespace AssetFox.Core.UnitTestsCore.TestUtils
 {
     public class MockedContextBuilder
     {

@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs.Services;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Hubs.Services;
 using Microsoft.AspNetCore.SignalR;
 using Moq;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
+namespace AssetFox.Core.UnitTestsCore.TestUtils
 {
     public static class HubServiceMocks
     {

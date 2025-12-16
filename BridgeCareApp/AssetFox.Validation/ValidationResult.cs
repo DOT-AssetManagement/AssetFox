@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.Validation
+namespace AssetFox.Validation
 {
     public sealed class ValidationResult
     {

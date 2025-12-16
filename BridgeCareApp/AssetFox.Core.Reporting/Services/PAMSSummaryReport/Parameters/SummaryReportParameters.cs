@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Parameters
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.Parameters
 {
     public class SummaryReportParameters
     {

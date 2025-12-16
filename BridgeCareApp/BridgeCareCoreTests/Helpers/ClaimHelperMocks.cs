@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BridgeCareCore.Utils.Interfaces;
+using AssetFoxCore.Utils.Interfaces;
 using Moq;
 
-namespace BridgeCareCoreTests
+namespace AssetFoxCoreTests
 {
     public static class ClaimHelperMocks
     {

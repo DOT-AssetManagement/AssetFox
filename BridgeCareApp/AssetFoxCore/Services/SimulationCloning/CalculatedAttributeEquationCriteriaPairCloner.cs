@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     internal class CalculatedAttributeEquationCriteriaPairCloner
     {

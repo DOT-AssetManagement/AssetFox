@@ -1,9 +1,9 @@
-﻿using Xunit;
+using Xunit;
 using System;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.DataUnitTests.TestUtils;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Attributes
+namespace AssetFox.Core.DataUnitTests.Tests.Attributes
 {
     public class AttributeFactoryTests
     {

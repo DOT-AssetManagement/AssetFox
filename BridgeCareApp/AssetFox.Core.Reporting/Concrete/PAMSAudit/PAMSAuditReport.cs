@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Reporting.Services;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport;
-using BridgeCareCore.Services;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Reporting.Services;
+using AssetFox.Core.Reporting.Services.PAMSAuditReport;
+using AssetFoxCore.Services;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public class PAMSAuditReport : IReport
     {        

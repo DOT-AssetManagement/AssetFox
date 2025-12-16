@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Models;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Models;
 
-namespace BridgeCareCore.Interfaces
+namespace AssetFoxCore.Interfaces
 {
     public interface ISimulationPagingService
     {

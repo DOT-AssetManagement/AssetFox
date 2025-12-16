@@ -1,11 +1,11 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Models;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Models;
 using System.Collections.Generic;
 using System;
-using BridgeCareCore.Services.Paging.Generics;
+using AssetFoxCore.Services.Paging.Generics;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 
-namespace BridgeCareCore.Interfaces
+namespace AssetFoxCore.Interfaces
 {
     public interface IRemainingLifeLimitPagingService 
     {

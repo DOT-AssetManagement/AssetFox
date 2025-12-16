@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
-using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+using System.Text.Json;
+using AssetFox.Core.Analysis.Input.DataTransfer;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Testing.CharacterizationTesting;
+namespace AssetFox.Core.Analysis.Testing.CharacterizationTesting;
 
 public static class InputCreation
 {

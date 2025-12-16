@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.PciDistress\AppliedResearchAssociates.PciDistress.csproj" />
+    <ProjectReference Include="..\AssetFox.PciDistress\AssetFox.PciDistress.csproj" />
   </ItemGroup>
 
 </Project>

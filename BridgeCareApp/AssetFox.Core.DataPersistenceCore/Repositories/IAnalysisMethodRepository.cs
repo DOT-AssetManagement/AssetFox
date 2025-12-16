@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     public interface IAnalysisMethodRepository
     {

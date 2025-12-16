@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Data.Attributes;
+using System.Collections.Generic;
+using AssetFox.Core.Data.Attributes;
 
-namespace AppliedResearchAssociates.iAM.Data.Aggregation
+namespace AssetFox.Core.Data.Aggregation
 {
     public abstract class NumericAggregationRule : AggregationRule<double>
     {

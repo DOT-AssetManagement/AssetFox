@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes
+namespace AssetFox.Core.UnitTestsCore.Tests.Attributes
 {
     public static class AttributeDtoLists
     {

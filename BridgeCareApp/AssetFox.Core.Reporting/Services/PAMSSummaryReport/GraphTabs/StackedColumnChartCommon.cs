@@ -1,10 +1,10 @@
-﻿using System.Drawing;
+using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Drawing.Chart;
 using OfficeOpenXml.Style;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.GraphTabs
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.GraphTabs
 {
     public class StackedColumnChartCommon
     {

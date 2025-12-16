@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.ExcelHelpers;
 using System.Drawing;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent;
-using WorkTypeMap = AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.WorkTypeMap;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using static AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary.PavementTreatmentHelper;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using CurrentCell = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.CurrentCell;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.StaticContent;
+using WorkTypeMap = AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.WorkTypeMap;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs.Abstract;
+using static AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary.PavementTreatmentHelper;
+using AssetFox.Core.Reporting.Models;
+using CurrentCell = AssetFox.Core.Reporting.Models.PAMSSummaryReport.CurrentCell;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 {
     public class CostBudgetsWorkSummary
     {

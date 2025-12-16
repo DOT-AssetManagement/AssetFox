@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Analysis\AppliedResearchAssociates.iAM.Analysis.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Analysis\AssetFox.Core.Analysis.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using AppliedResearchAssociates.iAM.DataMiner;
-using AppliedResearchAssociates.iAM.DataMiner.Attributes;
+using AssetFox.Core.DataMiner;
+using AssetFox.Core.DataMiner.Attributes;
 using Newtonsoft.Json;
-using NetworkFromSegmentProject = AppliedResearchAssociates.iAM.DataAssignment.Networking;
-using DataMinerAttribute = AppliedResearchAssociates.iAM.DataMiner.Attributes.Attribute;
-using AppliedResearchAssociates.iAM.DataAssignment.Aggregation;
+using NetworkFromSegmentProject = AssetFox.Core.DataAssignment.Networking;
+using DataMinerAttribute = AssetFox.Core.DataMiner.Attributes.Attribute;
+using AssetFox.Core.DataAssignment.Aggregation;
 
-namespace AppliedResearchAssociates.iAMCore.DataAccess
+namespace AssetFox.AFCore.DataAccess
 {
     public sealed class ApiExamples
     {

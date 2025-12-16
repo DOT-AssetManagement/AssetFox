@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Common.PerformanceMeasurement
+namespace AssetFox.Core.Common.PerformanceMeasurement
 {
     public class EventMemoModel
     {

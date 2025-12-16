@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+namespace AssetFox.Core.Analysis.Input.DataTransfer;
 
 public sealed class NumberAttribute : Attribute<double>
 {

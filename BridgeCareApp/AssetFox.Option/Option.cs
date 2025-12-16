@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates
+namespace AssetFox
 {
     /// <summary>
     ///     Represents the presence or absence of an object in a way that prevents access to <see langword="null"/>.

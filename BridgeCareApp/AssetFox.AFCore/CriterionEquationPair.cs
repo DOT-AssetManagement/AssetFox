@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.Validation;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     public class CriterionEquationPair : IValidator
     {

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.CalculateEvaluate
+namespace AssetFox.CalculateEvaluate
 {
     public class CalculateEvaluateScope
     {

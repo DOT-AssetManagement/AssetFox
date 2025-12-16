@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataUnitTests;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataUnitTests;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
-using AttributesTextAttribute = AppliedResearchAssociates.iAM.Data.Attributes.TextAttribute;
+using AttributesTextAttribute = AssetFox.Core.Data.Attributes.TextAttribute;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.DataSources;
-using AppliedResearchAssociates.iAM.Analysis;
+using AssetFox.Core.UnitTestsCore.Tests.DataSources;
+using AssetFox.Core.Analysis;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories
+namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
 {
     public static class AttributeTestSetup
     {

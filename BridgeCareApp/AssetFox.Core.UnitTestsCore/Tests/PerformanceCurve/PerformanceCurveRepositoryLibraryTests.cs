@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.User;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.Tests.User;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
 using System.Data;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.TestHelpers.Assertions;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.TestHelpers.Assertions;
+using AssetFox.Core.DataPersistenceCore;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
+namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public class PerformanceCurveRepositoryLibraryTests
     {

@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.Validation;
+using AssetFox.Validation;
 using System;
 
-namespace BridgeCareCore.Models.Validation
+namespace AssetFoxCore.Models.Validation
 {
     public sealed class PreChecksValidationResult
     {

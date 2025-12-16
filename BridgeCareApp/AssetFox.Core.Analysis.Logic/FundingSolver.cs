@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Analysis.Logic;
+namespace AssetFox.Core.Analysis.Logic;
 
 internal sealed partial record FundingSolver(
     bool[,] AllocationIsAllowedPerBudgetAndTreatment,

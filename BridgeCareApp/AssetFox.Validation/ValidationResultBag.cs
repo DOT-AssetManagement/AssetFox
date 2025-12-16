@@ -1,7 +1,7 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.Validation
+namespace AssetFox.Validation
 {
     public sealed class ValidationResultBag : IReadOnlyCollection<ValidationResult>
     {

@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
-namespace BridgeCareCoreTests.Helpers
+namespace AssetFoxCoreTests.Helpers
 {
     public static class HttpContextSetup
     {

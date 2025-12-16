@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services.Paging.Generics;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services.Paging.Generics;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class CashFlowPagingService : PagingService<CashFlowRuleDTO, CashFlowRuleLibraryDTO>,  ICashFlowPagingService
     {

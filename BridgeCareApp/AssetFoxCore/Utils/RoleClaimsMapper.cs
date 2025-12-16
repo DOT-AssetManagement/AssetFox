@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using BridgeCareCore.Security;
-using BridgeCareCore.Utils.Interfaces;
+using AssetFoxCore.Security;
+using AssetFoxCore.Utils.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace BridgeCareCore.Utils
+namespace AssetFoxCore.Utils
 {
     public class RoleClaimsMapper : IRoleClaimsMapper
     {        

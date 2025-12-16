@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Common;
 
-using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
+using AssetFox.Core.Common.PerformanceMeasurement;
 
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs.Services;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
-using AppliedResearchAssociates.iAM.WorkQueue;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Hubs.Services;
+using AssetFox.Core.Reporting.Logging;
+using AssetFox.Core.WorkQueue;
 
-using AppliedResearchAssociates.Validation;
-using BridgeCareCore.Models;
+using AssetFox.Validation;
+using AssetFoxCore.Models;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public record DeleteNetworkWorkitem(Guid NetworkId, string UserId, string NetworkName) : IWorkSpecification<WorkQueueMetadata>
     {

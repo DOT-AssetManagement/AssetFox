@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.DTOs
+namespace AssetFox.Core.DTOs
 {
     public class UserTokensDTO
     {

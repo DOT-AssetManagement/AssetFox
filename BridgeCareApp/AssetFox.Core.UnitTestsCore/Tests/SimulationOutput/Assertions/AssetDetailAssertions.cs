@@ -1,9 +1,9 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Common;
+using System;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Common;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
+namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public static class AssetDetailAssertions
     {

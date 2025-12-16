@@ -1,7 +1,7 @@
-﻿using System;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using System;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 
-namespace AppliedResearchAssociates.iAM.Data.Aggregation
+namespace AssetFox.Core.Data.Aggregation
 {
     public static class AggregationRuleFactory
     {

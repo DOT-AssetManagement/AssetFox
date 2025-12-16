@@ -1,26 +1,26 @@
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.SummaryReport.CommittedProjects;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.General_Work_Queue;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.Tests.TreatmentCost;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.SummaryReport.CommittedProjects;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.General_Work_Queue;
 using Microsoft.AspNetCore.Http;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Xunit;
-using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using IamAttribute = AssetFox.Core.Data.Attributes.Attribute;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public class CommittedProjectControllerIntegrationTests
     {

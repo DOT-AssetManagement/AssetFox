@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using System;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
     public static class AttributeDatumMapper
     {

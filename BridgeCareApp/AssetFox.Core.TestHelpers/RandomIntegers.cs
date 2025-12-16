@@ -1,5 +1,5 @@
-﻿
-namespace AppliedResearchAssociates.iAM.TestHelpers
+
+namespace AssetFox.Core.TestHelpers
 {
     public static class RandomIntegers
     {

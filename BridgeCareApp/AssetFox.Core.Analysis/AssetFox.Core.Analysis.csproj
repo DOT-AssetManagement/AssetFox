@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -21,15 +21,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.CalculateEvaluate\AppliedResearchAssociates.CalculateEvaluate.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Choice\AppliedResearchAssociates.Choice.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.CycleDetection\AppliedResearchAssociates.CycleDetection.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Analysis.Logic\AppliedResearchAssociates.iAM.Analysis.Logic.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Data\AppliedResearchAssociates.iAM.Data.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.DTOs\AppliedResearchAssociates.iAM.DTOs.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Option\AppliedResearchAssociates.Option.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Validation\AppliedResearchAssociates.Validation.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Zip\AppliedResearchAssociates.Zip.csproj" />
+    <ProjectReference Include="..\AssetFox.CalculateEvaluate\AssetFox.CalculateEvaluate.csproj" />
+    <ProjectReference Include="..\AssetFox.Choice\AssetFox.Choice.csproj" />
+    <ProjectReference Include="..\AssetFox.CycleDetection\AssetFox.CycleDetection.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Analysis.Logic\AssetFox.Core.Analysis.Logic.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Data\AssetFox.Core.Data.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.DTOs\AssetFox.Core.DTOs.csproj" />
+    <ProjectReference Include="..\AssetFox.Option\AssetFox.Option.csproj" />
+    <ProjectReference Include="..\AssetFox.Validation\AssetFox.Validation.csproj" />
+    <ProjectReference Include="..\AssetFox.Zip\AssetFox.Zip.csproj" />
   </ItemGroup>
 
 </Project>

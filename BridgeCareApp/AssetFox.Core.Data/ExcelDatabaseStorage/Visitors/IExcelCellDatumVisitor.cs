@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData;
+using AssetFox.Core.Data.ExcelDatabaseStorage.CellData;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage
+namespace AssetFox.Core.Data.ExcelDatabaseStorage
 {
     /// <summary>THelper is the type of any helper object one may want to use.
     /// T is whatever is output by the visitor.</summary>

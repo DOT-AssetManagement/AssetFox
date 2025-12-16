@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.CalculateEvaluate;
-using AppliedResearchAssociates.Validation;
+using System.Collections.Generic;
+using AssetFox.CalculateEvaluate;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     public class TreatmentConsequence : IValidator
     {

@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OfficeOpenXml;
 
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.ExcelHelpers;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Text;
 using static System.Collections.Specialized.BitVector32;
 using static Antlr4.Runtime.Atn.SemanticContext;
-using static AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals.DistrictTotalsRowModels;
+using static AssetFox.Core.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals.DistrictTotalsRowModels;
 using static OfficeOpenXml.ExcelErrorValue;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals
 {
     public static class DistrictTotalsRowModels
     {

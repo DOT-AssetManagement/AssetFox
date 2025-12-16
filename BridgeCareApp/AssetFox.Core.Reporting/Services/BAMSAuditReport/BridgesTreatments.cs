@@ -1,13 +1,13 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSAuditReport;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Models.BAMSAuditReport;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
+namespace AssetFox.Core.Reporting.Services.BAMSAuditReport
 {
     public class BridgesTreatments
     {
@@ -73,8 +73,8 @@ namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
             var long_seconds = longitude - 10_000 * long_degrees - 100 * long_minutes;
 
             // The "s are doubled up here so that they will be properly escaped in the excel formula.
-            var lat_string = $"{lat_degrees}Â°{lat_minutes}'{lat_seconds}\"\"N";
-            var long_string = $"{long_degrees}Â°{long_minutes}'{long_seconds}\"\"W";
+            var lat_string = $"{lat_degrees}°{lat_minutes}'{lat_seconds}\"\"N";
+            var long_string = $"{long_degrees}°{long_minutes}'{long_seconds}\"\"W";
 
             worksheet.Cells[row, columnNo].Style.Font.UnderLine = true;
             worksheet.Cells[row, columnNo].Style.Font.Color.SetColor(Color.Blue);

@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.StaticContent;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.ExcelHelpers;
 using System;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 {
     public class IriConditionSummary
     {

@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Data.Attributes
+namespace AssetFox.Core.Data.Attributes
 {
     public class SimpleRoute : Route
     {

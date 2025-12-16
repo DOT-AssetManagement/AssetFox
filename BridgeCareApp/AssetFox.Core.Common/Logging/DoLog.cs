@@ -1,6 +1,6 @@
-﻿using NLog;
+using NLog;
 
-namespace AppliedResearchAssociates.iAM.Common
+namespace AssetFox.Core.Common
 {
     public class DoLog : ILog
     {

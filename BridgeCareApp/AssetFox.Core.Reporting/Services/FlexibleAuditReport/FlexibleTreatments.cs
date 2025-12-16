@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Models.FlexibleAuditReport;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Models.FlexibleAuditReport;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
+namespace AssetFox.Core.Reporting.Services.FlexibleAuditReport
 {
     public class FlexibleTreatments
     {

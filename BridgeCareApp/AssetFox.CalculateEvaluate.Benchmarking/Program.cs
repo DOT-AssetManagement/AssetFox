@@ -1,6 +1,6 @@
-﻿using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Running;
 
-namespace AppliedResearchAssociates.CalculateEvaluate.Benchmarking
+namespace AssetFox.CalculateEvaluate.Benchmarking
 {
     internal static class Program
     {

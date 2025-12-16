@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Analysis.Logic.Testing;
+namespace AssetFox.Core.Analysis.Logic.Testing;
 
 public class SingleYearFundingTests
 {

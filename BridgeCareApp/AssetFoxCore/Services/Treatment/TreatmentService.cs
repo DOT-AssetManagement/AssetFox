@@ -1,17 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;using System.Threading;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Services.Treatment;
+using System.Text;
+using System.Threading;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.ExcelHelpers;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Services.Treatment;
 using OfficeOpenXml;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class TreatmentService : ITreatmentService
     {
@@ -68,11 +69,14 @@ namespace BridgeCareCore.Services
                 scenarioTreatments.Add(treatmentLoadResult.Treatment);
                 _unitOfWork.SelectableTreatmentRepo.AddDefaultPerformanceFactors(simulationId, scenarioTreatments);
                 validationMessages.AddRange(treatmentLoadResult.ValidationMessages);
-            }
-            var combinedValidationMessage = string.Empty;
+            }
+
+            var combinedValidationMessage = string.Empty;
+
             if (validationMessages.Any())
             {
-                var combinedValidationMessageBuilder = new StringBuilder();
+                var combinedValidationMessageBuilder = new StringBuilder();
+
                 foreach (var message in validationMessages)
                 {
                     combinedValidationMessageBuilder.AppendLine(message);
@@ -84,12 +88,14 @@ namespace BridgeCareCore.Services
             {
                 Treatments = scenarioTreatments,
                 WarningMessage = combinedValidationMessage,
-            };
+            };
+
             if (combinedValidationMessage.Length == 0)
             {
                 queueLog.UpdateWorkQueueStatus("Upserting Treatments");
                 _unitOfWork.SelectableTreatmentRepo.AddScenarioSelectableTreatment(scenarioTreatmentImportResult.Treatments, simulationId);
-            }
+            }
+
         }
 
         public void ImportLibraryTreatmentsFileSingle(
@@ -98,17 +104,22 @@ namespace BridgeCareCore.Services
         {
             queueLog ??= new DoNothingWorkQueueLog();
             queueLog.UpdateWorkQueueStatus("Starting Import");
-            var validationMessages = new List<string>();            //if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            var validationMessages = new List<string>();
+            //if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                 //return new TreatmentImportResultDTO();
             var treatmentLibrary = _unitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(treatmentLibraryId);
             var library = new TreatmentLibraryDTO
             {
                 Treatments = new List<TreatmentDTO>(),
-                Id = treatmentLibraryId,
-                Name = treatmentLibrary.Name,
-                Owner = treatmentLibrary.Owner,
+                Id = treatmentLibraryId,
+
+                Name = treatmentLibrary.Name,
+
+                Owner = treatmentLibrary.Owner,
+
                 Description = treatmentLibrary.Description
-            };
+            };
+
             foreach (var worksheet in excelPackage.Workbook.Worksheets)
             {
                 //if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
@@ -120,24 +131,30 @@ namespace BridgeCareCore.Services
 
             _unitOfWork.SelectableTreatmentRepo.AddLibraryTreatments(library.Treatments, library.Id);
       
-        }
+        }
+
         public TreatmentImportResultDTO ImportLibraryTreatmentsFile(
             Guid treatmentLibraryId,
             ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
             queueLog ??= new DoNothingWorkQueueLog();
             queueLog.UpdateWorkQueueStatus("Starting Import");
-            var validationMessages = new List<string>();            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            var validationMessages = new List<string>();
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                 return new TreatmentImportResultDTO();
             var treatmentLibrary = _unitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(treatmentLibraryId);
             var library = new TreatmentLibraryDTO
             {
                 Treatments = new List<TreatmentDTO>(),
-                Id = treatmentLibraryId,
-                Name = treatmentLibrary.Name,
-                Owner = treatmentLibrary.Owner,
+                Id = treatmentLibraryId,
+
+                Name = treatmentLibrary.Name,
+
+                Owner = treatmentLibrary.Owner,
+
                 Description = treatmentLibrary.Description
-            };
+            };
+
             foreach (var worksheet in excelPackage.Workbook.Worksheets)
             {
                 if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
@@ -145,8 +162,10 @@ namespace BridgeCareCore.Services
                 var loadTreatment = _treatmentLoader.LoadTreatment(worksheet);
                 library.Treatments.Add(loadTreatment.Treatment);
                 validationMessages.AddRange(loadTreatment.ValidationMessages);
-            }
-            var combinedValidationMessage = "";
+            }
+
+            var combinedValidationMessage = "";
+
             if (validationMessages.Any())
             {
                 var combinedValidationMessageBuilder = new StringBuilder();
@@ -159,7 +178,8 @@ namespace BridgeCareCore.Services
             {
                 TreatmentLibrary = library,
                 WarningMessage = combinedValidationMessage,
-            };            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            };
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                 return new TreatmentImportResultDTO();
             if (combinedValidationMessage.Length == 0)
             {
@@ -167,13 +187,15 @@ namespace BridgeCareCore.Services
                 SaveToDatabase(returnValue);
             }
             return returnValue;
-        }
+        }
+
         public ScenarioTreatmentImportResultDTO ImportScenarioTreatmentsFile(Guid simulationId, ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
             queueLog ??= new DoNothingWorkQueueLog();
             var validationMessages = new List<string>();
             var scenarioTreatments = new List<TreatmentDTO>();
-            var scenarioBudgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            var scenarioBudgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                 return new ScenarioTreatmentImportResultDTO();
             queueLog.UpdateWorkQueueStatus("Loading Excel");
             foreach (var worksheet in excelPackage.Workbook.Worksheets)
@@ -182,11 +204,14 @@ namespace BridgeCareCore.Services
                 scenarioTreatments.Add(treatmentLoadResult.Treatment);
                 _unitOfWork.SelectableTreatmentRepo.AddDefaultPerformanceFactors(simulationId, scenarioTreatments);
                 validationMessages.AddRange(treatmentLoadResult.ValidationMessages);
-            }
-            var combinedValidationMessage = string.Empty;
+            }
+
+            var combinedValidationMessage = string.Empty;
+
             if (validationMessages.Any())
             {
-                var combinedValidationMessageBuilder = new StringBuilder();
+                var combinedValidationMessageBuilder = new StringBuilder();
+
                 foreach (var message in validationMessages)
                 {
                     combinedValidationMessageBuilder.AppendLine(message);
@@ -198,21 +223,27 @@ namespace BridgeCareCore.Services
             {
                 Treatments = scenarioTreatments,
                 WarningMessage = combinedValidationMessage,
-            };
+            };
+
             if (combinedValidationMessage.Length == 0)
             {
                 if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                     return new ScenarioTreatmentImportResultDTO();
                 queueLog.UpdateWorkQueueStatus("Upserting Treatments");
                 _unitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(scenarioTreatmentImportResult.Treatments, simulationId);
-            }
+            }
+
             return scenarioTreatmentImportResult;
-        }
+        }
+
         public FileInfoDTO ExportScenarioTreatmentsExcelFile(Guid simulationId)
         {
-            var fileInfoResult = new FileInfoDTO();
-            var scenarioName = _unitOfWork.SimulationRepo.GetSimulationName(simulationId);
-            var scenarioTreatments = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+            var fileInfoResult = new FileInfoDTO();
+
+            var scenarioName = _unitOfWork.SimulationRepo.GetSimulationName(simulationId);
+
+            var scenarioTreatments = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+
             if (scenarioTreatments.Any())
             {
                 var dateString = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
@@ -235,7 +266,8 @@ namespace BridgeCareCore.Services
 
         public TreatmentSupersedeRuleImportResultDTO ImportScenarioTreatmentSupersedeRulesFile(Guid simulationId, ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
-            queueLog ??= new DoNothingWorkQueueLog();            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            queueLog ??= new DoNothingWorkQueueLog();
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
             {
                 return new TreatmentSupersedeRuleImportResultDTO();
             }
@@ -254,7 +286,8 @@ namespace BridgeCareCore.Services
                 }
                 queueLog.UpdateWorkQueueStatus("Upserting Scenario Treatment Supersede Rules");
                 _unitOfWork.TreatmentSupersedeRuleRepo.UpsertOrDeleteScenarioTreatmentSupersedeRules(scenarioTreatmentSupersedeRuleImportResult.supersedeRulesPerTreatmentIdDict, simulationId);
-            }
+            }
+
             return scenarioTreatmentSupersedeRuleImportResult;
         }
 
@@ -282,7 +315,8 @@ namespace BridgeCareCore.Services
 
         public TreatmentSupersedeRuleImportResultDTO ImportLibraryTreatmentSupersedeRulesFile(Guid libraryId, ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
-            queueLog ??= new DoNothingWorkQueueLog();            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            queueLog ??= new DoNothingWorkQueueLog();
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
             {
                 return new TreatmentSupersedeRuleImportResultDTO();
             }
@@ -301,7 +335,8 @@ namespace BridgeCareCore.Services
                 }
                 queueLog.UpdateWorkQueueStatus("Upserting Scenario Treatment Supersede Rules");
                 _unitOfWork.TreatmentSupersedeRuleRepo.UpsertOrDeleteTreatmentSupersedeRules(treatmentSupersedeRuleImportResult.supersedeRulesPerTreatmentIdDict, libraryId);
-            }
+            }
+
             return treatmentSupersedeRuleImportResult;
         }
 

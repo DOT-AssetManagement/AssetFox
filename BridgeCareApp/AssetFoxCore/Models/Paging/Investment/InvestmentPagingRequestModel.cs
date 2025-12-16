@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Models
+namespace AssetFoxCore.Models
 {
     public class InvestmentPagingRequestModel : BasePagingRequest
     {

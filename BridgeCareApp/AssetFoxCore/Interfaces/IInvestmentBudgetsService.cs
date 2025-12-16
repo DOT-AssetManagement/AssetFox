@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Common.Logging;
+using AssetFox.Core.Common.Logging;
 using System.Threading;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using BridgeCareCore.Models;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFoxCore.Models;
 using OfficeOpenXml;
 
-namespace BridgeCareCore.Interfaces
+namespace AssetFoxCore.Interfaces
 {
     public interface IInvestmentBudgetsService
     {

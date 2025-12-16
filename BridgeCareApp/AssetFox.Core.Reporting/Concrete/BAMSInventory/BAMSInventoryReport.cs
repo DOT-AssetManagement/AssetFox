@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using Newtonsoft.Json;
 using System.Text;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
+using AssetFox.Core.DTOs;
 using System.Threading;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.Common;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     /// <summary>
     /// Creates HTML that reports on the values of all current attributes for a given asset (i.e., bridge)
     /// </summary>
     /// <remarks>
-    /// The parameters object of the run method should resolve to a AppliedResearchAssociates.iAM.Reporting.InventoryParameters object.
+    /// The parameters object of the run method should resolve to a AssetFox.Core.Reporting.InventoryParameters object.
     /// Use BRKey = 0 when that parameter is not known and an BMSID = String.Empty when that parameter is not known.  An error will occur
     /// if you send both parameters as known values and they do not exist on the same asset.
     /// </remarks>

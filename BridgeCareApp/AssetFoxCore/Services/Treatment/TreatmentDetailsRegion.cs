@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.ExcelHelpers;
 
-namespace BridgeCareCore.Services.Treatment
+namespace AssetFoxCore.Services.Treatment
 {
     public static class TreatmentDetailsRegion
     {

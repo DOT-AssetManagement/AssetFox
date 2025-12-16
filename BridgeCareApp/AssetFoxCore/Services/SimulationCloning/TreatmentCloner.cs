@@ -1,9 +1,9 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     internal class TreatmentCloner
     {

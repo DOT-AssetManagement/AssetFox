@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using BenchmarkDotNet.Attributes;
 using LegacyCalculateEvaluate = CalculateEvaluate.CalculateEvaluate;
 
-namespace AppliedResearchAssociates.CalculateEvaluate.Benchmarking
+namespace AssetFox.CalculateEvaluate.Benchmarking
 {
     public class LegacyCalculateEvaluateBenchmarks
     {

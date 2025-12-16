@@ -1,26 +1,26 @@
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.WorkQueue;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.WorkQueue;
 using Microsoft.SqlServer.Dac.Model;
 using System.Threading;
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using BridgeCareCore.Services.Aggregation;
+using AssetFoxCore.Services.Aggregation;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs;
-using BridgeCareCore.Models;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs;
+using AssetFoxCore.Models;
 using System.Text;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Hubs.Services;
+using AssetFox.Core.Common;
+using AssetFox.Core.Reporting.Logging;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Hubs.Services;
 using Microsoft.CodeAnalysis;
 using System.Diagnostics;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public record AggregationWorkitem(Guid NetworkId, string UserId, string NetworkName, Guid dataSourceId) : IWorkSpecification<WorkQueueMetadata>
 

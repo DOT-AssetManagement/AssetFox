@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public static class OptimizationStrategyExtensions
 {

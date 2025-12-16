@@ -1,11 +1,11 @@
-﻿
+
 
 using System.Security.Claims;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using BridgeCareCore.Security;
-using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.Utils;
-using BridgeCareCore.Utils.Interfaces;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFoxCore.Security;
+using AssetFoxCore.Security.Interfaces;
+using AssetFoxCore.Utils;
+using AssetFoxCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,10 +14,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
-using Claim = BridgeCareCore.Security.SecurityConstants.Claim;
+using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
+using Claim = AssetFoxCore.Security.SecurityConstants.Claim;
 
-namespace BridgeCareCore.StartupExtension
+namespace AssetFoxCore.StartupExtension
 {
     public static class Security
     {

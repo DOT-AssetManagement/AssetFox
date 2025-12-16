@@ -1,8 +1,8 @@
-﻿using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport
+namespace AssetFox.Core.Reporting.Models.BAMSSummaryReport
 {
     public class YearsData
     {

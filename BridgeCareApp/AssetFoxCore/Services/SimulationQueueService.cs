@@ -2,19 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
 using Microsoft.CodeAnalysis.Operations;
 using MoreLinq;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 using Org.BouncyCastle.Asn1.Ocsp;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class WorkQueueService : IWorkQueueService
     {

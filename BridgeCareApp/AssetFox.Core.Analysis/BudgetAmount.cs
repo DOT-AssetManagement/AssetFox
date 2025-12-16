@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.Validation;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public sealed class BudgetAmount : WeakEntity, IValidator
 {

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.DTOs.Static
+namespace AssetFox.Core.DTOs.Static
 {
     public static class CriterionLibraryValidityChecker
     {

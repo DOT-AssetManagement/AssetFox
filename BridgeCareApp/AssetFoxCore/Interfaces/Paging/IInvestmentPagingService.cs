@@ -1,9 +1,9 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Models;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Models;
 using System.Collections.Generic;
 using System;
 
-namespace BridgeCareCore.Interfaces
+namespace AssetFoxCore.Interfaces
 {
     public interface IInvestmentPagingService
     {

@@ -1,16 +1,16 @@
-﻿using Xunit;
+using Xunit;
 using System;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using AssetFox.Core.Data.Attributes;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 using Moq;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Services;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM;
+using AssetFox.Core.Data;
+using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Services;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.iAM;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class AttributeConnectionBuilderTests
     {

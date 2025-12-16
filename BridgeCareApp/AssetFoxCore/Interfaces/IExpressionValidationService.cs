@@ -1,8 +1,8 @@
 using System;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Models.Validation;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Models.Validation;
 
-namespace BridgeCareCore.Interfaces
+namespace AssetFoxCore.Interfaces
 {
     public interface IExpressionValidationService
     {

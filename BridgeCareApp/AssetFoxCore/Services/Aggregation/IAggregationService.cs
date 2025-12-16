@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services.Aggregation
+namespace AssetFoxCore.Services.Aggregation
 {
     public interface IAggregationService
     {

@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public sealed class TextAttribute : Attribute<string>
 {

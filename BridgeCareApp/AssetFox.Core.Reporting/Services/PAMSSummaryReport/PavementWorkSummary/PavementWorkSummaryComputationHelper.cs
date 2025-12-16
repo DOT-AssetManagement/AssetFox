@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using static AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary.PavementTreatmentHelper;
-using WorkSummaryByBudgetModel = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.WorkSummaryByBudgetModel;
-using YearsData = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.YearsData;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Reporting.Models;
+using static AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary.PavementTreatmentHelper;
+using WorkSummaryByBudgetModel = AssetFox.Core.Reporting.Models.PAMSSummaryReport.WorkSummaryByBudgetModel;
+using YearsData = AssetFox.Core.Reporting.Models.PAMSSummaryReport.YearsData;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 {
     public static class SegmentLengthConvertorExtension
     {

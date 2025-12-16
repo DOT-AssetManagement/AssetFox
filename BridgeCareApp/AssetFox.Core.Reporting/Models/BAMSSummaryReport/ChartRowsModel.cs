@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport
+namespace AssetFox.Core.Reporting.Models.BAMSSummaryReport
 {
     public class ChartRowsModel
     {

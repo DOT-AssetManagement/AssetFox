@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
 {
     public abstract class BaseRemainingLifeLimitEntity : BaseEntity
     {

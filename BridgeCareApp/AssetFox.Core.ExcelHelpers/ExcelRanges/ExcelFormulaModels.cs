@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public static class ExcelFormulaModels
     {

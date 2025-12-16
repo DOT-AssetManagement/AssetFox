@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests.AttributeDatum
+namespace AssetFoxCoreTests.Tests.AttributeDatum
 {
     public static class AttributeDatumRepositoryMocks
     {

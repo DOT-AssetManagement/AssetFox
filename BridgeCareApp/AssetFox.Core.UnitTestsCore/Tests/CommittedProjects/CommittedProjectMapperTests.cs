@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
-using AnalysisSelectableTreatment = AppliedResearchAssociates.iAM.Analysis.SelectableTreatment;
+using AnalysisSelectableTreatment = AssetFox.Core.Analysis.SelectableTreatment;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.CommittedProjects
+namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
 {
     public class CommittedProjectMapperTests
     {

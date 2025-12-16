@@ -2,30 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Controllers.BaseController;
-using BridgeCareCore.Models;
-using BridgeCareCore.Security;
-using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.Services;
-using BridgeCareCore.Utils;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFoxCore.Models;
+using AssetFoxCore.Security;
+using AssetFoxCore.Security.Interfaces;
+using AssetFoxCore.Services;
+using AssetFoxCore.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BridgeCareCore.Interfaces;
+using AssetFoxCore.Interfaces;
 using Microsoft.SqlServer.Dac.Model;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class NetworkController : BridgeCareCoreBaseController
+    public class NetworkController : AssetFoxCoreBaseController
     {
         public const string NetworkError = "Network Error";
         private readonly UnitOfDataPersistenceWork _unitOfWork;

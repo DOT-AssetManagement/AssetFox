@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using BridgeCareCore.Models;
-using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.StartupExtension;
-using BridgeCareCore.Utils.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Security.Interfaces;
+using AssetFoxCore.StartupExtension;
+using AssetFoxCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using static BridgeCareCore.Security.SecurityConstants;
+using static AssetFoxCore.Security.SecurityConstants;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
 
-namespace BridgeCareCore.Security
+namespace AssetFoxCore.Security
 {
     public class EsecSecurity : IEsecSecurity
     {

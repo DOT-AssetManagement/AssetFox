@@ -37,7 +37,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BridgeCareCore.Utils
+namespace AssetFoxCore.Utils
 {
     public class AlphanumericComparator : IComparer<string>
     {

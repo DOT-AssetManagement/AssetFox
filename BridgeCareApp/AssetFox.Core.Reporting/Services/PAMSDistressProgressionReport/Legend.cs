@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSDistressProgressionReport
+namespace AssetFox.Core.Reporting.Services.PAMSDistressProgressionReport
 {
     public class Legend
     {

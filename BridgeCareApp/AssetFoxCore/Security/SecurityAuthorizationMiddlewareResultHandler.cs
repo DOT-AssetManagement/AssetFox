@@ -1,10 +1,10 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Http;
 
-namespace BridgeCareCore.Security
+namespace AssetFoxCore.Security
 {
     public class SecurityAuthorizationMiddlewareResultHandler : IAuthorizationMiddlewareResultHandler
     {

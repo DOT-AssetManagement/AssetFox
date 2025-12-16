@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
-using AppliedResearchAssociates.CalculateEvaluate;
+using AssetFox.CalculateEvaluate;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     public sealed class AttributeValueChange : CompilableExpression
     {

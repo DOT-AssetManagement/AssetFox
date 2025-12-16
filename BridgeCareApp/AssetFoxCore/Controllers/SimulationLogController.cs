@@ -1,23 +1,23 @@
 using System;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Reporting;
-using BridgeCareCore.Controllers.BaseController;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Security.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Reporting;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.Repositories;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SimulationLogController : BridgeCareCoreBaseController
+    public class SimulationLogController : AssetFoxCoreBaseController
     {
         public SimulationLogController(
             IEsecSecurity esecSecurity,

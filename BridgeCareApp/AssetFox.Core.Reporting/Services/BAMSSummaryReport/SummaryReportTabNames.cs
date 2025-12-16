@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport
 {
     public static class SummaryReportTabNames
     {

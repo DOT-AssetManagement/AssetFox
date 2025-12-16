@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Generics;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs;
+using System.Collections.Generic;
+using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     /// <summary>
     /// Retrieves current attribute data for a specific asset

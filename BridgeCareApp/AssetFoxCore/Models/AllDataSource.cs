@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs.Enums;
 
-namespace BridgeCareCore.Models
+namespace AssetFoxCore.Models
 {
     public class AllDataSource : BaseDataSourceDTO
     {

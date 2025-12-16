@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -16,10 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.DataPersistenceCore\AppliedResearchAssociates.iAM.DataPersistenceCore.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.ExcelHelpers\AppliedResearchAssociates.iAM.ExcelHelpers.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Hubs\AppliedResearchAssociates.iAM.Hubs.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.WorkQueue\AppliedResearchAssociates.iAM.WorkQueue.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.DataPersistenceCore\AssetFox.Core.DataPersistenceCore.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.ExcelHelpers\AssetFox.Core.ExcelHelpers.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Hubs\AssetFox.Core.Hubs.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.WorkQueue\AssetFox.Core.WorkQueue.csproj" />
   </ItemGroup>
 
   <ItemGroup>

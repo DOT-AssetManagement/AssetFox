@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
-namespace AppliedResearchAssociates.iAM.Hubs
+namespace AssetFox.Core.Hubs
 {
     public class BridgeCareHub : Hub
     {

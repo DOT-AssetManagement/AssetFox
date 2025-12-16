@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using System;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs.Enums;
 
-namespace BridgeCareCore.Utils
+namespace AssetFoxCore.Utils
 {
     public static class EnumDeserializer
     {

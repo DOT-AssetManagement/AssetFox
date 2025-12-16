@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using Humanizer;
 
-namespace AppliedResearchAssociates.iAMCore.DataAccess
+namespace AssetFox.AFCore.DataAccess
 {
     public sealed class DataAccessor
     {

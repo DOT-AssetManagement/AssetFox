@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using BenchmarkDotNet.Attributes;
 
-namespace AppliedResearchAssociates.CalculateEvaluate.Benchmarking
+namespace AssetFox.CalculateEvaluate.Benchmarking
 {
     public class CalculateEvaluateCompilerBenchmarks
     {

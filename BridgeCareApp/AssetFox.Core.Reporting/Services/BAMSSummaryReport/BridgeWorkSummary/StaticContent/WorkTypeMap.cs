@@ -1,8 +1,8 @@
-﻿
-using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
+using System.Collections.Generic;
+using AssetFox.Core.DTOs.Enums;
+
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
     public static class WorkTypeMap
     {

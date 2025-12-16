@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace AppliedResearchAssociates.CalculateEvaluate.Testing
+namespace AssetFox.CalculateEvaluate.Testing
 {
     public class CalculateEvaluateCompilerTests
     {

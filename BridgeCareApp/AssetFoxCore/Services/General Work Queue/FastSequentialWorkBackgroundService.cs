@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Models;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Models;
 using Microsoft.Extensions.Hosting;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class FastSequentialWorkBackgroundService : BackgroundService
     {

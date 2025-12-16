@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models.Validation;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models.Validation;
 using Moq;
 
-namespace BridgeCareCoreTests.Helpers
+namespace AssetFoxCoreTests.Helpers
 {
     public static class ExpressionValidationServiceMocks
     {

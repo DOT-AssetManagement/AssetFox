@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.Validation;
-using BridgeCareCoreTests.Tests;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFox.Validation;
+using AssetFoxCoreTests.Tests;
 using Moq;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
+namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public class AnalysisInputLoadingTests
     {

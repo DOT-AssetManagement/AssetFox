@@ -1,10 +1,10 @@
-﻿using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using System.Net;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Logging
+namespace AssetFox.Core.Reporting.Logging
 {
     public static class ExceptionMiddlewareExtension
     {

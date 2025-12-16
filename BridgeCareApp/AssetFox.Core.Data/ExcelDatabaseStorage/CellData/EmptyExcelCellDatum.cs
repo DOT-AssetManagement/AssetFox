@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData
+namespace AssetFox.Core.Data.ExcelDatabaseStorage.CellData
 {
     public class EmptyExcelCellDatum: IExcelCellDatum
     {

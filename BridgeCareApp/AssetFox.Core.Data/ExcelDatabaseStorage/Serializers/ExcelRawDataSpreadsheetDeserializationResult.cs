@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers
+namespace AssetFox.Core.Data.ExcelDatabaseStorage.Serializers
 {
     public class ExcelRawDataSpreadsheetDeserializationResult
     {

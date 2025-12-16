@@ -1,16 +1,16 @@
-﻿using Xunit;
+using Xunit;
 using System;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
+using AssetFox.Core.Data.Aggregation;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.Data;
 using Moq;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataUnitTests.TestUtils;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataUnitTests.TestUtils;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Networking
+namespace AssetFox.Core.DataUnitTests.Tests.Networking
 {
     public class MaintainableAssetTests
     {

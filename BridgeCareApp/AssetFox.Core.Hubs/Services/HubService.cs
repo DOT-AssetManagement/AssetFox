@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 
-namespace AppliedResearchAssociates.iAM.Hubs.Services
+namespace AssetFox.Core.Hubs.Services
 {
     public class HubService : IHubService
     {

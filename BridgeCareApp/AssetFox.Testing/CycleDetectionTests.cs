@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Xunit;
 
-namespace AppliedResearchAssociates.Testing
+namespace AssetFox.Testing
 {
     public class CycleDetectionTests
     {

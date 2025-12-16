@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.DTOs.Abstract
+namespace AssetFox.Core.DTOs.Abstract
 {
     /// <summary>
     /// A base DTO class that all DTOs derive from.

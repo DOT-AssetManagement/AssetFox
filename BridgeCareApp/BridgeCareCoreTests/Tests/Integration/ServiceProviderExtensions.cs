@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Controllers.BaseController;
-using BridgeCareCore.Models;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFoxCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public static class ServiceProviderExtensions
     {
@@ -53,7 +53,7 @@ namespace BridgeCareCoreTests.Tests.Integration
             return workStarter;
         }
         public static TController GetControllerWithUnifiedHttpContext<TController>(this IServiceProvider serviceProvider)
-            where TController : BridgeCareCoreBaseController
+            where TController : AssetFoxCoreBaseController
         {
             var controller = serviceProvider.GetRequiredService<TController>();
             var contextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();

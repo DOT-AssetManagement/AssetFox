@@ -1,15 +1,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
 using Google.OrTools.ConstraintSolver;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class AttributeValueCacheBuildLaunchingService : BackgroundService
     {

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using static System.Math;
-using static AppliedResearchAssociates.PciDistress.Constants;
+using static AssetFox.PciDistress.Constants;
 
-namespace AppliedResearchAssociates.PciDistress
+namespace AssetFox.PciDistress
 {
     public static class PciDistress
     {

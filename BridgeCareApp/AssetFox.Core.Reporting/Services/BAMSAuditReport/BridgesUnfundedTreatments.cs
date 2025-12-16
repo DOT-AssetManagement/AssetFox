@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSAuditReport;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Models.BAMSAuditReport;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using System;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
+namespace AssetFox.Core.Reporting.Services.BAMSAuditReport
 {
     public class BridgesUnfundedTreatments
     {

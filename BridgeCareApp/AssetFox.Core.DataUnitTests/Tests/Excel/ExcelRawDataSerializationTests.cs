@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers;
-using AppliedResearchAssociates.iAM.TestHelpers;
+using AssetFox.Core.Data.ExcelDatabaseStorage;
+using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
+using AssetFox.Core.TestHelpers;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Excel
+namespace AssetFox.Core.DataUnitTests.Tests.Excel
 {
     public class ExcelRawDataSerializationTests
     {

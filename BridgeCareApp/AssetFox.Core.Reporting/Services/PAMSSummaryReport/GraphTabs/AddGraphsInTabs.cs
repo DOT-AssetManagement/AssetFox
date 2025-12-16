@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.GraphTabs.Condition;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.GraphTabs.Condition;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.GraphTabs
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.GraphTabs
 {
     public class AddGraphsInTabs
     {

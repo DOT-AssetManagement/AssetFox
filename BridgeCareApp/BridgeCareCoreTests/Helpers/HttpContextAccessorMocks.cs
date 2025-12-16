@@ -1,11 +1,11 @@
-﻿using System.Security.Claims;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.SecurityUtilsClasses;
+using System.Security.Claims;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.SecurityUtilsClasses;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Moq;
 
-namespace BridgeCareCoreTests
+namespace AssetFoxCoreTests
 {
     public static class HttpContextAccessorMocks
     {

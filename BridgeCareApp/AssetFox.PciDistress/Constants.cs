@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.PciDistress
+namespace AssetFox.PciDistress
 {
     internal static class Constants
     {

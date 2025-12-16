@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AppliedResearchAssociates.CalculateEvaluate
+namespace AssetFox.CalculateEvaluate
 {
     public sealed class NumberFunctionDescription
     {

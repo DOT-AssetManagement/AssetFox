@@ -19,7 +19,7 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
-namespace AppliedResearchAssociates.CalculateEvaluate {
+namespace AssetFox.CalculateEvaluate {
 using Antlr4.Runtime.Misc;
 using IParseTreeListener = Antlr4.Runtime.Tree.IParseTreeListener;
 using IToken = Antlr4.Runtime.IToken;
@@ -300,4 +300,4 @@ public interface ICalculateEvaluateParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitLiteral([NotNull] CalculateEvaluateParser.LiteralContext context);
 }
-} // namespace AppliedResearchAssociates.CalculateEvaluate
+} // namespace AssetFox.CalculateEvaluate

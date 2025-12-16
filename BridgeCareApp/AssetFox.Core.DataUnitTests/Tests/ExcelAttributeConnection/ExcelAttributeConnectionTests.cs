@@ -1,10 +1,10 @@
-﻿using System.Linq;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using System.Linq;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
+using AssetFox.Core.DataPersistenceCore.Repositories;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Attributes
+namespace AssetFox.Core.DataUnitTests.Tests.Attributes
 {
     public class ExcelAttributeConnectionTests
     {

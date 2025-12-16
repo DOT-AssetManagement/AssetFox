@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers;
-using AppliedResearchAssociates.iAM.Data.Helpers;
+using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
+using AssetFox.Core.Data.Helpers;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage
+namespace AssetFox.Core.Data.ExcelDatabaseStorage
 {
     public static class IExcelCellDatumExtensions
     {

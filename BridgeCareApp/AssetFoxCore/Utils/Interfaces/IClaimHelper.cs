@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Utils.Interfaces
+namespace AssetFoxCore.Utils.Interfaces
 {
     public interface IClaimHelper
     {

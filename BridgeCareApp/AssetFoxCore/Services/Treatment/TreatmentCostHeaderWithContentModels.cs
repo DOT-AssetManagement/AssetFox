@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using TModel = AppliedResearchAssociates.iAM.ExcelHelpers.Tables.ExcelHeaderWithContentModel<AppliedResearchAssociates.iAM.DTOs.TreatmentCostDTO>;
+using System.Collections.Generic;
+using AssetFox.Core.ExcelHelpers;
+using TModel = AssetFox.Core.ExcelHelpers.Tables.ExcelHeaderWithContentModel<AssetFox.Core.DTOs.TreatmentCostDTO>;
 
-namespace BridgeCareCore.Services.Treatment
+namespace AssetFoxCore.Services.Treatment
 {
 
     public static class TreatmentCostHeaderWithContentModels

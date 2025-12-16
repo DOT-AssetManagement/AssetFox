@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using System;
+using AssetFox.Core.DTOs.Enums;
 
-namespace BridgeCareCore.Models.General_Work_Queue
+namespace AssetFoxCore.Models.General_Work_Queue
 {
     public class WorkQueueRequestModel
     {

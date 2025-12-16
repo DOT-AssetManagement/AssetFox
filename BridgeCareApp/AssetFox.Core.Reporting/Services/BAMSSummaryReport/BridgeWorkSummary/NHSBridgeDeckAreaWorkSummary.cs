@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using OfficeOpenXml;
 
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.ExcelHelpers;
 
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
     public class NHSBridgeDeckAreaWorkSummary
     {

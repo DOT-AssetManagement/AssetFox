@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace BridgeCareCore.Services;
+namespace AssetFoxCore.Services;
 
 public sealed record AnalysisEventLogEntry(DateTimeOffset Timestamp, Guid SimulationId, string ScenarioName, string Message)
 {

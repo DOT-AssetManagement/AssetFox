@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Models
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Models
 {
     public class UpsertAndDeleteModel<T>
     {

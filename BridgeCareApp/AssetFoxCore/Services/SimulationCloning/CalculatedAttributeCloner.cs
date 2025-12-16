@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     internal class CalculatedAttributeCloner
     {

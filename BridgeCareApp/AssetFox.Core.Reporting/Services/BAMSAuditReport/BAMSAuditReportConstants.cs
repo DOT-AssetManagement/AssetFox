@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSAuditReport
+namespace AssetFox.Core.Reporting.Services.BAMSAuditReport
 {
     public static class BAMSAuditReportConstants
     {

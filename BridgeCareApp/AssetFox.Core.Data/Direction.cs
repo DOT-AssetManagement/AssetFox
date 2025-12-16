@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Data
+namespace AssetFox.Core.Data
 {
     public enum Direction
     {

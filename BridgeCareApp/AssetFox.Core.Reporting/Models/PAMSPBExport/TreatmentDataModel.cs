@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.PAMSPBExport
+namespace AssetFox.Core.Reporting.Models.PAMSPBExport
 {
     public class TreatmentDataModel
     {

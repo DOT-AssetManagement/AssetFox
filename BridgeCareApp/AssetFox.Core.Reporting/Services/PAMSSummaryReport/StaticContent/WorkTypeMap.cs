@@ -1,8 +1,8 @@
-﻿
-using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent
+using System.Collections.Generic;
+using AssetFox.Core.DTOs.Enums;
+
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.StaticContent
 {
     public static class WorkTypeMap
     {

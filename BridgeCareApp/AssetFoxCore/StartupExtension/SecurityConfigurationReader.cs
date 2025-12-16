@@ -1,7 +1,7 @@
-﻿using System.Configuration;
+using System.Configuration;
 using Microsoft.Extensions.Configuration;
 
-namespace BridgeCareCore.StartupExtension
+namespace AssetFoxCore.StartupExtension
 {
     public static class SecurityConfigurationReader
     {

@@ -1,19 +1,19 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Reporting.Logging;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
 using OfficeOpenXml;
 using System.Threading;
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BridgeCareCore.Services.General_Work_Queue.WorkItems
+namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
 {
     public record ImportLibraryTreatmentSupersedeRuleWorkitem(Guid LibraryId, ExcelPackage ExcelPackage, string UserId, string LibraryName) : IWorkSpecification<WorkQueueMetadata>
     {

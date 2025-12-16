@@ -1,7 +1,7 @@
-﻿
+
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent
 {
     public enum BPNCostBudgetName
     {

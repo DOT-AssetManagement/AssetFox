@@ -1,9 +1,9 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using System;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
 using OfficeOpenXml;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public interface IExcelRawDataImportService
     {

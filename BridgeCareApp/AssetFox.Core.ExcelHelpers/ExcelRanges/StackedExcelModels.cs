@@ -1,7 +1,7 @@
-﻿using System.Linq;
+using System.Linq;
 
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     /// <summary>
     /// All of the models will get applied in the same place. If two conflict,

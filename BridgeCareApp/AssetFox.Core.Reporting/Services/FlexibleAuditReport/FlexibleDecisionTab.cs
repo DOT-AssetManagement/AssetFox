@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Models.FlexibleAuditReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.FlexibileAuditReport;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Models.FlexibleAuditReport;
+using AssetFox.Core.Reporting.Services.FlexibileAuditReport;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.FlexibleAuditReport
+namespace AssetFox.Core.Reporting.Services.FlexibleAuditReport
 {
     public class FlexibleDecisionTab
     {

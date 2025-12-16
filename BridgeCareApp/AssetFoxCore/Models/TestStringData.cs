@@ -1,4 +1,4 @@
-﻿namespace BridgeCareCore.Models
+namespace AssetFoxCore.Models
 {
     public class TestStringData
     {

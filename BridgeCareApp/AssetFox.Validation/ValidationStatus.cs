@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.Validation
+namespace AssetFox.Validation
 {
     public enum ValidationStatus
     {

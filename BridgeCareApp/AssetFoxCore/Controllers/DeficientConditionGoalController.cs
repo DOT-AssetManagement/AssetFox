@@ -1,28 +1,28 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Controllers.BaseController;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Security.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BridgeCareCore.Utils.Interfaces;
-using Policy = BridgeCareCore.Security.SecurityConstants.Policy;
-using BridgeCareCore.Models;
-using BridgeCareCore.Interfaces;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using BridgeCareCore.Services;
+using AssetFoxCore.Utils.Interfaces;
+using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
+using AssetFoxCore.Models;
+using AssetFoxCore.Interfaces;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFoxCore.Services;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DeficientConditionGoalController : BridgeCareCoreBaseController
+    public class DeficientConditionGoalController : AssetFoxCoreBaseController
     {
         public const string DeficientConditionGoalError = "Deficient Condition Goal Error";
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;

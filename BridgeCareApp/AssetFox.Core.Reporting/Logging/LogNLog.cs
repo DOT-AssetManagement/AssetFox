@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Common;
 using NLog;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Logging
+namespace AssetFox.Core.Reporting.Logging
 {
     public class LogNLog : ILog
     {

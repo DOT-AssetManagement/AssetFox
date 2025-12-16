@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using AppliedResearchAssociates.CalculateEvaluate;
+using AssetFox.CalculateEvaluate;
 using MathNet.Numerics.Interpolation;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     public sealed class Equation : CompilableExpression
     {

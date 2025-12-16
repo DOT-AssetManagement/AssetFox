@@ -1,9 +1,9 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using BridgeCareCore.Models;
+using System;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFoxCore.Models;
 
-namespace BridgeCareCore.Utils
+namespace AssetFoxCore.Utils
 {
     public static class AllDataSourceMapper
     {

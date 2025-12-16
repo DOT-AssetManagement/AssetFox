@@ -1,7 +1,7 @@
-﻿using System.Drawing;
+using System.Drawing;
 using OfficeOpenXml.Style;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     /// <summary>The excel-spreadsheet-filling engine treats styles
     /// the same way as values. Both conform to the same interface. However,

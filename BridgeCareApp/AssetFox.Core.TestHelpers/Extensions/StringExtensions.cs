@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace AppliedResearchAssociates.iAM.TestHelpers.Extensions
+namespace AssetFox.Core.TestHelpers.Extensions
 {
     public static class StringExtensions
     {

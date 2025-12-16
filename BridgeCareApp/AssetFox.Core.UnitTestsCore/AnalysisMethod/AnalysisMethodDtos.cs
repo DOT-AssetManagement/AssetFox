@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Benefit;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.Tests.Benefit;
+using AssetFox.Core.UnitTestsCore.Tests;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore
+namespace AssetFox.Core.UnitTestsCore
 {
     public static class AnalysisMethodDtos
     {

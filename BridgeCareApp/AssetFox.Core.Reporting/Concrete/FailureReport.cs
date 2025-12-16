@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common.Logging;
+using AssetFox.Core.Common.Logging;
 using Newtonsoft.Json.Linq;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public class FailureReport : IReport
     {

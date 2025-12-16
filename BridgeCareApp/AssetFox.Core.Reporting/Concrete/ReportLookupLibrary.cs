@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AppliedResearchAssociates.iAM.Reporting.Interfaces;
+using AssetFox.Core.Reporting.Interfaces;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     /// <summary>
     /// Provides data to lookup an object type based on a name

@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs.Enums;
 
-namespace BridgeCareCore.Models.DefaultData
+namespace AssetFoxCore.Models.DefaultData
 {
     public class AnalysisDefaultData
     {

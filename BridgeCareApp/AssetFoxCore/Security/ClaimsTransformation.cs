@@ -1,15 +1,15 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
-using BridgeCareCore.Utils.Interfaces;
+using AssetFoxCore.Utils.Interfaces;
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using BridgeCareCore.Security.Interfaces;
-using AppliedResearchAssociates.iAM.Common;
+using AssetFoxCore.Security.Interfaces;
+using AssetFox.Core.Common;
 
-namespace BridgeCareCore.Security
+namespace AssetFoxCore.Security
 {
     public class ClaimsTransformation : IClaimsTransformation
     {

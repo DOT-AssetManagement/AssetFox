@@ -1,6 +1,6 @@
-﻿using OfficeOpenXml;
+using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public static class ExcelCellAddressFunctions
     {

@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.Validation
+namespace AssetFox.Validation
 {
     public class PathedValidator
     {

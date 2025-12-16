@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.ExcelHelpers;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.ShortNameGlossary
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.ShortNameGlossary
 {
     public class SummaryReportGlossary
     {

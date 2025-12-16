@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.ExcelHelpers;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.DistrictCountyTotals
 {
     public class DistrictTotalsStyleModels
     {

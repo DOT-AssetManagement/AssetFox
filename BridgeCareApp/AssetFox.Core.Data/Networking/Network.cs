@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Data.Networking
+namespace AssetFox.Core.Data.Networking
 {
     public class Network
     {

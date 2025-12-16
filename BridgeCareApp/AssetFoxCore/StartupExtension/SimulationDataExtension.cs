@@ -1,16 +1,16 @@
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.General_Work_Queue;
-using BridgeCareCore.Services.SummaryReport.CommittedProjects;
-using BridgeCareCore.Services.Treatment;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.General_Work_Queue;
+using AssetFoxCore.Services.SummaryReport.CommittedProjects;
+using AssetFoxCore.Services.Treatment;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BridgeCareCore.StartupExtension
+namespace AssetFoxCore.StartupExtension
 {
     public static class SimulationDataExtension
     {

@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.CalculateEvaluate;
+using AssetFox.CalculateEvaluate;
 using System.Text.RegularExpressions;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Common;
 using System.Data;
 using MoreLinq;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Logging;
 using Newtonsoft.Json.Linq;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services
+namespace AssetFox.Core.Reporting.Services
 {
     public class ReportHelper
     {

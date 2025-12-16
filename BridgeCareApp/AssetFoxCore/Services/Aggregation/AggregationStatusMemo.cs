@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services.Aggregation
+namespace AssetFoxCore.Services.Aggregation
 {
     public class AggregationStatusMemo
     {

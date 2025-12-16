@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates
+namespace AssetFox
 {
     public sealed class RequireStruct<T> where T : struct
     {

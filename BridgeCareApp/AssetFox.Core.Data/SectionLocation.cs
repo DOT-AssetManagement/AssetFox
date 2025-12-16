@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.Data
+namespace AssetFox.Core.Data
 {
     public class SectionLocation : Location
     {

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests
+namespace AssetFox.Core.DataUnitTests
 {
     public static class DatabaseResetter
     {

@@ -1,6 +1,6 @@
-﻿using OfficeOpenXml;
+using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.GraphTabs
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.GraphTabs
 {
     public class AddPoorCountGraphTab
     {

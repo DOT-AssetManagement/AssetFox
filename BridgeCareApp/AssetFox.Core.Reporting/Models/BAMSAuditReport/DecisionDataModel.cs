@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.BAMSAuditReport
+namespace AssetFox.Core.Reporting.Models.BAMSAuditReport
 {
     public class DecisionDataModel
     {

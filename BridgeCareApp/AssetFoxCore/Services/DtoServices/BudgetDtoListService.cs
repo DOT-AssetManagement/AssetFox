@@ -1,8 +1,8 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 using System.Collections.Generic;
 using System;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public static class BudgetDtoListService
     {

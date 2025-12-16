@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AppliedResearchAssociates.iAM.Debugging
+namespace AssetFox.Core.Debugging
 {
     /* We currently have tests that fail only when they are run in 
      * conjunction with certain other tests. To debug that

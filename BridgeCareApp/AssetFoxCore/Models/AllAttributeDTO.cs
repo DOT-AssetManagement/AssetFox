@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.DTOs.Abstract;
 
-namespace BridgeCareCore.Models
+namespace AssetFoxCore.Models
 {
     public class AllAttributeDTO : BaseAttributeDTO
     {

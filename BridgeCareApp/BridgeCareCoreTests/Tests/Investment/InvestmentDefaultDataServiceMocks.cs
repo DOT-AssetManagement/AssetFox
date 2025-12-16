@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
-using BridgeCareCore.Interfaces.DefaultData;
-using BridgeCareCore.Models.DefaultData;
+using AssetFoxCore.Interfaces.DefaultData;
+using AssetFoxCore.Models.DefaultData;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public static class InvestmentDefaultDataServiceMocks
     {

@@ -1,9 +1,9 @@
-﻿using AppliedResearchAssociates.iAM.Data.Helpers;
+using AssetFox.Core.Data.Helpers;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public class ExcelWriter : IExcelModelVisitor<ExcelRange, Unit>
     {

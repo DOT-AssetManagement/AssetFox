@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.GraphTabs.NHSConditionCharts;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.GraphTabs.BPN;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.GraphTabs.NHSConditionCharts;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.GraphTabs.BPN;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.GraphTabs
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.GraphTabs
 {
     public class AddGraphsInTabs
     {

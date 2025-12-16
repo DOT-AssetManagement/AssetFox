@@ -1,16 +1,16 @@
-﻿// AppliedResearchAssociates.iAM.Reporting/Services/PAMSSummaryReport/SectionSummary/SectionSummary.cs
+// AssetFox.Core.Reporting/Services/PAMSSummaryReport/SectionSummary/SectionSummary.cs
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.SectionSummary
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.SectionSummary
 {
     public class SectionSummary
     {

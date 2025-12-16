@@ -1,35 +1,35 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Controllers.BaseController;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Security.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Hubs;
+using AssetFox.Core.Common;
+using AssetFox.Core.Hubs;
 using System.Linq;
-using static BridgeCareCore.Security.SecurityConstants;
+using static AssetFoxCore.Security.SecurityConstants;
 using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
-using BridgeCareCore.Security;
-using BridgeCareCore.StartupExtension;
+using AssetFoxCore.Security;
+using AssetFoxCore.StartupExtension;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthenticationController : BridgeCareCoreBaseController
+    public class AuthenticationController : AssetFoxCoreBaseController
     {
         public const string AuthenticationError = "Authentication Error";
         private static IConfigurationSection _esecConfig;

@@ -1,9 +1,9 @@
-﻿using Xunit;
-using AppliedResearchAssociates.iAM.Data.Attributes;
+using Xunit;
+using AssetFox.Core.Data.Attributes;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.Repositories;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests.Attributes
+namespace AssetFox.Core.DataUnitTests.Tests.Attributes
 {
     public class SqlAttributeConnectionTests// also create tests for ExcelAttributeConnection
     {

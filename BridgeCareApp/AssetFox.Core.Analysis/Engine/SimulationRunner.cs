@@ -7,7 +7,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using AppliedResearchAssociates.iAM.Analysis.Input.DataTransfer;
+using AssetFox.Core.Analysis.Input.DataTransfer;
 #endif
 
 using System;
@@ -16,11 +16,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis.Logic;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.Validation;
+using AssetFox.Core.Analysis.Logic;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Engine;
+namespace AssetFox.Core.Analysis.Engine;
 
 public sealed class SimulationRunner
 {

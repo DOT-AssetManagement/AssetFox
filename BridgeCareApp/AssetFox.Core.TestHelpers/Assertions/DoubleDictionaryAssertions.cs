@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.TestHelpers
+namespace AssetFox.Core.TestHelpers
 {
     public static class DoubleDictionaryAssertions
     {

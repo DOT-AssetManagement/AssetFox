@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryByBudget
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryByBudget
 {
     public static class WorkTypeTotalHelper
     {

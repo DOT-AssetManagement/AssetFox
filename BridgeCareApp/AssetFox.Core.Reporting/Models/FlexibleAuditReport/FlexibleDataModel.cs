@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.FlexibleAuditReport
+namespace AssetFox.Core.Reporting.Models.FlexibleAuditReport
 {
     public class FlexibleDataModel
     {

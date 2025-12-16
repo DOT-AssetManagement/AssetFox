@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData;
+using AssetFox.Core.Data.ExcelDatabaseStorage.CellData;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage
+namespace AssetFox.Core.Data.ExcelDatabaseStorage
 {
     public static class ExcelCellData
     {

@@ -1,6 +1,6 @@
-﻿using System.Text;
+using System.Text;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public static class ExcelFormatStrings
     {

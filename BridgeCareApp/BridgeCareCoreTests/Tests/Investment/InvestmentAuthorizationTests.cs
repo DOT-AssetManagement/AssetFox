@@ -1,12 +1,12 @@
-﻿using System.Security.Claims;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests.Helpers;
+using System.Security.Claims;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class InvestmentAuthorizationTests
     {
@@ -23,12 +23,12 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.InvestmentViewAnyFromScenarioAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.InvestmentViewAnyFromScenarioAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var roles = new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator };
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, roles);
+            var roles = new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator };
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, roles);
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
@@ -47,12 +47,12 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.InvestmentModifyPermittedFromLibraryAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.InvestmentModifyPermittedFromLibraryAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var roles = new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Editor };
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, roles);
+            var roles = new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Editor };
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, roles);
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
@@ -71,13 +71,13 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.InvestmentImportPermittedFromScenarioAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.InvestmentImportPermittedFromScenarioAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
 
-            var roles = new List<string> { BridgeCareCore.Security.SecurityConstants.Role.ReadOnly };
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, roles);
+            var roles = new List<string> { AssetFoxCore.Security.SecurityConstants.Role.ReadOnly };
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, roles);
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);
@@ -95,12 +95,12 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.InvestmentViewAnyFromScenarioAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.InvestmentViewAnyFromScenarioAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var roles = new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator };
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.B2C, roles);
+            var roles = new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator };
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.B2C, roles);
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);

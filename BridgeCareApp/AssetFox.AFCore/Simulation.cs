@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAMCore.Analysis;
-using AppliedResearchAssociates.Validation;
+using AssetFox.AFCore.Analysis;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     public sealed class Simulation : IValidator
     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using Org.BouncyCastle.Crypto;
@@ -7,7 +7,7 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore
+namespace AssetFox.Core.DataPersistenceCore
 {
     public static class AES256GCM
     {

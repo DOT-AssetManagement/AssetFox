@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BridgeCareCoreTests.Tests.SecurityUtilsClasses
+namespace AssetFoxCoreTests.Tests.SecurityUtilsClasses
 {
     public static class SystemSecurityClaimLists
     {

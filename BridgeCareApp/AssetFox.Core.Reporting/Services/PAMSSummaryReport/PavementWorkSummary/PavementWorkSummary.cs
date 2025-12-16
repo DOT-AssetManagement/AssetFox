@@ -1,14 +1,14 @@
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using CurrentCell = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.CurrentCell;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.Reporting.Models;
+using CurrentCell = AssetFox.Core.Reporting.Models.PAMSSummaryReport.CurrentCell;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 {
     public class PavementWorkSummary
     {

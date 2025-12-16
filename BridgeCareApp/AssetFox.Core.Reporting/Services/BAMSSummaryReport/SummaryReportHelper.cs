@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport
 {
     public class SummaryReportHelper
     {

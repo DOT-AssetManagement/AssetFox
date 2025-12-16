@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public enum ReportType
     {

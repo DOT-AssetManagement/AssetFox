@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs.Enums;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.StaticContent
 {
     public static class WorkTypeNamesExtensions
     {

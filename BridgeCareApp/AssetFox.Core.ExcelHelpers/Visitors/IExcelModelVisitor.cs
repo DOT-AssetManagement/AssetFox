@@ -1,5 +1,5 @@
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public interface IExcelModelVisitor<THelper, TOutput>
     {

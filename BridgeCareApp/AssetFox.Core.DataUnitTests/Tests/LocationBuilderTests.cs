@@ -1,9 +1,9 @@
-﻿using Xunit;
-using AppliedResearchAssociates.iAM.Data;
+using Xunit;
+using AssetFox.Core.Data;
 using System;
-using AppliedResearchAssociates.iAM.Data.Attributes;
+using AssetFox.Core.Data.Attributes;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests
+namespace AssetFox.Core.DataUnitTests.Tests
 {
     public class LocationBuilderTests
     {

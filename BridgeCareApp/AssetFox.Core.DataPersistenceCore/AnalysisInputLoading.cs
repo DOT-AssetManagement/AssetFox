@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.Validation;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore;
+namespace AssetFox.Core.DataPersistenceCore;
 
 public static class AnalysisInputLoading
 {

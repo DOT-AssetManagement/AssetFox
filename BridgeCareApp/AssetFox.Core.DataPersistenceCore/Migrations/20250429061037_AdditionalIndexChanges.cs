@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
+namespace AssetFox.Core.DataPersistenceCore.Migrations
 {
     /// <inheritdoc />
     public partial class AdditionalIndexChanges : Migration
@@ -419,9 +419,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
 
             // -----------------------------------------------------------------
             // 2.  FOR EACH TABLE:
-            //       • Drop the old PK 
-            //       • Create the new PK (RunId, Id) CLUSTERED
-            //       • Create ONE NCCI on (RunId, <parent‑FK>)
+            //       � Drop the old PK 
+            //       � Create the new PK (RunId,?Id) CLUSTERED
+            //       � Create ONE NCCI on (RunId,?<parent-FK>)
             // -----------------------------------------------------------------
             migrationBuilder.Sql(@"
                 /* ===== TABLE: Allocation ============================================== */
@@ -685,11 +685,11 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 ");
 
                             // -----------------------------------------------------------------
-                            // 3.  RE‑CREATE all foreign keys in the **new** column order
+                            // 3.  RE-CREATE all foreign keys in the **new** column order
                             //     (RunId first, then Id / FK column).
                             // -----------------------------------------------------------------
                             migrationBuilder.Sql(@"
-                /* ===== FK CREATES (RunId first) ======================================= */
+                /* ===== FK�CREATES (RunId first) ======================================= */
                 ALTER TABLE [dbo].[Allocation]
                     ADD CONSTRAINT [FK_Allocation_FundingCalculationOutput_FundingCalculationOutputId]
                         FOREIGN KEY ([RunId], [FundingCalculationOutputId])

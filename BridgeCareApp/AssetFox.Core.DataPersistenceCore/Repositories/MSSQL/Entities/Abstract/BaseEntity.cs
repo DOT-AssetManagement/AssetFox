@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
 {
     public abstract class BaseEntity
     {
@@ -8,7 +8,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.E
 
         public DateTime LastModifiedDate { get; set; } = DateTime.Now;
 
-        // TODO: default these to empty guids for now until BridgeCareCore is integrated with authentication
+        // TODO: default these to empty guids for now until AssetFoxCore is integrated with authentication
         public Guid CreatedBy { get; set; } = Guid.Empty;
 
         public Guid LastModifiedBy { get; set; } = Guid.Empty;

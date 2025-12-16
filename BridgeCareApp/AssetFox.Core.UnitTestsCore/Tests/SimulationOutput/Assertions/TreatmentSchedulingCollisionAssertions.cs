@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore
+namespace AssetFox.Core.UnitTestsCore
 {
     internal class TreatmentSchedulingCollisionAssertions
     {

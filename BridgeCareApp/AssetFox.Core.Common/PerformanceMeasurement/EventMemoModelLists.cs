@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Common.PerformanceMeasurement
+namespace AssetFox.Core.Common.PerformanceMeasurement
 {
     public static class EventMemoModelLists
     {

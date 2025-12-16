@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using BridgeCareCore.Models;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFoxCore.Models;
 using System.Linq;
 
-namespace BridgeCareCore.Services.Paging.Generics
+namespace AssetFoxCore.Services.Paging.Generics
 {
     public abstract class BasePagingService<T>
         where T : BaseDTO

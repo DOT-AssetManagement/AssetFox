@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.WorksheetContentExtractors
+namespace AssetFox.Core.Data.ExcelDatabaseStorage.WorksheetContentExtractors
 {
     internal static class ExcelCellContentExtractor
     {

@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.ExcelHelpers;
 using System.Drawing;
 using System;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent;
-using static AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary.PavementTreatmentHelper;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.StaticContent;
+using static AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary.PavementTreatmentHelper;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 {
     public class TreatmentsWorkSummary
     {

@@ -1,5 +1,5 @@
-﻿
-namespace AppliedResearchAssociates.iAM.Reporting.Models
+
+namespace AssetFox.Core.Reporting.Models
 {
     public class PAMSParameters
     {

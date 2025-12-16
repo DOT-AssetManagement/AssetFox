@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -13,13 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.CalculateEvaluate\AppliedResearchAssociates.CalculateEvaluate.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Choice\AppliedResearchAssociates.Choice.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.CycleDetection\AppliedResearchAssociates.CycleDetection.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.DataAssignment\AppliedResearchAssociates.iAM.DataAssignment.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.DataMiner\AppliedResearchAssociates.iAM.DataMiner.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Option\AppliedResearchAssociates.Option.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.Validation\AppliedResearchAssociates.Validation.csproj" />
+    <ProjectReference Include="..\AssetFox.CalculateEvaluate\AssetFox.CalculateEvaluate.csproj" />
+    <ProjectReference Include="..\AssetFox.Choice\AssetFox.Choice.csproj" />
+    <ProjectReference Include="..\AssetFox.CycleDetection\AssetFox.CycleDetection.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.DataAssignment\AssetFox.Core.DataAssignment.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.DataMiner\AssetFox.Core.DataMiner.csproj" />
+    <ProjectReference Include="..\AssetFox.Option\AssetFox.Option.csproj" />
+    <ProjectReference Include="..\AssetFox.Validation\AssetFox.Validation.csproj" />
   </ItemGroup>
 
 </Project>

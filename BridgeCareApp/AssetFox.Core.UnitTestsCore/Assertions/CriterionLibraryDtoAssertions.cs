@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Assertions
+namespace AssetFox.Core.UnitTestsCore.Assertions
 {
     public static class CriterionLibraryDtoAssertions
     {

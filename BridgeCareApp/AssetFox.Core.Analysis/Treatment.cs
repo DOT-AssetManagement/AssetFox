@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.Validation;
+using System.Collections.Generic;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public abstract class Treatment : WeakEntity, IValidator
 {

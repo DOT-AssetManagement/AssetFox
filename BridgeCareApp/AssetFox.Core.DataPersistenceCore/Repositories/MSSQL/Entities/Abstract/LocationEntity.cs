@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Data;
+using System;
+using AssetFox.Core.Data;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
 {
     public abstract class LocationEntity : BaseEntity
     {

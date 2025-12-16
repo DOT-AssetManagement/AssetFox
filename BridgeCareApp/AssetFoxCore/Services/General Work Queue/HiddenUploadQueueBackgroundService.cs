@@ -1,11 +1,11 @@
-﻿using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Models;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Models;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
 using Microsoft.Extensions.Hosting;
 
-namespace BridgeCareCore.Services.General_Work_Queue
+namespace AssetFoxCore.Services.General_Work_Queue
 {
     public class HiddenUploadQueueBackgroundService : BackgroundService
     {

@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.Validation;
+using System;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 public abstract class CompilableExpression : WeakEntity, IValidator
 {

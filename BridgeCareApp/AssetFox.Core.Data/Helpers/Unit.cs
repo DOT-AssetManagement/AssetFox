@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Data.Helpers
+namespace AssetFox.Core.Data.Helpers
 {
     /// <summary>Think of this class as void.</summary>
     public class Unit

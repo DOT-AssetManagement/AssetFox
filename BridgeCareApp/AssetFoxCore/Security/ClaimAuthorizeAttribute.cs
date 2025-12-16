@@ -1,10 +1,10 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace BridgeCareCore.Security
+namespace AssetFoxCore.Security
 {
     public class ClaimAuthorizeAttribute : TypeFilterAttribute
     {

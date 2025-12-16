@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Drawing;
 
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     public enum ExcelHelperCellFormat
     {

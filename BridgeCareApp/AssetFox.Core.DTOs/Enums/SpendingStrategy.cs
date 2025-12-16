@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.DTOs.Enums
+namespace AssetFox.Core.DTOs.Enums
 {
     /// <summary>
     ///     Defines spending strategies used by simulation options.

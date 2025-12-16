@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models
+namespace AssetFox.Core.Reporting.Models
 {
     /// <summary>
     /// Filters for user defined report

@@ -1,17 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
+namespace AssetFox.Core.DataPersistenceCore.Migrations
 {
     /// <inheritdoc />
     public partial class AddPartitionMaintenanceProcs : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            /* ──────────────────────────────────────────────────────────────── *
-             * 1)  EnsureNextRunIdHasPartition  – JIT splitter                 *
-             * ──────────────────────────────────────────────────────────────── */
+            /* ---------------------------------------------------------------- *
+             * 1)  EnsureNextRunIdHasPartition  � JIT splitter                 *
+             * ---------------------------------------------------------------- */
             migrationBuilder.Sql(@"
                 EXEC(N'
                 CREATE OR ALTER PROCEDURE dbo.usp_EnsureNextRunIdHasPartition
@@ -23,7 +23,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 BEGIN
                     SET NOCOUNT ON;
 
-                    /* Next RunId SQL Server will assign */
+                    /* Next RunId SQL�Server will assign */
                     DECLARE @nextRunId int =
                         IDENT_CURRENT(@RootTable) +
                         IDENT_INCR(@RootTable);
@@ -47,7 +47,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                             WHERE  pf.name = @PartitionFunction);
 
                         IF @currentParts + @ChunkSize > @MaxPartitions
-                            RAISERROR (''Partition limit of %d would be exceeded ‑ aborting.'',
+                            RAISERROR (''Partition limit of %d would be exceeded - aborting.'',
                                        16, 1, @MaxPartitions);
 
                         /* Split @ChunkSize new boundaries */
@@ -66,9 +66,9 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                 ');
                 ");
 
-            /* ──────────────────────────────────────────────────────────────── *
-             * 2)  RecycleFreedRunPartition  – MERGE the empty boundary        *
-             * ──────────────────────────────────────────────────────────────── */
+            /* ---------------------------------------------------------------- *
+             * 2)  RecycleFreedRunPartition  � MERGE the empty boundary        *
+             * ---------------------------------------------------------------- */
             migrationBuilder.Sql(@"
                 EXEC(N'
                 CREATE OR ALTER PROCEDURE dbo.usp_RecycleFreedRunPartition
@@ -82,7 +82,7 @@ namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations
                         N''ALTER PARTITION FUNCTION '' + QUOTENAME(@PartitionFunction) +
                         N''() MERGE RANGE ('' + CAST(@OldRunId AS varchar(11)) + N'');'';
 
-                    EXEC (@merge);       -- execute the fully‑assembled string
+                    EXEC (@merge);       -- execute the fully-assembled string
                 END
                 ');
                 ");

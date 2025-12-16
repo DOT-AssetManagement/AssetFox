@@ -1,4 +1,4 @@
-﻿namespace BridgeCareCore.Models.Validation
+namespace AssetFoxCore.Models.Validation
 {
     public class CriterionValidationResult : ValidationResult
     {

@@ -1,22 +1,22 @@
-﻿using System.Data;
+using System.Data;
 using Xunit;
 using Moq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Controllers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
-using BridgeCareCore.Utils;
+using AssetFoxCore.Utils;
 using Microsoft.AspNetCore.Authorization;
-using BridgeCareCoreTests.Helpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
+using AssetFoxCoreTests.Helpers;
+using AssetFox.Core.UnitTestsCore.Tests;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class DataSourceControllerTests
     {
@@ -312,11 +312,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy("ViewDataSourceClaim",
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.DataSourceViewAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.DataSourceViewAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var controller = CreateTestController(roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator }));
+            var controller = CreateTestController(roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator }));
             // Act
             var allowed = await authorizationService.AuthorizeAsync(controller.User, "ViewDataSourceClaim");
             // Assert
@@ -333,11 +333,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy("DeleteDataSourceClaim",
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.DataSourceModifyAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.DataSourceModifyAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var controller = CreateTestController(roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.ReadOnly }));
+            var controller = CreateTestController(roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.Esec, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.ReadOnly }));
             // Act
             var allowed = await authorizationService.AuthorizeAsync(controller.User, "DeleteDataSourceClaim");
             // Assert
@@ -353,11 +353,11 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy("ViewDataSourceClaim",
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.DataSourceViewAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.DataSourceViewAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var controller = CreateTestController(roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator }));
+            var controller = CreateTestController(roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator }));
             // Act
             var allowed = await authorizationService.AuthorizeAsync(controller.User, "ViewDataSourceClaim");
             // Assert

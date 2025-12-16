@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
 
-namespace BridgeCareCore.Models
+namespace AssetFoxCore.Models
 {
     public class CommittedProjectFillTreatmentReturnValuesModel
     {

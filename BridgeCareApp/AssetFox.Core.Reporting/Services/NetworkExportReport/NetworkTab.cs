@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
 
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.NetworkExportReport
+namespace AssetFox.Core.Reporting.Services.NetworkExportReport
 {
     public class NetworkTab
     {

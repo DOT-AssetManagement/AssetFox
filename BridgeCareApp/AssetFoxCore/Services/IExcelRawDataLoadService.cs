@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 using System;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public interface IExcelRawDataLoadService
     {

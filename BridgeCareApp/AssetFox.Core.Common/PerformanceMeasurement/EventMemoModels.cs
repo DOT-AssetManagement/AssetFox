@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.Common.PerformanceMeasurement
+namespace AssetFox.Core.Common.PerformanceMeasurement
 {
     public static class EventMemoModels
     {

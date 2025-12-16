@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using BridgeCareCore.Models;
+using System.Collections.Generic;
+using AssetFoxCore.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace BridgeCareCore.Security.Interfaces
+namespace AssetFoxCore.Security.Interfaces
 {
     public interface IEsecSecurity
     {

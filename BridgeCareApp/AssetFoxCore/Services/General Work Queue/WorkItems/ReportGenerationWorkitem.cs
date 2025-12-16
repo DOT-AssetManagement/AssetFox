@@ -1,22 +1,22 @@
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.WorkQueue;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.WorkQueue;
 using System.Threading;
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using AppliedResearchAssociates.iAM.Reporting;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Hubs;
-using BridgeCareCore.Models;
+using AssetFox.Core.Reporting;
+using AssetFox.Core.Common;
+using AssetFox.Core.Hubs;
+using AssetFoxCore.Models;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using BridgeCareCore.Controllers;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Reporting.Logging;
+using AssetFox.Core.DTOs.Enums;
+using AssetFoxCore.Controllers;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public record ReportGenerationWorkitem(JObject parameters, string UserId, string scenarioName, string reportName) : IWorkSpecification<WorkQueueMetadata>
 

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.CellData;
-using AppliedResearchAssociates.iAM.Data.Helpers;
+using AssetFox.Core.Data.ExcelDatabaseStorage.CellData;
+using AssetFox.Core.Data.Helpers;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Visitors
+namespace AssetFox.Core.Data.ExcelDatabaseStorage.Visitors
 {
     public class ExcelDatumJsonSerializationVisitor : IExcelCellDatumVisitor<Unit, string>
     {

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.TestHelpers.Assertions
+namespace AssetFox.Core.TestHelpers.Assertions
 {
     public static class DateTimeAssertions
     {

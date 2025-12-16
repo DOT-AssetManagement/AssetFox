@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.DTOs;
-using Network = AppliedResearchAssociates.iAM.Data.Networking.Network;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs;
+using Network = AssetFox.Core.Data.Networking.Network;
 using System.Threading;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Common.Logging;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Common.Logging;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     public interface INetworkRepository
     {

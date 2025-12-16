@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.Testing
+namespace AssetFox.Testing
 {
     public class ChoiceSerializationTestSubject
     {

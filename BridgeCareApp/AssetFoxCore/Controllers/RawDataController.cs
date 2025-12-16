@@ -1,23 +1,23 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using BridgeCareCore.Controllers.BaseController;
-using BridgeCareCore.Security.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BridgeCareCore.Services;
+using AssetFoxCore.Services;
 using System.Data;
 using OfficeOpenXml;
 
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
 
     [Route("api/[controller]")]
-    public class RawDataController : BridgeCareCoreBaseController
+    public class RawDataController : AssetFoxCoreBaseController
     {
         public const string RawDataError = "Raw Data Error";
 

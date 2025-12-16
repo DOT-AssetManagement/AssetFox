@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
+using AssetFox.Core.Data.Aggregation;
 using OfficeOpenXml.FormulaParsing.Utilities;
 
-namespace AppliedResearchAssociates.iAM.Data.Attributes
+namespace AssetFox.Core.Data.Attributes
 {
     public abstract class Attribute : IEquatable<Attribute>
     {

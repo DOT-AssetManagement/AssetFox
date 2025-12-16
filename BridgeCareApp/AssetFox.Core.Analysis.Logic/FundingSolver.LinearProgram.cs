@@ -1,7 +1,7 @@
-﻿using Google.OrTools.LinearSolver;
+using Google.OrTools.LinearSolver;
 using static System.Math;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Logic;
+namespace AssetFox.Core.Analysis.Logic;
 
 partial record FundingSolver
 {

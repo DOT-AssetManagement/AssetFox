@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.Validation;
+using System;
+using AssetFox.Validation;
 
-namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     public sealed class BudgetPercentagePair : IValidator
     {

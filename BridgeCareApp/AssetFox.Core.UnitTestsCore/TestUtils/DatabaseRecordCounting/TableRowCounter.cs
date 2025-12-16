@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils.DatabaseRecordCounting;
+using AssetFox.Core.UnitTestsCore.TestUtils.DatabaseRecordCounting;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -15,7 +15,7 @@ using NLog.Layouts;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using Org.BouncyCastle.Tsp;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
+namespace AssetFox.Core.UnitTestsCore.TestUtils
 {
     //https://stackoverflow.com/questions/1443704/query-to-list-number-of-records-in-each-table-in-a-database
     public static class TableRowCounter

@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BridgeCareCore.Interfaces.DefaultData;
-using BridgeCareCoreTests.Tests.AnalysisMethod;
+using AssetFoxCore.Interfaces.DefaultData;
+using AssetFoxCoreTests.Tests.AnalysisMethod;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public static class AnalysisDefaultDataServiceMocks
     {

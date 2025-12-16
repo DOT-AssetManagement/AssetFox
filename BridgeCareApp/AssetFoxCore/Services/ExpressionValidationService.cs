@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
-using AppliedResearchAssociates.CalculateEvaluate;
-using AppliedResearchAssociates.iAM;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models.Validation;
+using AssetFox.CalculateEvaluate;
+using AssetFox.iAM;
+using AssetFox.Core.Common;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models.Validation;
 using MoreLinq;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public class ExpressionValidationService : IExpressionValidationService
     {

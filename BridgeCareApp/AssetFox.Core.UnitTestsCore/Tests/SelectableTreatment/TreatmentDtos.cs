@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
 
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment
+namespace AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment
 {
     public static class TreatmentDtos
     {

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 
-namespace BridgeCareCore.Services;
+namespace AssetFoxCore.Services;
 
 public sealed class AnalysisEventLoggingService : IAnalysisEventLoggingService
 {

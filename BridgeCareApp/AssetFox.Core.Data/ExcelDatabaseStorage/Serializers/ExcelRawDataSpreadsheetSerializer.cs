@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using AppliedResearchAssociates.iAM.Data.Helpers;
+using AssetFox.Core.Data.Helpers;
 
-namespace AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers
+namespace AssetFox.Core.Data.ExcelDatabaseStorage.Serializers
 {
     public static class ExcelRawDataSpreadsheetSerializer
     {

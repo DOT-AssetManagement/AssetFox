@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Models.Validation
+namespace AssetFoxCore.Models.Validation
 {
     public class ValidationParameter
     {

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using OfficeOpenXml;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 
 
-namespace BridgeCareCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
 {
     public class CommittedProjectsTemplateGenerator
     {

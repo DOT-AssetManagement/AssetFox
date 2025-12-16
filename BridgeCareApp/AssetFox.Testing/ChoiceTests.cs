@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using Xunit;
 
-namespace AppliedResearchAssociates.Testing
+namespace AssetFox.Testing
 {
     public class ChoiceTests
     {

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Hubs.Interfaces
+namespace AssetFox.Core.Hubs.Interfaces
 {
     public interface IHubService
     {

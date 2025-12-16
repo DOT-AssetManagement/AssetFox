@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Reporting.Services;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSDistressProgressionReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Reporting.Services;
+using AssetFox.Core.Reporting.Services.PAMSDistressProgressionReport;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public class PAMSDistressProgressionReport : IReport
     {

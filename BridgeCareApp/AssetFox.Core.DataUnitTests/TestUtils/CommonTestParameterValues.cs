@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.TestUtils
+namespace AssetFox.Core.DataUnitTests.TestUtils
 {
     public static class CommonTestParameterValues
     {

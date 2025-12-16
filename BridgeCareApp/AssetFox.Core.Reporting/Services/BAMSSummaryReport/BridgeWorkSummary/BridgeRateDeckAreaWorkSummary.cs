@@ -1,16 +1,16 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
+using System.Collections.Generic;
+using AssetFox.Core.Analysis.Engine;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using AppliedResearchAssociates.iAM.Reporting.Models.BAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent;
+using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent;
 using System.Linq;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using System;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
     public class BridgeRateDeckAreaWorkSummary
     {

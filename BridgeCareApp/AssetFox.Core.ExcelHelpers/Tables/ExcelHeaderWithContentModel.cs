@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers.Tables
+namespace AssetFox.Core.ExcelHelpers.Tables
 {
     public class ExcelHeaderWithContentModel<TData>
     {

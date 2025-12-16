@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\iAM-legacy\CalculateEvaluate\CalculateEvaluate.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.CalculateEvaluate\AppliedResearchAssociates.CalculateEvaluate.csproj" />
+    <ProjectReference Include="..\AssetFox.CalculateEvaluate\AssetFox.CalculateEvaluate.csproj" />
   </ItemGroup>
 
 </Project>

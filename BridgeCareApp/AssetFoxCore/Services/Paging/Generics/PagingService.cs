@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using BridgeCareCore.Models;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFoxCore.Models;
 
-namespace BridgeCareCore.Services.Paging.Generics
+namespace AssetFoxCore.Services.Paging.Generics
 {
     public abstract class PagingService<T, Y> : BasePagingService<T>
         where T : BaseDTO

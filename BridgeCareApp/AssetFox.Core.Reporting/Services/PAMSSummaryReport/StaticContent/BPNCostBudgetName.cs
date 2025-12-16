@@ -1,7 +1,7 @@
-﻿
+
 using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.StaticContent
 {
     public enum BPNCostBudgetName
     {

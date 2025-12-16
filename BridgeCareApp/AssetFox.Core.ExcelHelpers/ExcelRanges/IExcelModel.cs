@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.ExcelHelpers;
+using AssetFox.Core.ExcelHelpers;
 
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     /// <summary>A class that implements this interface represents a change
     /// to be made to a cell or group of cells in an Excel worksheet. The change

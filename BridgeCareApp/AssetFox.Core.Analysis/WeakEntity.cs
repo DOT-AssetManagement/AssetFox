@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AppliedResearchAssociates.iAM.Analysis;
+namespace AssetFox.Core.Analysis;
 
 /// <summary>
 ///     Kind of like a DDD entity, but the <see cref="Id"/> property here is NOT used to

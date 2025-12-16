@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace AppliedResearchAssociates.PciDistress.Testing
+namespace AssetFox.PciDistress.Testing
 {
     public class PciDistressCharacterizationTests
     {

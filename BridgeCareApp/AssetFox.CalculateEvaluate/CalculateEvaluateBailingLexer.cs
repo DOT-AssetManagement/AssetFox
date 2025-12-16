@@ -1,6 +1,6 @@
-﻿using Antlr4.Runtime;
+using Antlr4.Runtime;
 
-namespace AppliedResearchAssociates.CalculateEvaluate
+namespace AssetFox.CalculateEvaluate
 {
     internal sealed class CalculateEvaluateBailingLexer : CalculateEvaluateLexer
     {

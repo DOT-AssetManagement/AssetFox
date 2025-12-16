@@ -1,6 +1,6 @@
-﻿using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Running;
 
-namespace AppliedResearchAssociates.PciDistress.Benchmarks
+namespace AssetFox.PciDistress.Benchmarks
 {
     internal static class Program
     {

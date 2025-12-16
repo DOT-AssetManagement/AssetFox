@@ -1,7 +1,7 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services.SimulationCloning
+namespace AssetFoxCore.Services.SimulationCloning
 {
     public class FundingCalculationInputCloner
     {

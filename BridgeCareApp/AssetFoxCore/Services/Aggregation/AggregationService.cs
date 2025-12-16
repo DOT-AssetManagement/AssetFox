@@ -6,23 +6,23 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.Data.Helpers;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
+using AssetFox.Core.Common;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Aggregation;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.Data.Helpers;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.Migrations;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.ContentModel;
-using Writer = System.Threading.Channels.ChannelWriter<BridgeCareCore.Services.Aggregation.AggregationStatusMemo>;
+using Writer = System.Threading.Channels.ChannelWriter<AssetFoxCore.Services.Aggregation.AggregationStatusMemo>;
 
-namespace BridgeCareCore.Services.Aggregation
+namespace AssetFoxCore.Services.Aggregation
 {
     public class AggregationService : IAggregationService
     {

@@ -1,21 +1,21 @@
-﻿using System.Security.Claims;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Interfaces.DefaultData;
-using BridgeCareCore.Security.Interfaces;
-using BridgeCareCore.Services;
-using BridgeCareCore.Utils;
-using BridgeCareCore.Utils.Interfaces;
-using BridgeCareCoreTests.Tests.General_Work_Queue;
-using BridgeCareCoreTests.Tests.PerformanceCurve;
-using BridgeCareCoreTests.Tests.SecurityUtilsClasses;
+using System.Security.Claims;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Interfaces.DefaultData;
+using AssetFoxCore.Security.Interfaces;
+using AssetFoxCore.Services;
+using AssetFoxCore.Utils;
+using AssetFoxCore.Utils.Interfaces;
+using AssetFoxCoreTests.Tests.General_Work_Queue;
+using AssetFoxCoreTests.Tests.PerformanceCurve;
+using AssetFoxCoreTests.Tests.SecurityUtilsClasses;
 using Microsoft.AspNetCore.Http;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests { 
+namespace AssetFoxCoreTests.Tests { 
     public static class PerformanceCurveControllerTestSetup
     {
         private static readonly Mock<IClaimHelper> _mockClaimHelper = new();

@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAMCore
+namespace AssetFox.AFCore
 {
     internal static class MessageStrings
     {

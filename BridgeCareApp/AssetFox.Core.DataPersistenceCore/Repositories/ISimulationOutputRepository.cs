@@ -1,13 +1,13 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Common;
+using System;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Common;
 using System.Threading;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.DTOs;
 using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories
+namespace AssetFox.Core.DataPersistenceCore.Repositories
 {
     public interface ISimulationOutputRepository
     {

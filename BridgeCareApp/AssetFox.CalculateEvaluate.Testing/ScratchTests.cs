@@ -1,6 +1,6 @@
-﻿using Xunit;
+using Xunit;
 
-namespace AppliedResearchAssociates.CalculateEvaluate.Testing
+namespace AssetFox.CalculateEvaluate.Testing
 {
     public class ScratchTests
     {

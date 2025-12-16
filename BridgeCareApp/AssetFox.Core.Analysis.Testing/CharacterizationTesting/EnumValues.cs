@@ -1,6 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 
-namespace AppliedResearchAssociates.iAM.Analysis.Testing.CharacterizationTesting;
+namespace AssetFox.Core.Analysis.Testing.CharacterizationTesting;
 
 public class EnumValues<T> : IEnumerable<object[]> where T : struct, Enum
 {

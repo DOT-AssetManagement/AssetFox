@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.StaticContent;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.StaticContent;
 using OfficeOpenXml;
-using CurrentCell = AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport.CurrentCell;
+using CurrentCell = AssetFox.Core.Reporting.Models.PAMSSummaryReport.CurrentCell;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummaryByBudget
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummaryByBudget
 {
     public class PavementWorkSummaryByBudget
     {

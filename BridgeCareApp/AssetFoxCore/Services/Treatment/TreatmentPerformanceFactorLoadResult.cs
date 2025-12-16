@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.DTOs;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services.Treatment
+namespace AssetFoxCore.Services.Treatment
 {
     public class TreatmentPerformanceFactorLoadResult
     {

@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Data;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Attributes;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using Attribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage.Serializers;
-using BridgeCareCore.Models;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Attributes;
+using AssetFox.Core.DTOs.Abstract;
+using Attribute = AssetFox.Core.Data.Attributes.Attribute;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
+using AssetFoxCore.Models;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public static class AttributeConnectionBuilder
     {

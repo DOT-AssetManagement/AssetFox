@@ -1,6 +1,6 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Logging
+namespace AssetFox.Core.Reporting.Logging
 {
     public class ErrorDetails
     {

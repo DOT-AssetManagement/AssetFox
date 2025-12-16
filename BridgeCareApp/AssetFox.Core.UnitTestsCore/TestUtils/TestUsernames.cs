@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils
+namespace AssetFox.Core.UnitTestsCore.TestUtils
 {
     public static class TestUsernames
     {

@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.Data.ExcelDatabaseStorage;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.Data.ExcelDatabaseStorage;
+using AssetFox.Core.DTOs;
 
-namespace BridgeCareCore.Services
+namespace AssetFoxCore.Services
 {
     public interface IAttributeImportService
     {

@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-using BridgeCareCore.Models.DefaultData;
+using System.Threading.Tasks;
+using AssetFoxCore.Models.DefaultData;
 
-namespace BridgeCareCore.Interfaces.DefaultData
+namespace AssetFoxCore.Interfaces.DefaultData
 {
     public interface IInvestmentDefaultDataService
     {

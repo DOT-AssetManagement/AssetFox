@@ -1,28 +1,28 @@
 using System;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Controllers.BaseController;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using BridgeCareCore.Security.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Security.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BridgeCareCore.Security;
+using AssetFoxCore.Security;
 using Humanizer;
 using System.Data;
 using System.Drawing;
-using static BridgeCareCore.Security.SecurityConstants;
+using static AssetFoxCore.Security.SecurityConstants;
 using System.IO;
 using NetTopologySuite.Operation.Buffer;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
 
     [Route("api/[controller]")]
     [ApiController]
-    public class AdminSiteSettingsController : BridgeCareCoreBaseController
+    public class AdminSiteSettingsController : AssetFoxCoreBaseController
     {
         public const string AdminSiteSettingsError = "Admin Site Settings Error";
 

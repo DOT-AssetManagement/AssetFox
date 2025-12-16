@@ -1,31 +1,31 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Common.Logging;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Hubs;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Reporting.Models;
-using AppliedResearchAssociates.iAM.Reporting.Services;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.CountySummary;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.GraphTabs;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PamsData;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.SectionSummary;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.Parameters;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummary;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PavementWorkSummaryByBudget;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.ShortNameGlossary;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.UnfundedPavementProjects;
-using BridgeCareCore.Services;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Reporting.Models;
+using AssetFox.Core.Reporting.Services;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.CountySummary;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.GraphTabs;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.PamsData;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.SectionSummary;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.Parameters;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummaryByBudget;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.ShortNameGlossary;
+using AssetFox.Core.Reporting.Services.PAMSSummaryReport.UnfundedPavementProjects;
+using AssetFoxCore.Services;
 using OfficeOpenXml;
 
-namespace AppliedResearchAssociates.iAM.Reporting
+namespace AssetFox.Core.Reporting
 {
     public class PAMSSummaryReport : IReport
     {

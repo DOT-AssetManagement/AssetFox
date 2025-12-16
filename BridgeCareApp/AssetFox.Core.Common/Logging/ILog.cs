@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.Common
+namespace AssetFox.Core.Common
 {
     public interface ILog
     {

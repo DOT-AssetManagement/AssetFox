@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore
+namespace AssetFox.Core.DataPersistenceCore
 {
     public static class DataPersistenceConstants
     {

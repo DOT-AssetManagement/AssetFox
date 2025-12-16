@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace BridgeCareCore.Models
+namespace AssetFoxCore.Models
 {
     public class AttributeSelectValuesResult
     {

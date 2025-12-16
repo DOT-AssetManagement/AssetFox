@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
+using System.Collections.Generic;
+using AssetFox.Core.ExcelHelpers;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.BAMSSummaryReport.ShortNameGlossary
+namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.ShortNameGlossary
 {
     public static class ShortNameGlossaryModels
     {

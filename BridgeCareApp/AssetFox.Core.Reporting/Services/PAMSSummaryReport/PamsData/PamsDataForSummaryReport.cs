@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.ExcelHelpers;
-using AppliedResearchAssociates.iAM.Reporting.Models.PAMSSummaryReport;
-using AppliedResearchAssociates.iAM.Reporting.Services.PAMSAuditReport;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.ExcelHelpers;
+using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
+using AssetFox.Core.Reporting.Services.PAMSAuditReport;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Services.PAMSSummaryReport.PamsData
+namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PamsData
 {
     public class PamsDataForSummaryReport
     {

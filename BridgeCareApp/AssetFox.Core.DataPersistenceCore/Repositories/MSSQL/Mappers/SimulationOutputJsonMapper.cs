@@ -1,9 +1,9 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Enums;
-using AppliedResearchAssociates.iAM.DTOs;
+using System;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Enums;
+using AssetFox.Core.DTOs;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Mappers;
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
 
 public static class SimulationOutputJsonMapper
 {

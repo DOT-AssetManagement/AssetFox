@@ -1,8 +1,8 @@
-﻿using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Models;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Models;
 using System;
 
-namespace BridgeCareCore.Interfaces
+namespace AssetFoxCore.Interfaces
 {
     public interface IGeneralWorkQueueService
     {

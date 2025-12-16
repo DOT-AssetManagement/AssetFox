@@ -1,8 +1,8 @@
-﻿using System;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Migrations;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
+using System;
+using AssetFox.Core.DataPersistenceCore.Migrations;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.TargetConditionGoal
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.TargetConditionGoal
 {
     public class ScenarioTargetConditionGoalEntity : ConditionGoalEntity
     {

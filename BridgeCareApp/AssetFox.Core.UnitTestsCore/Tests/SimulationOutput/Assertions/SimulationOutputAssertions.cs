@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.TestHelpers.Extensions;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.TestHelpers.Extensions;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Newtonsoft.Json;
-using AppliedResearchAssociates.iAM.Common;
+using AssetFox.Core.Common;
 
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Tests
+namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public static class SimulationOutputAssertions
     {

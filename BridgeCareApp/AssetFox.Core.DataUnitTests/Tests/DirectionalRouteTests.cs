@@ -1,8 +1,8 @@
-﻿using Xunit;
+using Xunit;
 using Moq;
-using AppliedResearchAssociates.iAM.Data;
+using AssetFox.Core.Data;
 
-namespace AppliedResearchAssociates.iAM.DataUnitTests.Tests
+namespace AssetFox.Core.DataUnitTests.Tests
 {
     public class DirectionalRouteTests
     {

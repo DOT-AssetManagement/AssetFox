@@ -1,4 +1,4 @@
-namespace AppliedResearchAssociates.iAM.ExcelHelpers
+namespace AssetFox.Core.ExcelHelpers
 {
     /// <summary>A region model, together with its location in the worksheet.</summary>
     public class AnchoredExcelRegionModel: IExcelWorksheetContentModel

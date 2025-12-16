@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
 
-namespace AppliedResearchAssociates.iAM.UnitTestsCore.Extensions
+namespace AssetFox.Core.UnitTestsCore.Extensions
 {
     public static class MockExtensions
     {

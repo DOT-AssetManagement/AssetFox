@@ -1,22 +1,22 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using BridgeCareCore.Controllers.BaseController;
-using AppliedResearchAssociates.iAM.Hubs;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models.Validation;
-using BridgeCareCore.Security.Interfaces;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFoxCore.Controllers.BaseController;
+using AssetFox.Core.Hubs;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models.Validation;
+using AssetFoxCore.Security.Interfaces;
+using AssetFox.Core.Hubs.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using AppliedResearchAssociates.CalculateEvaluate;
+using AssetFox.CalculateEvaluate;
 
-namespace BridgeCareCore.Controllers
+namespace AssetFoxCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ExpressionValidationController : BridgeCareCoreBaseController
+    public class ExpressionValidationController : AssetFoxCoreBaseController
     {
         public const string ExpressionValidationError = "Expression Validation Error";
 

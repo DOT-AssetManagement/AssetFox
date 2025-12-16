@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.Analysis.Engine;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Common.PerformanceMeasurement;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.Common;
+using AssetFox.Core.Common.PerformanceMeasurement;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace AppliedResearchAssociates.iAM.StressTesting
+namespace AssetFox.Core.StressTesting
 {
     public class SimulationOutputRepositoryStressTests
     {

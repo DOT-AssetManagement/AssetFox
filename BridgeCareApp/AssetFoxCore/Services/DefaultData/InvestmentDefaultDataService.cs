@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
-using BridgeCareCore.Interfaces.DefaultData;
-using BridgeCareCore.Models.DefaultData;
+using AssetFoxCore.Interfaces.DefaultData;
+using AssetFoxCore.Models.DefaultData;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace BridgeCareCore.Services.DefaultData
+namespace AssetFoxCore.Services.DefaultData
 {
     public class InvestmentDefaultDataService : IInvestmentDefaultDataService
     {

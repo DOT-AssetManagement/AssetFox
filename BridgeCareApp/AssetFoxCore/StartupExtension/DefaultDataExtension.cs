@@ -1,8 +1,8 @@
-﻿using BridgeCareCore.Interfaces.DefaultData;
-using BridgeCareCore.Services.DefaultData;
+using AssetFoxCore.Interfaces.DefaultData;
+using AssetFoxCore.Services.DefaultData;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BridgeCareCore.StartupExtension
+namespace AssetFoxCore.StartupExtension
 {
     public static class DefaultDataExtension
     {

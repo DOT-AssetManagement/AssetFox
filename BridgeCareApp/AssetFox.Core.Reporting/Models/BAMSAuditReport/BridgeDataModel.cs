@@ -1,6 +1,6 @@
-﻿using AppliedResearchAssociates.iAM.Analysis.Engine;
+using AssetFox.Core.Analysis.Engine;
 
-namespace AppliedResearchAssociates.iAM.Reporting.Models.BAMSAuditReport
+namespace AssetFox.Core.Reporting.Models.BAMSAuditReport
 {
     public class BridgeDataModel
     {

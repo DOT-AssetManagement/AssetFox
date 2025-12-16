@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -13,7 +13,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\AppliedResearchAssociates.iAM.TestHelpers\testConnections.json" Link="testConnections.json">
+		<None Include="..\AssetFox.Core.TestHelpers\testConnections.json" Link="testConnections.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
@@ -31,9 +31,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\AppliedResearchAssociates.iAM.DataUnitTests\AppliedResearchAssociates.iAM.DataUnitTests.csproj" />
-		<ProjectReference Include="..\AppliedResearchAssociates.iAM.UnitTestsCore\AppliedResearchAssociates.iAM.UnitTestsCore.csproj" />
-		<ProjectReference Include="..\BridgeCareCore\BridgeCareCore.csproj" />
+		<ProjectReference Include="..\AssetFox.Core.DataUnitTests\AssetFox.Core.DataUnitTests.csproj" />
+		<ProjectReference Include="..\AssetFox.Core.UnitTestsCore\AssetFox.Core.UnitTestsCore.csproj" />
+		<ProjectReference Include="..\AssetFoxCore\AssetFoxCore.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
