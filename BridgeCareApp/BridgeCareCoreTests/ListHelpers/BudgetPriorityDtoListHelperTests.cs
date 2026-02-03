@@ -1,10 +1,10 @@
-﻿using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Services;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Services;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using Xunit;
 
-namespace BridgeCareCoreTests.ListHelpers
+namespace AssetFoxCoreTests.ListHelpers
 {
     public class BudgetPriorityDtoListHelperTests
     {

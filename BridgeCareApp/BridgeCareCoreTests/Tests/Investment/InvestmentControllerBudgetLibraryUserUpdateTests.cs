@@ -1,13 +1,13 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.UnitTestsCore.Extensions;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests.Helpers;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class InvestmentControllerBudgetLibraryUserUpdateTests
     {

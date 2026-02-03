@@ -1,0 +1,17 @@
+using System.Collections.Generic;
+using AssetFox.Core.Reporting.Interfaces;
+
+namespace AssetFox.Core.Reporting
+{
+    public interface IReportLookupLibrary
+    {
+        bool CanGenerateReport(string type);
+        IReport GetReport(
+            string reportName,
+            DataPersistenceCore.UnitOfWork.UnitOfDataPersistenceWork _dataRepository,
+            DTOs.ReportIndexDTO results,
+            Hubs.Interfaces.IHubService _hubService,
+            string suffix = "");
+        IList<IReportFactory> ReportList { get; }
+    }
+}

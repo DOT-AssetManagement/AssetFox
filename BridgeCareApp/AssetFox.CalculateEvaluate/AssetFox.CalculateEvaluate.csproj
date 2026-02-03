@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AssetFox.Choice\AssetFox.Choice.csproj" />
+    <ProjectReference Include="..\AssetFox.Comparison\AssetFox.Comparison.csproj" />
+    <ProjectReference Include="..\AssetFox\AssetFox.csproj" />
+  </ItemGroup>
+
+</Project>

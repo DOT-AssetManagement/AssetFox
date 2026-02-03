@@ -1,18 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests.Helpers;
-using static BridgeCareCore.Security.SecurityConstants;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests.Helpers;
+using static AssetFoxCore.Security.SecurityConstants;
 using Xunit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 
-namespace BridgeCareCoreTests.Tests.AnalysisMethod
+namespace AssetFoxCoreTests.Tests.AnalysisMethod
 {
     public class AnalysisMethodAuthorizationTests
     {
@@ -29,7 +29,7 @@ namespace BridgeCareCoreTests.Tests.AnalysisMethod
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.AnalysisMethodViewAnyAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.AnalysisMethodViewAnyAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
@@ -51,7 +51,7 @@ namespace BridgeCareCoreTests.Tests.AnalysisMethod
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.AnalysisMethodModifyPermittedAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.AnalysisMethodModifyPermittedAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
@@ -72,11 +72,11 @@ namespace BridgeCareCoreTests.Tests.AnalysisMethod
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.AnalysisMethodViewAnyAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.AnalysisMethodViewAnyAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
-            var claims = roleClaimsMapper.GetClaims(BridgeCareCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Administrator });
+            var claims = roleClaimsMapper.GetClaims(AssetFoxCore.Security.SecurityConstants.SecurityTypes.B2C, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Administrator });
             var user = ClaimsPrincipals.WithNameClaims(claims);
             // Act
             var allowed = await authorizationService.AuthorizeAsync(user, PolicyName);

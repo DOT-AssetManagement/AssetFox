@@ -1,0 +1,19 @@
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs.Enums;
+
+namespace AssetFox.Core.Reporting.Models.PAMSSummaryReport
+{
+    public class YearsData
+    {
+        public int Year { get; set; }
+
+        public string TreatmentName { get; set; }
+        public TreatmentCategory TreatmentCategory { get; set; }
+        public string AssetType { get; set; }
+        public int SurfaceId { get; set; }
+        public string ProjectSource { get; set; }
+
+        public double Amount { get; set; }
+        public bool isCommitted { get; set; } = false;
+    }
+}

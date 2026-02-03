@@ -1,0 +1,554 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using AssetFox.CalculateEvaluate;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
+using Microsoft.EntityFrameworkCore;
+using MoreLinq;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
+{
+    public class CommittedProjectRepository : ICommittedProjectRepository
+    {
+        private readonly UnitOfDataPersistenceWork _unitOfWork;
+
+        public CommittedProjectRepository(UnitOfDataPersistenceWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        }
+
+        public void GetSimulationCommittedProjects(Simulation simulation)
+        {
+            Guid guid = simulation.Id;
+            double noTreatmentDefaultCost = 0.0;
+            var selectableTreatmentRepository = _unitOfWork.SelectableTreatmentRepo;
+            var selectableTreatments = simulation.Treatments;
+
+            var simulationEntity = _unitOfWork.Context.Simulation.FirstOrDefault(_ => _.Id == simulation.Id)
+                ?? throw new RowNotInTableException("No simulation was found for the given scenario.");
+
+            var noTreatmentEntity = selectableTreatmentRepository.GetDefaultTreatment(simulation.Id)
+                ?? throw new RowNotInTableException("Simulation has no default treatments");
+
+            var assets = _unitOfWork.Context.MaintainableAsset
+            .Where(_ => _.NetworkId == simulation.Network.Id)
+            .Include(_ => _.MaintainableAssetLocation)
+            .ToList();
+
+            var investmentPlans = _unitOfWork.Context.InvestmentPlan
+                .Where(_ => _.SimulationId == simulation.Id)
+                .OrderBy(_ => _.FirstYearOfAnalysisPeriod)
+                .ToList() ?? throw new Exception($"No investment plan found for simulation {simulation.Id}");
+            int investmentStartYear = investmentPlans.Min(_ => _.FirstYearOfAnalysisPeriod);
+            int investmentEndYear = investmentPlans.Max(_ => _.FirstYearOfAnalysisPeriod + _.NumberOfYearsInAnalysisPeriod - 1);
+
+            var projects = _unitOfWork.Context.CommittedProject
+                .Include(_ => _.CommittedProjectLocation)
+                .Include(_ => _.ScenarioBudget)
+                .Where(_ => _.SimulationId == simulation.Id)
+                .OrderBy(_ => _.Year).ToList();
+
+            var keyPropertyNames = (List<string>)_unitOfWork.AdminSettingsRepo.GetKeyFields();
+
+            foreach (var project in projects)
+            {
+
+                if (project.Year < investmentStartYear || project.Year > investmentEndYear)
+                {
+                    throw new ArgumentOutOfRangeException($"The project year {project.Year} is out of the allowed range ({investmentStartYear}-{investmentEndYear}) for the scenario's investments.");
+                }
+
+                var asset = assets.FirstOrDefault(a => project.CommittedProjectLocation.ToDomain().MatchOn(a.MaintainableAssetLocation.ToDomain()));
+                if (asset != null)
+                {
+                    if (simulationEntity.NoTreatmentBeforeCommittedProjects)
+                    {
+                        var defaultNoTreatment = selectableTreatmentRepository.GetDefaultNoTreatment(simulation.Id);
+                        noTreatmentDefaultCost = GetDefaultNoTreatmentCost(defaultNoTreatment, asset.Id);
+                    }
+                    project.CreateCommittedProject(simulation, selectableTreatments, asset.Id, simulationEntity.NoTreatmentBeforeCommittedProjects, noTreatmentDefaultCost, noTreatmentEntity, keyPropertyNames);
+                }
+            }
+        }
+
+        public void SetCommittedProjectTemplate(Stream stream)
+        {
+            BinaryReader br = new BinaryReader(stream);
+            var fileSize = stream.Length;
+            var bytes = br.ReadBytes(Convert.ToInt32(fileSize));
+            br.Close();
+            stream.Close();
+
+            var existingComittedProjectTemplate = _unitOfWork.Context.CommittedProjectSettings.Where(_ => _.Key == "Committed Project Template").FirstOrDefault();
+            if (existingComittedProjectTemplate == null)
+                _unitOfWork.Context.CommittedProjectSettings.Add(new CommittedProjectSettingsEntity
+                {
+                    Key = "Committed Project Template",
+                    Value = string.Format(Convert.ToBase64String(bytes))
+                });
+            else
+            {
+                existingComittedProjectTemplate.Value = string.Format(Convert.ToBase64String(bytes));
+                _unitOfWork.Context.CommittedProjectSettings.Update(existingComittedProjectTemplate);
+            }
+            _unitOfWork.Context.SaveChanges();
+         }
+
+
+        public double GetDefaultNoTreatmentCost(TreatmentDTO treatment, Guid assetId)
+        {
+            double totalCost = 0.0;
+            treatment.Costs.ForEach(c =>
+            {
+                var compiler = new CalculateEvaluateCompiler();
+                var attributes = InstantiateCompilerAndGetExpressionAttributes(c.Equation.Expression, compiler);
+                var calculator = compiler.GetCalculator(c.Equation.Expression);
+                var scope = new CalculateEvaluateScope();
+
+                var aggResults = _unitOfWork.Context.AggregatedResult.AsNoTracking().Include(_ => _.Attribute)
+                    .Where(_ => _.MaintainableAssetId == assetId).ToList().Where(_ => attributes.Any(a => a.Id == _.AttributeId)).ToList();
+                var latestAggResults = new List<AggregatedResultEntity>();
+                foreach (var attr in attributes)
+                {
+                    var attrs = aggResults.Where(_ => _.AttributeId == attr.Id).ToList();
+                    if (attrs.Count == 0)
+                        continue;
+                    var latestYear = attrs.Max(_ => _.Year);
+                    var latestAggResult = attrs.FirstOrDefault(_ => _.Year == latestYear);
+                    latestAggResults.Add(latestAggResult);
+                }
+                latestAggResults.ForEach(_ =>
+                {
+                    if (_.Attribute.DataType == "NUMBER")
+                    {
+                        scope.SetNumber(_.Attribute.Name, _.NumericValue.Value);
+                    }
+                    else
+                    {
+                        scope.SetText(_.Attribute.Name, _.TextValue);
+                    }
+                });
+                var currentCost = calculator.Delegate(scope);
+                totalCost += currentCost;
+            });
+            return totalCost;
+        }
+
+        public string DownloadCommittedProjectTemplate()
+        {
+            try
+            {
+                return _unitOfWork.Context.CommittedProjectSettings.Where(_ => _.Key == "Committed Project Template").FirstOrDefault().Value;
+            }
+            catch (Exception e)
+            {
+                return "";
+            }
+        }
+
+        public string DownloadSelectedCommittedProjectTemplate(string filename)
+        {
+            try
+            {
+                return _unitOfWork.Context.CommittedProjectTemplates.Where(_ => _.Key == filename).FirstOrDefault().Value;
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+
+        public List<String> getUploadedCommittedProjectTemplates()
+        {
+            var names = _unitOfWork.Context.CommittedProjectTemplates
+                .Select(t => t.Key)
+                .ToList();
+
+            return names;
+        }
+
+        public void AddCommittedProjectTemplate(Stream stream, string filename)
+        {
+            BinaryReader br = new BinaryReader(stream);
+            var fileSize = stream.Length;
+            var bytes = br.ReadBytes(Convert.ToInt32(fileSize));
+            br.Close();
+            stream.Close();
+
+            var existingComittedProjectTemplate = _unitOfWork.Context.CommittedProjectTemplates.Where(_ => _.Key == filename).FirstOrDefault();
+            if (existingComittedProjectTemplate == null)
+                _unitOfWork.Context.CommittedProjectTemplates.Add(new CommittedProjectTreatmentEntity
+                {
+                    Key = filename,
+                    Value = string.Format(Convert.ToBase64String(bytes))
+                });
+            else
+            {
+                existingComittedProjectTemplate.Value = string.Format(Convert.ToBase64String(bytes));
+                _unitOfWork.Context.CommittedProjectTemplates.Update(existingComittedProjectTemplate);
+            }
+            _unitOfWork.Context.SaveChanges();
+        }
+
+        private List<AttributeEntity> InstantiateCompilerAndGetExpressionAttributes(string mergedCriteriaExpression, CalculateEvaluateCompiler compiler)
+        {
+            var modifiedExpression = mergedCriteriaExpression
+                    .Replace("[", "")
+                    .Replace("]", "")
+                    .Replace("@", "")
+                    .Replace("|", "'")
+                    .ToUpper();
+
+            var pattern = "\\[[^\\]]*\\]";
+            var rg = new Regex(pattern);
+            var match = rg.Matches(mergedCriteriaExpression);
+            var hashMatch = new HashSet<string>();
+            foreach (Match m in match)
+            {
+                hashMatch.Add(m.Value.Substring(1, m.Value.Length - 2));
+            }
+
+            var attributes = _unitOfWork.Context.Attribute.AsNoTracking()
+                .Where(_ => hashMatch.Contains(_.Name))
+                .Select(attribute => new AttributeEntity
+                {
+                    Id = attribute.Id,
+                    Name = attribute.Name,
+                    DataType = attribute.DataType
+                }).AsNoTracking().ToList();
+
+            attributes.ForEach(attribute =>
+            {
+                compiler.ParameterTypes[attribute.Name] = attribute.DataType == "NUMBER"
+                    ? CalculateEvaluateParameterType.Number
+                    : CalculateEvaluateParameterType.Text;
+            });
+
+            return attributes;
+        }
+
+        public List<SectionCommittedProjectDTO> GetSectionCommittedProjectDTOs(Guid simulationId)
+        {
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException("No simulation was found for the given scenario.");
+            }
+            
+            var networkKeyAttribute = GetNetworkKeyAttribute(simulationId);
+            var allProjectsInScenario = _unitOfWork.Context.CommittedProject.AsNoTracking()
+                .Where(_ => _.SimulationId == simulationId)
+                .Include(_ => _.ScenarioBudget)
+                .Include(_ => _.CommittedProjectLocation)
+                .Include(_=>_.Simulation.Network);
+
+            return allProjectsInScenario
+                .Where(_ => _.CommittedProjectLocation.Discriminator == DataPersistenceConstants.SectionLocation)
+                .Select(_ => (SectionCommittedProjectDTO)_.ToDTO(networkKeyAttribute))
+                .ToList();
+        }               
+
+        public List<BaseCommittedProjectDTO> GetCommittedProjectsForExport(Guid simulationId)
+        {
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException("No simulation was found for the given scenario.");
+            }
+
+            var networkKeyAttribute = GetNetworkKeyAttribute(simulationId);
+            return _unitOfWork.Context.CommittedProject
+                .Where(_ => _.SimulationId == simulationId)
+                .Include(_ => _.ScenarioBudget)
+                .Include(_ => _.CommittedProjectLocation)
+                .Include(_ => _.Simulation.Network)
+                .Select(_ => _.ToDTO(networkKeyAttribute))
+                .ToList();
+        }
+
+        public void SaveCommittedProjectChanges(UpsertAndDeleteModel<SectionCommittedProjectDTO> changes, Guid simulationId)
+        {
+            var projects = changes.AddedRows.Concat(changes.UpdateRows).ToList();
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException($"Unable to find simulation ID {simulationId} in database");
+            }
+            if (projects.Any(_ => _.ScenarioBudgetId == null))
+            {
+                throw new Exception("Committed projects with an empty budget cannot be saved");
+            }
+            // Test for existing budget
+            var budgetIds = _unitOfWork.Context.ScenarioBudget.AsNoTracking()
+                .Where(_ => _.SimulationId == simulationId)
+                .Select(_ => _.Id)
+                .ToList();
+
+            var badBudgets = projects
+                .Where(_ => _.ScenarioBudgetId != null
+                    && _.ScenarioBudgetId != Guid.Empty // Allow empty GUIDs
+                    && !budgetIds.Contains(_.ScenarioBudgetId.Value))
+                .ToList();
+
+            if (badBudgets.Any())
+            {
+                var budgetList = new StringBuilder();
+                badBudgets.ForEach(budget => budgetList.Append(budget.Id.ToString() + ", "));
+                throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}");
+            }
+
+            var attributes = _unitOfWork.Context.Attribute.AsNoTracking().ToList();
+            var keyAttr = GetNetworkKeyAttribute(simulationId);
+            var groupedCpByYearTreatAsset = projects.GroupBy(_ => _.Year.ToString() + _.Treatment + _.LocationKeys[keyAttr]).ToList();
+            if (groupedCpByYearTreatAsset.Count < projects.Count)
+            {
+                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset");
+            }
+            _unitOfWork.AsTransaction(() =>
+            {
+                DeleteCommittedProjects(changes.RowsForDeletion);
+                InsertcommittedProjects(changes.AddedRows, keyAttr, attributes);
+                UpdateCommittedProjects(changes.UpdateRows, keyAttr, attributes);
+            });
+        }
+
+        private void DeleteCommittedProjects(List<Guid> ids)
+        {
+            _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(cp => ids.Contains(cp.Id));
+            _unitOfWork.Context.DeleteAll<CommittedProjectLocationEntity>(cpl => ids.Contains(cpl.CommittedProjectId));
+        }
+
+        private void UpdateCommittedProjects(List<SectionCommittedProjectDTO> cp, string keyAttr, List<AttributeEntity> attributes)
+        {
+            
+            var committedProjectEntities = cp.Select(_ => _.ToEntity(attributes,keyAttr)).ToList();
+            
+            _unitOfWork.Context.UpdateAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
+        }
+
+        private void InsertcommittedProjects(List<SectionCommittedProjectDTO> cp, string keyAttr, List<AttributeEntity> attributes)
+        {
+            var committedProjectEntities = cp.Select(_ => _.ToEntity(attributes, keyAttr)).ToList();
+            var committedProjectLocations = committedProjectEntities.Select(_ => _.CommittedProjectLocation).ToList();
+            committedProjectLocations.ForEach(cpl => cpl.Id = Guid.NewGuid());
+
+            _unitOfWork.Context.AddAll(committedProjectEntities, _unitOfWork.UserEntity?.Id);
+            _unitOfWork.Context.AddAll(committedProjectLocations);
+        }
+
+        public void UpsertCommittedProjects(List<SectionCommittedProjectDTO> projects)
+        {
+            // Test for existing simulation
+            var simulationIds = projects.Select(_ => _.SimulationId).Distinct().ToList();
+            foreach (var simulation in simulationIds)
+            {
+                if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulation))
+                {
+                    throw new RowNotInTableException($"Unable to find simulation ID {simulation} in database");
+                }
+            }
+
+            if(projects.Any(_ => _.ScenarioBudgetId == null))
+            {
+                throw new Exception("Committed projects with an empty budget cannot be saved");
+            }
+
+            var keyAttrDict = new Dictionary<Guid, string>();
+            simulationIds.ForEach(_ =>
+            {
+                keyAttrDict[_] = GetNetworkKeyAttribute(_);
+            });
+
+            // Test for existing budget
+            var budgetIds = _unitOfWork.Context.ScenarioBudget.AsNoTracking()
+                .Where(_ => simulationIds.Contains(_.SimulationId))
+                .Select(_ => _.Id)
+                .ToList();
+
+            var badBudgets = projects
+                .Where(_ => _.ScenarioBudgetId != null
+                    && _.ScenarioBudgetId != Guid.Empty // Allow empty GUIDs
+                    && !budgetIds.Contains(_.ScenarioBudgetId.Value))
+                .ToList();
+
+            if (badBudgets.Any())
+            {
+                var budgetList = new StringBuilder();
+                badBudgets.ForEach(budget => budgetList.Append(budget.Id.ToString() + ", "));
+                throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}");
+            }
+
+            var attributes = _unitOfWork.Context.Attribute.AsNoTracking().ToList();
+            
+            // Create entities and assign IDs
+            var committedProjectEntities = projects.Select(p =>
+                {
+                    AssignIdWhenNull(p);
+                    return p.ToEntity(attributes, keyAttrDict[p.SimulationId]);
+                }).ToList();
+
+
+            committedProjectEntities.ForEach(cpe => cpe.CommittedProjectLocation.Id = Guid.NewGuid());
+
+            //var locations = committedProjectEntities.Select(_ => _.CommittedProjectLocation).ToList();
+
+            // Determine the committed projects that exist
+ 
+            var groupedCpByYearTreatAsset = projects.GroupBy(_ => _.Year.ToString() + _.Treatment + _.LocationKeys[keyAttrDict[_.SimulationId]]).ToList();
+            if(groupedCpByYearTreatAsset.Count < projects.Count)
+            {
+                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset");
+            }
+
+            _unitOfWork.AsTransaction(() =>
+            {
+                // Delete existing CommittedProjects and CommittedProjectLocations
+                foreach (var simulationId in simulationIds)
+                {
+                    _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(cp => cp.SimulationId == simulationId);
+                    _unitOfWork.Context.DeleteAll<CommittedProjectLocationEntity>(cpl => cpl.CommittedProject.SimulationId == simulationId);
+                }
+
+                var committedProjectLocations = committedProjectEntities.Select(_ => _.CommittedProjectLocation).ToList();
+                committedProjectLocations.ForEach(cpl => cpl.Id = Guid.NewGuid());
+
+                _unitOfWork.Context.AddAll(committedProjectEntities);
+                _unitOfWork.Context.AddAll(committedProjectLocations);
+            });
+        }
+
+        public void DeleteSimulationCommittedProjects(Guid simulationId)
+        {
+            if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
+            {
+                throw new RowNotInTableException("No simulation was found for the given scenario.");
+            }
+
+            if (!_unitOfWork.Context.CommittedProject.Any(_ => _.SimulationId == simulationId))
+            {
+                return;
+            }
+
+            _unitOfWork.AsTransaction(() =>
+                _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(_ => _.SimulationId == simulationId));
+
+            // Update last modified date
+            var simulationEntity = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
+            _unitOfWork.SimulationRepo.UpdateLastModifiedDate(simulationEntity);
+        }
+
+        public void DeleteSpecificCommittedProjects(List<Guid> projectIds)
+        {
+            var simulationIds = _unitOfWork.Context.CommittedProject
+                .Where(_ => projectIds.Contains(_.Id))
+                .Select(_ => _.SimulationId);
+
+            _unitOfWork.AsTransaction(() => 
+                _unitOfWork.Context.DeleteAll<CommittedProjectEntity>(_ => projectIds.Contains(_.Id)));
+              
+
+            // Update last modified date
+            foreach (var simulationId in simulationIds)
+            {
+                var simulationEntity = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
+                _unitOfWork.SimulationRepo.UpdateLastModifiedDate(simulationEntity);
+            }
+        }
+
+        public Guid GetSimulationId(Guid projectId)
+        {
+            var project = _unitOfWork.Context.CommittedProject.FirstOrDefault(_ => _.Id == projectId);
+            if (project == null)
+            {
+                throw new RowNotInTableException($"Unable to find project with ID {projectId}");
+            }
+            return project.SimulationId;
+        }
+
+        private void AssignIdWhenNull(BaseCommittedProjectDTO dto)
+        {
+            if (dto.Id == Guid.Empty) dto.Id = Guid.NewGuid();
+        }
+
+        private string GetNetworkKeyAttribute(Guid simulationId)
+        {
+            var simulation = _unitOfWork.Context.Simulation.AsNoTracking().Include(_ => _.Network).FirstOrDefault(_ => _.Id == simulationId);
+            return _unitOfWork.AttributeRepo.GetAttributeName(simulation.Network.KeyAttributeId);
+        }
+
+        public bool ValidateAllCommittedProjects(List<SectionCommittedProjectDTO> sectionCommittedProjectDtos, List<int> budgetYears, Dictionary<string, bool> keyAttributeValuesExists)
+        {
+            bool isValid = true;
+            budgetYears = [.. budgetYears.Order()];
+            var firstYear = budgetYears.First();
+            var lastYear = budgetYears.Last();
+
+            // check if brkey is valid
+            if (keyAttributeValuesExists.Any(_ => !_.Value))
+            {
+                return false;
+            }
+
+            foreach (var sectionCommittedProjectDto in sectionCommittedProjectDtos)
+            {
+                // Treatment
+                if (sectionCommittedProjectDto.Treatment.Length == 0 || sectionCommittedProjectDto.Treatment.Contains("Default Treatment"))
+                {
+                    isValid = false;
+                }
+
+                // year
+                var year = sectionCommittedProjectDto.Year;
+                if (year == 0
+                    || year.ToString().Length < 4
+                    || year < 1900)
+                {
+                    isValid = false;
+                }
+                if (budgetYears.Count > 0)
+                {                    
+                    if (year < firstYear || year > lastYear)
+                    {
+                        isValid = false;
+                    }
+                }
+
+                // cost
+                if (sectionCommittedProjectDto.Cost == 0
+                    || sectionCommittedProjectDto.Cost < 0)
+                {
+                    isValid = false;
+                }
+
+                // project source
+                if (sectionCommittedProjectDto.ProjectSource == ProjectSourceDTO.None)
+                {
+                    isValid = false;
+                }
+
+                // budget id
+                if (sectionCommittedProjectDto.ScenarioBudgetId == Guid.Empty || sectionCommittedProjectDto.ScenarioBudgetId == null)
+                {
+                    isValid = false;
+                }                
+
+                if (!isValid)
+                {
+                    return isValid;
+                }
+            }
+
+            return isValid;
+        }
+    }
+}

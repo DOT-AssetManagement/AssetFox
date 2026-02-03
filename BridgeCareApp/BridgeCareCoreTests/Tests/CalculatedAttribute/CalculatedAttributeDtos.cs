@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public static class CalculatedAttributeDtos
     {

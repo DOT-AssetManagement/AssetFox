@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AssetFox.Core.DataPersistenceCore\AssetFox.Core.DataPersistenceCore.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Hubs\AssetFox.Core.Hubs.csproj" />
+  </ItemGroup>
+
+</Project>

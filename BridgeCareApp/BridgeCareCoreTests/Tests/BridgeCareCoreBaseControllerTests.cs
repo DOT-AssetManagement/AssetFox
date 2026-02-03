@@ -1,24 +1,24 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers.BaseController;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers.BaseController;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
-    public class BridgeCareCoreBaseControllerTests
+    public class AssetFoxCoreBaseControllerTests
     {
-        private BridgeCareCoreBaseController CreateController(Mock<IUnitOfWork> unitOfWork, IHttpContextAccessor accessor)
+        private AssetFoxCoreBaseController CreateController(Mock<IUnitOfWork> unitOfWork, IHttpContextAccessor accessor)
         {
             var security = EsecSecurityMocks.Dbe;
             var hubService = HubServiceMocks.Default();
-            var controller = new BridgeCareCoreBaseController(
+            var controller = new AssetFoxCoreBaseController(
                 security,
                 unitOfWork.Object,
                 hubService,

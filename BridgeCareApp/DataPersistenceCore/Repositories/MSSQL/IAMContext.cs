@@ -1,7 +1,7 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.MSSQL
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
     public class IAMContext : DbContext
     {

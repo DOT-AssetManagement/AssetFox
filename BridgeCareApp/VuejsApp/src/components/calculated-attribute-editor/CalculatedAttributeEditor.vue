@@ -125,7 +125,7 @@
                                     flat
                                     icon
                                     v-if="hasAdminAccess">
-                                    <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
                             </template>
                         </v-text-field>
@@ -173,7 +173,7 @@
                                     flat
                                     icon
                                     v-if="hasAdminAccess">
-                                    <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
                             </template>
                         </v-text-field>
@@ -193,7 +193,7 @@
                                     flat
                                     icon
                                     v-if="hasAdminAccess">
-                                    <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
                             </template>
                         </v-text-field>

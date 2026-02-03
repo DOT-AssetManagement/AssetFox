@@ -1,25 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.UnitTestsCore;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.DefaultData;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.UnitTestsCore;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.DefaultData;
+using AssetFoxCoreTests.Helpers;
 using OfficeOpenXml;
 using Xunit;
-using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using AppliedResearchAssociates.iAM.Data;
+using IamAttribute = AssetFox.Core.Data.Attributes.Attribute;
+using AssetFox.Core.Data;
 using System.Collections.Immutable;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
+using AssetFox.Core.DataUnitTests.Tests;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public class InvestmentBudgetServiceIntegrationTests
     {

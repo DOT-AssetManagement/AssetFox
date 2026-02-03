@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.Hubs.Interfaces;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Services;
+using AssetFox.Core.Common;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Reporting.Logging;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Services;
 
-namespace BridgeCareCoreTests
+namespace AssetFoxCoreTests
 {
     public static class TestServices
     {

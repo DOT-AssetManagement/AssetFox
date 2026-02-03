@@ -1,0 +1,29 @@
+using System;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs;
+
+namespace AssetFoxCore.Models
+{
+    public class CalculatedAttributePagingSyncModel
+    {
+        public CalculatedAttributePagingSyncModel()
+        {
+            LibraryId = null;
+            IsModified = false;
+            UpdatedCalculatedAttributes = new List<CalculatedAttributeDTO>();
+            AddedPairs = new Dictionary<Guid, List<CalculatedAttributeEquationCriteriaPairDTO>>();
+            UpdatedPairs = new Dictionary<Guid, List<CalculatedAttributeEquationCriteriaPairDTO>>();
+            DeletedPairs = new Dictionary<Guid, List<Guid>>();
+            AddedCalculatedAttributes = new List<CalculatedAttributeDTO>();
+            DefaultEquations = new Dictionary<Guid, CalculatedAttributeEquationCriteriaPairDTO>();
+        }
+        public Guid? LibraryId { get; set; }
+        public bool IsModified { get; set; }
+        public List<CalculatedAttributeDTO> UpdatedCalculatedAttributes { get; set; }
+        public List<CalculatedAttributeDTO> AddedCalculatedAttributes { get; set; }
+        public Dictionary<Guid, List<CalculatedAttributeEquationCriteriaPairDTO>> AddedPairs { get; set; }
+        public Dictionary<Guid, List<CalculatedAttributeEquationCriteriaPairDTO>> UpdatedPairs { get; set; }
+        public Dictionary<Guid, List<Guid>> DeletedPairs { get; set; }
+        public Dictionary<Guid, CalculatedAttributeEquationCriteriaPairDTO> DefaultEquations { get; set; }
+    }
+}

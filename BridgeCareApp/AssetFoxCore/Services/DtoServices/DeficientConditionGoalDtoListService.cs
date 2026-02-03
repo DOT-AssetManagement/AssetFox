@@ -1,0 +1,28 @@
+using AssetFox.Core.DTOs;
+using System.Collections.Generic;
+using System;
+
+namespace AssetFoxCore.Services
+{
+    public static class DeficientConditionGoalDtoListService
+    {
+        public static void AddLibraryIdToScenarioDeficientConditionGoal(List<DeficientConditionGoalDTO> deficientConditionGoalDTOs, Guid? libraryId)
+        {
+            if (libraryId != null)
+            {
+                foreach (var dto in deficientConditionGoalDTOs)
+                {
+                    dto.LibraryId = (Guid)libraryId;
+                }
+            }
+        }
+
+        public static void AddModifiedToScenarioDeficientConditionGoal(List<DeficientConditionGoalDTO> deficientConditionGoalDTOs, bool IsModified)
+        {
+            foreach (var dto in deficientConditionGoalDTOs)
+            {
+                dto.IsModified = IsModified;
+            }
+        }
+    }
+}

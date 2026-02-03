@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using BridgeCareCore.Models.DefaultData;
+using AssetFox.Core.DTOs.Enums;
+using AssetFoxCore.Models.DefaultData;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public static class AnalysisDefaultDataObjects
     {

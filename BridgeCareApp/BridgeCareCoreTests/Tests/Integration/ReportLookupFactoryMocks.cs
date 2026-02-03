@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Reporting;
+using AssetFox.Core.Reporting;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public static class ReportLookupFactoryMocks
     {

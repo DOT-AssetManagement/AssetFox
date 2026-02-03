@@ -1,29 +1,29 @@
-using AppliedResearchAssociates.CalculateEvaluate;
-using AppliedResearchAssociates.iAM.Analysis;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataUnitTests;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Services.SummaryReport.CommittedProjects;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.CalculateEvaluate;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataUnitTests;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.Tests.TreatmentCost;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Services.SummaryReport.CommittedProjects;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using Xunit;
-using IamAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
+using IamAttribute = AssetFox.Core.Data.Attributes.Attribute;
 
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public class CommittedProjectServiceIntegrationTests
     {

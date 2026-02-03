@@ -1,18 +1,18 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using BridgeCareCore.Services;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFoxCore.Services;
 using Xunit;
 using Moq;
-using BridgeCareCore.Models;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
-using AppliedResearchAssociates.iAM.UnitTestsCore;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Treatment;
+using AssetFoxCore.Models;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.Extensions;
+using AssetFox.Core.UnitTestsCore;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFox.Core.UnitTestsCore.Tests.Treatment;
 
-namespace BridgeCareCoreTests.Tests.Treatment
+namespace AssetFoxCoreTests.Tests.Treatment
 {
     public class TreatmentPagingServiceTests
     {

@@ -1,9 +1,9 @@
-﻿using System.Security.Claims;
-using BridgeCareCore.Security;
-using BridgeCareCore.Utils;
+using System.Security.Claims;
+using AssetFoxCore.Security;
+using AssetFoxCore.Utils;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class RoleClaimsMapperTests
     {
@@ -24,7 +24,7 @@ namespace BridgeCareCoreTests.Tests
         public void ShouldReturnClaimsGetClaims()
         {
             var roleClaimsMapper = new RoleClaimsMapper();
-            var result = roleClaimsMapper.GetClaims(SecurityConstants.SecurityTypes.Esec, new List<string> { BridgeCareCore.Security.SecurityConstants.Role.Editor });
+            var result = roleClaimsMapper.GetClaims(SecurityConstants.SecurityTypes.Esec, new List<string> { AssetFoxCore.Security.SecurityConstants.Role.Editor });
 
             // Assert
             Assert.IsType<List<string>>(result);

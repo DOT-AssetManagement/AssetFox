@@ -1,13 +1,13 @@
-﻿using System.Security.Claims;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests.Helpers;
+using System.Security.Claims;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using static BridgeCareCore.Security.SecurityConstants;
+using static AssetFoxCore.Security.SecurityConstants;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class CashFlowRuleAuthorizationTests
     {
@@ -24,8 +24,8 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CashFlowViewAnyFromLibraryAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CashFlowViewPermittedFromLibraryAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CashFlowViewAnyFromLibraryAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CashFlowViewPermittedFromLibraryAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
@@ -48,8 +48,8 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CashFlowModifyPermittedFromScenarioAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CashFlowModifyAnyFromScenarioAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CashFlowModifyPermittedFromScenarioAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CashFlowModifyAnyFromScenarioAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
@@ -71,7 +71,7 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CashFlowModifyAnyFromLibraryAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CashFlowModifyAnyFromLibraryAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();
@@ -92,8 +92,8 @@ namespace BridgeCareCoreTests.Tests
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CashFlowViewAnyFromLibraryAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CashFlowViewPermittedFromLibraryAccess));
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CashFlowViewAnyFromLibraryAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CashFlowViewPermittedFromLibraryAccess));
                 });
             });
             var roleClaimsMapper = new RoleClaimsMapper();

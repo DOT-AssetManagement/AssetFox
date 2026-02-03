@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Models;
+using AssetFox.Core.DataPersistenceCore.Models;
 using Newtonsoft.Json;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.FileSystem
+namespace AssetFox.Core.DataPersistenceCore.Repositories.FileSystem
 {
     public class AttributeRepository : GenericFileSystemRepository<AttributeMetaDatum>
     {

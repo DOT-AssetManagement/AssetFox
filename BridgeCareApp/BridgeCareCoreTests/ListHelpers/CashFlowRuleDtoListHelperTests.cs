@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Services;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Services;
 using Xunit;
 
-namespace BridgeCareCoreTests.ListHelpers
+namespace AssetFoxCoreTests.ListHelpers
 {
     public class CashFlowRuleDtoListHelperTests
     {

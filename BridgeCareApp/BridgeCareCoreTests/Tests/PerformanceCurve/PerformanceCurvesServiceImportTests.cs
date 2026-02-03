@@ -1,24 +1,24 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models.Validation;
-using BridgeCareCore.Services;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.PerformanceCurve;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Extensions;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models.Validation;
+using AssetFoxCore.Services;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.PerformanceCurve;
 using Moq;
 using OfficeOpenXml;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class PerformanceCurvesServiceImportTests
     {

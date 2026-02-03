@@ -1,0 +1,154 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.TargetConditionGoal;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.TargetConditionGoal;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.RemainingLifeLimit;
+using AssetFox.Core.DTOs.Static;
+
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
+{
+    public static class TargetConditionGoalMapper
+    {
+        public static TargetConditionGoalEntity ToEntity(this TargetConditionGoal domain, Guid targetConditionGoalLibraryId, Guid attributeId) =>
+            new TargetConditionGoalEntity
+            {
+                Id = domain.Id,
+                TargetConditionGoalLibraryId = targetConditionGoalLibraryId,
+                AttributeId = attributeId,
+                Name = domain.Name,
+                Target = domain.Target,
+                Year = domain.Year
+            };
+
+        public static ScenarioTargetConditionGoalEntity ToScenarioEntity(this TargetConditionGoal domain, Guid simulatoinId, Guid attributeId) =>
+            new ScenarioTargetConditionGoalEntity
+            {
+                Id = domain.Id,
+                SimulationId = simulatoinId,
+                AttributeId = attributeId,
+                Name = domain.Name,
+                Target = domain.Target,
+                Year = domain.Year
+            };
+
+        public static TargetConditionGoalEntity ToLibraryEntity(this TargetConditionGoalDTO dto, Guid libraryId,
+            Guid attributeId) =>
+            new TargetConditionGoalEntity
+            {
+                Id = dto.Id,
+                Name = dto.Name,
+                TargetConditionGoalLibraryId = libraryId,
+                AttributeId = attributeId,
+                Target = dto.Target,
+                Year = dto.Year
+            };
+
+        public static ScenarioTargetConditionGoalEntity ToScenarioEntity(this TargetConditionGoalDTO dto, Guid simulationId,
+            Guid attributeId) =>
+            new ScenarioTargetConditionGoalEntity
+            {
+                Id = dto.Id,
+                Name = dto.Name,
+                LibraryId = dto.LibraryId,
+                IsModified = dto.IsModified,
+                SimulationId = simulationId,
+                AttributeId = attributeId,
+                Target = dto.Target,
+                Year = dto.Year
+            };
+
+        public static ScenarioTargetConditionGoalEntity ToScenarioEntityWithCriterionLibraryJoin(this TargetConditionGoalDTO dto, Guid simulationId,
+           Guid attributeId, BaseEntityProperties baseEntityProperties)
+        {
+
+            var entity = ToScenarioEntity(dto, simulationId, attributeId);
+            var criterionLibraryDto = dto.CriterionLibrary;
+            var isvalid = criterionLibraryDto.IsValid();
+            if (isvalid)
+            {
+                var criterionLibrary = CriterionMapper.ToSingleUseEntity(criterionLibraryDto, baseEntityProperties);
+
+                var join = new CriterionLibraryScenarioTargetConditionGoalEntity
+                {
+                    ScenarioTargetConditionGoalId = entity.Id,
+                    CriterionLibrary = criterionLibrary,
+                };
+                BaseEntityPropertySetter.SetBaseEntityProperties(join, baseEntityProperties);
+                entity.CriterionLibraryScenarioTargetConditionGoalJoin = join;
+            }
+            BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
+            return entity;
+        }
+
+
+        public static TargetConditionGoalLibraryEntity ToEntity(this TargetConditionGoalLibraryDTO dto) =>
+            new TargetConditionGoalLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
+
+        public static void CreateTargetConditionGoal(
+            this ScenarioTargetConditionGoalEntity entity,
+            Simulation simulation,
+            IReadOnlyDictionary<Guid, string> attributeNameLookup)
+        {
+            var targetConditionGoal = simulation.AnalysisMethod.AddTargetConditionGoal();
+            targetConditionGoal.Id = entity.Id;
+            var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
+            targetConditionGoal.Attribute = simulation.Network.Explorer.NumberAttributes
+                .Single(_ => _.Name == attributeName);
+            targetConditionGoal.Target = entity.Target;
+            targetConditionGoal.Year = entity.Year;
+            targetConditionGoal.Name = entity.Name;
+            targetConditionGoal.Criterion.Expression =
+                entity.CriterionLibraryScenarioTargetConditionGoalJoin?.CriterionLibrary.MergedCriteriaExpression ??
+                string.Empty;
+        }
+
+        public static TargetConditionGoalDTO ToDto(this TargetConditionGoalEntity entity) =>
+            new TargetConditionGoalDTO
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Attribute = entity.Attribute != null
+                    ? entity.Attribute.Name
+                    : "",
+                Target = entity.Target,
+                Year = entity.Year,
+                CriterionLibrary = entity.CriterionLibraryTargetConditionGoalJoin != null
+                    ? entity.CriterionLibraryTargetConditionGoalJoin.CriterionLibrary.ToDto()
+                    : new CriterionLibraryDTO()
+            };
+        public static TargetConditionGoalDTO ToDto(this ScenarioTargetConditionGoalEntity entity) =>
+            new TargetConditionGoalDTO
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Attribute = entity.Attribute != null
+                    ? entity.Attribute.Name
+                    : "",
+                Target = entity.Target,
+                Year = entity.Year,
+                LibraryId = entity.LibraryId,
+                IsModified = entity.IsModified,
+                CriterionLibrary = entity.CriterionLibraryScenarioTargetConditionGoalJoin != null
+                    ? entity.CriterionLibraryScenarioTargetConditionGoalJoin.CriterionLibrary.ToDto()
+                    : new CriterionLibraryDTO()
+            };
+
+        public static TargetConditionGoalLibraryDTO ToDto(this TargetConditionGoalLibraryEntity entity) =>
+            new TargetConditionGoalLibraryDTO
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                Owner = entity.CreatedBy,
+                IsShared = entity.IsShared,
+                TargetConditionGoals = entity.TargetConditionGoals.Any()
+                    ? entity.TargetConditionGoals.Select(_ => _.ToDto()).ToList()
+                    : new List<TargetConditionGoalDTO>()
+            };
+    }
+}

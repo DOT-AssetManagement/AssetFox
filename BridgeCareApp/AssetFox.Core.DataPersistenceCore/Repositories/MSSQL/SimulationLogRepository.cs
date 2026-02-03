@@ -1,0 +1,52 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
+{
+    public class SimulationLogRepository : ISimulationLogRepository
+    {
+        private readonly UnitOfDataPersistenceWork _unitOfWork;
+
+        public SimulationLogRepository(UnitOfDataPersistenceWork unitOfWork) =>
+           _unitOfWork = unitOfWork ??
+                                 throw new ArgumentNullException(nameof(unitOfWork));
+
+        public void ClearLog(Guid simulationId)
+        {
+            _unitOfWork.Context.DeleteAll<SimulationLogEntity>(_ => _.SimulationId == simulationId);
+        }
+
+        public void CreateLogs(IList<SimulationLogDTO> dtos)
+        {
+            var entities = new List<SimulationLogEntity>();
+            foreach (var dto in dtos)
+            {
+                if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == dto.SimulationId))
+                {
+                    throw new RowNotInTableException($"No simulation with id {dto.SimulationId}");
+                }
+                var entity = dto.ToEntity();
+                entities.Add(entity);
+            }
+            _unitOfWork.Context.AddAll(entities);
+        }
+
+        public Task<List<SimulationLogDTO>> GetLog(Guid simulationId)
+        {
+            var r = _unitOfWork.Context.SimulationLog.Where(
+                sl => sl.SimulationId == simulationId)
+                .OrderBy(sl => sl.CreatedDate)
+                .Select(SimulationLogMapper.ToDTO)
+                .ToList();
+            return Task.FromResult(r);
+        }
+    }
+}

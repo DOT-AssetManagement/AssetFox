@@ -1,0 +1,277 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using AssetFox.CalculateEvaluate;
+using AssetFox.Core.Common.Logging;
+using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Hubs.Interfaces;
+using AssetFoxCore.Interfaces;
+using Microsoft.Graph.Models;
+using MoreLinq;
+using OfficeOpenXml;
+
+namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+{
+    public class CommittedProjectService : ICommittedProjectService
+    {
+        private static IUnitOfWork _unitOfWork;
+        private readonly IHubService _hubService;
+        public const string UnknownBudgetName = "Unknown";
+
+        // TODO: Determine based on associated network
+        private string _networkKeyField;
+        private readonly Dictionary<string, List<KeySegmentDatum>> _keyProperties;
+        private readonly List<string> _keyFields;
+        private bool newImportFile = false;
+
+        public CommittedProjectService(IUnitOfWork unitOfWork, IHubService hubService)
+        {
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _hubService = hubService;
+        }
+
+        public FileInfoDTO ExportCommittedProjectsFile(Guid simulationId)
+        {
+            var simulation = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
+            var keyProperties = _unitOfWork.AssetDataRepository.KeyProperties;
+            var keyFields = keyProperties.Keys.Where(_ => _ != "ID").ToList();
+            var networkKeyField = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(simulation.NetworkId);
+            var primaryKeyFieldNames = _unitOfWork.AdminSettingsRepo.GetKeyFields();
+
+            var exporter = new CommittedProjectsExporter(
+                _unitOfWork,
+                simulation,
+                networkKeyField,
+                keyFields,
+                keyProperties,
+                primaryKeyFieldNames.ToList());
+
+            var fileInfo = exporter.ExportCommittedProjectsFile(simulationId);
+            return fileInfo;
+        }
+
+        public FileInfoDTO CreateCommittedProjectTemplate(Guid networkId)
+        {
+            _networkKeyField = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(networkId);
+            var generator = new CommittedProjectsTemplateGenerator(_networkKeyField);
+            var template = generator.CreateCommittedProjectTemplate();
+            return template;
+        }
+
+        public void ImportCommittedProjectFiles(
+            Guid simulationId,
+            ExcelPackage excelPackage,
+            string filename,
+            string UserId,
+            CancellationToken? cancellationToken = null,
+            IWorkQueueLog queueLog = null)
+        {
+            queueLog ??= new DoNothingWorkQueueLog();
+
+            var simulation = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
+            var keyProperties = _unitOfWork.AssetDataRepository.KeyProperties;
+            var keyFields = keyProperties.Keys.Where(_ => _ != "ID").ToList();
+            var networkKeyField = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(simulation.NetworkId);
+
+            var importer = new CommittedProjectImporter(
+                _unitOfWork,
+                _hubService,
+                networkKeyField,
+                keyFields);
+
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
+                return;
+            }
+
+            queueLog.UpdateWorkQueueStatus("Creating Committed Projects");
+
+            var committedProjectDTOs = importer.ImportProjectsFromWorksheet(
+                excelPackage.Workbook.Worksheets[0],
+                simulation,
+                UserId);
+
+
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
+                return;
+            }
+
+            queueLog.UpdateWorkQueueStatus("Deleting Old Committed Projects");
+
+            _unitOfWork.CommittedProjectRepo.DeleteSimulationCommittedProjects(simulationId);
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
+                return;
+            }
+
+            queueLog.UpdateWorkQueueStatus("Upserting Created Committed Projects");
+            _unitOfWork.CommittedProjectRepo.UpsertCommittedProjects(committedProjectDTOs);
+
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
+                return;
+            }
+        }
+
+        public double GetTreatmentCost(string assetKeyData, Guid treatmentId, Guid networkId)
+        {
+            var asset = _unitOfWork.MaintainableAssetRepo.GetMaintainableAssetByKeyAttribute(networkId, assetKeyData);
+
+            if (asset == null)
+                return 0;
+            var treatmentCosts = _unitOfWork.TreatmentCostRepo.GetTreatmentCostByScenarioTreatmentId(treatmentId);
+
+            double totalCost = 0;
+            if (treatmentCosts == null)
+                return totalCost;
+            foreach (var cost in treatmentCosts)
+            {
+                var compiler = new CalculateEvaluateCompiler();
+
+                if (cost.CriterionLibrary.Id != Guid.Empty && !IsCriteriaValid(compiler, cost.CriterionLibrary.MergedCriteriaExpression, asset.Id))
+                    continue;
+
+                compiler = new CalculateEvaluateCompiler();
+                var attributes = InstantiateCompilerAndGetExpressionAttributes(cost.Equation.Expression, compiler);
+                var attributeIds = attributes.Select(a => a.Id).ToList();
+                var aggregatedResults = _unitOfWork.AggregatedResultRepo.GetAggregatedResultsForMaintainableAsset(asset.Id, attributeIds);
+                var latestAggResults = new List<AggregatedResultDTO>();
+                foreach (var attr in attributes)
+                {
+                    var attrs = aggregatedResults.Where(_ => _.Attribute.Id == attr.Id).ToList();
+                    if (attrs.Count == 0)
+                        continue;
+                    var latestYear = attrs.Max(_ => _.Year);
+                    var latestAggResult = attrs.FirstOrDefault(_ => _.Year == latestYear);
+                    latestAggResults.Add(latestAggResult);
+                }
+                var calculator = compiler.GetCalculator(cost.Equation.Expression);
+                var scope = new CalculateEvaluateScope();
+                if (latestAggResults.Count != attributes.Count)
+                    continue;
+                InstantiateScope(latestAggResults, scope);
+                var currentCost = calculator.Delegate(scope);
+                totalCost += currentCost;
+            }
+            return totalCost;
+        }
+
+        public List<CommittedProjectConsequenceDTO> GetValidConsequences(Guid committedProjectId, Guid treatmentId, string assetKeyData, Guid networkId)
+        {
+            var consequencesToReturn = new List<CommittedProjectConsequenceDTO>();
+            var asset = _unitOfWork.MaintainableAssetRepo.GetMaintainableAssetByKeyAttribute(networkId, assetKeyData);
+            if (asset == null)
+                return consequencesToReturn;
+            var treatmentConsequences = _unitOfWork.TreatmentConsequenceRepo.GetScenarioTreatmentConsequencesByTreatmentId(treatmentId);
+            if (treatmentConsequences == null)
+                return consequencesToReturn;
+            foreach (var consequence in treatmentConsequences)
+            {
+                var compiler = new CalculateEvaluateCompiler();
+                if (consequence.CriterionLibrary.Id == Guid.Empty)
+                {
+                    consequencesToReturn.Add(new CommittedProjectConsequenceDTO() { Id = Guid.NewGuid(), CommittedProjectId = committedProjectId, Attribute = consequence.Attribute, ChangeValue = consequence.ChangeValue });
+                    continue;
+                }
+                if (IsCriteriaValid(compiler, consequence.CriterionLibrary.MergedCriteriaExpression, asset.Id))
+                    consequencesToReturn.Add(new CommittedProjectConsequenceDTO() { Id = Guid.NewGuid(), CommittedProjectId = committedProjectId, Attribute = consequence.Attribute, ChangeValue = consequence.ChangeValue });
+            }
+            return consequencesToReturn;
+        }
+
+        private static bool IsCriteriaValid(CalculateEvaluateCompiler compiler, string expression, Guid assetId)
+        {
+            var attributes = InstantiateCompilerAndGetExpressionAttributes(expression, compiler);
+            var attributeIds = attributes.Select(a => a.Id).ToList();
+            var aggResults = _unitOfWork.AggregatedResultRepo.GetAggregatedResultsForMaintainableAsset(assetId, attributeIds);
+            var latestAggResults = new List<AggregatedResultDTO>();
+            foreach (var attr in attributes)
+            {
+                var attrs = aggResults.Where(_ => _.Attribute.Id == attr.Id).ToList();
+                if (attrs.Count == 0)
+                    continue;
+                var latestYear = attrs.Max(_ => _.Year);
+                var latestAggResult = attrs.FirstOrDefault(_ => _.Year == latestYear);
+                latestAggResults.Add(latestAggResult);
+            }
+            if (latestAggResults.Count != attributes.Count)
+                return false;
+            var evaluator = compiler.GetEvaluator(expression);
+            var scope = new CalculateEvaluateScope();
+            InstantiateScope(latestAggResults, scope);
+            return evaluator.Delegate(scope);
+        }
+
+        private static List<AttributeDTO> InstantiateCompilerAndGetExpressionAttributes(string mergedCriteriaExpression, CalculateEvaluateCompiler compiler)
+        {
+            var modifiedExpression = mergedCriteriaExpression
+                    .Replace("[", "")
+                    .Replace("]", "")
+                    .Replace("@", "")
+                    .Replace("|", "'")
+                    .ToUpper();
+
+            var pattern = "\\[[^\\]]*\\]";
+            var rg = new Regex(pattern);
+            var match = rg.Matches(mergedCriteriaExpression);
+            var hashMatch = new List<string>();
+            foreach (Match m in match)
+            {
+                hashMatch.Add(m.Value.Substring(1, m.Value.Length - 2));
+            }
+
+            var attributes = _unitOfWork.AttributeRepo.GetAttributesWithNames(hashMatch);
+
+            attributes.ForEach(attribute =>
+            {
+                compiler.ParameterTypes[attribute.Name] = attribute.Type == "NUMBER"
+                    ? CalculateEvaluateParameterType.Number
+                    : CalculateEvaluateParameterType.Text;
+            });
+
+            return attributes;
+        }
+
+        private static void InstantiateScope(List<AggregatedResultDTO> results, CalculateEvaluateScope scope)
+        {
+            results.ForEach(_ =>
+            {
+                if (_.Attribute.Type == "NUMBER")
+                {
+                    scope.SetNumber(_.Attribute.Name, _.NumericValue.Value);
+                }
+                else
+                {
+                    scope.SetText(_.Attribute.Name, _.TextValue);
+                }
+            });
+        }
+
+        public FileInfoDTO DownloadErrorExportSheet(Guid simulationId)
+        {
+            var dirPath = Path.Combine(Environment.CurrentDirectory, "CommittedProjects\\" + simulationId);
+            var files = Directory.Exists(dirPath) ? Directory.EnumerateFileSystemEntries(dirPath) : [];
+            if (!files.Any())
+            {
+                return null;
+            }
+
+            using var fileStream = File.OpenRead(Path.Combine(dirPath, files.First()));
+            using var excelPackage = new ExcelPackage(fileStream);
+
+            return new FileInfoDTO
+            {
+                FileName = Path.GetFileName(files.First()),
+                FileData = Convert.ToBase64String(excelPackage.GetAsByteArray()),
+                MimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            };
+        }
+    }
+}

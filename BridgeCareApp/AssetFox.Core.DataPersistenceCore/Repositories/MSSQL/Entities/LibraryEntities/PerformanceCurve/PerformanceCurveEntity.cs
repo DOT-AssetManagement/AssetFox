@@ -1,0 +1,16 @@
+using System;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
+
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.PerformanceCurve
+{
+    public class PerformanceCurveEntity : BasePerformanceCurveEntity
+    {
+        public Guid PerformanceCurveLibraryId { get; set; }
+
+        public virtual PerformanceCurveLibraryEntity PerformanceCurveLibrary { get; set; }
+
+        public virtual CriterionLibraryPerformanceCurveEntity CriterionLibraryPerformanceCurveJoin { get; set; }
+
+        public virtual PerformanceCurveEquationEntity PerformanceCurveEquationJoin { get; set; }
+    }
+}

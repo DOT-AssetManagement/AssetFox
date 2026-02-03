@@ -59,7 +59,7 @@
 
                                 <v-btn id="TreatmentSupersedeRulesTab-CriteriaEditorBtn" v-if="header.key === 'criterionLibrary'" @click='onShowSupersedeRuleCriterionEditorDialog(props.item)'
                                         class='edit-icon ghd-blue' style="padding-top: 13px;" flat icon>
-                                        <img class='img-general img-shift' :src="getUrl('/assets/icons/edit.svg')"/>
+                                        <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
                                 
                                 <v-row v-if="header.key === ''" align="start">

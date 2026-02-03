@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Services.Aggregation;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.General_Work_Queue;
+using AssetFox.Core.Common;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Services.Aggregation;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.General_Work_Queue;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public class AggregationTests
     {

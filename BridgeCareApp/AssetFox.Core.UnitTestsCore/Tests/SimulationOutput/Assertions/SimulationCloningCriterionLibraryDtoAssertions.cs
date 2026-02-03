@@ -1,0 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using Xunit;
+
+namespace AssetFox.Core.UnitTestsCore.Tests
+{
+    public class SimulationCloningCriterionLibraryDtoAssertions
+    {
+
+        public static void AssertValidLibraryClone(CriterionLibraryDTO originalLibrary, CriterionLibraryDTO clonedLibrary, Guid? expectedOwnerId)
+        {
+            var resolveOwnerId = expectedOwnerId ?? Guid.Empty;
+            ObjectAssertions.EquivalentExcluding(originalLibrary, clonedLibrary, x => x.Id, x => x.IsSingleUse, x => x.Name, x => x.Owner);
+            Assert.NotEqual(originalLibrary.Id, clonedLibrary.Id);
+            Assert.NotEqual(Guid.Empty, clonedLibrary.Id);
+            Assert.True(clonedLibrary.IsSingleUse);
+       //     Assert.Equal(resolveOwnerId, clonedLibrary.Owner);
+        }
+    }
+}

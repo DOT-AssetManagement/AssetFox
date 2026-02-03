@@ -1,17 +1,17 @@
-using AppliedResearchAssociates.iAM.DataPersistenceCore;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Treatment;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.Treatment;
+using AssetFox.Core.DataPersistenceCore;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Extensions;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment;
+using AssetFox.Core.UnitTestsCore.Tests.Treatment;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.Treatment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph.Models;
 using Microsoft.SqlServer.Dac.Model;
@@ -19,7 +19,7 @@ using Moq;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class TreatmentControllerTests
     {

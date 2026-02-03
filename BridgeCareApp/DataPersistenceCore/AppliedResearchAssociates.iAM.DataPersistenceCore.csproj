@@ -1,15 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AssemblyName>AppliedResearchAssociates.iAM.DataPersistenceCore</AssemblyName>
-    <RootNamespace>AppliedResearchAssociates.iAM.DataPersistenceCore</RootNamespace>
+    <AssemblyName>AssetFox.Core.DataPersistenceCore</AssemblyName>
+    <RootNamespace>AssetFox.Core.DataPersistenceCore</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Aggregation\AppliedResearchAssociates.iAM.Aggregation.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.DataMiner\AppliedResearchAssociates.iAM.DataMiner.csproj" />
-    <ProjectReference Include="..\AppliedResearchAssociates.iAM.Segmentation\AppliedResearchAssociates.iAM.Segmentation.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Aggregation\AssetFox.Core.Aggregation.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.DataMiner\AssetFox.Core.DataMiner.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.Segmentation\AssetFox.Core.Segmentation.csproj" />
   </ItemGroup>
 
 </Project>

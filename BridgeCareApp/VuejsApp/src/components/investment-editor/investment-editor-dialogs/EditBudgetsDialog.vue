@@ -78,7 +78,7 @@
                                         >
                                             <img 
                                                 class="img-general"
-                                                :src="getUrl('/assets/icons/edit.svg')"
+                                                :src="getUrl('assets/icons/edit.svg')"
                                             />
                                         </v-btn>                                        
                                     </template>

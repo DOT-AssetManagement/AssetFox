@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Services;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Services;
 using Xunit;
 
-namespace BridgeCareCoreTests
+namespace AssetFoxCoreTests
 {
     public class PerformanceCurveDtoListHelperTests
     {

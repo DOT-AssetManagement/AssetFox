@@ -1,30 +1,30 @@
 using System.Threading.Channels;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Aggregation;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Extensions;
-using AppliedResearchAssociates.iAM.UnitTestsCore.SampleData;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.DataSources;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services.Aggregation;
-using BridgeCareCoreTests.Helpers;
-using BridgeCareCoreTests.Tests.AttributeDatum;
+using AssetFox.Core.Common;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Aggregation;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Extensions;
+using AssetFox.Core.UnitTestsCore.SampleData;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.UnitTestsCore.Tests.DataSources;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services.Aggregation;
+using AssetFoxCoreTests.Helpers;
+using AssetFoxCoreTests.Tests.AttributeDatum;
 using Moq;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class ExcelAggregationTests
     {

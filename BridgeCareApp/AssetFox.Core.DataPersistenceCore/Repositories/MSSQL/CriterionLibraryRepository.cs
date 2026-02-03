@@ -1,0 +1,104 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Budget;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.BudgetPriority;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.CashFlow;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Deficient;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.PerformanceCurve;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.RemainingLifeLimit;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.TargetConditionGoal;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using MoreLinq.Extensions;
+
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
+{
+    public class CriterionLibraryRepository : ICriterionLibraryRepository
+    {
+        // This class formerly contained the following method, which allowed one to add joins of arbitrary type:
+        //        public void JoinEntitiesWithCriteria(Dictionary<string, List<Guid>> entityIdsPerExpression, string joinEntity, string prependName)
+        // It was unused and deleted in commit a938b6aa7253d4ea0a0ab39483eb36178c51210f on 11/20/23.
+        private readonly UnitOfDataPersistenceWork _unitOfWork;
+
+        public CriterionLibraryRepository(UnitOfDataPersistenceWork unitOfWork) => _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+
+        public Task<List<CriterionLibraryDTO>> CriterionLibraries()
+        {
+            if (!_unitOfWork.Context.CriterionLibrary.Any())
+            {
+                return Task.Factory.StartNew(() => new List<CriterionLibraryDTO>());
+            }
+
+            return Task.Factory.StartNew(() =>
+                _unitOfWork.Context.CriterionLibrary.Where(_ => _.IsSingleUse == false).Select(_ => _.ToDto()).ToList());
+        }
+
+        public Task<CriterionLibraryDTO> CriteriaLibrary(Guid libraryId)
+        {
+            if (!_unitOfWork.Context.CriterionLibrary.Any(_ => _.Id == libraryId))
+            {
+                return Task.Factory.StartNew(() => new CriterionLibraryDTO());
+            }
+
+            return Task.Factory.StartNew(() =>
+                _unitOfWork.Context.CriterionLibrary.First(_ => _.Id == libraryId).ToDto());
+        }
+
+        public Guid UpsertCriterionLibrary(CriterionLibraryDTO dto)
+        {
+            var entity = _unitOfWork.Context.Upsert(dto.ToEntity(), dto.Id, _unitOfWork.UserEntity?.Id);
+
+            return entity.Id;
+        }
+
+        public void DeleteCriterionLibrary(Guid libraryId)
+        {
+            if (!_unitOfWork.Context.CriterionLibrary.Any(_ => _.Id == libraryId))
+            {
+                return;
+            }
+
+            _unitOfWork.Context.DeleteEntity<CriterionLibraryEntity>(_ => _.Id == libraryId);
+        }
+
+        public void DeleteAllSingleUseCriterionLibrariesWithBudgetNamesForSimulation(Guid simulationId, List<string> budgetNames)
+        {
+            _unitOfWork.Context.DeleteAll<CriterionLibraryEntity>(_ =>
+                _.IsSingleUse && _.CriterionLibraryScenarioBudgetJoins.Any(join =>
+                    join.ScenarioBudget.SimulationId == simulationId &&
+                    budgetNames.Contains(join.ScenarioBudget.Name)));
+        }
+
+        public void DeleteAllSingleUseCriterionLibrariesWithBudgetNamesForBudgetLibrary(Guid budgetLibraryId, List<string> budgetNames)
+        {
+            _unitOfWork.Context.DeleteAll<CriterionLibraryEntity>(_ =>
+                _.IsSingleUse && _.CriterionLibraryBudgetJoins.Any(join =>
+                    join.Budget.BudgetLibraryId == budgetLibraryId &&
+                    budgetNames.Contains(join.Budget.Name)));
+        }
+
+        public void AddLibraries(List<CriterionLibraryDTO> criteria)
+        {
+            var entities = criteria.Select(c => c.ToEntity()).ToList();
+            _unitOfWork.Context.AddAll(entities, _unitOfWork.CurrentUser?.Id);
+        }
+
+        public void AddLibraryScenarioBudgetJoins(List<CriterionLibraryScenarioBudgetDTO> criteriaJoins)
+        {
+            var entities = criteriaJoins.Select(c => c.ToEntity()).ToList();
+            _unitOfWork.Context.AddAll(entities, _unitOfWork.CurrentUser?.Id);
+        }
+        public void AddLibraryBudgetJoins(List<CriterionLibraryBudgetDTO> criteriaJoins)
+        {
+            var entities = criteriaJoins.Select(c => c.ToEntity()).ToList();
+            _unitOfWork.Context.AddAll(entities, _unitOfWork.CurrentUser?.Id);
+        }
+    }
+}

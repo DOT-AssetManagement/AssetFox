@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.Mongo
+namespace AssetFox.Core.DataPersistenceCore.Repositories.Mongo
 {
     public class GenericMongoRepository<T>
         : IRepository<T> where T : class

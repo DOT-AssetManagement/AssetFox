@@ -1,0 +1,8 @@
+using AssetFox.Core.DTOs.Enums;
+
+namespace AssetFox.Core.Analysis;
+
+public static class OptimizationStrategyExtensions
+{
+    public static bool UsesRemainingLife(this OptimizationStrategy optimizationStrategy) => optimizationStrategy == OptimizationStrategy.RemainingLife || optimizationStrategy == OptimizationStrategy.RemainingLifeToCostRatio;
+}

@@ -1,0 +1,35 @@
+using System;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+
+namespace AssetFox.Core.UnitTestsCore.Tests
+{
+    public static class SimulationDtos
+    {
+        public static SimulationDTO Dto(Guid? id = null, string name = null, Guid? owner = null)
+        {
+            var resolveName = name ?? RandomStrings.Length11();
+            var resolveId = id ?? Guid.NewGuid();
+            var users = new List<SimulationUserDTO>();
+            if (owner != null)
+            {
+                var newUser = new SimulationUserDTO
+                {
+                    IsOwner = true,
+                    CanModify = true,
+                    UserId = owner.Value,
+                };
+                users.Add(newUser);
+            }
+            var returnValue = new SimulationDTO
+            {
+                Id = resolveId,
+                NetworkId = NetworkTestSetup.NetworkId,
+                Name = resolveName,
+                Users = users,
+            };
+            return returnValue;
+        }
+    }
+}

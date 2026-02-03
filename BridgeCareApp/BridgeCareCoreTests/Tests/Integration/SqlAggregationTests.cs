@@ -1,19 +1,19 @@
-﻿using System.Threading.Channels;
-using AppliedResearchAssociates.iAM.Common;
-using AppliedResearchAssociates.iAM.Data;
-using AppliedResearchAssociates.iAM.Data.Mappers;
-using AppliedResearchAssociates.iAM.Data.Networking;
-using AppliedResearchAssociates.iAM.DataUnitTests;
-using AppliedResearchAssociates.iAM.DataUnitTests.Tests;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services.Aggregation;
+using System.Threading.Channels;
+using AssetFox.Core.Common;
+using AssetFox.Core.Data;
+using AssetFox.Core.Data.Mappers;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataUnitTests;
+using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services.Aggregation;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public class SqlAggregationTests
     {

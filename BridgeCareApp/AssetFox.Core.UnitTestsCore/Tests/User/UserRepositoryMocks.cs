@@ -1,0 +1,29 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using Moq;
+
+namespace AssetFox.Core.UnitTestsCore.Tests
+{
+    public static class UserRepositoryMocks
+    {
+        public static Mock<IUserRepository> EveryoneExists(Mock<IUnitOfWork> mockUnitOfWork = null)
+        {
+            var mockUserRepo = new Mock<IUserRepository>();
+            mockUnitOfWork?.Setup(uow => uow.UserRepo).Returns(mockUserRepo.Object);
+            mockUserRepo.Setup(_ => _.UserExists(It.IsAny<string>())).Returns(true);
+            return mockUserRepo;
+        }
+
+        public static Mock<IUserRepository> UserExists(string name)
+        {
+            var mockUserRepo = new Mock<IUserRepository>();
+            mockUserRepo.Setup(_ => _.UserExists(name)).Returns(true);
+            return mockUserRepo;
+        }
+    }
+}

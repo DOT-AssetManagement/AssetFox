@@ -1,19 +1,19 @@
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.Reporting.Logging;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Attributes;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Controllers;
-using BridgeCareCore.Models.Validation;
-using BridgeCareCore.Services;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.Reporting.Logging;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Attributes;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Controllers;
+using AssetFoxCore.Models.Validation;
+using AssetFoxCore.Services;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class ExpressionValidationControllerTests
     {

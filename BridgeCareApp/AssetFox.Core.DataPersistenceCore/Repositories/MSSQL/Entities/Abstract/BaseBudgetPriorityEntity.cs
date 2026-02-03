@@ -1,0 +1,17 @@
+using System;
+
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract
+{
+    public class BaseBudgetPriorityEntity : BaseEntity
+    {
+        public Guid Id { get; set; }
+
+        public int PriorityLevel { get; set; }
+
+        public int? Year { get; set; }
+
+        public Guid LibraryId { get; set; }
+
+        public bool IsModified { get; set; }
+    }
+}

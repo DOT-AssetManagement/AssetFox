@@ -1,0 +1,26 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace AssetFox.Core.TestHelpers
+{
+    public static class DictionaryAssertions
+    {
+        public static void Same<T, U>(
+            IDictionary<T, U> expected,
+            IDictionary<T, U> actual)
+            where T: IEquatable<T>
+            where U: IEquatable<U>
+        {
+            Assert.Equal(expected.Count, actual.Count);
+            foreach (var key in expected.Keys)
+            {
+                Assert.True(actual.ContainsKey(key), $"Dictionary should have the key {key}. It doesn't.");
+                Assert.Equal(actual[key], expected[key]);
+            }
+        }
+    }
+}

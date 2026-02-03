@@ -1,4 +1,4 @@
-﻿namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Models
+namespace AssetFox.Core.DataPersistenceCore.Models
 {
     public class AggregateDataSegment
     {

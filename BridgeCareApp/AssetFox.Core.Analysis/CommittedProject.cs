@@ -1,0 +1,77 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Enums;
+using AssetFox.Validation;
+
+namespace AssetFox.Core.Analysis;
+
+public sealed class CommittedProject : Treatment
+{
+    public CommittedProject(AnalysisMaintainableAsset asset, int year)
+    {
+        Asset = asset ?? throw new ArgumentNullException(nameof(asset));
+        Year = year;
+    }
+
+    public AnalysisMaintainableAsset Asset { get; }
+
+    public Budget Budget { get; set; }
+
+    public double Cost { get; set; }
+
+    /// <remarks>
+    ///     This property isn't used by the analysis engine. It probably shouldn't exist among the
+    ///     types in this module.
+    /// </remarks>
+    public DateTime LastModifiedDate { get; set; }
+
+    public override IReadOnlyDictionary<NumberAttribute, double> PerformanceCurveAdjustmentFactors => TemplateTreatment.PerformanceCurveAdjustmentFactors;
+
+    public ProjectSourceDTO ProjectSource { get; set; }
+
+    public override int ShadowForAnyTreatment => TemplateTreatment.ShadowForAnyTreatment;
+
+    public override int ShadowForSameTreatment => TemplateTreatment.ShadowForSameTreatment;
+
+    public SelectableTreatment TemplateTreatment { get; set; }
+
+    [Obsolete($"Redundant with base type's \"{nameof(Category)}\" property.")]
+    public TreatmentCategory treatmentCategory
+    {
+        get => Category;
+        set => Category = value;
+    }
+
+    public int Year { get; }
+
+    internal bool ShouldApplyConsequences { get; set; } = true;
+
+    public override ValidationResultBag GetDirectValidationResults()
+    {
+        var results = base.GetDirectValidationResults();
+
+        if (Budget == null)
+        {
+            results.Add(ValidationStatus.Error, "Budget is unset.", this, nameof(Budget));
+        }
+
+        if (Cost < 0)
+        {
+            results.Add(ValidationStatus.Error, "Cost is less than zero.", this, nameof(Cost));
+        }
+
+        return results;
+    }
+
+    internal override bool CanUseBudget(Budget budget) => budget == Budget;
+
+    internal override IReadOnlyCollection<ConsequenceApplicator> GetConsequenceApplicators(AssetContext scope)
+        => ShouldApplyConsequences ? TemplateTreatment.GetConsequenceApplicators(scope) : Array.Empty<ConsequenceApplicator>();
+
+    internal override double GetCost(AssetContext scope, bool shouldApplyMultipleFeasibleCosts) => Cost;
+
+    internal override IEnumerable<TreatmentScheduling> GetSchedulings() => Enumerable.Empty<TreatmentScheduling>();
+}

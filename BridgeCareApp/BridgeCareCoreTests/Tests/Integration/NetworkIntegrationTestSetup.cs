@@ -1,11 +1,11 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Models;
-using BridgeCareCoreTests.Helpers;
-using DataAttribute = AppliedResearchAssociates.iAM.Data.Attributes.Attribute;
-using TNetwork = AppliedResearchAssociates.iAM.Data.Networking.Network;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Models;
+using AssetFoxCoreTests.Helpers;
+using DataAttribute = AssetFox.Core.Data.Attributes.Attribute;
+using TNetwork = AssetFox.Core.Data.Networking.Network;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public static class NetworkIntegrationTestSetup
     {

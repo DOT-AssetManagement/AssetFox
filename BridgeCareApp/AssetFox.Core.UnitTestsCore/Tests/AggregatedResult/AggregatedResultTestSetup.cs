@@ -1,0 +1,148 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using AssetFox.Core.Data.Aggregation;
+using AssetFox.Core.Data.Networking;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using DataAttribute = AssetFox.Core.Data.Attributes.Attribute;
+
+namespace AssetFox.Core.UnitTestsCore.Tests
+{
+    public static class AggregatedResultTestSetup
+    {
+        public static void AddSingleNumericAggregatedResultToDb
+            (IUnitOfWork unitOfWork,
+            MaintainableAsset maintainableAsset,
+            DataAttribute resultAttribute,
+            double value)
+        {
+            var assetList = new List<MaintainableAsset> { maintainableAsset };
+            var resultAttributes = new List<DataAttribute> { resultAttribute };
+            SetNumericAggregatedResultsInDb(unitOfWork, assetList, resultAttributes, value);
+        }
+        public static void SetNumericAggregatedResultsInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<DataAttribute> resultAttributes, double value = 1.23)
+        {
+            var results = new List<IAggregatedResult>();
+            foreach (var asset in maintainableAssets)
+            {
+                var resultId = Guid.NewGuid();
+                var resultData = new List<(DataAttribute, (int, double))>();
+
+                foreach (var attribute in resultAttributes)
+                {
+                    var resultDatum = (
+                        attribute, (2022, value));
+                    resultData.Add(resultDatum);
+                }
+                var result = new AggregatedResult<double>(
+                    resultId,
+                    asset,
+                    resultData
+                    );
+
+                results.Add(result);
+            }
+            unitOfWork.AggregatedResultRepo.AddAggregatedResults(results);
+        }
+        /// <summary>This deletes any former aggregated results.
+        /// Therefore, you can only call something like it once per test.</summary> 
+        public static void SetTextAggregatedResultsInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<DataAttribute> resultAttributes, string text = "AggregatedResult")
+        {
+            var results = new List<IAggregatedResult>();            
+            foreach (var asset in maintainableAssets)
+            {
+                var resultId = Guid.NewGuid();
+                var resultData = new List<(DataAttribute, (int, string))>();
+
+                foreach (var attribute in resultAttributes)
+                {
+                    var resultDatum = (
+                        attribute, (2022, text));
+                    resultData.Add(resultDatum);
+                }
+                var result = new AggregatedResult<string>(
+                    resultId,
+                    asset,
+                    resultData
+                    );
+
+                results.Add(result);
+            }
+            unitOfWork.AggregatedResultRepo.AddAggregatedResults(results);
+        }
+
+        public static void SetTextAggregatedResultsInDb(
+            IUnitOfWork unitOfWork,
+            List<MaintainableAsset> maintainableAssets,
+            Dictionary<string, List<DataAttribute>> resultsForAttributes
+            )
+        {
+            var results = new List<IAggregatedResult>();
+            foreach (var asset in maintainableAssets)
+            {
+                var resultId = Guid.NewGuid();
+                var resultData = new List<(DataAttribute, (int, string))>();
+
+                foreach (var key in resultsForAttributes.Keys)
+                {
+                    foreach (var attribute in resultsForAttributes
+                        [key])
+                    {
+                        var resultDatum = (
+                            attribute, (2022, key));
+                        resultData.Add(resultDatum);
+                    }
+                }
+                var result = new AggregatedResult<string>(
+                    resultId,
+                    asset,
+                    resultData
+                    );
+
+                results.Add(result);
+            }
+            unitOfWork.AggregatedResultRepo.AddAggregatedResults(results);
+        }
+
+        public static void SetBothAggregatedResultsInDb(IUnitOfWork unitOfWork, List<MaintainableAsset> maintainableAssets, List<DataAttribute> resultNumericAttributes, List<DataAttribute> resultTextAttributes, string text = "AggregatedResult")
+        {
+            var results = new List<IAggregatedResult>();
+            foreach (var asset in maintainableAssets)
+            {
+                var resultId = Guid.NewGuid();
+                var resultNumericData = new List<(DataAttribute, (int, double))>();
+                var resultTextData = new List<(DataAttribute, (int, string))>();
+
+                foreach (var attribute in resultNumericAttributes)
+                {
+                    var resultDatum = (
+                        attribute, (2022, 1.23));
+                    resultNumericData.Add(resultDatum);
+                }
+                foreach (var attribute in resultTextAttributes)
+                {
+                    var resultDatum = (
+                        attribute, (2022, text));
+                    resultTextData.Add(resultDatum);
+                }
+                var resultNumeric = new AggregatedResult<double>(
+                    resultId,
+                    asset,
+                    resultNumericData
+                    );
+                results.Add(resultNumeric);
+                var resultText = new AggregatedResult<string>(
+                    resultId,
+                    asset,
+                    resultTextData
+                    );
+                results.Add(resultText);
+            }
+            unitOfWork.AggregatedResultRepo.AddAggregatedResults(results);
+        }
+    }
+}

@@ -1,0 +1,79 @@
+using System;
+using System.Collections.Generic;
+using AssetFox.Core.Analysis.Engine;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DTOs;
+
+namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
+{
+    public static class TreatmentSchedulingCollisionDetailMapper
+    {
+        public static TreatmentSchedulingCollisionDetailEntity ToEntity(
+            TreatmentSchedulingCollisionDetail domain,
+            Guid assetDetailId,
+            int runId)
+        {
+            var id = SequentialGuid.NewGuid();
+            var entity = new TreatmentSchedulingCollisionDetailEntity
+            {
+                Id = id,
+                NameOfUnscheduledTreatment = domain.NameOfUnscheduledTreatment,
+                AssetDetailId = assetDetailId,
+                RunId = runId
+            };
+            return entity;
+        }
+
+        public static List<TreatmentSchedulingCollisionDetailEntity> ToEntityList(
+            List<TreatmentSchedulingCollisionDetail> domainList,
+            Guid assetDetailId,
+            int runId)
+        {
+            var entityList = new List<TreatmentSchedulingCollisionDetailEntity>();
+            foreach (var domain in domainList)
+            {
+                var entity = ToEntity(domain, assetDetailId, runId);
+                entityList.Add(entity);
+            }
+            return entityList;
+        }
+
+        public static TreatmentSchedulingCollisionDetail ToDomain(TreatmentSchedulingCollisionDetailEntity entity, int year)
+        {
+            var domain = new TreatmentSchedulingCollisionDetail(year, entity.NameOfUnscheduledTreatment);
+            return domain;
+        }
+
+        public static List<TreatmentSchedulingCollisionDetail> ToDomainList(ICollection<TreatmentSchedulingCollisionDetailEntity> entityCollection, int year)
+        {
+            var domainList = new List<TreatmentSchedulingCollisionDetail>();
+            foreach (var entity in entityCollection)
+            {
+                var domain = ToDomain(entity, year);
+                domainList.Add(domain);
+            }
+            return domainList;
+        }
+
+        public static TreatmentSchedulingCollisionDetailDTO ToDto(this TreatmentSchedulingCollisionDetailEntity entity)
+        {
+            var dto = new TreatmentSchedulingCollisionDetailDTO
+            {
+                Id = entity.Id,
+                NameOfUnscheduledTreatment = entity.NameOfUnscheduledTreatment
+            };
+
+            return dto;
+        }
+
+        public static TreatmentSchedulingCollisionDetailEntity ToEntity(this TreatmentSchedulingCollisionDetailDTO treatmentSchedulingCollisionDetailDto, Guid assetDetailId)
+        {
+            return new TreatmentSchedulingCollisionDetailEntity
+            {
+                Id = treatmentSchedulingCollisionDetailDto.Id,
+                AssetDetailId = assetDetailId,
+                NameOfUnscheduledTreatment = treatmentSchedulingCollisionDetailDto.NameOfUnscheduledTreatment
+            };
+        }
+    }
+}

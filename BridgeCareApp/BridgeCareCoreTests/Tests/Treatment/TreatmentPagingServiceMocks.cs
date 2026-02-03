@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BridgeCareCore.Interfaces;
+using AssetFoxCore.Interfaces;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests.Treatment
+namespace AssetFoxCoreTests.Tests.Treatment
 {
     public static class TreatmentPagingServiceMocks
     {

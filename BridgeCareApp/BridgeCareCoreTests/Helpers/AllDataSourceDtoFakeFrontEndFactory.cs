@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.DTOs.Abstract;
-using AppliedResearchAssociates.iAM.DTOs.Enums;
-using BridgeCareCore.Models;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.DTOs.Abstract;
+using AssetFox.Core.DTOs.Enums;
+using AssetFoxCore.Models;
 
-namespace BridgeCareCoreTests
+namespace AssetFoxCoreTests
 {
     public static class AllDataSourceDtoFakeFrontEndFactory
     {

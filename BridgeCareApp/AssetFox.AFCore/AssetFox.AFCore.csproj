@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Configurations>Debug;Release;MsSqlDebug;LiteDbDebug</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Humanizer.Core" Version="2.8.26" />
+    <PackageReference Include="MathNet.Numerics" Version="4.12.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AssetFox.CalculateEvaluate\AssetFox.CalculateEvaluate.csproj" />
+    <ProjectReference Include="..\AssetFox.Choice\AssetFox.Choice.csproj" />
+    <ProjectReference Include="..\AssetFox.CycleDetection\AssetFox.CycleDetection.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.DataAssignment\AssetFox.Core.DataAssignment.csproj" />
+    <ProjectReference Include="..\AssetFox.Core.DataMiner\AssetFox.Core.DataMiner.csproj" />
+    <ProjectReference Include="..\AssetFox.Option\AssetFox.Option.csproj" />
+    <ProjectReference Include="..\AssetFox.Validation\AssetFox.Validation.csproj" />
+  </ItemGroup>
+
+</Project>

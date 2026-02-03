@@ -1,0 +1,25 @@
+using AssetFox.Core.DTOs;
+using System.Collections.Generic;
+using System;
+
+namespace AssetFoxCore.Services
+{
+    public static class BudgetDtoListService
+    {
+        public static void AddLibraryIdToScenarioBudget(List<BudgetDTO> budgetDTOs, Guid? libraryId)
+        {
+            if (libraryId == null) return;
+            foreach (var dto in budgetDTOs)
+            {
+                dto.LibraryId = (Guid)libraryId;
+            }
+        }
+        public static void AddModifiedToScenarioBudget(List<BudgetDTO> budgetDTOs, bool IsModified)
+        {
+            foreach (var dto in budgetDTOs)
+            {
+                dto.IsModified = IsModified;
+            }
+        }
+    }
+}

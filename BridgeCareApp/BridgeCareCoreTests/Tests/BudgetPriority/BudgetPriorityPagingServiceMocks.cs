@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using BridgeCareCore.Interfaces;
-using BridgeCareCore.Models;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFoxCore.Interfaces;
+using AssetFoxCore.Models;
 using Moq;
 
-namespace BridgeCareCoreTests.Tests.BudgetPriority
+namespace AssetFoxCoreTests.Tests.BudgetPriority
 {
     public static class BudgetPriorityPagingServiceMocks
     {

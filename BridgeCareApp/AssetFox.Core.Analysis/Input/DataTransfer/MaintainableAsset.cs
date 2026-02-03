@@ -1,0 +1,17 @@
+using System;
+using System.Collections.Generic;
+
+namespace AssetFox.Core.Analysis.Input.DataTransfer;
+
+public sealed class MaintainableAsset
+{
+    public Guid ID { get; set; }
+
+    public string Name { get; set; }
+
+    public List<AttributeValueHistory<double>> NumberAttributeHistories { get; init; } = new();
+
+    public string SpatialWeightExpression { get; set; }
+
+    public List<AttributeValueHistory<string>> TextAttributeHistories { get; init; } = new();
+}

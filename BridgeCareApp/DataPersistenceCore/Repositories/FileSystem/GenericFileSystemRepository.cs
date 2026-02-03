@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace AppliedResearchAssociates.iAM.DataPersistenceCore.Repositories.FileSystem
+namespace AssetFox.Core.DataPersistenceCore.Repositories.FileSystem
 {
     public abstract class GenericFileSystemRepository<T>
         : IRepository<T> where T : class

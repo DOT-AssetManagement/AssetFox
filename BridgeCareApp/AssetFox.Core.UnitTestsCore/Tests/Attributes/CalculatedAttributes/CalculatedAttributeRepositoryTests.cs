@@ -1,0 +1,413 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using AssetFox.Core.Analysis;
+using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.CalculatedAttribute;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.CalculatedAttribute;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Moq;
+using Xunit;
+
+namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
+{
+    public class CalculatedAttributeRepositoryTests
+    {
+        // NOTE:  Because of the extension system, actions on the context itself cannot be mocked (pending a discussion with Paul)
+        // As the definitions on these tests are still useful, they are commented out here in the hope that we can find a way
+        // to make them work later.
+
+        private UnitOfDataPersistenceWork _testRepo;
+        private UnitOfDataPersistenceWork _emptyTestRepo;
+        private UnitOfDataPersistenceWork _isCalcualtedTestRepo;
+        private Mock<IAMContext> _mockedContext;
+        private Mock<IAMContext> _emptyMockedContext;
+        private Mock<DbSet<CalculatedAttributeLibraryEntity>> _mockLibrary;
+        private Mock<DbSet<CalculatedAttributeEntity>> _mockLibrarycalcAttr;
+        private Mock<DbSet<ScenarioCalculatedAttributeEntity>> _mockScenarioCalculations;
+        private Mock<DbSet<AttributeEntity>> _mockAttributes;
+        private Guid _badId;
+
+        public CalculatedAttributeRepositoryTests()
+        {
+            // Create main test context
+            _mockedContext = new Mock<IAMContext>();
+
+            var libraryRepo = TestDataForCalculatedAttributesRepository.GetLibraryRepo();
+            _mockLibrary = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.CalculatedAttributeLibrary, libraryRepo);
+            _mockLibrary.Setup(_ => _.Add(It.IsAny<CalculatedAttributeLibraryEntity>())).Returns<CalculatedAttributeDTO>(null);
+
+            var libraryCalcAttrRepo = libraryRepo.SelectMany(_ => _.CalculatedAttributes);
+            _mockLibrarycalcAttr = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.CalculatedAttribute, libraryCalcAttrRepo);
+
+            var scenarioRepo = TestDataForCalculatedAttributesRepository.GetSimulationCalculatedAttributesRepo();
+            _mockScenarioCalculations = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.ScenarioCalculatedAttribute, scenarioRepo);
+
+            var attributeRepo = TestDataForCalculatedAttributesRepository.GetAttributeRepo();
+            _mockAttributes = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.Attribute, attributeRepo);
+
+            var simulationRepo = TestDataForCalculatedAttributesRepository.GetSimulations();
+            var simulationLibrary = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.Simulation, simulationRepo);
+
+            var mockedRepo = new UnitOfDataPersistenceWork((new Mock<IConfiguration>()).Object, _mockedContext.Object);
+            _testRepo = mockedRepo;
+
+            // Create empty test context
+            _emptyMockedContext = new Mock<IAMContext>();
+
+            libraryRepo = new List<CalculatedAttributeLibraryEntity>().AsQueryable();
+            var emptyAttributeRepo = new List<AttributeEntity>().AsQueryable();
+            MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.Attribute, emptyAttributeRepo);
+           _mockLibrary = MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.CalculatedAttributeLibrary, libraryRepo);
+
+            scenarioRepo = new List<ScenarioCalculatedAttributeEntity>().AsQueryable();
+            _mockScenarioCalculations = MockedContextBuilder.AddDataSet(_emptyMockedContext, _ => _.ScenarioCalculatedAttribute, scenarioRepo);
+
+            var emptyMockedRepo = new UnitOfDataPersistenceWork((new Mock<IConfiguration>()).Object, _emptyMockedContext.Object);
+            _emptyTestRepo = emptyMockedRepo;
+
+            // Create calculated test context (using objects from the prior creation
+            var isCalculatedContext = new Mock<IAMContext>();
+
+            scenarioRepo = TestDataForCalculatedAttributesRepository.GetSimulationCalculatedAttributesRepo(false);
+            var _mockScenarioLimitedCalculations = MockedContextBuilder.AddDataSet(isCalculatedContext, _ => _.ScenarioCalculatedAttribute, scenarioRepo);
+
+            isCalculatedContext.Setup(_ => _.CalculatedAttributeLibrary).Returns(_mockLibrary.Object);
+            isCalculatedContext.Setup(_ => _.Set<CalculatedAttributeLibraryEntity>()).Returns(_mockLibrary.Object);
+            isCalculatedContext.Setup(_ => _.Attribute).Returns(_mockAttributes.Object);
+            isCalculatedContext.Setup(_ => _.Set<AttributeEntity>()).Returns(_mockAttributes.Object);
+            isCalculatedContext.Setup(_ => _.Simulation).Returns(simulationLibrary.Object);
+            isCalculatedContext.Setup(_ => _.Set<SimulationEntity>()).Returns(simulationLibrary.Object);
+
+            var mockedIsCalculatedRepo = new UnitOfDataPersistenceWork((new Mock<IConfiguration>()).Object, isCalculatedContext.Object);
+            _isCalcualtedTestRepo = mockedIsCalculatedRepo;
+
+            _badId = new Guid("ddb82ba3-174f-43b0-97b2-4456b6b9edb2");
+        }
+
+        [Fact]
+        public void SuccessfullyPullsDataFromLibraryRepository()
+        {
+            // Arrange
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
+            var repo = new CalculatedAttributeRepository(_testRepo);
+
+            // Act
+            var result = repo.GetCalculatedAttributeLibraries();
+
+            // Assert
+            Assert.Equal(2, result.Count());
+            Assert.NotNull(result.FirstOrDefault(_ => _.Name == "Second"));
+        }
+
+        [Fact]
+        public void HandlesEmptyRepository()
+        {
+            // Arrange
+            var repo = new CalculatedAttributeRepository(_emptyTestRepo);
+
+            // Act
+            var result = repo.GetCalculatedAttributeLibraries();
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        //[Fact]
+        //public void AddsLibraryToRepository()
+        //{
+        //    // Arrange
+        //    var repo = new CalculatedAttributeRepository(_testRepo);
+
+        //    var attributes = TestDataForCalculatedAttributesRepository.GetAttributeRepo();
+
+        //    var library = new CalculatedAttributeLibraryDTO
+        //    {
+        //        Name = "Third"
+        //    };
+
+        //    PopulateCalculatedAttributeLibraryDTO(library);
+
+        //    // Act
+        //    repo.UpsertCalculatedAttributeLibrary(library);
+
+        //    // Assert
+        //    _mockLibrary.Verify(_ => _.Add(It.IsAny<CalculatedAttributeLibraryEntity>()), Times.Once());
+        //    _mockedContext.Verify(_ => _.SaveChanges(), Times.Once());
+        //}
+
+
+        //[Fact]
+        //public void SwitchesDefaultLibrary()
+        //{
+        //    // Arrange
+        //    var repo = new CalculatedAttributeRepository(_testRepo);
+
+        //    var attributes = TestDataForCalculatedAttributesRepository.GetAttributeRepo();
+
+        //    var library = new CalculatedAttributeLibraryDTO
+        //    {
+        //        Name = "Third",
+        //        IsDefault = true
+        //    };
+
+        //    PopulateCalculatedAttributeLibraryDTO(library);
+
+        //    // Act
+        //    repo.UpsertCalculatedAttributeLibrary(library);
+
+        //    // Assert
+        //    _mockLibrary.Verify(_ => _.Update(It.IsAny<CalculatedAttributeLibraryEntity>()), Times.Exactly(2));
+        //    _mockedContext.Verify(_ => _.SaveChanges(), Times.Once());
+        //}
+
+        [Fact]
+        public void UpsertHandlesNoLibraryFound()
+        {
+            // Arrange
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
+            var repo = new CalculatedAttributeRepository(_testRepo);
+            var attributeRepo = new AttributeRepository(_testRepo);
+            var attributes = TestDataForCalculatedAttributesRepository.GetAttributeRepo();
+            var attributeNameLookup = attributeRepo.GetIdNameCache();
+            var changingLibraryDTO = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "Second").ToDto(attributeNameLookup);
+            var revisedCalculation = changingLibraryDTO.CalculatedAttributes.FirstOrDefault(_ => _.Attribute == "DESCRIPTION");
+            revisedCalculation.CalculationTiming = 2;
+
+            // Act & Assert
+            Assert.Throws<RowNotInTableException>(() => repo.UpsertCalculatedAttributes(new List<CalculatedAttributeDTO>() { revisedCalculation }, _badId));
+        }
+
+        //[Fact]
+        //public void SuccessfullyDeletesLibrary()
+        //{
+        //    // Arrange
+        //    var repo = new CalculatedAttributeRepository(_testRepo);
+        //    var deletedLibraryEntityId = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "Second").Id;
+
+        //    // Act
+        //    repo.DeleteCalculatedAttributeLibrary(deletedLibraryEntityId);
+
+        //    // Assert
+        //    _mockLibrary.Verify(_ => _.Remove(It.IsAny<CalculatedAttributeLibraryEntity>()), Times.Once());
+        //    _mockedContext.Verify(_ => _.SaveChanges(), Times.Once());
+        //}
+
+        [Fact]
+        public void DeleteLibraryHandlesNoLibraryFound()
+        {
+            // Arrange
+            var repo = new CalculatedAttributeRepository(_testRepo);
+
+            // Act
+            repo.DeleteCalculatedAttributeLibrary(_badId);
+
+            // Assert
+            _mockLibrary.Verify(_ => _.Remove(It.IsAny<CalculatedAttributeLibraryEntity>()), Times.Never());
+            _mockedContext.Verify(_ => _.SaveChanges(), Times.Never());
+        }
+
+        [Fact]
+        public void SuccessfulyGetScenarioAttributes()
+        {
+            // Arrange
+            var repo = new CalculatedAttributeRepository(_testRepo);
+            var simulationId = TestDataForCalculatedAttributesRepository.FirstSimulationId;
+
+            // Act
+            var result = repo.GetScenarioCalculatedAttributes(simulationId);
+
+            // Assert
+            Assert.Equal(3, result.Count());
+            Assert.NotNull(result.FirstOrDefault(_ => _.Attribute == "AGE"));
+        }
+
+        [Fact]
+        public void HandlesNoScenarioAttributes()
+        {
+            // Arrange
+            var repo = new CalculatedAttributeRepository(_emptyTestRepo);
+            var simulationId = TestDataForCalculatedAttributesRepository.FirstSimulationId;
+
+            // Act
+            var result = repo.GetScenarioCalculatedAttributes(simulationId);
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void UpsertScenarioCalculatedAttributesHandlesNoScenarioFound()
+        {
+            // Arrange
+            var repo = new CalculatedAttributeRepository(_testRepo);
+            var entity = _testRepo.Context.ScenarioCalculatedAttribute.First(_ => _.Attribute.Name == "CONDITION");
+            var dummyDictionary = new Dictionary<Guid, string> {{ entity.Attribute.Id, entity.Attribute.Name }};
+            var attributeToModify = entity.ToDto(dummyDictionary);
+            attributeToModify.CalculationTiming = 2;
+
+            // Act & Assert
+            Assert.Throws<RowNotInTableException>(() => repo.UpsertScenarioCalculatedAttributesNonAtomic(new List<CalculatedAttributeDTO>() { attributeToModify }, _badId));
+        }
+
+        [Fact]
+        public void AttributeObjectPopulatedCorrectly()
+        {
+            // Arrange
+            var attributeRepo = new AttributeRepository(_testRepo);
+            var testExplorer = attributeRepo.GetExplorer();
+            var simulation = testExplorer.AddNetwork().AddSimulation();
+            SetupSimulation("First", simulation, _isCalcualtedTestRepo);
+
+            var repo = new CalculatedAttributeRepository(_isCalcualtedTestRepo);
+
+            // Act
+            repo.PopulateScenarioCalculatedFields(simulation);
+
+            // Assert
+            Assert.Single(testExplorer.CalculatedFields);
+            Assert.Equal(2, testExplorer.CalculatedFields.First().ValueSources.Count);
+        }
+
+        [Fact]
+        public void CalculatedFieldPopulationHandlesCalculationsWithoutAttributes()
+        {
+            // Arrange
+            var testAttributeRepo = TestDataForCalculatedAttributesRepository.GetAttributeRepo().ToList();
+            var attributeToRemove = testAttributeRepo.First(_ => _.Name == "CONDITION");
+            testAttributeRepo.Remove(attributeToRemove);
+            var limitedAttributes = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.Attribute, testAttributeRepo.AsQueryable());
+
+            var attributeRepo = new AttributeRepository(_testRepo);
+            var testExplorer = attributeRepo.GetExplorer();
+            var simulation = testExplorer.AddNetwork().AddSimulation();
+            SetupSimulation("First", simulation, _isCalcualtedTestRepo);
+
+            var repo = new CalculatedAttributeRepository(_isCalcualtedTestRepo);
+
+            // Act
+            repo.PopulateScenarioCalculatedFields(simulation);
+
+            // Assert
+            Assert.Empty(testExplorer.CalculatedFields);
+        }
+
+        [Fact]
+        public void CalculatedFieldPopulationHandlesAttributesWithoutCalculation()
+        {
+            // Arrange
+            var scenarioRepo = TestDataForCalculatedAttributesRepository.GetSimulationCalculatedAttributesRepo().ToList();
+            var calculationsToRemove = scenarioRepo.Where(_ => _.Attribute.Name == "CONDITION").ToList();
+            calculationsToRemove.ForEach(calc => scenarioRepo.Remove(calc));
+            var limitedCalculations = MockedContextBuilder.AddDataSet(_mockedContext, _ => _.ScenarioCalculatedAttribute, scenarioRepo.AsQueryable());
+
+            var attributeRepo = new AttributeRepository(_testRepo);
+            var testExplorer = attributeRepo.GetExplorer();
+            var simulation = testExplorer.AddNetwork().AddSimulation();
+            SetupSimulation("First", simulation, _testRepo);
+
+            var repo = new CalculatedAttributeRepository(_testRepo);
+
+            // Act
+            repo.PopulateScenarioCalculatedFields(simulation);
+
+            // Assert
+            Assert.Single(testExplorer.CalculatedFields);
+            Assert.Equal(CalculatedFieldTiming.OnDemand, testExplorer.CalculatedFields.First().Timing);
+        }
+
+        [Fact]
+        public void GetLibraryCalulatedAttributesByLibraryAndAttributeIdTest()
+        {
+            // Arrange
+            var repo = new CalculatedAttributeRepository(_testRepo);
+            var libraryId = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "First").Id;
+            var attr = _mockAttributes.Object.First(_ => _.Name == "AGE");
+
+            // Act
+            var result = repo.GetLibraryCalulatedAttributesByLibraryAndAttributeId(libraryId, attr.Id);
+
+            // Assert
+            Assert.True(result.Attribute == "AGE");
+        }
+
+        [Fact]
+        public void GetScenarioCalulatedAttributesByScenarioAndAttributeIdTest()
+        {
+            // Arrange
+            var repo = new CalculatedAttributeRepository(_testRepo);
+            var simulationId = TestDataForCalculatedAttributesRepository.FirstSimulationId;
+            var attr = _testRepo.Context.Attribute.First(_ => _.Name == "AGE");
+            
+            // Act
+            var result = repo.GetScenarioCalulatedAttributesByScenarioAndAttributeId(simulationId, attr.Id);
+
+            // Assert
+            Assert.True(result.Attribute == "AGE");
+        }
+
+        // Helpers
+        private void PopulateCalculatedAttributeLibraryDTO(CalculatedAttributeLibraryDTO library)
+        {
+            var attributes = TestDataForCalculatedAttributesRepository.GetAttributeRepo();
+
+            foreach (var attribute in attributes)
+            {
+                library.CalculatedAttributes.Add(GetDefaultNewCalculation(attribute));
+            }
+        }
+
+        private CalculatedAttributeDTO GetDefaultNewCalculation(AttributeEntity attribute)
+        {
+            var newCalculation = new CalculatedAttributeDTO
+            {
+                Id = Guid.NewGuid(),
+                Attribute = attribute.Name,
+                CalculationTiming = 1
+            };
+
+            var newPair = new CalculatedAttributeEquationCriteriaPairDTO()
+            {
+                Id = Guid.NewGuid(),
+                Equation = new EquationDTO()
+                {
+                    Expression = $"[{attribute.Name}] + 15"
+                }
+            };
+            newCalculation.Equations.Add(newPair);
+
+            newPair = new CalculatedAttributeEquationCriteriaPairDTO()
+            {
+                Id = Guid.NewGuid(),
+                Equation = new EquationDTO()
+                {
+                    Expression = $"[{attribute.Name}] + 25"
+                },
+                CriteriaLibrary = new CriterionLibraryDTO()
+                {
+                    Name = "Test",
+                    IsSingleUse = false,
+                    MergedCriteriaExpression = "[Status] = 'Fair'"
+                }
+            };
+            newCalculation.Equations.Add(newPair);
+
+            return newCalculation;
+        }
+
+        private void SetupSimulation(string name, Simulation simulation, UnitOfDataPersistenceWork uow)
+        {
+            var populatedSimulation = uow.Context.Simulation.First(_ => _.Name == name);
+            simulation.Id = populatedSimulation.Id;
+            simulation.Name = populatedSimulation.Name;
+        }
+    }
+}

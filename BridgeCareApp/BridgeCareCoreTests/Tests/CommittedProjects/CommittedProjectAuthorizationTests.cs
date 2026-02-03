@@ -1,13 +1,13 @@
-﻿using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Utils;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Utils;
+using AssetFoxCoreTests.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using static BridgeCareCore.Security.SecurityConstants;
+using static AssetFoxCore.Security.SecurityConstants;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 
-namespace BridgeCareCoreTests.Tests.CommittedProjects
+namespace AssetFoxCoreTests.Tests.CommittedProjects
 {
     public class CommittedProjectAuthorizationTests
     {
@@ -22,7 +22,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectModifyAnyAccess
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CommittedProjectModifyAnyAccess
                         ));
                 });
             });
@@ -44,7 +44,7 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectModifyAnyAccess
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CommittedProjectModifyAnyAccess
                         ));
                 });
             });
@@ -66,8 +66,8 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectViewPermittedAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectViewAnyAccess
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CommittedProjectViewPermittedAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CommittedProjectViewAnyAccess
                         ));
                 });
             });
@@ -89,8 +89,8 @@ namespace BridgeCareCoreTests.Tests.CommittedProjects
                 {
                     options.AddPolicy(PolicyName,
                         policy => policy.RequireClaim(ClaimTypes.Name,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectImportAnyAccess,
-                                                      BridgeCareCore.Security.SecurityConstants.Claim.CommittedProjectImportPermittedAccess
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CommittedProjectImportAnyAccess,
+                                                      AssetFoxCore.Security.SecurityConstants.Claim.CommittedProjectImportPermittedAccess
                         ));
                 });
             });

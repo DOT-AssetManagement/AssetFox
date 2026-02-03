@@ -1,6 +1,6 @@
 {
     "name": "bridge-care",
-    "version": "v3.4e",
+    "version": "v3.4.1",
     "port": "8080",
     "private": true,
     "description": "BridgeCare",

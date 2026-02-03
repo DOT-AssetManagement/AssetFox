@@ -1,19 +1,19 @@
-﻿using AppliedResearchAssociates.iAM.DataPersistenceCore.UnitOfWork;
-using AppliedResearchAssociates.iAM.DTOs;
-using AppliedResearchAssociates.iAM.TestHelpers;
-using AppliedResearchAssociates.iAM.UnitTestsCore;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.Repositories;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.SelectableTreatment;
-using AppliedResearchAssociates.iAM.UnitTestsCore.Tests.TreatmentCost;
-using AppliedResearchAssociates.iAM.UnitTestsCore.TestUtils;
-using BridgeCareCore.Services;
-using BridgeCareCore.Services.Treatment;
-using BridgeCareCoreTests.Helpers;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
+using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
+using AssetFox.Core.UnitTestsCore;
+using AssetFox.Core.UnitTestsCore.Tests;
+using AssetFox.Core.UnitTestsCore.Tests.Repositories;
+using AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment;
+using AssetFox.Core.UnitTestsCore.Tests.TreatmentCost;
+using AssetFox.Core.UnitTestsCore.TestUtils;
+using AssetFoxCore.Services;
+using AssetFoxCore.Services.Treatment;
+using AssetFoxCoreTests.Helpers;
 using OfficeOpenXml;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests.Integration
+namespace AssetFoxCoreTests.Tests.Integration
 {
     public class TreatmentServiceIntegrationTests
     {

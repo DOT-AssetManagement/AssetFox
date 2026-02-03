@@ -1,0 +1,10 @@
+using System.Collections.Generic;
+
+namespace AssetFox.Core.Analysis.Input.DataTransfer;
+
+public sealed class CashFlowDistributionRule
+{
+    public decimal? CostCeiling { get; set; }
+
+    public List<decimal> YearlyPercentages { get; init; } = new();
+}

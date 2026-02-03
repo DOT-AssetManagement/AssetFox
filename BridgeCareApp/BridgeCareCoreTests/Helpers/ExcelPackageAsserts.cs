@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.DTOs;
+using AssetFox.Core.DTOs;
 using OfficeOpenXml;
 
-namespace BridgeCareCoreTests
+namespace AssetFoxCoreTests
 {
     public static class ExcelPackageAsserts
     {

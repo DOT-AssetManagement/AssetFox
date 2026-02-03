@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppliedResearchAssociates.iAM.WorkQueue;
-using BridgeCareCore.Models;
-using BridgeCareCore.Services;
+using AssetFox.Core.WorkQueue;
+using AssetFoxCore.Models;
+using AssetFoxCore.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace BridgeCareCoreTests.Tests
+namespace AssetFoxCoreTests.Tests
 {
     public class SequentialWorkQueueTests
     {

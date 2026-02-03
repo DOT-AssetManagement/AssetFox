@@ -1,0 +1,15 @@
+using System;
+using System.Collections.Generic;
+using AssetFox.Core.DTOs;
+
+namespace AssetFox.Core.DataPersistenceCore.Repositories
+{
+    public interface ITreatmentPerformanceFactorRepository
+    {
+        void UpsertScenarioTreatmentPerformanceFactors(Dictionary<Guid, List<TreatmentPerformanceFactorDTO>> scenarioTreatmentPerformanceFactorPerTreatmentId,
+            Guid SimulationId);
+
+        void UpsertLibraryTreatmentPerformanceFactors(Dictionary<Guid, List<TreatmentPerformanceFactorDTO>> TreatmentPerformanceFactorPerTreatmentId,
+           Guid LibraryId);
+    }
+}
