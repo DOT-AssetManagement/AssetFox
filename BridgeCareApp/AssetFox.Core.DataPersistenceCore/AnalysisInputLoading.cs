@@ -88,7 +88,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "Attributes");
         }
         // intermediate update/check
         if (!afterExplorer())
@@ -113,7 +113,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "Network");
         }
         // intermediate update/check
         if (!afterNetwork())
@@ -132,7 +132,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "Simulation");
         }
         // intermediate update/check
         if (!afterSimulation())
@@ -160,7 +160,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "InvestmentPlan");
         }
         // intermediate update/check
         if (!afterInvestmentPlan())
@@ -180,7 +180,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "AnalysisMethod");
         }
         // intermediate update/check
         if (!afterAnalysisMethod())
@@ -200,7 +200,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "PerformanceCurves");
         }
         // intermediate update/check
         if (!afterPerformanceCurves())
@@ -219,7 +219,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "Treatments");
         }
         // intermediate update/check
         if (!afterSelectableTreatments())
@@ -238,7 +238,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "CommittedProjects");
         }
         // intermediate update/check
         if (!afterCommittedProjects())
@@ -257,11 +257,12 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, "CalculatedAttributes");
         }
 
         return simulation;
     }
 
-    private static void AddError(ValidationResultBag validationResultBag, string errorMessage) => validationResultBag.Add(ValidationStatus.Error, errorMessage, typeof(AnalysisInputLoading));
+    // TODO pass location
+    private static void AddError(ValidationResultBag validationResultBag, string errorMessage, string location = null) => validationResultBag.Add(ValidationStatus.Error, errorMessage, typeof(AnalysisInputLoading), location: location);
 }

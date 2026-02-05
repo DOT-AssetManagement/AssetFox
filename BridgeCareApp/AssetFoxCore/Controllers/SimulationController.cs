@@ -755,12 +755,12 @@ namespace AssetFoxCore.Controllers
                     }
                     else
                     {
-                        validationResultBag = simulation.GetAllValidationResults(Enumerable.Empty<string>());
+                        validationResultBag = simulation.GetAllValidationResults([]);
                         validationResultList.AddRange(validationResultBag.AsEnumerable().ToList());
                         GetPreChecksValidationResults(preChecksValidationResults, validationResultList);
                     }
                     
-                    preChecksValidationResults = System.Linq.Enumerable.DistinctBy(preChecksValidationResults, _ => _.Message).ToList();
+                    preChecksValidationResults = Enumerable.DistinctBy(preChecksValidationResults, _ => _.Message).ToList();
                 });
                 return Ok(preChecksValidationResults);
             }
@@ -787,7 +787,7 @@ namespace AssetFoxCore.Controllers
 
         private static void GetPreChecksValidationResults(List<PreChecksValidationResult> validationResults, List<ValidationResult> validationResultList) =>
             validationResults.AddRange(from validationResult in validationResultList
-                                       let toAdd = new PreChecksValidationResult(validationResult.Status, validationResult.Message)
+                                       let toAdd = new PreChecksValidationResult(validationResult.Status, validationResult.Message, validationResult.Location)
                                        select toAdd);
     }
 }
