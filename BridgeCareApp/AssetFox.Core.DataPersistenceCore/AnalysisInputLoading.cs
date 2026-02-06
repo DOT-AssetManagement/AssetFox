@@ -160,7 +160,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message, "InvestmentPlan");
+            AddError(validationResultBag, ex.Message, "Investment");
         }
         // intermediate update/check
         if (!afterInvestmentPlan())
@@ -180,7 +180,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message, "AnalysisMethod");
+            AddError(validationResultBag, ex.Message, "Analysis Method");
         }
         // intermediate update/check
         if (!afterAnalysisMethod())
@@ -200,7 +200,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message, "PerformanceCurves");
+            AddError(validationResultBag, ex.Message, "Deterioration Model");
         }
         // intermediate update/check
         if (!afterPerformanceCurves())
@@ -219,7 +219,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message, "Treatments");
+            AddError(validationResultBag, ex.Message, "Treatment");
         }
         // intermediate update/check
         if (!afterSelectableTreatments())
@@ -238,7 +238,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message, "CommittedProjects");
+            AddError(validationResultBag, ex.Message, "Committed Projects");
         }
         // intermediate update/check
         if (!afterCommittedProjects())
@@ -257,12 +257,11 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message, "CalculatedAttributes");
+            AddError(validationResultBag, ex.Message, "Calculated Attribute");
         }
 
         return simulation;
     }
-
-    // TODO pass location
+        
     private static void AddError(ValidationResultBag validationResultBag, string errorMessage, string location = null) => validationResultBag.Add(ValidationStatus.Error, errorMessage, typeof(AnalysisInputLoading), location: location);
 }

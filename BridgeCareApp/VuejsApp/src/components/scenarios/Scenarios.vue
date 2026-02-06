@@ -1667,7 +1667,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                                 for(const item of response.data)
                                 {
                                     if (item.message != '') {
-                                    preCheckMessages += item.message + ".";
+                                        preCheckMessages += item.message.replace('.','') + " (in " + item.location + ")" + ".";
                                     }
                                 }
                             }
@@ -1684,17 +1684,17 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                 emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenario.id });
                 emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
                     if (!treatment.budgets || treatment.budgets.length === 0) {
-                        preCheckMessages += `Treatment ${treatment.name} has no budgets.`
+                        preCheckMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`
                     }
 
                     if (!treatment.assetType)
                     {
-                        preCheckMessages += `Treatment Asset type is empty or invalid on ${treatment.name}.` 
+                        preCheckMessages += `Treatment Asset type is empty or invalid on ${treatment.name} (in Treatment).` 
                     }
 
                     if(isNaN(treatment.category) || isNaN(treatment.shadowForAnyTreatment) || isNaN(treatment.shadowForSameTreatment))
                     {
-                        preCheckMessages += `A treatment detail is empty or invalid on ${treatment.name}.` 
+                        preCheckMessages += `A treatment detail is empty or invalid on ${treatment.name} (in Treatment).` 
                     }
                 });
 
