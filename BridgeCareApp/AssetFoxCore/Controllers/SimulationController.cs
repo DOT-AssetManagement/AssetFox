@@ -30,6 +30,7 @@ using AssetFoxCore.Models.Validation;
 using ValidationResult = AssetFox.Validation.ValidationResult;
 using AssetFox.Core.Common;
 using AssetFoxCore.Security;
+using System.Text;
 
 namespace AssetFoxCore.Controllers
 {
@@ -783,6 +784,44 @@ namespace AssetFoxCore.Controllers
                 }
             }
             return Ok();
+        }
+
+        [HttpPost]
+        [Route("GetPreChecksDownloadLog")]
+        [Authorize]
+        public async Task<FileResult> GetPreChecksDownloadLog([FromBody]List<string> validationErrors)
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() =>
+                {
+                    var builder = new StringBuilder();
+                    builder.AppendLine("Error");
+                    builder.AppendLine("-----");
+                    foreach (var validationError in validationErrors)
+                    {
+                        builder.AppendLine(validationError);
+                    }
+                    var log = builder.ToString();
+                    var bytes = Encoding.Unicode.GetBytes(log);
+                    const string contentType = "text/plain";
+                    HttpContext.Response.ContentType = contentType;
+                    HttpContext.Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
+                    var fileContentResult = new FileContentResult(bytes, contentType)
+                    {
+                        FileDownloadName = "PreChecksValidationLog.txt"
+                    };
+
+                    return fileContentResult;
+                });
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::GetPreChecksValidationLog - {e.Message}", e);
+            }
+            return null;
         }
 
         private static void GetPreChecksValidationResults(List<PreChecksValidationResult> validationResults, List<ValidationResult> validationResultList) =>

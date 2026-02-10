@@ -40,7 +40,10 @@
                         </v-btn>
                     </v-row>
                     <v-row v-if="!dialogDataPreChecks.choice" style="padding-left: 35px">
-                        <v-btn @click="onSubmit(false)" class="assetFox-blue-bg text-white">
+                        <v-btn @click="onDownloadPreChecksLog" class="ghd-blue-bg ghd-white ghd-button">
+                            Pre-Checks Log
+                        </v-btn>
+                        <v-btn @click="onSubmit(false)" class="ghd-blue-bg ghd-white ghd-button">
                             OK
                         </v-btn>
                     </v-row>
@@ -56,13 +59,22 @@
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
     import { useStore } from 'vuex';
     import { useRouter } from 'vue-router';
+    import ScenarioService from '@/services/scenario.service';
+    import FileDownload from 'js-file-download';
+    import { AxiosResponse } from 'axios';
+    import { hasValue } from '@/shared/utils/has-value-util';
+import { prop } from 'ramda';
     
+    let store = useStore();
+    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload)}    
+    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
+
     const props = defineProps<{
         dialogDataPreChecks: AlertPreChecksData
+        scenario: string
     }>()
     let showDialogComputed = computed(() => props.dialogDataPreChecks.showDialog);
     const emit = defineEmits(['submit'])
-
 
     const filteredMessages = computed(() => {
     const message = props.dialogDataPreChecks.message;
@@ -78,12 +90,33 @@
         return filtered;
     }
     return [];
-});        /**
-         * Emits a boolean result to the parent component
-         * @param submit
-         */
-        function onSubmit(submit: boolean) {
-            emit('submit', submit);
+    });        
+
+    /**
+     * Emits a boolean result to the parent component
+     * @param submit
+     */
+    function onSubmit(submit: boolean) {
+        emit('submit', submit);
+    }
+
+    async function onDownloadPreChecksLog() {
+        try {            
+            const response: AxiosResponse<any> = await ScenarioService.getPreChecksDownloadLog(filteredMessages.value);
+        
+            if (hasValue(response, 'data')) {
+                addSuccessNotificationAction({ message: 'Pre-checks log downloaded.' });
+                FileDownload(response.data, `Pre-checks log ${props.scenario}.txt`);
+            } else {
+                throw new Error('No data received');
+            }
+        } catch (error) {
+            console.error('Error downloading Pre-checks log:', error);
+            addErrorNotificationAction({
+                message: 'Failed to download Pre-checks log.',
+                longMessage:
+                    'Failed to download Pre-checks log. Please try again.',
+            });
         }
-    
+    }
 </script>

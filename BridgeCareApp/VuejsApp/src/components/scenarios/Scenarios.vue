@@ -628,6 +628,7 @@
 
          <AlertPreChecks
             :dialogDataPreChecks="confirmAnalysisPreCheckAlertData"
+            :scenario="selectedScenario.name"
             @submit="onConfirmAnalysisPreCheckAlertSubmit"
         />
        

@@ -116,4 +116,15 @@ export default class ScenarioService {
     static deleteScenarioOutputsWithingDaterange(data:SimulationOutputDeletionParameters): AxiosPromise {
         return coreAxiosInstance.post(`${API.Scenario}/DeleteSimulationOutput/`, data);
     }
+
+    static getPreChecksDownloadLog(data: string[]): AxiosPromise {        
+        return coreAxiosInstance.request({
+            method: 'POST',
+            url: `${API.Scenario}/GetPreChecksDownloadLog/`,
+            data: data,
+            headers: {'Content-Type': 'application/json'},
+            responseType: 'arraybuffer'
+        });
+
+    }
 }
