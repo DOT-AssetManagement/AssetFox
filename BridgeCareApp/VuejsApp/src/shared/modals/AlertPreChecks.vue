@@ -70,7 +70,7 @@ import { prop } from 'ramda';
     function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
 
     const props = defineProps<{
-        dialogDataPreChecks: AlertPreChecksData
+        dialogDataPreChecks: AlertPreChecksData,
         scenario: string
     }>()
     let showDialogComputed = computed(() => props.dialogDataPreChecks.showDialog);
@@ -104,18 +104,18 @@ import { prop } from 'ramda';
         try {            
             const response: AxiosResponse<any> = await ScenarioService.getPreChecksDownloadLog(filteredMessages.value);
         
-            if (hasValue(response, 'data')) {
-                addSuccessNotificationAction({ message: 'Pre-checks log downloaded.' });
-                FileDownload(response.data, `Pre-checks log ${props.scenario}.txt`);
+            if (hasValue(response, 'data')) {                
+                addSuccessNotificationAction({ message: 'Pre-Checks Log downloaded.' });
+                FileDownload(response.data, `Pre-Checks Log ${props.scenario}.txt`);
             } else {
                 throw new Error('No data received');
             }
         } catch (error) {
-            console.error('Error downloading Pre-checks log:', error);
+            console.error('Error downloading Pre-Checks Log:', error);
             addErrorNotificationAction({
-                message: 'Failed to download Pre-checks log.',
+                message: 'Failed to download Pre-Checks Log.',
                 longMessage:
-                    'Failed to download Pre-checks log. Please try again.',
+                    'Failed to download Pre-Checks Log. Please try again.',
             });
         }
     }

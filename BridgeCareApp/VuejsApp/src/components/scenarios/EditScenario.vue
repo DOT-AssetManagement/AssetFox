@@ -75,6 +75,7 @@
 
         <AlertPreChecks
             :dialogDataPreChecks="confirmAnalysisPreCheckAlertData"
+            :scenario="selectedScenarioName"
             @submit="onConfirmAnalysisPreCheckAlertSubmit"
         />
 
@@ -174,7 +175,6 @@ import CashFlowService from '@/services/cash-flow.service';
     async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioSimpleBudgetDetails', payload)}
     async function getSimulationRunSettingAction(payload?: any): Promise<any> { await store.dispatch('getSimulationRunSetting', payload);}
  
-
     let selectedScenarioId: string = getBlankGuid();
     let showImportExportCommittedProjectsDialog: boolean = false;
     let networkId: string = getBlankGuid();
@@ -197,6 +197,7 @@ import CashFlowService from '@/services/cash-flow.service';
     let isCommittedProjectsSet = ref(false);
     let hasScenarioBeenRun = ref(false);
     let isCommittedProjectsBudgetsUnset = ref(true);
+    let selectedScenarioName: string = "";
 
     let navigationTabs = ref<NavigationTab[]>([
     {
@@ -671,7 +672,7 @@ import CashFlowService from '@/services/cash-flow.service';
                                 for(const item of response.data)
                                 {
                                     if (item.message != '') {
-                                    preCheckMessages += item.message + ".";
+                                        preCheckMessages += item.message.replace('.','') + " (in " + item.location + ")" + ".";
                                     }
                                 }
                             }
@@ -687,17 +688,20 @@ import CashFlowService from '@/services/cash-flow.service';
                 emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenarioId });
                 emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
                     if (!treatment.budgets || treatment.budgets.length === 0) {
-                        preCheckMessages += `Treatment ${treatment.name} has no budgets.`
+                        preCheckMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`
+                        CheckUpdatePreCheckStatus();
                     }
 
                     if (!treatment.assetType)
                     {
-                        preCheckMessages += `Treatment Asset type is empty or invalid on ${treatment.name}.` 
+                        preCheckMessages += `Treatment Asset type is empty or invalid on ${treatment.name} (in Treatment).` 
+                        CheckUpdatePreCheckStatus();
                     }
 
                     if(isNaN(treatment.category) || isNaN(treatment.shadowForAnyTreatment) || isNaN(treatment.shadowForSameTreatment))
                     {
-                        preCheckMessages += `A treatment detail is empty or invalid on ${treatment.name}.` 
+                        preCheckMessages += `A treatment detail is empty or invalid on ${treatment.name} (in Treatment).` 
+                        CheckUpdatePreCheckStatus();
                     }
                 });
 
@@ -717,8 +721,14 @@ import CashFlowService from '@/services/cash-flow.service';
 
     }
 
+    function CheckUpdatePreCheckStatus()
+    {
+        preCheckStatus = preCheckStatus != 0 ? 1 : preCheckStatus;
+    }
+
     function secondRunAnalysisModal() {
         confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
+        selectedScenarioName = selectedScenario.name;
 
             if(preCheckStatus == 0)
             {

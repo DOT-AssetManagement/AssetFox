@@ -628,7 +628,7 @@
 
          <AlertPreChecks
             :dialogDataPreChecks="confirmAnalysisPreCheckAlertData"
-            :scenario="selectedScenario.name"
+            :scenario="selectedScenarioName"
             @submit="onConfirmAnalysisPreCheckAlertSubmit"
         />
        
@@ -1075,6 +1075,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     let showImportExportCommittedProjectsDialog: boolean = false;
     let alertDataForDeletingCommittedProjects = ref({ ...emptyAlertData });
     let selectedScenarioId: string = "";
+    let selectedScenarioName: string = "";
     
     const currentWorkQueuePage = ref<QueuedWork[]>([]);
     const workQueuePagination = ref<Pagination>(clone(emptyPagination));
@@ -1686,16 +1687,19 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                 emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
                     if (!treatment.budgets || treatment.budgets.length === 0) {
                         preCheckMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`
+                        CheckUpdatePreCheckStatus();
                     }
 
                     if (!treatment.assetType)
                     {
                         preCheckMessages += `Treatment Asset type is empty or invalid on ${treatment.name} (in Treatment).` 
+                        CheckUpdatePreCheckStatus();
                     }
 
                     if(isNaN(treatment.category) || isNaN(treatment.shadowForAnyTreatment) || isNaN(treatment.shadowForSameTreatment))
                     {
                         preCheckMessages += `A treatment detail is empty or invalid on ${treatment.name} (in Treatment).` 
+                        CheckUpdatePreCheckStatus();
                     }
                 });
 
@@ -1717,8 +1721,14 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
         }
     }
 
+    function CheckUpdatePreCheckStatus()
+    {
+        preCheckStatus = preCheckStatus != 0 ? 1 : preCheckStatus;
+    }
+
     function secondRunAnalysisModal() {
-        confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
+        confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);         
+        selectedScenarioName = selectedScenario.name;
 
             if(preCheckStatus == 0)
             {
@@ -1763,7 +1773,6 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
         store.dispatch('updateSimulationRunSettingName', selectedScenario.name);
         store.dispatch('updateSimulationRunSettingId', selectedScenario.id);
         confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
-
         selectedScenario = runAnalysisScenario;
 
         if (submit && selectedScenario.id !== getBlankGuid()) {
