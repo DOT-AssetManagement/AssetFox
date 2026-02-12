@@ -674,6 +674,11 @@ import CashFlowService from '@/services/cash-flow.service';
                                     if (item.message != '') {
                                         preCheckMessages += item.message.replace('.','') + " (in " + item.location + ")" + ".";
                                     }
+                                    // TODO ask if this is correct! Ex. error and warning both present then we make it error...
+                                    if(item.status < preCheckStatus)
+                                    {
+                                        preCheckStatus = item.status;
+                                    }
                                 }
                             }
                             else
