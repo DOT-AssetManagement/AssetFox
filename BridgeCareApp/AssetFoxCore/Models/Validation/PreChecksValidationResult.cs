@@ -24,8 +24,7 @@ namespace AssetFoxCore.Models.Validation
         public string Message { get; }
 
         public ValidationStatus Status { get; }
-
-        // TODO and add from UI too where some msgs getting added to pre-check results...
+                
         public string Location { get; }        
     }
 }

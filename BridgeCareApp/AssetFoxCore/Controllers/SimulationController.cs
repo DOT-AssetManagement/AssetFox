@@ -800,7 +800,7 @@ namespace AssetFoxCore.Controllers
                     builder.AppendLine("-----");
                     foreach (var validationError in validationErrors)
                     {
-                        builder.AppendLine(validationError);
+                        builder.AppendLine(". " + validationError);
                     }
                     var log = builder.ToString();
                     var bytes = Encoding.Unicode.GetBytes(log);
