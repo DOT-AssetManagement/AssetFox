@@ -426,6 +426,30 @@ namespace AssetFoxCore.Controllers
             return Ok($"All reports for {simulationName} have been successfully deleted.");
         }
 
+        [HttpPost]
+        [Route("GetFlexibleReportData/{schemaId}")]
+        [Authorize]
+        public IActionResult GetFlexibleReportData(Guid schemaId)
+        {
+            try
+            {
+                var parameters = GetParameters().Result;
+                var simulationIdStr = parameters?.SelectToken("simulationId")?.ToString();
+                if (!Guid.TryParse(simulationIdStr, out var simulationId))
+                {
+                    return BadRequest("simulationId is required in the request body.");
+                }
+
+                var report = new AssetFox.Core.Reporting.FlexibleSchemaReport(UnitOfWork, "FlexibleReport", null, HubService);
+                var model = report.BuildReportModel(schemaId, simulationId);
+                return Ok(model);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = e.Message });
+            }
+        }
+
         #endregion
 
         #region "Internal functions"

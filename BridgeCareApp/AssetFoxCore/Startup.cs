@@ -123,6 +123,7 @@ namespace AssetFoxCore
             reportFactoryList.Add(new FlexibleAuditReportFactory());
             reportFactoryList.Add(new GeneralSummaryReportFactory());
             reportFactoryList.Add(new UserDefinedReportFactory());
+            reportFactoryList.Add(new FlexibleSchemaReportFactory());
             services.AddSingleton<IReportLookupLibrary>(service => new ReportLookupLibrary(reportFactoryList));
         }
 

@@ -259,6 +259,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public virtual DbSet<ReportIndexEntity> ReportIndex { get; set; }
 
+        public virtual DbSet<ReportSchemaEntity> ReportSchema { get; set; }
+
         public virtual DbSet<AnnouncementEntity> Announcement { get; set; }
 
         public virtual DbSet<ScenarioPerformanceCurveEntity> ScenarioPerformanceCurve { get; set; }
@@ -2532,7 +2534,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 entity.HasIndex(e => new { e.RunId, e.SimulationYearDetailId })
                       .HasDatabaseName("IX_BudgetDetail_SimulationYearDetailId");
 
-                // FK to SimulationYearDetail is optional; omit if you don’t enforce it
+                // FK to SimulationYearDetail is optional; omit if you donï¿½t enforce it
                 entity.HasOne(e => e.SimulationYearDetail)
                       .WithMany(y => y.Budgets)
                       .HasForeignKey(e => new { e.RunId, e.SimulationYearDetailId });

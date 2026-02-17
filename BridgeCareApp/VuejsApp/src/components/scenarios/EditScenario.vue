@@ -30,7 +30,8 @@
                                     <AnalysisMethodSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Analysis Method'"/>  
                                     <CalculatedAttributeSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Calculated Attribute'"/>  
                                     <CommittedProjectSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Committed Projects'"/>  
-                                    <ReportsSvg style="height: 38px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Reports & Outputs'"/>  
+                                    <ReportsSvg style="height: 38px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Reports & Outputs'"/>
+                                    <ReportBuilderSvg style="height: 38px; width: 32px" class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Report Builder'"/>
                             </template>
                         <v-list-item-title style="display: flex; justify-content: space-between; align-items: center; padding-left: 5px; width: 100%;">
     <span style="font-size: 1.1rem !important;">{{ navigationTab.tabName }}</span>
@@ -129,6 +130,7 @@ import CalculatedAttributeSvg from '@/shared/icons/CalculatedAttributeSvg.vue';
 import CommittedProjectSvg from '@/shared/icons/CommittedProjectSvg.vue';
 import { SectionCommittedProject } from '@/shared/models/iAM/committed-projects';
 import ReportsSvg from '@/shared/icons/ReportsSvg.vue';
+import ReportBuilderSvg from '@/shared/icons/ReportBuilderSvg.vue';
 import { useStore } from 'vuex'; 
 import { useRouter } from 'vue-router'; 
 import ScenarioService from '@/services/scenario.service';
@@ -294,6 +296,14 @@ import CashFlowService from '@/services/cash-flow.service';
         tabIcon: 'fas fa-clipboard',
         navigation: {
             path: '/ReportsAndOutputs/Scenario/',
+        },
+        disabled: hasScenarioBeenRun.value,
+    },
+    {
+        tabName: 'Report Builder',
+        tabIcon: 'fas fa-drafting-compass',
+        navigation: {
+            path: '/ReportBuilder/Scenario/',
         },
         disabled: hasScenarioBeenRun.value,
     },
@@ -622,9 +632,9 @@ import CashFlowService from '@/services/cash-flow.service';
             {
                 hasScenarioBeenRun.value = false;
 
-                // Update the disabled property of the Reports & Outputs tab
+                // Update the disabled property of the Reports & Outputs and Report Builder tabs
                 navigationTabs.value.forEach((tab) => {
-                        if (tab.tabName === 'Reports & Outputs') {
+                        if (tab.tabName === 'Reports & Outputs' || tab.tabName === 'Report Builder') {
                             tab.disabled = false;
                         }
                     });
@@ -1098,7 +1108,7 @@ import CashFlowService from '@/services/cash-flow.service';
                 
                 // Update the disabled property
                 navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Reports & Outputs') {
+                    if (tab.tabName === 'Reports & Outputs' || tab.tabName === 'Report Builder') {
                         tab.disabled = hasScenarioBeenRun.value;
                     }
                 });

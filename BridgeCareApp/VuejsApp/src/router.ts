@@ -98,6 +98,10 @@ const CalculatedAttributeEditor = () =>
     import(
         /*webpackChunkName: "CalculatedAttributeEditor" */ '@/components/calculated-attribute-editor/CalculatedAttributeEditor.vue'
     );
+const ReportBuilder = () =>
+    import(
+        '@/components/reports/report-builder/ReportBuilder.vue'
+    );
 const EditRawData = () =>
     import(
         /*webpackChunkName: "EditRawData" */ '@/components/raw-data/EditRawData.vue'
@@ -301,6 +305,12 @@ const router = createRouter({
                 {
                     path: '/ReportsAndOutputs/Scenario',
                     component: ReportsAndOutputs,
+                    props: true,
+                    beforeEnter: beforeEachFunc,
+                },
+                {
+                    path: '/ReportBuilder/Scenario',
+                    component: ReportBuilder,
                     props: true,
                     beforeEnter: beforeEachFunc,
                 },

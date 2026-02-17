@@ -77,6 +77,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private IBenefitQuantifierRepository _benefitQuantifierRepo;
         private IUserCriteriaRepository _userCriteriaRepo;
         private IReportIndexRepository _reportIndexRepo;
+        private IReportSchemaRepository _reportSchemaRepo;
         private IAssetData _assetDataRepository;
         private IAnnouncementRepository _announcementRepo;
         private IDataSourceRepository _dataSourceRepo;
@@ -158,6 +159,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         public IUserCriteriaRepository UserCriteriaRepo => _userCriteriaRepo ??= new UserCriteriaRepository(this);
 
         public IReportIndexRepository ReportIndexRepository => _reportIndexRepo ??= new ReportIndexRepository(this);
+
+        public IReportSchemaRepository ReportSchemaRepo => _reportSchemaRepo ??= new ReportSchemaRepository(this);
 
         public IAssetData AssetDataRepository => _assetDataRepository ??= new MaintainableAssetDataRepository(this);
 
