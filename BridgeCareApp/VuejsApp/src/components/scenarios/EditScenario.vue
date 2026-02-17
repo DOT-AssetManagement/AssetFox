@@ -182,9 +182,15 @@ import CashFlowService from '@/services/cash-flow.service';
     let networkName: string = '';
     let selectedScenario: Scenario = clone(emptyScenario);
     let runAnalysisScenario: Scenario = clone(emptyScenario);
-    let preCheckMessages: any;
-    let preCheckHeading: string;
+    
+    let preCheckErrorMessages: any = [];
+    let preCheckWarningMessages: any = [];
+    let preCheckSuccessMessages: any = [];
+    let preCheckErrorHeading: string = '';
+    let preCheckWarningHeading: string = '';
+    let preCheckSuccessHeading: string = '';
     let preCheckStatus: any;
+
     let emptyTreatmentBudgets: any;
     let confirmAnalysisRunAlertData= ref(clone(emptyAlertDataWithButtons));
     let confirmAnalysisPreCheckAlertData= ref(clone(emptyAlertPreChecksData));
@@ -659,58 +665,54 @@ import CashFlowService from '@/services/cash-flow.service';
         confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
         runAnalysisScenario = selectedScenario;
 
-        if (submit == "pre-checks") {
-            preCheckMessages = [];
-                if (submit && selectedScenarioId !== getBlankGuid()) 
-                {
-                    await ScenarioService.upsertValidateSimulation(networkId, selectedScenarioId).then((response: AxiosResponse) => {
-                        if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
-                            addSuccessNotificationAction({message: "Simulation pre-checks completed",});
-                            if(response.data.length > 0)
+        if (submit == "pre-checks") {    
+            ResetData();       
+            if (submit && selectedScenarioId !== getBlankGuid()) 
+            {
+                await ScenarioService.upsertValidateSimulation(networkId, selectedScenarioId).then((response: AxiosResponse) => {
+                    if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
+                        addSuccessNotificationAction({message: "Simulation pre-checks completed",});
+                        if(response.data.length > 0)
+                        {
+                            preCheckStatus = response.data[0].status; // per current working, only error messages goes in via API
+                            SetPreCheckErrorHeading();
+                            for(const item of response.data)
                             {
-                                preCheckStatus = response.data[0].status;
-                                for(const item of response.data)
-                                {
-                                    if (item.message != '') {
-                                        preCheckMessages += item.message.replace('.','') + " (in " + item.location + ")" + ".";
-                                    }
-                                    // TODO ask if this is correct! Ex. error and warning both present then we make it error...
-                                    if(item.status < preCheckStatus)
-                                    {
-                                        preCheckStatus = item.status;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                preCheckStatus = 3;
+                                if (item.message != '') {
+                                    preCheckErrorMessages += item.message.replace('.','') + " (in " + item.location + ")" + ".";
+                                }                                                                
                             }
                         }
-                    });
-
-                }
-                // Check which treatments have no budgets and add them to the warning list
-                emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenarioId });
-                emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
-                    if (!treatment.budgets || treatment.budgets.length === 0) {
-                        preCheckMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`
-                        CheckUpdatePreCheckStatus();
-                    }
-
-                    if (!treatment.assetType)
-                    {
-                        preCheckMessages += `Treatment Asset type is empty or invalid on ${treatment.name} (in Treatment).` 
-                        CheckUpdatePreCheckStatus();
-                    }
-
-                    if(isNaN(treatment.category) || isNaN(treatment.shadowForAnyTreatment) || isNaN(treatment.shadowForSameTreatment))
-                    {
-                        preCheckMessages += `A treatment detail is empty or invalid on ${treatment.name} (in Treatment).` 
-                        CheckUpdatePreCheckStatus();
+                        else
+                        {
+                            preCheckStatus = 3;
+                        }
                     }
                 });
 
-                secondRunAnalysisModal();
+            }
+            // Check which treatments have no budgets and add them to the warning list
+            emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenarioId });
+            emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
+                if (!treatment.budgets || treatment.budgets.length === 0) {
+                    preCheckWarningMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`
+                    SetPreCheckWarningHeadingStatus();
+                }
+
+                if (!treatment.assetType)
+                {
+                    preCheckWarningMessages += `Treatment Asset type is empty or invalid on ${treatment.name} (in Treatment).` 
+                    SetPreCheckWarningHeadingStatus();
+                }
+
+                if(isNaN(treatment.category) || isNaN(treatment.shadowForAnyTreatment) || isNaN(treatment.shadowForSameTreatment))
+                {
+                    preCheckWarningMessages += `A treatment detail is empty or invalid on ${treatment.name} (in Treatment).` 
+                    SetPreCheckWarningHeadingStatus();
+                }
+            });
+
+            secondRunAnalysisModal();
         }
         else if(submit == "continue") {
             store.dispatch('updateSimulationRunSettingName', simulationName);
@@ -726,52 +728,65 @@ import CashFlowService from '@/services/cash-flow.service';
 
     }
 
-    function CheckUpdatePreCheckStatus()
-    {
-        preCheckStatus = preCheckStatus != 0 ? 1 : preCheckStatus;
+    function SetPreCheckErrorHeading() {
+        preCheckErrorHeading ='Error';
+    }
+
+    function SetPreCheckWarningHeadingStatus() {
+        preCheckWarningHeading ='Warning';
+        preCheckStatus = 1;
+    }    
+
+    function SetPreCheckSuccessHeadingMessages() {
+        preCheckSuccessHeading = 'Success';
+        preCheckSuccessMessages += 'No warnings have been returned.' + 'No errors have been returned';
+    }
+
+    function ResetData() {
+        preCheckErrorMessages = [];
+        preCheckWarningMessages = [];
+        preCheckSuccessMessages = [];
+        preCheckErrorHeading = '';
+        preCheckWarningHeading = '';
+        preCheckSuccessHeading = '';
     }
 
     function secondRunAnalysisModal() {
         confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
         selectedScenarioName = selectedScenario.name;
 
-            if(preCheckStatus == 0)
-            {
-                preCheckHeading = 'Error';
-            }
-            else if(preCheckStatus == 1)
-            {
-                preCheckHeading = 'Warning';
-            }
-            else if(preCheckStatus == 2)
-            {
-                preCheckHeading = 'Information';
-            }
-            else if(preCheckStatus == 3)
-            {
-                preCheckHeading = 'Success';
-                preCheckMessages += 'No warnings have been returned.' + 'No errors have been returned';
-            }
+        if(preCheckStatus == 3)
+        {
+            SetPreCheckSuccessHeadingMessages();
+        }
 
-            if(preCheckStatus == 0)
-            {
+        if(preCheckErrorHeading != '')
+        {
+            (selectedScenario = clone(emptyScenario));
+            confirmAnalysisPreCheckAlertData.value = {
+                showDialog: true,
+                ErrorHeading: (preCheckErrorHeading),
+                ErrorMessage: (preCheckErrorMessages),
+                WarningHeading: (preCheckWarningHeading),
+                WarningMessage: (preCheckWarningMessages),
+                SuccessHeading: (preCheckSuccessHeading),
+                SuccessMessage: (preCheckSuccessMessages),
+                choice: false
+            }
+        }
+        else{
                 (selectedScenario = clone(emptyScenario));
                 confirmAnalysisPreCheckAlertData.value = {
                 showDialog: true,
-                heading: (preCheckHeading),
-                choice: false,
-                message:(preCheckMessages),
-                }
+                ErrorHeading: (preCheckErrorHeading),
+                ErrorMessage: (preCheckErrorMessages),
+                WarningHeading: (preCheckWarningHeading),
+                WarningMessage: (preCheckWarningMessages),
+                SuccessHeading: (preCheckSuccessHeading),
+                SuccessMessage: (preCheckSuccessMessages),
+                choice: true            
             }
-            else{
-                (selectedScenario = clone(emptyScenario));
-                confirmAnalysisPreCheckAlertData.value = {
-                showDialog: true,
-                heading: (preCheckHeading),
-                choice: true,
-                message:(preCheckMessages),
-                }
-            }
+        }
     }
 
     function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {

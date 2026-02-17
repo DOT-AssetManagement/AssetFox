@@ -789,19 +789,46 @@ namespace AssetFoxCore.Controllers
         [HttpPost]
         [Route("GetPreChecksDownloadLog")]
         [Authorize]
-        public async Task<FileResult> GetPreChecksDownloadLog([FromBody]List<string> validationErrors)
+        public async Task<FileResult> GetPreChecksDownloadLog([FromBody] PreChecksValidationLog preChecksValidationLog)
         {
             try
             {
                 var result = await Task.Factory.StartNew(() =>
                 {
                     var builder = new StringBuilder();
-                    builder.AppendLine("Error");
-                    builder.AppendLine("-----");
-                    foreach (var validationError in validationErrors)
+                    
+                    if (preChecksValidationLog.ErrorMessages.Count != 0)
                     {
-                        builder.AppendLine(". " + validationError);
+                        builder.AppendLine("Error");
+                        builder.AppendLine("-----");
+                        foreach (var message in preChecksValidationLog.ErrorMessages)
+                        {
+                            builder.AppendLine(". " + message);
+                        }
+                        builder.AppendLine("");
                     }
+
+                    if (preChecksValidationLog.WarningMessages.Count != 0)
+                    {
+                        builder.AppendLine("Warning");
+                        builder.AppendLine("-------");
+                        foreach (var message in preChecksValidationLog.WarningMessages)
+                        {
+                            builder.AppendLine(". " + message);
+                        }
+                        builder.AppendLine("");
+                    }
+
+                    if (preChecksValidationLog.SuccessMessages.Count != 0)
+                    {
+                        builder.AppendLine("Success");
+                        builder.AppendLine("-------");
+                        foreach (var message in preChecksValidationLog.SuccessMessages)
+                        {
+                            builder.AppendLine(". " + message);
+                        }                        
+                    }
+
                     var log = builder.ToString();
                     var bytes = Encoding.Unicode.GetBytes(log);
                     const string contentType = "text/plain";

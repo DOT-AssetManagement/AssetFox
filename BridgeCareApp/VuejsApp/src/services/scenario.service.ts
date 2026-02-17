@@ -4,6 +4,7 @@ import {API, coreAxiosInstance} from '@/shared/utils/axios-instance';
 import { PagingRequest } from '@/shared/models/iAM/paging';
 import { BlobOptions } from 'buffer';
 import { SimulationOutputDeletionParameters } from '@/shared/models/iAM/simulation-output-deletion-params';
+import { AlertPreChecksDataLogMessages } from '@/shared/models/modals/alert-data';
 
 export default class ScenarioService {
     static getScenarios(): AxiosPromise {
@@ -117,7 +118,7 @@ export default class ScenarioService {
         return coreAxiosInstance.post(`${API.Scenario}/DeleteSimulationOutput/`, data);
     }
 
-    static getPreChecksDownloadLog(data: string[]): AxiosPromise {        
+    static getPreChecksDownloadLog(data: AlertPreChecksDataLogMessages): AxiosPromise {        
         return coreAxiosInstance.request({
             method: 'POST',
             url: `${API.Scenario}/GetPreChecksDownloadLog/`,
