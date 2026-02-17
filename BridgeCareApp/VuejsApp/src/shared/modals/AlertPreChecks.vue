@@ -155,7 +155,6 @@
     const filteredLog = computed(()=> {
             preChecksValidationLog.ErrorMessages = filteredErrorMessages.value;
             preChecksValidationLog.WarningMessages = filteredWarningMessages.value;
-            preChecksValidationLog.SuccessMessages = filteredSuccessMessages.value;
             return preChecksValidationLog;
         }
     );

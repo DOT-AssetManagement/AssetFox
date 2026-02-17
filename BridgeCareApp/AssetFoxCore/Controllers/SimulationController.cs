@@ -819,16 +819,6 @@ namespace AssetFoxCore.Controllers
                         builder.AppendLine("");
                     }
 
-                    if (preChecksValidationLog.SuccessMessages.Count != 0)
-                    {
-                        builder.AppendLine("Success");
-                        builder.AppendLine("-------");
-                        foreach (var message in preChecksValidationLog.SuccessMessages)
-                        {
-                            builder.AppendLine(". " + message);
-                        }                        
-                    }
-
                     var log = builder.ToString();
                     var bytes = Encoding.Unicode.GetBytes(log);
                     const string contentType = "text/plain";

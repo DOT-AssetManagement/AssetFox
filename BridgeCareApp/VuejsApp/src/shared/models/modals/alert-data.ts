@@ -36,14 +36,12 @@ export const emptyAlertPreChecksData: AlertPreChecksData = {
 
 export interface PreChecksValidationLog {
     ErrorMessages: string[],
-    WarningMessages: string[],
-    SuccessMessages: string[]
+    WarningMessages: string[]
 }
 
 export const emptyPreChecksValidationLog : PreChecksValidationLog = {
     ErrorMessages: [],
-    WarningMessages: [],
-    SuccessMessages: []
+    WarningMessages: []
 }
 
 export interface AlertDataWithButtons {

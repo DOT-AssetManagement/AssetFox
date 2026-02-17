@@ -7,7 +7,5 @@ namespace AssetFoxCore.Models.Validation
         public List<string> ErrorMessages { get; set; }
 
         public List<string> WarningMessages { get; set; }
-
-        public List<string> SuccessMessages { get; set; }
     }
 }
