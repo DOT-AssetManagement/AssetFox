@@ -1,15 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.Analysis;
 using AssetFox.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
@@ -25,7 +23,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulation.Id))
             {
-                throw new RowNotInTableException("No simulation was found for the given scenario.");
+                throw new SimulationDataValidationException("No simulation was found for the given scenario.", "Scenario");
             }
 
             if(!_unitOfWork.Context.InvestmentPlan.Any(_ => _.Simulation.Id == simulation.Id))

@@ -12,6 +12,7 @@ using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEnti
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
@@ -465,7 +466,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         {
             if (!_unitOfDataPersistenceWork.Context.Simulation.Any(_ => _.Id == simulation.Id))
             {
-                throw new RowNotInTableException("No simulation was found for the given scenario.");
+                throw new SimulationDataValidationException("No simulation was found for the given scenario.", "Scenario");
             }
 
             var explorer = simulation.Network.Explorer;

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using AssetFox.CalculateEvaluate;
 using AssetFox.Core.Analysis;
+using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
@@ -36,10 +37,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var selectableTreatments = simulation.Treatments;
 
             var simulationEntity = _unitOfWork.Context.Simulation.FirstOrDefault(_ => _.Id == simulation.Id)
-                ?? throw new RowNotInTableException("No simulation was found for the given scenario.");
+                ?? throw new SimulationDataValidationException("No simulation was found for the given scenario.", "Scenario");
 
             var noTreatmentEntity = selectableTreatmentRepository.GetDefaultTreatment(simulation.Id)
-                ?? throw new RowNotInTableException("Simulation has no default treatments.");
+                ?? throw new SimulationDataValidationException("Simulation has no default treatments.", "Treatment");
 
             var assets = _unitOfWork.Context.MaintainableAsset
             .Where(_ => _.NetworkId == simulation.Network.Id)
@@ -49,7 +50,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var investmentPlans = _unitOfWork.Context.InvestmentPlan
                 .Where(_ => _.SimulationId == simulation.Id)
                 .OrderBy(_ => _.FirstYearOfAnalysisPeriod)
-                .ToList() ?? throw new Exception($"No investment plan found for simulation {simulation.Id}.");
+                .ToList() ?? throw new SimulationDataValidationException($"No investment plan found for simulation {simulation.Id}.", "Investment");
             int investmentStartYear = investmentPlans.Min(_ => _.FirstYearOfAnalysisPeriod);
             int investmentEndYear = investmentPlans.Max(_ => _.FirstYearOfAnalysisPeriod + _.NumberOfYearsInAnalysisPeriod - 1);
 

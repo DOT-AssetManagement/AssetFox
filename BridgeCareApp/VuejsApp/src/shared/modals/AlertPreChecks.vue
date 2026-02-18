@@ -172,7 +172,7 @@
             const response: AxiosResponse<any> = await ScenarioService.getPreChecksDownloadLog(filteredLog.value);
         
             if (hasValue(response, 'data')) {                
-                addSuccessNotificationAction({ message: 'Pre-Checks Log downloaded.' });
+                addSuccessNotificationAction({ message: 'Pre-Checks Log downloaded' });
                 FileDownload(response.data, `Pre-Checks Log ${props.scenario}.txt`);
             } else {
                 throw new Error('No data received');
@@ -181,9 +181,9 @@
         } catch (error) {
             console.error('Error downloading Pre-Checks Log:', error);
             addErrorNotificationAction({
-                message: 'Failed to download Pre-Checks Log.',
+                message: 'Failed to download Pre-Checks Log',
                 longMessage:
-                    'Failed to download Pre-Checks Log. Please try again.',
+                    'Failed to download Pre-Checks Log. Please try again',
             });
         }
     }
