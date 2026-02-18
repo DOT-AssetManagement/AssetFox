@@ -9,6 +9,7 @@ using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 using System.Linq;
 using AssetFox.Core.Data.Networking;
 using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataUnitTests.Tests.Networking
 {

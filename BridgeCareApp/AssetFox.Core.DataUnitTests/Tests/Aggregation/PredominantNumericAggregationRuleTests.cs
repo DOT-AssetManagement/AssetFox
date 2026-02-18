@@ -9,6 +9,7 @@ using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 using System.Linq;
 using AssetFox.Core.DataUnitTests.TestUtils;
 using AssetFox.Core.Analysis;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
 {

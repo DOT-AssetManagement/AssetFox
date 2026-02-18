@@ -2,6 +2,7 @@ using Xunit;
 using System;
 using AssetFox.Core.Data.Attributes;
 using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataUnitTests.Tests.Attributes
 {

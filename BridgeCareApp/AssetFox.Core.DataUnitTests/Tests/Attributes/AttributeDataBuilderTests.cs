@@ -6,6 +6,7 @@ using Attribute = AssetFox.Core.Data.Attributes.Attribute;
 using System.Collections.Generic;
 using AssetFox.Core.DataUnitTests.TestUtils;
 using AssetFox.Core.DTOs;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataUnitTests.Tests.Attributes
 {
