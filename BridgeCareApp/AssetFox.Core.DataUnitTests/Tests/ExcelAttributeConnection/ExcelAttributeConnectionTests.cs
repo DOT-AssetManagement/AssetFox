@@ -1,6 +1,7 @@
 using System.Linq;
 using AssetFox.Core.Data.Attributes;
 using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
+using AssetFox.Core.DataPersistenceCore.Migrations;
 using AssetFox.Core.DataPersistenceCore.Repositories;
 using Xunit;
 
@@ -21,8 +22,10 @@ namespace AssetFox.Core.DataUnitTests.Tests.Attributes
             var rawDataSpreadsheet = deserializationResult.Worksheet;
 
             unitOfWork.AttributeRepo.UpsertAttributes(attribute);
+            var dataSourceMaps = unitOfWork.DataSourceMappingRepo.GetDataSourceMappings(dataSource.Id);
+            var dataSourceMap = dataSourceMaps.First(m => m.AttributeId == attribute.Id);
 
-            var excelAttributeConnection = new ExcelAttributeConnection(attribute, dataSource, rawDataSpreadsheet);
+            var excelAttributeConnection = new ExcelAttributeConnection(attribute, dataSourceMap, dataSource, rawDataSpreadsheet);
 
             // Act
             var result = excelAttributeConnection.GetData<string>();
