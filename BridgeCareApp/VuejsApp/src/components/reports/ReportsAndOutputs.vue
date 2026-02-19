@@ -1,11 +1,58 @@
 <template>
-    <v-card height="800px" class="elevation-0 vcard-main-layout">
+    <v-card class="elevation-0 vcard-main-layout" style="min-height: 800px;">
     <v-row column class="Montserrat-font-family" justify-start>
-        <div style="padding: 10px;">
-            <v-subheader  class="ghd-md-gray ghd-control-label">
-                Available Reports
-            </v-subheader>
-        </div>
+
+        <!-- Report Viewer Section -->
+        <v-col cols="12" class="report-viewer-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-eye section-icon" />
+                    Report Viewer
+                </h3>
+                <span class="section-subtitle">View interactive reports from templates</span>
+            </div>
+            <v-divider :thickness="1" class="border-opacity-50 mb-3" />
+            <v-row align="center" class="mx-0">
+                <v-col cols="5">
+                    <v-select
+                        v-model="selectedViewerSchemaId"
+                        :items="reportSchemaItems"
+                        item-title="text"
+                        item-value="value"
+                        label="Select a report template"
+                        variant="outlined"
+                        density="compact"
+                        hide-details
+                        class="viewer-schema-select"
+                        no-data-text="No report templates available"
+                    />
+                </v-col>
+                <v-col cols="auto">
+                    <v-btn
+                        class="ghd-button ghd-blue-bg"
+                        :disabled="!selectedViewerSchemaId"
+                        @click="onViewReport"
+                        variant="flat"
+                    >
+                        <i class="fas fa-chart-bar mr-2" />
+                        View Report
+                    </v-btn>
+                </v-col>
+            </v-row>
+        </v-col>
+
+        <!-- Generated Reports Section -->
+        <v-col cols="12" class="generated-reports-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-file-excel section-icon" />
+                    Generated Reports
+                </h3>
+                <span class="section-subtitle">Generate and download Excel reports</span>
+            </div>
+            <v-divider :thickness="1" class="border-opacity-50 mb-3" />
+        </v-col>
+
         <v-col cols = "12">
             <v-row class="data-table" justify-left>
                 <v-col>
@@ -168,6 +215,7 @@ import ReportsTrashCanButton from '@/shared/components/buttons/ReportsTrashCanBu
 import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton.vue';
 import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel } from '@/shared/models/iAM/reports';
 import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/UserDefinedReportInputDialog.vue';
+import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 
     let store = useStore();
     const router = useRouter();
@@ -194,6 +242,16 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
     const simulationName = ref('');
 
     let rules: InputValidationRules = clone(validationRules);
+
+    // Report Viewer state
+    const selectedViewerSchemaId = ref<string>('');
+    const reportSchemas = computed<ReportSchemaDTO[]>(() => store.state.reportSchemaModule.reportSchemas);
+    const reportSchemaItems = computed(() =>
+        reportSchemas.value.map((s: ReportSchemaDTO) => ({
+            text: s.name,
+            value: s.id,
+        })),
+    );
 
     const criterionEditorDialogData = ref<GeneralCriterionEditorDialogData>(clone(emptyGeneralCriterionEditorDialogData));
     const currentPage = ref<Report[]>([]);
@@ -261,8 +319,9 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
                 router.push('/Scenarios/');
             }
 
-        await getSimulationReportsAction();        
-        await getReportGenerationStatus();        
+        await store.dispatch('getReportSchemas');
+        await getSimulationReportsAction();
+        await getReportGenerationStatus();
     });
 
     watch(stateSimulationReportNames, () => {
@@ -304,6 +363,21 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
         }
     }, { deep: true, immediate: true });
 
+
+    function onViewReport() {
+        if (!selectedViewerSchemaId.value) return;
+        const schema = reportSchemas.value.find(
+            (s: ReportSchemaDTO) => s.id === selectedViewerSchemaId.value,
+        );
+        router.push({
+            path: '/ReportViewer/Scenario',
+            query: {
+                ...router.currentRoute.value.query,
+                schemaId: selectedViewerSchemaId.value,
+                schemaName: schema?.name ?? 'Report',
+            },
+        });
+    }
 
     const onRowSelect = (event:any) => {
         selectedReport.value = {
@@ -534,10 +608,48 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
 }
 
 .green-icon.disabled {
-    color: transparent !important;  /* Inherit color from parent */
+    color: transparent !important;
     --svg-color: #999999;
-    background-color: transparent !important; /* Maintain the background color */
+    background-color: transparent !important;
+}
 
+.report-viewer-section {
+    padding: 16px 16px 8px 16px;
+}
+
+.generated-reports-section {
+    padding: 8px 16px 0 16px;
+}
+
+.section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.section-title {
+    color: #002E6C;
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+}
+
+.section-icon {
+    color: #2A578D;
+    margin-right: 6px;
+    font-size: 0.95rem;
+}
+
+.section-subtitle {
+    color: #4A4A4A;
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.viewer-schema-select {
+    max-width: 400px;
 }
 
 </style>

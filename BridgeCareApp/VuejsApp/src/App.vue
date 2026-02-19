@@ -71,6 +71,14 @@
                             Inventory
                         </v-btn>
                         <v-btn
+                            id="App-reportBuilder-btn"
+                            @click="onNavigate('/ReportBuilder/')"
+                            class="assetFox-blue-pantone-281"
+                            variant="flat"
+                        >
+                            Report Builder
+                        </v-btn>
+                        <v-btn
                             id="App-news-btn"
                             @click="onShowNewsDialog()"
                             class="assetFox-blue-pantone-281"
@@ -407,6 +415,8 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         'GenerateReport',
         'AggregateNetworkData',
         'RefreshToken',
+        'ViewerData',
+        'ViewerMetadata',
     ];
     let esecSecurityType: string = SecurityTypes.esec;
     let b2cSecurityType: string = SecurityTypes.b2c;

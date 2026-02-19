@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AssetFoxCore.Services;
 using AssetFox.Core.Reporting.Concrete.GeneralSummary;
+using AssetFox.Core.Reporting.Services.FlexibleReport;
 using AssetFoxCore.Interfaces;
 using static AssetFoxCore.Security.SecurityConstants;
 using static Org.BouncyCastle.Math.EC.ECCurve;
@@ -99,6 +100,8 @@ namespace AssetFoxCore
             services.AddScoped<IReportGenerator, DictionaryBasedReportGenerator>();
             services.AddScoped<IAggregationService, AggregationService>();
             services.AddScoped<ICompleteSimulationCloningService, CompleteSimulationCloningService>();
+            services.AddScoped<CriteriaToSqlTranslator>();
+            services.AddScoped<IViewerDataService, ViewerDataService>();
 
             services.AddSingleton<IAnalysisEventLoggingService, AnalysisEventLoggingService>();
         }

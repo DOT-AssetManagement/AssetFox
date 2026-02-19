@@ -680,7 +680,7 @@ table.v-table tbody td input {
 
 .ghd-sidebar-scenario{
     position: absolute;
-    max-height: 760px;
+    max-height: 700px;
 }
 
 .ghd-blue-border
@@ -861,5 +861,51 @@ display: none !important;
     color: #fefefe;
     background-color: #0096d9;
     float: right;
+}
+
+/* ============================================
+   Report Viewer Styles
+   ============================================ */
+
+.report-viewer-container {
+    max-width: 1400px;
+    padding: 24px;
+}
+
+.viewer-header {
+    border-bottom: 2px solid #E8E8E8;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.viewer-title {
+    color: #002E6C;
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.viewer-subtitle {
+    color: #4A4A4A;
+    font-size: 0.9rem;
+}
+
+.viewer-card {
+    border: 1px solid #E8E8E8;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.viewer-card-title {
+    background: #F5F6F8;
+    color: #002E6C;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-bottom: 1px solid #E8E8E8;
+    padding: 10px 16px;
+    min-height: 44px;
 }
 

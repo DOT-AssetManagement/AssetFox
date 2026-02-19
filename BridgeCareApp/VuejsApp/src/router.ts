@@ -102,6 +102,10 @@ const ReportBuilder = () =>
     import(
         '@/components/reports/report-builder/ReportBuilder.vue'
     );
+const ReportViewer = () =>
+    import(
+        '@/components/reports/report-viewer/ReportViewer.vue'
+    );
 const EditRawData = () =>
     import(
         /*webpackChunkName: "EditRawData" */ '@/components/raw-data/EditRawData.vue'
@@ -227,6 +231,12 @@ const router = createRouter({
             beforeEnter: beforeEnterFunc,
         },
         {
+            path: '/ReportBuilder/',
+            name: 'ReportBuilder',
+            component: ReportBuilder,
+            beforeEnter: beforeEnterFunc,
+        },
+        {
             path: '/Scenarios/',
             name: 'Scenarios',
             component: Scenario,
@@ -309,8 +319,8 @@ const router = createRouter({
                     beforeEnter: beforeEachFunc,
                 },
                 {
-                    path: '/ReportBuilder/Scenario',
-                    component: ReportBuilder,
+                    path: '/ReportViewer/Scenario',
+                    component: ReportViewer,
                     props: true,
                     beforeEnter: beforeEachFunc,
                 },

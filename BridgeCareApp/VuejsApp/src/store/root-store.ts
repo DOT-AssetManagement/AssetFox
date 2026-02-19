@@ -30,6 +30,7 @@ import adminSiteSettingsModule from '@/store-modules/admin-site-settings.module'
 import alertModule from '@/store-modules/alert.module';
 import configModule from '@/store-modules/config.module';
 import reportSchemaModule from '@/store-modules/report-schema.module';
+import viewerModule from '@/store-modules/viewer.module';
 
 
 export default createStore({
@@ -64,5 +65,6 @@ export default createStore({
         adminSiteSettingsModule,
         alertModule,
         reportSchemaModule,
+        viewerModule,
     },
 });

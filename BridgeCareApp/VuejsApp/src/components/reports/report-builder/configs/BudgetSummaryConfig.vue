@@ -4,14 +4,6 @@
         <p class="text-caption text-grey mb-3">Choose which budget metrics to show for each year.</p>
 
         <v-checkbox
-            v-model="localConfig.showAvailableFunding"
-            label="Available funding"
-            density="compact"
-            hide-details
-            class="mb-1"
-            @update:model-value="emitUpdate"
-        />
-        <v-checkbox
             v-model="localConfig.showSpentAmount"
             label="Amount spent"
             density="compact"

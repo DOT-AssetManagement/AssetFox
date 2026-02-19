@@ -12,6 +12,7 @@ using AssetFox.Core.DTOs;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFox.Core.Reporting;
+using AssetFox.Core.Reporting.Services.FlexibleReport;
 using AssetFoxCore.Controllers.BaseController;
 using AssetFoxCore.Interfaces;
 using AssetFoxCore.Models;
@@ -34,14 +35,16 @@ namespace AssetFoxCore.Controllers
         private readonly IGeneralWorkQueueService _generalWorkQueueService;
         public const string ReportError = "Report Error";
         private readonly UnitOfDataPersistenceWork _unitOfWork;
+        private readonly IViewerDataService _viewerDataService;
 
         public ReportController(UnitOfDataPersistenceWork unitOfDataPersistenceWork, IReportGenerator generator, IEsecSecurity esecSecurity, UnitOfDataPersistenceWork unitOfWork, IHubService hubService,
-            IHttpContextAccessor httpContextAccessor, ILog logger, IGeneralWorkQueueService generalWorkQueService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor, ILog logger, IGeneralWorkQueueService generalWorkQueService, IViewerDataService viewerDataService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
             _log = logger ?? throw new ArgumentNullException(nameof(logger));
             _generalWorkQueueService = generalWorkQueService ?? throw new ArgumentNullException(nameof(generalWorkQueService));
             _unitOfWork = unitOfWork;
+            _viewerDataService = viewerDataService ?? throw new ArgumentNullException(nameof(viewerDataService));
         }
 
         public class ReportDetails
@@ -443,6 +446,43 @@ namespace AssetFoxCore.Controllers
                 var report = new AssetFox.Core.Reporting.FlexibleSchemaReport(UnitOfWork, "FlexibleReport", null, HubService);
                 var model = report.BuildReportModel(schemaId, simulationId);
                 return Ok(model);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = e.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("ViewerMetadata/{simulationId}")]
+        [Authorize]
+        public IActionResult GetViewerMetadata(Guid simulationId)
+        {
+            try
+            {
+                var metadata = _viewerDataService.GetMetadata(simulationId);
+                return Ok(metadata);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = e.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("ViewerData/{schemaId}/{componentId}")]
+        [Authorize]
+        public IActionResult GetViewerData(Guid schemaId, string componentId, [FromBody] ViewerDataRequestDTO request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest("Request body is required.");
+                }
+
+                var result = _viewerDataService.GetComponentData(schemaId, componentId, request);
+                return Ok(result);
             }
             catch (Exception e)
             {

@@ -98,7 +98,6 @@ export interface WorkSummaryConfig {
 }
 
 export interface BudgetSummaryConfig {
-    showAvailableFunding: boolean;
     showSpentAmount: boolean;
     showRemainingAmount: boolean;
 }
@@ -252,7 +251,6 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
             } as WorkSummaryConfig;
         case 'budgetSummary':
             return {
-                showAvailableFunding: true,
                 showSpentAmount: true,
                 showRemainingAmount: true,
             } as BudgetSummaryConfig;
