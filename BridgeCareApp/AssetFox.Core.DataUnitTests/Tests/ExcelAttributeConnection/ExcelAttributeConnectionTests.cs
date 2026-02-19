@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using AssetFox.Core.Data.Attributes;
 using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
 using AssetFox.Core.DataPersistenceCore.Migrations;
 using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DTOs;
 using Xunit;
 
 namespace AssetFox.Core.DataUnitTests.Tests.Attributes
@@ -12,6 +14,9 @@ namespace AssetFox.Core.DataUnitTests.Tests.Attributes
         [Fact]
         public void GetData_StringAttributeInDatabase_Gets()
         {
+            // If one is starting with this test, the Database needs to already
+            // exist and have been reset by DatabaseResetter. NOT adding that call however
+            // because it is slow.
             // Arrange
             var config = TestConfiguration.Get();
             var unitOfWork = UnitOfWorkSetup.New(config);
@@ -22,8 +27,15 @@ namespace AssetFox.Core.DataUnitTests.Tests.Attributes
             var rawDataSpreadsheet = deserializationResult.Worksheet;
 
             unitOfWork.AttributeRepo.UpsertAttributes(attribute);
-            var dataSourceMaps = unitOfWork.DataSourceMappingRepo.GetDataSourceMappings(dataSource.Id);
-            var dataSourceMap = dataSourceMaps.First(m => m.AttributeId == attribute.Id);
+            var dataSourceMap = new DataSourceMappingDTO
+            {
+                Id = Guid.NewGuid(),
+                DataField = attribute.Name,
+                DataSourceId = dataSource.Id,
+                AttributeId = attribute.Id
+            };
+            //var dataSourceMaps = unitOfWork.DataSourceMappingRepo.GetDataSourceMappings(dataSource.Id);
+            //var dataSourceMap = dataSourceMaps.First(m => m.AttributeId == attribute.Id);
 
             var excelAttributeConnection = new ExcelAttributeConnection(attribute, dataSourceMap, dataSource, rawDataSpreadsheet);
 

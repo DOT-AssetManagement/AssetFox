@@ -19,6 +19,7 @@ using DataAttribute = AssetFox.Core.Data.Attributes.Attribute;
 using AssetFox.Core.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
 using AssetFox.Core.Data.Mappers;
 using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
 {

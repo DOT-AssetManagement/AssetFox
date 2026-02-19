@@ -55,7 +55,7 @@ namespace AssetFoxCoreTests.Tests.Integration
             var aggregationState = new AggregationState();
             var attributes = new List<AttributeDTO> { districtAttribute };
 
-            var aggregationResult = await aggregationService.AggregateNetworkData(channel.Writer, networkId, aggregationState, attributes);
+            var aggregationResult = await aggregationService.AggregateNetworkData(channel.Writer, networkId, aggregationState, districtAttribute.Id);
 
             Assert.True(aggregationResult);
             var attributeNames = new List<string> { districtAttribute.Name };

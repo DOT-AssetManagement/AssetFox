@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
+using AssetFox.Core.Common;
 using AssetFox.Core.Data.Attributes;
 using AssetFox.Core.DataPersistenceCore;
 using AssetFox.Core.DataUnitTests;

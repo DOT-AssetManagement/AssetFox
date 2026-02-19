@@ -32,7 +32,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             var rawDataSpreadsheet = deserializationResult.Worksheet;
             var defaultEquation = "[Deck_Area]";
             var attribute2 = AttributeConnectionAttributes.ForExcelTestData(dataSourceDto.Id);
-            var attributeConnection = new ExcelAttributeConnection(attribute2, dataSourceDto, rawDataSpreadsheet);
+            var attributeConnection = new ExcelAttributeConnection(attribute2, null, dataSourceDto, rawDataSpreadsheet); // WjTodo -- fix the null param
             // var attributeConnection = AttributeConnectionBuilder.Build(textAttribute, dataSourceDto, TestHelper.UnitOfWork);
             var data = attributeConnection.GetData<string>();
             var network = NetworkFactory.CreateNetworkFromAttributeDataRecords(

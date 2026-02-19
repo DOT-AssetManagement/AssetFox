@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AssetFox.Core.Common;
 using AssetFox.Core.DTOs;
 using AssetFoxCore.Models;
 using AssetFoxCore.Utils;

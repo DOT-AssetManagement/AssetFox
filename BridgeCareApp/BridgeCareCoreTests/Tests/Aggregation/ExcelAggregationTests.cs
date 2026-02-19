@@ -72,7 +72,7 @@ namespace AssetFoxCoreTests.Tests
                 NetworkDefinitionAttribute = networkDefinitionAttribute
             };
             var network = NetworkTestSetupViaFactory.ModelViaFactory(
-                mockUnitOfWork.Object, districtAttributeDomain, parameters, networkName, excelRawDataDto);
+                mockUnitOfWork.Object, districtAttributeDomain, parameters, networkName, excelRawDataDto, null); // WjTodo -- fix the null
             var networkId = network.Id;
             var assetName = "100";
             var location = new SectionLocation(Guid.NewGuid(), assetName);
