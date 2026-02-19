@@ -22,11 +22,7 @@
                 :headers="tableHeaders"
                 :items="tableRows"
                 :items-length="totalRowCount"
-                :items-per-page-options="[
-                    { value: 25, title: '25' },
-                    { value: 50, title: '50' },
-                    { value: 100, title: '100' },
-                ]"
+                :items-per-page-options="pageSizeOptions"
                 v-model:page="page"
                 v-model:items-per-page="pageSize"
                 v-model:sort-by="sortBy"
@@ -60,8 +56,8 @@
                 </template>
 
                 <!-- Formatted cells -->
-                <template v-slot:item="{ item }">
-                    <tr>
+                <template v-slot:item="{ item, index }">
+                    <tr :class="{ 'striped-row': useStripedRows && index % 2 === 1 }">
                         <td
                             v-for="(header, colIdx) in tableHeaders"
                             :key="header.key"
@@ -83,8 +79,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { ReportComponent, componentTypeInfo } from '@/shared/models/iAM/report-schema';
+import { ref, reactive, computed } from 'vue';
+import { ReportComponent, componentTypeInfo, pageSizeOptions } from '@/shared/models/iAM/report-schema';
 import { ViewerColumn, PagedViewerResult } from '@/shared/models/iAM/viewer';
 import ViewerService from '@/services/viewer.service';
 import { hasValue } from '@/shared/utils/has-value-util';
@@ -103,9 +99,13 @@ const props = defineProps<{
     simulationId: string;
 }>();
 
+// Use component's configured page size, falling back to 10
+const configuredPageSize = props.component.pageSize || 10;
+const useStripedRows = computed(() => props.component.stripedRows ?? false);
+
 // Pagination state
 const page = ref(1);
-const pageSize = ref(50);
+const pageSize = ref(configuredPageSize);
 const sortBy = ref<{ key: string; order: string }[]>([]);
 const totalRowCount = ref(0);
 const isLoading = ref(false);
@@ -261,5 +261,13 @@ async function fetchData() {
 
 .viewer-data-table :deep(th) {
     white-space: nowrap;
+}
+
+.striped-row {
+    background-color: #F5F7FA;
+}
+
+.striped-row:hover {
+    background-color: #EDF0F5 !important;
 }
 </style>

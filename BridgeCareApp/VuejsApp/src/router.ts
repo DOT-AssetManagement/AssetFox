@@ -318,13 +318,14 @@ const router = createRouter({
                     props: true,
                     beforeEnter: beforeEachFunc,
                 },
-                {
-                    path: '/ReportViewer/Scenario',
-                    component: ReportViewer,
-                    props: true,
-                    beforeEnter: beforeEachFunc,
-                },
             ],
+        },
+        {
+            path: '/ReportViewer/Scenario',
+            name: 'ReportViewer',
+            component: ReportViewer,
+            props: true,
+            beforeEnter: beforeEachFunc,
         },
         {
             path: '/EditLibrary/',

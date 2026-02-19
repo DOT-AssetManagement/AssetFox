@@ -664,15 +664,40 @@ ORDER BY pg.RowNum";
                 valueFormat = "number";
             }
 
-            // Work summary is an aggregation — typically small result set, no pagination needed
+            var context = _unitOfWork.Context;
+
+            // Get the year list for wide-format pivot columns
+            var years = context.SimulationYearDetail
+                .AsNoTracking()
+                .Where(y => y.RunId == runId)
+                .OrderBy(y => y.Year)
+                .Select(y => y.Year)
+                .ToList();
+
+            // Build wide-format columns: group key + one value column per year
             var columns = new List<ViewerColumnDTO>
             {
-                new ViewerColumnDTO { Key = "groupValue", Header = string.IsNullOrEmpty(groupByAttribute) ? "Group" : groupByAttribute, Format = "text" },
-                new ViewerColumnDTO { Key = "year", Header = "Year", Format = "year" },
-                new ViewerColumnDTO { Key = "value", Header = valueHeader, Format = valueFormat }
+                new ViewerColumnDTO
+                {
+                    Key = "groupValue",
+                    Header = string.IsNullOrEmpty(groupByAttribute) ? "Group" : groupByAttribute,
+                    Format = "text",
+                    Filterable = true,
+                    Sortable = true
+                }
             };
+            foreach (var year in years)
+            {
+                columns.Add(new ViewerColumnDTO
+                {
+                    Key = $"y{year}",
+                    Header = $"{year} {valueHeader}",
+                    Format = valueFormat,
+                    Filterable = false,
+                    Sortable = false
+                });
+            }
 
-            var context = _unitOfWork.Context;
             var rows = new List<List<object>>();
 
             // Build the groupBy expression using AggregatedResult (which has ALL attributes including static ones)
@@ -809,6 +834,14 @@ ORDER BY adata.GroupValue, adata.Year";
             foreach (var p in parameters)
                 command.Parameters.Add(new SqlParameter(p.ParameterName, p.Value));
 
+            // Read long-format rows from SQL, then pivot to wide format
+            // SQL returns: (GroupValue, Year, AggValue) per group×year
+            var yearIndexMap = new Dictionary<int, int>();
+            for (int yi = 0; yi < years.Count; yi++)
+                yearIndexMap[years[yi]] = yi;
+
+            var pivotData = new Dictionary<string, object[]>(StringComparer.OrdinalIgnoreCase);
+
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -823,10 +856,26 @@ ORDER BY adata.GroupValue, adata.Year";
                 else if (aggValue is long l) displayValue = l;
                 else displayValue = Convert.ToDouble(aggValue);
 
-                rows.Add(new List<object> { groupValue, year, displayValue });
+                if (!pivotData.TryGetValue(groupValue, out var yearValues))
+                {
+                    yearValues = new object[years.Count];
+                    pivotData[groupValue] = yearValues;
+                }
+
+                if (yearIndexMap.TryGetValue(year, out int idx))
+                    yearValues[idx] = displayValue;
             }
 
-            return ApplyInMemoryPagination(columns, rows, request);
+            // Build wide-format rows: [groupValue, y2025_val, y2026_val, ...]
+            foreach (var kvp in pivotData.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                var row = new List<object> { kvp.Key };
+                foreach (var val in kvp.Value)
+                    row.Add(val ?? (object)0);
+                rows.Add(row);
+            }
+
+            return ApplyInMemoryFilterSortAndPaginate(columns, rows, request);
         }
 
         #endregion
@@ -839,22 +888,30 @@ ORDER BY adata.GroupValue, adata.Year";
             var showSpent = GetConfigBool(config, "showSpentAmount", true);
             var showRemaining = GetConfigBool(config, "showRemainingAmount", true);
 
-            // BudgetDetail.AvailableFunding = the REMAINING budget after spending for that year.
-            // To get the original budget: Original = Remaining + Spent.
-            // We always show Budget + Year, then optionally Spent and Remaining.
+            var context = _unitOfWork.Context;
 
+            // Get the year list for wide-format pivot columns
+            var years = context.SimulationYearDetail
+                .AsNoTracking()
+                .Where(y => y.RunId == runId)
+                .OrderBy(y => y.Year)
+                .Select(y => y.Year)
+                .ToList();
+
+            // Build wide-format columns: budget name + per-year metric columns
             var columns = new List<ViewerColumnDTO>
             {
-                new ViewerColumnDTO { Key = "budgetName", Header = "Budget", Format = "text" },
-                new ViewerColumnDTO { Key = "year", Header = "Year", Format = "year" }
+                new ViewerColumnDTO { Key = "budgetName", Header = "Budget", Format = "text", Filterable = true, Sortable = true }
             };
-
-            if (showSpent)
-                columns.Add(new ViewerColumnDTO { Key = "spent", Header = "Amount Spent", Format = "currency" });
-            if (showRemaining)
-                columns.Add(new ViewerColumnDTO { Key = "remaining", Header = "Remaining", Format = "currency" });
-
-            var context = _unitOfWork.Context;
+            // Track column positions per year for the pivot step
+            int colsPerYear = (showSpent ? 1 : 0) + (showRemaining ? 1 : 0);
+            foreach (var year in years)
+            {
+                if (showSpent)
+                    columns.Add(new ViewerColumnDTO { Key = $"spent_{year}", Header = $"{year} Spent", Format = "currency", Filterable = false, Sortable = false });
+                if (showRemaining)
+                    columns.Add(new ViewerColumnDTO { Key = $"rem_{year}", Header = $"{year} Remaining", Format = "currency", Filterable = false, Sortable = false });
+            }
 
             // Step 1: Get remaining funding per budget per year from BudgetDetail
             // AvailableFunding = what's LEFT after treatment spending for that year
@@ -903,20 +960,46 @@ GROUP BY a.BudgetName, a.Year";
                 }
             }
 
-            // Step 3: Build rows
-            var rows = new List<List<object>>();
+            // Step 3: Pivot long-format data to wide format
+            // Build year index map for O(1) column position lookup
+            var yearIndexMap = new Dictionary<int, int>();
+            for (int yi = 0; yi < years.Count; yi++)
+                yearIndexMap[years[yi]] = yi;
+
+            int totalYearCols = years.Count * colsPerYear;
+            var pivotData = new Dictionary<string, object[]>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var item in budgetData)
             {
-                var row = new List<object> { item.BudgetName, item.Year };
-                var remaining = (double)item.AvailableFunding;
-                var spent = spendingData.TryGetValue((item.BudgetName, item.Year), out var s) ? s : 0.0;
+                if (!pivotData.TryGetValue(item.BudgetName, out var yearValues))
+                {
+                    yearValues = new object[totalYearCols];
+                    for (int j = 0; j < totalYearCols; j++) yearValues[j] = 0.0;
+                    pivotData[item.BudgetName] = yearValues;
+                }
 
-                if (showSpent) row.Add(spent);
-                if (showRemaining) row.Add(remaining);
+                if (yearIndexMap.TryGetValue(item.Year, out int yi))
+                {
+                    int baseIdx = yi * colsPerYear;
+                    int offset = 0;
+                    var remaining = (double)item.AvailableFunding;
+                    var spent = spendingData.TryGetValue((item.BudgetName, item.Year), out var s) ? s : 0.0;
+
+                    if (showSpent) { yearValues[baseIdx + offset] = spent; offset++; }
+                    if (showRemaining) { yearValues[baseIdx + offset] = remaining; }
+                }
+            }
+
+            // Build wide-format rows: [budgetName, spent_2025, rem_2025, spent_2026, rem_2026, ...]
+            var rows = new List<List<object>>();
+            foreach (var kvp in pivotData.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                var row = new List<object> { kvp.Key };
+                row.AddRange(kvp.Value);
                 rows.Add(row);
             }
 
-            return ApplyInMemoryPagination(columns, rows, request);
+            return ApplyInMemoryFilterSortAndPaginate(columns, rows, request);
         }
 
         #endregion
@@ -990,7 +1073,7 @@ GROUP BY a.BudgetName, a.Year";
                 }
             }
 
-            return ApplyInMemoryPagination(columns, rows, request);
+            return ApplyInMemoryFilterSortAndPaginate(columns, rows, request);
         }
 
         #endregion
@@ -1494,18 +1577,51 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
         }
 
         /// <summary>
-        /// Applies in-memory pagination to a fully-materialized row list.
+        /// Applies in-memory filtering, sorting, and pagination to a fully-materialized row list.
         /// Used by non-SQL aggregation methods (BudgetSummary, WorkSummary, GoalTracking)
-        /// that build all rows in C# and need to page the result before returning.
+        /// that build all rows in C# and need to filter/sort/page the result before returning.
         /// </summary>
-        private static PagedViewerResultDTO ApplyInMemoryPagination(
+        private static PagedViewerResultDTO ApplyInMemoryFilterSortAndPaginate(
             List<ViewerColumnDTO> columns,
             List<List<object>> allRows,
             ViewerDataRequestDTO request)
         {
-            int totalCount = allRows.Count;
+            IEnumerable<List<object>> result = allRows;
+
+            // Apply column filters (contains match on string representation)
+            if (request.ColumnFilters != null)
+            {
+                foreach (var kvp in request.ColumnFilters)
+                {
+                    if (string.IsNullOrWhiteSpace(kvp.Value)) continue;
+                    int colIdx = columns.FindIndex(c => c.Key == kvp.Key);
+                    if (colIdx < 0 || colIdx >= columns.Count) continue;
+                    if (!columns[colIdx].Filterable) continue;
+                    var filterVal = kvp.Value.Trim().ToLowerInvariant();
+                    result = result.Where(row =>
+                        colIdx < row.Count &&
+                        row[colIdx] != null &&
+                        row[colIdx].ToString()!.ToLowerInvariant().Contains(filterVal));
+                }
+            }
+
+            // Apply sort
+            if (!string.IsNullOrEmpty(request.SortBy))
+            {
+                int sortIdx = columns.FindIndex(c => c.Key == request.SortBy);
+                if (sortIdx >= 0 && sortIdx < columns.Count && columns[sortIdx].Sortable)
+                {
+                    bool desc = request.SortDirection?.Equals("desc", StringComparison.OrdinalIgnoreCase) == true;
+                    result = desc
+                        ? result.OrderByDescending(row => sortIdx < row.Count ? row[sortIdx] : null, new ObjectComparer())
+                        : result.OrderBy(row => sortIdx < row.Count ? row[sortIdx] : null, new ObjectComparer());
+                }
+            }
+
+            var filtered = result.ToList();
+            int totalCount = filtered.Count;
             int offset = (request.Page - 1) * request.PageSize;
-            var pagedRows = allRows.Skip(offset).Take(request.PageSize).ToList();
+            var pagedRows = filtered.Skip(offset).Take(request.PageSize).ToList();
 
             return new PagedViewerResultDTO
             {
@@ -1515,6 +1631,34 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
                 Page = request.Page,
                 PageSize = request.PageSize
             };
+        }
+
+        /// <summary>
+        /// Generic comparer for in-memory sorting that handles mixed types (string, int, double, etc.)
+        /// by comparing numeric values numerically and everything else as strings.
+        /// </summary>
+        private class ObjectComparer : IComparer<object?>
+        {
+            public int Compare(object? x, object? y)
+            {
+                if (x == null && y == null) return 0;
+                if (x == null) return -1;
+                if (y == null) return 1;
+
+                // Try numeric comparison first
+                if (x is IConvertible && y is IConvertible)
+                {
+                    try
+                    {
+                        double dx = Convert.ToDouble(x);
+                        double dy = Convert.ToDouble(y);
+                        return dx.CompareTo(dy);
+                    }
+                    catch { /* fall through to string comparison */ }
+                }
+
+                return string.Compare(x.ToString(), y.ToString(), StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         private static PagedViewerResultDTO EmptyResult(ViewerDataRequestDTO request)

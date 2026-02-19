@@ -103,7 +103,7 @@ const visibleComponents = computed<ReportComponent[]>(() => {
 
 function goBack() {
     router.push({
-        path: '/ReportsAndOutputs/Scenario',
+        path: '/ReportsAndOutputs/Scenario/',
         query: {
             scenarioId: simulationId.value,
             scenarioName: scenarioName.value,

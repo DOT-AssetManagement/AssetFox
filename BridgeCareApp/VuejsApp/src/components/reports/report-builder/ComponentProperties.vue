@@ -33,6 +33,26 @@
                 class="mb-1"
                 @update:model-value="emitUpdate"
             />
+            <v-select
+                v-if="localComponent.type !== 'textBlock'"
+                v-model="localComponent.pageSize"
+                :items="pageSizeOptions"
+                label="Rows per page"
+                variant="outlined"
+                density="compact"
+                hide-details
+                class="mb-2"
+                @update:model-value="emitUpdate"
+            />
+            <v-checkbox
+                v-if="localComponent.type !== 'textBlock'"
+                v-model="localComponent.stripedRows"
+                label="Alternating row colors"
+                density="compact"
+                hide-details
+                class="mb-1"
+                @update:model-value="emitUpdate"
+            />
         </div>
 
         <v-divider class="my-2" />
@@ -123,6 +143,7 @@ import {
     GoalTrackingConfig,
     TextBlockConfig,
     componentTypeInfo,
+    pageSizeOptions,
 } from '@/shared/models/iAM/report-schema';
 import ComponentFilterButton from './shared/ComponentFilterButton.vue';
 import AssetDetailConfigEditor from './configs/AssetDetailConfig.vue';
