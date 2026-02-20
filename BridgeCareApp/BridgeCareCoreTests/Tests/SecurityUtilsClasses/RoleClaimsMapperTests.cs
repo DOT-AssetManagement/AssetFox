@@ -28,7 +28,7 @@ namespace AssetFoxCoreTests.Tests
 
             // Assert
             Assert.IsType<List<string>>(result);
-            Assert.Equal(66, result.Count);
+            Assert.Equal(67, result.Count);
         }
 
         [Fact]
