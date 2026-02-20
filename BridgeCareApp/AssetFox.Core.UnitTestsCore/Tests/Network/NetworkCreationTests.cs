@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using AssetFox.Core.Data.Attributes;
@@ -9,6 +10,7 @@ using AssetFox.Core.DataPersistenceCore.Migrations;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DataUnitTests;
 using AssetFox.Core.DataUnitTests.Tests;
+using AssetFox.Core.DTOs;
 using AssetFox.Core.TestHelpers;
 using AssetFox.Core.UnitTestsCore.Tests.Attributes;
 using AssetFox.Core.UnitTestsCore.TestUtils;
@@ -32,7 +34,14 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             var rawDataSpreadsheet = deserializationResult.Worksheet;
             var defaultEquation = "[Deck_Area]";
             var attribute2 = AttributeConnectionAttributes.ForExcelTestData(dataSourceDto.Id);
-            var attributeConnection = new ExcelAttributeConnection(attribute2, null, dataSourceDto, rawDataSpreadsheet); // WjTodo -- fix the null param
+            var dataSourceMap = new DataSourceMappingDTO
+            {
+                Id = Guid.NewGuid(),
+                DataField = attribute2.Command,
+                DataSourceId = dataSourceDto.Id,
+                AttributeId = attribute2.Id
+            };
+            var attributeConnection = new ExcelAttributeConnection(attribute2, dataSourceMap, dataSourceDto, rawDataSpreadsheet); // WjTodo -- fix the null param
             // var attributeConnection = AttributeConnectionBuilder.Build(textAttribute, dataSourceDto, TestHelper.UnitOfWork);
             var data = attributeConnection.GetData<string>();
             var network = NetworkFactory.CreateNetworkFromAttributeDataRecords(
