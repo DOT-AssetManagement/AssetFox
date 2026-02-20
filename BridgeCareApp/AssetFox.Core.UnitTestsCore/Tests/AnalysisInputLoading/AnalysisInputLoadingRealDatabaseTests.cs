@@ -40,6 +40,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             var asset = MaintainableAssets.InNetwork(networkId, keyAttributeName, assetId);
             var assets = new List<MaintainableAsset> { asset };
             var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, assets, networkId, TestAttributeIds.BrKeyId, networkName);
+            AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, networkName, keyAttributeName, keyAttributeName);
             var assetIds = assets.Select(a => a.Id).ToList();
             var requiredAttributeIds = new List<Guid> { TestAttributeIds.AgeId };
             var simulationId = Guid.NewGuid();
