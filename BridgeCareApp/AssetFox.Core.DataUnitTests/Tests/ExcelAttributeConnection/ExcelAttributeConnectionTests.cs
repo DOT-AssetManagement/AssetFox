@@ -30,7 +30,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Attributes
             var dataSourceMap = new DataSourceMappingDTO
             {
                 Id = Guid.NewGuid(),
-                DataField = attribute.Name,
+                DataField = attribute.Command,
                 DataSourceId = dataSource.Id,
                 AttributeId = attribute.Id
             };

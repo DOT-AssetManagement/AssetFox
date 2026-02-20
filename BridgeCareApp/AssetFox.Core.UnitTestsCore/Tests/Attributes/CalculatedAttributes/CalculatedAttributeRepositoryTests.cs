@@ -17,7 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 
-namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
+namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes//
 {
     public class CalculatedAttributeRepositoryTests
     {
@@ -27,7 +27,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
 
         private UnitOfDataPersistenceWork _testRepo;
         private UnitOfDataPersistenceWork _emptyTestRepo;
-        private UnitOfDataPersistenceWork _isCalcualtedTestRepo;
+        private UnitOfDataPersistenceWork _isCalculatedTestRepo;
         private Mock<IAMContext> _mockedContext;
         private Mock<IAMContext> _emptyMockedContext;
         private Mock<DbSet<CalculatedAttributeLibraryEntity>> _mockLibrary;
@@ -88,7 +88,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
             isCalculatedContext.Setup(_ => _.Set<SimulationEntity>()).Returns(simulationLibrary.Object);
 
             var mockedIsCalculatedRepo = new UnitOfDataPersistenceWork((new Mock<IConfiguration>()).Object, isCalculatedContext.Object);
-            _isCalcualtedTestRepo = mockedIsCalculatedRepo;
+            _isCalculatedTestRepo = mockedIsCalculatedRepo;
 
             _badId = new Guid("ddb82ba3-174f-43b0-97b2-4456b6b9edb2");
         }
@@ -220,6 +220,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
         {
             // Arrange
             var repo = new CalculatedAttributeRepository(_testRepo);
+            _testRepo.ClearAttributeIdNameCache();
             var simulationId = TestDataForCalculatedAttributesRepository.FirstSimulationId;
 
             // Act
@@ -265,10 +266,10 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
             var attributeRepo = new AttributeRepository(_testRepo);
             var testExplorer = attributeRepo.GetExplorer();
             var simulation = testExplorer.AddNetwork().AddSimulation();
-            SetupSimulation("First", simulation, _isCalcualtedTestRepo);
+            SetupSimulation("First", simulation, _isCalculatedTestRepo);
 
-            var repo = new CalculatedAttributeRepository(_isCalcualtedTestRepo);
-
+            var repo = new CalculatedAttributeRepository(_isCalculatedTestRepo);
+            _isCalculatedTestRepo.ClearAttributeIdNameCache();
             // Act
             repo.PopulateScenarioCalculatedFields(simulation);
 
@@ -289,9 +290,9 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
             var attributeRepo = new AttributeRepository(_testRepo);
             var testExplorer = attributeRepo.GetExplorer();
             var simulation = testExplorer.AddNetwork().AddSimulation();
-            SetupSimulation("First", simulation, _isCalcualtedTestRepo);
+            SetupSimulation("First", simulation, _isCalculatedTestRepo);
 
-            var repo = new CalculatedAttributeRepository(_isCalcualtedTestRepo);
+            var repo = new CalculatedAttributeRepository(_isCalculatedTestRepo);
 
             // Act
             repo.PopulateScenarioCalculatedFields(simulation);
@@ -329,6 +330,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
         {
             // Arrange
             var repo = new CalculatedAttributeRepository(_testRepo);
+            _testRepo.ClearAttributeIdNameCache();
             var libraryId = _testRepo.Context.CalculatedAttributeLibrary.First(_ => _.Name == "First").Id;
             var attr = _mockAttributes.Object.First(_ => _.Name == "AGE");
 
