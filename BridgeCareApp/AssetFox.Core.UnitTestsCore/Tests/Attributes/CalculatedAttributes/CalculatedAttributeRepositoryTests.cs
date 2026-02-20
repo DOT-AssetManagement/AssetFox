@@ -17,7 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 
-namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes//
+namespace AssetFox.Core.UnitTestsCore.Tests.CalculatedAttributes
 {
     public class CalculatedAttributeRepositoryTests
     {

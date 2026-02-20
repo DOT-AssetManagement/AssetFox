@@ -34,7 +34,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories
                 var mappedDto = AttributeDtoDomainMapper.ToDomain(dto, repository.GetEncryptionKey());
                 var valid = AttributeValidityChecker.IsValid(mappedDto);
                 if (!valid)
-                {//
+                {
                     throw new InvalidAttributeException($"Invalid attribute {mappedDto.Name} with aggregation rule {mappedDto.AggregationRuleType}");
                 }
                 if (mappedDto != null)

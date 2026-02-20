@@ -71,8 +71,16 @@ namespace AssetFoxCoreTests.Tests
                 DefaultEquation = "[Deck_Area]",
                 NetworkDefinitionAttribute = networkDefinitionAttribute
             };
+            var dataSourceMap = new DataSourceMappingDTO
+            {
+                AttributeId = districtAttributeDomain.Id,
+                AttributeName = districtAttributeDomain.Name,
+                DataField = districtAttributeDomain.Command,
+                DataSourceId = dataSourceDto.Id,
+                Id = Guid.NewGuid(),
+            };
             var network = NetworkTestSetupViaFactory.ModelViaFactory(
-                mockUnitOfWork.Object, districtAttributeDomain, parameters, networkName, excelRawDataDto, null); // WjTodo -- fix the null
+                mockUnitOfWork.Object, districtAttributeDomain, parameters, networkName, excelRawDataDto, null);
             var networkId = network.Id;
             var assetName = "100";
             var location = new SectionLocation(Guid.NewGuid(), assetName);
