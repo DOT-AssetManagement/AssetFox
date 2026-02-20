@@ -123,7 +123,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
             ObjectAssertions.Equivalent(attributeBefore, attributeAfter);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public async Task AddInvalidAttribute_Fails()
         {
             Setup();
@@ -171,7 +171,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
             ObjectAssertions.Equivalent(attributeBefore, attributeAfter);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public async Task CreateTwoAttributes_OneValidOneNot_ThrowsWithoutCreatingEither()
         {
             Setup();

@@ -13,7 +13,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
         private readonly Guid guId = Guid.Empty;
         private const string InvalidAggregationRuleType = "OTHER";
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateAverageRuleTest()
         {
             // Arrange
@@ -26,7 +26,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.IsType<AverageAggregationRule>(result);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateNumericLastRuleTest()
         {
             // Arrange
@@ -52,7 +52,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.IsType<PredominantNumericAggregationRule>(result);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateNumericRuleExceptionTest()
         {
             // Arrange
@@ -77,7 +77,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.IsType<PredominantTextAggregationRule>(result);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateTextLastRuleTest()
         {
             // Arrange
@@ -90,7 +90,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.IsType<LastTextAggregationRule>(result);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateTextRuleExceptionTest()
         {
             // Arrange

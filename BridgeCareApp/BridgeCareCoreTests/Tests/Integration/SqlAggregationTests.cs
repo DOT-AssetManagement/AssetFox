@@ -17,7 +17,7 @@ namespace AssetFoxCoreTests.Tests.Integration
 {
     public class SqlAggregationTests
     {
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public async Task Aggregate_SqlDataSourceInDb_AttributesInDb_Aggregates()
         {
             // We may at some point drop sql aggregation entirely.

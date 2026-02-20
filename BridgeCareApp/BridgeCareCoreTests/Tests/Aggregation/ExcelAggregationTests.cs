@@ -36,7 +36,7 @@ namespace AssetFoxCoreTests.Tests
             return returnValue;
         }
 
-        [Fact]
+        [Fact(Skip ="Resurrect if we bring back aggregation.")]
         public async Task Aggregate_ExcelDataSourceReturnedFromRepo_AttributesReturnedFromRepo_Aggregates()
         {
             var mockUnitOfWork = UnitOfWorkMocks.New();
