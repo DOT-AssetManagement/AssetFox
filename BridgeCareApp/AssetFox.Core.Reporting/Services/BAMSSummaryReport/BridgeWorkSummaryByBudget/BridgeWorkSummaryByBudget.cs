@@ -340,7 +340,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryBy
                     var year = startYear + yearTracker;                    
                     var perYearTotalSpent = totalSpent.Find(_ => _.year == year);                    
                     var perYearTotalSpentAmount = perYearTotalSpent.amount;
-                                        
+
                     // Remaining
                     var yearlyBudget = Convert.ToDecimal(worksheet.Cells[budgetTotalRow, column].Value);
                     worksheet.Cells[row, column].Value = yearlyBudget - perYearTotalSpentAmount;
@@ -356,8 +356,10 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryBy
                     for (int index = 0; index < categoryBudgetTotals.Length; index++)
                     {
                         // Calculate percentage
-                        var percentage = (yearlyBudget == 0) ? 0 : categoryBudgetTotals[index] / yearlyBudget;
-                        worksheet.Cells[row++, column].Value = percentage;
+                        var percentage = spendingStrategy == SpendingStrategy.UnlimitedSpending
+                                        ? (perYearTotalSpentAmount > 0 ? 100 : 0)
+                                        : categoryBudgetTotals[index] / yearlyBudget;
+                        worksheet.Cells[row++, column].Value = percentage / 100;
                     }
                     yearTracker++;
                 }
@@ -365,7 +367,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryBy
                 ExcelHelper.ApplyBorder(worksheet.Cells[currentCell.Row, currentCell.Column, currentCell.Row + 5, simulationYears.Count + 2]);
 
                 ExcelHelper.SetCustomFormat(worksheet.Cells[currentCell.Row + 1, currentCell.Column + 2,
-                    currentCell.Row + 5, simulationYears.Count + 2], ExcelHelperCellFormat.Percentage);
+                    currentCell.Row + 5, simulationYears.Count + 2], ExcelHelperCellFormat.PercentageDecimal2);
                 ExcelHelper.SetCustomFormat(worksheet.Cells[currentCell.Row, currentCell.Column + 2,
                     currentCell.Row, simulationYears.Count + 2], ExcelHelperCellFormat.NegativeCurrency);
 
