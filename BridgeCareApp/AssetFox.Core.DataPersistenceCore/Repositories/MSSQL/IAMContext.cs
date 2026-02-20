@@ -227,6 +227,12 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public virtual DbSet<TreatmentLibraryUserEntity> TreatmentLibraryUser { get; set; }
 
+        public virtual DbSet<TreatmentRuleOverrideEntity> TreatmentRuleOverride { get; set; }
+
+        public virtual DbSet<TreatmentRuleOverrideCriterionEntity> TreatmentRuleOverrideCriterion { get; set; }
+
+        public virtual DbSet<ScenarioTreatmentRuleOverrideSettingEntity> ScenarioTreatmentRuleOverrideSetting { get; set; }
+
         public virtual DbSet<PerformanceCurveLibraryUserEntity> PerformanceCurveLibraryUser { get; set; }
 
         public virtual DbSet<TreatmentSchedulingEntity> TreatmentScheduling { get; set; }
@@ -2131,7 +2137,51 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
             });
-            
+
+            modelBuilder.Entity<TreatmentRuleOverrideEntity>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(256);
+
+                entity.HasIndex(e => new { e.TreatmentLibraryId, e.Name }).IsUnique();
+
+                entity.HasOne(d => d.TreatmentLibrary)
+                    .WithMany(p => p.RuleOverrides)
+                    .HasForeignKey(d => d.TreatmentLibraryId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<TreatmentRuleOverrideCriterionEntity>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.TreatmentName).IsRequired().HasMaxLength(256);
+
+                entity.Property(e => e.CriterionExpression).IsRequired();
+
+                entity.HasIndex(e => e.TreatmentRuleOverrideId);
+
+                entity.HasOne(d => d.TreatmentRuleOverride)
+                    .WithMany(p => p.Criteria)
+                    .HasForeignKey(d => d.TreatmentRuleOverrideId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ScenarioTreatmentRuleOverrideSettingEntity>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.OverrideName).IsRequired().HasMaxLength(256);
+
+                entity.HasIndex(e => new { e.SimulationId, e.OverrideName }).IsUnique();
+
+                entity.HasOne(d => d.Simulation)
+                    .WithMany()
+                    .HasForeignKey(d => d.SimulationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<TreatmentSchedulingEntity>(entity =>
             {
                 entity.HasIndex(e => e.TreatmentId);

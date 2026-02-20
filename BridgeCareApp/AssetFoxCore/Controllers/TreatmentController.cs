@@ -1127,5 +1127,120 @@ namespace AssetFoxCore.Controllers
         {
             return UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibraries();
         }
+
+        [HttpGet]
+        [Route("GetRuleOverrides/{libraryId}")]
+        [Authorize(Policy = Policy.ViewTreatmentFromLibrary)]
+        public async Task<IActionResult> GetRuleOverrides(Guid libraryId)
+        {
+            try
+            {
+                var result = new List<TreatmentRuleOverrideDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    result = UnitOfWork.TreatmentRuleOverrideRepo.GetRuleOverridesByLibraryId(libraryId);
+                });
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::GetRuleOverrides - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("UpsertRuleOverrides/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyTreatmentFromLibrary)]
+        public async Task<IActionResult> UpsertRuleOverrides(Guid libraryId, [FromBody] List<TreatmentRuleOverrideDTO> overrides)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var libraryAccess = UnitOfWork.TreatmentLibraryUserRepo.GetLibraryAccess(libraryId, UserId);
+                    _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
+                    UnitOfWork.TreatmentRuleOverrideRepo.UpsertRuleOverrides(libraryId, overrides);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertRuleOverrides - {e.Message}", e);
+                return Unauthorized(e.Message);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertRuleOverrides - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpDelete]
+        [Route("DeleteRuleOverride/{overrideId}")]
+        [Authorize(Policy = Policy.ModifyTreatmentFromLibrary)]
+        public async Task<IActionResult> DeleteRuleOverride(Guid overrideId)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    UnitOfWork.TreatmentRuleOverrideRepo.DeleteRuleOverride(overrideId);
+                });
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::DeleteRuleOverride - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("GetScenarioOverrideSettings/{simulationId}")]
+        [Authorize(Policy = Policy.ViewTreatmentFromScenario)]
+        public async Task<IActionResult> GetScenarioOverrideSettings(Guid simulationId)
+        {
+            try
+            {
+                var result = new List<ScenarioTreatmentRuleOverrideSettingDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    result = UnitOfWork.TreatmentRuleOverrideRepo.GetOverrideSettings(simulationId);
+                });
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::GetScenarioOverrideSettings - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("UpsertScenarioOverrideSettings/{simulationId}")]
+        [Authorize(Policy = Policy.ModifyTreatmentFromScenario)]
+        public async Task<IActionResult> UpsertScenarioOverrideSettings(Guid simulationId, [FromBody] List<ScenarioTreatmentRuleOverrideSettingDTO> settings)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                    UnitOfWork.TreatmentRuleOverrideRepo.UpsertOverrideSettings(simulationId, settings);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertScenarioOverrideSettings - {e.Message}", e);
+                return Unauthorized(e.Message);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertScenarioOverrideSettings - {e.Message}", e);
+            }
+            return Ok();
+        }
     }
 }

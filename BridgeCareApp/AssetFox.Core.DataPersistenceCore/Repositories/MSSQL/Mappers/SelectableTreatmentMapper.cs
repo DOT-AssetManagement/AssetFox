@@ -117,10 +117,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
         public static TreatmentLibraryEntity ToEntity(this TreatmentLibraryDTO dto) =>
             new TreatmentLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
-        public static SelectableTreatment CreateSelectableTreatment(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
+        public static SelectableTreatment CreateSelectableTreatment(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments, List<TreatmentRuleOverrideCriterionEntity> activeOverrideCriteria = null)
         {
             var selectableTreatment = simulation.AddTreatment();
-            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments);
+            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments, activeOverrideCriteria);
 
             if (selectableTreatment.Name == "No Treatment")
             {
@@ -129,14 +129,14 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
             return selectableTreatment;
         }
 
-        public static SelectableTreatment ToDomain(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
+        public static SelectableTreatment ToDomain(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments, List<TreatmentRuleOverrideCriterionEntity> activeOverrideCriteria = null)
         {
             var selectableTreatment = new SelectableTreatment(simulation);
-            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments);
+            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments, activeOverrideCriteria);
             return selectableTreatment;
         }
 
-        private static void PopulateSelectableTreatment(ScenarioSelectableTreatmentEntity entity, SelectableTreatment selectableTreatment, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
+        private static void PopulateSelectableTreatment(ScenarioSelectableTreatmentEntity entity, SelectableTreatment selectableTreatment, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments, List<TreatmentRuleOverrideCriterionEntity> activeOverrideCriteria = null)
         {
             selectableTreatment.Id = entity.Id;
             selectableTreatment.Name = entity.Name;
@@ -184,8 +184,24 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 entity.ScenarioTreatmentCosts.ForEach(_ => _.CreateTreatmentCost(selectableTreatment));
             }
 
+            var baseExpression = entity.CriterionLibraryScenarioSelectableTreatmentJoin?.CriterionLibrary.MergedCriteriaExpression ?? string.Empty;
+
+            // AND-join any active rule override criteria targeting this treatment
+            if (activeOverrideCriteria != null)
+            {
+                foreach (var overrideCriterion in activeOverrideCriteria.Where(c => string.Equals(c.TreatmentName, entity.Name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (!string.IsNullOrWhiteSpace(overrideCriterion.CriterionExpression))
+                    {
+                        baseExpression = string.IsNullOrWhiteSpace(baseExpression)
+                            ? overrideCriterion.CriterionExpression
+                            : $"{baseExpression} AND {overrideCriterion.CriterionExpression}";
+                    }
+                }
+            }
+
             var feasibility = selectableTreatment.AddFeasibilityCriterion();
-            feasibility.Expression = entity.CriterionLibraryScenarioSelectableTreatmentJoin?.CriterionLibrary.MergedCriteriaExpression ?? string.Empty;
+            feasibility.Expression = baseExpression;
 
             if (entity.ScenarioTreatmentSchedulings.Any())
             {
@@ -275,7 +291,30 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 IsShared = entity.IsShared,
                 Treatments = entity.Treatments.Any()
                     ? entity.Treatments.Select(_ => _.ToDto(treatmentList)).OrderBy(t => t.Name).ToList()
-                    : new List<TreatmentDTO>()
+                    : new List<TreatmentDTO>(),
+                RuleOverrides = entity.RuleOverrides != null && entity.RuleOverrides.Any()
+                    ? entity.RuleOverrides.Select(_ => _.ToDto()).OrderBy(o => o.Name).ToList()
+                    : new List<TreatmentRuleOverrideDTO>()
+            };
+
+        public static TreatmentRuleOverrideDTO ToDto(this TreatmentRuleOverrideEntity entity) =>
+            new TreatmentRuleOverrideDTO
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                IsEnabledByDefault = entity.IsEnabledByDefault,
+                Criteria = entity.Criteria != null && entity.Criteria.Any()
+                    ? entity.Criteria.Select(_ => _.ToDto()).ToList()
+                    : new List<TreatmentRuleOverrideCriterionDTO>()
+            };
+
+        public static TreatmentRuleOverrideCriterionDTO ToDto(this TreatmentRuleOverrideCriterionEntity entity) =>
+            new TreatmentRuleOverrideCriterionDTO
+            {
+                Id = entity.Id,
+                TreatmentName = entity.TreatmentName,
+                CriterionExpression = entity.CriterionExpression
             };
 
         public static TreatmentDTO ToDtoNullSafe(this SelectableTreatmentEntity entity)

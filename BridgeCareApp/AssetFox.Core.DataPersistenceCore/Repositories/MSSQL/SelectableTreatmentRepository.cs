@@ -170,6 +170,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         public TreatmentLibraryDTO GetSingleTreatmentLibaryNoChildren(Guid libraryId)
         {
             var entity = _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
+                .Include(_ => _.RuleOverrides)
+                    .ThenInclude(ro => ro.Criteria)
                 .SingleOrDefault(_ => _.Id == libraryId);
             var returnValue = entity == null
                 ? null : entity.ToDto();
@@ -207,6 +209,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .Include(_ => _.Treatments)
                 .ThenInclude(_ => _.CriterionLibrarySelectableTreatmentJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
+                .Include(_ => _.RuleOverrides)
+                    .ThenInclude(ro => ro.Criteria)
                 .OrderBy(_ => _.Name)
                 .Select(_ => _.ToDto(null))
                 .ToList();
@@ -227,6 +231,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
             return _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
                 .Include(_ => _.Treatments)
+                .Include(_ => _.RuleOverrides)
+                    .ThenInclude(ro => ro.Criteria)
                 .OrderBy(_ => _.Name)
                 .Select(_ => _.ToDto(null))
                 .ToList();
@@ -237,6 +243,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             return _unitOfWork.Context.TreatmentLibraryUser
                 .AsNoTracking()
                 .Include(u => u.TreatmentLibrary)
+                    .ThenInclude(lib => lib.RuleOverrides)
+                    .ThenInclude(ro => ro.Criteria)
                 .Where(u => u.UserId == userId)
                 .Select(u => u.TreatmentLibrary.ToDto(null))
                 .ToList();

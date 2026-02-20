@@ -5,6 +5,7 @@ import {
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
 import { clone } from 'ramda';
 import { emptyEquation, Equation } from '@/shared/models/iAM/equation';
+import { TreatmentRuleOverride } from '@/shared/models/iAM/treatment-rule-override';
 
 // order is important
 export enum TreatmentCategory {
@@ -87,6 +88,7 @@ export interface TreatmentLibrary {
     name: string;
     description: string;
     treatments: Treatment[];
+    ruleOverrides: TreatmentRuleOverride[];
     owner?: string;
     isShared: boolean;
     isModified: boolean;
@@ -147,6 +149,7 @@ export const emptyTreatmentLibrary: TreatmentLibrary = {
     name: '',
     description: '',
     treatments: [],
+    ruleOverrides: [],
     isShared: false,
     isModified: false,
     users: []

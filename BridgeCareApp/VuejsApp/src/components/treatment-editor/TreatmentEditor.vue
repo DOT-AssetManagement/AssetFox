@@ -16,6 +16,13 @@
             >
             </v-select>
             <div class="ghd-md-gray ghd-control-subheader-library-used treatment-parent" v-if='hasScenario'><b>Library Used: {{parentLibraryName}}<span v-if="scenarioLibraryIsModified">&nbsp;(Modified)</span></b></div>
+            <RuleOverrideToggles
+                v-if="hasScenario"
+                :ruleOverrides="ruleOverrides"
+                :scenarioId="selectedScenarioId"
+                :treatmentNames="treatmentNames"
+                @changed="$emitter.emit('TreatmentSettingsUpdated')"
+            />
         </v-col>
         <v-col class="ghd-blue ghd-button-text ghd-text-padding" v-if='hasSelectedLibrary || hasScenario' style="border-style: solid;border-width: 2px; border-color: lightgray;margin-right: 5px;margin-bottom: 50px;">Treatments<br>
             <v-btn :disabled='false' @click='OnDownloadTemplateClick()'
@@ -242,13 +249,22 @@
             <v-row justify="center" v-show='hasSelectedLibrary && !hasScenario'>
                 <v-col>
                     <v-subheader class="ghd-control-label ghd-md-gray">Description</v-subheader>
-                    <v-textarea                        
+                    <v-textarea
                         class='ghd-control-border ghd-control-text'
                         no-resize
                         variant="outlined"
                         rows='2'
                         v-model='selectedTreatmentLibrary.description'
                         @update:model-value="checkHasUnsavedChanges()"
+                    />
+                </v-col>
+            </v-row>
+            <v-row justify="center" v-show='hasSelectedLibrary && !hasScenario'>
+                <v-col>
+                    <RuleOverrideEditor
+                        :ruleOverrides="selectedTreatmentLibrary.ruleOverrides"
+                        :treatmentSelectItems="treatmentSelectItems"
+                        @update:ruleOverrides="onRuleOverridesChanged"
                     />
                 </v-col>
             </v-row>
@@ -423,6 +439,10 @@ import { useConfirm } from 'primevue/useconfirm';
 import ConfirmDialog from 'primevue/confirmdialog';
 import AuthenticationService from '@/services/authentication.service';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
+import RuleOverrideToggles from '@/components/treatment-editor/RuleOverrideToggles.vue';
+import RuleOverrideEditor from '@/components/treatment-editor/RuleOverrideEditor.vue';
+import TreatmentRuleOverrideService from '@/services/treatment-rule-override.service';
+import { TreatmentRuleOverride } from '@/shared/models/iAM/treatment-rule-override';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import CreateAsNewLibraryButton from '@/shared/components/buttons/CreateAsNewLibraryButton.vue';
@@ -633,8 +653,10 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
     let librarySelectItemValueAllowedChanged: boolean = true;
     let librarySelectItemValue  = ref<string>('');
 
+    const treatmentNames = computed(() => simpleTreatments.value.map(t => t.name));
     const shareTreatmentLibraryDialogData = ref<ShareTreatmentLibraryDialogData>(clone(emptyShareTreatmentLibraryDialogData));
     let loadedScenarioId: string = '';
+    const ruleOverrides = ref<TreatmentRuleOverride[]>([]);
     let parentLibraryId: string  = uuidNIL;
     let parentLibraryName = ref('None');
     let scenarioParentLIbrary: string | null = null;
@@ -731,6 +753,8 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         scenarioLibraryIsModified = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.isModified : false;
         loadedParentId = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : uuidNIL;
         loadedParentName = parentLibraryName.value;
+
+        ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
     }
 
     watch(librarySelectItemValue, () => onLibrarySelectItemValueChangedCheckUnsaved())
@@ -1166,9 +1190,20 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                 scenarioId: null
         }
 
-        TreatmentService.upsertTreatmentLibrary(upsertRequest).then((response: AxiosResponse) => {
+        TreatmentService.upsertTreatmentLibrary(upsertRequest).then(async (response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                clearChanges();              
+                // Save rule overrides separately
+                if (selectedTreatmentLibrary.value.ruleOverrides?.length >= 0) {
+                    try {
+                        await TreatmentRuleOverrideService.upsertRuleOverrides(
+                            selectedTreatmentLibrary.value.id,
+                            selectedTreatmentLibrary.value.ruleOverrides,
+                        );
+                    } catch {
+                        // Error handled by axios interceptor
+                    }
+                }
+                clearChanges();
                 addedOrUpdatedTreatmentLibraryMutator(selectedTreatmentLibrary.value);
                 selectedTreatmentLibraryMutator(selectedTreatmentLibrary.value.id);
             }
@@ -1187,6 +1222,14 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             simpleTreatments.value = append({name: newTreatment.name, id: newTreatment.id}, simpleTreatments.value);
             setTimeout(() => (treatmentSelectItemValue.value = newTreatment.id));
         }
+    }
+
+    function onRuleOverridesChanged(overrides: TreatmentRuleOverride[]) {
+        selectedTreatmentLibrary.value = {
+            ...selectedTreatmentLibrary.value,
+            ruleOverrides: overrides,
+        };
+        checkHasUnsavedChanges();
     }
 
     function modifySelectedTreatmentDetails(treatmentDetails: TreatmentDetails) {
