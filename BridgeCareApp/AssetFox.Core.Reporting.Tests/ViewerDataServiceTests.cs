@@ -38,10 +38,19 @@ namespace AssetFox.Core.Reporting.Tests
         {
             var definition = new ReportSchemaDefinition
             {
-                SchemaVersion = "2.0",
+                SchemaVersion = "3.0",
                 Name = "Test Schema",
                 Description = "For unit testing",
-                Components = components.ToList()
+                Pages = new List<ReportPage>
+                {
+                    new ReportPage
+                    {
+                        Id = "page-1",
+                        Name = "Page 1",
+                        Order = 0,
+                        Components = components.ToList()
+                    }
+                }
             };
             return new ReportSchemaDTO
             {
@@ -98,9 +107,9 @@ namespace AssetFox.Core.Reporting.Tests
             var parsed = SchemaParser.Parse(schemaDto.SchemaJson);
 
             Assert.NotNull(parsed);
-            Assert.Single(parsed.Components);
-            Assert.Equal("comp-1", parsed.Components[0].Id);
-            Assert.Equal("assetDetail", parsed.Components[0].Type);
+            Assert.Single(parsed.Pages[0].Components);
+            Assert.Equal("comp-1", parsed.Pages[0].Components[0].Id);
+            Assert.Equal("assetDetail", parsed.Pages[0].Components[0].Type);
         }
 
         [Fact]
@@ -118,39 +127,46 @@ namespace AssetFox.Core.Reporting.Tests
             // arrays become JArray and objects become JObject — NOT List<object> or Dictionary<string, object>.
             // The GetConfigColumnDefs method must handle JArray specifically.
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""comp-1"",
-                        ""type"": ""assetDetail"",
-                        ""title"": ""Test"",
-                        ""order"": 1,
-                        ""visible"": true,
-                        ""config"": {
-                            ""timeScope"": ""allYears"",
-                            ""attributeColumns"": [
-                                {
-                                    ""attributeName"": ""DECK_SEEDED"",
-                                    ""displayHeader"": ""Deck Seeded"",
-                                    ""format"": ""number""
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
+                        ""order"": 0,
+                        ""components"": [
+                            {
+                                ""id"": ""comp-1"",
+                                ""type"": ""assetDetail"",
+                                ""title"": ""Test"",
+                                ""order"": 1,
+                                ""visible"": true,
+                                ""config"": {
+                                    ""timeScope"": ""allYears"",
+                                    ""attributeColumns"": [
+                                        {
+                                            ""attributeName"": ""DECK_SEEDED"",
+                                            ""displayHeader"": ""Deck Seeded"",
+                                            ""format"": ""number""
+                                        }
+                                    ],
+                                    ""simulationColumns"": [
+                                        {
+                                            ""field"": ""appliedTreatment"",
+                                            ""displayHeader"": ""Treatment"",
+                                            ""format"": ""text""
+                                        }
+                                    ]
                                 }
-                            ],
-                            ""simulationColumns"": [
-                                {
-                                    ""field"": ""appliedTreatment"",
-                                    ""displayHeader"": ""Treatment"",
-                                    ""format"": ""text""
-                                }
-                            ]
-                        }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
 
             // Verify the config values are of expected runtime types after Newtonsoft deserialization
             Assert.True(config.ContainsKey("attributeColumns"),
@@ -462,11 +478,11 @@ namespace AssetFox.Core.Reporting.Tests
             var schemaDto = CreateSchemaDTO(components);
             var parsed = SchemaParser.Parse(schemaDto.SchemaJson);
 
-            Assert.Equal(8, parsed.Components.Count);
+            Assert.Equal(8, parsed.Pages[0].Components.Count);
             for (int i = 0; i < types.Length; i++)
             {
-                Assert.Equal(types[i], parsed.Components[i].Type);
-                Assert.Equal($"comp-{i}", parsed.Components[i].Id);
+                Assert.Equal(types[i], parsed.Pages[0].Components[i].Type);
+                Assert.Equal($"comp-{i}", parsed.Pages[0].Components[i].Id);
             }
         }
 
@@ -529,26 +545,33 @@ namespace AssetFox.Core.Reporting.Tests
             // TextBlock does NOT require DB access, so we can test it end-to-end
             // via the serialization path
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""tb-1"",
-                        ""type"": ""textBlock"",
-                        ""title"": ""Header"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""visible"": true,
-                        ""config"": {
-                            ""content"": ""Welcome to the report"",
-                            ""style"": ""heading""
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""tb-1"",
+                                ""type"": ""textBlock"",
+                                ""title"": ""Header"",
+                                ""order"": 0,
+                                ""visible"": true,
+                                ""config"": {
+                                    ""content"": ""Welcome to the report"",
+                                    ""style"": ""heading""
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
 
             // After Newtonsoft deserialization of Dictionary<string, object>,
             // simple string values remain strings
@@ -567,30 +590,37 @@ namespace AssetFox.Core.Reporting.Tests
             // but the frontend Report Builder may use "attributeColumns". This test verifies
             // which key is used and ensures consistency.
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""ftl-1"",
-                        ""type"": ""fundedTreatmentList"",
-                        ""title"": ""Funded Treatments"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""visible"": true,
-                        ""config"": {
-                            ""attributeColumns"": [
-                                { ""attributeName"": ""DECK_SEEDED"", ""displayHeader"": ""Deck"", ""format"": ""number"" }
-                            ],
-                            ""simulationColumns"": [
-                                { ""field"": ""treatmentCause"", ""displayHeader"": ""Cause"", ""format"": ""text"" }
-                            ]
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""ftl-1"",
+                                ""type"": ""fundedTreatmentList"",
+                                ""title"": ""Funded Treatments"",
+                                ""order"": 0,
+                                ""visible"": true,
+                                ""config"": {
+                                    ""attributeColumns"": [
+                                        { ""attributeName"": ""DECK_SEEDED"", ""displayHeader"": ""Deck"", ""format"": ""number"" }
+                                    ],
+                                    ""simulationColumns"": [
+                                        { ""field"": ""treatmentCause"", ""displayHeader"": ""Cause"", ""format"": ""text"" }
+                                    ]
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
 
             // The current code in GetFundedTreatmentListData uses "columns" not "attributeColumns"
             // If the frontend sends "attributeColumns", GetConfigColumnDefs("columns") would return empty
@@ -609,27 +639,34 @@ namespace AssetFox.Core.Reporting.Tests
         {
             // When timeScope = "initial", AssetDetail should route to AssetSummaryData
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""ad-1"",
-                        ""type"": ""assetDetail"",
-                        ""title"": ""Initial Conditions"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {
-                            ""timeScope"": ""initial"",
-                            ""attributeColumns"": [
-                                { ""attributeName"": ""DECK_SEEDED"", ""displayHeader"": ""Deck"", ""format"": ""number"" }
-                            ]
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""ad-1"",
+                                ""type"": ""assetDetail"",
+                                ""title"": ""Initial Conditions"",
+                                ""order"": 0,
+                                ""config"": {
+                                    ""timeScope"": ""initial"",
+                                    ""attributeColumns"": [
+                                        { ""attributeName"": ""DECK_SEEDED"", ""displayHeader"": ""Deck"", ""format"": ""number"" }
+                                    ]
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
             var timeScope = config["timeScope"]?.ToString();
 
             Assert.Equal("initial", timeScope);
@@ -639,28 +676,35 @@ namespace AssetFox.Core.Reporting.Tests
         public void AssetDetail_AllYearsTimeScope_IncludesYearColumn()
         {
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""ad-1"",
-                        ""type"": ""assetDetail"",
-                        ""title"": ""Yearly Data"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {
-                            ""timeScope"": ""allYears"",
-                            ""attributeColumns"": [],
-                            ""simulationColumns"": [
-                                { ""field"": ""appliedTreatment"", ""displayHeader"": ""Treatment"", ""format"": ""text"" }
-                            ]
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""ad-1"",
+                                ""type"": ""assetDetail"",
+                                ""title"": ""Yearly Data"",
+                                ""order"": 0,
+                                ""config"": {
+                                    ""timeScope"": ""allYears"",
+                                    ""attributeColumns"": [],
+                                    ""simulationColumns"": [
+                                        { ""field"": ""appliedTreatment"", ""displayHeader"": ""Treatment"", ""format"": ""text"" }
+                                    ]
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            Assert.Equal("allYears", schema.Components[0].Config["timeScope"]?.ToString());
+            Assert.Equal("allYears", schema.Pages[0].Components[0].Config["timeScope"]?.ToString());
         }
 
         #endregion
@@ -671,26 +715,33 @@ namespace AssetFox.Core.Reporting.Tests
         public void Config_EmptyAttributeColumns_DoesNotThrow()
         {
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""ad-1"",
-                        ""type"": ""assetDetail"",
-                        ""title"": ""No Columns"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {
-                            ""timeScope"": ""allYears"",
-                            ""attributeColumns"": [],
-                            ""simulationColumns"": []
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""ad-1"",
+                                ""type"": ""assetDetail"",
+                                ""title"": ""No Columns"",
+                                ""order"": 0,
+                                ""config"": {
+                                    ""timeScope"": ""allYears"",
+                                    ""attributeColumns"": [],
+                                    ""simulationColumns"": []
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
 
             var attrCols = config["attributeColumns"] as JArray;
             Assert.NotNull(attrCols);
@@ -701,48 +752,62 @@ namespace AssetFox.Core.Reporting.Tests
         public void Config_MissingConfig_DefaultsToEmptyDictionary()
         {
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""ad-1"",
-                        ""type"": ""assetDetail"",
-                        ""title"": ""No Config"",
-                        ""order"": 0
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
+                        ""order"": 0,
+                        ""components"": [
+                            {
+                                ""id"": ""ad-1"",
+                                ""type"": ""assetDetail"",
+                                ""title"": ""No Config"",
+                                ""order"": 0
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
             // Config should default to empty dict, not null
-            Assert.NotNull(schema.Components[0].Config);
+            Assert.NotNull(schema.Pages[0].Components[0].Config);
         }
 
         [Fact]
         public void Config_BoolValues_DeserializeCorrectly()
         {
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""bs-1"",
-                        ""type"": ""budgetSummary"",
-                        ""title"": ""Budget"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {
-                            ""showAvailableFunding"": true,
-                            ""showSpentAmount"": false,
-                            ""showRemainingAmount"": true
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""bs-1"",
+                                ""type"": ""budgetSummary"",
+                                ""title"": ""Budget"",
+                                ""order"": 0,
+                                ""config"": {
+                                    ""showAvailableFunding"": true,
+                                    ""showSpentAmount"": false,
+                                    ""showRemainingAmount"": true
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
 
             // Newtonsoft deserializes booleans in Dictionary<string, object> as boxed bool
             Assert.True(config["showAvailableFunding"] is bool);
@@ -755,25 +820,32 @@ namespace AssetFox.Core.Reporting.Tests
         {
             // IMPORTANT: Newtonsoft deserializes integers in Dictionary<string, object> as long (Int64), not int
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""ad-1"",
-                        ""type"": ""assetDetail"",
-                        ""title"": ""Year"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {
-                            ""timeScope"": ""year"",
-                            ""selectedYear"": 2025
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""ad-1"",
+                                ""type"": ""assetDetail"",
+                                ""title"": ""Year"",
+                                ""order"": 0,
+                                ""config"": {
+                                    ""timeScope"": ""year"",
+                                    ""selectedYear"": 2025
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
 
             // Newtonsoft deserializes integer JSON values as long when target is object
             var selectedYear = config["selectedYear"];
@@ -791,22 +863,29 @@ namespace AssetFox.Core.Reporting.Tests
         public void GoalTracking_DefaultGoalType_IsTarget()
         {
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""gt-1"",
-                        ""type"": ""goalTracking"",
-                        ""title"": ""Goals"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {}
+                        ""components"": [
+                            {
+                                ""id"": ""gt-1"",
+                                ""type"": ""goalTracking"",
+                                ""title"": ""Goals"",
+                                ""order"": 0,
+                                ""config"": {}
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
 
             // GetConfigString(config, "goalType", "target") should default to "target"
             // when goalType is not in config
@@ -817,27 +896,34 @@ namespace AssetFox.Core.Reporting.Tests
         public void GoalTracking_DeficientGoalType_HandlesCorrectly()
         {
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""gt-1"",
-                        ""type"": ""goalTracking"",
-                        ""title"": ""Deficient Goals"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {
-                            ""goalType"": ""deficient"",
-                            ""showGoalName"": true,
-                            ""showActualVsTarget"": true,
-                            ""showMetStatus"": true
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""gt-1"",
+                                ""type"": ""goalTracking"",
+                                ""title"": ""Deficient Goals"",
+                                ""order"": 0,
+                                ""config"": {
+                                    ""goalType"": ""deficient"",
+                                    ""showGoalName"": true,
+                                    ""showActualVsTarget"": true,
+                                    ""showMetStatus"": true
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
             Assert.Equal("deficient", config["goalType"]?.ToString());
         }
 
@@ -899,22 +985,29 @@ namespace AssetFox.Core.Reporting.Tests
         public void WorkSummary_EmptyGroupBy_DefaultsToPerYearCount()
         {
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""ws-1"",
-                        ""type"": ""workSummary"",
-                        ""title"": ""Work Summary"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {}
+                        ""components"": [
+                            {
+                                ""id"": ""ws-1"",
+                                ""type"": ""workSummary"",
+                                ""title"": ""Work Summary"",
+                                ""order"": 0,
+                                ""config"": {}
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var config = schema.Components[0].Config;
+            var config = schema.Pages[0].Components[0].Config;
 
             // GetConfigString(config, "groupByAttribute", "") should default to empty
             Assert.False(config.ContainsKey("groupByAttribute"));
@@ -934,29 +1027,36 @@ namespace AssetFox.Core.Reporting.Tests
             // If simOutputCols adds pa.AppliedTreatment again, that's a duplicate in the SELECT list.
 
             var json = @"{
-                ""schemaVersion"": ""2.0"",
+                ""schemaVersion"": ""3.0"",
                 ""name"": ""Test"",
                 ""description"": """",
-                ""components"": [
+                ""pages"": [
                     {
-                        ""id"": ""ad-1"",
-                        ""type"": ""assetDetail"",
-                        ""title"": ""Detail"",
+                        ""id"": ""page-1"",
+                        ""name"": ""Page 1"",
                         ""order"": 0,
-                        ""config"": {
-                            ""timeScope"": ""allYears"",
-                            ""simulationColumns"": [
-                                { ""field"": ""appliedTreatment"", ""displayHeader"": ""Treatment"", ""format"": ""text"" },
-                                { ""field"": ""treatmentCause"", ""displayHeader"": ""Cause"", ""format"": ""text"" }
-                            ],
-                            ""attributeColumns"": []
-                        }
+                        ""components"": [
+                            {
+                                ""id"": ""ad-1"",
+                                ""type"": ""assetDetail"",
+                                ""title"": ""Detail"",
+                                ""order"": 0,
+                                ""config"": {
+                                    ""timeScope"": ""allYears"",
+                                    ""simulationColumns"": [
+                                        { ""field"": ""appliedTreatment"", ""displayHeader"": ""Treatment"", ""format"": ""text"" },
+                                        { ""field"": ""treatmentCause"", ""displayHeader"": ""Cause"", ""format"": ""text"" }
+                                    ],
+                                    ""attributeColumns"": []
+                                }
+                            }
+                        ]
                     }
                 ]
             }";
 
             var schema = SchemaParser.Parse(json);
-            var simCols = schema.Components[0].Config["simulationColumns"] as JArray;
+            var simCols = schema.Pages[0].Components[0].Config["simulationColumns"] as JArray;
 
             // These simulation column fields will produce DUPLICATE columns in the SQL
             // because GetAssetYearlyData already hard-codes them in the FilteredAssets CTE.

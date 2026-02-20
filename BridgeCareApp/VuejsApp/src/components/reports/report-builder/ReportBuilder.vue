@@ -57,22 +57,78 @@
             </div>
         </div>
 
+        <!-- Page tabs -->
+        <div class="report-builder__page-tabs">
+            <v-tabs
+                v-model="activePageIndex"
+                density="compact"
+                color="#2A578D"
+                slider-color="#2A578D"
+                class="page-tabs"
+            >
+                <v-tab
+                    v-for="(page, idx) in pages"
+                    :key="page.id"
+                    :value="idx"
+                    size="small"
+                    class="text-none page-tab"
+                >
+                    <template v-if="renamingPageId === page.id">
+                        <v-text-field
+                            v-model="renameValue"
+                            variant="plain"
+                            density="compact"
+                            hide-details
+                            autofocus
+                            class="page-tab-rename"
+                            @keydown.enter="commitRename"
+                            @keydown.escape="cancelRename"
+                            @blur="commitRename"
+                            @click.stop
+                        />
+                    </template>
+                    <template v-else>
+                        <span @dblclick.stop="startRename(page)">{{ page.name }}</span>
+                    </template>
+                    <v-btn
+                        v-if="pages.length > 1 && renamingPageId !== page.id"
+                        icon
+                        size="x-small"
+                        variant="text"
+                        class="ml-1 page-tab-close"
+                        @click.stop="onDeletePage(idx)"
+                    >
+                        <i class="fas fa-times" style="font-size: 8px; color: #999;" />
+                    </v-btn>
+                </v-tab>
+            </v-tabs>
+            <v-btn
+                size="x-small"
+                variant="text"
+                class="text-none ml-1"
+                @click="onAddPage"
+            >
+                <i class="fas fa-plus" style="font-size: 10px;" />
+            </v-btn>
+        </div>
+
         <!-- Main content -->
         <div class="report-builder__body">
             <!-- Left: Palette -->
             <div class="report-builder__palette">
-                <ComponentPalette @add-component="onAddComponent" />
+                <ComponentPalette />
             </div>
 
-            <!-- Center: Canvas -->
+            <!-- Center: Grid Editor -->
             <div class="report-builder__canvas">
-                <ReportCanvas
-                    :components="components"
+                <PageEditor
+                    v-if="activePage"
+                    :components="activePage.components"
                     :selected-id="selectedComponentId"
                     @update:components="onComponentsUpdate"
                     @select="onSelectComponent"
                     @delete="onDeleteComponent"
-                    @add-component="onAddComponent"
+                    @component-dropped="onComponentDropped"
                 />
             </div>
 
@@ -120,7 +176,7 @@
             </v-card>
         </v-dialog>
 
-        <!-- Delete confirmation dialog -->
+        <!-- Delete component confirmation dialog -->
         <v-dialog v-model="showDeleteConfirm" max-width="360">
             <v-card class="rounded-lg pa-4">
                 <div class="text-subtitle-1 font-weight-medium mb-2">Remove component?</div>
@@ -128,6 +184,20 @@
                 <div class="d-flex justify-end ga-2">
                     <v-btn size="small" variant="text" class="text-none" @click="showDeleteConfirm = false">Cancel</v-btn>
                     <v-btn size="small" color="error" variant="flat" class="text-none" @click="confirmDelete">Remove</v-btn>
+                </div>
+            </v-card>
+        </v-dialog>
+
+        <!-- Delete page confirmation dialog -->
+        <v-dialog v-model="showDeletePageConfirm" max-width="360">
+            <v-card class="rounded-lg pa-4">
+                <div class="text-subtitle-1 font-weight-medium mb-2">Delete page?</div>
+                <div class="text-body-2 text-grey mb-4">
+                    This page and all its components will be removed from the report.
+                </div>
+                <div class="d-flex justify-end ga-2">
+                    <v-btn size="small" variant="text" class="text-none" @click="showDeletePageConfirm = false">Cancel</v-btn>
+                    <v-btn size="small" color="error" variant="flat" class="text-none" @click="confirmDeletePage">Delete</v-btn>
                 </div>
             </v-card>
         </v-dialog>
@@ -142,13 +212,13 @@ import {
     ReportSchemaDTO,
     ReportSchemaDefinition,
     ReportComponent,
-    ComponentType,
+    ReportPage,
     emptyReportSchemaDTO,
     emptyPageSettings,
-    createDefaultComponent,
+    createDefaultPage,
 } from '@/shared/models/iAM/report-schema';
 import ComponentPalette from './ComponentPalette.vue';
-import ReportCanvas from './ReportCanvas.vue';
+import PageEditor from './PageEditor.vue';
 import ComponentProperties from './ComponentProperties.vue';
 
 const store = useStore();
@@ -156,8 +226,15 @@ const store = useStore();
 // Schema state
 const schemaName = ref('');
 const schemaDescription = ref('');
-const components = ref<ReportComponent[]>([]);
+const pages = ref<ReportPage[]>([createDefaultPage()]);
 const currentSchemaId = ref('');
+
+// Page state
+const activePageIndex = ref(0);
+const renamingPageId = ref('');
+const renameValue = ref('');
+const showDeletePageConfirm = ref(false);
+const pendingDeletePageIndex = ref(-1);
 
 // UI state
 const selectedComponentId = ref('');
@@ -172,25 +249,94 @@ const availableSchemas = computed<ReportSchemaDTO[]>(
     () => store.state.reportSchemaModule.reportSchemas
 );
 
-const selectedComponent = computed<ReportComponent | null>(() =>
-    components.value.find(c => c.id === selectedComponentId.value) || null
+const activePage = computed<ReportPage | null>(() =>
+    pages.value[activePageIndex.value] || null
 );
+
+const selectedComponent = computed<ReportComponent | null>(() => {
+    if (!activePage.value) return null;
+    return activePage.value.components.find(c => c.id === selectedComponentId.value) || null;
+});
 
 // Methods
 function markDirty() {
     store.commit('isDirtyMutator', true);
 }
 
-function onAddComponent(type: ComponentType) {
-    const newComponent = createDefaultComponent(type);
-    newComponent.order = components.value.length;
-    components.value = [...components.value, newComponent];
-    selectedComponentId.value = newComponent.id;
+// --- Page management ---
+
+function onAddPage() {
+    const pageNum = pages.value.length + 1;
+    const newPage = createDefaultPage(`Page ${pageNum}`);
+    newPage.order = pages.value.length;
+    pages.value = [...pages.value, newPage];
+    activePageIndex.value = pages.value.length - 1;
+    markDirty();
+}
+
+function onDeletePage(idx: number) {
+    if (pages.value.length <= 1) return;
+    if (pages.value[idx].components.length > 0) {
+        pendingDeletePageIndex.value = idx;
+        showDeletePageConfirm.value = true;
+    } else {
+        removePageAtIndex(idx);
+    }
+}
+
+function confirmDeletePage() {
+    removePageAtIndex(pendingDeletePageIndex.value);
+    showDeletePageConfirm.value = false;
+    pendingDeletePageIndex.value = -1;
+}
+
+function removePageAtIndex(idx: number) {
+    pages.value = pages.value.filter((_, i) => i !== idx).map((p, i) => ({ ...p, order: i }));
+    if (activePageIndex.value >= pages.value.length) {
+        activePageIndex.value = pages.value.length - 1;
+    }
+    selectedComponentId.value = '';
+    markDirty();
+}
+
+function startRename(page: ReportPage) {
+    renamingPageId.value = page.id;
+    renameValue.value = page.name;
+}
+
+function commitRename() {
+    if (renamingPageId.value && renameValue.value.trim()) {
+        const page = pages.value.find(p => p.id === renamingPageId.value);
+        if (page) {
+            page.name = renameValue.value.trim();
+            pages.value = [...pages.value]; // trigger reactivity
+            markDirty();
+        }
+    }
+    renamingPageId.value = '';
+    renameValue.value = '';
+}
+
+function cancelRename() {
+    renamingPageId.value = '';
+    renameValue.value = '';
+}
+
+// --- Component management ---
+
+function onComponentDropped(comp: ReportComponent) {
+    if (!activePage.value) return;
+    comp.order = activePage.value.components.length;
+    activePage.value.components = [...activePage.value.components, comp];
+    pages.value = [...pages.value]; // trigger reactivity
+    selectedComponentId.value = comp.id;
     markDirty();
 }
 
 function onComponentsUpdate(updated: ReportComponent[]) {
-    components.value = updated;
+    if (!activePage.value) return;
+    activePage.value.components = updated;
+    pages.value = [...pages.value];
     markDirty();
 }
 
@@ -199,11 +345,13 @@ function onSelectComponent(id: string) {
 }
 
 function onComponentUpdate(updated: ReportComponent) {
-    const index = components.value.findIndex(c => c.id === updated.id);
+    if (!activePage.value) return;
+    const index = activePage.value.components.findIndex(c => c.id === updated.id);
     if (index >= 0) {
-        const cloned = clone(components.value);
+        const cloned = clone(activePage.value.components);
         cloned[index] = updated;
-        components.value = cloned;
+        activePage.value.components = cloned;
+        pages.value = [...pages.value];
         markDirty();
     }
 }
@@ -214,9 +362,11 @@ function onDeleteComponent(id: string) {
 }
 
 function confirmDelete() {
-    components.value = components.value
+    if (!activePage.value) return;
+    activePage.value.components = activePage.value.components
         .filter(c => c.id !== pendingDeleteId.value)
         .map((c, i) => ({ ...c, order: i }));
+    pages.value = [...pages.value];
     if (selectedComponentId.value === pendingDeleteId.value) {
         selectedComponentId.value = '';
     }
@@ -225,13 +375,19 @@ function confirmDelete() {
     markDirty();
 }
 
+// --- Save / Load ---
+
 function buildSchemaJson(): string {
     const definition: ReportSchemaDefinition = {
-        schemaVersion: '2.0',
+        schemaVersion: '3.0',
         name: schemaName.value,
         description: schemaDescription.value,
         pageSettings: clone(emptyPageSettings),
-        components: components.value.map((c, i) => ({ ...c, order: i })),
+        pages: pages.value.map((p, pi) => ({
+            ...p,
+            order: pi,
+            components: p.components.map((c, ci) => ({ ...c, order: ci })),
+        })),
     };
     return JSON.stringify(definition);
 }
@@ -272,12 +428,15 @@ function onLoadSchema(schema: ReportSchemaDTO) {
     schemaDescription.value = schema.description;
 
     try {
-        const definition: ReportSchemaDefinition = JSON.parse(schema.schemaJson);
-        components.value = definition.components || [];
+        const definition = JSON.parse(schema.schemaJson) as ReportSchemaDefinition;
+        pages.value = definition.pages && definition.pages.length > 0
+            ? definition.pages
+            : [createDefaultPage()];
     } catch {
-        components.value = [];
+        pages.value = [createDefaultPage()];
     }
 
+    activePageIndex.value = 0;
     selectedComponentId.value = '';
     store.commit('selectedReportSchemaMutator', schema);
     store.commit('isDirtyMutator', false);
@@ -287,7 +446,8 @@ function onNew() {
     currentSchemaId.value = '';
     schemaName.value = '';
     schemaDescription.value = '';
-    components.value = [];
+    pages.value = [createDefaultPage()];
+    activePageIndex.value = 0;
     selectedComponentId.value = '';
     store.commit('selectedReportSchemaMutator', clone(emptyReportSchemaDTO));
     store.commit('isDirtyMutator', false);
@@ -337,6 +497,46 @@ onMounted(async () => {
 .report-builder__desc-field :deep(input) {
     font-size: 13px;
     color: #888;
+}
+
+.report-builder__page-tabs {
+    display: flex;
+    align-items: center;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E8E8E8;
+    padding: 0 12px;
+    flex-shrink: 0;
+}
+
+.page-tabs {
+    flex: 1;
+    min-width: 0;
+}
+
+.page-tab {
+    font-size: 12px !important;
+    letter-spacing: 0 !important;
+    min-width: 80px !important;
+    text-transform: none !important;
+}
+
+.page-tab-close {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.page-tab:hover .page-tab-close {
+    opacity: 1;
+}
+
+.page-tab-rename {
+    max-width: 100px;
+    font-size: 12px;
+}
+
+.page-tab-rename :deep(input) {
+    font-size: 12px;
+    padding: 0;
 }
 
 .report-builder__body {

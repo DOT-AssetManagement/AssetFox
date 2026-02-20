@@ -1,13 +1,11 @@
 <template>
     <div
-        class="component-card"
-        :class="{ 'component-card--selected': selected, 'component-card--hidden': !component.visible }"
+        class="grid-component-wrapper"
+        :class="{ 'grid-component-wrapper--selected': selected, 'grid-component-wrapper--hidden': !component.visible }"
         @click.stop="$emit('select')"
     >
-        <!-- Header -->
-        <div class="component-card__header">
-            <i class="fas fa-grip-vertical drag-handle" style="color: #CCC; cursor: grab; font-size: 11px; margin-right: 8px;" />
-
+        <!-- Header — entire bar is the drag surface -->
+        <div class="grid-component-header">
             <v-chip
                 size="x-small"
                 variant="flat"
@@ -18,7 +16,7 @@
                 {{ typeInfo.label }}
             </v-chip>
 
-            <span class="component-card__title flex-grow-1">{{ component.title }}</span>
+            <span class="grid-component-title">{{ component.title }}</span>
 
             <v-chip
                 v-if="hasFilter"
@@ -45,36 +43,27 @@
                 icon
                 size="x-small"
                 variant="text"
-                @click.stop="expanded = !expanded"
-                class="component-card__action-btn"
-            >
-                <i :class="expanded ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" style="font-size: 10px; color: #999;" />
-            </v-btn>
-
-            <v-btn
-                icon
-                size="x-small"
-                variant="text"
-                @click.stop="onDelete"
-                class="component-card__action-btn"
+                @click.stop="$emit('delete')"
+                class="grid-component-action-btn"
             >
                 <i class="fas fa-times" style="font-size: 10px; color: #CCC;" />
             </v-btn>
         </div>
 
-        <!-- Expanded preview -->
-        <v-expand-transition>
-            <div v-show="expanded" class="component-card__body">
-                <div v-if="previewText" class="component-card__preview">
-                    {{ previewText }}
-                </div>
+        <!-- Preview body -->
+        <div class="grid-component-body">
+            <div v-if="previewText" class="grid-component-preview">
+                {{ previewText }}
             </div>
-        </v-expand-transition>
+            <div v-else class="grid-component-preview grid-component-preview--empty">
+                Click to configure
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import {
     ReportComponent,
     componentTypeInfo,
@@ -92,12 +81,10 @@ const props = defineProps<{
     selected: boolean;
 }>();
 
-const emit = defineEmits<{
+defineEmits<{
     (e: 'select'): void;
     (e: 'delete'): void;
 }>();
-
-const expanded = ref(false);
 
 const typeInfo = computed(() => componentTypeInfo[props.component.type]);
 const hasFilter = computed(() => !!props.component.criteriaExpression && props.component.criteriaExpression.trim().length > 0);
@@ -148,72 +135,89 @@ const previewText = computed(() => {
             return '';
     }
 });
-
-function onDelete() {
-    emit('delete');
-}
 </script>
 
 <style scoped>
-.component-card {
+.grid-component-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     background: #FFFFFF;
     border: 1.5px solid #E8E8E8;
     border-radius: 10px;
-    transition: all 0.2s ease;
     overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.component-card:hover {
+.grid-component-wrapper:hover {
     border-color: #D0D5DD;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.component-card--selected {
+.grid-component-wrapper--selected {
     border-color: #2A578D;
     box-shadow: 0 0 0 1px #2A578D, 0 4px 12px rgba(42, 87, 141, 0.12);
 }
 
-.component-card--hidden {
+.grid-component-wrapper--hidden {
     opacity: 0.5;
 }
 
-.component-card__header {
+.grid-component-header {
     display: flex;
     align-items: center;
-    padding: 10px 12px;
-    min-height: 42px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #F0F0F0;
+    flex-shrink: 0;
+    cursor: grab;
+    user-select: none;
 }
 
-.component-card__title {
-    font-size: 13px;
+.grid-component-header:active {
+    cursor: grabbing;
+}
+
+.grid-component-title {
+    font-size: 12px;
     font-weight: 500;
     color: #333;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
     min-width: 0;
 }
 
-.component-card__action-btn {
-    opacity: 0.4;
+.grid-component-action-btn {
+    opacity: 0.3;
     transition: opacity 0.15s ease;
+    flex-shrink: 0;
 }
 
-.component-card:hover .component-card__action-btn {
+.grid-component-wrapper:hover .grid-component-action-btn {
     opacity: 1;
 }
 
-.component-card__body {
-    padding: 0 12px 10px 12px;
+.grid-component-body {
+    flex: 1;
+    padding: 8px 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
 }
 
-.component-card__preview {
+.grid-component-preview {
     font-size: 11px;
     color: #888;
-    padding: 6px 10px;
+    padding: 4px 8px;
     background: #FAFBFC;
     border-radius: 6px;
     border: 1px dashed #E8E8E8;
-    margin-left: 20px;
+    width: 100%;
+}
+
+.grid-component-preview--empty {
+    color: #CCC;
+    font-style: italic;
 }
 </style>

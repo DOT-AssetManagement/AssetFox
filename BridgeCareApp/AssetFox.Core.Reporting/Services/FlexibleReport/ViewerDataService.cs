@@ -125,7 +125,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 throw new InvalidOperationException($"Schema {schemaId} not found.");
 
             var schema = SchemaParser.Parse(schemaDto.SchemaJson);
-            var component = schema.Components.FirstOrDefault(c =>
+            var component = schema.AllComponents.FirstOrDefault(c =>
                 string.Equals(c.Id, componentId, StringComparison.OrdinalIgnoreCase));
 
             if (component == null)

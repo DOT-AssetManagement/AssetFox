@@ -1,81 +1,104 @@
 <template>
-    <v-container fluid class="report-viewer-container">
-        <!-- Header -->
-        <v-row class="viewer-header" align="center">
-            <v-col cols="auto">
+    <div class="report-viewer-outer">
+        <div class="report-viewer-container">
+            <!-- Header -->
+            <div class="viewer-header d-flex align-center">
                 <v-btn
                     variant="text"
-                    class="ghd-blue"
+                    class="ghd-blue mr-4"
                     @click="goBack"
                 >
                     <i class="fas fa-arrow-left mr-2" />
                     Back to Reports
                 </v-btn>
-            </v-col>
-            <v-col>
-                <h2 class="viewer-title">{{ schemaName }}</h2>
-                <span class="viewer-subtitle" v-if="metadata && metadata.hasOutput">
-                    {{ scenarioName }}
-                    &middot; {{ metadata.assetCount.toLocaleString() }} assets
-                    &middot; {{ metadata.years.length }} years
-                </span>
-                <span class="viewer-subtitle" v-else-if="!isLoadingMetadata">
-                    No simulation output available
-                </span>
-            </v-col>
-        </v-row>
+                <div>
+                    <h2 class="viewer-title">{{ schemaName }}</h2>
+                    <span class="viewer-subtitle" v-if="metadata && metadata.hasOutput">
+                        {{ scenarioName }}
+                        &middot; {{ metadata.assetCount.toLocaleString() }} assets
+                        &middot; {{ metadata.years.length }} years
+                    </span>
+                    <span class="viewer-subtitle" v-else-if="!isLoadingMetadata">
+                        No simulation output available
+                    </span>
+                </div>
+            </div>
 
-        <v-progress-linear
-            v-if="isLoadingMetadata"
-            indeterminate
-            color="#2A578D"
-            class="mt-2"
-        />
-
-        <v-alert
-            v-if="!isLoadingMetadata && metadata && !metadata.hasOutput"
-            type="warning"
-            variant="tonal"
-            class="mt-4"
-        >
-            This simulation has no output data. Please run the simulation first before viewing reports.
-        </v-alert>
-
-        <!-- Component sections -->
-        <template v-if="!isLoadingMetadata && metadata && metadata.hasOutput">
-            <template v-for="component in visibleComponents" :key="component.id">
-                <ViewerTextBlock
-                    v-if="component.type === 'textBlock'"
-                    :component="component"
-                />
-                <ViewerDataTable
-                    v-else
-                    :component="component"
-                    :schemaId="schemaId"
-                    :simulationId="simulationId"
-                />
-            </template>
+            <v-progress-linear
+                v-if="isLoadingMetadata"
+                indeterminate
+                color="#2A578D"
+                class="mt-2"
+            />
 
             <v-alert
-                v-if="visibleComponents.length === 0 && schemaDefinition"
-                type="info"
+                v-if="!isLoadingMetadata && metadata && !metadata.hasOutput"
+                type="warning"
                 variant="tonal"
                 class="mt-4"
             >
-                This report template has no visible components. Open the Report Builder to add components.
+                This simulation has no output data. Please run the simulation first before viewing reports.
             </v-alert>
-        </template>
-    </v-container>
+
+            <!-- Page tabs + content -->
+            <template v-if="!isLoadingMetadata && metadata && metadata.hasOutput && schemaDefinition">
+                <!-- Tab bar (only show if more than 1 page) -->
+                <v-tabs
+                    v-if="pages.length > 1"
+                    v-model="activePageIndex"
+                    density="compact"
+                    color="#2A578D"
+                    slider-color="#2A578D"
+                    class="viewer-page-tabs mt-3"
+                >
+                    <v-tab
+                        v-for="(page, idx) in pages"
+                        :key="page.id"
+                        :value="idx"
+                        size="small"
+                        class="text-none"
+                    >
+                        {{ page.name }}
+                    </v-tab>
+                </v-tabs>
+
+                <!-- Active page content -->
+                <PageViewer
+                    v-if="activePage"
+                    :components="activePage.components"
+                    :schemaId="schemaId"
+                    :simulationId="simulationId"
+                />
+
+                <v-alert
+                    v-if="activePage && activePage.components.filter(c => c.visible !== false).length === 0"
+                    type="info"
+                    variant="tonal"
+                    class="mt-4"
+                >
+                    This page has no visible components. Open the Report Builder to add components.
+                </v-alert>
+
+                <v-alert
+                    v-if="pages.length === 0"
+                    type="info"
+                    variant="tonal"
+                    class="mt-4"
+                >
+                    This report template has no pages. Open the Report Builder to add content.
+                </v-alert>
+            </template>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { ReportSchemaDTO, ReportSchemaDefinition, ReportComponent } from '@/shared/models/iAM/report-schema';
+import { ReportSchemaDTO, ReportSchemaDefinition, ReportPage } from '@/shared/models/iAM/report-schema';
 import { ViewerMetadata } from '@/shared/models/iAM/viewer';
-import ViewerDataTable from './ViewerDataTable.vue';
-import ViewerTextBlock from './ViewerTextBlock.vue';
+import PageViewer from './PageViewer.vue';
 
 const store = useStore();
 const router = useRouter();
@@ -89,17 +112,22 @@ const schemaName = ref('');
 // Schema definition
 const schemaDefinition = ref<ReportSchemaDefinition | null>(null);
 
+// Page state
+const activePageIndex = ref(0);
+
 // Store state
 const metadata = computed<ViewerMetadata>(() => store.state.viewerModule.viewerMetadata);
 const isLoadingMetadata = computed<boolean>(() => store.state.viewerModule.isLoadingMetadata);
 
-// Visible components sorted by order
-const visibleComponents = computed<ReportComponent[]>(() => {
-    if (!schemaDefinition.value || !schemaDefinition.value.components) return [];
-    return schemaDefinition.value.components
-        .filter((c: ReportComponent) => c.visible !== false)
-        .sort((a: ReportComponent, b: ReportComponent) => a.order - b.order);
+// Pages from schema
+const pages = computed<ReportPage[]>(() => {
+    if (!schemaDefinition.value || !schemaDefinition.value.pages) return [];
+    return schemaDefinition.value.pages.sort((a, b) => a.order - b.order);
 });
+
+const activePage = computed<ReportPage | null>(() =>
+    pages.value[activePageIndex.value] || null
+);
 
 function goBack() {
     router.push({
@@ -145,3 +173,47 @@ onBeforeUnmount(() => {
     store.dispatch('clearViewerState');
 });
 </script>
+
+<style scoped>
+.report-viewer-outer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+    min-height: 100vh;
+    background: #F5F6F8;
+}
+
+.report-viewer-container {
+    width: 90%;
+    max-width: 1800px;
+}
+
+.viewer-header {
+    padding: 8px 0;
+}
+
+.viewer-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #002E6C;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+}
+
+.viewer-subtitle {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.viewer-page-tabs {
+    border-bottom: 1px solid #E8E8E8;
+}
+
+.viewer-page-tabs :deep(.v-tab) {
+    font-size: 13px !important;
+    letter-spacing: 0 !important;
+    min-width: 80px !important;
+    text-transform: none !important;
+}
+</style>

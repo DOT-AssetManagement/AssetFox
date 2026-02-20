@@ -31,9 +31,9 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 GeneratedAt = DateTime.UtcNow
             };
 
-            if (schema.Components == null) return model;
+            if (schema.Pages == null || schema.Pages.Count == 0) return model;
 
-            var orderedComponents = schema.Components.OrderBy(c => c.Order).ToList();
+            var orderedComponents = schema.AllComponents.OrderBy(c => c.Order).ToList();
 
             foreach (var component in orderedComponents)
             {

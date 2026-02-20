@@ -37,6 +37,13 @@ export interface ReportSchemaDefinition {
     name: string;
     description: string;
     pageSettings: PageSettings;
+    pages: ReportPage[];
+}
+
+export interface ReportPage {
+    id: string;
+    name: string;
+    order: number;
     components: ReportComponent[];
 }
 
@@ -55,6 +62,11 @@ export interface ReportComponent {
     criteriaExpression: string;
     pageSize: number;
     stripedRows: boolean;
+    // Grid layout fields (12-column grid)
+    gridX: number;      // column start (0-11)
+    gridY: number;      // row position
+    gridW: number;      // width in grid columns (1-12)
+    gridH: number;      // height in grid rows
     config: ComponentConfig;
 }
 
@@ -213,11 +225,11 @@ export const emptyYearField: YearField = {
 };
 
 export const emptyReportSchemaDefinition: ReportSchemaDefinition = {
-    schemaVersion: '2.0',
+    schemaVersion: '3.0',
     name: '',
     description: '',
     pageSettings: { ...emptyPageSettings },
-    components: [],
+    pages: [createDefaultPage()],
 };
 
 // ============================================================
@@ -287,7 +299,15 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
     }
 }
 
+export function pageSizeToGridH(pageSize: number): number {
+    if (pageSize <= 10) return 2;
+    if (pageSize <= 25) return 3;
+    if (pageSize <= 50) return 4;
+    return 5;
+}
+
 export function createDefaultComponent(type: ComponentType): ReportComponent {
+    const pageSize = 10;
     return {
         id: getNewGuid(),
         type,
@@ -296,9 +316,22 @@ export function createDefaultComponent(type: ComponentType): ReportComponent {
         visible: true,
         excelTabName: '',
         criteriaExpression: '',
-        pageSize: 10,
+        pageSize,
         stripedRows: false,
+        gridX: 0,
+        gridY: 0,
+        gridW: 12,
+        gridH: pageSizeToGridH(pageSize),
         config: createDefaultConfig(type),
+    };
+}
+
+export function createDefaultPage(name?: string): ReportPage {
+    return {
+        id: getNewGuid(),
+        name: name || 'Page 1',
+        order: 0,
+        components: [],
     };
 }
 

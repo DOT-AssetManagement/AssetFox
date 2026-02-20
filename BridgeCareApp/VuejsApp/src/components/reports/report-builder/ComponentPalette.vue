@@ -3,13 +3,16 @@
         <div class="text-caption text-uppercase mb-3 px-1" style="letter-spacing: 0.1em; color: #888; font-weight: 600;">
             Components
         </div>
+        <div class="text-caption px-1 mb-3" style="color: #B0B0B0; line-height: 1.4;">
+            Drag a component onto the page to add it
+        </div>
         <div
             v-for="cType in componentTypes"
             :key="cType"
             class="palette-card mb-2"
-            draggable="true"
-            @dragstart="onDragStart($event, cType)"
-            @click="$emit('add-component', cType)"
+            :data-gs-type="cType"
+            gs-w="12"
+            gs-h="2"
         >
             <div class="d-flex align-center">
                 <div class="palette-icon-wrapper" :style="{ backgroundColor: info[cType].chipColor }">
@@ -42,29 +45,23 @@ const componentTypes: ComponentType[] = [
     'goalTracking',
     'textBlock',
 ];
-
-defineEmits<{
-    (e: 'add-component', type: ComponentType): void;
-}>();
-
-function onDragStart(event: DragEvent, type: ComponentType) {
-    event.dataTransfer?.setData('componentType', type);
-    event.dataTransfer!.effectAllowed = 'copy';
-}
 </script>
 
 <style scoped>
 .component-palette {
     padding: 4px;
 }
+</style>
 
+<!-- Non-scoped: palette-card styles must apply to drag clones appended to <body> -->
+<style>
 .palette-card {
     padding: 10px 12px;
     border: 1px solid #E8E8E8;
     border-radius: 8px;
-    cursor: pointer;
+    cursor: grab;
     background: #FFFFFF;
-    transition: all 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     user-select: none;
 }
 
@@ -75,6 +72,7 @@ function onDragStart(event: DragEvent, type: ComponentType) {
 }
 
 .palette-card:active {
+    cursor: grabbing;
     transform: translateY(0);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
