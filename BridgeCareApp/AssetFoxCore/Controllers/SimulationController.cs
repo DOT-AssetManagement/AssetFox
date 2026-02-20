@@ -30,6 +30,7 @@ using AssetFoxCore.Models.Validation;
 using ValidationResult = AssetFox.Validation.ValidationResult;
 using AssetFox.Core.Common;
 using AssetFoxCore.Security;
+using System.Text;
 
 namespace AssetFoxCore.Controllers
 {
@@ -755,12 +756,12 @@ namespace AssetFoxCore.Controllers
                     }
                     else
                     {
-                        validationResultBag = simulation.GetAllValidationResults(Enumerable.Empty<string>());
+                        validationResultBag = simulation.GetAllValidationResults([]);
                         validationResultList.AddRange(validationResultBag.AsEnumerable().ToList());
                         GetPreChecksValidationResults(preChecksValidationResults, validationResultList);
                     }
                     
-                    preChecksValidationResults = System.Linq.Enumerable.DistinctBy(preChecksValidationResults, _ => _.Message).ToList();
+                    preChecksValidationResults = Enumerable.DistinctBy(preChecksValidationResults, _ => _.Message).ToList();
                 });
                 return Ok(preChecksValidationResults);
             }
@@ -785,9 +786,64 @@ namespace AssetFoxCore.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        [Route("GetPreChecksDownloadLog")]
+        [Authorize]
+        public async Task<FileResult> GetPreChecksDownloadLog([FromBody] PreChecksValidationLog preChecksValidationLog)
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() =>
+                {
+                    var builder = new StringBuilder();
+                    
+                    if (preChecksValidationLog.ErrorMessages.Count != 0)
+                    {
+                        builder.AppendLine("Error");
+                        builder.AppendLine("-----");
+                        foreach (var message in preChecksValidationLog.ErrorMessages)
+                        {
+                            builder.AppendLine(". " + message);
+                        }
+                        builder.AppendLine("");
+                    }
+
+                    if (preChecksValidationLog.WarningMessages.Count != 0)
+                    {
+                        builder.AppendLine("Warning");
+                        builder.AppendLine("-------");
+                        foreach (var message in preChecksValidationLog.WarningMessages)
+                        {
+                            builder.AppendLine(". " + message);
+                        }
+                        builder.AppendLine("");
+                    }
+
+                    var log = builder.ToString();
+                    var bytes = Encoding.Unicode.GetBytes(log);
+                    const string contentType = "text/plain";
+                    HttpContext.Response.ContentType = contentType;
+                    HttpContext.Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
+                    var fileContentResult = new FileContentResult(bytes, contentType)
+                    {
+                        FileDownloadName = "PreChecksValidationLog.txt"
+                    };
+
+                    return fileContentResult;
+                });
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{SimulationError}::GetPreChecksValidationLog - {e.Message}", e);
+            }
+            return null;
+        }
+
         private static void GetPreChecksValidationResults(List<PreChecksValidationResult> validationResults, List<ValidationResult> validationResultList) =>
             validationResults.AddRange(from validationResult in validationResultList
-                                       let toAdd = new PreChecksValidationResult(validationResult.Status, validationResult.Message)
+                                       let toAdd = new PreChecksValidationResult(validationResult.Status, validationResult.Message, validationResult.Location)
                                        select toAdd);
     }
 }

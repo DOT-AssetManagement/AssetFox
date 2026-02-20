@@ -7,8 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using AssetFox.CalculateEvaluate;
 using AssetFox.Core.Analysis;
+using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Models;
@@ -17,7 +17,6 @@ using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Abstract;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 
 namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
@@ -38,10 +37,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var selectableTreatments = simulation.Treatments;
 
             var simulationEntity = _unitOfWork.Context.Simulation.FirstOrDefault(_ => _.Id == simulation.Id)
-                ?? throw new RowNotInTableException("No simulation was found for the given scenario.");
+                ?? throw new SimulationDataValidationException("No simulation was found for the given scenario.", "Scenario");
 
             var noTreatmentEntity = selectableTreatmentRepository.GetDefaultTreatment(simulation.Id)
-                ?? throw new RowNotInTableException("Simulation has no default treatments");
+                ?? throw new SimulationDataValidationException("Simulation has no default treatments.", "Treatment");
 
             var assets = _unitOfWork.Context.MaintainableAsset
             .Where(_ => _.NetworkId == simulation.Network.Id)
@@ -51,7 +50,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var investmentPlans = _unitOfWork.Context.InvestmentPlan
                 .Where(_ => _.SimulationId == simulation.Id)
                 .OrderBy(_ => _.FirstYearOfAnalysisPeriod)
-                .ToList() ?? throw new Exception($"No investment plan found for simulation {simulation.Id}");
+                .ToList() ?? throw new SimulationDataValidationException($"No investment plan found for simulation {simulation.Id}.", "Investment");
             int investmentStartYear = investmentPlans.Min(_ => _.FirstYearOfAnalysisPeriod);
             int investmentEndYear = investmentPlans.Max(_ => _.FirstYearOfAnalysisPeriod + _.NumberOfYearsInAnalysisPeriod - 1);
 
@@ -282,11 +281,11 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var projects = changes.AddedRows.Concat(changes.UpdateRows).ToList();
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
-                throw new RowNotInTableException($"Unable to find simulation ID {simulationId} in database");
+                throw new RowNotInTableException($"Unable to find simulation ID {simulationId} in database.");
             }
             if (projects.Any(_ => _.ScenarioBudgetId == null))
             {
-                throw new Exception("Committed projects with an empty budget cannot be saved");
+                throw new Exception("Committed projects with an empty budget cannot be saved.");
             }
             // Test for existing budget
             var budgetIds = _unitOfWork.Context.ScenarioBudget.AsNoTracking()
@@ -304,7 +303,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 var budgetList = new StringBuilder();
                 badBudgets.ForEach(budget => budgetList.Append(budget.Id.ToString() + ", "));
-                throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}");
+                throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}.");
             }
 
             var attributes = _unitOfWork.Context.Attribute.AsNoTracking().ToList();
@@ -312,7 +311,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var groupedCpByYearTreatAsset = projects.GroupBy(_ => _.Year.ToString() + _.Treatment + _.LocationKeys[keyAttr]).ToList();
             if (groupedCpByYearTreatAsset.Count < projects.Count)
             {
-                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset");
+                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset.");
             }
             _unitOfWork.AsTransaction(() =>
             {
@@ -354,13 +353,13 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulation))
                 {
-                    throw new RowNotInTableException($"Unable to find simulation ID {simulation} in database");
+                    throw new RowNotInTableException($"Unable to find simulation ID {simulation} in database.");
                 }
             }
 
             if(projects.Any(_ => _.ScenarioBudgetId == null))
             {
-                throw new Exception("Committed projects with an empty budget cannot be saved");
+                throw new Exception("Committed projects with an empty budget cannot be saved.");
             }
 
             var keyAttrDict = new Dictionary<Guid, string>();
@@ -385,7 +384,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 var budgetList = new StringBuilder();
                 badBudgets.ForEach(budget => budgetList.Append(budget.Id.ToString() + ", "));
-                throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}");
+                throw new RowNotInTableException($"Unable to find the following budget IDs in its matching simulation: {budgetList}.");
             }
 
             var attributes = _unitOfWork.Context.Attribute.AsNoTracking().ToList();
@@ -407,7 +406,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var groupedCpByYearTreatAsset = projects.GroupBy(_ => _.Year.ToString() + _.Treatment + _.LocationKeys[keyAttrDict[_.SimulationId]]).ToList();
             if(groupedCpByYearTreatAsset.Count < projects.Count)
             {
-                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset");
+                throw new Exception("Multiple committed projects cannot have the same year, treatment, and asset.");
             }
 
             _unitOfWork.AsTransaction(() =>
@@ -470,7 +469,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var project = _unitOfWork.Context.CommittedProject.FirstOrDefault(_ => _.Id == projectId);
             if (project == null)
             {
-                throw new RowNotInTableException($"Unable to find project with ID {projectId}");
+                throw new RowNotInTableException($"Unable to find project with ID {projectId}.");
             }
             return project.SimulationId;
         }

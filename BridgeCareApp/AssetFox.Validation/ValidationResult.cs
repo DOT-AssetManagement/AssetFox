@@ -8,7 +8,8 @@ namespace AssetFox.Validation
         public ValidationResult(
             ValidationTarget target,
             ValidationStatus status,
-            string message
+            string message,
+            string location
             )
         {
             Target = target ?? throw new ArgumentNullException(nameof(target));
@@ -20,15 +21,18 @@ namespace AssetFox.Validation
             }
 
             Message = message;
+            Location = location;
         }
 
         public string Message { get; }
 
         public ValidationStatus Status { get; }
 
+        public string Location { get; }
+
         public ValidationTarget Target { get; }
 
-        public override bool Equals(object obj) => obj is ValidationResult result && EqualityComparer<ValidationTarget>.Default.Equals(Target, result.Target) && Status == result.Status && Message == result.Message;
+        public override bool Equals(object obj) => obj is ValidationResult result && EqualityComparer<ValidationTarget>.Default.Equals(Target, result.Target) && Status == result.Status && Message == result.Message && Location == result.Location;
 
         public override int GetHashCode() => HashCode.Combine(Target, Status, Message);
     }
