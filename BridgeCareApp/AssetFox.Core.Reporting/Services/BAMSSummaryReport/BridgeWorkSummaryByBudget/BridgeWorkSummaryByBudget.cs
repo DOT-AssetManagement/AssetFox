@@ -4,7 +4,6 @@ using System.Linq;
 using OfficeOpenXml;
 using AssetFox.Core.ExcelHelpers;
 using AssetFox.Core.Analysis.Engine;
-using AssetFox.Core.Analysis;
 using AssetFox.Core.Reporting.Models.BAMSSummaryReport;
 using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary;
 using AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary.StaticContent;
@@ -352,13 +351,14 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryBy
                     var projectBuilderBudgetTotal = totalBudgetPerYearForProjectBuilder[year];
                     var bamsBudgetTotal = perYearTotalSpentAmount - (committedBudgetTotal + mpmsBudgetTotal + sapBudgetTotal + projectBuilderBudgetTotal);
                     var categoryBudgetTotals = new decimal[] { bamsBudgetTotal, committedBudgetTotal, mpmsBudgetTotal, sapBudgetTotal, projectBuilderBudgetTotal };
+
                     // Budget spent in each category
                     for (int index = 0; index < categoryBudgetTotals.Length; index++)
                     {
                         // Calculate percentage
                         var percentage = spendingStrategy == SpendingStrategy.UnlimitedSpending
-                                        ? (perYearTotalSpentAmount > 0 ? 100 : 0)
-                                        : categoryBudgetTotals[index] / yearlyBudget;
+                                        ? (categoryBudgetTotals[index] > 0 ? 100 : 0)
+                                        : (yearlyBudget != 0 ? categoryBudgetTotals[index] / yearlyBudget : 0);
                         worksheet.Cells[row++, column].Value = percentage / 100;
                     }
                     yearTracker++;
