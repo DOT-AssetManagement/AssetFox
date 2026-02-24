@@ -47,7 +47,8 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             Dictionary<TreatmentCategory, SortedDictionary<int, (decimal treatmentCost, double length)>> workTypeTotals,
             List<SectionCommittedProjectDTO> committedProjects,
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
-            bool shouldBundleFeasibleTreatments)
+            bool shouldBundleFeasibleTreatments,
+            SpendingStrategy spendingStrategy)
         {
             ShouldBundleFeasibleTreatments = shouldBundleFeasibleTreatments;
             FillCostOfCommittedWorkSection(worksheet, currentCell, simulationYears, yearlyCostCommittedProj);
@@ -62,7 +63,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             FillWorkTypeTotalsSection(worksheet, currentCell, simulationYears, workTypeTotals, workTypeTotalsWorkOutsideScope, yearlyBudgetAmount, out var totalSpendingRow);
             var committedProjectsList = TrimCommittedProjects(committedProjects, committedProjectsForWorkOutsideScope);
             FillBudgetTotalSection(worksheet, currentCell, simulationYears, committedProjectsList, totalSpendingRow);
-            FillBudgetAnalysisSection(worksheet, currentCell, simulationYears, yearlyBudgetAmount, committedProjectsList, totalSpendingRow);
+            FillBudgetAnalysisSection(worksheet, currentCell, simulationYears, yearlyBudgetAmount, committedProjectsList, totalSpendingRow, spendingStrategy);
 
             var chartRowsModel = new ChartRowsModel();
             return chartRowsModel;
@@ -99,7 +100,8 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
             List<SectionCommittedProjectDTO> committedProjects,
             bool shouldBundleFeasibleTreatments,
-            string primaryKey)
+            string primaryKey,
+            SpendingStrategy spendingStrategy)
         {
             var budgetAnalysisRow = currentCell.Row + 1;
             currentCell.Row += 11;
@@ -119,7 +121,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 
             var currentRow = currentCell.Row + 1;
             currentCell.Row = budgetAnalysisRow;
-            FillBudgetAnalysisSectionByBudget(worksheet, currentCell, simulationYears, yearlyBudgetAmount, totalSpendingRow, workSummaryByBudgetModel, reportOutputData, committedProjects);
+            FillBudgetAnalysisSectionByBudget(worksheet, currentCell, simulationYears, yearlyBudgetAmount, totalSpendingRow, workSummaryByBudgetModel, reportOutputData, committedProjects, spendingStrategy);
             currentCell.Row = currentRow;
 
             var chartRowsModel = new ChartRowsModel();
@@ -1551,13 +1553,14 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             List<int> simulationYears,
             Dictionary<string, BudgetDTO> yearlyBudgetAmount,
             List<SectionCommittedProjectDTO> committedProjects,
-            int totalSpendingRow)
+            int totalSpendingRow,
+            SpendingStrategy spendingStrategy)
         {
             var currentRow = currentCell.Row;
             currentCell.Row = 1;
             _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Budget Analysis", "", "Total Remaining Budget (all years)");
 
-            AddDetailsForBudgetAnalysis(worksheet, simulationYears, currentCell, yearlyBudgetAmount, committedProjects, totalSpendingRow);
+            AddDetailsForBudgetAnalysis(worksheet, simulationYears, currentCell, yearlyBudgetAmount, committedProjects, totalSpendingRow, spendingStrategy);
             currentCell.Row = currentRow;
         }
 
@@ -1568,14 +1571,15 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             int totalSpendingRow,
             WorkSummaryByBudgetModel workSummaryByBudgetModel,
             SimulationOutput reportOutputData,
-            List<SectionCommittedProjectDTO> committedProjects)
+            List<SectionCommittedProjectDTO> committedProjects,
+            SpendingStrategy spendingStrategy)
         {
             _pavementWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Budget Analysis", "", "Total Remaining Budget (all years)");
 
-            AddDetailsForBudgetAnalysisByBudget(worksheet, simulationYears, currentCell, yearlyBudgetAmount, totalSpendingRow, workSummaryByBudgetModel, reportOutputData, committedProjects);
+            AddDetailsForBudgetAnalysisByBudget(worksheet, simulationYears, currentCell, yearlyBudgetAmount, totalSpendingRow, workSummaryByBudgetModel, reportOutputData, committedProjects, spendingStrategy);
         }
 
-        private void AddDetailsForBudgetAnalysis(ExcelWorksheet worksheet, List<int> simulationYears, CurrentCell currentCell, Dictionary<string, BudgetDTO> yearlyBudgetAmount, List<SectionCommittedProjectDTO> committedProjects, int totalSpendingRow)
+        private void AddDetailsForBudgetAnalysis(ExcelWorksheet worksheet, List<int> simulationYears, CurrentCell currentCell, Dictionary<string, BudgetDTO> yearlyBudgetAmount, List<SectionCommittedProjectDTO> committedProjects, int totalSpendingRow, SpendingStrategy spendingStrategy)
         {
             int startRow, startColumn, row, column;
             _pavementWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);
@@ -1614,9 +1618,11 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
                 double[] categoryBudgetTotals = new double[] { pamsBudgetTotal, committedBudgetTotal, mpmsBudgetTotal, sapBudgetTotal, projectBuilderBudgetTotal };
                 for (int rowIndex = 0; rowIndex < 5; rowIndex++)
                 {
-                    // Calculate percentage
-                    double percentage = categoryBudgetTotals[rowIndex] / yearlyBudget;
-                    worksheet.Cells[row + rowIndex, column].Value = percentage;
+                    // Calculate percentage                    
+                    var percentage = spendingStrategy == SpendingStrategy.UnlimitedSpending
+                                    ? (categoryBudgetTotals[rowIndex] > 0 ? 100 : 0)
+                                    : (yearlyBudget != 0 ? categoryBudgetTotals[rowIndex] / yearlyBudget : 0);
+                    worksheet.Cells[row + rowIndex, column].Value = percentage; // by 100?
                 }
 
             }
@@ -1652,7 +1658,8 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             int totalSpendingRow,
             WorkSummaryByBudgetModel workSummaryByBudgetModel,
             SimulationOutput reportOutputData,
-            List<SectionCommittedProjectDTO> committedProjects)
+            List<SectionCommittedProjectDTO> committedProjects,
+            SpendingStrategy spendingStrategy)
         {
             _pavementWorkSummaryCommon.SetRowColumns(currentCell, out int startRow, out int startColumn, out int row, out int column);
 
@@ -1729,8 +1736,10 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
 
                 decimal[] categoryBudgetTotals = { pamsBudgetTotal, committedBudgetTotal, mpmsBudgetTotal, sapBudgetTotal, projectBuilderBudgetTotal };
                 for (int i = 0; i < categoryBudgetTotals.Length; i++)
-                {
-                    decimal percentage = yearlyBudget == 0 ? 0m : categoryBudgetTotals[i] / yearlyBudget;
+                {                    
+                    var percentage = spendingStrategy == SpendingStrategy.UnlimitedSpending
+                                    ? (categoryBudgetTotals[i] > 0 ? 100 : 0)
+                                    : (yearlyBudget != 0 ? categoryBudgetTotals[i] / yearlyBudget : 0);
                     worksheet.Cells[row + i, column].Value = percentage;
                 }
             }
