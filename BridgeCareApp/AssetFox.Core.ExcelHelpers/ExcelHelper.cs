@@ -1,6 +1,4 @@
-using System;
 using System.Drawing;
-
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -14,7 +12,7 @@ namespace AssetFox.Core.ExcelHelpers
         PercentageDecimal2,
         DecimalPrecision3,
         DecimalPrecision2,
-        PercentDecimal4,
+        PercentageDecimal4,
         Accounting
     }
     public static class ExcelHelper
@@ -160,7 +158,7 @@ namespace AssetFox.Core.ExcelHelpers
             case ExcelHelperCellFormat.DecimalPrecision2:
                 cells.Style.Numberformat.Format = "#0.00";
                 break;
-            case ExcelHelperCellFormat.PercentDecimal4:
+            case ExcelHelperCellFormat.PercentageDecimal4:
                 cells.Style.Numberformat.Format = "#0.00##%";
                 break;
             case ExcelHelperCellFormat.Accounting:
