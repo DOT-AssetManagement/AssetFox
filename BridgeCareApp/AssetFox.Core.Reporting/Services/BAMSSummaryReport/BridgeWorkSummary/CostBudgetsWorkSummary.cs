@@ -290,8 +290,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
                 var yearIndex = year - simulationYears[0];
                 var columnIndex = yearIndex + 3;
                 var budgetTotal = yearlyBudgetAmount.Sum(x => x.Value.BudgetAmounts[yearIndex].Value);
-                if (spendingStrategy == SpendingStrategy.UnlimitedSpending) // Or whatever indicates an unlimited budget
-                    // TODO check if this was intentional? and if PAMS doing same, I think NOT! As it never get divide by 0 as it shows budget amt from investment setting!!
+                if (spendingStrategy == SpendingStrategy.UnlimitedSpending) // Or whatever indicates an unlimited budget                    
                 {
                     worksheet.Cells[currentCell.Row, columnIndex].Value = Convert.ToDecimal(worksheet.Cells[totalSpentRow, columnIndex].Value);
                 }
