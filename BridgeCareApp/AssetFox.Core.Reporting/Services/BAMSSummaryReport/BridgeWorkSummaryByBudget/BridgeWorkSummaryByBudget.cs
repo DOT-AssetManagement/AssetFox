@@ -357,9 +357,9 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummaryBy
                     {
                         // Calculate percentage
                         var percentage = spendingStrategy == SpendingStrategy.UnlimitedSpending
-                                        ? (categoryBudgetTotals[index] > 0 ? 100 : 0)
+                                        ? (categoryBudgetTotals[index] > 0 ? 100 : 0) / 100
                                         : (yearlyBudget != 0 ? categoryBudgetTotals[index] / yearlyBudget : 0);
-                        worksheet.Cells[row++, column].Value = percentage / 100;
+                        worksheet.Cells[row++, column].Value = percentage;
                     }
                     yearTracker++;
                 }

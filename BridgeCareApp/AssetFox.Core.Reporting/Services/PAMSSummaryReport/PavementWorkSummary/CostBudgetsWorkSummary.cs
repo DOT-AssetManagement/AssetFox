@@ -1629,9 +1629,9 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
                 {
                     // Calculate percentage                    
                     var percentage = spendingStrategy == SpendingStrategy.UnlimitedSpending
-                                    ? (categoryBudgetTotals[rowIndex] > 0 ? 100 : 0)
+                                    ? (categoryBudgetTotals[rowIndex] > 0 ? 100 : 0) / 100
                                     : (yearlyBudget != 0 ? categoryBudgetTotals[rowIndex] / yearlyBudget : 0);
-                    worksheet.Cells[row + rowIndex, column].Value = percentage / 100;
+                    worksheet.Cells[row + rowIndex, column].Value = percentage;
                 }
 
             }
@@ -1748,9 +1748,9 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
                 for (int i = 0; i < categoryBudgetTotals.Length; i++)
                 {                    
                     var percentage = spendingStrategy == SpendingStrategy.UnlimitedSpending
-                                    ? (categoryBudgetTotals[i] > 0 ? 100 : 0)
+                                    ? (categoryBudgetTotals[i] > 0 ? 100 : 0) / 100
                                     : (yearlyBudget != 0 ? categoryBudgetTotals[i] / yearlyBudget : 0);
-                    worksheet.Cells[row + i, column].Value = percentage / 100;
+                    worksheet.Cells[row + i, column].Value = percentage;
                 }
             }
 
