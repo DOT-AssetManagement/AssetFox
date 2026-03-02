@@ -68,6 +68,8 @@ namespace AssetFox.Core.Reporting
         
         public string Criteria { get; set; }
 
+        public bool ShowMasTab { get; set; }
+
         public async Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null)
         {
             workQueueLog ??= new DoNothingWorkQueueLog();
@@ -116,6 +118,7 @@ namespace AssetFox.Core.Reporting
             var reportPath = string.Empty;
             try
             {
+                ShowMasTab = ReportHelper.GetShowMasTabSetting(parameters) ?? ShowMasTab;
                 reportPath = GeneratePAMSPBExportReport(_networkId, _simulationId, workQueueLog, cancellationToken);
             }
             catch (Exception e)
@@ -171,12 +174,15 @@ namespace AssetFox.Core.Reporting
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSPBExportReportData.xlsx"));
 
-            // MAS Tab
-            reportDetailDto.Status = $"Creating PAMS MAS TAB";
-            UpsertSimulationReportDetail(reportDetailDto);
-            _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
-            var masWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.MASTab);
-            _masTab.Fill(masWorksheet, networkId, networkMaintainableAssets, aggregatedResultDtos, attributeDtos);
+            // MAS Tab // TODO make it toggleable - pass it via params?
+            if (ShowMasTab)
+            {
+                reportDetailDto.Status = $"Creating PAMS MAS TAB";
+                UpsertSimulationReportDetail(reportDetailDto);
+                _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                var masWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.MASTab);
+                _masTab.Fill(masWorksheet, networkId, networkMaintainableAssets, aggregatedResultDtos, attributeDtos);
+            }
 
             // Teatments Tab
             reportDetailDto.Status = $"Creating PAMS Treatments TAB";

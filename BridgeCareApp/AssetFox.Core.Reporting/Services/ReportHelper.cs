@@ -380,6 +380,12 @@ namespace AssetFox.Core.Reporting.Services
             return parameterObj.SelectToken("expression")?.ToObject<string>();
         }
 
+        internal static bool? GetShowMasTabSetting(string parameters)
+        {
+            var parameterObj = JObject.Parse(parameters);
+            return parameterObj.SelectToken("showMasTab")?.ToObject<bool>();
+        }
+
         public void BuildKeyCashFlowFundingDetails(SimulationYearDetail yearData, AssetDetail section, double brKey, Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
             if (section.TreatmentStatus != TreatmentStatus.Applied)
