@@ -1,573 +1,381 @@
 <template>
-    <v-row column>
-        <v-col cols = "12">
-            <v-card elevation="5" >
+    <v-row>
+        <v-col cols="12">
+            <v-card elevation="5">
                 <v-tabs center-active v-model="tab">
-                    <v-tab
-                        v-for="item in tabItems"
-                        :key="item.name"
-                        :value="item.name"
-                        class="tab-theme"
-                        bg-color="primary"
-                    >
-                        <GhdQueueSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'Queue'"/> 
-                        <GhdShareSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'Shared with me'"/>  
-                        <GhdStarSvg style="padding-right:10px"  class="icon-selected-tab" v-if="item.name === 'My scenarios'"/>  
+                    <v-tab v-for="item in tabItems" :key="item.name" :value="item.name" class="tab-theme"
+                        bg-color="primary">
+                        <GhdQueueSvg style="padding-right:10px" class="icon-selected-tab"
+                            v-if="item.name === 'Queue'" />
+                        <GhdShareSvg style="padding-right:10px" class="icon-selected-tab"
+                            v-if="item.name === 'Shared with me'" />
+                        <GhdStarSvg style="padding-right:10px" class="icon-selected-tab"
+                            v-if="item.name === 'My scenarios'" />
                         {{ item.name }} ( {{ item.count }} )
                     </v-tab>
                     <v-spacer></v-spacer>
-                    <v-col cols = "1"></v-col>
+                    <v-col cols="1"></v-col>
                 </v-tabs>
                 <v-window v-model="tab" style="background-color: #d9e7f2;">
                     <v-window-item value="My scenarios">
-                         <v-col cols = "12">
+                        <v-col cols="12">
                             <v-card elevation="5">
                                 <v-card-title>
-                                        <v-row style = "margin-right: -100px;">
-                                            <v-col>
-                                                <v-row style="margin: 0;">
-                                                    <v-text-field
-                                                id="Scenarios-searchScenarios-textField"
-                                                type="text"
-                                                placeholder="Search in scenarios"
-                                                hide-details
-                                                single-line
-                                                v-model="searchMine"
-                                                prepend-inner-icon=custom:GhdSearchSvg
-                                                variant="outlined"
-                                                density="compact"
-                                                clearable
-                                                @click:clear="onMineClearClick()"
-                                                class="ghd-text-field-border ghd-text-field search-icon-general"
-                                            >
-                                            </v-text-field>
-                                            <v-btn id="Scenarios-performSearch-button" 
-                                                style="margin-top: 2px;margin-left: 5px; margin-right: 5px;" 
-                                                class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' 
-                                                variant = "outlined" 
-                                                @click="onMineSearchClick()">
-                                                Search
-                                            </v-btn>
-                                            <v-btn id="Scenarios-performFilter-button" 
-                                                style="margin-top: 2px; margin-right: 5px;" 
-                                                class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' 
-                                                variant = "outlined" 
-                                                @click="showFilterScenarioList = true">
-                                                Filter
-                                            </v-btn>
-                                            <span class="Scenario-status"  >
-                                                <div v-if = "(sortedMineCategory != '' && sortedMineValue!='')&&(sortedMineValue != undefined && sortedMineCategory != null)">
-                                                     Current Filter: 
-                                                     <v-chip
-                                                        class="ma-2"
-                                                        closeable
-                                                        color=primary
-                                                        text-color="white"
-                                                        :model-value="true"
-                                                        icon
-                                                        >
-                                                        {{sortedMineCategory}} by {{ sortedMineValue }}
-                                                        
-                                                        <img class='img-general' :src="getUrl('assets/icons/x-circle.svg')" @click="onMineFilterClearClick()"  >
-                                                </v-chip>
-                                                </div>
-                                            </span>
-                                                </v-row>
-                                                
-                                            </v-col>
-                                            
-                                            <v-spacer></v-spacer>
-                                            <v-col class="d-flex justify-end" style="padding-right: 100px;">
-                                                <v-btn
-                                                    id="Scenarios-createScenario-btn"
-                                                    @click="
-                                                        showCreateScenarioDialog = true
-                                                    "
-                                                    class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' 
-                                                    variant="outlined"
-                                                    style="justify-content: end;"
-                                                >
-                                                    Create new scenario
+                                    <v-row style="margin-right: -100px;">
+                                        <v-col>
+                                            <v-row style="margin: 0;">
+                                                <v-text-field id="Scenarios-searchScenarios-textField" type="text"
+                                                    placeholder="Search in scenarios" hide-details single-line
+                                                    v-model="searchMine" prepend-inner-icon=custom:GhdSearchSvg
+                                                    variant="outlined" density="compact" clearable
+                                                    @click:clear="onMineClearClick()"
+                                                    class="ghd-text-field-border ghd-text-field search-icon-general">
+                                                </v-text-field>
+                                                <v-btn id="Scenarios-performSearch-button"
+                                                    style="margin-top: 2px;margin-left: 5px; margin-right: 5px;"
+                                                    class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
+                                                    variant="outlined" @click="onMineSearchClick()">
+                                                    Search
                                                 </v-btn>
-                                            </v-col>
-                                            
-                                        </v-row>
+                                                <v-btn id="Scenarios-performFilter-button"
+                                                    style="margin-top: 2px; margin-right: 5px;"
+                                                    class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
+                                                    variant="outlined" @click="showFilterScenarioList = true">
+                                                    Filter
+                                                </v-btn>
+                                                <span class="Scenario-status">
+                                                    <div
+                                                        v-if="(sortedMineCategory != '' && sortedMineValue != '') && (sortedMineValue != undefined && sortedMineCategory != null)">
+                                                        Current Filter:
+                                                        <v-chip class="ma-2" closeable color=primary text-color="white"
+                                                            :model-value="true" icon>
+                                                            {{ sortedMineCategory }} by {{ sortedMineValue }}
+
+                                                            <img class='img-general'
+                                                                :src="getUrl('assets/icons/x-circle.svg')"
+                                                                @click="onMineFilterClearClick()">
+                                                        </v-chip>
+                                                    </div>
+                                                </span>
+                                            </v-row>
+
+                                        </v-col>
+
+                                        <v-spacer></v-spacer>
+                                        <v-col class="d-flex justify-end" style="padding-right: 100px;">
+                                            <v-btn id="Scenarios-createScenario-btn" @click="
+                                                showCreateScenarioDialog = true
+                                                "
+                                                class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
+                                                variant="outlined" style="justify-content: end;">
+                                                Create new scenario
+                                            </v-btn>
+                                        </v-col>
+
+                                    </v-row>
 
                                     <v-row class="flex-end xs2" style="justify-content: end; padding-right: 70px">
-                                        
+
                                     </v-row>
                                 </v-card-title>
-                                <v-data-table-server
-                                    :items="currentUserScenariosPage"                      
-                                    :items-length="totalUserScenarios"
-                                    :pagination.sync="userScenariosPagination"
-                                    :headers="scenarioGridHeaders"
-                                    :items-per-page-options="[
-                                        {value: 5, title: '5'},
-                                        {value: 10, title: '10'},
-                                        {value: 25, title: '25'},
-                                    ]"
-                                    v-model:sort-by="userScenariosPagination.sort"
+                                <v-data-table-server :items="currentUserScenariosPage"
+                                    :items-length="totalUserScenarios" :pagination.sync="userScenariosPagination"
+                                    :headers="scenarioGridHeaders" :items-per-page-options="[
+                                        { value: 5, title: '5' },
+                                        { value: 10, title: '10' },
+                                        { value: 25, title: '25' },
+                                    ]" v-model:sort-by="userScenariosPagination.sort"
                                     v-model:page="userScenariosPagination.page"
                                     v-model:items-per-page="userScenariosPagination.rowsPerPage"
                                     sort-asc-icon="custom:GhdTableSortAscSvg"
-                                    sort-desc-icon="custom:GhdTableSortDescSvg"
-                                    item-value="name"
-                                    :hover="true"
-                                    @update:options="onUserScenariosPagination"
-                                >
+                                    sort-desc-icon="custom:GhdTableSortDescSvg" item-value="name" :hover="true"
+                                    @update:options="onUserScenariosPagination">
                                     <template slot="items" slot-scope="props" v-slot:item="props">
                                         <tr>
                                             <td style="text-align: center;">
-                                                <v-btn
-                                                    @click="onNavigateToEditScenarioView(props.item)"
-                                                    class="no-background-btn"
-                                                    style="color: #2A578D"
-                                                    elevation="0"
-                                                    text
-                                                >
+                                                <v-btn @click="onNavigateToEditScenarioView(props.item)"
+                                                    class="no-background-btn" style="color: #2A578D" elevation="0" text>
                                                     <i class="fas fa-play-circle" style="font-size: 25px;"></i>
                                                 </v-btn>
                                             </td>
-                                        <td>
-                                        
-                                            <editScenarioNameDialog
-                                                size="large"
-                                                lazy
-                                                persistent
-                                                :selected-scenario="props.item"
-                                                @save=onEditScenarioName
-                                            >
-                                                {{ props.item.name }}
+                                            <td>
 
-                                                <template v-slot:input>
-                                                    
-                                                </template>
-                                            </editScenarioNameDialog>
-                                        </td>
-                                        <td>
-                                            {{
-                                                props.item.creator
-                                                    ? props.item.creator
-                                                    : '[ Unknown ]'
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                props.item.owner
-                                                    ? props.item.owner
-                                                    : '[ No Owner ]'
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                props.item.networkName
-                                                    ? props.item.networkName
-                                                    : '[ Unknown ]'
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                formatDate(
-                                                    props.item.createdDate,
-                                                )
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                formatDate(
-                                                    props.item.lastModifiedDate,
-                                                )
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{ formatDate(props.item.lastRun) }}
-                                        </td>
-                                        <td>{{ props.item.runTime }}</td>
-                                        <td>
-                                            <v-menu  location="left">
-                                                <template
-                                                    v-slot:activator="{
+                                                <editScenarioNameDialog size="large" lazy persistent
+                                                    :selected-scenario="props.item" @save=onEditScenarioName>
+                                                    {{ props.item.name }}
+
+                                                    <template v-slot:input>
+
+                                                    </template>
+                                                </editScenarioNameDialog>
+                                            </td>
+                                            <td>
+                                                {{
+                                                    props.item.creator
+                                                        ? props.item.creator
+                                                        : '[ Unknown ]'
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    props.item.owner
+                                                        ? props.item.owner
+                                                        : '[ No Owner ]'
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    props.item.networkName
+                                                        ? props.item.networkName
+                                                        : '[ Unknown ]'
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    formatDate(
+                                                        props.item.createdDate,
+                                                    )
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    formatDate(
+                                                        props.item.lastModifiedDate,
+                                                    )
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{ formatDate(props.item.lastRun) }}
+                                            </td>
+                                            <td>{{ props.item.runTime }}</td>
+                                            <td>
+                                                <v-menu location="left">
+                                                    <template v-slot:activator="{
                                                         props
-                                                    }"
+                                                    }">
+                                                        <v-btn id="Scenarios-actionMenu-vbtn"
+                                                            color="text-green darken-1" flat v-bind="props">
+                                                            <img class='img-general'
+                                                                :src="getUrl('assets/icons/more-vertical.svg')" />
+                                                        </v-btn>
+                                                    </template>
 
-                                                >
-                                                    <v-btn
-                                                        id="Scenarios-actionMenu-vbtn"
-                                                        color="text-green darken-1"
-                                                        flat
-                                                        v-bind="props"
-                                                    >
-                                                        <img class='img-general' :src="getUrl('assets/icons/more-vertical.svg')"/>
-                                                    </v-btn>
-                                                </template>
-
-                                                <v-list>
-                                                    <v-list-item
-                                                        v-for="(item,i) in actionItems"
-                                                        :key="i"
-                                                        @click="OnActionTaken(
-                                                                item.action,
-                                                                props.item.users,
-                                                                props.item,
-                                                                true) "
-                                                        class="menu-style"
-                                                        :disabled="item.title === 'Reports' && !checkIfReportExists(props.item.id)">
-                                                        <v-list-item-title icon>
-                                                            <img v-if="item.isCustomIcon" style="padding-right:5px" v-bind:src="item.icon"/>
-                                                            <v-icon v-else class="action-icon-padding">{{ item.icon}}</v-icon> 
-                                                            {{item.title}}
-                                                        </v-list-item-title>
-                                                    </v-list-item>
-                                                </v-list>
-                                            </v-menu>
-                                        </td>
-                                        <td>
-                                            <i
-                                                v-if="checkIfReportExists(props.item.id)"
-                                                class="fas fa-check-circle"
-                                                style="color: green; margin-left: 8px;"
-                                                title="Scenario has been successfully run"
-                                            ></i>
-                                            <i
-                                                v-else
-                                                class="fas fa-exclamation-circle"
-                                                style="color: #ffd32c; margin-left: 8px;"
-                                                title="Scenario has not been run"
-                                            ></i>
-                                        </td>
-                                    </tr>
+                                                    <v-list>
+                                                        <v-list-item v-for="(item, i) in actionItems" :key="i" @click="OnActionTaken(
+                                                            item.action,
+                                                            props.item.users,
+                                                            props.item,
+                                                            true)" class="menu-style"
+                                                            :disabled="item.title === 'Reports' && !checkIfReportExists(props.item.id)">
+                                                            <v-list-item-title icon>
+                                                                <img v-if="item.isCustomIcon" style="padding-right:5px"
+                                                                    v-bind:src="item.icon" />
+                                                                <v-icon v-else class="action-icon-padding">{{
+                                                                    item.icon}}</v-icon>
+                                                                {{ item.title }}
+                                                            </v-list-item-title>
+                                                        </v-list-item>
+                                                    </v-list>
+                                                </v-menu>
+                                            </td>
+                                            <td>
+                                                <i v-if="checkIfReportExists(props.item.id)" class="fas fa-check-circle"
+                                                    style="color: green; margin-left: 8px;"
+                                                    title="Scenario has been successfully run"></i>
+                                                <i v-else class="fas fa-exclamation-circle"
+                                                    style="color: #ffd32c; margin-left: 8px;"
+                                                    title="Scenario has not been run"></i>
+                                            </td>
+                                        </tr>
                                     </template>
-                                    <!-- <v-alert
-                                        :model-value="hasMineSearch()"
-                                        class="assetFox-orange-bg"
-                                        icon="fas fa-exclamation"
-                                        slot="no-data"
-                                    >
-                                        Your search for "{{ currentSearchMine }}" found
-                                        no results.
-                                    </v-alert> -->
                                 </v-data-table-server>
                             </v-card>
                         </v-col>
                     </v-window-item>
                     <v-window-item value="Shared with me">
-                       <v-col cols = "12">
+                        <v-col cols="12">
                             <v-card elevation="5">
                                 <v-card-title>
-                                    <v-col cols = "6">
-                                        <v-row style = "margin-right:-200px">
-                                            <v-text-field
-                                                id="Scenarios-shared-searchScenarios-textField"
-                                                label="Search"
-                                                placeholder="Search in scenarios"
-                                                density="compact"
-                                                variant="outlined"
-                                                hide-details
-                                                single-line
-                                                prepend-inner-icon=custom:GhdSearchSvg
-                                                v-model="searchShared"
-                                                clearable
-                                                @click:clear="onSharedClearClick()"
-                                                class="ghd-text-field-border ghd-text-field search-icon-general"
-                                            >
+                                    <v-col cols="6">
+                                        <v-row style="margin-right:-200px">
+                                            <v-text-field id="Scenarios-shared-searchScenarios-textField" label="Search"
+                                                placeholder="Search in scenarios" density="compact" variant="outlined"
+                                                hide-details single-line prepend-inner-icon=custom:GhdSearchSvg
+                                                v-model="searchShared" clearable @click:clear="onSharedClearClick()"
+                                                class="ghd-text-field-border ghd-text-field search-icon-general">
                                             </v-text-field>
-                                            <v-btn style="margin-top: 2px; margin-left: 5px; margin-right: 5px;" 
+                                            <v-btn style="margin-top: 2px; margin-left: 5px; margin-right: 5px;"
                                                 id="Scenarios-shared-performSearch-button"
-                                                class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' 
-                                                variant = "outlined" 
-                                                @click="onSharedSearchClick()">
+                                                class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
+                                                variant="outlined" @click="onSharedSearchClick()">
                                                 Search
                                             </v-btn>
-                                            <v-btn id="Scenarios-performFilter-button" 
-                                                style="margin-top: 2px; margin-left: 5px;" 
-                                                class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' 
-                                                variant = "outlined" 
-                                                @click="showSharedFilterScenarioList = true">
+                                            <v-btn id="Scenarios-performFilter-button"
+                                                style="margin-top: 2px; margin-left: 5px;"
+                                                class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button'
+                                                variant="outlined" @click="showSharedFilterScenarioList = true">
                                                 Filter
                                             </v-btn>
-                                            <span class="Scenario-status"  >
-                                                <div v-if = "(sortedCategory != '' && sortedValue!='')&&(sortedValue != undefined && sortedCategory != null)">
-                                                     Current Filter: 
-                                                     <v-chip
-                                                        class="ma-2"
-                                                        closeable
-                                                        color=primary
-                                                        text-color="white"
-                                                        :model-value="true"
-                                                        icon
-                                                        >
-                                                        {{sortedCategory}} by {{ sortedValue }}
-                                                        
-                                                        <img class='img-general' :src="getUrl('assets/icons/x-circle.svg')" @click="onSharedFilterClearClick()"  >
-                                                </v-chip>
+                                            <span class="Scenario-status">
+                                                <div
+                                                    v-if="(sortedCategory != '' && sortedValue != '') && (sortedValue != undefined && sortedCategory != null)">
+                                                    Current Filter:
+                                                    <v-chip class="ma-2" closeable color=primary text-color="white"
+                                                        :model-value="true" icon>
+                                                        {{ sortedCategory }} by {{ sortedValue }}
+
+                                                        <img class='img-general'
+                                                            :src="getUrl('assets/icons/x-circle.svg')"
+                                                            @click="onSharedFilterClearClick()">
+                                                    </v-chip>
                                                 </div>
                                             </span>
                                         </v-row>
-                                        
+
                                     </v-col>
                                 </v-card-title>
-                                <v-data-table-server
-                                    :items="currentSharedScenariosPage"                      
-                                    :items-length="totalSharedScenarios"
-                                    :pagination.sync="sharedScenariosPagination"
-                                    :headers="scenarioGridHeaders"
-                                    :items-per-page-options="[
-                                        {value: 5, title: '5'},
-                                        {value: 10, title: '10'},
-                                        {value: 25, title: '25'},
-                                    ]"
-                                    :hover="true"
-                                    v-model:sort-by="sharedScenariosPagination.sort"
+                                <v-data-table-server :items="currentSharedScenariosPage"
+                                    :items-length="totalSharedScenarios" :pagination.sync="sharedScenariosPagination"
+                                    :headers="scenarioGridHeaders" :items-per-page-options="[
+                                        { value: 5, title: '5' },
+                                        { value: 10, title: '10' },
+                                        { value: 25, title: '25' },
+                                    ]" :hover="true" v-model:sort-by="sharedScenariosPagination.sort"
                                     v-model:page="sharedScenariosPagination.page"
                                     sort-asc-icon="custom:GhdTableSortAscSvg"
                                     sort-desc-icon="custom:GhdTableSortDescSvg"
-                                    v-model:items-per-page="sharedScenariosPagination.rowsPerPage"
-                                    item-value="name"
-                                    @update:options="onSharedScenariosPagination"
-                                >
+                                    v-model:items-per-page="sharedScenariosPagination.rowsPerPage" item-value="name"
+                                    @update:options="onSharedScenariosPagination">
                                     <template slot="items" slot-scope="props" v-slot:item="props">
-                                    <tr>
-                                        <td style="text-align: center;">
-                                                <v-btn
-                                                    @click="onNavigateToEditScenarioView(props.item)"
-                                                    class="no-background-btn"
-                                                    style="color: #2A578D"
-                                                    elevation="0"
-                                                    text
-                                                >
+                                        <tr>
+                                            <td style="text-align: center;">
+                                                <v-btn @click="onNavigateToEditScenarioView(props.item)"
+                                                    class="no-background-btn" style="color: #2A578D" elevation="0" text>
                                                     <i class="fas fa-play-circle" style="font-size: 25px;"></i>
                                                 </v-btn>
-                                        </td>
-                                        <td>
-                                            <editScenarioNameDialog
-                                                size="large"
-                                                lazy
-                                                persistent
-                                                :selected-scenario="props.item"
-                                                @save=onEditScenarioName
-                                            >
-                                                {{ props.item.name }}
+                                            </td>
+                                            <td>
+                                                <editScenarioNameDialog size="large" lazy persistent
+                                                    :selected-scenario="props.item" @save=onEditScenarioName>
+                                                    {{ props.item.name }}
 
-                                                <template v-slot:input>
-                                                    
-                                                </template>
-                                            </editScenarioNameDialog>
-                                        </td>
-                                        <td>
-                                            {{
-                                                props.item.creator
-                                                    ? props.item.creator
-                                                    : '[ Unknown ]'
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                props.item.owner
-                                                    ? props.item.owner
-                                                    : '[ No Owner ]'
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                props.item.networkName
-                                                    ? props.item.networkName
-                                                    : '[ Unknown ]'
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                formatDate(
-                                                    props.item.createdDate,
-                                                )
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                formatDate(
-                                                    props.item.lastModifiedDate,
-                                                )
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{ formatDate(props.item.lastRun) }}
-                                        </td>
-                                        <td>{{ props.item.runTime }}</td>
-                                        <td>
-                                            <v-menu >
-                                                <template
-                                                    v-slot:activator="{
+                                                    <template v-slot:input>
+
+                                                    </template>
+                                                </editScenarioNameDialog>
+                                            </td>
+                                            <td>
+                                                {{
+                                                    props.item.creator
+                                                        ? props.item.creator
+                                                        : '[ Unknown ]'
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    props.item.owner
+                                                        ? props.item.owner
+                                                        : '[ No Owner ]'
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    props.item.networkName
+                                                        ? props.item.networkName
+                                                        : '[ Unknown ]'
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    formatDate(
+                                                        props.item.createdDate,
+                                                    )
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    formatDate(
+                                                        props.item.lastModifiedDate,
+                                                    )
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{ formatDate(props.item.lastRun) }}
+                                            </td>
+                                            <td>{{ props.item.runTime }}</td>
+                                            <td>
+                                                <v-menu>
+                                                    <template v-slot:activator="{
                                                         props
-                                                    }"
-                                                >
-                                                    <v-btn
-                                                        id="Scenarios-shared-actionMenu-vbtn"
-                                                        color="text-green darken-1"
-                                                        flat
-                                                        v-bind="props"
-                                                    >
-                                                        <img class='img-general' :src="getUrl('assets/icons/more-vertical.svg')"/>
-                                                    </v-btn>
-                                                </template>
+                                                    }">
+                                                        <v-btn id="Scenarios-shared-actionMenu-vbtn"
+                                                            color="text-green darken-1" flat v-bind="props">
+                                                            <img class='img-general'
+                                                                :src="getUrl('assets/icons/more-vertical.svg')" />
+                                                        </v-btn>
+                                                    </template>
 
-                                                <v-list>
-                                                    <v-list-item v-for="(item,i) in actionItemsForSharedScenario"
-                                                        :key="i"
-                                                        @click="OnActionTaken(item.action,props.item.users,props.item,false)"
-                                                        class="menu-style"
-                                                        :disabled="item.title === 'Reports' && !checkIfReportExists(props.item.id)">
-                                                                <v-list-item-title icon>                                                        
-                                                                <img v-if="item.isCustomIcon" style="padding-right:5px" v-bind:src="item.icon"/>
-                                                                <v-icon v-else class="action-icon-padding">{{ item.icon}}</v-icon>  
-                                                                {{item.title}}
+                                                    <v-list>
+                                                        <v-list-item v-for="(item, i) in actionItemsForSharedScenario"
+                                                            :key="i"
+                                                            @click="OnActionTaken(item.action, props.item.users, props.item, false)"
+                                                            class="menu-style"
+                                                            :disabled="item.title === 'Reports' && !checkIfReportExists(props.item.id)">
+                                                            <v-list-item-title icon>
+                                                                <img v-if="item.isCustomIcon" style="padding-right:5px"
+                                                                    v-bind:src="item.icon" />
+                                                                <v-icon v-else class="action-icon-padding">{{
+                                                                    item.icon}}</v-icon>
+                                                                {{ item.title }}
                                                             </v-list-item-title>
-                                                    </v-list-item>
-                                                </v-list>
-                                            </v-menu>
-                                        </td>
-                                        <td>
-                                            <i
-                                                v-if="checkIfReportExists(props.item.id)"
-                                                class="fas fa-check-circle"
-                                                style="color: green; margin-left: 8px;"
-                                                title="Scenario has been successfully run"
-                                            ></i>
-                                            <i
-                                                v-else
-                                                class="fas fa-exclamation-circle"
-                                                style="color: #ffd32c; margin-left: 8px;"
-                                                title="Scenario has not been run"
-                                            ></i>
-                                        </td>
+                                                        </v-list-item>
+                                                    </v-list>
+                                                </v-menu>
+                                            </td>
+                                            <td>
+                                                <i v-if="checkIfReportExists(props.item.id)" class="fas fa-check-circle"
+                                                    style="color: green; margin-left: 8px;"
+                                                    title="Scenario has been successfully run"></i>
+                                                <i v-else class="fas fa-exclamation-circle"
+                                                    style="color: #ffd32c; margin-left: 8px;"
+                                                    title="Scenario has not been run"></i>
+                                            </td>
                                         </tr>
-                                    </template>                                                                 
+                                    </template>
                                 </v-data-table-server>
                             </v-card>
                         </v-col>
                     </v-window-item>
                     <v-window-item value="Queue">
-                        <v-col cols = "12">
+                        <v-col cols="12">
                             <v-card elevation="5">
                                 <v-card-title class="ghd-dialog-padding-top-title">
                                     <v-row justify-start>
-                                    <div class="dialog-header"><h5>Queue</h5></div>
+                                        <div class="dialog-header">
+                                            <h5>Queue</h5>
+                                        </div>
                                     </v-row>
 
                                 </v-card-title>
-                                <v-data-table-server
-                                    :headers="workQueueGridHeaders"
-                                    :totalItems="totalQueuedSimulations"
-                                    :pagination.sync="workQueuePagination"
-                                    :items="currentWorkQueuePage"              
-                                    sort-asc-icon="custom:GhdTableSortAscSvg"
-                                    sort-desc-icon="custom:GhdTableSortDescSvg"        
-                                    :items-length="totalQueuedSimulations"
+                                <v-data-table-server :headers="workQueueGridHeaders"
+                                    :totalItems="totalQueuedSimulations" :pagination.sync="workQueuePagination"
+                                    :items="currentWorkQueuePage" sort-asc-icon="custom:GhdTableSortAscSvg"
+                                    sort-desc-icon="custom:GhdTableSortDescSvg" :items-length="totalQueuedSimulations"
                                     :items-per-page-options="[
-                                        {value: 5, title: '5'},
-                                        {value: 10, title: '10'},
-                                        {value: 25, title: '25'},
-                                    ]"
-                                    v-model:sort-by="workQueuePagination.sort"
+                                        { value: 5, title: '5' },
+                                        { value: 10, title: '10' },
+                                        { value: 25, title: '25' },
+                                    ]" v-model:sort-by="workQueuePagination.sort"
                                     v-model:page="workQueuePagination.page"
-                                    v-model:items-per-page="workQueuePagination.rowsPerPage"
-                                    item-value="name"
-                                    @update:options="onWorkQueuePagination"
-                                    style="table-layout: fixed; width: 100%;"
-                                >                           
-                                    <template slot="items" slot-scope="props" v-slot:item="props">
-                                        <tr>
-                                        <td>{{ props.item.queuePosition }}</td>
-                                        <td>
-                                            {{ props.item.name }}
-                                        </td>
-                                        <td>{{props.item.workDescription}}</td>
-                                        <td>
-                                            {{
-                                                props.item.queueingUser
-                                                    ? props.item.queueingUser
-                                                    : '[ Unknown ]'
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{ formatDateWithTime(props.item.queueEntryTimestamp) }}
-                                        </td>
-                                        <td>
-                                            {{ formatDateWithTime(props.item.workStartedTimestamp) }}
-                                        </td>
-                                        <td>{{ props.item.currentRunTime }}</td>
-                                        <td>{{ props.item.previousRunTime }}</td>
-                                        <td>{{ props.item.status }}</td>  
-                                        <td>
-                                            <v-menu location="left">
-                                                <template v-slot:activator="{ props }">
-                                                    <v-btn
-                                                        color="text-green darken-1"
-                                                        flat
-                                                        v-bind="props"
-                                                    >
-                                                        <img class='img-general' :src="getUrl('assets/icons/more-vertical.svg')"/>
-                                                    </v-btn>
-                                                </template>
-
-                                                <v-list>
-                                                    <v-list-tile 
-                                                        v-for="(item, i) in actionItemsForWorkQueue"
-                                                        :key="i"
-                                                        @click="OnWorkQueueActionTaken(item.action, props.item)"
-                                                        class="menu-style"
-                                                    >
-                                                        <v-list-tile-title 
-                                                            flat 
-                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                                        >                                                        
-                                                            <img 
-                                                                style="padding-right:5px;" 
-                                                                v-bind:src="item.icon" 
-                                                            />
-                                                            {{ item.title }}
-                                                        </v-list-tile-title>
-                                                    </v-list-tile>
-                                                </v-list>
-                                            </v-menu>
-                                        </td>
-                                        </tr>
-                                    </template>                                         
-                                    <template v-slot:no-data>
-                                        {{ getEmptyWorkQueueMessage() }}
-                                    </template>
-                                </v-data-table-server>
-                                <v-card-title class="ghd-dialog-padding-top-title">
-                                    <v-row justify-start>
-                                    <div class="dialog-header"><h5>Reports/Uploads Queue</h5></div>
-                                    </v-row>
-
-                                </v-card-title>
-                                <v-data-table-server
-                                    :headers="workQueueGridHeaders"
-                                    :items="currentFastWorkQueuePage"
-                                    :totalItems="totalFastQueuedItems"
-                                    :pagination.sync="fastWorkQueuePagination"                  
-                                    :items-length="totalFastQueuedItems"
-                                    sort-asc-icon="custom:GhdTableSortAscSvg"
-                                    sort-desc-icon="custom:GhdTableSortDescSvg"
-                                    :items-per-page-options="[
-                                        {value: 5, title: '5'},
-                                        {value: 10, title: '10'},
-                                        {value: 25, title: '25'},
-                                    ]"
-                                    v-model:sort-by="fastWorkQueuePagination.sort"
-                                    v-model:page="fastWorkQueuePagination.page"
-                                    v-model:items-per-page="fastWorkQueuePagination.rowsPerPage"
-                                    item-value="name"
-                                    
-                                >                           
+                                    v-model:items-per-page="workQueuePagination.rowsPerPage" item-value="name"
+                                    @update:options="onWorkQueuePagination" style="table-layout: fixed; width: 100%;">
                                     <template slot="items" slot-scope="props" v-slot:item="props">
                                         <tr>
                                             <td>{{ props.item.queuePosition }}</td>
                                             <td>
                                                 {{ props.item.name }}
                                             </td>
-                                            <td>{{props.item.workDescription}}</td>
+                                            <td>{{ props.item.workDescription }}</td>
                                             <td>
                                                 {{
                                                     props.item.queueingUser
@@ -583,38 +391,104 @@
                                             </td>
                                             <td>{{ props.item.currentRunTime }}</td>
                                             <td>{{ props.item.previousRunTime }}</td>
-                                            <td>{{ props.item.status }}</td>  
+                                            <td>{{ props.item.status }}</td>
                                             <td>
-                                                <v-menu  left>
-                                                    <template
-                                                        v-slot:activator="{
-                                                            props
-                                                        }"
-                                                    >
-                                                        <v-btn
-                                                            color="text-green darken-1"
-                                                            flat
-                                                            v-bind="props"
-                                                        >
-                                                            <img class='img-general' :src="getUrl('assets/icons/more-vertical.svg')"/>
+                                                <v-menu location="left">
+                                                    <template v-slot:activator="{ props }">
+                                                        <v-btn color="text-green darken-1" flat v-bind="props">
+                                                            <img class='img-general'
+                                                                :src="getUrl('assets/icons/more-vertical.svg')" />
                                                         </v-btn>
                                                     </template>
 
                                                     <v-list>
-                                                        <v-list-item v-for="(item,i) in actionItemsForFastWorkQueue"
+                                                        <v-list-tile v-for="(item, i) in actionItemsForWorkQueue"
                                                             :key="i"
-                                                            @click="OnWorkQueueActionTaken(item.action,props.item)"
+                                                            @click="OnWorkQueueActionTaken(item.action, props.item)"
                                                             class="menu-style">
-                                                            <v-list-item-title flat>                                                        
-                                                                <img style="padding-right:5px" v-bind:src="item.icon"/>
-                                                                {{item.title}}
+                                                            <v-list-tile-title flat
+                                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                <img style="padding-right:5px;"
+                                                                    v-bind:src="item.icon" />
+                                                                {{ item.title }}
+                                                            </v-list-tile-title>
+                                                        </v-list-tile>
+                                                    </v-list>
+                                                </v-menu>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <template v-slot:no-data>
+                                        {{ getEmptyWorkQueueMessage() }}
+                                    </template>
+                                </v-data-table-server>
+                                <v-card-title class="ghd-dialog-padding-top-title">
+                                    <v-row justify-start>
+                                        <div class="dialog-header">
+                                            <h5>Reports/Uploads Queue</h5>
+                                        </div>
+                                    </v-row>
+
+                                </v-card-title>
+                                <v-data-table-server :headers="workQueueGridHeaders" :items="currentFastWorkQueuePage"
+                                    :totalItems="totalFastQueuedItems" :pagination.sync="fastWorkQueuePagination"
+                                    :items-length="totalFastQueuedItems" sort-asc-icon="custom:GhdTableSortAscSvg"
+                                    sort-desc-icon="custom:GhdTableSortDescSvg" :items-per-page-options="[
+                                        { value: 5, title: '5' },
+                                        { value: 10, title: '10' },
+                                        { value: 25, title: '25' },
+                                    ]" v-model:sort-by="fastWorkQueuePagination.sort"
+                                    v-model:page="fastWorkQueuePagination.page"
+                                    v-model:items-per-page="fastWorkQueuePagination.rowsPerPage" item-value="name">
+                                    <template slot="items" slot-scope="props" v-slot:item="props">
+                                        <tr>
+                                            <td>{{ props.item.queuePosition }}</td>
+                                            <td>
+                                                {{ props.item.name }}
+                                            </td>
+                                            <td>{{ props.item.workDescription }}</td>
+                                            <td>
+                                                {{
+                                                    props.item.queueingUser
+                                                        ? props.item.queueingUser
+                                                        : '[ Unknown ]'
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{ formatDateWithTime(props.item.queueEntryTimestamp) }}
+                                            </td>
+                                            <td>
+                                                {{ formatDateWithTime(props.item.workStartedTimestamp) }}
+                                            </td>
+                                            <td>{{ props.item.currentRunTime }}</td>
+                                            <td>{{ props.item.previousRunTime }}</td>
+                                            <td>{{ props.item.status }}</td>
+                                            <td>
+                                                <v-menu left>
+                                                    <template v-slot:activator="{
+                                                        props
+                                                    }">
+                                                        <v-btn color="text-green darken-1" flat v-bind="props">
+                                                            <img class='img-general'
+                                                                :src="getUrl('assets/icons/more-vertical.svg')" />
+                                                        </v-btn>
+                                                    </template>
+
+                                                    <v-list>
+                                                        <v-list-item v-for="(item, i) in actionItemsForFastWorkQueue"
+                                                            :key="i"
+                                                            @click="OnWorkQueueActionTaken(item.action, props.item)"
+                                                            class="menu-style">
+                                                            <v-list-item-title flat>
+                                                                <img style="padding-right:5px" v-bind:src="item.icon" />
+                                                                {{ item.title }}
                                                             </v-list-item-title>
                                                         </v-list-item>
                                                     </v-list>
                                                 </v-menu>
                                             </td>
                                         </tr>
-                                    </template>                                         
+                                    </template>
                                     <template v-slot:no-data>
                                         {{ getEmptyWorkQueueMessage() }}
                                     </template>
@@ -637,71 +511,36 @@
             @submit="onConfirmAnalysisRunAlertSubmit"
             />
 
-        <Alert
-            :dialogData="ConfirmConvertJsonToRelationalData"
-            @submit="onConfirmConvertJsonToRelationalAlertSubmit"
-        />
+        <AlertWithButtons :dialogDataWithButtons="confirmAnalysisRunAlertData"
+            @submit="onConfirmAnalysisRunAlertSubmit" />
+
+        <Alert :dialogData="ConfirmConvertJsonToRelationalData" @submit="onConfirmConvertJsonToRelationalAlertSubmit" />
 
         <ReportsDownloaderDialog :dialogData="reportsDownloaderDialogData" />
 
-        <ShareScenarioDialog
-            :dialogData="shareScenarioDialogData"
-            @submit="onShareScenarioDialogSubmit"
-        />
+        <ShareScenarioDialog :dialogData="shareScenarioDialogData" @submit="onShareScenarioDialogSubmit" />
 
-        <Alert
-            :dialogData="confirmCloneScenarioAlertData"
-            @submit="onConfirmCloneScenarioAlertSubmit"
-        />
+        <Alert :dialogData="confirmCloneScenarioAlertData" @submit="onConfirmCloneScenarioAlertSubmit" />
 
-        <Alert
-            :dialogData="confirmDeleteAlertData"
-            @submit="onConfirmDeleteAlertSubmit"
-        />
-       
-        <Alert
-            :dialogData="confirmCancelAlertData"
-            @submit="onConfirmCancelAlertSubmit"
-        />
+        <Alert :dialogData="confirmDeleteAlertData" @submit="onConfirmDeleteAlertSubmit" />
 
-        <Alert
-            :dialogData="confirmDeleteReportsData"
-            @submit="onDeleteAllGeneratedReports"
-        />
-        
-        <CreateScenarioDialog
-            :showDialog="showCreateScenarioDialog"
-            @submit="onCreateScenarioDialogSubmit"
-        />
-        <FilterScenarioList
-            :showDialog="showSharedFilterScenarioList"
-            @submit="onFilterSharedScenarioListSubmit"
-        />
-        <FilterScenarioList
-            :showDialog="showFilterScenarioList"
-            @submit="onFilterScenarioListSubmit"
-        />
-       
+        <Alert :dialogData="confirmCancelAlertData" @submit="onConfirmCancelAlertSubmit" />
 
-        <CloneScenarioDialog
-            :dialogData="cloneScenarioDialogData"
-            @submit="onCloneScenarioDialogSubmit"
-        />
+        <Alert :dialogData="confirmDeleteReportsData" @submit="onDeleteAllGeneratedReports" />
 
-        <MigrateLegacySimulationDialog
-            :showDialog="showMigrateLegacySimulationDialog"
-            @submit="onMigrateLegacySimulationSubmit"
-        />
+        <CreateScenarioDialog :showDialog="showCreateScenarioDialog" @submit="onCreateScenarioDialogSubmit" />
+        <FilterScenarioList :showDialog="showSharedFilterScenarioList" @submit="onFilterSharedScenarioListSubmit" />
+        <FilterScenarioList :showDialog="showFilterScenarioList" @submit="onFilterScenarioListSubmit" />
+
+
+        <CloneScenarioDialog :dialogData="cloneScenarioDialogData" @submit="onCloneScenarioDialogSubmit" />
+
+        <MigrateLegacySimulationDialog :showDialog="showMigrateLegacySimulationDialog"
+            @submit="onMigrateLegacySimulationSubmit" />
         <ShowAggregationDialog :dialogData="aggragateDialogData" />
-        <Alert
-            :dialogData="alertDataForDeletingCommittedProjects"
-            @submit="onDeleteCommittedProjectsSubmit"
-        />
-        <ImportExportCommittedProjectsDialog
-            :showDialog="showImportExportCommittedProjectsDialog"
-            @submit="onSubmitImportExportCommittedProjectsDialogResult"
-            @delete="onDeleteCommittedProjects"
-        />
+        <Alert :dialogData="alertDataForDeletingCommittedProjects" @submit="onDeleteCommittedProjectsSubmit" />
+        <ImportExportCommittedProjectsDialog :showDialog="showImportExportCommittedProjectsDialog"
+            @submit="onSubmitImportExportCommittedProjectsDialogResult" @delete="onDeleteCommittedProjects" />
     </v-row>
 </template>
 
