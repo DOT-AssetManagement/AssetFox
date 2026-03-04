@@ -9,9 +9,11 @@ using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Reporting.Models.PAMSPBExport;
 using AssetFox.Core.Reporting.Services;
 using AssetFox.Core.Reporting.Services.PAMSPBExport;
 using AssetFoxCore.Services;
+using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 
 namespace AssetFox.Core.Reporting
@@ -23,6 +25,7 @@ namespace AssetFox.Core.Reporting
         private Guid _networkId;
         private readonly TreatmentTab _treatmentTab;
         private readonly MASTab _masTab;
+        private PamsPbExportReportRequestModel _pamsPbExportReportRequestModel;
 
         public PAMSPBExportReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {
@@ -66,9 +69,7 @@ namespace AssetFox.Core.Reporting
 
         public string Suffix => throw new NotImplementedException();
         
-        public string Criteria { get; set; }
-
-        public bool ShowMasTab { get; set; }
+        public string Criteria { get; set; }        
 
         public async Task Run(string parameters, CancellationToken? cancellationToken = null, IWorkQueueLog workQueueLog = null)
         {
@@ -118,7 +119,7 @@ namespace AssetFox.Core.Reporting
             var reportPath = string.Empty;
             try
             {
-                ShowMasTab = ReportHelper.GetShowMasTabSetting(parameters) ?? ShowMasTab;
+                _pamsPbExportReportRequestModel = GetPamsPbExportReportRequestModel(parameters);
                 reportPath = GeneratePAMSPBExportReport(_networkId, _simulationId, workQueueLog, cancellationToken);
             }
             catch (Exception e)
@@ -174,8 +175,8 @@ namespace AssetFox.Core.Reporting
             // Report
             using var excelPackage = new ExcelPackage(new FileInfo("PAMSPBExportReportData.xlsx"));
 
-            // MAS Tab // TODO make it toggleable - pass it via params?
-            if (ShowMasTab)
+            // MAS Tab
+            if (_pamsPbExportReportRequestModel.DisplayMasTab)
             {
                 reportDetailDto.Status = $"Creating PAMS MAS TAB";
                 UpsertSimulationReportDetail(reportDetailDto);
@@ -251,6 +252,12 @@ namespace AssetFox.Core.Reporting
                 ReportType = ReportTypeName
             };
             UpsertSimulationReportDetail(reportDetailDto);
+        }
+
+        private static PamsPbExportReportRequestModel GetPamsPbExportReportRequestModel(string parameters)
+        {
+            var parameterObj = JObject.Parse(parameters);
+            return parameterObj.SelectToken("pamsPbExportReportRequestModel")?.ToObject<PamsPbExportReportRequestModel>();
         }
     }
 }
