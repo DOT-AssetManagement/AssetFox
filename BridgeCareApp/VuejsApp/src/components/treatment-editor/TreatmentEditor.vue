@@ -1,5 +1,5 @@
 <template>
-    <v-card height="1000px" class="elevation-0 vcard-main-layout" style="margin-top: -10px;">    
+    <v-card class="elevation-0 vcard-main-layout" style="margin-top: -10px; min-height: 1000px;">    
     <v-row style="margin-top: 5px;">
         <v-col>
             <v-select
@@ -16,13 +16,6 @@
             >
             </v-select>
             <div class="ghd-md-gray ghd-control-subheader-library-used treatment-parent" v-if='hasScenario'><b>Library Used: {{parentLibraryName}}<span v-if="scenarioLibraryIsModified">&nbsp;(Modified)</span></b></div>
-            <RuleOverrideToggles
-                v-if="hasScenario"
-                :ruleOverrides="ruleOverrides"
-                :scenarioId="selectedScenarioId"
-                :treatmentNames="treatmentNames"
-                @changed="$emitter.emit('TreatmentSettingsUpdated')"
-            />
         </v-col>
         <v-col class="ghd-blue ghd-button-text ghd-text-padding" v-if='hasSelectedLibrary || hasScenario' style="border-style: solid;border-width: 2px; border-color: lightgray;margin-right: 5px;margin-bottom: 50px;">Treatments<br>
             <v-btn :disabled='false' @click='OnDownloadTemplateClick()'
@@ -64,7 +57,18 @@
                     Upload
             </v-btn>
         </v-col>
-    </v-row><br>    
+    </v-row>
+    <v-row v-if="hasScenario" style="margin-top: 0px; margin-bottom: -10px;">
+        <v-col cols="12">
+            <RuleOverrideToggles
+                :ruleOverrides="ruleOverrides"
+                :scenarioId="selectedScenarioId"
+                :treatmentNames="treatmentNames"
+                @changed="$emitter.emit('TreatmentSettingsUpdated')"
+            />
+        </v-col>
+    </v-row>
+    <br>
     <v-row>
         <v-col style="padding-right: 5px;margin-top: -50px;">                       
             <v-btn
@@ -248,6 +252,15 @@
         <v-col cols="12">
             <v-row justify="center" v-show='hasSelectedLibrary && !hasScenario'>
                 <v-col>
+                    <RuleOverrideEditor
+                        :ruleOverrides="selectedTreatmentLibrary.ruleOverrides"
+                        :treatmentSelectItems="treatmentSelectItems"
+                        @update:ruleOverrides="onRuleOverridesChanged"
+                    />
+                </v-col>
+            </v-row>
+            <v-row justify="center" v-show='hasSelectedLibrary && !hasScenario'>
+                <v-col>
                     <v-subheader class="ghd-control-label ghd-md-gray">Description</v-subheader>
                     <v-textarea
                         class='ghd-control-border ghd-control-text'
@@ -256,15 +269,6 @@
                         rows='2'
                         v-model='selectedTreatmentLibrary.description'
                         @update:model-value="checkHasUnsavedChanges()"
-                    />
-                </v-col>
-            </v-row>
-            <v-row justify="center" v-show='hasSelectedLibrary && !hasScenario'>
-                <v-col>
-                    <RuleOverrideEditor
-                        :ruleOverrides="selectedTreatmentLibrary.ruleOverrides"
-                        :treatmentSelectItems="treatmentSelectItems"
-                        @update:ruleOverrides="onRuleOverridesChanged"
                     />
                 </v-col>
             </v-row>
@@ -690,6 +694,8 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             hasScenario.value = true;
             await getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId);
             await getTreatmentLibraryBySimulationIdAction(selectedScenarioId);
+            console.log('[DEBUG] scenarioTreatmentLibrary after load:', JSON.stringify(stateScenarioTreatmentLibrary.value));
+            ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
             await getScenarioPerformanceCurvesAction(selectedScenarioId);
             
             treatmentTabs = [...treatmentTabs, 'Budgets'];
@@ -748,7 +754,6 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
     
     watch(stateScenarioTreatmentLibrary, () => onStateScenarioTreatmentLibraryChanged())
     function onStateScenarioTreatmentLibraryChanged() {
-
         setParentLibraryName(stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : "None");
         scenarioLibraryIsModified = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.isModified : false;
         loadedParentId = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : uuidNIL;
@@ -802,6 +807,9 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         selectedTreatmentLibrary.value = clone(
             stateSelectedTreatmentLibrary.value
         );
+        if (stateSelectedTreatmentLibrary.value?.id && stateSelectedTreatmentLibrary.value.id !== uuidNIL) {
+            ruleOverrides.value = stateSelectedTreatmentLibrary.value.ruleOverrides || [];
+        }
     }
 
     watch(isSharedLibrary, () => onStateSharedAccessChanged())
@@ -1159,7 +1167,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             updateRows: Array.from(updatedRowsMap.values()).map(r => r[1]),
             addedRows: addedRows,
             isModified: scenarioLibraryIsModified,
-        }, selectedScenarioId).then((response: AxiosResponse) => {
+        }, selectedScenarioId).then(async (response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges();
                 if(hasSelectedLibrary.value){
@@ -1167,12 +1175,13 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                     getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId)
                 }
                 treatmentCache.push(selectedTreatment.value);
-                
+
                 addSuccessNotificationAction({message: "Modified scenario's treatments"});
-                $emitter.emit('TreatmentSettingsUpdated');                 
-                
+                $emitter.emit('TreatmentSettingsUpdated');
+
+                await getTreatmentLibraryBySimulationIdAction(selectedScenarioId);
                 checkHasUnsavedChanges();
-            }           
+            }
         });
     }
 

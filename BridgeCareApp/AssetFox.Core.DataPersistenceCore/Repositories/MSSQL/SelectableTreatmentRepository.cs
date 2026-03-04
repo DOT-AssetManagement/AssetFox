@@ -185,7 +185,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 return new List<TreatmentLibraryDTO>();
             }
 
-            return _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
+            var entities = _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
                 .AsSplitQuery()
                 .Include(_ => _.Treatments)
                 .ThenInclude(_ => _.TreatmentCosts)
@@ -212,8 +212,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .Include(_ => _.RuleOverrides)
                     .ThenInclude(ro => ro.Criteria)
                 .OrderBy(_ => _.Name)
-                .Select(_ => _.ToDto(null))
                 .ToList();
+
+            return entities.Select(_ => _.ToDto(null)).ToList();
         }
 
         public DateTime GetLibraryModifiedDate(Guid treatmentLibraryId)
@@ -229,25 +230,27 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 return new List<TreatmentLibraryDTO>();
             }
 
-            return _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
+            var entities = _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
                 .Include(_ => _.Treatments)
                 .Include(_ => _.RuleOverrides)
                     .ThenInclude(ro => ro.Criteria)
                 .OrderBy(_ => _.Name)
-                .Select(_ => _.ToDto(null))
                 .ToList();
+
+            return entities.Select(_ => _.ToDto(null)).ToList();
         }
 
         public List<TreatmentLibraryDTO> GetTreatmentLibrariesNoChildrenAccessibleToUser(Guid userId)
         {
-            return _unitOfWork.Context.TreatmentLibraryUser
+            var userLibraries = _unitOfWork.Context.TreatmentLibraryUser
                 .AsNoTracking()
                 .Include(u => u.TreatmentLibrary)
                     .ThenInclude(lib => lib.RuleOverrides)
                     .ThenInclude(ro => ro.Criteria)
                 .Where(u => u.UserId == userId)
-                .Select(u => u.TreatmentLibrary.ToDto(null))
                 .ToList();
+
+            return userLibraries.Select(u => u.TreatmentLibrary.ToDto(null)).ToList();
         }
 
         public void UpsertTreatmentLibrary(TreatmentLibraryDTO dto) =>

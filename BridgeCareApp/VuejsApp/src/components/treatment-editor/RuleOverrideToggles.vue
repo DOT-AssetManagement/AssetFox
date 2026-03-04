@@ -1,9 +1,12 @@
 <template>
-    <v-card v-if="ruleOverrides.length > 0" class="elevation-0 mb-4" style="border: 1px solid lightgray; padding: 10px;">
+    <v-card class="elevation-0 mb-4" style="border: 1px solid lightgray; padding: 10px;">
         <v-card-title class="ghd-control-label ghd-md-gray" style="padding: 0; font-size: 14px;">
             Rule Overrides
         </v-card-title>
         <v-card-text style="padding: 4px 0;">
+            <div v-if="ruleOverrides.length === 0" class="ghd-md-gray" style="font-size: 13px;">
+                No rule overrides defined on this library.
+            </div>
             <div v-for="ruleOverride in ruleOverrides" :key="ruleOverride.id" style="margin-bottom: 4px;">
                 <v-switch
                     color="#2A578D"
