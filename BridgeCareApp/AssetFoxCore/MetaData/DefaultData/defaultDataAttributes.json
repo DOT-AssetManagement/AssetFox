@@ -6,7 +6,7 @@
       "BenefitAttribute": "CONDITIONINDEX",
       "BenefitLimit": 0,
       "SpendingStrategy": "AsBudgetPermits",
-      "ShouldSuperAsset": false,
+      "ShouldUseSuperAssets": false,
       "SuperAssetAttribute": "" //Guid of default super asset
     },
     "Investment": {

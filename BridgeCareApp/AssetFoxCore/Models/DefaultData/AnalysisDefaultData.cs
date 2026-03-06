@@ -15,7 +15,8 @@ namespace AssetFoxCore.Models.DefaultData
 
         public SpendingStrategy SpendingStrategy { get; set; }
 
-        public bool ShouldSuperAsset { get; set; }
+        public bool ShouldUseSuperAssets { get; set; }
+
         public Guid? SuperAssetAttribute { get; set; }
     }
 }
