@@ -894,9 +894,9 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     }
 
     function onBugButtonClicked() {
-        let message = 'To report a bug, please contact the administrator.';
-        if(adminEmail.value.trim() !== '')
-            message += ` You can email them at ${adminEmail.value}`;
+        let message = 'Please contact the administrator to report a bug.';        
+        if(adminEmail.value.trim() !== '')            
+            message += ` Email: ${adminEmail.value}`;
         bugReportAlert.value = {
             showDialog: true,
             heading: 'Report a Bug',
