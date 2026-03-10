@@ -76,7 +76,7 @@ namespace AssetFox.Core.Reporting
 
             //create summary report objects
             _pamsDataForSummaryReport = new PamsDataForSummaryReport();
-            _summaryReportParameters = new SummaryReportParameters(_unitOfWork);
+            _summaryReportParameters = new SummaryReportParameters();
             _sectionSummary = new SectionSummary();
             _pavementWorkSummary = new PavementWorkSummary();
             _pavementWorkSummaryByBudget = new PavementWorkSummaryByBudget();
