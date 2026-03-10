@@ -372,7 +372,7 @@ import { ScenarioRoutePaths } from '@/shared/utils/route-paths';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
 import { getUserName } from '@/shared/utils/get-user-info';
-import { InvestmentPagingRequestModel, InvestmentLibraryUpsertPagingRequestModel, InvestmentPagingSyncModel, InvestmentPagingPage, PagingRequest, PaginSync } from '@/shared/models/iAM/paging';
+import { InvestmentPagingRequestModel, InvestmentLibraryUpsertPagingRequestModel, InvestmentPagingSyncModel, InvestmentPagingPage, PaginSync } from '@/shared/models/iAM/paging';
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
 import { http2XX } from '@/shared/utils/http-utils';
  import { sortSelectItemsAlphabetically } from '@/shared/utils/sorter-utils'
@@ -530,7 +530,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     let newLibrarySelection: boolean = false;
     let investmentPageForUpdating: InvestmentPagingPage;
     let updatedTreatmentsWithBudgets: PaginSync<Treatment>;
-    let budgetPrioritytoUpsert: PaginSync<BudgetPriority>;
     let hasInvestmentJustBeenSaved = false;
 
     let editValue = ref<number | null>(0);
@@ -812,7 +811,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
        onPaginationChanged();
        if(hasInvestmentJustBeenSaved === true)
        {
-            await updateTreatmentBudgetsAndPriority();
+            await updateTreatmentBudgets();
             hasInvestmentJustBeenSaved = false;
             $emitter.emit('switchedToNewInvestmentLibrary');
        }
@@ -1425,48 +1424,38 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             firstYearAnalysisBudgetShift: firstYearOfAnalysisPeriodShift.value,
             isModified: scenarioLibraryIsModified.value,
         }
-        InvestmentService.upsertInvestment(sync ,selectedScenarioId).then((response: AxiosResponse) => {
+        InvestmentService.upsertInvestment(sync ,selectedScenarioId).then(async (response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 parentLibraryId = librarySelectItemValue.value ? librarySelectItemValue.value: "";
                 firstYearOfAnalysisPeriodShift.value = 0;
                 investmentPlanMutator(investmentPlanUpsert)
-                clearChanges();                                            
+                clearChanges();
                 addSuccessNotificationAction({message: "Modified investment"});
+
+                // Clear old budget priorities since they reference budgets from the previous investment library
+                const existingPriorities = await BudgetPriorityService.getScenarioBudgetPriorities(selectedScenarioId);
+                if (existingPriorities.data && existingPriorities.data.length > 0) {
+                    const idsToDelete: string[] = existingPriorities.data.map((bp: BudgetPriority) => bp.id);
+                    const clearBudgetPrioritySync: PaginSync<BudgetPriority> = {
+                        libraryId: null,
+                        updateRows: [],
+                        rowsForDeletion: idsToDelete,
+                        addedRows: [],
+                        isModified: true
+                    };
+                    await BudgetPriorityService.upsertScenarioBudgetPriorities(clearBudgetPrioritySync, selectedScenarioId);
+                }
+
                 librarySelectItemValue.value = null;
-                hasInvestmentJustBeenSaved = true;               
-            }           
+                hasInvestmentJustBeenSaved = true;
+                $emitter.emit('InvestmentSettingsUpdated');
+            }
         });
-        $emitter.emit('InvestmentSettingsUpdated');
         // $emitter.emit('switchedToNewInvestmentLibrary', sync);
     }
 
-    async function updateTreatmentBudgetsAndPriority()
+    async function updateTreatmentBudgets()
     {
-        const request: PagingRequest<BudgetPriority>= {
-            page: 1,
-            rowsPerPage: 5,
-            syncModel: {
-                libraryId: null,
-                updateRows: [],
-                rowsForDeletion: [],
-                addedRows: [],
-                isModified: false
-            },           
-            sortColumn: "",
-            isDescending: false,
-            search: ""
-        };
-
-        await BudgetPriorityService.getScenarioBudgetPriorityPage(selectedScenarioId, request).then(response => {
-            if(response.data)
-            {
-                budgetPrioritytoUpsert = response.data;
-            }   
-        });
-
-        await BudgetPriorityService.upsertScenarioBudgetPriorities(budgetPrioritytoUpsert, selectedScenarioId);
-
-        
         await TreatmentService.getScenarioSelectedTreatments(selectedScenarioId).then(response => {
             if(response.data)
             {
