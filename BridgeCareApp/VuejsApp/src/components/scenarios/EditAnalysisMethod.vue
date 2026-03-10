@@ -313,6 +313,7 @@ import AnalysisMethodService from '@/services/analysis-method.service';
     const valid = ref<boolean>(true);
     const criteriaIsIntentionallyEmpty = ref<boolean>(false);
     let hasUnsavedChanges = ref<boolean>(false);
+    let previousSuperAssetAttribute = ref<string>('');
     let ConfirmEmptyCriteria = ref(clone(emptyAlertData));
 
     const superAssetAttributeModel = computed<string | null>({
@@ -387,7 +388,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     // watch(benefit, onAnalysisChanged)
     watch(analysisMethod, onAnalysisChanged)
      async function onAnalysisChanged() {
-        hasUnsavedChanges.value = !equals(analysisMethod.value, stateAnalysisMethod.value);
+        hasUnsavedChanges.value = !equals(analysisMethod.value, stateAnalysisMethod.value) || !stateSimulationAnalysisSetting.value;
 
         setHasUnsavedChangesAction({
             value:
@@ -439,12 +440,21 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
             analysisMethod.value,
         );
 
-        if (property === 'shouldUseSuperAssets' && !value) {
+        if (property === 'shouldUseSuperAssets') {
+            if (!value) {
+                previousSuperAssetAttribute.value = analysisMethod.value.superAssetAttribute || '';
                 analysisMethod.value = setItemPropertyValue(
-                'superAssetAttribute',
-                '',
-                analysisMethod.value,
-            );
+                    'superAssetAttribute',
+                    '',
+                    analysisMethod.value,
+                );
+            } else if (previousSuperAssetAttribute.value) {
+                analysisMethod.value = setItemPropertyValue(
+                    'superAssetAttribute',
+                    previousSuperAssetAttribute.value,
+                    analysisMethod.value,
+                );
+            }
         }
     }
 
