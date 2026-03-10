@@ -315,12 +315,13 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public void SaveScenarioInvestments(InvestmentUpsertAndDeleteModel changes, Guid simulationId)
         {
-            
+
             _unitOfWork.AsTransaction(() =>
             {
                 DeleteScenarioBudgets(changes.BudgetsForDeletion);
                 InsertScenarioBudgets(changes.AddedBudgets, simulationId);
                 UpdateScenarioBudgets(changes.UpdatedBudgets, simulationId);
+                _unitOfWork.BudgetAmountRepo.ShiftAllScenarioBudgetAmountYears(simulationId, changes.FirstYearAnalysisBudgetShift);
                 _unitOfWork.BudgetAmountRepo.SaveScenarioBudgetAmounts(changes, simulationId);
                 _unitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(changes.Investment, simulationId);
             });
