@@ -1,12 +1,10 @@
 <template>
-        <v-row>
-            <v-col class="p-0">
-                <v-card
+        <v-row >
+            <v-card
                 class="mx-auto ghd-sidebar-scenario"
-                
                 elevation="0"
-                style="border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; border: 1px solid #999999;"
-            >
+                style="border-top-left-radius: 5px; border-bottom-left-radius: 
+                5px; border-bottom-right-radius: 5px; border: 1px solid #999999;">
                 <v-list
                     id = "EditScenario-navigation-vList"
                     class="ghd-navigation-list">
@@ -15,37 +13,36 @@
                         class="settings-list ghd-control-text"
                         :key="navigationTab.tabName"
                         :disabled="navigationTab.disabled"
-                        v-for="navigationTab in visibleNavigationTabs()"
-                    >
+                        v-for="navigationTab in visibleNavigationTabs()">
                         <v-list-item id="EditScenario-tabs-vListTile" :to="navigationTab.navigation" style="border-bottom: 1px solid #CCCCCC;">
                             <template v-slot:prepend>
-                                    <TreatmentSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Treatment'"/>  
-                                    <TargetConditionGoalSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Target Condition Goal'"/>  
-                                    <RemainingLifeLimitSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Remaining Life Limit'"/>  
-                                    <PerformanceCurveSvg style="height: 34px; width: 36px;"  class="scenario-icon" v-if="navigationTab.tabName === 'Deterioration Model'"/>  
-                                    <DeficientConditionGoalSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Deficient Condition Goal'"/>  
-                                    <InvestmentSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Investment'"/>  
-                                    <CashFlowSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Cash Flow'"/>  
-                                    <BudgetPrioritySvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Budget Priority'"/>  
-                                    <AnalysisMethodSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Analysis Method'"/>  
-                                    <CalculatedAttributeSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Calculated Attribute'"/>  
-                                    <CommittedProjectSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Committed Projects'"/>  
-                                    <ReportsSvg style="height: 38px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Reports & Outputs'"/>  
+                                <TreatmentSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Treatment'"/>  
+                                <TargetConditionGoalSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Target Condition Goal'"/>  
+                                <RemainingLifeLimitSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Remaining Life Limit'"/>  
+                                <PerformanceCurveSvg style="height: 34px; width: 36px;"  class="scenario-icon" v-if="navigationTab.tabName === 'Deterioration Model'"/>  
+                                <DeficientConditionGoalSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Deficient Condition Goal'"/>  
+                                <InvestmentSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Investment'"/>  
+                                <CashFlowSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Cash Flow'"/>  
+                                <BudgetPrioritySvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Budget Priority'"/>  
+                                <AnalysisMethodSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Analysis Method'"/>  
+                                <CalculatedAttributeSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Calculated Attribute'"/>  
+                                <CommittedProjectSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Committed Projects'"/>  
+                                <ReportsSvg style="height: 38px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Reports & Outputs'"/>  
                             </template>
-                        <v-list-item-title style="display: flex; justify-content: space-between; align-items: center; padding-left: 5px; width: 100%;">
-    <span style="font-size: 1.1rem !important;">{{ navigationTab.tabName }}</span>
-    <i 
-        :class="[navigationTab.validationIcon, { 
-            'green-icon': navigationTab.validationIcon === 'fas fa-check-circle', 
-            'red-icon': navigationTab.validationIcon === 'fas fa-times-circle', 
-            'yellow-icon': navigationTab.validationIcon === 'fas fa-exclamation-circle' 
-        }]" 
-        v-if="navigationTab.validationIcon" 
-        style="margin-left: 30px; font-size: 1.3rem;"
-        v-b-tooltip.hover
-        :title="getTooltipText(navigationTab.validationIcon, navigationTab.tabName)">
-    </i>
-</v-list-item-title>
+                            <v-list-item-title style="display: flex; justify-content: space-between; align-items: center; padding-left: 5px; width: 100%;">
+                                <span style="font-size: 1.1rem !important;">{{ navigationTab.tabName }}</span>
+                                <i 
+                                    :class="[navigationTab.validationIcon, { 
+                                        'green-icon': navigationTab.validationIcon === 'fas fa-check-circle', 
+                                        'red-icon': navigationTab.validationIcon === 'fas fa-times-circle', 
+                                        'yellow-icon': navigationTab.validationIcon === 'fas fa-exclamation-circle' 
+                                    }]" 
+                                    v-if="navigationTab.validationIcon" 
+                                    style="margin-left: 30px; font-size: 1.3rem;"
+                                    v-b-tooltip.hover
+                                    :title="getTooltipText(navigationTab.validationIcon, navigationTab.tabName)">
+                                </i>
+                            </v-list-item-title>
                         </v-list-item>
                     </v-list-item>
                 </v-list>
@@ -63,10 +60,9 @@
                     </v-btn>
                 </div>
             </v-card>
-            </v-col>
-            
-            <v-col class=" p-0" cols="10">
-                <v-container class="p-0" fluid grid-list-xs >
+
+            <v-col cols="12" class="ghd-content-scenario" >
+                <v-container fluid grid-list-xs style="padding-left:20px;padding-right:20px;" >
                     <router-view></router-view>
                 </v-container>
             </v-col>

@@ -28,27 +28,27 @@
                                     </div>
                                 </td>
                                 <td class="text-xs-left">
-                                <v-menu location="left" >
-                                    <template v-slot:activator="{ props }">
-                                        <v-btn  v-bind="props" class="ghd-blue" flat icon>
-                                            <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')">
-                                        </v-btn>
-                                    </template>
-                                    <v-card>
-                                        <v-card-text>
-                                            <v-textarea
-                                                class="sm-txt Montserrat-font-family"
-                                                :model-value="props.item.mergedExpression"
-                                                full-width
-                                                no-resize
-                                                outline
-                                                readonly
-                                                rows="5"
-                                                style = "min-width: 500px;min-height: 205px;"
-                                            />
-                                        </v-card-text>
-                                    </v-card>
-                                </v-menu>
+                                    <v-menu location="left" >
+                                        <template v-slot:activator="{ props }">
+                                            <v-btn  v-bind="props" class="ghd-blue" flat icon>
+                                                <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')">
+                                            </v-btn>
+                                        </template>
+                                        <v-card>
+                                            <v-card-text>
+                                                <v-textarea
+                                                    class="sm-txt Montserrat-font-family"
+                                                    :model-value="props.item.mergedExpression"
+                                                    full-width
+                                                    no-resize
+                                                    outline
+                                                    readonly
+                                                    rows="5"
+                                                    style = "min-width: 500px;min-height: 205px;"
+                                                />
+                                            </v-card-text>
+                                        </v-card>
+                                    </v-menu>
                                     <v-btn v-if="props.item.name.includes('Summary') || props.item.name.includes('UserDefinedReport')"
                                         @click="onShowCriterionEditorDialog(props.item.id)"
                                         class="criteria-button-blue"
@@ -108,8 +108,7 @@
             :thickness="2"
             class="border-opacity-100"
         ></v-divider>
-                <v-row style="margin:5px;">
-                    <!-- <v-btn class="ghd-white-bg ghd-blue ghd-button-text ghd-button" @click="onDownloadSimulationLog(true)" variant = "flat">Simulation Log</v-btn> -->
+                <v-row style="margin:5px;">                    
                     <SimulationLogButton
                         :networkId="networkId"
                         :selectedScenarioId="selectedScenarioId"
@@ -130,6 +129,10 @@
         <UserDefinedReportInputDialog 
             :showDialog='showUserDefinedReportInputDialog' 
             @submit='onAddUserDefinedReportInput' />
+
+        <PamsPbExportReportInputDialog 
+            :showDialog='showPamsPbExportReportInputDialog' 
+            @submit='onAddPamsPbExportReportInput' />
     </v-row>
 </v-card>
 </template>
@@ -166,8 +169,9 @@ import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import EditSvg from '@/shared/icons/EditSvg.vue';
 import ReportsTrashCanButton from '@/shared/components/buttons/ReportsTrashCanButton.vue';
 import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton.vue';
-import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel } from '@/shared/models/iAM/reports';
+import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel, PamsPbExportReportRequestModel, emptyPamsPbExportReportRequestModel } from '@/shared/models/iAM/reports';
 import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/UserDefinedReportInputDialog.vue';
+import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
 
     let store = useStore();
     const router = useRouter();
@@ -182,6 +186,7 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
 
     let editShow = ref<boolean>(false);
     let showUserDefinedReportInputDialog = ref<boolean>(false);
+    let showPamsPbExportReportInputDialog = ref<boolean>(false);
 
     //let simulationName: string;
     let networkName: string = '';
@@ -271,7 +276,7 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
                 id: getNewGuid(),
                 name: reportName,
                 mergedExpression: "",
-                isGenerated: false
+                isGenerated: false                
             });
         });
         if(stateSimulationReportNames.value.length > 0)
@@ -356,17 +361,25 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
                 currentPage.value,
             ) as Report;
             // Generate report with selected one from table            
-            if(selectedReport.value.name != "UserDefinedReport")
+            if(selectedReport.value.name != "UserDefinedReport" && selectedReport.value.name != "PAMSPBExportReport")
             {
                 await ReportsService.generateReportWithCriteria(
-                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, emptyUserDefinedReportRequestModel
+                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, emptyUserDefinedReportRequestModel, emptyPamsPbExportReportReportRequestModel
                 ).then((response: AxiosResponse<any>) => {
                     handleSuccessError(response);
                 });                
             }
             else
             {
-                showUserDefinedReportInputDialog.value = true;
+                if(selectedReport.value.name == "UserDefinedReport")
+                {
+                    showUserDefinedReportInputDialog.value = true;
+                }
+
+                if(selectedReport.value.name == "PAMSPBExportReport")
+                {
+                    showPamsPbExportReportInputDialog.value = true;
+                }
             }
         }
     }
@@ -375,7 +388,18 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
         showUserDefinedReportInputDialog.value = false;
         if (!isNil(newUserDefinedReportRequestModel)) {
             await ReportsService.generateReportWithCriteria(
-                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, newUserDefinedReportRequestModel
+                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, newUserDefinedReportRequestModel, emptyPamsPbExportReportRequestModel
+            ).then((response: AxiosResponse<any>) => {
+                handleSuccessError(response);
+            });
+        }
+    }
+
+    async function onAddPamsPbExportReportInput(newPamsPbExportReportRequestModel: PamsPbExportReportRequestModel) {
+        showPamsPbExportReportInputDialog.value = false;
+        if (!isNil(newPamsPbExportReportRequestModel)) {
+            await ReportsService.generateReportWithCriteria(
+                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, emptyUserDefinedReportRequestModel, newPamsPbExportReportRequestModel
             ).then((response: AxiosResponse<any>) => {
                 handleSuccessError(response);
             });

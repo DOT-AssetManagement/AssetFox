@@ -367,7 +367,7 @@ namespace AssetFox.Core.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pamsWorkSummaryWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummary_Tab);            
-            var chartRowModel = _pavementWorkSummary.Fill(pamsWorkSummaryWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails, firstPrimaryKey);
+            var chartRowModel = _pavementWorkSummary.Fill(pamsWorkSummaryWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails, firstPrimaryKey, analysisMethodDto.SpendingStrategy);
             checkCancelled(cancellationToken, simulationId);
 
             // Pavement Work Summary By Budget TAB
@@ -376,7 +376,7 @@ namespace AssetFox.Core.Reporting
             _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
             UpdateSimulationAnalysisDetail(reportDetailDto);
             var pavementWorkSummaryByBudgetWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSConstants.PavementWorkSummaryByBudget_Tab);
-            _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, yearlyCostCommittedProj, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails, firstPrimaryKey);
+            _pavementWorkSummaryByBudget.Fill(pavementWorkSummaryByBudgetWorksheet, reportOutputData, simulationYears, yearlyBudgetAmount, yearlyCostCommittedProj, scenarioSelectableTreatmentsDtos, committedProjectsDtos, treatmentCategoryLookup, committedProjectList, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, keyCashFlowFundingDetails, firstPrimaryKey, analysisMethodDto.SpendingStrategy);
             checkCancelled(cancellationToken, simulationId);
 
             // Unfunded Pavement Projects TAB
