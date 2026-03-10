@@ -1,220 +1,211 @@
 <template>
-    <v-card height="800px" class="elevation-0 vcard-main-layout">
+    <v-card fluid  class="elevation-0 vcard-main-layout">
+        <v-row >
+            <v-col cols="12" lg="4" id="EditAnalysisMethod-weightingParent-vflex">
+                <v-subheader class="ghd-control-label ghd-md-gray">Weighting</v-subheader>
+                <v-select
+                    id="EditAnalysisMethod-weighting-vselect"
+                    class="ghd-select ghd-control-border ghd-control-text"
+                    :items="weightingAttributes"
+                    variant="outlined"
+                    clearable
+                    item-title="text"
+                    item-value="value"
+                    density="compact"
+                    menu-icon=custom:GhdDownSvg
+                    v-model="analysisMethod.attribute"
+                    :disabled="!hasAdminAccess"
+                    @update:model-value="onSetAnalysisMethodProperty('attribute',$event)">
+                </v-select>
+            </v-col>
+            <v-col cols="12" lg="4" id="EditAnalysisMethod-optimizationStrategyParent-vflex">
+                <v-subheader class="ghd-control-label ghd-md-gray">Optimization Strategy</v-subheader>
+                <v-select 
+                    id="EditAnalysisMethod-optimizationStrategy-select"
+                    class="ghd-select ghd-control-border ghd-control-text"
+                    :items="optimizationStrategy"
+                    item-title="text"
+                    item-value="value"
+                    variant="outlined"
+                    density="compact"
+                    menu-icon=custom:GhdDownSvg
+                    v-model="analysisMethod.optimizationStrategy"
+                    @update:model-value="onSetAnalysisMethodProperty('optimizationStrategy',$event)"
+                    :disabled="!hasAdminAccess">
+                </v-select>
+            </v-col>    
+            <v-col cols="12" lg="4" id="EditAnalysisMethod-spendingStrategyParent-vflex">
+                <v-subheader class="ghd-control-label ghd-md-gray">Spending Strategy</v-subheader>
+                <v-select
+                    id="EditAnalysisMethod-spendingStrategy-select"
+                    class="ghd-select ghd-control-border ghd-control-text"
+                    :items="spendingStrategy"
+                    variant="outlined"
+                    item-title="text"
+                    item-value="value"
+                    density="compact"
+                    menu-icon=custom:GhdDownSvg
+                    v-model="analysisMethod.spendingStrategy"
+                    @update:model-value="onSetAnalysisMethodProperty('spendingStrategy',$event)">
+                </v-select>
+            </v-col>                      
+        </v-row>
         <v-row>
-            <v-col id="EditAnalysisMethod-weightingParent-vflex">
-        <v-subheader class="ghd-control-label ghd-md-gray">Weighting</v-subheader>
-        <v-select
-            id="EditAnalysisMethod-weighting-vselect"
-            class="ghd-select ghd-control-border ghd-control-text"
-            :items="weightingAttributes"
-            variant="outlined"
-            clearable
-            item-title="text"
-            item-value="value"
-            density="compact"
-            menu-icon=custom:GhdDownSvg
-            v-model="analysisMethod.attribute"
-            :disabled="!hasAdminAccess"
-            @update:model-value="onSetAnalysisMethodProperty('attribute',$event)"
-        >
-        </v-select>
-        </v-col>
-        <v-col id="EditAnalysisMethod-optimizationStrategyParent-vflex" xs4>
-        <v-subheader class="ghd-control-label ghd-md-gray">Optimization Strategy</v-subheader>
-        <v-select 
-            id="EditAnalysisMethod-optimizationStrategy-select"
-            class="ghd-select ghd-control-border ghd-control-text"
-            :items="optimizationStrategy"
-            item-title="text"
-            item-value="value"
-            variant="outlined"
-            density="compact"
-            menu-icon=custom:GhdDownSvg
-            v-model="analysisMethod.optimizationStrategy"
-            @update:model-value="onSetAnalysisMethodProperty('optimizationStrategy',$event)"
-            :disabled="!hasAdminAccess"
-        >
-        </v-select>
-        </v-col>    
-        <v-col cols = "4" id="EditAnalysisMethod-spendingStrategyParent-vflex">
-                            <v-subheader class="ghd-control-label ghd-md-gray">Spending Strategy</v-subheader>
-                            <v-select
-                                id="EditAnalysisMethod-spendingStrategy-select"
-                                class="ghd-select ghd-control-border ghd-control-text"
-                                :items="spendingStrategy"
-                                variant="outlined"
-                                item-title="text"
-                                item-value="value"
-                                density="compact"
-                                menu-icon=custom:GhdDownSvg
-                                v-model="analysisMethod.spendingStrategy"
-                                @update:model-value="onSetAnalysisMethodProperty('spendingStrategy',$event)">
-                            </v-select>
-                        </v-col>                      
-                    </v-row>
-                    <v-row>
-                        <v-col cols = "3">
-                            <v-subheader class="ghd-control-label ghd-md-gray">Benefit Attribute</v-subheader>
-                            <v-select
-                                id="EditAnalysisMethod-benefitAttribute-select"
-                                class="ghd-select ghd-control-text ghd-control-border"
-                                :items="benefitAttributes"
-                                item-title="text"
-                                item-value="value"
-                                variant="outlined"
-                                density="compact"
-                                v-model="benefit.attribute"
-                                menu-icon=custom:GhdDownSvg
-                                @update:model-value="onSetBenefitProperty('attribute', $event)"
-                                :disabled="!hasAdminAccess"
-                            >
-                            </v-select>
-                        </v-col>
-                        <v-col cols = "3">
-                            <v-subheader class="ghd-control-label ghd-md-gray">Benefit Limit</v-subheader>
-                            <v-text-field
-                                id="EditAnalysisMethod-benefitLimit-textField"
-                                style="margin:0px"
-                                class="ghd-control-text ghd-control-border"
-                                @update:model-value="onSetBenefitProperty('limit',$event)"
-                                variant="outlined"
-                                density="compact"
-                                type="number"
-                                
-                                :value.number="benefit.limit"
-                                :rules="[
-                                    rules['generalRules'].valueIsNotEmpty,
-                                    rules['generalRules'].valueIsNotNegative(
-                                        analysisMethod.benefit.limit,
-                                    ),
-                                ]"
-                                :disabled="!hasAdminAccess"
-                            >
-                            </v-text-field>
-                        </v-col>
-                    </v-row>
-                    <v-row>
-                        <v-col cols = "3">
-                            <v-switch 
-                            id="EditAnalysisMethod-allowMultiBudgetFunding-switch"
-                            class="ghd-checkbox"
-                            color="#2A578D"
-                            label="Allow Multi Budget Funding"
-                            :disabled="!hasAdminAccess"
-                            v-model="analysisMethod.shouldUseExtraFundsAcrossBudgets"
-                            @update:model-value='onSetAnalysisMethodProperty("shouldUseExtraFundsAcrossBudgets",$event)'/>
-                            
-                        </v-col>
-                        <v-col cols = "3">
-                            <v-switch 
-                            id="EditAnalysisMethod-allowMultipleTreatments-switch"
-                            class="ghd-checkbox"
-                            color="#2A578D"
-                            label="Allow Multiple Treatments"
-                            v-model="analysisMethod.shouldAllowMultipleTreatments"
-                            @update:model-value='onSetAnalysisMethodProperty("shouldAllowMultipleTreatments",$event)'/>
-                        </v-col>
+            <v-col cols="12" md="4">
+                <v-subheader class="ghd-control-label ghd-md-gray">Benefit Attribute</v-subheader>
+                <v-select
+                    id="EditAnalysisMethod-benefitAttribute-select"
+                    class="ghd-select ghd-control-text ghd-control-border"
+                    :items="benefitAttributes"
+                    item-title="text"
+                    item-value="value"
+                    variant="outlined"
+                    density="compact"
+                    v-model="benefit.attribute"
+                    menu-icon=custom:GhdDownSvg
+                    @update:model-value="onSetBenefitProperty('attribute', $event)"
+                    :disabled="!hasAdminAccess"
+                >
+                </v-select>
+            </v-col>
+            <v-col cols="12" md="4">
+                <v-subheader class="ghd-control-label ghd-md-gray">Benefit Limit</v-subheader>
+                <v-text-field
+                    id="EditAnalysisMethod-benefitLimit-textField"
+                    style="margin:0px"
+                    class="ghd-control-text ghd-control-border"
+                    @update:model-value="onSetBenefitProperty('limit',$event)"
+                    variant="outlined"
+                    density="compact"
+                    type="number"
                     
+                    :value.number="benefit.limit"
+                    :rules="[
+                        rules['generalRules'].valueIsNotEmpty,
+                        rules['generalRules'].valueIsNotNegative(
+                            analysisMethod.benefit.limit,
+                        ),
+                    ]"
+                    :disabled="!hasAdminAccess">
+                </v-text-field>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col cols="12" lg="5">
+                <v-switch 
+                id="EditAnalysisMethod-allowMultiBudgetFunding-switch"
+                class="ghd-checkbox"
+                color="#2A578D"
+                label="Allow Multi Budget Funding"
+                :disabled="!hasAdminAccess"
+                v-model="analysisMethod.shouldUseExtraFundsAcrossBudgets"
+                @update:model-value='onSetAnalysisMethodProperty("shouldUseExtraFundsAcrossBudgets",$event)'/>
+                
+            </v-col>
+            <v-col cols="12" lg="5">
+                <v-switch 
+                id="EditAnalysisMethod-allowMultipleTreatments-switch"
+                class="ghd-checkbox"
+                color="#2A578D"
+                label="Allow Multiple Treatments"
+                v-model="analysisMethod.shouldAllowMultipleTreatments"
+                @update:model-value='onSetAnalysisMethodProperty("shouldAllowMultipleTreatments",$event)'/>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col cols="12" lg="5">
+                <v-switch 
+                id="EditAnalysisMethod-useSuperAssets-switch"
+                class="ghd-checkbox"
+                color="#2A578D"
+                label="Enable Super Assets"
+                v-model="analysisMethod.shouldUseSuperAssets"
+                @update:model-value='onSetAnalysisMethodProperty("shouldUseSuperAssets",$event)'/>
+            </v-col>
+            <template v-if="analysisMethod.shouldUseSuperAssets">
+                <v-col cols = "12" lg="5">
+                    <v-subheader class="ghd-control-label ghd-md-gray">Super Asset Attribute</v-subheader>
+                    <v-select
+                        id="EditAnalysisMethod-superAssetAttribute-select"
+                        class="ghd-select ghd-control-border ghd-control-text"
+                        :items="superAssetAttributes"
+                        variant="outlined"
+                        item-title="text"
+                        item-value="value"
+                        density="compact"
+                        menu-icon=custom:GhdDownSvg
+                        v-model="superAssetAttributeModel"
+                        clearable
+                        @update:model-value="onSetAnalysisMethodProperty('superAssetAttribute',$event)">
+                    </v-select>
+                </v-col>
+            </template>
+        </v-row>
+        <v-row>
+            <v-row justify="space-between" style="padding-left: 10px;">
+                <v-col cols="12" lg="6">
+                    <v-subheader class="ghd-control-label ghd-md-gray">Description</v-subheader>
+                    <v-textarea
+                        id="EditAnalysisMethod-description-textArea"
+                        class="ghd-control-text ghd-control-border"
+                        @update:model-value="onSetAnalysisMethodProperty('description', $event)"
+                        no-resize
+                        variant="outlined"
+                        rows="6"
+                        :model-value="analysisMethod.description"
+                    >
+                    </v-textarea>
+                </v-col>
+                <v-col cols="12" lg="6">
+                    <v-row justify="space-between" style="padding: 10px;">
+                    <v-subheader class="ghd-control-label ghd-md-gray">                             
+                        Criteria ({{ assetCountString }})
+                    </v-subheader>
+                    <v-btn
+                        id="EditAnalysisMethod-criteriaEditor-btn"
+                        style="padding-right:30px; padding-bottom: 5px; margin-bottom: 5px; !important;"
+                        @click="
+                            onShowCriterionEditorDialog
+                        "
+                        class="edit-icon ghd-control-label ghd-blue"
+                        icon
+                        flat
+                    >
+                        <img class='img-general' :src="getUrl('assets/icons/edit.svg')"/> 
+                    </v-btn>
                     </v-row>
-                    <v-row>
-                        <v-col cols = "3">
-                            <v-switch 
-                            id="EditAnalysisMethod-useSuperAssets-switch"
-                            class="ghd-checkbox"
-                            color="#2A578D"
-                            label="Enable Super Assets"
-                            v-model="analysisMethod.shouldUseSuperAssets"
-                            @update:model-value='onSetAnalysisMethodProperty("shouldUseSuperAssets",$event)'/>
-                        </v-col>
-                        <template v-if="analysisMethod.shouldUseSuperAssets">
-                            <v-col cols = "3">
-                                <v-subheader class="ghd-control-label ghd-md-gray">Super Asset Attribute</v-subheader>
-                                <v-select
-                                    id="EditAnalysisMethod-superAssetAttribute-select"
-                                    class="ghd-select ghd-control-border ghd-control-text"
-                                    :items="superAssetAttributes"
-                                    variant="outlined"
-                                    item-title="text"
-                                    item-value="value"
-                                    density="compact"
-                                    menu-icon=custom:GhdDownSvg
-                                    v-model="superAssetAttributeModel"
-                                    clearable
-                                    @update:model-value="onSetAnalysisMethodProperty('superAssetAttribute',$event)">
-                                </v-select>
-                            </v-col>
-                        </template>
-                    </v-row>
-                    <v-row>
-                        <v-row justify="space-between" style="padding-left: 10px;">
-                            <v-col>
-                                <v-subheader class="ghd-control-label ghd-md-gray">Description</v-subheader>
-                                <v-textarea
-                                    id="EditAnalysisMethod-description-textArea"
-                                    class="ghd-control-text ghd-control-border"
-                                    @update:model-value="onSetAnalysisMethodProperty('description', $event)"
-                                    no-resize
-                                    variant="outlined"
-                                    rows="6"
-                                    :model-value="analysisMethod.description"
-                                >
-                                </v-textarea>
-                            </v-col>
-                            <v-col>
-                                <v-row justify="space-between" style="padding: 10px;">
-                                <v-subheader class="ghd-control-label ghd-md-gray">                             
-                                    Criteria ({{ assetCountString }})
-                                </v-subheader>
-                                <v-btn
-                                    id="EditAnalysisMethod-criteriaEditor-btn"
-                                    style="padding-right:30px; padding-bottom: 5px; margin-bottom: 5px; !important;"
-                                    @click="
-                                        onShowCriterionEditorDialog
-                                    "
-                                    class="edit-icon ghd-control-label ghd-blue"
-                                    icon
-                                    flat
-                                >
-                                    <img class='img-general' :src="getUrl('assets/icons/edit.svg')"/> 
-                                </v-btn>
-                                </v-row>
-                                <v-textarea
-                                    id="EditAnalysisMethod-criteria-textArea"
-                                    class="ghd-control-text ghd-control-border"
-                                    style="padding-bottom: 0px; height: 250px;"
-                                    no-resize
-                                    variant="outlined"
-                                    readonly
-                                    :rows="criteriaRows()"
-                                    v-model="analysisMethod.criterionLibrary.mergedCriteriaExpression"
-                                >
-                                </v-textarea>
-                            </v-col>
-                        </v-row>
-                    </v-row>
-                <v-row justify="center">
-                    <v-row justify="center">
-                        <CancelButton 
-                            :disabled="!hasUnsavedChanges"
-                            @cancel="onDiscardChanges"
-                        />
-                        <SaveButton 
-                            :disabled="!valid || !hasUnsavedChanges"
-                            @save="onUpsertAnalysisMethod"
-                        />
-                    </v-row>
-                </v-row>
+                    <v-textarea
+                        id="EditAnalysisMethod-criteria-textArea"
+                        class="ghd-control-text ghd-control-border"
+                        style="padding-bottom: 0px; height: 250px;"
+                        no-resize
+                        variant="outlined"
+                        readonly
+                        :rows="criteriaRows()"
+                        v-model="analysisMethod.criterionLibrary.mergedCriteriaExpression"
+                    >
+                    </v-textarea>
+                </v-col>
+            </v-row>
+        </v-row>
+        <v-row justify="center" style="margin: 0;">
+                <CancelButton 
+                    :disabled="!hasUnsavedChanges"
+                    @cancel="onDiscardChanges"
+                />
+                <SaveButton 
+                    :disabled="!valid || !hasUnsavedChanges"
+                    @save="onUpsertAnalysisMethod"
+                />
+        </v-row>
     </v-card>
-            <GeneralCriterionEditorDialog
-                :dialogData="criterionEditorDialogData"
-                @submit="onCriterionEditorDialogSubmit"
-            />
-            <Alert
-            :dialogData="ConfirmEmptyCriteria"
-            @submit="onConfirmEmptyCriteriaAlertSubmit"
-            />
-
-            <ConfirmDialog></ConfirmDialog>
+    <GeneralCriterionEditorDialog
+        :dialogData="criterionEditorDialogData"
+        @submit="onCriterionEditorDialogSubmit"/>
+    <Alert
+    :dialogData="ConfirmEmptyCriteria"
+    @submit="onConfirmEmptyCriteriaAlertSubmit"/>
+    <ConfirmDialog></ConfirmDialog>
 </template>
 
 <script lang="ts" setup>

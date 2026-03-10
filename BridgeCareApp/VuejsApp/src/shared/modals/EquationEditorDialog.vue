@@ -4,11 +4,12 @@
       <v-card class="equation-container-card Montserrat-font-family">
         <v-card-title class="ghd-dialog-box-padding-top">
           <v-col cols = "12">
-            <v-row justify="space-between" class="text-center" >
-              <div style="margin-left: 347px" class="ghd-control-dialog-header">Equation Editor</div>
-              <v-btn @click="onSubmit(false)" variant = "flat" class="ghd-close-button">
-                X
-            </v-btn>
+            <v-row style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex: 1;display: flex;"></div>
+                <div class="ghd-control-dialog-header" style="flex: 0; white-space: nowrap;">Equation Editor</div>
+                <div style="display: flex; justify-content: flex-end; flex: 1;">
+                  <v-btn @click="onSubmit(false)" variant = "flat" class="ghd-close-button">X</v-btn>
+                </div>               
             </v-row>
           </v-col>
         </v-card-title>
@@ -26,39 +27,43 @@
             </v-col>
                 <v-window>
                     <v-window-item v-if="selectedTab === 0">
-                      <div class="equation-container-div">
-                            <v-row>
+                      <div class="equation-container-div" style="overflow-y: auto;">
+                            <v-row >
                               <v-col>
-                                <v-subheader class="equation-list-subheader">Attributes: Click to add</v-subheader>
-                                <div class="attributes-list-container">
-                                  <template v-for="(attribute, index) in attributesList" :key="attribute">
-                                    <v-list-tile 
-                                                @click="onAddValueToExpression(`[${attribute}]`)" class="list-tile"
-                                                ripple>
-                                      <v-list-tile-content>
-                                        <v-list-tile-title>{{ attribute }}
-                                        </v-list-tile-title>
-                                      </v-list-tile-content>
-                                    </v-list-tile>
-                                     <v-divider v-if="index + 1 < attributesList.length" :key="`divider-${index}`"></v-divider>
-                                  </template>
+                                <div style="justify-self: center; margin: 0;">                               
+                                  <v-subheader class="equation-list-subheader">Attributes: Click to add</v-subheader>
+                                  <div class="attributes-list-container">
+                                    <template v-for="(attribute, index) in attributesList" :key="attribute">
+                                      <v-list-tile 
+                                                  @click="onAddValueToExpression(`[${attribute}]`)" class="list-tile"
+                                                  ripple>
+                                        <v-list-tile-content>
+                                          <v-list-tile-title>{{ attribute }}
+                                          </v-list-tile-title>
+                                        </v-list-tile-content>
+                                      </v-list-tile>
+                                      <v-divider v-if="index + 1 < attributesList.length" :key="`divider-${index}`"></v-divider>
+                                    </template>
+                                  </div>
                                 </div>
                               </v-col>
                               <v-col>
-                                <v-subheader class="equation-list-subheader">Formulas: Click to add</v-subheader>
-                                <div class="formulas-list-container">
-                                  <template v-for="(formula, index) in formulasList" :key="formula">
-                                    <v-list-tile 
-                                                @click="onAddFormulaToEquation(formula)" class="list-tile"
-                                                ripple
-                                                >
-                                      <v-list-tile-content>
-                                        <v-list-tile-title>{{ formula }}
-                                        </v-list-tile-title>
-                                      </v-list-tile-content>
-                                    </v-list-tile>
-                                    <v-divider v-if="index + 1 < formulasList.length" :key="`divider-${index}`"></v-divider>
-                                  </template>
+                                <div style="justify-self: center; margin: 0;">    
+                                  <v-subheader class="equation-list-subheader">Formulas: Click to add</v-subheader>
+                                  <div class="formulas-list-container">
+                                    <template v-for="(formula, index) in formulasList" :key="formula">
+                                      <v-list-tile 
+                                                  @click="onAddFormulaToEquation(formula)" class="list-tile"
+                                                  ripple
+                                                  >
+                                        <v-list-tile-content>
+                                          <v-list-tile-title>{{ formula }}
+                                          </v-list-tile-title>
+                                        </v-list-tile-content>
+                                      </v-list-tile>
+                                      <v-divider v-if="index + 1 < formulasList.length" :key="`divider-${index}`"></v-divider>
+                                    </template>
+                                  </div>
                                 </div>
                               </v-col>
                             </v-row>
@@ -90,8 +95,6 @@
                                 </v-btn>
                               </div>
                             </v-row>
-
-                            
                             <v-row style="padding-left: 15px; padding-top: 11px">
                               <v-textarea :rows="5" @blur="setCursorPosition" @focus="setTextareaCursorPosition"
                                           id="equation_textarea"
@@ -108,30 +111,32 @@
                     </v-window-item>
                     <v-window-item v-if="selectedTab === 1">
                       <div class="equation-container-div">
-                        <v-row>
-                          <v-col cols = "5" >
-                            <div>                 
-                              <div class="data-points-grid">
-                                <v-data-table :headers="piecewiseGridHeaders" :items="piecewiseGridData" class="v-table__overflow ghd-table" hide-actions
-                                    sort-asc-icon="custom:GhdTableSortAscSvg"
-                                    sort-desc-icon="custom:GhdTableSortDescSvg">
-                                    <template slot="items" slot-scope="props" v-slot:item="props">
-                                      <tr>
-                                        <td v-for="header in piecewiseGridHeaders">
-                                          <div v-if="header.key !== ''">
-                                            <div @click="onEditDataPoint(props.item, header.key)" justify="space-between" style="margin-left: 10px" class="edit-data-point-span">
-                                              {{ props.item[header.key] }}
+                        <v-row style="height: 100%;">
+                          <v-col cols="5" style="overflow: auto; height: 100%;" >
+                            <div style="height: 95%;"> 
+                              <div style="height: 95%;width: 100%;overflow: auto;">                
+                                <div class="data-points-grid">
+                                  <v-data-table :headers="piecewiseGridHeaders" :items="piecewiseGridData" class="v-table__overflow ghd-table" hide-actions
+                                      sort-asc-icon="custom:GhdTableSortAscSvg"
+                                      sort-desc-icon="custom:GhdTableSortDescSvg">
+                                      <template slot="items" slot-scope="props" v-slot:item="props">
+                                        <tr>
+                                          <td v-for="header in piecewiseGridHeaders">
+                                            <div v-if="header.key !== ''">
+                                              <div @click="onEditDataPoint(props.item, header.key)" justify="space-between" style="margin-left: 10px" class="edit-data-point-span">
+                                                {{ props.item[header.key] }}
+                                              </div>
                                             </div>
-                                          </div>
-                                          <div v-else>
-                                            <v-btn @click="onRemoveTimeAttributeDataPoint(props.item.id)" class="ghd-red" flat icon v-if="props.item.timeValue !== 0">
-                                              <TrashCanSvg />
-                                            </v-btn>
-                                          </div>
-                                        </td>
-                                      </tr>
-                                    </template>
-                                  </v-data-table>
+                                            <div v-else>
+                                              <v-btn @click="onRemoveTimeAttributeDataPoint(props.item.id)" class="ghd-red" flat icon v-if="props.item.timeValue !== 0">
+                                                <TrashCanSvg />
+                                              </v-btn>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      </template>
+                                    </v-data-table>
+                                </div>
                               </div>
                               <v-row justify="space-between" class="add-addmulti-container">
                                 <v-btn @click="onAddTimeAttributeDataPoint"
@@ -173,11 +178,11 @@
                     </v-window-item>
                     <v-window-item v-if="selectedTab === 2">
                       <div class="equation-container-div">
-                        <v-row>
-                          <v-col cols = "5">
-                            <div>
-                              <div class="data-points-grid">
-                                <div>
+                        <v-row style="height: 100%;">
+                          <v-col cols="5" style="overflow: auto; height: 100%;" >
+                            <div style="height: 95%;">
+                              <div style="height: 95%;width: 100%;overflow: auto;">
+                                <div class="data-points-grid">
                                   <v-data-table :headers="timeInRatingGridHeaders" :items="timeInRatingGridData" class="v-table__overflow ghd-table" hide-actions
                                     sort-asc-icon="custom:GhdTableSortAscSvg"
                                     sort-desc-icon="custom:GhdTableSortDescSvg">
@@ -1101,8 +1106,7 @@ function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNot
 
 .data-points-grid {
   width: 300px;
-  height: 308px;
-  overflow: auto;
+  height: 90%;
 }
 
 .rows-per-page-select .v-input__slot {
@@ -1122,7 +1126,8 @@ function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNot
 }
 
 .add-addmulti-container{
-  width:300px;
+  width:100%;
+  padding-top: 20px;
 }
 
 .equation-list-subheader{
