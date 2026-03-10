@@ -73,6 +73,6 @@ namespace AssetFox.Core.DTOs
         /// <summary>
         /// Defines which attribute serves as Super Asset ID
         /// </summary>
-        public Guid? SuperAssetAttribute { get; set; }
+        public string SuperAssetAttribute { get; set; }
     }
 }

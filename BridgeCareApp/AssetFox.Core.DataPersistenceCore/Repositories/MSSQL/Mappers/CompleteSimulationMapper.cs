@@ -25,6 +25,11 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
             var analysisMethodDto = dto.AnalysisMethod;
             var attributeId = attributes.FirstOrDefault(_ => _.Name.Equals(analysisMethodDto.Attribute))?.Id;
             var analysisMethod = AnalysisMethodMapper.ToEntityWithBenefit(analysisMethodDto, dto.Id, attributes, attributeId, baseEntityProperties: baseEntityProperties);
+            if (!string.IsNullOrEmpty(analysisMethodDto.SuperAssetAttribute))
+            {
+                var superAssetAttribute = attributes.FirstOrDefault(_ => _.Name == analysisMethodDto.SuperAssetAttribute);
+                analysisMethod.SuperAssetAttribute = superAssetAttribute?.Id;
+            }
             if (CriterionLibraryValidityChecker.IsValid(analysisMethodDto.CriterionLibrary))
             {
                 var analysisMethodCriterionLibraryEntity = CriterionMapper.ToSingleUseEntity(analysisMethodDto.CriterionLibrary, baseEntityProperties);

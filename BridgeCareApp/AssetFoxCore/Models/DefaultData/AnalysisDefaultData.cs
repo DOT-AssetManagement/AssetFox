@@ -1,4 +1,3 @@
-using System;
 using AssetFox.Core.DTOs.Enums;
 
 namespace AssetFoxCore.Models.DefaultData
@@ -17,6 +16,6 @@ namespace AssetFoxCore.Models.DefaultData
 
         public bool ShouldUseSuperAssets { get; set; }
 
-        public Guid? SuperAssetAttribute { get; set; }
+        public string SuperAssetAttribute { get; set; }
     }
 }

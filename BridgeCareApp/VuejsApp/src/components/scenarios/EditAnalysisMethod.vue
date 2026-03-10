@@ -318,14 +318,12 @@ import AnalysisMethodService from '@/services/analysis-method.service';
     const superAssetAttributeModel = computed<string | null>({
         get() {
             const val = analysisMethod.value.superAssetAttribute;
-            // Map blank GUID (or empty) to null so the UI shows nothing
-            return !val || val === getBlankGuid() ? null : val;
+            return !val ? null : val;
         },
         set(newVal) {
-            // Store blank GUID when cleared (null) to keep backend expectations
             analysisMethod.value = setItemPropertyValue(
             'superAssetAttribute',
-            newVal ?? getBlankGuid(),
+            newVal ?? '',
             analysisMethod.value,
             );
         },
@@ -444,7 +442,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         if (property === 'shouldUseSuperAssets' && !value) {
                 analysisMethod.value = setItemPropertyValue(
                 'superAssetAttribute',
-                getBlankGuid(), // clear to blank GUID; consistent with the rest of the app
+                '',
                 analysisMethod.value,
             );
         }
@@ -477,7 +475,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         const superAssetAttributeSelectItems: SelectItem[] = stateAttributes.value.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
-                value: attribute.id,
+                value: attribute.name,
             }),
         );
         superAssetAttributes.value = [...superAssetAttributeSelectItems];
