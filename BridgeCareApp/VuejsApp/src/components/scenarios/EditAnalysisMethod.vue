@@ -282,7 +282,7 @@ import AnalysisMethodService from '@/services/analysis-method.service';
     const optimizationStrategy: SelectItem[] = [
         { text: 'Benefit', value: OptimizationStrategy.Benefit },
         {
-            text: 'Benefit-to-Cost Ratio',
+            text: 'Lowest-Lifecycle-Cost (LLC)',
             value: OptimizationStrategy.BenefitToCostRatio,
         },
         { text: 'Remaining Life', value: OptimizationStrategy.RemainingLife },

@@ -7,11 +7,21 @@ using OfficeOpenXml.Style;
 using AssetFox.Core.Reporting.Models.PAMSSummaryReport;
 using AssetFox.Core.ExcelHelpers;
 using AssetFox.Core.DTOs;
+using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 
 namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.Parameters
 {
     public class SummaryReportParameters
     {
+        private ReportHelper _reportHelper;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public SummaryReportParameters(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _reportHelper = new ReportHelper(_unitOfWork);
+        }
+
         internal void Fill(ExcelWorksheet worksheet, int simulationYearsCount, ParametersModel parametersModel, SimulationDTO simulationDto, AnalysisMethodDTO analysisMethodDto, InvestmentPlanDTO investmentPlanDto, List<BudgetPriorityDTO> budgetPrioritiesDtos, List<CashFlowRuleDTO> cashFlowRulesDtos, List<BudgetDTO> budgetsDtos)
         {
             var currentCell = new CurrentCell { Row = 1, Column = 1 };
@@ -193,8 +203,8 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.Parameters
             worksheet.Cells[rowNo + 6, colNo, rowNo + 6, colNo + 1].Value = "Weighting:";
             worksheet.Cells[rowNo + 8, colNo, rowNo + 8, colNo + 1].Value = "Benefit:";
 
+            // TODO add and call method in ReportHelper to get Display text for OptimizationStrategy & SpendingStrategy
             worksheet.Cells[rowNo + 2, colNo + 2, rowNo + 2, colNo + 3].Value = analysisMethodDto.OptimizationStrategy;
-
             worksheet.Cells[rowNo + 4, colNo + 2, rowNo + 4, colNo + 3].Value = analysisMethodDto.SpendingStrategy; //BudgetType;
             worksheet.Cells[rowNo + 6, colNo + 2, rowNo + 6, colNo + 3].Value = analysisMethodDto.Attribute; //WeightingAttribute;
             worksheet.Cells[rowNo + 8, colNo + 2, rowNo + 8, colNo + 3].Value = analysisMethodDto.Benefit.Attribute; //BenefitAttribute;

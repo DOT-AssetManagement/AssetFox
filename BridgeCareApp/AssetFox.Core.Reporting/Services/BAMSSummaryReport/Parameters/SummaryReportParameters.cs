@@ -373,6 +373,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.Parameters
             worksheet.Cells[rowNo + 6, colNo, rowNo + 6, colNo + 1].Value = "Weighting:";
             worksheet.Cells[rowNo + 8, colNo, rowNo + 8, colNo + 1].Value = "Benefit:";
 
+            // TODO add and call method in ReportHelper to get Display text for OptimizationStrategy & SpendingStrategy
             worksheet.Cells[rowNo + 2, colNo + 2, rowNo + 2, colNo + 3].Value = analysisMethodDto.OptimizationStrategy;
             worksheet.Cells[rowNo + 4, colNo + 2, rowNo + 4, colNo + 3].Value = analysisMethodDto.SpendingStrategy; //BudgetType;
             worksheet.Cells[rowNo + 6, colNo + 2, rowNo + 6, colNo + 3].Value = analysisMethodDto.Attribute; //WeightingAttribute;
