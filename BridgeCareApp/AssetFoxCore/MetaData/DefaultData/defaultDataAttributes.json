@@ -7,7 +7,7 @@
       "BenefitLimit": 0,
       "SpendingStrategy": "AsBudgetPermits",
       "ShouldUseSuperAssets": false,
-      "SuperAssetAttribute": "" //Guid of default super asset
+      "SuperAssetAttribute": "" //Name of default super asset attribute
     },
     "Investment": {
       "MinimumProjectCostLimit": 1000,
