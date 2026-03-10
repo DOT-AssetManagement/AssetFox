@@ -364,7 +364,7 @@ import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/
             if(selectedReport.value.name != "UserDefinedReport" && selectedReport.value.name != "PAMSPBExportReport")
             {
                 await ReportsService.generateReportWithCriteria(
-                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, emptyUserDefinedReportRequestModel, emptyPamsPbExportReportReportRequestModel
+                    selectedScenarioId.value, selectedReport.value.mergedExpression, selectedReport.value.name, emptyUserDefinedReportRequestModel, emptyPamsPbExportReportRequestModel
                 ).then((response: AxiosResponse<any>) => {
                     handleSuccessError(response);
                 });                
