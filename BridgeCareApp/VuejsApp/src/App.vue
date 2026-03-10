@@ -174,7 +174,7 @@
                             </v-list>         
                         </v-card>
                     </v-menu>     
-                    <v-btn @click="onBugButtonClicked" style="margin: 20px; height: 30px; width: 30px;" icon ><i class="fas fa-bug"></i></v-btn> 
+                    <v-btn @click="onBugButtonClicked" style="margin-left: 35px; margin-right: 20px; height: 30px; width: 30px;" icon ><i class="fas fa-bug"></i></v-btn>
                     <v-divider class="mx-1 navbar-divider" vertical style="background-color: #798899; left: 0px;position: relative;" />
                     <img style="height:40px; position:relative; top:2px; margin-left: 10px;" :src="getUrl('assets/icons/user-no-circle.svg')"/>
                     <span id="App-username-span">{{ username }}</span>
