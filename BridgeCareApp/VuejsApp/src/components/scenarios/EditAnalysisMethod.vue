@@ -136,7 +136,8 @@
                         menu-icon=custom:GhdDownSvg
                         v-model="superAssetAttributeModel"
                         clearable
-                        @update:model-value="onSetAnalysisMethodProperty('superAssetAttribute',$event)">
+                        @update:model-value="onSetAnalysisMethodProperty('superAssetAttribute',$event)"
+                        :disabled="!hasAdminAccess">
                     </v-select>
                 </v-col>
             </template>

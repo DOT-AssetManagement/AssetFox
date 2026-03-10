@@ -1,3 +1,4 @@
+using System;
 using AssetFox.Core.DTOs.Enums;
 
 namespace AssetFoxCore.Models.DefaultData
@@ -13,5 +14,9 @@ namespace AssetFoxCore.Models.DefaultData
         public int BenefitLimit { get; set; }
 
         public SpendingStrategy SpendingStrategy { get; set; }
+
+        public bool ShouldUseSuperAssets { get; set; }
+
+        public Guid? SuperAssetAttribute { get; set; }
     }
 }
