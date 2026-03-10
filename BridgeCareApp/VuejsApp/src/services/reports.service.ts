@@ -1,10 +1,10 @@
 import {AxiosPromise, AxiosResponse} from 'axios';
 import {API, coreAxiosInstance} from '@/shared/utils/axios-instance';
 import { ReportDetails, DownloadReportParams } from '@/shared/models/iAM/reports';
-import { UserDefinedReportRequestModel } from '@/shared/models/iAM/reports';
+import { UserDefinedReportRequestModel, PamsPbExportReportRequestModel } from '@/shared/models/iAM/reports';
 
 export default class ReportsService {
-    static generateReport(scenarioId: string, reportType: string): AxiosPromise {
+    static generateReport(scenarioId: string, reportType: string): AxiosPromise {        
         return coreAxiosInstance.request({
             method: 'POST',
             url: `${API.Report}/GetFile/${reportType}`,
@@ -14,12 +14,12 @@ export default class ReportsService {
         });
     }
     
-    static generateReportWithCriteria(scenarioId: string, expression: string, reportType:string, userDefinedReportRequestModel: UserDefinedReportRequestModel): AxiosPromise {
+    static generateReportWithCriteria(scenarioId: string, expression: string, reportType: string, userDefinedReportRequestModel: UserDefinedReportRequestModel, pamsPbExportReportRequestModel: PamsPbExportReportRequestModel): AxiosPromise {        
         return coreAxiosInstance.request({
             method: 'POST',
             url: `${API.Report}/GetFile/${reportType}`,
             headers: {'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},
-            data: {'scenarioId':scenarioId, 'expression':expression, 'userDefinedReportRequestModel': userDefinedReportRequestModel},
+            data: {'scenarioId':scenarioId, 'expression':expression, 'userDefinedReportRequestModel': userDefinedReportRequestModel, 'pamsPbExportReportRequestModel': pamsPbExportReportRequestModel},
             responseType: 'text'
         });
     }

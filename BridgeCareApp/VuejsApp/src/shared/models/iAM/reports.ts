@@ -11,13 +11,13 @@ export interface Report {
     name: string;
     mergedExpression: string;
     isGenerated: boolean;
-    reportStatus?: string;
+    reportStatus?: string;    
 }
 export const emptyReport: Report = {
     id: getBlankGuid(),
     name: '',
     mergedExpression: '',
-    isGenerated: false,
+    isGenerated: false
 };
 
 export interface ReportDetails {
@@ -73,3 +73,11 @@ export const emptyUserDefinedReportRequestModel : UserDefinedReportRequestModel 
     displyTreatmentCurrentBudgetsToSpend: false,
     displayTreatmentAllocations: false
 };
+
+export interface PamsPbExportReportRequestModel {
+    displayMasTab: boolean;
+}
+
+export const emptyPamsPbExportReportRequestModel : PamsPbExportReportRequestModel = {
+    displayMasTab: false
+}

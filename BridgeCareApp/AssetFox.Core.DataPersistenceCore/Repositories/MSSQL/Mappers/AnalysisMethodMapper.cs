@@ -96,7 +96,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 ShouldUseSuperAssets = dto.ShouldUseSuperAssets,
                 AttributeId = attributeId,
                 LastKnownAssetCount = dto.LastKnownAssetCount,
-                SuperAssetAttribute = dto.SuperAssetAttribute,
             };
             BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
             return entity;
@@ -134,7 +133,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 ShouldUseExtraFundsAcrossBudgets = entity.ShouldUseExtraFundsAcrossBudgets,
                 ShouldUseSuperAssets = entity.ShouldUseSuperAssets,
                 Attribute = attributeName,
-                SuperAssetAttribute = entity.SuperAssetAttribute,
+                SuperAssetAttribute = attributeNameLookup.GetAttributeNameOrEmptyString(entity.SuperAssetAttribute),
                 Benefit = entity.Benefit?.ToDto(attributeNameLookup) ?? new BenefitDTO(),
                 LastKnownAssetCount = entity.LastKnownAssetCount,
                 CriterionLibrary = entity.CriterionLibraryAnalysisMethodJoin != null

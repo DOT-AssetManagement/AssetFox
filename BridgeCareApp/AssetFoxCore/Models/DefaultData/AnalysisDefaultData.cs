@@ -13,5 +13,9 @@ namespace AssetFoxCore.Models.DefaultData
         public int BenefitLimit { get; set; }
 
         public SpendingStrategy SpendingStrategy { get; set; }
+
+        public bool ShouldUseSuperAssets { get; set; }
+
+        public string SuperAssetAttribute { get; set; }
     }
 }

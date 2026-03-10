@@ -107,7 +107,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     Benefit = new BenefitDTO(),
                     CriterionLibrary = new CriterionLibraryDTO(),
                     LastKnownAssetCount = -1,
-                    SuperAssetAttribute = new Guid(),
+                    SuperAssetAttribute = string.Empty,
                 };
             }
 
@@ -148,6 +148,12 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             }
 
             var analysisMethodEntity = dto.ToEntity(simulationId, attributeEntity?.Id);
+
+            if (!string.IsNullOrEmpty(dto.SuperAssetAttribute))
+            {
+                var superAssetAttributeEntity = _unitOfWork.Context.Attribute.SingleOrDefault(_ => _.Name == dto.SuperAssetAttribute);
+                analysisMethodEntity.SuperAssetAttribute = superAssetAttributeEntity?.Id;
+            }
 
             _unitOfWork.Context.Upsert(analysisMethodEntity, _ => _.Id == dto.Id, _unitOfWork.UserEntity?.Id);
 

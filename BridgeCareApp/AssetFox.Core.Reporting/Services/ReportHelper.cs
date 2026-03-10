@@ -378,7 +378,7 @@ namespace AssetFox.Core.Reporting.Services
         {
             var parameterObj = JObject.Parse(parameters);
             return parameterObj.SelectToken("expression")?.ToObject<string>();
-        }
+        }        
 
         public void BuildKeyCashFlowFundingDetails(SimulationYearDetail yearData, AssetDetail section, double brKey, Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {

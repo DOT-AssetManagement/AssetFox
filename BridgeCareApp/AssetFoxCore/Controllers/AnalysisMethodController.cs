@@ -47,6 +47,8 @@ namespace AssetFoxCore.Controllers
                 analysisMethodDTO.Benefit.Attribute = analysisDefaultData.BenefitAttribute;
                 analysisMethodDTO.Benefit.Limit = analysisDefaultData.BenefitLimit;
                 analysisMethodDTO.SpendingStrategy = analysisDefaultData.SpendingStrategy;
+                analysisMethodDTO.ShouldUseSuperAssets = analysisDefaultData.ShouldUseSuperAssets;
+                analysisMethodDTO.SuperAssetAttribute = analysisDefaultData.SuperAssetAttribute;
             }
         }
 
