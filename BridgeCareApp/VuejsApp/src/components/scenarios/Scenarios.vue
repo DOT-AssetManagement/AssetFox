@@ -6,7 +6,8 @@
                     <v-tab v-for="item in tabItems" :key="item.name" :value="item.name" class="tab-theme"
                         bg-color="primary">
                         <GhdQueueSvg style="padding-right:10px" class="icon-selected-tab"
-                            v-if="item.name === 'Queue'" />
+                            v-if="item.name === 'Queue'" >                            
+                        </GhdQueueSvg>
                         <GhdShareSvg style="padding-right:10px" class="icon-selected-tab"
                             v-if="item.name === 'Shared with me'" />
                         <GhdStarSvg style="padding-right:10px" class="icon-selected-tab"
@@ -94,8 +95,8 @@
                                         <tr>
                                             <td style="text-align: center;">
                                                 <v-btn @click="onNavigateToEditScenarioView(props.item)"
-                                                    class="no-background-btn" style="color: #2A578D" elevation="0" text>
-                                                    <i class="fas fa-play-circle" style="font-size: 25px;"></i>
+                                                    class="no-background-btn" style="color: #2A578D" elevation="0">
+                                                    <i class="fas fa-play-circle" style="font-size: 25px;" title="Run Analysis"></i>
                                                 </v-btn>
                                             </td>
                                             <td>
@@ -156,7 +157,7 @@
                                                         <v-btn id="Scenarios-actionMenu-vbtn"
                                                             color="text-green darken-1" flat v-bind="props">
                                                             <img class='img-general'
-                                                                :src="getUrl('assets/icons/more-vertical.svg')" />
+                                                                :src="getUrl('assets/icons/more-vertical.svg')" title="Actions" />
                                                         </v-btn>
                                                     </template>
 
@@ -250,8 +251,8 @@
                                         <tr>
                                             <td style="text-align: center;">
                                                 <v-btn @click="onNavigateToEditScenarioView(props.item)"
-                                                    class="no-background-btn" style="color: #2A578D" elevation="0" text>
-                                                    <i class="fas fa-play-circle" style="font-size: 25px;"></i>
+                                                    class="no-background-btn" style="color: #2A578D" elevation="0">
+                                                    <i class="fas fa-play-circle" style="font-size: 25px;" title="Run Analysis"></i>
                                                 </v-btn>
                                             </td>
                                             <td>
@@ -311,7 +312,7 @@
                                                         <v-btn id="Scenarios-shared-actionMenu-vbtn"
                                                             color="text-green darken-1" flat v-bind="props">
                                                             <img class='img-general'
-                                                                :src="getUrl('assets/icons/more-vertical.svg')" />
+                                                                :src="getUrl('assets/icons/more-vertical.svg')" title="Actions" />
                                                         </v-btn>
                                                     </template>
 
@@ -397,7 +398,7 @@
                                                     <template v-slot:activator="{ props }">
                                                         <v-btn color="text-green darken-1" flat v-bind="props">
                                                             <img class='img-general'
-                                                                :src="getUrl('assets/icons/more-vertical.svg')" />
+                                                                :src="getUrl('assets/icons/more-vertical.svg')" title="Actions" />                                                            
                                                         </v-btn>
                                                     </template>
 
@@ -470,7 +471,7 @@
                                                     }">
                                                         <v-btn color="text-green darken-1" flat v-bind="props">
                                                             <img class='img-general'
-                                                                :src="getUrl('assets/icons/more-vertical.svg')" />
+                                                                :src="getUrl('assets/icons/more-vertical.svg')" title="Actions" />
                                                         </v-btn>
                                                     </template>
 
