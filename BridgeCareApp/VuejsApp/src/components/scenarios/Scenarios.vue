@@ -170,8 +170,8 @@
                                                             :disabled="item.title === 'Reports' && !checkIfReportExists(props.item.id)">
                                                             <v-list-item-title icon>
                                                                 <img v-if="item.isCustomIcon" style="padding-right:5px"
-                                                                    v-bind:src="item.icon" />
-                                                                <v-icon v-else class="action-icon-padding">{{
+                                                                    v-bind:src="item.icon" v-bind:title="item.tooltip" />
+                                                                <v-icon v-else class="action-icon-padding" v-bind:title="item.tooltip">{{
                                                                     item.icon}}</v-icon>
                                                                 {{ item.title }}
                                                             </v-list-item-title>
@@ -324,8 +324,8 @@
                                                             :disabled="item.title === 'Reports' && !checkIfReportExists(props.item.id)">
                                                             <v-list-item-title icon>
                                                                 <img v-if="item.isCustomIcon" style="padding-right:5px"
-                                                                    v-bind:src="item.icon" />
-                                                                <v-icon v-else class="action-icon-padding">{{
+                                                                    v-bind:src="item.icon" v-bind:title="item.tooltip" />
+                                                                <v-icon v-else class="action-icon-padding" v-bind:title="item.tooltip">{{
                                                                     item.icon}}</v-icon>
                                                                 {{ item.title }}
                                                             </v-list-item-title>
@@ -410,7 +410,7 @@
                                                             <v-list-tile-title flat
                                                                 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                                 <img style="padding-right:5px;"
-                                                                    v-bind:src="item.icon" />
+                                                                    v-bind:src="item.icon" v-bind:title="item.tooltip"/>
                                                                 {{ item.title }}
                                                             </v-list-tile-title>
                                                         </v-list-tile>
@@ -481,7 +481,7 @@
                                                             @click="OnWorkQueueActionTaken(item.action, props.item)"
                                                             class="menu-style">
                                                             <v-list-item-title flat>
-                                                                <img style="padding-right:5px" v-bind:src="item.icon" />
+                                                                <img style="padding-right:5px" v-bind:src="item.icon" v-bind:title="item.tooltip" />
                                                                 {{ item.title }}
                                                             </v-list-item-title>
                                                         </v-list-item>
@@ -1242,52 +1242,60 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
         }
         actionItemsForSharedScenario = [
             {
-                title: 'Settings',
+                title: 'Settings',                
                 action: availableActions.settings,
                 icon: getUrl("assets/icons/gear.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'View Settings'
             },
             {
-                title: 'Committed Projects',
+                title: 'Committed Projects',                
                 action: availableActions.commitedProjects,
                 icon: getUrl("assets/icons/committed-projects.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'View Committed Projects',
             },
             {
                 title: 'Run Analysis',
                 action: availableActions.runAnalysis,
                 icon: getUrl("assets/icons/monitor.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'Run Analysis'
             },
             {
                 title: 'Reports',
                 action: availableActions.reports,
                 icon: getUrl("assets/icons/clipboard.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'View Reports'
             },
             ...(hasAdminAccess ? [{
                 title: 'Delete all generated Reports',
                 action: availableActions.deleteReports,
                 icon: getUrl("assets/icons/clipboard.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'Delete all generated Reports'
             }] : []), 
             {
                 title: 'Clone',
                 action: availableActions.clone,
                 icon: getUrl("assets/icons/copy.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'Clone Scenario'
             },
             {
                 title: 'Delete',
                 action: availableActions.delete,
                 icon: getUrl("assets/icons/trash.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'Delete Scenario'
             },
             {
                 title: 'Simulation Log',
                 action: availableActions.simulationLog,
                 icon: getUrl("assets/icons/clipboard.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'Simulation Log'
             }           
         ];
         actionItemsForWorkQueue = [
@@ -1295,7 +1303,8 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                 title: 'Cancel Work',
                 action: availableSimulationActions.cancel,
                 icon: getUrl("assets/icons/x-circle.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'Cancel Work'
             }             
         ];
         actionItemsForFastWorkQueue = [
@@ -1303,7 +1312,8 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                 title: 'Cancel Work',
                 action: availableSimulationActions.fastCancel,
                 icon: getUrl("assets/icons/x-circle.svg"),
-                isCustomIcon: true
+                isCustomIcon: true,
+                tooltip: 'Cancel Work'
             }             
         ];
         actionItems = actionItemsForSharedScenario.slice();
@@ -1311,7 +1321,8 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
             title: 'Share',
             action: availableActions.share,
             icon: getUrl("assets/icons/share-geometric.svg"),
-                isCustomIcon: true
+            isCustomIcon: true,
+            tooltip: 'Share Scenario'
         });
         tabItems.push(
             { name: 'My scenarios', icon: getUrl("assets/icons/star-empty.svg"), count: totalUserScenarios.value },
