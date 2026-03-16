@@ -19,7 +19,7 @@
                         <tr>
                             <td style="border: none;">                            
                                 <v-row justify="space-between" align="end" style="margin: 5px;">
-                                    <v-subheader class="ghd-control-label ghd-md-gray" >Equation</v-subheader>
+                                    <v-subheader class="ghd-control-label ghd-md-gray">Equation</v-subheader>
                                     <v-btn id="TreatmentCostsTab-EquationEditorBtn"
                                         @click="
                                             onShowCostEquationEditorDialog(
@@ -29,7 +29,7 @@
                                         class="edit-icon ghd-blue"
                                         flat
                                     >
-                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Add/Update"/>
                                     </v-btn>                                
                                 </v-row>
                                 <v-row>  
@@ -58,7 +58,7 @@
                                         class="edit-icon ghd-blue"
                                         flat
                                     >
-                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Add/Update"/>
                                     </v-btn>
                                 </v-row> 
                                 <v-row >              

@@ -184,7 +184,7 @@
                     v-model='selectedBudgetYearsGridData' 
                     v-model:sort-by="pagination.sort"
                     v-model:page="pagination.page"
-                    v-model:items-per-page="pagination.rowsPerPage"
+                    v-model:items-per-page="pagination.rowsPerPage"                    
                     @update:options="onPaginationChanged"
                     >
                     <template v-slot:item="item">
@@ -234,7 +234,7 @@
                 </v-data-table-server>
                 <DeleteSelectedButton
                     :disabled="selectedBudgetYears.length === 0"
-                    @deleteSelected="onRemoveBudgetYears"
+                    @deleteSelected="onRemoveBudgetYears"                    
                 />
         </v-col>
     

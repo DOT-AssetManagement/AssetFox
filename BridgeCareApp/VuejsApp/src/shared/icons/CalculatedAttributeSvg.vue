@@ -7,13 +7,12 @@
     <path d="M4 11.5H6" stroke-width="0.5" stroke-linecap="round"/>
     <path d="M5 4.5L6 5.5M5 4.5L4 3.5M5 4.5L6 3.5M5 4.5L4 5.5"  stroke-width="0.5" stroke-linecap="round"/>
     <path d="M11 4.5V3.5M11 4.5V5.5M11 4.5H12M11 4.5H10" stroke-width="0.5" stroke-linecap="round"/>
+    <title>Calculated Attribute</title>
     </svg>
 </template>
 
 <script setup lang='ts'>
-
 </script>
 
-<style >
-
+<style>
 </style>

@@ -164,13 +164,14 @@
                     </v-subheader>
                     <v-btn
                         id="EditAnalysisMethod-criteriaEditor-btn"
-                        style="padding-right:30px; padding-bottom: 5px; margin-bottom: 5px; !important;"
+                        style="padding-right:30px; padding-bottom: 5px; margin-bottom: 5px !important;"
                         @click="
                             onShowCriterionEditorDialog
                         "
                         class="edit-icon ghd-control-label ghd-blue"
                         icon
                         flat
+                        title="Add/Update Criteria"
                     >
                         <img class='img-general' :src="getUrl('assets/icons/edit.svg')"/> 
                     </v-btn>

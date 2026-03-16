@@ -225,7 +225,7 @@
                                     v-show="item.item.equation.expression !== ''"
                                 >
                                     <template v-slot:activator="{ props }">
-                                        <v-btn id="PerformanceCurveEditor-checkEquationEye-vbtn" v-bind="props" class="ghd-blue" icon variant="flat">
+                                        <v-btn id="PerformanceCurveEditor-checkEquationEye-vbtn" v-bind="props" class="ghd-blue" icon variant="flat" title="View">
                                             <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')">
                                         </v-btn>
                                     </template>
@@ -254,6 +254,7 @@
                                     variant="flat"
                                     style="padding-top: 15px"
                                     icon
+                                    title="Add/Update"
                                 >
                                 <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
@@ -267,7 +268,7 @@
                                     "                                    
                                 >
                                     <template v-slot:activator="{ props }">
-                                        <v-btn v-bind="props" id="PerformanceCurveEditor-checkCriteriaEye-vbtn" class="ghd-blue" variant = "flat" icon>
+                                        <v-btn v-bind="props" id="PerformanceCurveEditor-checkCriteriaEye-vbtn" class="ghd-blue" variant = "flat" icon title="View">
                                             <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')">
                                         </v-btn>
                                     </template>
@@ -297,6 +298,7 @@
                                     class="ghd-blue"
                                     style="padding-top: 15px"
                                     icon
+                                    title="Add/Update"
                                 >
                                 <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
