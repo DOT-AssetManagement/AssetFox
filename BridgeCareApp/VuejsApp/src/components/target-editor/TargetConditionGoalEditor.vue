@@ -144,7 +144,7 @@
                                     <v-btn
                                         id="TargetConditionGoalEditor-editTargetConditionGoalCriteria-vbtn"
                                         @click="onShowCriterionLibraryEditorDialog(item.item)"
-                                        class="ghd-blue" style="margin-top: 10px;"
+                                        class="criteria-button-blue" style="margin-top: 10px;"
                                         flat
                                         icon>
                                         <EditSvg />
