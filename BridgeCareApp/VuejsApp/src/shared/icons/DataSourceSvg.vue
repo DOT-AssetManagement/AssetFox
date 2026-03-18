@@ -14,12 +14,12 @@
         <path d="M16.5 11.5V13" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M12.5 2L12.5 1.5C12.5 0.947715 12.0523 0.5 11.5 0.5V0.5" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M11.5 1.5H11" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <title>DataSource</title>
     </svg>
 </template>
 
 <script setup lang='ts'>
 </script>
 
-<style >
-
+<style>
 </style>

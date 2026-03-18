@@ -171,7 +171,7 @@
                         class="edit-icon ghd-control-label ghd-blue"
                         icon
                         flat
-                        title="Add/Update Criteria"
+                        title="Add/Update"
                     >
                         <img class='img-general' :src="getUrl('assets/icons/edit.svg')"/> 
                     </v-btn>

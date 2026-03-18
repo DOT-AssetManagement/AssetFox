@@ -15,12 +15,12 @@
         <circle cx="9.5" cy="14.5" r="1.75" stroke-width="0.5"/>
         <circle cx="15.5" cy="8.50005" r="1.75" stroke-width="0.5"/>
         <circle cx="9.5" cy="8.50005" r="1.75" stroke-width="0.5"/>
+        <title>Networks</title>
     </svg>
 </template>
 
 <script setup lang='ts'>
 </script>
 
-<style >
-
+<style>
 </style>

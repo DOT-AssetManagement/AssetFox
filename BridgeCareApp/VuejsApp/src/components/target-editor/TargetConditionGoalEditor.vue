@@ -144,10 +144,11 @@
                                     <v-btn
                                         id="TargetConditionGoalEditor-editTargetConditionGoalCriteria-vbtn"
                                         @click="onShowCriterionLibraryEditorDialog(item.item)"
-                                        class="criteria-button-blue" style="margin-top: 10px;"
+                                        class="ghd-blue"
+                                        style="padding-top: 13px;"
                                         flat
                                         icon>
-                                        <EditSvg />
+                                        <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Add/Update"/>
                                     </v-btn>
                                 </v-row>    
                                 <div v-if="header.key === 'actions'">

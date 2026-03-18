@@ -1295,7 +1295,7 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                 action: availableActions.simulationLog,
                 icon: getUrl("assets/icons/clipboard.svg"),
                 isCustomIcon: true,
-                tooltip: 'Simulation Log'
+                tooltip: 'Download Simulation Log'
             }           
         ];
         actionItemsForWorkQueue = [

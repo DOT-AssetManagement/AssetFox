@@ -25,13 +25,12 @@
                 <rect class="raw-data-svg-fill" width="9" height="9" transform="translate(8 6.00003)"/>
             </clipPath>
         </defs>
+        <title>Attributes</title>
     </svg>
 </template>
 
 <script setup lang='ts'>
-
 </script>
 
-<style >
-
+<style>
 </style>
