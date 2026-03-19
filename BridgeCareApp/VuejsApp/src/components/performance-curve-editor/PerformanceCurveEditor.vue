@@ -254,7 +254,7 @@
                                     variant="flat"
                                     style="padding-top: 15px"
                                     icon
-                                    title="Add/Update"
+                                    title="Edit"
                                 >
                                 <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>
@@ -298,7 +298,7 @@
                                     class="ghd-blue"
                                     style="padding-top: 15px"
                                     icon
-                                    title="Add/Update"
+                                    title="Edit"
                                 >
                                 <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
                                 </v-btn>

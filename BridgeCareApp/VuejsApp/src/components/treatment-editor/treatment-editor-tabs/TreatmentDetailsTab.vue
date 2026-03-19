@@ -102,7 +102,7 @@
                                     flat
                                     style="left:25px; padding-top: 15px"                                    
                                 >
-                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Add/Update"/>
+                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Edit"/>
                                 </v-btn>   
                             </v-col>                                    
                         </v-row>       

@@ -148,7 +148,7 @@
                                         style="padding-top: 13px;"
                                         flat
                                         icon>
-                                        <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Add/Update"/>
+                                        <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Edit"/>
                                     </v-btn>
                                 </v-row>    
                                 <div v-if="header.key === 'actions'">

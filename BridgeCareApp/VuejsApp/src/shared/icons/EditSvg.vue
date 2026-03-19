@@ -22,7 +22,7 @@
         stroke-linecap="round"
         stroke-linejoin="round"
         />
-        <title>Add/Update</title>
+        <title>Edit</title>
     </svg>
 </template>
 

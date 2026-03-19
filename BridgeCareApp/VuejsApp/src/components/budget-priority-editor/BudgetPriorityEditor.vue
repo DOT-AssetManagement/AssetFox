@@ -111,7 +111,7 @@
                                                             <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')" title="View"/>
                                                         </v-btn>
                                                         <v-btn id="BudgetPriorityEditor-editCriteria-vbtn" @click='onShowCriterionLibraryEditorDialog(item.item)' class="ghd-blue" flat icon>
-                                                            <img class='img-general' :src="getUrl('assets/icons/edit.svg')" title="Add/Update"/> 
+                                                            <img class='img-general' :src="getUrl('assets/icons/edit.svg')" title="Edit"/> 
                                                     </v-btn>
                                                     </div>
                                                     <div style="display: flex; align-items: center;" v-else class='priority-criteria-output' >
