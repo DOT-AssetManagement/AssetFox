@@ -1,9 +1,12 @@
 ﻿in PowerShell. The "xxxxxxxx" is the migration name. You need to pick a fresh one every time.
 
-PS C:\Code\Infrastructure Asset Management\BridgeCareApp\AppliedResearchAssociates.iAM.DataPersistenceCore> 
+PS C:\Code\Infrastructure Asset Management\BridgeCareApp\AssetFox.Core.DataPersistenceCore> 
 dotnet ef migrations add xxxxxxxxx -c IAMContext -o Migrations
 
 Then . . .
 
-PS C:\Code\Infrastructure Asset Management\BridgeCareApp\AppliedResearchAssociates.iAM.DataPersistenceCore> 
-dotnet ef database update -c IAMContext
+PS C:\Code\Infrastructure Asset Management\BridgeCareApp\AssetFox.Core.DataPersistenceCore> dotnet ef database update -c IAMContext
+
+To get to the folder, copy and paste below. In powershell, paste is
+shift-control-V.
+cd "C:\Code\Infrastructure Asset Management\BridgeCareApp\AssetFox.Core.DataPersistenceCore"
