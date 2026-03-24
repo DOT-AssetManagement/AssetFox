@@ -255,44 +255,17 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
         {
             var initialColumnForShade = column + 1;
             var selectedSection = section ?? initialSection;
-            var minCActionCallDecider = MinCValue.minOfCulvDeckSubSuper;
+            var minCActionCallDecider = MinCValue.minOfCulvDeckSubSuper; // TODO How to set based on bridgeTypeAlt?
+
+            ////
             var bridgeType = _reportHelper.CheckAndGetValue(initialSection.ValuePerTextAttribute, "BRIDGE_TYPE");            
             if (bridgeType == BAMSConstants.CulvertBridgeType)
             {
-                var columnForStyle = column + 1;
-                worksheet.Cells[row, ++column].Value = "N"; // deck cond
-                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column - 1]);
-
-                worksheet.Cells[row, ++column].Value = "N"; // super cond
-                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column - 1]);
-
-                worksheet.Cells[row, ++column].Value = "N"; // sub cond
-                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column - 1]);
-
-                worksheet.Cells[row, column + 2].Value = "N"; // deck dur
-                worksheet.Cells[row, column + 3].Value = "N"; // super dur
-                worksheet.Cells[row, column + 4].Value = "N"; // sub dur
-
-                minCActionCallDecider = MinCValue.valueEqualsCulv;
-                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, columnForStyle, row, column + 4]);
-            }
-            else
-            {
-                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "DECK_SEEDED");
-                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_SEEDED");
-                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_SEEDED");
-                ExcelHelper.SetCustomFormat(worksheet.Cells[row, column - 2, row, column], ExcelHelperCellFormat.DecimalPrecision3);
-                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column - 2, row, column]);
-
-                worksheet.Cells[row, column + 2].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "DECK_DURATION_N");
-                worksheet.Cells[row, column + 3].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_DURATION_N");
-                worksheet.Cells[row, column + 4].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N");
+                //minCActionCallDecider = MinCValue.valueEqualsCulv;
             }
             if (bridgeType == BAMSConstants.NonCulvertBridgeType)
             {
-                worksheet.Cells[row, ++column].Value = "N"; // culv cond
-                worksheet.Cells[row, column + 4].Value = "N"; // culv seeded
-                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column, row, column + 4]);
+                //  TODO below in B vs ND then comment!
                 if (minCActionCallDecider == MinCValue.valueEqualsCulv)
                 {
                     minCActionCallDecider = MinCValue.defaultValue;
@@ -301,16 +274,64 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
                 {
                     minCActionCallDecider = MinCValue.minOfDeckSubSuper;
                 }
-            }
-            else
+            }           
+            ////
+
+            // TODO BRIDGE_TYPE_ALT to be used instead of BRIDGE_TYPE - follow the chart from user story and look at expected values table!            
+            var colnForStyle = column + 1;
+            var bridgeTypeAlt = _reportHelper.CheckAndGetValue(initialSection.ValuePerTextAttribute, "BRIDGE_TYPE_ALT");
+            switch (bridgeTypeAlt)
             {
-                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "CULV_SEEDED");
+            case "B":
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "DECK_SEEDED"); // gcr deck
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_SEEDED"); // gcr sup
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_SEEDED"); // gcr sub
+                ExcelHelper.SetCustomFormat(worksheet.Cells[row, colnForStyle, row, column], ExcelHelperCellFormat.DecimalPrecision3);
+                worksheet.Cells[row, ++column].Value = "N/A"; // gcr culv
+
+                worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "DECK_DURATION_N"); // deck dur
+                worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_DURATION_N"); // sup dur
+                worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N"); // sub dur
+                //ExcelHelper.SetCustomFormat(worksheet.Cells[row, column - 2, row, column], ExcelHelperCellFormat.DecimalPrecision3);
+                worksheet.Cells[row, ++column].Value = "N/A"; // culv dur
+
+                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
+                break;
+
+            case "ND":
+                worksheet.Cells[row, ++column].Value = "N/A"; // gcr deck
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_SEEDED"); // gcr sup
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_SEEDED"); // gcr sub
+                ExcelHelper.SetCustomFormat(worksheet.Cells[row, colnForStyle + 1, row, column], ExcelHelperCellFormat.DecimalPrecision3);
+                worksheet.Cells[row, ++column].Value = "N/A"; // gcr culv
+
+                worksheet.Cells[row, ++column].Value = "N/A"; // deck dur
+                worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_DURATION_N"); // sup dur
+                worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N"); // sub dur
+                //ExcelHelper.SetCustomFormat(worksheet.Cells[row, column - 1, row, column], ExcelHelperCellFormat.DecimalPrecision3);
+                worksheet.Cells[row, ++column].Value = "N/A"; // culv dur
+
+                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
+                break;
+
+            case "C":
+                worksheet.Cells[row, ++column].Value = "N/A"; // gcr deck
+                worksheet.Cells[row, ++column].Value = "N/A"; // gcr sup
+                worksheet.Cells[row, ++column].Value = "N/A"; // gcr sub
+                worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "CULV_SEEDED"); // gcr culv
                 ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.DecimalPrecision3);
 
-                worksheet.Cells[row, column + 4].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "CULV_DURATION_N");
-                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column + 4]);
-            }
-            column += 4; // this will take us to "Min cond" column
+                worksheet.Cells[row, ++column].Value = "N/A"; // deck dur
+                worksheet.Cells[row, ++column].Value = "N/A"; // super dur
+                worksheet.Cells[row, ++column].Value = "N/A"; // sub dur
+                worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "CULV_DURATION_N"); // culv dur
+                //ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.DecimalPrecision3);
+
+                ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
+
+                minCActionCallDecider = MinCValue.valueEqualsCulv;
+                break;
+            }            
 
             // It returns the column number where MinC value is written
             column = _valueForMinC[minCActionCallDecider](worksheet, row, column, selectedSection.ValuePerNumericAttribute);
