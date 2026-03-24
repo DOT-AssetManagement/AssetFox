@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
@@ -42,7 +43,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
             var simulationDomain = CommittedProjectRepoTestHelpers.CreateSimulation(_badScenario, _testUOW, false);
 
             // Act & Assert
-            Assert.Throws<RowNotInTableException>(() => repo.GetSimulationCommittedProjects(simulationDomain));
+            Assert.Throws<SimulationDataValidationException>(() => repo.GetSimulationCommittedProjects(simulationDomain));
         }
 
         [Fact]
