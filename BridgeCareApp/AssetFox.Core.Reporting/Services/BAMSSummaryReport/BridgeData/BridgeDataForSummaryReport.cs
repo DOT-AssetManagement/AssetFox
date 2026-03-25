@@ -271,7 +271,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
                 worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "DECK_DURATION_N"); // deck dur
                 worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_DURATION_N"); // sup dur
                 worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N"); // sub dur
-                //ExcelHelper.SetCustomFormat(worksheet.Cells[row, column - 2, row, column], ExcelHelperCellFormat.DecimalPrecision3);
                 worksheet.Cells[row, ++column].Value = "N/A"; // culv dur
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
@@ -288,8 +287,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
 
                 worksheet.Cells[row, ++column].Value = "N/A"; // deck dur
                 worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUP_DURATION_N"); // sup dur
-                worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N"); // sub dur
-                //ExcelHelper.SetCustomFormat(worksheet.Cells[row, column - 1, row, column], ExcelHelperCellFormat.DecimalPrecision3);
+                worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "SUB_DURATION_N"); // sub dur                
                 worksheet.Cells[row, ++column].Value = "N/A"; // culv dur
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
@@ -308,7 +306,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
                 worksheet.Cells[row, ++column].Value = "N/A"; // super dur
                 worksheet.Cells[row, ++column].Value = "N/A"; // sub dur
                 worksheet.Cells[row, ++column].Value = (int)_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "CULV_DURATION_N"); // culv dur
-                //ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.DecimalPrecision3);
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
 
