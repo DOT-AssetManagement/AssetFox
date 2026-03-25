@@ -255,30 +255,9 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
         {
             var initialColumnForShade = column + 1;
             var selectedSection = section ?? initialSection;
-            var minCActionCallDecider = MinCValue.minOfCulvDeckSubSuper; // TODO How to set based on bridgeTypeAlt?
-
-            ////
-            var bridgeType = _reportHelper.CheckAndGetValue(initialSection.ValuePerTextAttribute, "BRIDGE_TYPE");            
-            if (bridgeType == BAMSConstants.CulvertBridgeType)
-            {
-                //minCActionCallDecider = MinCValue.valueEqualsCulv;
-            }
-            if (bridgeType == BAMSConstants.NonCulvertBridgeType)
-            {
-                //  TODO below in B vs ND then comment!
-                if (minCActionCallDecider == MinCValue.valueEqualsCulv)
-                {
-                    minCActionCallDecider = MinCValue.defaultValue;
-                }
-                else
-                {
-                    minCActionCallDecider = MinCValue.minOfDeckSubSuper;
-                }
-            }           
-            ////
-
-            // TODO BRIDGE_TYPE_ALT to be used instead of BRIDGE_TYPE - follow the chart from user story and look at expected values table!            
+            var minCActionCallDecider = MinCValue.minOfCulvDeckSubSuper;
             var colnForStyle = column + 1;
+
             var bridgeTypeAlt = _reportHelper.CheckAndGetValue(initialSection.ValuePerTextAttribute, "BRIDGE_TYPE_ALT");
             switch (bridgeTypeAlt)
             {
@@ -296,6 +275,8 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
                 worksheet.Cells[row, ++column].Value = "N/A"; // culv dur
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
+
+                minCActionCallDecider = MinCValue.minOfDeckSubSuper;
                 break;
 
             case "ND":
@@ -312,6 +293,8 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
                 worksheet.Cells[row, ++column].Value = "N/A"; // culv dur
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
+
+                // minCActionCallDecider = MinCValue.defaultValue; // TODO new value!
                 break;
 
             case "C":
