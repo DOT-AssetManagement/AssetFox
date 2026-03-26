@@ -91,42 +91,42 @@ public sealed class Simulation : WeakEntity, IValidator
         var potentialPassiveTreatments = Treatments.Where(treatment => treatment.IsPotentialPassiveTreatment).ToList();
         if (potentialPassiveTreatments.Count != 1)
         {
-            results.Add(ValidationStatus.Error, $"There are {potentialPassiveTreatments.Count} potential passive treatments.", this, nameof(Treatments));
+            results.Add(ValidationStatus.Error, $"There are {potentialPassiveTreatments.Count} potential passive treatments.", this, nameof(Treatments), "Treatment");
         }
 
         if (DesignatedPassiveTreatment == null)
         {
-            results.Add(ValidationStatus.Error, "Designated passive treatment is unset.", this, nameof(DesignatedPassiveTreatment));
+            results.Add(ValidationStatus.Error, "Designated passive treatment is unset.", this, nameof(DesignatedPassiveTreatment), "Treatment");
         }
         else if (DesignatedPassiveTreatment.Costs.Count > 0)
         {
-            results.Add(ValidationStatus.Error, "Designated passive treatment has costs.", this, nameof(DesignatedPassiveTreatment));
+            results.Add(ValidationStatus.Error, "Designated passive treatment has costs.", this, nameof(DesignatedPassiveTreatment), "Treatment");
         }
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name));
+            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name), "Scenario");
         }
 
         if (NumberOfYearsOfTreatmentOutlook < 1)
         {
-            results.Add(ValidationStatus.Error, "Number of years of treatment outlook is less than one.", this, nameof(NumberOfYearsOfTreatmentOutlook));
+            results.Add(ValidationStatus.Error, "Number of years of treatment outlook is less than one.", this, nameof(NumberOfYearsOfTreatmentOutlook), "Scenario");
         }
         else if (NumberOfYearsOfTreatmentOutlook < 10)
         {
-            results.Add(ValidationStatus.Warning, "Number of years of treatment outlook is less than ten.", this, nameof(NumberOfYearsOfTreatmentOutlook));
+            results.Add(ValidationStatus.Warning, "Number of years of treatment outlook is less than ten.", this, nameof(NumberOfYearsOfTreatmentOutlook), "Scenario");
         }
 
         if (Treatments.Select(treatment => treatment.Name).Distinct().Count() < Treatments.Count)
         {
-            results.Add(ValidationStatus.Error, "Multiple selectable treatments have the same name.", this, nameof(Treatments));
+            results.Add(ValidationStatus.Error, "Multiple selectable treatments have the same name.", this, nameof(Treatments), "Treatment");
         }
 
         foreach (var project in CommittedProjects)
         {
             if (!Treatments.Contains(project.TemplateTreatment))
             {
-                results.Add(ValidationStatus.Error, "Simulation contains a treatment that is not found within the treatment list.", project, nameof(project.TemplateTreatment));
+                results.Add(ValidationStatus.Error, "Simulation contains a treatment that is not found within the treatment list.", project, nameof(project.TemplateTreatment), "Committed Projects");
             }
         }
 
@@ -136,7 +136,8 @@ public sealed class Simulation : WeakEntity, IValidator
                 ValidationStatus.Error,
                 "There are at least two committed projects with the same treatment applied to the same asset in the same year.",
                 this,
-                nameof(CommittedProjects));
+                nameof(CommittedProjects),
+                "Committed Projects");
         }
 
         return results;

@@ -90,12 +90,12 @@ public sealed class SelectableTreatment : Treatment
 
         if (ShadowForSameTreatment < ShadowForAnyTreatment)
         {
-            results.Add(ValidationStatus.Warning, "\"Same\" shadow is less than \"any\" shadow.", this);
+            results.Add(ValidationStatus.Warning, "\"Same\" shadow is less than \"any\" shadow.", this, "Treatment");
         }
 
         if (Schedulings.Select(scheduling => scheduling.OffsetToFutureYear).Distinct().Count() < Schedulings.Count)
         {
-            results.Add(ValidationStatus.Error, "At least one future year has more than one scheduling.", this, nameof(Schedulings));
+            results.Add(ValidationStatus.Error, "At least one future year has more than one scheduling.", this, nameof(Schedulings), "Treatment");
         }
 
         var unconditionalConsequencesPerAttribute = Consequences
@@ -104,7 +104,7 @@ public sealed class SelectableTreatment : Treatment
 
         if (unconditionalConsequencesPerAttribute.Any(group => group.Count() > 1))
         {
-            results.Add(ValidationStatus.Error, "At least one text attribute is unconditionally acted on by more than one consequence.", this, nameof(Consequences));
+            results.Add(ValidationStatus.Error, "At least one text attribute is unconditionally acted on by more than one consequence.", this, nameof(Consequences), "Treatment");
         }
 
         var unconditionalSupersedeRulesPerTreatment = SupersedeRules
@@ -113,7 +113,7 @@ public sealed class SelectableTreatment : Treatment
 
         if (unconditionalSupersedeRulesPerTreatment.Any(group => group.Count() > 1))
         {
-            results.Add(ValidationStatus.Warning, "At least one treatment is unconditionally superseded more than once.", this, nameof(SupersedeRules));
+            results.Add(ValidationStatus.Warning, "At least one treatment is unconditionally superseded more than once.", this, nameof(SupersedeRules), "Treatment");
         }
 
         foreach (var (attribute, factor) in PerformanceCurveAdjustmentFactors)
@@ -123,7 +123,7 @@ public sealed class SelectableTreatment : Treatment
                 results.Add(
                     ValidationStatus.Error,
                     $"Attribute \"{attribute.Name}\" performance curve adjustment factor is non-positive.",
-                    this);
+                    this, "Treatment");
             }
         }
 

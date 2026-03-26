@@ -25,12 +25,12 @@ public sealed class Budget : WeakEntity, IValidator
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name));
+            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name), "Investment");
         }
 
         if (YearlyAmounts.Count == 0)
         {
-            results.Add(ValidationStatus.Error, "There are no yearly amounts.", this, nameof(YearlyAmounts));
+            results.Add(ValidationStatus.Error, "There are no yearly amounts.", this, nameof(YearlyAmounts), "Investment");
         }
 
         return results;

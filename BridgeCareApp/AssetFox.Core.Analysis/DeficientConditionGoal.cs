@@ -41,19 +41,19 @@ public sealed class DeficientConditionGoal : ConditionGoal
 
         if (AllowedDeficientPercentage < 0)
         {
-            results.Add(ValidationStatus.Error, "Allowed deficient percentage is less than zero.", this, nameof(AllowedDeficientPercentage));
+            results.Add(ValidationStatus.Error, "Allowed deficient percentage is less than zero.", this, nameof(AllowedDeficientPercentage), "Deficient Condition Goal");
         }
         else if (AllowedDeficientPercentage == 0)
         {
-            results.Add(ValidationStatus.Warning, "Allowed deficient percentage is zero.", this, nameof(AllowedDeficientPercentage));
+            results.Add(ValidationStatus.Warning, "Allowed deficient percentage is zero.", this, nameof(AllowedDeficientPercentage), "Deficient Condition Goal");
         }
         else if (AllowedDeficientPercentage == 100)
         {
-            results.Add(ValidationStatus.Warning, "Allowed deficient percentage is 100.", this, nameof(AllowedDeficientPercentage));
+            results.Add(ValidationStatus.Warning, "Allowed deficient percentage is 100.", this, nameof(AllowedDeficientPercentage), "Deficient Condition Goal");
         }
         else if (AllowedDeficientPercentage > 100)
         {
-            results.Add(ValidationStatus.Error, "Allowed deficient percentage is greater than 100.", this, nameof(AllowedDeficientPercentage));
+            results.Add(ValidationStatus.Error, "Allowed deficient percentage is greater than 100.", this, nameof(AllowedDeficientPercentage), "Deficient Condition Goal");
         }
 
         return results;

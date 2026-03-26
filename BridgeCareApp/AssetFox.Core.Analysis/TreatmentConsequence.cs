@@ -19,7 +19,7 @@ public class TreatmentConsequence : WeakEntity, IValidator
 
         if (Attribute == null)
         {
-            results.Add(ValidationStatus.Error, "Attribute is unset.", this, nameof(Attribute));
+            results.Add(ValidationStatus.Error, "Attribute is unset.", this, nameof(Attribute), "Treatment Consequence");
         }
 
         return results;

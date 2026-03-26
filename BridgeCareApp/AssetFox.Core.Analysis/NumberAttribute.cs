@@ -22,23 +22,23 @@ public sealed class NumberAttribute : Attribute<double>, INumericAttribute, IVal
 
         if (Minimum.HasValue && double.IsNaN(Minimum.Value))
         {
-            results.Add(ValidationStatus.Error, "Minimum is not a number.", this, nameof(Minimum));
+            results.Add(ValidationStatus.Error, "Minimum is not a number.", this, nameof(Minimum), "Attribute");
         }
 
         if (Maximum.HasValue && double.IsNaN(Maximum.Value))
         {
-            results.Add(ValidationStatus.Error, "Maximum is not a number.", this, nameof(Minimum));
+            results.Add(ValidationStatus.Error, "Maximum is not a number.", this, nameof(Minimum), "Attribute");
         }
 
         if (Minimum is double minimum && Maximum is double maximum)
         {
             if (minimum == maximum)
             {
-                results.Add(ValidationStatus.Warning, "Minimum is equal to maximum.", this);
+                results.Add(ValidationStatus.Warning, "Minimum is equal to maximum.", this, "Attribute");
             }
             else if (minimum > maximum)
             {
-                results.Add(ValidationStatus.Error, "Minimum is greater than maximum.", this);
+                results.Add(ValidationStatus.Error, "Minimum is greater than maximum.", this, "Attribute");
             }
         }
 

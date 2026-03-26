@@ -56,12 +56,12 @@ public sealed class Explorer : IValidator
 
         if (AgeAttribute.IsDecreasingWithDeterioration)
         {
-            results.Add(ValidationStatus.Error, "Age attribute must increase with deterioration.", this, nameof(AgeAttribute));
+            results.Add(ValidationStatus.Error, "Age attribute must increase with deterioration.", this, nameof(AgeAttribute), "Attribute");
         }
 
         if (Networks.Select(network => network.Name).Distinct().Count() < Networks.Count)
         {
-            results.Add(ValidationStatus.Error, "Multiple networks have the same name.", this, nameof(Networks));
+            results.Add(ValidationStatus.Error, "Multiple networks have the same name.", this, nameof(Networks), "Network");
         }
 
         var calculatedFieldByName = CalculatedFields.ToDictionary(field => field.Name);
@@ -73,7 +73,7 @@ public sealed class Explorer : IValidator
         foreach (var cycle in cycles)
         {
             var loopText = string.Join(" to ", cycle.Append(cycle[0]).Select(field => "[" + field.Name + "]"));
-            results.Add(ValidationStatus.Warning, "Possible loop among calculated fields: " + loopText, this, nameof(CalculatedFields));
+            results.Add(ValidationStatus.Warning, "Possible loop among calculated fields: " + loopText, this, nameof(CalculatedFields), "Attribute");
         }
 
         return results;

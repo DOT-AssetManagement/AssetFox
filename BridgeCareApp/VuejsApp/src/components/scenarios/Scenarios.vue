@@ -1513,7 +1513,9 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
                             for(const item of response.data)
                             {
                                 if (item.message != '') {
-                                    preCheckErrorMessages += item.message.replace('.','') + " (in " + item.location + ")" + ".";
+                                    preCheckErrorMessages += item.message.replace('.','') +
+                                     (item.location != null ? " (in " + item.location + ")" : "") + 
+                                     ".";
                                 }                                                                
                             }
                         }

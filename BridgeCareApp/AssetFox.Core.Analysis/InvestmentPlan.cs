@@ -84,12 +84,12 @@ public sealed class InvestmentPlan : WeakEntity, IValidator
 
         if (MinimumProjectCostLimit < 0)
         {
-            results.Add(ValidationStatus.Error, "Minimum project cost limit is less than zero.", this, nameof(MinimumProjectCostLimit));
+            results.Add(ValidationStatus.Error, "Minimum project cost limit is less than zero.", this, nameof(MinimumProjectCostLimit), "Investment");
         }
 
         if (NumberOfYearsInAnalysisPeriod < 1)
         {
-            results.Add(ValidationStatus.Error, "Number of years in analysis period is less than one.", this, nameof(NumberOfYearsInAnalysisPeriod));
+            results.Add(ValidationStatus.Error, "Number of years in analysis period is less than one.", this, nameof(NumberOfYearsInAnalysisPeriod), "Investment");
         }
 
         var defaultCashFlowRules = CashFlowRules.Where(cf => cf.Criterion.ExpressionIsBlank).ToList();
@@ -122,7 +122,8 @@ public sealed class InvestmentPlan : WeakEntity, IValidator
                 ValidationStatus.Warning,
                 "Cash-flow committed projects identification will be disabled due to an unmet requirement: (a) exactly one default cash-flow rule, (b) with exactly one 1-year distribution, (c) with an explicit cost-ceiling value.",
                 this,
-                nameof(CashFlowRules));
+                nameof(CashFlowRules),
+                "Cash Flow");
         }
     }
 

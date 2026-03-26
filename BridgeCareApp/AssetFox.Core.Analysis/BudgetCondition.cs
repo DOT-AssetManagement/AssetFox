@@ -20,7 +20,7 @@ public sealed class BudgetCondition : WeakEntity, IValidator
 
         if (Budget == null)
         {
-            results.Add(ValidationStatus.Error, "Budget is unset.", this, nameof(Budget));
+            results.Add(ValidationStatus.Error, "Budget is unset.", this, nameof(Budget), "Investment");
         }
 
         return results;
