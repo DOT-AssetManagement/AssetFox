@@ -123,7 +123,8 @@ public sealed class SelectableTreatment : Treatment
                 results.Add(
                     ValidationStatus.Error,
                     $"Attribute \"{attribute.Name}\" performance curve adjustment factor is non-positive.",
-                    this, "Treatment");
+                    this,
+                    "Treatment");
             }
         }
 

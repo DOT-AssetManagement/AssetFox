@@ -24,7 +24,7 @@ public abstract class ConditionGoal : WeakEntity, IValidator
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            results.Add(ValidationStatus.Warning, "Name is blank.", this, nameof(Name));
+            results.Add(ValidationStatus.Warning, "Name is blank.", this, nameof(Name), "Condition Goal");
         }
 
         return results;
