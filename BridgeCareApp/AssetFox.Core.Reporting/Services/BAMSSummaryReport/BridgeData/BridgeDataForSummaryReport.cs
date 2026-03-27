@@ -16,8 +16,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
     public class BridgeDataForSummaryReport
     {
         private List<int> _spacerColumnNumbers;
-        private HighlightWorkDoneCells _highlightWorkDoneCells;
-        private Dictionary<MinCValue, Func<ExcelWorksheet, int, int, IDictionary<string, double>, int>> _valueForMinC;
+        private HighlightWorkDoneCells _highlightWorkDoneCells;        
         private readonly List<int> _simulationYears = new List<int>();
         private SummaryReportHelper _summaryReportHelper;
         private ReportHelper _reportHelper;
@@ -93,7 +92,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
         }
 
         #region Private Methods
-
 
         private void AddBridgeDataModelsCells(ExcelWorksheet worksheet, SimulationOutput reportOutputData, CurrentCell currentCell)
         {
@@ -314,16 +312,17 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
             }            
 
             // It returns the column number where MinC value is written
-            column = _valueForMinC[minCActionCallDecider](worksheet, row, column, selectedSection.ValuePerNumericAttribute);
+            var minCond = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND");
+            worksheet.Cells[row, ++column].Value = minCond;
             ExcelHelper.SetCustomFormat(worksheet.Cells[row, column], ExcelHelperCellFormat.DecimalPrecision3);
             var minCondColumn = column;
 
-            if (_reportHelper.CheckAndGetValue(initialSection.ValuePerNumericAttribute, "P3") > 0 && _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND") < 5)
+            if (_reportHelper.CheckAndGetValue(initialSection.ValuePerNumericAttribute, "P3") > 0 && minCond < 5)
             {
                 ExcelHelper.ApplyColor(worksheet.Cells[row, column], Color.Yellow);
                 ExcelHelper.SetTextColor(worksheet.Cells[row, column], Color.Black);
             }
-            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND") < 5 ? BAMSConstants.Yes : BAMSConstants.No; //poor
+            worksheet.Cells[row, ++column].Value = minCond < 5 ? BAMSConstants.Yes : BAMSConstants.No; //poor
             ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, column]);
 
             if (row % 2 == 0)
@@ -333,7 +332,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
             }
 
             // Setting color of MinCond over here, to avoid Color.LightGray overriding it
-            if (_reportHelper.CheckAndGetValue(selectedSection.ValuePerNumericAttribute, "MINCOND") <= 3.5)
+            if (minCond <= 3.5)
             {
                 ExcelHelper.ApplyColor(worksheet.Cells[row, minCondColumn], Color.FromArgb(112, 48, 160));
                 ExcelHelper.SetTextColor(worksheet.Cells[row, minCondColumn], Color.White);
@@ -350,16 +349,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
             var initialRow = 6;
             var row = initialRow; // Data starts here
             var startingRow = row;
-            var column = currentCell.Column;
-
-            // making dictionary to remove if else, which was used to enter value for MinC
-            _valueForMinC = new()
-            {
-                { MinCValue.defaultValue, EnterDefaultMinCValue },
-                { MinCValue.valueEqualsCulv, EnterValueEqualsCulv },
-                { MinCValue.minOfDeckSubSuper, EnterMinDeckSuperSub },
-                { MinCValue.minOfCulvDeckSubSuper, EnterMinDeckSuperSubCulv },
-            };
+            var column = currentCell.Column;            
 
             var workDoneData = new List<int>();
             var previousYearSectionMinC = new List<double>();
@@ -759,13 +749,11 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
             keyCashFlowFundingDetails.Clear();
         }
 
-
         private void setColor(string treatment, string previousYearTreatment, TreatmentCause previousYearCause,
            TreatmentCause treatmentCause, int index, ExcelWorksheet worksheet, int row, int column, TreatmentStatus treatmentStatus, TreatmentStatus previousYearTreatmentStatus)
         {
             _highlightWorkDoneCells.CheckConditions(treatment, previousYearTreatment, previousYearCause, treatmentCause, index, worksheet, row, column, treatmentStatus, previousYearTreatmentStatus);
         }
-
 
         private List<string> GetStaticSectionHeaders()
         {
@@ -858,7 +846,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
                 "N/A"
             };
         }
-
 
         private CurrentCell AddHeadersCells(ExcelWorksheet worksheet, List<string> sectionHeaders
                                             , List<string> dataHeaders, List<string> subHeaders, List<int> simulationYears
@@ -1107,40 +1094,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
                 "FHWA\r\nWork Types",
                 "Comments"
             };
-        }
-
-        private int EnterDefaultMinCValue(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
-        {
-            worksheet.Cells[row, ++column].Value = "N";
-            // It is a dummy value
-            numericAttribute["MINCOND"] = 100;
-            return column;
-        }
-
-        private int EnterValueEqualsCulv(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
-        {
-            var culvSeeded = _reportHelper.CheckAndGetValue(numericAttribute, "CULV_SEEDED"); numericAttribute["CULV_SEEDED"] = culvSeeded;
-            var minCond = _reportHelper.CheckAndGetValue(numericAttribute, "MINCOND"); numericAttribute["MINCOND"] = minCond;
-
-            numericAttribute["MINCOND"] = numericAttribute["CULV_SEEDED"];
-            worksheet.Cells[row, ++column].Value = numericAttribute["MINCOND"];
-            return column;
-        }
-
-        private int EnterMinDeckSuperSub(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
-        {
-            var minValue = Math.Min(_reportHelper.CheckAndGetValue(numericAttribute, "DECK_SEEDED"),
-                           Math.Min(_reportHelper.CheckAndGetValue(numericAttribute, "SUP_SEEDED")
-                                    , _reportHelper.CheckAndGetValue(numericAttribute, "SUB_SEEDED")));
-            worksheet.Cells[row, ++column].Value = minValue;
-            numericAttribute["MINCOND"] = minValue;
-            return column;
-        }
-
-        private int EnterMinDeckSuperSubCulv(ExcelWorksheet worksheet, int row, int column, IDictionary<string, double> numericAttribute)
-        {
-            worksheet.Cells[row, ++column].Value = _reportHelper.CheckAndGetValue(numericAttribute, "MINCOND");
-            return column;
         }
 
         /// <summary>
