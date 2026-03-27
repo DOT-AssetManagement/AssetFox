@@ -1,14 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.8.0" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" /> <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
-    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" /> <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
   </ItemGroup>
 
   <ItemGroup>
