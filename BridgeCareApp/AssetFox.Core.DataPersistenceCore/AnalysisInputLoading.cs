@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using AssetFox.Core.Analysis;
-using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Validation;
 
@@ -88,7 +88,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Attributes");            
         }
         // intermediate update/check
         if (!afterExplorer())
@@ -113,7 +113,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Network");
         }
         // intermediate update/check
         if (!afterNetwork())
@@ -132,7 +132,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Scenario");
         }
         // intermediate update/check
         if (!afterSimulation())
@@ -160,7 +160,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Investment");
         }
         // intermediate update/check
         if (!afterInvestmentPlan())
@@ -180,7 +180,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Analysis Method");
         }
         // intermediate update/check
         if (!afterAnalysisMethod())
@@ -200,7 +200,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Deterioration Model");
         }
         // intermediate update/check
         if (!afterPerformanceCurves())
@@ -219,7 +219,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Treatment");
         }
         // intermediate update/check
         if (!afterSelectableTreatments())
@@ -238,7 +238,7 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Committed Projects");
         }
         // intermediate update/check
         if (!afterCommittedProjects())
@@ -257,11 +257,11 @@ public static class AnalysisInputLoading
             {
                 throw;
             }
-            AddError(validationResultBag, ex.Message);
+            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Calculated Attribute");
         }
 
         return simulation;
     }
-
-    private static void AddError(ValidationResultBag validationResultBag, string errorMessage) => validationResultBag.Add(ValidationStatus.Error, errorMessage, typeof(AnalysisInputLoading));
+        
+    private static void AddError(ValidationResultBag validationResultBag, string errorMessage, string location = null) => validationResultBag?.Add(ValidationStatus.Error, errorMessage, typeof(AnalysisInputLoading), location: location);
 }

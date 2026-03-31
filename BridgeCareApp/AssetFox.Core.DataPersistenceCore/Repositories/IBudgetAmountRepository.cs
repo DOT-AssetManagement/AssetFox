@@ -20,5 +20,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories
         List<BudgetAmountDTO> GetScenarioBudgetAmounts(Guid simulationId);
         void SaveScenarioBudgetAmounts(InvestmentUpsertAndDeleteModel changes, Guid simulationId);
         void SaveLibraryBudgetAmounts(InvestmentUpsertAndDeleteModel changes, Guid simulationId);
+        void ShiftAllScenarioBudgetAmountYears(Guid simulationId, int shift);
     }
 }

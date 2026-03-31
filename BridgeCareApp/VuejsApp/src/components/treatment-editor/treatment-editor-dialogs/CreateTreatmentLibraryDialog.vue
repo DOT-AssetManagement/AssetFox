@@ -43,6 +43,8 @@ import {
     TreatmentConsequence,
     TreatmentCost,
     TreatmentLibrary,
+    TreatmentPerformanceFactor,
+    TreatmentSupersedeRule,
 } from '@/shared/models/iAM/treatment';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
@@ -81,6 +83,18 @@ import XButton from '@/shared/components/buttons/XButton.vue';
                             consequence.id = getNewGuid();
                             return consequence;
                         },
+                    ),
+                    performanceFactors: treatment.performanceFactors.map(
+                        (factor: TreatmentPerformanceFactor) => ({
+                            ...factor,
+                            id: getNewGuid(),
+                        }),
+                    ),
+                    supersedeRules: treatment.supersedeRules.map(
+                        (rule: TreatmentSupersedeRule) => ({
+                            ...rule,
+                            id: getNewGuid(),
+                        }),
                     ),
                 }),
             ),

@@ -5,7 +5,9 @@
       "OptimizationStrategy": "BenefitToCostRatio",
       "BenefitAttribute": "CONDITIONINDEX",
       "BenefitLimit": 0,
-      "SpendingStrategy": "AsBudgetPermits"
+      "SpendingStrategy": "AsBudgetPermits",
+      "ShouldUseSuperAssets": false,
+      "SuperAssetAttribute": "" //Name of default super asset attribute
     },
     "Investment": {
       "MinimumProjectCostLimit": 1000,

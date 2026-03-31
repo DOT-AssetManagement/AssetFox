@@ -378,7 +378,7 @@ namespace AssetFox.Core.Reporting.Services
         {
             var parameterObj = JObject.Parse(parameters);
             return parameterObj.SelectToken("expression")?.ToObject<string>();
-        }
+        }        
 
         public void BuildKeyCashFlowFundingDetails(SimulationYearDetail yearData, AssetDetail section, double brKey, Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails)
         {
@@ -452,5 +452,25 @@ namespace AssetFox.Core.Reporting.Services
 
             return "Bundle" + string.Concat(bundles);
         }
+
+        public static string ToOptimizationStrategyDisplayText(string optimizationStrategy) => optimizationStrategy switch
+        {
+            "Benefit" => "Benefit",
+            "BenefitToCostRatio" => "Lowest-Lifecycle-Cost (LLC)",
+            "RemainingLife" => "Remaining Life",
+            "RemainingLifeToCostRatio" => "Remaining life-to-Cost Ratio",
+            _ => "",
+        };
+
+        public static string ToSpendingStrategyDisplayText(string spendingStrategy) => spendingStrategy switch
+        {
+            "NoSpending" => "No Spending",
+            "UnlimitedSpending" => "Unlimited Spending",
+            "UntilTargetAndDeficientConditionGoalsMet" => "Until Target & Deficient Condition Goals Met",
+            "UntilTargetConditionGoalsMet" => "Until Target Condition Goals Met",
+            "UntilDeficientConditionGoalsMet" => "Until Deficient Condition Goals Met",
+            "AsBudgetPermits" => "As Budget Permits",
+            _ => "",
+        };
     }    
 }

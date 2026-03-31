@@ -159,7 +159,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         {
             if (!_unitOfWork.Context.Network.Any(_ => _.Id == network.Id))
             {
-                throw new RowNotInTableException("The specified network was not found.");
+                throw new SimulationDataValidationException("The specified network was not found.", "Network");
             }
 
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))

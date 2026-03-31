@@ -784,12 +784,12 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         selectTreatmentLibraryAction({
             libraryId: librarySelectItemValue.value,
         });
-    
-        if(!isNil(librarySelectItemValue.value)){
-            if (!isEmpty(librarySelectItemValue.value)){
-                getSimpleSelectableTreatmentsAction(librarySelectItemValue.value);
-            }
-        }           
+
+        if(!isNil(librarySelectItemValue.value) && !isEmpty(librarySelectItemValue.value)){
+            getSimpleSelectableTreatmentsAction(librarySelectItemValue.value);
+        } else {
+            simpleTreatments.value = [];
+        }
     }  
 
     watch(stateSimpleSelectableTreatments, () => onStateSimpleSelectableTreatments())

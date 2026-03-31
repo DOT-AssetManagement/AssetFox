@@ -795,7 +795,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
                 "County\r\n(5A05)",
                 "Owner Code\r\n(5A21)",
                 "Submitting Agency\r\n(6A06)",
-                "Planning Partner\r\n(5A13)",
+                "Planning Partner\r\n(5A23)",
                 "City / Town / Place\r\n(5A06)",
                 "Feature Intersected\r\n(5A07)",
                 "Facility Carried\r\n(5A08)",

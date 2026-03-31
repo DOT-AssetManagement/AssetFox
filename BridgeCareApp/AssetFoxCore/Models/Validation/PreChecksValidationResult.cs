@@ -7,8 +7,8 @@ namespace AssetFoxCore.Models.Validation
     {
         public PreChecksValidationResult(
             ValidationStatus status,
-            string message
-            )
+            string message,
+            string location)
         {
             Status = status;
 
@@ -18,10 +18,13 @@ namespace AssetFoxCore.Models.Validation
             }
 
             Message = message;
+            Location = location;
         }
 
         public string Message { get; }
 
-        public ValidationStatus Status { get; }       
+        public ValidationStatus Status { get; }
+                
+        public string Location { get; }        
     }
 }

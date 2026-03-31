@@ -249,7 +249,9 @@ namespace AssetFoxCore.Services
             var budgetWorksheetEnd = budgetWorksheet.Dimension.End;
 
             var worksheetBudgetNames = budgetWorksheet.Cells[1, 2, 1, budgetWorksheetEnd.Column]
-                .Select(cell => cell.GetValue<string>()).ToList();
+                .Select(cell => cell.GetValue<string>())
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .ToList();
 
             var criteriaPerBudgetName = new Dictionary<string, string>();
             if (excelPackage.Workbook.Worksheets.Count > 1)
@@ -260,6 +262,10 @@ namespace AssetFoxCore.Services
                 for (var row = 2; row <= criteriaWorksheet.Dimension.End.Row; row++)
                 {
                     var budgetName = criteriaWorksheet.GetValue<string>(row, budgetCol);
+                    if (string.IsNullOrWhiteSpace(budgetName))
+                    {
+                        continue;
+                    }
                     var criteria = criteriaWorksheet.GetValue<string>(row, criteriaCol);
                     if (!criteriaPerBudgetName.ContainsKey(budgetName))
                     {
@@ -315,10 +321,22 @@ namespace AssetFoxCore.Services
             var newBudgetAmounts = new List<BudgetAmountDTOWithBudgetId>();
             for (var row = 2; row <= budgetWorksheetEnd.Row; row++)
             {
+                // Skip phantom rows: if the year cell is empty, this is not a real data row
+                var yearValue = budgetWorksheet.GetValue<string>(row, 1);
+                if (string.IsNullOrWhiteSpace(yearValue))
+                {
+                    continue;
+                }
+                var year = budgetWorksheet.GetValue<int>(row, 1);
+
                 for (var col = 2; col <= budgetWorksheetEnd.Column; col++)
                 {
                     var budgetName = budgetWorksheet.GetValue<string>(1, col);
-                    var year = budgetWorksheet.GetValue<int>(row, 1);
+                    // Skip phantom columns: if the header cell is empty, this is not a real budget column
+                    if (string.IsNullOrWhiteSpace(budgetName))
+                    {
+                        continue;
+                    }
                     var budgetYearTuple = (budgetName, year);
                     if (!budgetAmountsPerBudgetYearTuple.ContainsKey(budgetYearTuple))
                     {
@@ -477,7 +495,9 @@ namespace AssetFoxCore.Services
             var budgetWorksheetEnd = budgetWorksheet.Dimension.End;
 
             var worksheetBudgetNames = budgetWorksheet.Cells[1, 2, 1, budgetWorksheetEnd.Column]
-                .Select(cell => cell.GetValue<string>()).ToList();
+                .Select(cell => cell.GetValue<string>())
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .ToList();
 
             var criteriaPerBudgetName = new Dictionary<string, string>();
             if (excelPackage.Workbook.Worksheets.Count > 1)
@@ -488,6 +508,10 @@ namespace AssetFoxCore.Services
                 for (var row = 2; row <= criteriaWorksheet.Dimension.End.Row; row++)
                 {
                     var budgetName = criteriaWorksheet.GetValue<string>(row, budgetCol);
+                    if (string.IsNullOrWhiteSpace(budgetName))
+                    {
+                        continue;
+                    }
                     var criteria = criteriaWorksheet.GetValue<string>(row, criteriaCol);
                     if (!criteriaPerBudgetName.ContainsKey(budgetName))
                     {
@@ -542,10 +566,22 @@ namespace AssetFoxCore.Services
             var newBudgetAmounts = new List<BudgetAmountDTOWithBudgetId>();
             for (var row = 2; row <= budgetWorksheetEnd.Row; row++)
             {
+                // Skip phantom rows: if the year cell is empty, this is not a real data row
+                var yearValue = budgetWorksheet.GetValue<string>(row, 1);
+                if (string.IsNullOrWhiteSpace(yearValue))
+                {
+                    continue;
+                }
+                var year = budgetWorksheet.GetValue<int>(row, 1);
+
                 for (var col = 2; col <= budgetWorksheetEnd.Column; col++)
                 {
                     var budgetName = budgetWorksheet.GetValue<string>(1, col);
-                    var year = budgetWorksheet.GetValue<int>(row, 1);
+                    // Skip phantom columns: if the header cell is empty, this is not a real budget column
+                    if (string.IsNullOrWhiteSpace(budgetName))
+                    {
+                        continue;
+                    }
                     var budgetYearTuple = (budgetName, year);
                     if (!budgetAmountsPerBudgetYearTuple.ContainsKey(budgetYearTuple))
                     {

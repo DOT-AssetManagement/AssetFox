@@ -81,13 +81,8 @@
                         </v-btn>
                     </v-btn-toggle>
                 </v-toolbar-items>
-                
                 <v-spacer></v-spacer>
-                <v-spacer></v-spacer>
-                
-                    
-                <v-toolbar-title class="white--text">
-                    
+                <v-toolbar-title class="white--text" style="justify-content: end; display: flex;">                                     
                     <v-menu
                         offset-
                         min-width="21%"
@@ -96,13 +91,12 @@
                     >
                         <template v-slot:activator="{ props }">
                             <button
-                                style="margin-left: 170%;"  
+                                  
                                 id="App-notification-button"
                                 v-bind="props"
                                 @click="onNotificationMenuSelect"
                                 class="notification-icon"
-                                icon
-                            >
+                                icon>
                                 <img style="position:absolute; top:20px; height:25px;" :src="getUrl('assets/icons/bell.svg')"/>
                                 <v-badge
                                     v-if="notificationCounter > 0"
@@ -117,9 +111,7 @@
                                     counterBackgroundColor="#FF0000"
                                     counterTextColor="#FFFFFF"
                                     color="#002E6C"
-                                    class="hide-bell-svg"
-                                   
-                                > 
+                                    class="hide-bell-svg"> 
                                 <v-icon style="bottom: 50%;" size="small"></v-icon>
                                 </v-badge>
                             </button>
@@ -181,18 +173,13 @@
                                 </v-list-group>
                             </v-list>         
                         </v-card>
-                    </v-menu>
+                    </v-menu>     
+                    <v-btn @click="onBugButtonClicked" style="margin-left: 35px; margin-right: 20px; height: 30px; width: 30px;" icon ><i class="fas fa-bug"></i></v-btn>
+                    <v-divider class="mx-1 navbar-divider" vertical style="background-color: #798899; left: 0px;position: relative;" />
+                    <img style="height:40px; position:relative; top:2px; margin-left: 10px;" :src="getUrl('assets/icons/user-no-circle.svg')"/>
+                    <span id="App-username-span">{{ username }}</span>
                 </v-toolbar-title>
-                <v-toolbar-title>
-                    <v-divider class="mx-1 navbar-divider" vertical style="background-color: #798899; margin-left:90% !important;"/>
-                </v-toolbar-title>
-                <v-toolbar-title style="margin-left:2px !important" class="navbar-gray" v-if="authenticated">
-                    <img style="height:40px; position:relative; top:2px" :src="getUrl('assets/icons/user-no-circle.svg')"/>
-                    <span
-                      id="App-username-span"
-                    >{{ username }}</span>
-                </v-toolbar-title>
-                <v-toolbar-title class="white--text" v-if="!authenticated">
+                <v-toolbar-title class="white--text" v-if="!authenticated" style="justify-content: end; display: flex;max-width: 150px">
                     <v-btn
                         style="background-color: #002E6C;"
                         v-if="securityType === b2cSecurityType"
@@ -224,7 +211,7 @@
                         <font-awesome-icon :icon="['fas','sign-in-alt']"/>
                     </v-btn>
                 </v-toolbar-title>
-                <v-toolbar-title class="white--text" v-if="authenticated">
+                <v-toolbar-title class="white--text" v-if="authenticated" style="justify-content: end; display: flex;max-width: 150px">
                     <v-btn
                         style="background-color: #002E6C;"
                         id="App-b2cLogout-vbtn"
@@ -290,6 +277,7 @@
             <Alert :dialog-data="alertDialogData" @submit="onAlertResult" />
             <Alert :dialogData="ConfirmRunAnalysisCompleted" @submit="onConfirmRunAnalysisCompletedSubmit"/>
             <Alert :dialog-data="stackTraceAlert" @submit="onStackTraceSubmit" />
+            <Alert :dialog-data="bugReportAlert" @submit="onBugReportSubmit" />
             <NewsDialog :showDialog="showNewsDialog" @close="onCloseNewsDialog()" />
         </v-main>
     </v-app>
@@ -351,7 +339,6 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     const refreshing = computed<boolean>(() => store.state.authenticationModule.refreshing);
     let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
     let updatedSimulationRunSettingName = computed(() => store.state.scenarioModule.simulationRunSettingName);
-    //let navigation = ref<any[]>(store.state.breadcrumbModule.navigation);
     const notifications = computed<Notification[]>(() => store.state.notificationModule.notifications);
     const notificationCounter = computed<number>(() => store.state.notificationModule.counter);
     const stateSelectedScenario = computed<Scenario>(() => store.state.scenarioModule.selectedScenario);
@@ -362,6 +349,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     const stateImplementationName = computed<string>(()=>store.state.adminSiteSettingsModule.implementationName);
     const stateInventoryReportNames = computed<string[]>(() => store.state.adminDataModule.inventoryReportNames);
     const stateAlertMessage = computed<string>(() => store.state.alertModule.alertMessage);
+    const adminEmail = computed<string>(() => store.state.adminSiteSettingsModule.adminContactEmail);
     const stateAlert = ref<boolean>(store.state.alertModule.alert);
     async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
     async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload);}
@@ -396,6 +384,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     let currentUserLastNewsAccessDate: string = '0001-01-01';
     let alertDialogData: AlertData = clone(emptyAlertData);
     let stackTraceAlert = ref<AlertData>(clone(emptyAlertData));
+    let bugReportAlert = ref<AlertData>(clone(emptyAlertData));
     let pushRouteUpdate: boolean = false;
     let route: any = {};
     const selectedScenario = ref<Scenario>(clone(emptyScenario));
@@ -903,8 +892,25 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         };
         
     }
+
+    function onBugButtonClicked() {
+        let message = 'Please contact the administrator to report a bug.';        
+        if(adminEmail.value.trim() !== '')            
+            message += ` Email: ${adminEmail.value}`;
+        bugReportAlert.value = {
+            showDialog: true,
+            heading: 'Report a Bug',
+            choice: false,
+            message: message
+        };
+    }
+
     function onStackTraceSubmit(submit: boolean) {
         stackTraceAlert.value.showDialog = false;
+    }
+
+    function onBugReportSubmit(submit: boolean) {
+        bugReportAlert.value.showDialog = false;
     }
 
     function checkLastNewsAccessDate () {

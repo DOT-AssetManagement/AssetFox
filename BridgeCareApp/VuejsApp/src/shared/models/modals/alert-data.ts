@@ -14,17 +14,35 @@ export const emptyAlertData: AlertData = {
 
 export interface AlertPreChecksData {
     showDialog: boolean;
-    heading: string;
-    message: string;
+    ErrorHeading: string;
+    ErrorMessage: string;
+    WarningHeading: string;
+    WarningMessage: string;
+    SuccessHeading: string;
+    SuccessMessage: string;
     choice: boolean;
 }
 
 export const emptyAlertPreChecksData: AlertPreChecksData = {
     showDialog: false,
-    heading: '',
-    message: '',
+    ErrorHeading: '',
+    ErrorMessage: '',
+    WarningHeading: '',
+    WarningMessage: '',
+    SuccessHeading: '',
+    SuccessMessage: '',
     choice: false
 };
+
+export interface PreChecksValidationLog {
+    ErrorMessages: string[],
+    WarningMessages: string[]
+}
+
+export const emptyPreChecksValidationLog : PreChecksValidationLog = {
+    ErrorMessages: [],
+    WarningMessages: []
+}
 
 export interface AlertDataWithButtons {
     showDialog: boolean;
