@@ -3,11 +3,9 @@ using AssetFox.Core.Analysis.Engine;
 using AssetFox.Core.Analysis.Input.DataTransfer;
 using AssetFox.Core.DTOs.Enums;
 using AssetFox.Validation;
-using Xunit.Abstractions;
 
 namespace AssetFox.Core.Analysis.Testing.CharacterizationTesting;
 
-[UsesVerify]
 public class SimulationRunnerTests(ITestOutputHelper outputHelper)
 {
     #region facts
