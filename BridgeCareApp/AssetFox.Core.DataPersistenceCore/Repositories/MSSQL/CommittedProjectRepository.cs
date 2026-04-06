@@ -148,6 +148,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public string DownloadCommittedProjectTemplate()
         {
+#pragma warning disable CS0168 // Variable is declared but never used
             try
             {
                 return _unitOfWork.Context.CommittedProjectSettings.Where(_ => _.Key == "Committed Project Template").FirstOrDefault().Value;
@@ -156,10 +157,12 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 return "";
             }
+#pragma warning restore CS0168 // Variable is declared but never used
         }
 
         public string DownloadSelectedCommittedProjectTemplate(string filename)
         {
+#pragma warning disable CS0168 // Variable is declared but never used
             try
             {
                 return _unitOfWork.Context.CommittedProjectTemplates.Where(_ => _.Key == filename).FirstOrDefault().Value;
@@ -168,6 +171,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 throw;
             }
+#pragma warning restore CS0168 // Variable is declared but never used
         }
 
         public List<String> getUploadedCommittedProjectTemplates()

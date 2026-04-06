@@ -32,7 +32,6 @@ namespace AssetFox.Core.DTOs.Abstract
         /// <summary>
         /// Verifies the library can be shared between users.
         /// </summary>
-        [Obsolete("This should go away. Instead, we have user-by-user sharing.")]
         public bool IsShared { get; set; } 
     }
 }
