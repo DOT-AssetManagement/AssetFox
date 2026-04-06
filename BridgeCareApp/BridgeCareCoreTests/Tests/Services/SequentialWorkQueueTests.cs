@@ -15,16 +15,16 @@ namespace AssetFoxCoreTests.Tests
     public class SequentialWorkQueueTests
     {
         [Fact]
-        public void items_execute_in_the_order_they_were_added()
+        public async Task items_execute_in_the_order_they_were_added()
         {
             SequentialWorkQueue<WorkQueueMetadata> queue = new();
             List<int> taskEffects = new();
             
-            queue.Enqueue(new TestWorkItem(1, 0, taskEffects), out _).Wait();
-            queue.Enqueue(new TestWorkItem(2, 1000, taskEffects), out _).Wait();
-            queue.Enqueue(new TestWorkItem(3, 0, taskEffects), out _).Wait();
-            queue.Enqueue(new TestWorkItem(4, 1000, taskEffects), out _).Wait();
-            queue.Enqueue(new TestWorkItem(5, 0, taskEffects), out _).Wait();
+            await queue.Enqueue(new TestWorkItem(1, 0, taskEffects), out _);
+            await queue.Enqueue(new TestWorkItem(2, 1000, taskEffects), out _);
+            await queue.Enqueue(new TestWorkItem(3, 0, taskEffects), out _);
+            await queue.Enqueue(new TestWorkItem(4, 1000, taskEffects), out _);
+            await queue.Enqueue(new TestWorkItem(5, 0, taskEffects), out _);
 
             CancellationTokenSource cts = new();
             cts.CancelAfter(TimeSpan.FromSeconds(3));
@@ -33,11 +33,11 @@ namespace AssetFoxCoreTests.Tests
             {
                 while (!cts.IsCancellationRequested)
                 {
-                    var workStarter = queue.Dequeue(cts.Token).Result;
+                    var workStarter = await queue.Dequeue(cts.Token);
                     workStarter.StartWork(null);
                 }
             }
-            catch (AggregateException e) when (e.InnerException is OperationCanceledException)
+            catch (OperationCanceledException)
             {
             }
 
