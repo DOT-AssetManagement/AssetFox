@@ -595,8 +595,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
                         _unitOfWork.Context.Database.ExecuteSqlRaw(sql);
 
-                        // 3. Re-enable the same FKs (without WITH CHECK to avoid scanning billions of rows;
-                        //    removing rows cannot violate referential integrity)
+                        // 3. Re-enable (and re-trust) the same FKs
                         // TODO: Remove inter-output-table FKs entirely — they provide no integrity benefit
                         //       for machine-generated simulation data and force expensive NOCHECK/CHECK
                         //       cycling on every partition switch (both save and delete paths).
@@ -606,7 +605,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                                   N'ALTER TABLE '
                                 + QUOTENAME(OBJECT_SCHEMA_NAME(fkc.parent_object_id))
                                 + N'.' + QUOTENAME(OBJECT_NAME(fkc.parent_object_id))
-                                + N' CHECK CONSTRAINT ' + QUOTENAME(fk.name) + N';'
+                                + N' WITH CHECK CHECK CONSTRAINT ' + QUOTENAME(fk.name) + N';'
                             FROM   sys.foreign_keys fk
                             JOIN   sys.foreign_key_columns fkc
                                      ON fkc.constraint_object_id = fk.object_id

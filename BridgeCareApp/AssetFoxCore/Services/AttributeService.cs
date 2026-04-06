@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AssetFox;
+using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
@@ -85,7 +86,19 @@ namespace AssetFoxCore.Services
             };
             var dataSourceType = allAttribute.DataSource.Type;
 
-            switch (dataSourceType)
+            //TODO: Discuss handling Aggregations. Disabled and turned off for now in network creation. Default values set for now:
+            if (result.Type == "STRING")
+            {
+                result.AggregationRuleType = AggregationRuleTypeNames.Predominant;
+            }
+            else
+            {
+                result.AggregationRuleType = AggregationRuleTypeNames.Average;
+            }
+
+
+            //TODO: Refactor to flip Datasource relationship with Attributes
+            /*switch (dataSourceType)
             {
             case "SQL":
                 var sqlSource = new SQLDataSourceDTO
@@ -110,7 +123,9 @@ namespace AssetFoxCore.Services
                 return result;
             default:
                 throw new ArgumentException($"Unable to convert All Attribute Data with a type of {allAttribute.Type}");
-            }
+            }*/
+
+            return result;
         }
 
         public static List<AttributeDTO> ConvertAllAttributeList(List<AllAttributeDTO> allAttributeDTOs)
