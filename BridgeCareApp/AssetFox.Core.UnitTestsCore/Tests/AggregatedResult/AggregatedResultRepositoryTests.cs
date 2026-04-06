@@ -362,7 +362,6 @@ namespace AssetFox.Core.UnitTestsCore.Tests.AggregatedResult
                 }
             };
             ObjectAssertions.Equivalent(expectedDictionary, aggregatedResults);
-            int x = 666;
         }
     }
 }

@@ -16,8 +16,4 @@ public class MalformedInputException : Exception
     public MalformedInputException(string message, Exception innerException) : base(message, innerException)
     {
     }
-
-    protected MalformedInputException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
 }
