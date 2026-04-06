@@ -470,7 +470,7 @@ namespace AssetFoxCore.Controllers
                 {
                     excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new Exception("An invalid file was used.");
                 }
