@@ -32,7 +32,7 @@ public abstract class CompilableExpression : WeakEntity, IValidator
         }
         catch (MalformedInputException e)
         {
-            results.Add(ValidationStatus.Error, e.Message, this, nameof(Expression));
+            results.Add(ValidationStatus.Error, e.Message, this, nameof(Expression), "Expression");
         }
 
         return results;

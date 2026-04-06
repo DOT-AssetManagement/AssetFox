@@ -25,17 +25,17 @@ public sealed class CashFlowRule : WeakEntity, IValidator
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name));
+            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name), "Cash Flow");
         }
 
         if (DistributionRules.Count == 0)
         {
-            results.Add(ValidationStatus.Error, "There are no distribution rules.", this, nameof(DistributionRules));
+            results.Add(ValidationStatus.Error, "There are no distribution rules.", this, nameof(DistributionRules), "Cash Flow");
         }
 
         if (DistributionRules.GroupBy(rule => rule.CostCeiling).Any(group => group.Count() > 1))
         {
-            results.Add(ValidationStatus.Error, "There are two or more distribution rules with the same cost ceiling.", this, nameof(DistributionRules));
+            results.Add(ValidationStatus.Error, "There are two or more distribution rules with the same cost ceiling.", this, nameof(DistributionRules), "Cash Flow");
         }
 
         return results;
