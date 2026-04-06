@@ -94,6 +94,7 @@ export interface ScenarioActions {
     action: string;
     icon: string;
     isCustomIcon: boolean;
+    tooltip: string;
 }
 export interface TabItems {
     name: string;

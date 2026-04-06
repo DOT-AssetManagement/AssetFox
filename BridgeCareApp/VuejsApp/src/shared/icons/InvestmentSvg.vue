@@ -11,6 +11,7 @@
         <rect width="16" height="16" fill="white"/>
         </clipPath>
         </defs>
+        <title>Investment</title>
     </svg>
 </template>
 
@@ -18,5 +19,4 @@
 </script>
 
 <style >
-
 </style>

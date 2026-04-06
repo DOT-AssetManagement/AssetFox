@@ -18,8 +18,8 @@
                     <v-list-item id="EditScenario-tabs-vListTile" :to="navigationTab.navigation" style="border-bottom: 1px solid #CCCCCC;">
                             <template v-slot:prepend>
                                 <AttributesSvg id="EditRawData-attributes-button" style="height: 38px; width: 34px"  class="raw-data-icon"  v-if="navigationTab.tabName === 'Attributes'"/>    
-                                    <DataSourceSvg id="EditRawData-dataSource-button" style="height: 30px; width: 36px" class="raw-data-icon"  v-if="navigationTab.tabName === 'DataSource'"/>
-                                    <NetworksSvg  id="EditRawData-networks-button" style="height: 34px; width: 34px" class="raw-data-icon"  v-if="navigationTab.tabName === 'Networks'"/>                                                  
+                                <DataSourceSvg id="EditRawData-dataSource-button" style="height: 30px; width: 36px" class="raw-data-icon"  v-if="navigationTab.tabName === 'DataSource'"/>
+                                <NetworksSvg  id="EditRawData-networks-button" style="height: 34px; width: 34px" class="raw-data-icon"  v-if="navigationTab.tabName === 'Networks'"/>                                                  
                             </template>
                             <v-list-item-title style="width: auto; padding-left: 5px;" v-text="navigationTab.tabName"></v-list-item-title>
                         </v-list-item>

@@ -5,6 +5,7 @@
       stroke-width="7"   
       fill="white"
     />
+    <title>Budget Priority</title>
   </svg>
 </template>
 
@@ -12,5 +13,4 @@
 </script>
 
 <style scoped>
-
 </style>

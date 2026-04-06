@@ -44,7 +44,7 @@
                             >
                                 <template v-slot:activator="{ props }">
                                     <v-btn v-bind="props" id="TreatmentConsequencesTab-EquationView-btn" class="ghd-blue" flat icon>
-                                        <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')"/>
+                                        <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')" title="View"/>
                                     </v-btn>
                                 </template>
                                 <v-card>
@@ -66,7 +66,7 @@
                             </v-menu>     
                              <v-btn id="TreatmentConsequencesTab-EquationEditorBtn" v-if="header.key === 'equation'" @click='onShowConsequenceEquationEditorDialog(props.item)' class='edit-icon ghd-blue'
                                     style="padding-top: 13px;" flat icon>
-                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Edit"/>
                             </v-btn>                       
 
                             <v-menu
@@ -75,7 +75,7 @@
                             >
                                 <template v-slot:activator="{ props }">
                                     <v-btn v-bind="props" id="TreatmentConsequencesTab-CriteriaView-btn" class="ghd-blue" flat icon>
-                                        <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')"/>
+                                        <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')" title="View"/>
                                     </v-btn>
                                 </template>
                                 <v-card>
@@ -98,7 +98,7 @@
                             </v-menu>
                             <v-btn id="TreatmentConsequencesTab-CriteriaEditorBtn" v-if="header.key === 'criterionLibrary'" @click='onShowConsequenceCriterionEditorDialog(props.item)'
                                     class='edit-icon ghd-blue' style="padding-top: 13px;" flat icon>
-                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
+                                    <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Edit"/>
                             </v-btn>
 
                             <v-row v-if="header.key === ''" align="start">
