@@ -75,7 +75,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             var ageAttributeAsList = new List<AttributeDTO> { ageAttribute };
             var mappedAttributeList = AttributeDtoDomainMapper.ToDomainList(ageAttributeAsList, "");
             AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
-            var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
+            var calculatedAttribute = TestCalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
             var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
             calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";
             TestHelper.UnitOfWork.ClearAttributeIdNameCache();
