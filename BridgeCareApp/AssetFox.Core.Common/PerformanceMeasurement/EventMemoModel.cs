@@ -7,7 +7,7 @@ namespace AssetFox.Core.Common.PerformanceMeasurement
 {
     public class EventMemoModel
     {
-        public string Text { get; set; }
+        public required string Text { get; set; }
         public DateTime UtcTime { get; set; }
     }
 
@@ -99,7 +99,7 @@ namespace AssetFox.Core.Common.PerformanceMeasurement
         public static string ToGroupedString(this List<EventMemoModel> eventList)
         {
             Dictionary<string, double> TimeDictionary = new Dictionary<string, double>();
-            EventMemoModel previousMemo = null;
+            EventMemoModel? previousMemo = null;
             var allKeys = new List<string>();
             foreach (var memo in eventList)
             {
