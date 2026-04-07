@@ -153,6 +153,12 @@ namespace AssetFox.Core.UnitTestsCore.Tests
 
             var keyAttribute = TestHelper.UnitOfWork.NetworkRepo.GetNetworkKeyAttribute(networkId);
 
+            if (keyAttribute!="BRKEY_")
+            {
+                int x = 666;
+                var foo = TestHelper.UnitOfWork.NetworkRepo.GetNetworkKeyAttribute(networkId);
+            }
+
             Assert.Equal("BRKEY_", keyAttribute);
         }
 

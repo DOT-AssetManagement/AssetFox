@@ -4,10 +4,12 @@ using AssetFox.Core.Data.Attributes;
 using AssetFox.Core.Data.ExcelDatabaseStorage.Serializers;
 using AssetFox.Core.DataPersistenceCore.Migrations;
 using AssetFox.Core.DataPersistenceCore.Repositories;
+using AssetFox.Core.DataUnitTests.Tests;
 using AssetFox.Core.DTOs;
+using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
 
-namespace AssetFox.Core.DataUnitTests.Tests.Attributes
+namespace AssetFox.Core.UnitTestsCore.Tests.Attributes
 {
     public class ExcelAttributeConnectionTests
     {
@@ -18,8 +20,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Attributes
             // exist and have been reset by DatabaseResetter. NOT adding that call however
             // because it is slow.
             // Arrange
-            var config = TestConfiguration.Get();
-            var unitOfWork = UnitOfWorkSetup.New(config);
+            var unitOfWork = TestHelper.UnitOfWork;
             var dataSource = DataSourceTestSetup.DtoForExcelDataSourceInDb(unitOfWork);
             var attribute = AttributeConnectionAttributes.ForExcelTestData(dataSource.Id);
             var importedSpreadsheet = ExcelRawDataSetup.RawData(dataSource.Id);
