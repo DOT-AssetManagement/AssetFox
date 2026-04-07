@@ -16,9 +16,9 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Attributes
         [Fact]
         public void GetData_StringAttributeInDatabase_Gets()
         {
-            // If one is starting with this test, the Database needs to already
-            // exist and have been reset by DatabaseResetter. NOT adding that call however
-            // because it is slow.
+            // This test really belongs in DataUnitTests. The problem is
+            // that making that change would require resetting the database for
+            // a run of DataUnitTests. That takes about 15 seconds.
             // Arrange
             var unitOfWork = TestHelper.UnitOfWork;
             var dataSource = DataSourceTestSetup.DtoForExcelDataSourceInDb(unitOfWork);
