@@ -22,4 +22,10 @@
     <ProjectReference Include="..\AssetFox.CalculateEvaluate\AssetFox.CalculateEvaluate.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\AssetFox.Core.DataUnitTests\xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

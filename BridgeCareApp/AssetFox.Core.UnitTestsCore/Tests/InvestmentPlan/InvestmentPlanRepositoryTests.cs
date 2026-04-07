@@ -31,6 +31,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
         [Fact]
         public void GetSimulationInvestmentPlan_Does()
         {
+            // saw a failure with an empty key (KeyNotFoundException)
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
