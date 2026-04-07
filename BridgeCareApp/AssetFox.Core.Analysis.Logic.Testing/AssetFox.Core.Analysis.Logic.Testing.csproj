@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseSharedRunSettings>true</UseSharedRunSettings>
+    <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>

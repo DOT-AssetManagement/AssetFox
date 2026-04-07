@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseSharedRunSettings>true</UseSharedRunSettings>
+    <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

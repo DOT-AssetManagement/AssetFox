@@ -6,7 +6,7 @@
 
 		<IsPackable>false</IsPackable>
 
-		<Configurations>Debug;Release;Test</Configurations>
+     <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
