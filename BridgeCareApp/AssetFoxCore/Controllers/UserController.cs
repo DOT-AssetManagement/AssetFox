@@ -54,7 +54,6 @@ namespace AssetFoxCore.Controllers
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"User error::GetUserByUserName - {e.Message}", e);
                 throw;
             }
-            return Ok();
         }
 
         [HttpPost]

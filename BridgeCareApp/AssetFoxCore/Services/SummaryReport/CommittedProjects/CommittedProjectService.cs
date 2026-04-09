@@ -26,8 +26,6 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
 
         // TODO: Determine based on associated network
         private string _networkKeyField;
-        private readonly Dictionary<string, List<KeySegmentDatum>> _keyProperties;
-        private readonly List<string> _keyFields;
 
         public CommittedProjectService(IUnitOfWork unitOfWork, IHubService hubService)
         {
