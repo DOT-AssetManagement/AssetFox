@@ -163,7 +163,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
             var result = repo.GetSectionCommittedProjectDTOs(TestDataForCommittedProjects.NoCommitSimulationId);
 
             // Assert
-            Assert.Equal(0, result.Count);
+            Assert.Empty(result);
             Assert.IsType<List<SectionCommittedProjectDTO>>(result);
         }
 

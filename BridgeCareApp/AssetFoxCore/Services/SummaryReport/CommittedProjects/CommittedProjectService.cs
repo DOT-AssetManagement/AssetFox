@@ -28,7 +28,6 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
         private string _networkKeyField;
         private readonly Dictionary<string, List<KeySegmentDatum>> _keyProperties;
         private readonly List<string> _keyFields;
-        private bool newImportFile = false;
 
         public CommittedProjectService(IUnitOfWork unitOfWork, IHubService hubService)
         {

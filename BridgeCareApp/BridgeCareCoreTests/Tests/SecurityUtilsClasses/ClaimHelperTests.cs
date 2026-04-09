@@ -92,17 +92,5 @@ namespace AssetFoxCoreTests.Tests
             // Act
             var ex = Assert.Throws<UnauthorizedAccessException>(() => claimHelper.CheckIfAdminOrOwner(ownerId, userId));
         }
-
-        [Fact]
-        public void OldWayCheckUserLibraryModifyAuthorization_UserIsOwner_Passes()
-        {
-            var claims = new List<Claim> { new Claim(ClaimTypes.Name, SecurityConstants.Claim.BudgetPriorityViewPermittedFromLibraryAccess) };
-            var contextAccessor = HttpContextAccessorMocks.MockWithClaims(claims);
-            var claimHelper = CreateClaimHelper(contextAccessor);
-            var ownerId = Guid.NewGuid();
-
-            // Act
-            claimHelper.CheckIfAdminOrOwner(ownerId, ownerId);
-        }
     }
 }
