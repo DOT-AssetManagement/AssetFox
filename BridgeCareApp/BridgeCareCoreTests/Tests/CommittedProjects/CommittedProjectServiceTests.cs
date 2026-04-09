@@ -179,6 +179,7 @@ namespace AssetFoxCoreTests.Tests
             Assert.Equal(2023, testInput[1].Year);
         }
 
+        [Fact (Skip = "Broken")]
         public void ImportCreatesValidRecordsWithNoTreatment()
         {
             // Arrange
