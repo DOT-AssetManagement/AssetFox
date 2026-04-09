@@ -1,3 +1,6 @@
+#define ShouldHackSaveOutputToFile
+#define ShouldHackSaveTimingsToFile
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -5,13 +8,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using AssetFox.Core.Analysis.Engine;
 using AssetFox.Core.Common;
 using AssetFox.Core.Common.Logging;
 using AssetFox.Core.Common.PerformanceMeasurement;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.Abstract;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Enums;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
@@ -19,25 +20,18 @@ using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using EFCore.BulkExtensions;
 using Humanizer;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using FundingCalculationInput = AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationInput;
 using FundingCalculationOutput = AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.FundingCalculationOutput;
 
 namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
+
 {
     public class SimulationOutputRepository : ISimulationOutputRepository
     {
-        private const bool ShouldHackSaveOutputToFile = false;
-        private const bool ShouldHackSaveTimingsToFile = false;
         public const string SimulationOutputLoadKey = "SimulationOutputSqlBatches";
         public const string AssetLoadBatchSizeOverrideKey = "AssetDetailBatchSizeOverrideForValueLoad";
         private readonly UnitOfDataPersistenceWork _unitOfWork;
@@ -61,12 +55,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             loggerForUserInfo.UpdateWorkQueueStatus("Preparing to save to database");
             var _log = new DoLog();
 
-            if (ShouldHackSaveOutputToFile)
-            {
-#pragma warning disable CS0162 // Unreachable code detected
+#if ShouldHackSaveOutputToFile
                 HackSaveOutputToFile(simulationOutput);
-#pragma warning restore CS0162 // Unreachable code detected
-            }
+#endif
 
             var saveMemos = EventMemoModelLists.GetFreshInstance("Save");
             var simulationMemos = EventMemoModelLists.GetInstance("Simulation");
@@ -392,13 +383,14 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 _ = saveMemos.MarkInformation("Save complete", loggerForTechnicalInfo);
                 _ = simulationMemos.Mark("Save complete");
 
-                if (ShouldHackSaveTimingsToFile)
+#if ShouldHackSaveTimingsToFile
                 {
                     var timingsOutputFilename = "SaveTimings.txt";
                     var simulationOutputFilename = "SimulationTimings.txt";
                     WriteTimingsToFile(saveMemos, timingsOutputFilename);
                     WriteTimingsToFile(simulationMemos, simulationOutputFilename);
                 }
+#endif
                 loggerForUserInfo.UpdateWorkQueueStatus(SimulationUserMessages.SimulationOutputSavedToDatabase);
             }
             catch (Exception ex)
@@ -640,12 +632,11 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         public void CreateSimulationOutputViaJson(Guid simulationId, SimulationOutput simulationOutput)
         {
 
-            if (ShouldHackSaveOutputToFile)
+#if ShouldHackSaveOutputToFile
             {
-#pragma warning disable CS0162 // Unreachable code detected
                 HackSaveOutputToFile(simulationOutput);
-#pragma warning restore CS0162 // Unreachable code detected
             }
+#endif
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
                 throw new RowNotInTableException("No simulation found for given scenario.");
@@ -932,11 +923,12 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             _ = memos.MarkInformation("Load done", loggerForTechinalInfo);
             loggerForUserInfo.Information($"Simulation output load completed");
 
-            if (ShouldHackSaveTimingsToFile)
+#if ShouldHackSaveTimingsToFile
             {
                 var outputFilename = "LoadTimings.txt";
                 WriteTimingsToFile(memos, outputFilename);
             }
+#endif
             return simulationOutputDomain;
 
             IEnumerable<AssetDetailEntity> LoadAssetBatch(int runId, Guid yearId, Guid lastId, int pageSize)

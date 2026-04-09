@@ -29,7 +29,6 @@ namespace AssetFox.Core.Reporting
         private IUnitOfWork _unitofwork;
         private Guid _networkId;
         private Dictionary<string, AttributeDescription> _fieldDescriptions;
-        private readonly IAdminSettingsRepository _adminSettingsRepository;
 
         public string Suffix { get; private set; }
         public Guid ID { get; set; }
@@ -45,7 +44,6 @@ namespace AssetFox.Core.Reporting
         private PAMSParameters _failedQuery = new PAMSParameters { County = "unknown", SR = 0, SEG = "0" };
 
         private List<SegmentAttributeDatum> _sectionData;
-        private InventoryParameters sectionIds;
 
         public PAMSInventorySegmentsReport(IUnitOfWork uow, string name, ReportIndexDTO results, string suffix)
         {
