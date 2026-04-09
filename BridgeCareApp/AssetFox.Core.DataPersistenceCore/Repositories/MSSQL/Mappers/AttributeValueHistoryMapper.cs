@@ -76,6 +76,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 foreach (var entity in yearOfHistory)
                 {
                     var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
+                    if (!attributePerName.ContainsKey(attributeName))
+                    {
+                        int x = 666;
+                    }
                     var attribute = attributePerName[attributeName];
                     var history = maintainableAsset.GetHistory(attribute);
                     var value = getValue(entity);

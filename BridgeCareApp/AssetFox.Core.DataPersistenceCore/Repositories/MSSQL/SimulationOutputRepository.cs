@@ -436,7 +436,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                         _unitOfWork.Context.Database.ExecuteSqlRaw(truncateSql);
                         _log.Debug($"Truncated staging table {stagingTableName}");
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         _log.Error($"Error truncating staging table {stagingTableName}. SQL attempted: {truncateSql}");
                         throw; // Re-throw truncation errors, as we can't proceed
@@ -1211,7 +1211,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 (lowerBoundDate != null && upperBoundDate > lowerBoundDate && _.CreatedDate >= lowerBoundDate && _.CreatedDate <= upperBoundDate), 100, token).Wait();
                 _unitOfWork.Commit();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _unitOfWork.Rollback();
                 throw;
