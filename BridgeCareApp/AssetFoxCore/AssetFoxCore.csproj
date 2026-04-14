@@ -73,10 +73,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Graph" Version="5.103.0" />
     <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.3.93" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="NLog.Web.AspNetCore" Version="4.14.0" />
     <PackageReference Include="NuGet.Common" Version="7.3.0" />  <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
     <PackageReference Include="NuGet.ProjectModel" Version="7.3.0" /> <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->

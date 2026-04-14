@@ -1,5 +1,5 @@
-#define ShouldHackSaveOutputToFile
-#define ShouldHackSaveTimingsToFile
+//#define ShouldHackSaveOutputToFile  // uncomment to save simulation output to a local json file
+//#define ShouldHackSaveTimingsToFile // uncomment to save timing memos to a local text file
 
 using System;
 using System.Collections.Generic;
