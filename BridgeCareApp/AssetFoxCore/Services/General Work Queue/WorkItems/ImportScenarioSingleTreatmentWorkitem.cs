@@ -40,12 +40,12 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
             _treatmentService.ImportScenarioTreatmentsFileSingle(SimulationId, ExcelPackage, cancellationToken, _queueLogger);
         }
 
-        public void OnFault(IServiceProvider serviceProvider, string errorMessage)
+        public void OnFault(IServiceProvider serviceProvider, Exception? e)
         {
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
 
-            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{TreatmentController.TreatmentError}::ImportScenarioTreatmentsFile - Something was wrong with the provided file");
+            _hubService.SendRealTimeErrorMessage(UserId, $"{TreatmentController.TreatmentError}::ImportScenarioTreatmentsFile - Something was wrong with the provided file", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)

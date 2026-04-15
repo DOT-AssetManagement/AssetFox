@@ -11,8 +11,8 @@ namespace AssetFox.Core.Hubs.Interfaces
 
         void SendRealTimeMessage(string username, string method, object arg1, object arg2);
 
-        void SendRealTimeErrorMessage(string username, string arg, Exception e);
+        void SendRealTimeErrorMessage(string username, string arg, Exception e, bool shouldRethrowError = true);
 
-        void SendRealTimeErrorMessage(string username, string arg1, string arg2, Exception e);
+        void SendRealTimeErrorMessage(string username, string arg1, string arg2, Exception e, bool shouldRethrowError = true);
     }
 }

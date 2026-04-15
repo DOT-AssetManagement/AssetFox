@@ -143,13 +143,14 @@ namespace AssetFoxCore.Services
             }
         }
 
-        public void OnFault(IServiceProvider serviceProvider, string errorMessage)
+        public void OnFault(IServiceProvider serviceProvider, Exception? e)
         {
             string AggregationError = "Aggregation Error";
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
+            var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{AggregationError}::NetworkAggregateAccess - {errorMessage}");
+            _hubService.SendRealTimeMessage(UserId, $"{AggregationError}::NetworkAggregateAccess - {errorMessage}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)

@@ -137,12 +137,13 @@ namespace AssetFoxCore.Services
                 _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, message);
         }
 
-        public void OnFault(IServiceProvider serviceProvider, string errorMessage)
+        public void OnFault(IServiceProvider serviceProvider, Exception? e)
         {
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
+            var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{ReportController.ReportError}::GetFile - {errorMessage}");
+            _hubService.SendRealTimeErrorMessage(UserId, $"{ReportController.ReportError}::GetFile - {errorMessage}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)
