@@ -92,7 +92,7 @@
                                     class="ghd-white-bg ghd-blue ghd-button-text"
                                     flat
                                 >
-                                    <v-icon style="font-size:20px !important" class="ghd-red">fas fa-eraser</v-icon>
+                                    <v-icon style="font-size:20px !important" class="ghd-red" title="Erase">fas fa-eraser</v-icon>
                                 </v-btn>
                                 <v-btn id="TreatmentDetailsTab-EditCriteria-vbtn"
                                     @click="
@@ -102,7 +102,7 @@
                                     flat
                                     style="left:25px; padding-top: 15px"                                    
                                 >
-                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
+                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Edit"/>
                                 </v-btn>   
                             </v-col>                                    
                         </v-row>       

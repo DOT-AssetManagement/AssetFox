@@ -43,7 +43,7 @@ public sealed class ConditionalTreatmentConsequence : TreatmentConsequence
 
         if (!Equation.ExpressionIsBlank && Attribute is not NumberAttribute)
         {
-            results.Add(ValidationStatus.Error, "Equation is set and attribute is not a number.", this);
+            results.Add(ValidationStatus.Error, "Equation is set and attribute is not a number.", this, "Treatment");
         }
 
         return results;

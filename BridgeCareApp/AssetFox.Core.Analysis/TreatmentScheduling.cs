@@ -20,12 +20,12 @@ public sealed class TreatmentScheduling : WeakEntity, IValidator, ITreatmentSche
 
         if (OffsetToFutureYear < 1)
         {
-            results.Add(ValidationStatus.Error, "Offset to future year is less than one.", this, nameof(OffsetToFutureYear));
+            results.Add(ValidationStatus.Error, "Offset to future year is less than one.", this, nameof(OffsetToFutureYear), "Treatment Scheduling");
         }
 
         if (TreatmentToSchedule == null)
         {
-            results.Add(ValidationStatus.Error, "Treatment is unset.", this, nameof(TreatmentToSchedule));
+            results.Add(ValidationStatus.Error, "Treatment is unset.", this, nameof(TreatmentToSchedule), "Treatment Scheduling");
         }
 
         return results;

@@ -31,7 +31,7 @@
                                     <v-menu location="left" >
                                         <template v-slot:activator="{ props }">
                                             <v-btn  v-bind="props" class="ghd-blue" flat icon>
-                                                <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')">
+                                                <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')" title="View">
                                             </v-btn>
                                         </template>
                                         <v-card>
@@ -68,8 +68,9 @@
                                     icon
                                     >
                                     <img
-                                    style="height: 25px"
+                                        style="height: 25px"
                                         :src="getUrl('assets/icons/attributes-dark.svg')"
+                                        title="Generate"
                                     />
                                     </v-btn>
                                     <v-btn
@@ -79,7 +80,7 @@
                                         flat
                                         icon
                                     >
-                                        <img :src="getUrl('assets/icons/download.svg')"/>
+                                        <img :src="getUrl('assets/icons/download.svg')" title="Download"/>
                                     </v-btn>
                                     <v-btn
                                         @click="onDeleteReport(props.item.id)"

@@ -20,11 +20,11 @@ public sealed class BudgetAmount : WeakEntity, IValidator
 
         if (Value < 0)
         {
-            results.Add(ValidationStatus.Error, "Amount is less than zero.", this, nameof(Value));
+            results.Add(ValidationStatus.Error, "Amount is less than zero.", this, nameof(Value), "Investment");
         }
         else if (Value == 0)
         {
-            results.Add(ValidationStatus.Warning, "Amount is zero.", this, nameof(Value));
+            results.Add(ValidationStatus.Warning, "Amount is zero.", this, nameof(Value), "Investment");
         }
 
         return results;

@@ -34,12 +34,12 @@ public sealed class PerformanceCurve : WeakEntity, IValidator
 
         if (Attribute == null)
         {
-            results.Add(ValidationStatus.Error, "Attribute is unset.", this, nameof(Attribute));
+            results.Add(ValidationStatus.Error, "Attribute is unset.", this, nameof(Attribute), "Deterioration Model");
         }
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            results.Add(ValidationStatus.Warning, "Name is blank.", this, nameof(Name));
+            results.Add(ValidationStatus.Warning, "Name is blank.", this, nameof(Name), "Deterioration Model");
         }
 
         return results;

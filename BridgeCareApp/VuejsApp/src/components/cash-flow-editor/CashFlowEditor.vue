@@ -139,7 +139,7 @@
                                 style="margin-top: 12px; padding-top: 13px;"
                                 flat
                                 icon>
-                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')"/>
+                                <img class='img-general img-shift' :src="getUrl('assets/icons/edit.svg')" title="Edit"/>
                             </v-btn>
                             </v-row>
                         </td>
@@ -159,7 +159,7 @@
                                 class="ghd-blue"
                                 variant="flat"
                                 icon>
-                                <img class='img-general' :src="getUrl('assets/icons/edit-cash.svg')"/>
+                                <img class='img-general' :src="getUrl('assets/icons/edit-cash.svg')" title="Cash Flow Rule Settings"/>
                             </v-btn>
                             </v-row>                          
                         </td>

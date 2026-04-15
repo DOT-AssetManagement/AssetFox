@@ -27,7 +27,7 @@ public abstract class Treatment : WeakEntity, IValidator
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name));
+            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name), "Treatment");
         }
 
         return results;

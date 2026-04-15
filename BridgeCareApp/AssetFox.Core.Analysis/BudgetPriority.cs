@@ -29,7 +29,7 @@ public sealed class BudgetPriority : WeakEntity, IValidator
 
         if (BudgetPercentagePairs.All(budgetPercentage => budgetPercentage.Percentage == 0))
         {
-            results.Add(ValidationStatus.Warning, "All percentages are zero.", this, nameof(BudgetPercentagePairs));
+            results.Add(ValidationStatus.Warning, "All percentages are zero.", this, nameof(BudgetPercentagePairs), "Budget Priority");
         }
 
         return results;

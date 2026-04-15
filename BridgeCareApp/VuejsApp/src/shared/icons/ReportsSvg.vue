@@ -3,6 +3,7 @@
     <path d="M18 16H6C4.89543 16 4 16.8954 4 18V18C4 19.1046 4.89543 20 6 20H18" stroke="#888888" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M18 16V3H7C5.34315 3 4 4.34315 4 6V18" stroke="#888888" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
     <line x1="17" y1="16" x2="17" y2="20" stroke="#888888" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+    <title>Reports & Outputs</title>
     </svg>
 </template>
 <script setup lang='ts'>
