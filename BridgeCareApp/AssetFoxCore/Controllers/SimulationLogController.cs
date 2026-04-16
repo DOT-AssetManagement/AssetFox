@@ -49,7 +49,7 @@ namespace AssetFoxCore.Controllers
                 var bytes = Encoding.Unicode.GetBytes(log);
                 const string contentType = "text/plain";
                 HttpContext.Response.ContentType = contentType;
-                HttpContext.Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
+                HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "Content-Disposition";
 
                 var fileContentResult = new FileContentResult(bytes, contentType)
                 {
