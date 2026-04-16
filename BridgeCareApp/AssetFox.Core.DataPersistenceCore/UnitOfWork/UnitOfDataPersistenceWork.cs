@@ -53,8 +53,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private ICommittedProjectRepository _committedProjectRepo;      
         private ICriterionLibraryRepository _criterionLibraryRepo;
         private IDeficientConditionGoalRepository _deficientConditionGoalRepo;
-        private IExcelRawDataRepository _excelWorksheetRepo;
-        private IDataSourceMappingRepository _dataSourceMappingRepo;
+        private IExcelRawDataRepository _excelWorksheetRepo;  // should we delete this? 
+        private IDataSourceMappingRepository _dataSourceMappingRepo; // should we delete this?
         private IInvestmentPlanRepository _investmentPlanRepo;
         private IMaintainableAssetRepository _maintainableAssetRepo;
         private INetworkRepository _networkRepo;

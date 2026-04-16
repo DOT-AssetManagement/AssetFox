@@ -51,7 +51,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             var result = predominantAggregationRule.Apply(attributeData, numericAttribute);
 
             //Assert            
-            var resultItems = ((IEnumerable<(Attribute attribute, (int year, double value))>)result)?.ToList();
+            var resultItems = ((IEnumerable<(Attribute attribute, (int year, double value))>)result).ToList();
             Assert.Single(resultItems);
             var resultItem = resultItems.FirstOrDefault();
             Assert.Equal(numericAttribute, resultItem.attribute);
@@ -77,6 +77,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
 
             // Assert
             var resultItems = ((IEnumerable<(Attribute attribute, (int year, double value))>)result)?.ToList();
+            Assert.NotNull(resultItems);
             Assert.Single(resultItems);
             var resultItem = resultItems.FirstOrDefault();
             Assert.Equal(numericAttribute, resultItem.attribute);

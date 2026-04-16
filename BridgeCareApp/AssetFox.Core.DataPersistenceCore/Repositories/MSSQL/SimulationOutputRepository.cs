@@ -38,7 +38,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         public const int AssetLoadBatchSize = 2000;
         public const int AssetDetailSaveBatchSize = 100000;
         public const string AssetDetailSaveOverrideBatchSizeKey = "AssetDetailBatchSizeOverrideForValueSave";
-        private readonly ILog _log;
 
         public SimulationOutputRepository(UnitOfDataPersistenceWork unitOfWork)
         {
@@ -1215,7 +1214,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
             foreach (var id in outputIds)
             {
-                DeleteSimulationDataByRunId(id, _log);
+                DeleteSimulationDataByRunId(id, null);
             }
         }
 
