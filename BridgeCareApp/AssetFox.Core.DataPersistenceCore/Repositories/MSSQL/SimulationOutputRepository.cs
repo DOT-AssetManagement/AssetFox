@@ -758,7 +758,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
             var startMemo = memos.MarkInformation($"Starting load batchSize {assetLoadBatchSize}", loggerForTechinalInfo);
             loggerForUserInfo.Information("Loading SimulationOutput");
-            var batchSize = assetLoadBatchSize;
+            var batchSize = assetLoadBatchSize;            
 
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
@@ -776,7 +776,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 throw new Exception($"Expected to find one output for the simulation. Found {simulationOutputObjectCount}."); ;
             }
 
-            var simulationRunId = _unitOfWork.Context.SimulationOutput.Where(_ =>  _.SimulationId == simulationId).Select(_ => _.RunId).FirstOrDefault();
+            var simulationRunId = _unitOfWork.Context.SimulationOutput.AsNoTracking().Where(_ =>  _.SimulationId == simulationId).Select(_ => _.RunId).FirstOrDefault();
 
             var attributeNameLookup = _unitOfWork.AttributeRepo.GetAttributeNameLookupDictionary(attributeDtos);
             var entityWithoutAssetSummariesOrYearContents = _unitOfWork.Context.SimulationOutput
@@ -805,27 +805,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 assetNameLookup[assetSummary.MaintainableAssetId] = assetSummary.MaintainableAsset.AssetName;
             }
             var assetSummaryDomainDictionary = AssetSummaryDetailMapper.ToDomainDictionaryNullSafe(assetSummaryDetails, attributeNameLookup);
-            simulationOutputDomain.InitialAssetSummaries.AddRange(assetSummaryDomainDictionary.Values);
-
-            // Get and map AssetSummaryDetailValuesIntId
-            /*var assetSummaryDetailValueConfig = new BulkConfig
-            {
-                UpdateByProperties = new List<string> { nameof(AssetSummaryDetailValueEntityIntId.AssetSummaryDetailId), nameof(AssetSummaryDetailValueEntityIntId.AttributeId), nameof(AssetSummaryDetailValueEntityIntId.RunId) }
-            };
-            var assetSummaryDetailValueEntities = new List<AssetSummaryDetailValueEntityIntId>();
-            var usedAttributeIds = BuildUsedAttributeIdList(simulationOutputId);
-            foreach (var assetSummaryDetail in assetSummaryDetails)
-            {
-                foreach (var usedAttributeId in usedAttributeIds)
-                {
-                    assetSummaryDetailValueEntities.Add(new AssetSummaryDetailValueEntityIntId
-                    {
-                        RunId = simulationRunId,
-                        AttributeId = usedAttributeId,
-                        AssetSummaryDetailId = assetSummaryDetail.Id,
-                    }); ;
-                }
-            }*/
+            simulationOutputDomain.InitialAssetSummaries.AddRange(assetSummaryDomainDictionary.Values);            
 
             //stopwatch.Stop();
             _log.Information($"Getting AssetSummaryDetail values. {stopwatch.ElapsedMilliseconds}ms");
@@ -852,8 +832,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             //stopwatch.Reset();
             stopwatch.Restart();
 
-            var configMemo = memos.MarkInformation("assetSummary config", loggerForTechinalInfo);
-            //_unitOfWork.Context.BulkRead(assetSummaryDetailValueEntities, assetSummaryDetailValueConfig);
+            var configMemo = memos.MarkInformation("assetSummary config", loggerForTechinalInfo);            
             foreach (var assetSummaryDetailValueEntity in assetSummaryDetailValueEntities)
             {
                 var summary = assetSummaryDomainDictionary[assetSummaryDetailValueEntity.AssetSummaryDetailId];
@@ -878,7 +857,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             stopwatch.Restart();
             //stopwatch.Start();
             // SimulationYearDetails
-            #region SimulationYearDetails
+            #region SimulationYearDetails            
             foreach (var cacheYear in cacheYears)
             {
                 _log.Information($"Starting Year {cacheYear.Year}. {stopwatch.ElapsedMilliseconds}ms");
@@ -893,7 +872,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 Guid lastId = Guid.Empty;    // start from the very beginning
                 bool hasMore = true;
                 var assetsDict = new Dictionary<Guid, AssetDetail>();
-
+                                
                 while (hasMore)
                 {
                     var batch = LoadAssetBatch(
@@ -940,17 +919,16 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             return simulationOutputDomain;
 
             IEnumerable<AssetDetailEntity> LoadAssetBatch(int runId, Guid yearId, Guid lastId, int pageSize)
-            {
-                // 1. Load the batch of AssetDetail entities
+            {                
                 var assetDetailBatch = _unitOfWork.Context.AssetDetail
-                    .AsNoTrackingWithIdentityResolution() // Match original for top-level
-                    .Where(a =>
-                        a.RunId == runId &&
-                        a.SimulationYearDetailId == yearId &&
-                        a.Id.CompareTo(lastId) > 0) // string.CompareTo for Guid is not standard, ensure your Guid comparison is correct for DB
-                    .OrderBy(a => a.Id)
-                    .Take(pageSize)
-                    .ToList();
+                .AsNoTrackingWithIdentityResolution() // Match original for top-level
+                .Where(a =>
+                    a.RunId == runId &&
+                    a.SimulationYearDetailId == yearId &&
+                    a.Id.CompareTo(lastId) > 0) // string.CompareTo for Guid is not standard, ensure your Guid comparison is correct for DB
+                .OrderBy(a => a.Id)
+                .Take(pageSize)
+                .ToList();
 
                 if (!assetDetailBatch.Any())
                 {
