@@ -55,8 +55,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException($"No network found having id {networkId}");
             }
 
-            _unitOfWork.Context.Database.ExecuteSqlRaw( // Is it OK to switch this and similar lines to ExecuteSQL so it doesn't warn?
-                $"DELETE FROM dbo.AggregatedResult WHERE MaintainableAssetId IN (SELECT Id FROM dbo.MaintainableAsset WHERE NetworkId = '{networkId}')");
+            _unitOfWork.Context.Database.ExecuteSql(
+                $"DELETE FROM dbo.AggregatedResult WHERE MaintainableAssetId IN (SELECT Id FROM dbo.MaintainableAsset WHERE NetworkId = {networkId})");
             _unitOfWork.Context.SaveChanges();
         }
 
