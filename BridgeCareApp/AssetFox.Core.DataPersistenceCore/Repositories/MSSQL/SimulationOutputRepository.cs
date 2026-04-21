@@ -144,9 +144,17 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 foreach ( var orderItem in order)
                 {
                     var tableName = orderItem + "_Staging";
+                    var schemaSeparatorIndex = tableName.IndexOf('.');
+                    if (schemaSeparatorIndex < 0 || schemaSeparatorIndex == tableName.Length - 1)
+                    {
+                        throw new InvalidOperationException($"Expected schema-qualified table name. Received '{tableName}'.");
+                    }
 
-                    string disableSql = $@"
-                        DECLARE @t sysname  = N'{tableName}';
+                    var schemaName = tableName.Substring(0, schemaSeparatorIndex);
+                    var stagingTableName = tableName.Substring(schemaSeparatorIndex + 1);
+
+                    FormattableString disableSql = $@"
+                        DECLARE @t sysname = {tableName};
                         DECLARE @s nvarchar(max) = N'';
 
                         SELECT @s = @s +
@@ -162,10 +170,16 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                         EXEC (@s);                                   -- run all ALTERs in one batch
                     ";
 
-                    _unitOfWork.Context.Database.ExecuteSqlRaw(disableSql);
+                    _unitOfWork.Context.Database.ExecuteSql(disableSql);
 
-                    var noCheckSql = $"ALTER TABLE {tableName} NOCHECK CONSTRAINT ALL;";
-                    _unitOfWork.Context.Database.ExecuteSqlRaw(noCheckSql);
+                    _unitOfWork.Context.Database.ExecuteSql($@"
+                        DECLARE @schemaName sysname = {schemaName};
+                        DECLARE @tableName sysname = {stagingTableName};
+                        DECLARE @sql nvarchar(max) =
+                            N'ALTER TABLE ' + QUOTENAME(@schemaName) + N'.' + QUOTENAME(@tableName) + N' NOCHECK CONSTRAINT ALL;';
+
+                        EXEC (@sql);
+                    ");
                 }
 
                 // ----------------------------------------------------------------------------
