@@ -758,7 +758,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
             var startMemo = memos.MarkInformation($"Starting load batchSize {assetLoadBatchSize}", loggerForTechinalInfo);
             loggerForUserInfo.Information("Loading SimulationOutput");
-            var batchSize = assetLoadBatchSize;            
+            var batchSize = assetLoadBatchSize;
 
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
@@ -919,7 +919,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             return simulationOutputDomain;
 
             IEnumerable<AssetDetailEntity> LoadAssetBatch(int runId, Guid yearId, Guid lastId, int pageSize)
-            {                
+            {
+                // 1. Load the batch of AssetDetail entities
                 var assetDetailBatch = _unitOfWork.Context.AssetDetail
                 .AsNoTrackingWithIdentityResolution() // Match original for top-level
                 .Where(a =>
