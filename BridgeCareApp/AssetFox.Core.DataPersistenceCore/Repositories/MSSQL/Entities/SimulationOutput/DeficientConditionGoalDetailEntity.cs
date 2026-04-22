@@ -6,8 +6,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
     {
         public Guid SimulationYearDetailId { get; set; }
 
-        public int RunId { get; set; } // Is this intended to hide RunId in the superclass?
-
         public virtual SimulationYearDetailEntity SimulationYearDetail { get; set; }
 
         public double ActualDeficientPercentage { get; set; }
