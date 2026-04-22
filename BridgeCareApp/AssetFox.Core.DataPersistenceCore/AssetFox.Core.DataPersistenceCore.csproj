@@ -5,6 +5,7 @@
     <AssemblyName>AssetFox.Core.DataPersistenceCore</AssemblyName>
     <RootNamespace>AssetFox.Core.DataPersistenceCore</RootNamespace>
     <Configurations>Debug;Release;MsSqlDebug;Test</Configurations>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

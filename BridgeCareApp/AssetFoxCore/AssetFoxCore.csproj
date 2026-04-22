@@ -9,7 +9,7 @@
 	<!--https://chillicream.com/docs/hotchocolate/v13/defining-a-schema/documentation#xml-documentation-->
 	<PropertyGroup>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <NoWarn>$(NoWarn);1591</NoWarn>
+        <NoWarn>$(NoWarn);1591;CA1416</NoWarn>
     </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
