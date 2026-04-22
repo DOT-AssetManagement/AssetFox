@@ -10,6 +10,7 @@ using AssetFox.Core.Reporting.Models;
 
 namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
 {
+    // As of 4/22/26, this class is referenced, but the ref is unused. Keep or delete? 
     public class ProjectsCompletedCount
     {
         private BridgeWorkSummaryCommon _bridgeWorkSummaryCommon;
