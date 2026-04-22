@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment;
@@ -875,11 +874,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     if (ruleIdsToDelete.Any())
                     {
                         // 2. Delete from the linking table using a SINGLE efficient raw SQL call.
-                        var parameterPlaceholders = string.Join(", ", ruleIdsToDelete.Select((_, index) => $"{{{index}}}"));
-                        var deleteRuleJoinSql = FormattableStringFactory.Create(
-                            $"DELETE FROM dbo.CriterionLibrary_ScenarioTreatmentSupersedeRule WHERE ScenarioTreatmentSupersedeRuleId IN ({parameterPlaceholders})",
-                            ruleIdsToDelete.Cast<object>().ToArray());
-                        _unitOfWork.Context.Database.ExecuteSql(deleteRuleJoinSql);
+                        string ruleIdsString = string.Join(",", ruleIdsToDelete.Select(id => $"'{id}'"));
+                        _unitOfWork.Context.Database.ExecuteSqlRaw(
+                             $"DELETE FROM dbo.CriterionLibrary_ScenarioTreatmentSupersedeRule WHERE ScenarioTreatmentSupersedeRuleId IN ({ruleIdsString})");
 
                         // 3. Delete from the parent table.
                         _unitOfWork.Context.DeleteAll<ScenarioTreatmentSupersedeRuleEntity>(x => x.TreatmentId == entityId || x.PreventTreatmentId == entityId);
