@@ -875,8 +875,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     {
                         // 2. Delete from the linking table using a SINGLE efficient raw SQL call.
                         string ruleIdsString = string.Join(",", ruleIdsToDelete.Select(id => $"'{id}'"));
+#pragma warning disable EF1002 // The warning about SQL injection is suppressed here because the IDs are guids, which makes this safe. For another potential work around, see commit 31ef16a2936dbc7dd71f7eb502996344eaa29874. But according to GPT, that one introduces a limit of 2100 guids, beyond which it won't work.
                         _unitOfWork.Context.Database.ExecuteSqlRaw(
                              $"DELETE FROM dbo.CriterionLibrary_ScenarioTreatmentSupersedeRule WHERE ScenarioTreatmentSupersedeRuleId IN ({ruleIdsString})");
+#pragma warning restore EF1002 // Risk of vulnerability to SQL injection.
 
                         // 3. Delete from the parent table.
                         _unitOfWork.Context.DeleteAll<ScenarioTreatmentSupersedeRuleEntity>(x => x.TreatmentId == entityId || x.PreventTreatmentId == entityId);
