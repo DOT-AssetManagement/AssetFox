@@ -15,6 +15,7 @@ namespace AssetFoxCore
                     config.AddJsonFile("appsettings.json", true, true);
                     config.AddJsonFile("esec.json", true, true);
                     config.AddJsonFile("b2c.json", true, true);
+                    config.AddJsonFile("encryption.json", true, true);
 #if MsSqlDebug
                     config.AddJsonFile("coreConnection.Development.json", true, true);
 #elif Release

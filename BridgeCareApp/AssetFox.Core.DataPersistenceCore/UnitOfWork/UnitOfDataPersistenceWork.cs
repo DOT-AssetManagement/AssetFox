@@ -27,7 +27,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
             Config = config ?? throw new ArgumentNullException(nameof(config));
             Context = context ?? throw new ArgumentNullException(nameof(context));
 
-            EncryptionKey = Config.GetChildren().Count() > 0 && Config != null ? Config.GetSection("EncryptionKey").Value : String.Empty;
+            EncryptionKey = Config.GetChildren().Any() && Config != null ? Config.GetSection("EncryptionKey").Value : String.Empty;
         }
                 
         public string EncryptionKey { get; }
