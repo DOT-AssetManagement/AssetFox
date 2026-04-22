@@ -758,7 +758,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var assetLoadBatchSize = GetConfiguredBatchSize(_unitOfWork.Config, AssetLoadBatchSizeOverrideKey) ?? AssetLoadBatchSize;
             var startMemo = memos.MarkInformation($"Starting load batchSize {assetLoadBatchSize}", loggerForTechinalInfo);
             loggerForUserInfo.Information("Loading SimulationOutput");
-            var batchSize = assetLoadBatchSize;            
+            var batchSize = assetLoadBatchSize;
+
+            // Use of "NOLOCK"
+            using var transaction = _unitOfWork.Context.Database.BeginTransaction(IsolationLevel.ReadUncommitted);
 
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
