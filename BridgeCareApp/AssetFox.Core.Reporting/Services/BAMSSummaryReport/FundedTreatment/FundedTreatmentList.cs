@@ -279,6 +279,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
             public AssetDetail Asset { get; init; }
             public TreatmentOptionDetail? TreatmentOption { get; init; }
             public TreatmentConsiderationDetail? TreatmentConsideration { get; init; }
+            // Is there any reason the two above need to be nullable? We are not in a nullable context.
             public bool IsCashFlowed { get; set; }
             public int LengthInYears { get; set; } = 1;
             public bool IsAnalysisLengthExceeded { get; set; } = false;
