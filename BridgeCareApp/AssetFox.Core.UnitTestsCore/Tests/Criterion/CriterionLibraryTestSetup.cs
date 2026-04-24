@@ -13,6 +13,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
     public static class CriterionLibraryTestSetup
     {
         public static CriterionLibraryDTO TestCriterionLibrary(string? namePrefix = null, string mergedCriteriaExpression = null, bool isSingleUse = true)
+            // Here and elsewhere, it is warning about use of nullable types when its not in a #nullable context. My gut is to remove the nullable part, unless there is a reason to keep?
         {
             var resolvedNamePrefix = namePrefix ?? "Test Criterion Library ";
             var resolvedCriteriaExpression = mergedCriteriaExpression ?? "Test Expression";
