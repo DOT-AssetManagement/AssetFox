@@ -20,7 +20,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
         private NHSBridgeDeckAreaWorkSummary _nhsBridgeDeckAreaWorkSummary;
         private DeckAreaBridgeWorkSummary _deckAreaBridgeWorkSummary;
         private PostedClosedBridgeWorkSummary _postedClosedBridgeWorkSummary;
-        private ProjectsCompletedCount _projectsCompletedCount;
         private ReportHelper _reportHelper;
         private readonly IUnitOfWork _unitOfWork;
 
@@ -34,7 +33,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
             _nhsBridgeDeckAreaWorkSummary = new NHSBridgeDeckAreaWorkSummary(_unitOfWork);
             _deckAreaBridgeWorkSummary = new DeckAreaBridgeWorkSummary(_unitOfWork);
             _postedClosedBridgeWorkSummary = new PostedClosedBridgeWorkSummary(workSummaryModel, _unitOfWork);
-            //_projectsCompletedCount = new ProjectsCompletedCount(Warnings);            
             _reportHelper = new ReportHelper(_unitOfWork);
         }
 
@@ -78,7 +76,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
                 simulationYears, yearlyBudgets, costPerBPNPerYear, simulationTreatments, committedProjectsForWorkOutsideScope, shouldBundleFeasibleTreatments, spendingStrategy);
 
             _bridgesCulvertsWorkSummary.FillBridgesCulvertsWorkSummarySections(worksheet, currentCell, costAndCountPerTreatmentPerYear, yearlyCostCommittedProj, simulationYears, simulationTreatments);
-            //_projectsCompletedCount.FillProjectCompletedCountSection(worksheet, currentCell, countForCompletedProject, countForCompletedCommittedProject, simulationYears, simulationTreatments);
 
             var chartRowsModel = _bridgeRateDeckAreaWorkSummary.FillBridgeRateDeckAreaWorkSummarySections(worksheet, currentCell,
                 simulationYears, workSummaryModel, reportOutputData);
