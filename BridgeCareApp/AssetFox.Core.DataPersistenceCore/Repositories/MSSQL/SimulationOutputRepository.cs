@@ -7,7 +7,6 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using AssetFox.Core.Analysis.Engine;
 using AssetFox.Core.Common;
@@ -144,10 +143,29 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 //Disable Non-Clustered Indexes for Staging tables (faster inserts, will rebuild when done)
                 foreach ( var orderItem in order)
                 {
-                    var stagingTableName = orderItem + "_Staging";
+                    var tableName = orderItem + "_Staging";
 
-                    _unitOfWork.Context.Database.ExecuteSql(BuildDisableNonClusteredIndexesSql(stagingTableName));
-                    _unitOfWork.Context.Database.ExecuteSql(BuildQualifiedTableCommand(stagingTableName, "ALTER TABLE ", " NOCHECK CONSTRAINT ALL;"));
+                    string disableSql = $@"
+                        DECLARE @t sysname  = N'{tableName}';
+                        DECLARE @s nvarchar(max) = N'';
+
+                        SELECT @s = @s +
+                               N'ALTER INDEX ' + QUOTENAME(i.name) +
+                               N' ON ' + QUOTENAME(SCHEMA_NAME(o.schema_id)) + N'.' + QUOTENAME(o.name) +
+                               N' DISABLE;' + CHAR(10)
+                        FROM sys.indexes i
+                        JOIN sys.objects o ON o.object_id = i.object_id
+                        WHERE  o.object_id = OBJECT_ID(@t)
+                          AND  i.type_desc = 'NONCLUSTERED'          -- only the NCIs
+                          AND  i.is_disabled = 0;                    -- skip if already disabled
+
+                        EXEC (@s);                                   -- run all ALTERs in one batch
+                    ";
+
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(disableSql);
+
+                    var noCheckSql = $"ALTER TABLE {tableName} NOCHECK CONSTRAINT ALL;";
+                    _unitOfWork.Context.Database.ExecuteSqlRaw(noCheckSql);
                 }
 
                 // ----------------------------------------------------------------------------
@@ -402,10 +420,11 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 foreach (var table in tableList)
                 {
                     var stagingTableName = table + "_Staging";
-                    var truncateSql = BuildQualifiedTableCommand(stagingTableName, "TRUNCATE TABLE ", ";");
+                    string truncateSql = $"TRUNCATE TABLE {stagingTableName};";
                     try
                     {
-                        _unitOfWork.Context.Database.ExecuteSql(truncateSql);
+                        // Use ExecuteSqlRaw for DDL
+                        _unitOfWork.Context.Database.ExecuteSqlRaw(truncateSql);
                         _log.Debug($"Truncated staging table {stagingTableName}");
                     }
                     catch (Exception)
@@ -424,11 +443,20 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     // Drop existing check constraint (assuming a fixed name)
                     var cleanTable = table.StartsWith("dbo.") ? table.Substring("dbo.".Length) : table;
                     string constraintName = $"CK_{cleanTable}_Partition"; // Need consistent naming
-                    var dropConstraintSql = BuildDropConstraintIfExistsSql(stagingTableName, constraintName);
+                    string dropConstraintSql = $@"
+                        IF EXISTS (
+                            SELECT 1
+                            FROM sys.check_constraints
+                            WHERE name = '{constraintName}'
+                            AND parent_object_id = OBJECT_ID('{stagingTableName}')
+                        )
+                        BEGIN
+                            ALTER TABLE {stagingTableName} DROP CONSTRAINT {constraintName};
+                        END";
 
                     try
                     {
-                        _unitOfWork.Context.Database.ExecuteSql(dropConstraintSql);
+                        _unitOfWork.Context.Database.ExecuteSqlRaw(dropConstraintSql);
                         _log.Debug($"Ensured constraint {constraintName} is not present on {stagingTableName} (dropped if existed).");
                     }
                     catch (Exception ex)
@@ -439,10 +467,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
 
                     // Add new check constraint for the current runId
-                    var addConstraintSql = BuildAddPartitionConstraintSql(stagingTableName, constraintName, currentSimulationRunId);
+                    string addConstraintSql = $"ALTER TABLE {stagingTableName} ADD CONSTRAINT {constraintName} CHECK (RunId = {currentSimulationRunId});";
                     try
                     {
-                        _unitOfWork.Context.Database.ExecuteSql(addConstraintSql);
+                        _unitOfWork.Context.Database.ExecuteSqlRaw(addConstraintSql);
                         _log.Debug($"Added constraint {constraintName} CHECK (RunId = {currentSimulationRunId}) on {stagingTableName}.");
                     }
                     catch (Exception ex)
@@ -464,8 +492,15 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             if (_unitOfWork.Context.Database.CurrentTransaction == null)
                 throw new InvalidOperationException("Must be called inside an open transaction.");
 
-            string src = QuoteSchemaQualifiedName(stagingTableName);
-            string dest = QuoteSchemaQualifiedName(liveTableName);
+            // split and quote the names once
+            string Quote(string twoPart)
+            {
+                var parts = twoPart.Split('.');
+                return $"[{parts[0]}].[{parts[1]}]";
+            }
+
+            string src = Quote(stagingTableName);
+            string dest = Quote(liveTableName);
 
             string sql = $@"
                 DECLARE @p int = $PARTITION.{partitionFunctionName}({simulationRunId});
@@ -545,7 +580,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                         // 2. Switch-out the partition
                         string sql = $@"
                             EXEC dbo.usp_PurgePartitionViaSwitchOut
-                                @SourceTable = '{QuoteSchemaQualifiedName(liveTable)}',
+                                @SourceTable = '{Quote(liveTable)}',
                                 @PartitionValue = {simulationRunId}
                         ";
 
@@ -585,132 +620,12 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
             _unitOfWork.Commit();
             _log.Information($"Delete completed. Committed transaction for DeleteSimulationDataByRunId (RunId: {simulationRunId}).");
-        }
 
-        private static FormattableString BuildDisableNonClusteredIndexesSql(string schemaQualifiedTableName)
-        {
-            var tableName = EnsureSchemaQualifiedName(schemaQualifiedTableName);
-
-            return FormattableStringFactory.Create(@"
-                DECLARE @t sysname = {0};
-                DECLARE @s nvarchar(max) = N'';
-
-                SELECT @s = @s +
-                       N'ALTER INDEX ' + QUOTENAME(i.name) +
-                       N' ON ' + QUOTENAME(SCHEMA_NAME(o.schema_id)) + N'.' + QUOTENAME(o.name) +
-                       N' DISABLE;' + CHAR(10)
-                FROM sys.indexes i
-                JOIN sys.objects o ON o.object_id = i.object_id
-                WHERE  o.object_id = OBJECT_ID(@t)
-                  AND  i.type_desc = 'NONCLUSTERED'
-                  AND  i.is_disabled = 0;
-
-                EXEC (@s);
-            ", tableName);
-        }
-
-        private static FormattableString BuildRebuildDisabledNonClusteredIndexesSql(string schemaQualifiedTableName)
-        {
-            var tableName = EnsureSchemaQualifiedName(schemaQualifiedTableName);
-
-            return FormattableStringFactory.Create(@"
-                DECLARE @t sysname = {0};
-                DECLARE @sql nvarchar(max) = N'';
-
-                SELECT @sql = @sql +
-                       N'ALTER INDEX ' + QUOTENAME(i.name) +
-                       N' ON ' + QUOTENAME(SCHEMA_NAME(o.schema_id)) + N'.' + QUOTENAME(o.name) +
-                       N' REBUILD;' + CHAR(13) + CHAR(10)
-                FROM sys.indexes i
-                JOIN sys.objects o ON o.object_id = i.object_id
-                WHERE o.object_id = OBJECT_ID(@t)
-                  AND i.type_desc = 'NONCLUSTERED'
-                  AND i.is_disabled = 1;
-
-                EXEC sp_executesql @sql;
-            ", tableName);
-        }
-
-        private static FormattableString BuildQualifiedTableCommand(string schemaQualifiedTableName, string commandPrefix, string commandSuffix)
-        {
-            var (schemaName, tableName) = SplitSchemaQualifiedName(schemaQualifiedTableName);
-
-            return FormattableStringFactory.Create(@"
-                DECLARE @schemaName sysname = {0};
-                DECLARE @tableName sysname = {1};
-                DECLARE @sql nvarchar(max) =
-                    N'" + commandPrefix + @"' + QUOTENAME(@schemaName) + N'.' + QUOTENAME(@tableName) + N'" + commandSuffix + @"';
-
-                EXEC (@sql);
-            ", schemaName, tableName);
-        }
-
-        private static FormattableString BuildDropConstraintIfExistsSql(string schemaQualifiedTableName, string constraintName)
-        {
-            var (schemaName, tableName) = SplitSchemaQualifiedName(schemaQualifiedTableName);
-
-            return FormattableStringFactory.Create(@"
-                DECLARE @schemaName sysname = {0};
-                DECLARE @tableName sysname = {1};
-                DECLARE @constraintName sysname = {2};
-
-                IF EXISTS (
-                    SELECT 1
-                    FROM sys.check_constraints
-                    WHERE name = @constraintName
-                      AND parent_object_id = OBJECT_ID(QUOTENAME(@schemaName) + N'.' + QUOTENAME(@tableName))
-                )
-                BEGIN
-                    DECLARE @sql nvarchar(max) =
-                        N'ALTER TABLE ' + QUOTENAME(@schemaName) + N'.' + QUOTENAME(@tableName) +
-                        N' DROP CONSTRAINT ' + QUOTENAME(@constraintName) + N';';
-
-                    EXEC (@sql);
-                END
-            ", schemaName, tableName, constraintName);
-        }
-
-        private static FormattableString BuildAddPartitionConstraintSql(string schemaQualifiedTableName, string constraintName, int simulationRunId)
-        {
-            var (schemaName, tableName) = SplitSchemaQualifiedName(schemaQualifiedTableName);
-
-            return FormattableStringFactory.Create(@"
-                DECLARE @schemaName sysname = {0};
-                DECLARE @tableName sysname = {1};
-                DECLARE @constraintName sysname = {2};
-                DECLARE @runId int = {3};
-                DECLARE @sql nvarchar(max) =
-                    N'ALTER TABLE ' + QUOTENAME(@schemaName) + N'.' + QUOTENAME(@tableName) +
-                    N' ADD CONSTRAINT ' + QUOTENAME(@constraintName) +
-                    N' CHECK (RunId = ' + CAST(@runId AS nvarchar(20)) + N');';
-
-                EXEC (@sql);
-            ", schemaName, tableName, constraintName, simulationRunId);
-        }
-
-        private static string EnsureSchemaQualifiedName(string schemaQualifiedName)
-        {
-            _ = SplitSchemaQualifiedName(schemaQualifiedName);
-            return schemaQualifiedName;
-        }
-
-        private static string QuoteSchemaQualifiedName(string schemaQualifiedName)
-        {
-            var (schemaName, objectName) = SplitSchemaQualifiedName(schemaQualifiedName);
-            return $"[{schemaName}].[{objectName}]";
-        }
-
-        private static (string SchemaName, string ObjectName) SplitSchemaQualifiedName(string schemaQualifiedName)
-        {
-            var schemaSeparatorIndex = schemaQualifiedName.IndexOf('.');
-            if (schemaSeparatorIndex < 0 || schemaSeparatorIndex == schemaQualifiedName.Length - 1)
+            string Quote(string twoPart)
             {
-                throw new InvalidOperationException($"Expected schema-qualified table name. Received '{schemaQualifiedName}'.");
+                var parts = twoPart.Split('.');
+                return $"[{parts[0]}].[{parts[1]}]";
             }
-
-            return (
-                schemaQualifiedName.Substring(0, schemaSeparatorIndex),
-                schemaQualifiedName.Substring(schemaSeparatorIndex + 1));
         }
 
         public void CreateSimulationOutputViaJson(Guid simulationId, SimulationOutput simulationOutput)
