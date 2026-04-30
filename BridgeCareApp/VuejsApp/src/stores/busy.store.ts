@@ -1,0 +1,22 @@
+import { defineStore } from 'pinia';
+
+export interface BusyStoreState {
+    processCounter: number;
+}
+
+export const useBusyStore = defineStore('busy', {
+    state: (): BusyStoreState => ({
+        processCounter: 0,
+    }),
+    actions: {
+        incrementProcessCounter() {
+            this.processCounter += 1;
+        },
+        decrementProcessCounter() {
+            this.processCounter -= 1;
+        },
+        setProcessCounter(count: number) {
+            this.processCounter = count;
+        },
+    },
+});

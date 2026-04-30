@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSignOutAlt, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
 import Vue, { createApp, h, defineComponent, watch, reactive } from 'vue';
 import vuetify from '@/plugins/vuetify';
+import pinia from '@/stores';
 import 'vuetify/dist/vuetify.min.css';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -50,6 +51,7 @@ store.dispatch('loadConfig').then(() => {
 
 
     app.use(router);
+    app.use(pinia);
     app.use(store);
     app.use(vuetify);
     app.use(PrimeVue);
