@@ -43,14 +43,8 @@ export const useConfigStore = defineStore('config', {
                 }
 
                 const config = (await response.json()) as Config;
-                if (
-                    !config.logos ||
-                    typeof config.logos.agencyFilename !== 'string' ||
-                    typeof config.logos.implementationFilename !== 'string'
-                ) {
-                    console.warn(
-                        'Config.json loaded but missing or invalid "logos" structure.',
-                    );
+                if (!config.logos || typeof config.logos.agencyFilename !== 'string' || typeof config.logos.implementationFilename !== 'string') {
+                    console.warn('Config.json loaded but missing or invalid "logos" structure.',);
                 }
 
                 this.setConfig(config);
