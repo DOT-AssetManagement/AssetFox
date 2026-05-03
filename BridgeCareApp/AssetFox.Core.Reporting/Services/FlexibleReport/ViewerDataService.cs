@@ -271,10 +271,12 @@ ORDER BY pg.RowNum";
 
             if (hasCost)
                 columns.Add(new ViewerColumnDTO { Key = "cost", Header = simulationColumns.First(sc =>
-                    sc.Field.Equals("cost", StringComparison.OrdinalIgnoreCase)).DisplayHeader, Format = "currency" });
+                    sc.Field.Equals("cost", StringComparison.OrdinalIgnoreCase)).DisplayHeader, Format = "currency",
+                    Sortable = false, Filterable = false });
             if (hasBudget)
                 columns.Add(new ViewerColumnDTO { Key = "budget", Header = simulationColumns.First(sc =>
-                    sc.Field.Equals("budget", StringComparison.OrdinalIgnoreCase)).DisplayHeader, Format = "text" });
+                    sc.Field.Equals("budget", StringComparison.OrdinalIgnoreCase)).DisplayHeader, Format = "text",
+                    Sortable = false, Filterable = false });
 
             foreach (var attrCol in attributeColumns)
                 columns.Add(new ViewerColumnDTO { Key = attrCol.AttributeName, Header = attrCol.DisplayHeader, Format = attrCol.Format });
@@ -584,10 +586,12 @@ ORDER BY pg.RowNum";
 
             if (hasCost)
                 columns.Add(new ViewerColumnDTO { Key = "cost", Header = simulationColumns.First(sc =>
-                    sc.Field.Equals("cost", StringComparison.OrdinalIgnoreCase)).DisplayHeader, Format = "currency" });
+                    sc.Field.Equals("cost", StringComparison.OrdinalIgnoreCase)).DisplayHeader, Format = "currency",
+                    Sortable = false, Filterable = false });
             if (hasBudget)
                 columns.Add(new ViewerColumnDTO { Key = "budget", Header = simulationColumns.First(sc =>
-                    sc.Field.Equals("budget", StringComparison.OrdinalIgnoreCase)).DisplayHeader, Format = "text" });
+                    sc.Field.Equals("budget", StringComparison.OrdinalIgnoreCase)).DisplayHeader, Format = "text",
+                    Sortable = false, Filterable = false });
 
             foreach (var attrCol in attributeColumns)
                 columns.Add(new ViewerColumnDTO { Key = attrCol.AttributeName, Header = attrCol.DisplayHeader, Format = attrCol.Format });
