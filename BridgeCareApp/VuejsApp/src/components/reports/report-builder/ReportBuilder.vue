@@ -215,6 +215,7 @@ import {
     ReportPage,
     emptyReportSchemaDTO,
     emptyPageSettings,
+    componentTypeInfo,
     createDefaultPage,
 } from '@/shared/models/iAM/report-schema';
 import ComponentPalette from './ComponentPalette.vue';
@@ -377,16 +378,41 @@ function confirmDelete() {
 
 // --- Save / Load ---
 
+function getRequiredComponentTitle(component: ReportComponent): string {
+    return component.title?.trim()
+        || componentTypeInfo[component.type]?.label
+        || 'Report Component';
+}
+
+function prepareComponentForSave(component: ReportComponent, order: number): ReportComponent {
+    return {
+        ...component,
+        title: getRequiredComponentTitle(component),
+        order,
+        config: clone(component.config),
+    };
+}
+
+function prepareLoadedPages(loadedPages: ReportPage[]): ReportPage[] {
+    return loadedPages.map((page, pageIndex) => ({
+        ...page,
+        order: pageIndex,
+        components: (page.components || []).map((component, componentIndex) =>
+            prepareComponentForSave(component, componentIndex)
+        ),
+    }));
+}
+
 function buildSchemaJson(): string {
     const definition: ReportSchemaDefinition = {
-        schemaVersion: '3.0',
+        schemaVersion: '1.0',
         name: schemaName.value,
         description: schemaDescription.value,
         pageSettings: clone(emptyPageSettings),
         pages: pages.value.map((p, pi) => ({
             ...p,
             order: pi,
-            components: p.components.map((c, ci) => ({ ...c, order: ci })),
+            components: p.components.map((c, ci) => prepareComponentForSave(c, ci)),
         })),
     };
     return JSON.stringify(definition);
@@ -430,7 +456,7 @@ function onLoadSchema(schema: ReportSchemaDTO) {
     try {
         const definition = JSON.parse(schema.schemaJson) as ReportSchemaDefinition;
         pages.value = definition.pages && definition.pages.length > 0
-            ? definition.pages
+            ? prepareLoadedPages(definition.pages)
             : [createDefaultPage()];
     } catch {
         pages.value = [createDefaultPage()];

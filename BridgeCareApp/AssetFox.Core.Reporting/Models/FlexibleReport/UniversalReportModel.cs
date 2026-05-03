@@ -20,7 +20,6 @@ namespace AssetFox.Core.Reporting.Models.FlexibleReport
         public string Title { get; set; }
         public int Order { get; set; }
         public bool Visible { get; set; }
-        public string ExcelTabName { get; set; }
         public ReportTableData TableData { get; set; }
         public ReportChartData ChartData { get; set; }
         public ReportAggregationData AggregationData { get; set; }

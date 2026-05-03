@@ -11,19 +11,10 @@
                 label="Title"
                 variant="outlined"
                 density="compact"
-                hide-details
+                :rules="[titleRequiredRule]"
                 class="mb-2"
                 @update:model-value="emitUpdate"
-            />
-            <v-text-field
-                v-model="localComponent.excelTabName"
-                label="Excel Tab Name"
-                variant="outlined"
-                density="compact"
-                hide-details
-                placeholder="Auto-generated if empty"
-                class="mb-2"
-                @update:model-value="emitUpdate"
+                @blur="ensureTitle"
             />
             <v-checkbox
                 v-model="localComponent.visible"
@@ -173,6 +164,9 @@ const typeInfo = computed(() =>
     localComponent.value ? componentTypeInfo[localComponent.value.type] : componentTypeInfo.assetDetail
 );
 
+const titleRequiredRule = (value: string) =>
+    !!value?.trim() || 'Title is required';
+
 function onConfigUpdate(config: ComponentConfig) {
     if (!localComponent.value) return;
     localComponent.value.config = config;
@@ -183,6 +177,17 @@ function onFilterUpdate(expression: string) {
     if (!localComponent.value) return;
     localComponent.value.criteriaExpression = expression;
     emitUpdate();
+}
+
+function ensureTitle() {
+    if (!localComponent.value) return;
+    if (!localComponent.value.title?.trim()) {
+        localComponent.value.title = componentTypeInfo[localComponent.value.type]?.label || 'Report Component';
+        emitUpdate();
+    } else {
+        localComponent.value.title = localComponent.value.title.trim();
+        emitUpdate();
+    }
 }
 
 function emitUpdate() {

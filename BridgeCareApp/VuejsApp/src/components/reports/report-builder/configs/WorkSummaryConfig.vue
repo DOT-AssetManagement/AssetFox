@@ -68,8 +68,6 @@ const attributeNames = computed(() => {
 const aggregateFieldOptions = [
     { title: 'Treatment Cost', value: 'cost' },
     { title: 'Asset Count', value: 'count' },
-    { title: 'Benefit', value: 'benefit' },
-    { title: 'Remaining Life', value: 'remainingLife' },
 ];
 
 function emitUpdate() {

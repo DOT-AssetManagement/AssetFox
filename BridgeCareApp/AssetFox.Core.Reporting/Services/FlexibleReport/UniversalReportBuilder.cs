@@ -52,8 +52,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 Type = component.Type,
                 Title = component.Title,
                 Order = component.Order,
-                Visible = component.Visible,
-                ExcelTabName = component.ExcelTabName
+                Visible = component.Visible
             };
 
             var config = component.Config ?? new Dictionary<string, object>();

@@ -58,7 +58,6 @@ export interface ReportComponent {
     title: string;
     order: number;
     visible: boolean;
-    excelTabName: string;
     criteriaExpression: string;
     pageSize: number;
     stripedRows: boolean;
@@ -187,9 +186,7 @@ export type SimulationField =
     | 'treatmentCause'
     | 'treatmentStatus'
     | 'cost'
-    | 'budget'
-    | 'benefit'
-    | 'remainingLife';
+    | 'budget';
 
 // ============================================================
 // Defaults
@@ -225,7 +222,7 @@ export const emptyYearField: YearField = {
 };
 
 export const emptyReportSchemaDefinition: ReportSchemaDefinition = {
-    schemaVersion: '3.0',
+    schemaVersion: '1.0',
     name: '',
     description: '',
     pageSettings: { ...emptyPageSettings },
@@ -314,7 +311,6 @@ export function createDefaultComponent(type: ComponentType): ReportComponent {
         title: componentTypeInfo[type].label,
         order: 0,
         visible: true,
-        excelTabName: '',
         criteriaExpression: '',
         pageSize,
         stripedRows: false,
@@ -430,8 +426,6 @@ export const simulationFieldOptions: SimulationFieldInfo[] = [
     { field: 'budget', label: 'Budget', defaultFormat: 'text' },
     { field: 'treatmentCause', label: 'Treatment Cause', defaultFormat: 'text' },
     { field: 'treatmentStatus', label: 'Treatment Status', defaultFormat: 'text' },
-    { field: 'benefit', label: 'Benefit', defaultFormat: 'number' },
-    { field: 'remainingLife', label: 'Remaining Life', defaultFormat: 'number' },
 ];
 
 // ============================================================

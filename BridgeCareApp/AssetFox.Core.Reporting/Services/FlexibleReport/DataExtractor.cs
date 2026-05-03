@@ -560,8 +560,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 "treatmentStatus" => "treatmentStatus",
                 "cost" => "cost",
                 "budget" => "budget",
-                "benefit" => "benefit",
-                "remainingLife" => "remainingLife",
                 _ => field
             };
         }
@@ -572,8 +570,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             {
                 "cost" => "cost",
                 "count" => "appliedTreatment",
-                "benefit" => "benefit",
-                "remainingLife" => "remainingLife",
                 _ => field
             };
         }
@@ -745,8 +741,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                         if (appliedOption != null)
                         {
                             record["cost"] = appliedOption.Cost;
-                            record["benefit"] = appliedOption.Benefit;
-                            record["remainingLife"] = appliedOption.RemainingLife;
                         }
                     }
 
@@ -847,8 +841,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                             ["assetName"] = asset.AssetName,
                             ["treatmentName"] = option.TreatmentName,
                             ["cost"] = option.Cost,
-                            ["benefit"] = option.Benefit,
-                            ["remainingLife"] = option.RemainingLife,
                             ["conditionChange"] = option.ConditionChange
                         });
                     }

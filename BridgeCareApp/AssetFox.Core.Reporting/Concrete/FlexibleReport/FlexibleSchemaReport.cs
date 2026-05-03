@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AssetFox.Core.Common.Logging;
@@ -210,14 +211,13 @@ namespace AssetFox.Core.Reporting
         private string ExportToExcel(UniversalReportModel model, Guid simulationId)
         {
             using var excelPackage = new ExcelPackage(new FileInfo("FlexibleReport.xlsx"));
+            var usedWorksheetNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var section in model.Sections)
             {
                 if (!section.Visible) continue;
 
-                var tabName = section.ExcelTabName ?? section.Title ?? $"Section_{section.Order}";
-                // Excel worksheet names max 31 chars
-                if (tabName.Length > 31) tabName = tabName.Substring(0, 31);
+                var tabName = GetWorksheetName(section, usedWorksheetNames);
 
                 // All table-producing component types (assetDetail, treatmentTimeline,
                 // budgetSummary, conditionTracking, fundedTreatmentList, goalTracking)
@@ -243,6 +243,55 @@ namespace AssetFox.Core.Reporting
             File.WriteAllBytes(filePath, bin);
 
             return filePath;
+        }
+
+        private static string GetWorksheetName(ReportSectionModel section, HashSet<string> usedWorksheetNames)
+        {
+            var baseName = SanitizeWorksheetName(section.Title);
+            if (string.IsNullOrWhiteSpace(baseName))
+            {
+                baseName = $"Section {section.Order + 1}";
+            }
+
+            baseName = TruncateWorksheetName(baseName, 31);
+            var candidate = baseName;
+            var duplicateIndex = 1;
+
+            while (!usedWorksheetNames.Add(candidate))
+            {
+                var suffix = $" ({duplicateIndex++})";
+                var prefixLength = Math.Max(1, 31 - suffix.Length);
+                candidate = $"{TruncateWorksheetName(baseName, prefixLength)}{suffix}";
+            }
+
+            return candidate;
+        }
+
+        private static string SanitizeWorksheetName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return string.Empty;
+            }
+
+            var invalidChars = new HashSet<char>(new[] { ':', '\\', '/', '?', '*', '[', ']' });
+            var sanitized = new string(name.Trim()
+                .Select(c => invalidChars.Contains(c) ? '-' : c)
+                .ToArray())
+                .Trim('\'')
+                .Trim();
+
+            return sanitized;
+        }
+
+        private static string TruncateWorksheetName(string name, int maxLength)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return string.Empty;
+            }
+
+            return name.Length <= maxLength ? name : name.Substring(0, maxLength);
         }
 
         private static void WriteTableToExcel(ExcelPackage package, string tabName, ReportTableData tableData)

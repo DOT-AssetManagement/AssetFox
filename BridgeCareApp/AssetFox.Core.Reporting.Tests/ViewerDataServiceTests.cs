@@ -128,7 +128,7 @@ namespace AssetFox.Core.Reporting.Tests
             // arrays become JArray and objects become JObject — NOT List<object> or Dictionary<string, object>.
             // The GetConfigColumnDefs method must handle JArray specifically.
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -820,7 +820,7 @@ namespace AssetFox.Core.Reporting.Tests
             // TextBlock does NOT require DB access, so we can test it end-to-end
             // via the serialization path
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -865,7 +865,7 @@ namespace AssetFox.Core.Reporting.Tests
             // but the frontend Report Builder may use "attributeColumns". This test verifies
             // which key is used and ensures consistency.
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -914,7 +914,7 @@ namespace AssetFox.Core.Reporting.Tests
         {
             // When timeScope = "initial", AssetDetail should route to AssetSummaryData
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -951,7 +951,7 @@ namespace AssetFox.Core.Reporting.Tests
         public void AssetDetail_AllYearsTimeScope_IncludesYearColumn()
         {
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -990,7 +990,7 @@ namespace AssetFox.Core.Reporting.Tests
         public void Config_EmptyAttributeColumns_DoesNotThrow()
         {
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -1027,7 +1027,7 @@ namespace AssetFox.Core.Reporting.Tests
         public void Config_MissingConfig_DefaultsToEmptyDictionary()
         {
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -1056,7 +1056,7 @@ namespace AssetFox.Core.Reporting.Tests
         public void Config_BoolValues_DeserializeCorrectly()
         {
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -1095,7 +1095,7 @@ namespace AssetFox.Core.Reporting.Tests
         {
             // IMPORTANT: Newtonsoft deserializes integers in Dictionary<string, object> as long (Int64), not int
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -1138,7 +1138,7 @@ namespace AssetFox.Core.Reporting.Tests
         public void GoalTracking_DefaultGoalType_IsTarget()
         {
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -1171,7 +1171,7 @@ namespace AssetFox.Core.Reporting.Tests
         public void GoalTracking_DeficientGoalType_HandlesCorrectly()
         {
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -1260,7 +1260,7 @@ namespace AssetFox.Core.Reporting.Tests
         public void WorkSummary_EmptyGroupBy_DefaultsToPerYearCount()
         {
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [
@@ -1302,7 +1302,7 @@ namespace AssetFox.Core.Reporting.Tests
             // If simOutputCols adds pa.AppliedTreatment again, that's a duplicate in the SELECT list.
 
             var json = @"{
-                ""schemaVersion"": ""3.0"",
+                ""schemaVersion"": ""1.0"",
                 ""name"": ""Test"",
                 ""description"": """",
                 ""pages"": [

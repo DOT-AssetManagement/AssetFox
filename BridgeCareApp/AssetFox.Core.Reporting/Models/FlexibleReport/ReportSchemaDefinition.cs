@@ -42,7 +42,6 @@ namespace AssetFox.Core.Reporting.Models.FlexibleReport
         public string Title { get; set; }
         public int Order { get; set; }
         public bool Visible { get; set; } = true;
-        public string ExcelTabName { get; set; }
         public string CriteriaExpression { get; set; }
 
         // Grid layout
