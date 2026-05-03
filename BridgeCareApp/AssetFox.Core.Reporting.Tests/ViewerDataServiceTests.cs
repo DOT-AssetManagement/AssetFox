@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using AssetFox.CalculateEvaluate;
 using AssetFox.Core.DataPersistenceCore.Repositories;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
@@ -213,152 +214,336 @@ namespace AssetFox.Core.Reporting.Tests
 
         #endregion
 
-        #region CriteriaToSqlTranslator Tests
+        #region CriteriaSqlEmitter Tests
+
+        // These tests exercise the ANTLR-driven emitter. The emitter shares its grammar with
+        // the simulation engine's CalculateEvaluateCompiler — anything the engine accepts must
+        // either translate cleanly or throw a precise error. Silent token-dropping is forbidden;
+        // arithmetic and cross-attribute math (the original bug) are first-class supported.
+
+        private static Mock<IAttributeRepository> AttributeRepoFor(params AttributeDTO[] attrs)
+        {
+            var repo = new Mock<IAttributeRepository>();
+            repo.Setup(r => r.GetAttributesWithNames(It.IsAny<List<string>>()))
+                .Returns((List<string> names) => attrs
+                    .Where(a => names.Contains(a.Name, StringComparer.OrdinalIgnoreCase))
+                    .ToList());
+            foreach (var attr in attrs)
+            {
+                var captured = attr;
+                repo.Setup(r => r.GetSingleByName(captured.Name)).Returns(captured);
+            }
+            return repo;
+        }
 
         [Fact]
-        public void CriteriaTranslator_Translate_EmptyExpression_ReturnsEmptyFragment()
+        public void Emitter_EmitWhere_EmptyExpression_ReturnsEmptyFragment()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
+            var emitter = new CriteriaSqlEmitter();
+            var repo = new Mock<IAttributeRepository>();
 
-            var result = translator.Translate("", attrRepo.Object, "AssetDetailValueIntId", "AssetDetailId", "ad");
+            var result = emitter.EmitWhere("", repo.Object, "AssetDetailValueIntId", "AssetDetailId", "ad");
 
             Assert.True(result.IsEmpty);
             Assert.Empty(result.Parameters);
+            Assert.Null(result.CriteriaCte);
+            Assert.Null(result.CriteriaJoin);
         }
 
         [Fact]
-        public void CriteriaTranslator_Translate_NullExpression_ReturnsEmptyFragment()
+        public void Emitter_EmitWhere_NullExpression_ReturnsEmptyFragment()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
+            var emitter = new CriteriaSqlEmitter();
+            var repo = new Mock<IAttributeRepository>();
 
-            var result = translator.Translate(null, attrRepo.Object, "AssetDetailValueIntId", "AssetDetailId", "ad");
+            var result = emitter.EmitWhere(null, repo.Object, "AssetDetailValueIntId", "AssetDetailId", "ad");
 
             Assert.True(result.IsEmpty);
         }
 
         [Fact]
-        public void CriteriaTranslator_Translate_SimpleNumericComparison_ProducesExistsClause()
+        public void Emitter_EmitWhere_SimpleNumericComparison_ReferencesPivotedColumn()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
-            attrRepo.Setup(r => r.GetAttributesWithNames(It.IsAny<List<string>>()))
-                .Returns(new List<AttributeDTO>
-                {
-                    new AttributeDTO { Id = TestAttributeId, Name = "DECK_SEEDED", Type = "NUMBER" }
-                });
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "DECK_SEEDED", Type = "NUMBER" });
 
-            var result = translator.Translate(
+            var result = emitter.EmitWhere(
                 "[DECK_SEEDED] < 4",
-                attrRepo.Object,
+                repo.Object,
                 "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
 
             Assert.False(result.IsEmpty);
-            Assert.Contains("EXISTS", result.WhereClause);
-            Assert.Contains("NumericValue", result.WhereClause);
-            Assert.Contains("Discriminator = 'n'", result.WhereClause);
-            Assert.True(result.Parameters.Count >= 2); // attr ID + value
+            Assert.Contains("ca.[DECK_SEEDED_n]", result.WhereClause);
+            Assert.Contains("<", result.WhereClause);
+            Assert.NotNull(result.CriteriaCte);
+            Assert.Contains("CriteriaAttrs AS", result.CriteriaCte);
+            Assert.Contains("NumericValue", result.CriteriaCte);
+            Assert.Equal("INNER JOIN CriteriaAttrs ca ON ca.Id = ad.Id", result.CriteriaJoin);
         }
 
         [Fact]
-        public void CriteriaTranslator_Translate_TextComparison_UsesCaseInsensitive()
+        public void Emitter_EmitWhere_TextComparison_UsesTrimmedComparison()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
-            attrRepo.Setup(r => r.GetAttributesWithNames(It.IsAny<List<string>>()))
-                .Returns(new List<AttributeDTO>
-                {
-                    new AttributeDTO { Id = TestAttributeId, Name = "DISTRICT", Type = "STRING" }
-                });
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "DISTRICT", Type = "STRING" });
 
-            var result = translator.Translate(
+            var result = emitter.EmitWhere(
                 "[DISTRICT] = '5'",
-                attrRepo.Object,
+                repo.Object,
                 "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
 
             Assert.False(result.IsEmpty);
-            // Text comparison uses LTRIM(RTRIM()) for whitespace normalization; LOWER removed since CI collation handles case
-            Assert.Contains("LTRIM(RTRIM(", result.WhereClause);
-            Assert.Contains("TextValue", result.WhereClause);
-            Assert.Contains("Discriminator = 't'", result.WhereClause);
+            Assert.Contains("LTRIM(RTRIM(ca.[DISTRICT_t]))", result.WhereClause);
+            Assert.Contains("TextValue", result.CriteriaCte);
         }
 
         [Fact]
-        public void CriteriaTranslator_Translate_AndOrCombination_ProducesCorrectLogic()
+        public void Emitter_EmitWhere_AndOrCombination_NestsParenthesized()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
-            attrRepo.Setup(r => r.GetAttributesWithNames(It.IsAny<List<string>>()))
-                .Returns(new List<AttributeDTO>
-                {
-                    new AttributeDTO { Id = TestAttributeId, Name = "DECK_SEEDED", Type = "NUMBER" },
-                    new AttributeDTO { Id = TestAttribute2Id, Name = "DISTRICT", Type = "STRING" }
-                });
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(
+                new AttributeDTO { Id = TestAttributeId, Name = "DECK_SEEDED", Type = "NUMBER" },
+                new AttributeDTO { Id = TestAttribute2Id, Name = "DISTRICT", Type = "STRING" });
 
-            var result = translator.Translate(
+            var result = emitter.EmitWhere(
                 "[DECK_SEEDED] < 4 AND [DISTRICT] = '5'",
-                attrRepo.Object,
+                repo.Object,
                 "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
 
             Assert.False(result.IsEmpty);
             Assert.Contains(" AND ", result.WhereClause);
-            // Should have 2 EXISTS clauses joined by AND
-            var existsCount = result.WhereClause.Split("EXISTS").Length - 1;
-            Assert.Equal(2, existsCount);
+            Assert.Contains("ca.[DECK_SEEDED_n]", result.WhereClause);
+            Assert.Contains("ca.[DISTRICT_t]", result.WhereClause);
+            // Both attributes pivoted in a single CTE, single EAV scan
+            Assert.Single(System.Text.RegularExpressions.Regex.Matches(result.CriteriaCte, "CriteriaAttrs AS"));
         }
 
         [Fact]
-        public void CriteriaTranslator_Translate_UnknownAttribute_PassesThrough()
+        public void Emitter_EmitWhere_ArithmeticAcrossAttributes_TranslatesCorrectly()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
-            // Return empty — attribute not found
-            attrRepo.Setup(r => r.GetAttributesWithNames(It.IsAny<List<string>>()))
-                .Returns(new List<AttributeDTO>());
+            // The original bug: [A] + [B] < 10 was silently dropped to [A] < 10 by the regex parser.
+            // This proves the new emitter handles cross-attribute arithmetic.
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(
+                new AttributeDTO { Id = TestAttributeId, Name = "DECK_COND", Type = "NUMBER" },
+                new AttributeDTO { Id = TestAttribute2Id, Name = "SUPER_COND", Type = "NUMBER" });
 
-            var result = translator.Translate(
-                "[NONEXISTENT] = '5'",
-                attrRepo.Object,
+            var result = emitter.EmitWhere(
+                "[DECK_COND] + [SUPER_COND] < 10",
+                repo.Object,
                 "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
 
-            // Should not throw, but produce a no-match "1=0" for unknown attributes
             Assert.False(result.IsEmpty);
-            Assert.Contains("1=0", result.WhereClause);
+            Assert.Contains("ca.[DECK_COND_n]", result.WhereClause);
+            Assert.Contains("ca.[SUPER_COND_n]", result.WhereClause);
+            Assert.Contains("+", result.WhereClause);
+            Assert.Contains("<", result.WhereClause);
+            // CTE references both attribute IDs in a single IN clause
+            Assert.Contains("AttributeId IN", result.CriteriaCte);
         }
 
         [Fact]
-        public void CriteriaTranslator_TranslateColumnFilters_EmptyFilters_ReturnsEmptyFragment()
+        public void Emitter_EmitWhere_ArithmeticOnLiteral_TranslatesCorrectly()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
+            // [ADT] * 1.1 > 5000 — must not drop the * 1.1
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "ADT", Type = "NUMBER" });
+
+            var result = emitter.EmitWhere(
+                "[ADT] * 1.1 > 5000",
+                repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
+
+            Assert.False(result.IsEmpty);
+            Assert.Contains("ca.[ADT_n]", result.WhereClause);
+            Assert.Contains("*", result.WhereClause);
+            Assert.Contains("1.1", result.WhereClause);
+            Assert.Contains(">", result.WhereClause);
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_AllSixComparisons_Supported()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "X", Type = "NUMBER" });
+
+            foreach (var op in new[] { "=", "<>", "<", "<=", ">", ">=" })
+            {
+                var result = emitter.EmitWhere($"[X] {op} 5", repo.Object,
+                    "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
+                Assert.False(result.IsEmpty);
+                Assert.Contains(op, result.WhereClause);
+            }
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_PipeDelimitedStringLiteral_Equivalent()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "STATE", Type = "STRING" });
+
+            var resultPipe = emitter.EmitWhere("[STATE] = |TX|", repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
+            var resultQuote = emitter.EmitWhere("[STATE] = 'TX'", repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
+
+            Assert.Equal(resultPipe.WhereClause, resultQuote.WhereClause);
+            Assert.Equal("TX", resultPipe.Parameters.Single(p => p.ParameterName.EndsWith("_lit_0")).Value);
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_OrderingComparisonOnText_Throws()
+        {
+            // Mirrors engine behavior: text doesn't support <, <=, >, >=
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "DISTRICT", Type = "STRING" });
+
+            var ex = Assert.Throws<CalculateEvaluateCompilationException>(() =>
+                emitter.EmitWhere("[DISTRICT] < '5'", repo.Object,
+                    "AssetDetailValueIntId", "AssetDetailId", "ad", "sc"));
+            Assert.Contains("Ordering comparison", ex.Message);
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_UnknownAttribute_Throws()
+        {
+            // The old translator silently produced "1=0" — that hid bugs. New emitter throws.
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(); // no attrs registered
+
+            var ex = Assert.Throws<CalculateEvaluateCompilationException>(() =>
+                emitter.EmitWhere("[NONEXISTENT] = '5'", repo.Object,
+                    "AssetDetailValueIntId", "AssetDetailId", "ad", "sc"));
+            Assert.Contains("Unknown reference", ex.Message);
+            Assert.Contains("NONEXISTENT", ex.Message);
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_TypeMismatch_Throws()
+        {
+            // Comparing a numeric attribute against a number is fine; comparing two attributes
+            // of different types (text vs number) without literals must error like the engine does.
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(
+                new AttributeDTO { Id = TestAttributeId, Name = "NUM_ATTR", Type = "NUMBER" },
+                new AttributeDTO { Id = TestAttribute2Id, Name = "TEXT_ATTR", Type = "STRING" });
+
+            var ex = Assert.Throws<CalculateEvaluateCompilationException>(() =>
+                emitter.EmitWhere("[NUM_ATTR] = [TEXT_ATTR]", repo.Object,
+                    "AssetDetailValueIntId", "AssetDetailId", "ad", "sc"));
+            Assert.Contains("not the same type", ex.Message);
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_FunctionCall_Throws()
+        {
+            // The criteria editor doesn't allow functions, but the grammar accepts them inside
+            // arithmetic. Defense in depth: emitter rejects with a precise error.
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "X", Type = "NUMBER" });
+
+            var ex = Assert.Throws<CalculateEvaluateCompilationException>(() =>
+                emitter.EmitWhere("Sqrt([X]) > 2", repo.Object,
+                    "AssetDetailValueIntId", "AssetDetailId", "ad", "sc"));
+            Assert.Contains("Function", ex.Message);
+            Assert.Contains("Sqrt", ex.Message);
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_BothOperandsLiteral_Throws()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor();
+
+            var ex = Assert.Throws<CalculateEvaluateCompilationException>(() =>
+                emitter.EmitWhere("'a' = 'b'", repo.Object,
+                    "AssetDetailValueIntId", "AssetDetailId", "ad", "sc"));
+            Assert.Contains("both literals", ex.Message);
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_MalformedExpression_Throws()
+        {
+            // The old translator silently dropped unrecognized tokens; the new emitter fails.
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "X", Type = "NUMBER" });
+
+            Assert.Throws<CalculateEvaluateParsingException>(() =>
+                emitter.EmitWhere("[X] <<< 5", repo.Object,
+                    "AssetDetailValueIntId", "AssetDetailId", "ad", "sc"));
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_ParenthesizedGrouping_PreservesPrecedence()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(
+                new AttributeDTO { Id = TestAttributeId, Name = "A", Type = "NUMBER" },
+                new AttributeDTO { Id = TestAttribute2Id, Name = "B", Type = "NUMBER" });
+
+            var result = emitter.EmitWhere(
+                "([A] < 4 OR [A] > 10) AND [B] = 7",
+                repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
+
+            Assert.False(result.IsEmpty);
+            Assert.Contains(" OR ", result.WhereClause);
+            Assert.Contains(" AND ", result.WhereClause);
+            // The OR group is grouped before the AND
+            int orIdx = result.WhereClause.IndexOf(" OR ");
+            int andIdx = result.WhereClause.IndexOf(" AND ");
+            Assert.True(orIdx < andIdx, "OR group should precede AND");
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_PivotsEachAttributeOnce_RegardlessOfReferenceCount()
+        {
+            // [X] < 4 AND [X] > 1 — X appears twice in the expression but should only appear
+            // once in the CTE.
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "X", Type = "NUMBER" });
+
+            var result = emitter.EmitWhere(
+                "[X] < 4 AND [X] > 1",
+                repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", "sc");
+
+            Assert.False(result.IsEmpty);
+            // Single CASE pivot for X in the CTE
+            var pivotCount = System.Text.RegularExpressions.Regex.Matches(
+                result.CriteriaCte, @"\[X_n\]").Count;
+            Assert.Equal(1, pivotCount);
+            // The WHERE clause references it twice
+            var whereCount = System.Text.RegularExpressions.Regex.Matches(
+                result.WhereClause, @"ca\.\[X_n\]").Count;
+            Assert.Equal(2, whereCount);
+        }
+
+        [Fact]
+        public void Emitter_EmitColumnFilterWhere_EmptyFilters_ReturnsEmptyFragment()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = new Mock<IAttributeRepository>();
             var simFields = new List<string> { "year", "appliedTreatment" };
 
-            var result = translator.TranslateColumnFilters(
-                new Dictionary<string, string>(),
-                attrRepo.Object,
-                "AssetDetailValueIntId", "AssetDetailId", "ad",
-                simFields);
+            var result = emitter.EmitColumnFilterWhere(
+                new Dictionary<string, string>(), repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", simFields);
 
             Assert.True(result.IsEmpty);
         }
 
         [Fact]
-        public void CriteriaTranslator_TranslateColumnFilters_SimulationField_ProducesLikeClause()
+        public void Emitter_EmitColumnFilterWhere_SimulationField_ProducesLikeClause()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
+            var emitter = new CriteriaSqlEmitter();
+            var repo = new Mock<IAttributeRepository>();
             var simFields = new List<string> { "year", "appliedTreatment" };
+            var filters = new Dictionary<string, string> { { "appliedTreatment", "Overlay" } };
 
-            var filters = new Dictionary<string, string>
-            {
-                { "appliedTreatment", "Overlay" }
-            };
-
-            var result = translator.TranslateColumnFilters(
-                filters, attrRepo.Object,
-                "AssetDetailValueIntId", "AssetDetailId", "ad",
-                simFields);
+            var result = emitter.EmitColumnFilterWhere(
+                filters, repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", simFields);
 
             Assert.False(result.IsEmpty);
             Assert.Contains("LIKE", result.WhereClause);
@@ -366,23 +551,16 @@ namespace AssetFox.Core.Reporting.Tests
         }
 
         [Fact]
-        public void CriteriaTranslator_TranslateColumnFilters_EavAttribute_ProducesExistsClause()
+        public void Emitter_EmitColumnFilterWhere_EavAttribute_ProducesExistsClause()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
-            attrRepo.Setup(r => r.GetSingleByName("DECK_SEEDED"))
-                .Returns(new AttributeDTO { Id = TestAttributeId, Name = "DECK_SEEDED", Type = "NUMBER" });
-
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "DECK_SEEDED", Type = "NUMBER" });
             var simFields = new List<string> { "year", "appliedTreatment" };
-            var filters = new Dictionary<string, string>
-            {
-                { "DECK_SEEDED", "5.0" }
-            };
+            var filters = new Dictionary<string, string> { { "DECK_SEEDED", "5.0" } };
 
-            var result = translator.TranslateColumnFilters(
-                filters, attrRepo.Object,
-                "AssetDetailValueIntId", "AssetDetailId", "ad",
-                simFields);
+            var result = emitter.EmitColumnFilterWhere(
+                filters, repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", simFields);
 
             Assert.False(result.IsEmpty);
             Assert.Contains("EXISTS", result.WhereClause);
@@ -390,41 +568,34 @@ namespace AssetFox.Core.Reporting.Tests
         }
 
         [Fact]
-        public void CriteriaTranslator_BuildAttributeSortExpression_ReturnsTupleWithJoinAndSortRef()
+        public void Emitter_EmitAttributeSortJoin_KnownAttribute_ReturnsJoinAndSortRef()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
-            attrRepo.Setup(r => r.GetSingleByName("DECK_SEEDED"))
-                .Returns(new AttributeDTO { Id = TestAttributeId, Name = "DECK_SEEDED", Type = "NUMBER" });
-
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "DECK_SEEDED", Type = "NUMBER" });
             var parameters = new List<Microsoft.Data.SqlClient.SqlParameter>();
-            var result = translator.BuildAttributeSortExpression(
-                "DECK_SEEDED", attrRepo.Object,
-                "AssetDetailValueIntId", "AssetDetailId",
-                parameters);
 
-            // Returns a tuple: (SortColumnRef, WithKeyJoin)
+            var result = emitter.EmitAttributeSortJoin(
+                "DECK_SEEDED", repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", parameters);
+
             Assert.Equal("wk._SortVal", result.SortColumnRef);
             Assert.Contains("LEFT JOIN", result.WithKeyJoin);
-            Assert.Contains("_SortVal", result.WithKeyJoin);
             Assert.Contains("NumericValue", result.WithKeyJoin);
             Assert.Contains("@sort_attr", result.WithKeyJoin);
             Assert.Single(parameters);
         }
 
         [Fact]
-        public void CriteriaTranslator_BuildAttributeSortExpression_UnknownAttr_ReturnsFallback()
+        public void Emitter_EmitAttributeSortJoin_UnknownAttr_ReturnsFallback()
         {
-            var translator = new CriteriaToSqlTranslator();
-            var attrRepo = new Mock<IAttributeRepository>();
-            attrRepo.Setup(r => r.GetSingleByName(It.IsAny<string>()))
-                .Returns((AttributeDTO)null);
-
+            var emitter = new CriteriaSqlEmitter();
+            var repo = new Mock<IAttributeRepository>();
+            repo.Setup(r => r.GetSingleByName(It.IsAny<string>())).Returns((AttributeDTO)null);
             var parameters = new List<Microsoft.Data.SqlClient.SqlParameter>();
-            var result = translator.BuildAttributeSortExpression(
-                "NONEXISTENT", attrRepo.Object,
-                "AssetDetailValueIntId", "AssetDetailId",
-                parameters);
+
+            var result = emitter.EmitAttributeSortJoin(
+                "NONEXISTENT", repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", parameters);
 
             Assert.Equal("fa.Id", result.SortColumnRef);
             Assert.Equal("", result.WithKeyJoin);

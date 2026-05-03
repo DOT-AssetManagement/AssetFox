@@ -100,7 +100,7 @@ namespace AssetFoxCore
             services.AddScoped<IReportGenerator, DictionaryBasedReportGenerator>();
             services.AddScoped<IAggregationService, AggregationService>();
             services.AddScoped<ICompleteSimulationCloningService, CompleteSimulationCloningService>();
-            services.AddScoped<CriteriaToSqlTranslator>();
+            services.AddScoped<CriteriaSqlEmitter>();
             services.AddScoped<IViewerDataService, ViewerDataService>();
 
             services.AddSingleton<IAnalysisEventLoggingService, AnalysisEventLoggingService>();

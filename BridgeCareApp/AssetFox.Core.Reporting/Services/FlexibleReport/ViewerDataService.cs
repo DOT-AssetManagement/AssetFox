@@ -16,7 +16,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
     public class ViewerDataService : IViewerDataService
     {
         private readonly UnitOfDataPersistenceWork _unitOfWork;
-        private readonly CriteriaToSqlTranslator _criteriaTranslator;
+        private readonly CriteriaSqlEmitter _criteriaEmitter;
 
         // All known simulation fields (direct columns + computed fields)
         private static readonly List<string> AssetDetailSimulationFields = new()
@@ -39,10 +39,10 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             "cost", "budget"
         };
 
-        public ViewerDataService(UnitOfDataPersistenceWork unitOfWork, CriteriaToSqlTranslator criteriaTranslator)
+        public ViewerDataService(UnitOfDataPersistenceWork unitOfWork, CriteriaSqlEmitter criteriaEmitter)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _criteriaTranslator = criteriaTranslator ?? throw new ArgumentNullException(nameof(criteriaTranslator));
+            _criteriaEmitter = criteriaEmitter ?? throw new ArgumentNullException(nameof(criteriaEmitter));
         }
 
         public ViewerMetadataDTO GetMetadata(Guid simulationId)
@@ -193,6 +193,8 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetSummaryDetailValueIntId", "AssetSummaryDetailId", "asd", parameters);
             var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetSummaryDetailValueIntId", "AssetSummaryDetailId", "wk", parameters, $"wk._AssetKey");
 
+            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
+            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -200,9 +202,9 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH FilteredAssets AS (
+;WITH {criteriaCtePrefix}FilteredAssets AS (
     SELECT asd.Id, asd.MaintainableAssetId
-    FROM dbo.AssetSummaryDetail asd
+    FROM dbo.AssetSummaryDetail asd{criteriaJoin}
     WHERE asd.RunId = @RunId
     {criteriaWhere}
     {filterWhere}
@@ -300,6 +302,8 @@ ORDER BY pg.RowNum";
             var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
             var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year");
 
+            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
+            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -308,12 +312,12 @@ ORDER BY pg.RowNum";
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH FilteredAssets AS (
+;WITH {criteriaCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year, ad.AppliedTreatment,
         ({TreatmentCauseCaseExpression("ad")}) AS TreatmentCause,
         ({TreatmentStatusCaseExpression("ad")}) AS TreatmentStatus
     FROM dbo.AssetDetail ad
-    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId
+    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{criteriaJoin}
     WHERE ad.RunId = @RunId
     {yearFilter}
     {criteriaWhere}
@@ -391,6 +395,8 @@ ORDER BY pg.RowNum";
             var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
             var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year");
 
+            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
+            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -398,12 +404,12 @@ ORDER BY pg.RowNum";
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH FilteredAssets AS (
+;WITH {criteriaCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year, ad.AppliedTreatment,
         ({TreatmentCauseCaseExpression("ad")}) AS TreatmentCause,
         ({TreatmentStatusCaseExpression("ad")}) AS TreatmentStatus
     FROM dbo.AssetDetail ad
-    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId
+    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{criteriaJoin}
     WHERE ad.RunId = @RunId
     {criteriaWhere}
     {filterWhere}
@@ -485,6 +491,8 @@ ORDER BY pg.RowNum";
             var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
             var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year");
 
+            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
+            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -492,10 +500,10 @@ ORDER BY pg.RowNum";
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH FilteredAssets AS (
+;WITH {criteriaCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year
     FROM dbo.AssetDetail ad
-    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId
+    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{criteriaJoin}
     WHERE ad.RunId = @RunId
     {criteriaWhere}
     {filterWhere}
@@ -585,6 +593,8 @@ ORDER BY pg.RowNum";
             var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
             var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year");
 
+            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
+            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -593,12 +603,12 @@ ORDER BY pg.RowNum";
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH FilteredAssets AS (
+;WITH {criteriaCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year, ad.AppliedTreatment,
         ({TreatmentCauseCaseExpression("ad")}) AS TreatmentCause,
         ({TreatmentStatusCaseExpression("ad")}) AS TreatmentStatus
     FROM dbo.AssetDetail ad
-    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId
+    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{criteriaJoin}
     WHERE ad.RunId = @RunId
     AND ad.AppliedTreatment IS NOT NULL AND ad.AppliedTreatment <> 'No Treatment'
     {criteriaWhere}
@@ -1349,7 +1359,7 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             string parentAlias,
             List<SqlParameter> parameters)
         {
-            var fragment = _criteriaTranslator.Translate(
+            var fragment = _criteriaEmitter.EmitWhere(
                 criteriaExpression, _unitOfWork.AttributeRepo,
                 valueTableName, parentIdColumn, parentAlias, "sc");
 
@@ -1372,7 +1382,7 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             string parentAlias,
             List<SqlParameter> parameters)
         {
-            var fragment = _criteriaTranslator.TranslateColumnFilters(
+            var fragment = _criteriaEmitter.EmitColumnFilterWhere(
                 columnFilters, _unitOfWork.AttributeRepo,
                 valueTableName, parentIdColumn, parentAlias,
                 AssetDetailSimulationFields);
@@ -1411,7 +1421,7 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             }
 
             // EAV attribute sort — pre-compute in WithKey via a set-based subquery join
-            var (sortColRef, withKeyJoin) = _criteriaTranslator.BuildAttributeSortExpression(
+            var (sortColRef, withKeyJoin) = _criteriaEmitter.EmitAttributeSortJoin(
                 sortBy, _unitOfWork.AttributeRepo,
                 valueTableName, parentIdColumn, parameters);
 
