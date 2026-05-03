@@ -35,7 +35,10 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             string valueTableName,
             string parentIdColumn,
             string parentAlias,
-            string paramPrefix = "cr")
+            string paramPrefix = "cr",
+            bool useSummaryFallback = false,
+            string fallbackAssetDetailJoinSql = "",
+            string fallbackAssetDetailWhereSql = "")
         {
             var fragment = new CriteriaSqlFragment();
             if (string.IsNullOrWhiteSpace(criteriaExpression))
@@ -61,7 +64,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
 
             var tree = ParseEvaluation(criteriaExpression);
 
-            var visitor = new EmittingVisitor(resolved, paramPrefix, fragment.Parameters);
+            var visitor = new EmittingVisitor(resolved, paramPrefix, fragment.Parameters, "ca");
             var rootResult = visitor.Visit(tree);
             if (rootResult.Type != ExprType.Boolean)
                 throw new CalculateEvaluateCompilationException("Criteria expression must be a boolean expression.");
@@ -72,7 +75,8 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             {
                 AddAttributeIdParameters(fragment.Parameters, visitor.ReferencedAttributes, paramPrefix);
                 fragment.CriteriaCte = BuildCriteriaAttrsCte(
-                    visitor.ReferencedAttributes, valueTableName, parentIdColumn, paramPrefix);
+                    visitor.ReferencedAttributes, valueTableName, parentIdColumn, paramPrefix,
+                    "CriteriaAttrs", useSummaryFallback, fallbackAssetDetailJoinSql, fallbackAssetDetailWhereSql);
                 fragment.CriteriaJoin = $"INNER JOIN CriteriaAttrs ca ON ca.Id = {parentAlias}.Id";
             }
 
@@ -85,13 +89,18 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             string valueTableName,
             string parentIdColumn,
             string parentAlias,
-            List<string> simulationFieldColumns)
+            List<string> simulationFieldColumns,
+            bool useSummaryFallback = false,
+            string fallbackAssetDetailJoinSql = "",
+            string fallbackAssetDetailWhereSql = "",
+            Dictionary<string, string> directColumnExpressions = null)
         {
             var fragment = new CriteriaSqlFragment();
             if (columnFilters == null || !columnFilters.Any())
                 return fragment;
 
             var clauses = new List<string>();
+            var fallbackAttributeFilters = new List<(AttributeDTO Attr, string Value, int Counter)>();
             int paramCounter = 0;
 
             foreach (var filter in columnFilters)
@@ -99,7 +108,15 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 if (string.IsNullOrWhiteSpace(filter.Value))
                     continue;
 
-                if (simulationFieldColumns.Contains(filter.Key, StringComparer.OrdinalIgnoreCase))
+                if (directColumnExpressions != null &&
+                    directColumnExpressions.TryGetValue(filter.Key, out var directColumnExpr))
+                {
+                    var paramName = $"@vf_col_{paramCounter}";
+                    fragment.Parameters.Add(new SqlParameter(paramName, $"%{filter.Value}%"));
+                    clauses.Add($"CAST({directColumnExpr} AS NVARCHAR(200)) LIKE {paramName}");
+                    paramCounter++;
+                }
+                else if (simulationFieldColumns.Contains(filter.Key, StringComparer.OrdinalIgnoreCase))
                 {
                     var paramName = $"@vf_col_{paramCounter}";
                     fragment.Parameters.Add(new SqlParameter(paramName, $"%{filter.Value}%"));
@@ -111,6 +128,13 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 {
                     var attr = attributeRepo.GetSingleByName(filter.Key);
                     if (attr == null) continue;
+
+                    if (useSummaryFallback)
+                    {
+                        fallbackAttributeFilters.Add((attr, filter.Value, paramCounter));
+                        paramCounter++;
+                        continue;
+                    }
 
                     var attrParamName = $"@vf_attr_{paramCounter}";
                     fragment.Parameters.Add(new SqlParameter(attrParamName, attr.Id));
@@ -149,6 +173,43 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 }
             }
 
+            if (useSummaryFallback && fallbackAttributeFilters.Any())
+            {
+                var referenced = new Dictionary<string, AttributeDTO>(StringComparer.OrdinalIgnoreCase);
+                foreach (var (attr, _, _) in fallbackAttributeFilters)
+                    referenced[attr.Name] = attr;
+
+                AddAttributeIdParameters(fragment.Parameters, referenced, "vf");
+                fragment.CriteriaCte = BuildCriteriaAttrsCte(
+                    referenced, valueTableName, parentIdColumn, "vf", "ColumnFilterAttrs",
+                    useSummaryFallback: true, fallbackAssetDetailJoinSql, fallbackAssetDetailWhereSql);
+                fragment.CriteriaJoin = $"INNER JOIN ColumnFilterAttrs cfa ON cfa.Id = {parentAlias}.Id";
+
+                foreach (var (attr, value, counter) in fallbackAttributeFilters)
+                {
+                    if (attr.Type == "NUMBER")
+                    {
+                        var valParamName = $"@vf_val_{counter}";
+                        if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var numVal))
+                        {
+                            fragment.Parameters.Add(new SqlParameter(valParamName, numVal));
+                            clauses.Add($"cfa.[{attr.Name}_n] = {valParamName}");
+                        }
+                        else
+                        {
+                            fragment.Parameters.Add(new SqlParameter(valParamName, $"%{value}%"));
+                            clauses.Add($"CAST(cfa.[{attr.Name}_n] AS NVARCHAR(100)) LIKE {valParamName}");
+                        }
+                    }
+                    else
+                    {
+                        var valParamName = $"@vf_val_{counter}";
+                        fragment.Parameters.Add(new SqlParameter(valParamName, $"%{value}%"));
+                        clauses.Add($"cfa.[{attr.Name}_t] LIKE {valParamName}");
+                    }
+                }
+            }
+
             if (clauses.Any())
                 fragment.WhereClause = string.Join(" AND ", clauses);
 
@@ -160,7 +221,8 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             IAttributeRepository attributeRepo,
             string valueTableName,
             string parentIdColumn,
-            List<SqlParameter> parameters)
+            List<SqlParameter> parameters,
+            bool useSummaryFallback = false)
         {
             var attr = attributeRepo.GetSingleByName(attributeName);
             if (attr == null)
@@ -172,6 +234,32 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             parameters.Add(new SqlParameter(paramName, attr.Id));
 
             string valueColumn = attr.Type == "NUMBER" ? "NumericValue" : "TextValue";
+
+            if (useSummaryFallback)
+            {
+                string fallbackWithKeyJoin = $@"LEFT JOIN (
+        SELECT fs.Id AS _SortId,
+            COALESCE(
+                MAX(CASE WHEN dv.AttributeId = {paramName} THEN dv.{valueColumn} END),
+                MAX(CASE WHEN sv.AttributeId = {paramName} THEN sv.{valueColumn} END)
+            ) AS _SortVal
+        FROM FilteredAssets fs
+        LEFT JOIN dbo.{valueTableName} dv
+            ON dv.RunId = @RunId
+           AND dv.{parentIdColumn} = fs.Id
+           AND dv.AttributeId = {paramName}
+        LEFT JOIN dbo.AssetSummaryDetail asd
+            ON asd.RunId = @RunId
+           AND asd.MaintainableAssetId = fs.MaintainableAssetId
+        LEFT JOIN dbo.AssetSummaryDetailValueIntId sv
+            ON sv.RunId = @RunId
+           AND sv.AssetSummaryDetailId = asd.Id
+           AND sv.AttributeId = {paramName}
+        GROUP BY fs.Id
+    ) _sv ON _sv._SortId = fa.Id";
+
+                return ("wk._SortVal", fallbackWithKeyJoin);
+            }
 
             string withKeyJoin = $@"LEFT JOIN (
         SELECT {parentIdColumn} AS _SortId,
@@ -231,10 +319,15 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             IReadOnlyDictionary<string, AttributeDTO> referenced,
             string valueTableName,
             string parentIdColumn,
-            string paramPrefix)
+            string paramPrefix,
+            string cteName = "CriteriaAttrs",
+            bool useSummaryFallback = false,
+            string fallbackAssetDetailJoinSql = "",
+            string fallbackAssetDetailWhereSql = "")
         {
             var pivotLines = new StringBuilder();
             var attrIdParams = new List<string>();
+            var coalesceLines = new StringBuilder();
             foreach (var (name, attr) in referenced)
             {
                 var attrParam = $"@{paramPrefix}_attr_{SanitizeParamName(name)}";
@@ -243,17 +336,62 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 {
                     pivotLines.AppendLine(
                         $"        MAX(CASE WHEN v.AttributeId = {attrParam} THEN v.NumericValue END) AS [{name}_n],");
+                    coalesceLines.AppendLine(
+                        $"        COALESCE(cd.[{name}_n], cs.[{name}_n]) AS [{name}_n],");
                 }
                 else
                 {
                     pivotLines.AppendLine(
                         $"        MAX(CASE WHEN v.AttributeId = {attrParam} THEN v.TextValue END) AS [{name}_t],");
+                    coalesceLines.AppendLine(
+                        $"        COALESCE(cd.[{name}_t], cs.[{name}_t]) AS [{name}_t],");
                 }
             }
             string pivotBody = pivotLines.ToString().TrimEnd().TrimEnd(',');
+            string coalesceBody = coalesceLines.ToString().TrimEnd().TrimEnd(',');
+
+            if (useSummaryFallback)
+            {
+                var summaryPivotBody = pivotBody.Replace("v.", "sv.");
+                var baseJoin = string.IsNullOrWhiteSpace(fallbackAssetDetailJoinSql)
+                    ? ""
+                    : $"\n    {fallbackAssetDetailJoinSql.Trim()}";
+                var baseWhere = string.IsNullOrWhiteSpace(fallbackAssetDetailWhereSql)
+                    ? ""
+                    : $"\n      {fallbackAssetDetailWhereSql.Trim()}";
+
+                return
+$@"{cteName}Detail AS (
+    SELECT v.{parentIdColumn} AS Id,
+{pivotBody}
+    FROM dbo.{valueTableName} v
+    WHERE v.RunId = @RunId
+      AND v.AttributeId IN ({string.Join(", ", attrIdParams)})
+    GROUP BY v.{parentIdColumn}
+),
+{cteName}Summary AS (
+    SELECT asd.MaintainableAssetId,
+{summaryPivotBody}
+    FROM dbo.AssetSummaryDetailValueIntId sv
+    INNER JOIN dbo.AssetSummaryDetail asd
+        ON asd.RunId = sv.RunId
+       AND asd.Id = sv.AssetSummaryDetailId
+    WHERE sv.RunId = @RunId
+      AND sv.AttributeId IN ({string.Join(", ", attrIdParams)})
+    GROUP BY asd.MaintainableAssetId
+),
+{cteName} AS (
+    SELECT adBase.Id,
+{coalesceBody}
+    FROM dbo.AssetDetail adBase{baseJoin}
+    LEFT JOIN {cteName}Detail cd ON cd.Id = adBase.Id
+    LEFT JOIN {cteName}Summary cs ON cs.MaintainableAssetId = adBase.MaintainableAssetId
+    WHERE adBase.RunId = @RunId{baseWhere}
+)";
+            }
 
             return
-$@"CriteriaAttrs AS (
+$@"{cteName} AS (
     SELECT v.{parentIdColumn} AS Id,
 {pivotBody}
     FROM dbo.{valueTableName} v
@@ -300,6 +438,7 @@ $@"CriteriaAttrs AS (
             private readonly IReadOnlyDictionary<string, AttributeDTO> _attributes;
             private readonly string _paramPrefix;
             private readonly List<SqlParameter> _parameters;
+            private readonly string _attributeAlias;
             private int _literalCounter;
 
             public Dictionary<string, AttributeDTO> ReferencedAttributes { get; } =
@@ -308,11 +447,13 @@ $@"CriteriaAttrs AS (
             public EmittingVisitor(
                 IReadOnlyDictionary<string, AttributeDTO> attributes,
                 string paramPrefix,
-                List<SqlParameter> parameters)
+                List<SqlParameter> parameters,
+                string attributeAlias)
             {
                 _attributes = attributes;
                 _paramPrefix = paramPrefix;
                 _parameters = parameters;
+                _attributeAlias = attributeAlias;
             }
 
             public override EmittedExpr VisitEvaluationRoot(CalculateEvaluateParser.EvaluationRootContext context) =>
@@ -475,8 +616,8 @@ $@"CriteriaAttrs AS (
 
                 ReferencedAttributes[attr.Name] = attr;
                 return isNumber
-                    ? new EmittedExpr($"ca.[{attr.Name}_n]", ExprType.Number)
-                    : new EmittedExpr($"ca.[{attr.Name}_t]", ExprType.Text);
+                    ? new EmittedExpr($"{_attributeAlias}.[{attr.Name}_n]", ExprType.Number)
+                    : new EmittedExpr($"{_attributeAlias}.[{attr.Name}_t]", ExprType.Text);
             }
 
             public override EmittedExpr VisitAdditionOrSubtraction(CalculateEvaluateParser.AdditionOrSubtractionContext context)

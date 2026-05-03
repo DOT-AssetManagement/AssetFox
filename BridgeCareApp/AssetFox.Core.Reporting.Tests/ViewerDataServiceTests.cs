@@ -298,6 +298,45 @@ namespace AssetFox.Core.Reporting.Tests
         }
 
         [Fact]
+        public void Emitter_EmitWhere_WithSummaryFallback_CoalescesDetailAndSummaryValues()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "DISTRICT", Type = "STRING" });
+
+            var result = emitter.EmitWhere(
+                "[DISTRICT] = '5'",
+                repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", "sc",
+                useSummaryFallback: true);
+
+            Assert.False(result.IsEmpty);
+            Assert.Contains("CriteriaAttrsDetail AS", result.CriteriaCte);
+            Assert.Contains("CriteriaAttrsSummary AS", result.CriteriaCte);
+            Assert.Contains("AssetSummaryDetailValueIntId", result.CriteriaCte);
+            Assert.Contains("COALESCE(cd.[DISTRICT_t], cs.[DISTRICT_t]) AS [DISTRICT_t]", result.CriteriaCte);
+            Assert.Equal("INNER JOIN CriteriaAttrs ca ON ca.Id = ad.Id", result.CriteriaJoin);
+            Assert.Contains("ca.[DISTRICT_t]", result.WhereClause);
+        }
+
+        [Fact]
+        public void Emitter_EmitWhere_WithSummaryFallback_AcceptsSelectedYearScope()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "COUNTY", Type = "STRING" });
+
+            var result = emitter.EmitWhere(
+                "[COUNTY] = 'Travis'",
+                repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", "sc",
+                useSummaryFallback: true,
+                fallbackAssetDetailJoinSql: "INNER JOIN dbo.SimulationYearDetail sydFallback ON sydFallback.RunId = @RunId AND sydFallback.Id = adBase.SimulationYearDetailId",
+                fallbackAssetDetailWhereSql: "AND sydFallback.Year = @SelectedYear");
+
+            Assert.Contains("INNER JOIN dbo.SimulationYearDetail sydFallback", result.CriteriaCte);
+            Assert.Contains("AND sydFallback.Year = @SelectedYear", result.CriteriaCte);
+        }
+
+        [Fact]
         public void Emitter_EmitWhere_AndOrCombination_NestsParenthesized()
         {
             var emitter = new CriteriaSqlEmitter();
@@ -568,6 +607,50 @@ namespace AssetFox.Core.Reporting.Tests
         }
 
         [Fact]
+        public void Emitter_EmitColumnFilterWhere_WithSummaryFallback_UsesFallbackCte()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "COUNTY", Type = "STRING" });
+            var simFields = new List<string> { "year", "appliedTreatment" };
+            var filters = new Dictionary<string, string> { { "COUNTY", "Travis" } };
+
+            var result = emitter.EmitColumnFilterWhere(
+                filters, repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", simFields,
+                useSummaryFallback: true);
+
+            Assert.False(result.IsEmpty);
+            Assert.Contains("ColumnFilterAttrsDetail AS", result.CriteriaCte);
+            Assert.Contains("ColumnFilterAttrsSummary AS", result.CriteriaCte);
+            Assert.Contains("COALESCE(cd.[COUNTY_t], cs.[COUNTY_t]) AS [COUNTY_t]", result.CriteriaCte);
+            Assert.Equal("INNER JOIN ColumnFilterAttrs cfa ON cfa.Id = ad.Id", result.CriteriaJoin);
+            Assert.Contains("cfa.[COUNTY_t] LIKE", result.WhereClause);
+        }
+
+        [Fact]
+        public void Emitter_EmitColumnFilterWhere_DirectColumnExpression_UsesDisplayColumn()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = new Mock<IAttributeRepository>();
+            var simFields = new List<string> { "year", "appliedTreatment" };
+            var filters = new Dictionary<string, string> { { "BRKEY", "123" } };
+            var directColumns = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["BRKEY"] = "(SELECT TOP 1 mal.LocationIdentifier FROM dbo.MaintainableAssetLocation mal WHERE mal.MaintainableAssetId = ad.MaintainableAssetId)"
+            };
+
+            var result = emitter.EmitColumnFilterWhere(
+                filters, repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", "ad", simFields,
+                directColumnExpressions: directColumns);
+
+            Assert.False(result.IsEmpty);
+            Assert.Contains("LocationIdentifier", result.WhereClause);
+            Assert.DoesNotContain("AssetDetailValueIntId", result.WhereClause);
+            repo.Verify(r => r.GetSingleByName(It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
         public void Emitter_EmitAttributeSortJoin_KnownAttribute_ReturnsJoinAndSortRef()
         {
             var emitter = new CriteriaSqlEmitter();
@@ -582,6 +665,27 @@ namespace AssetFox.Core.Reporting.Tests
             Assert.Contains("LEFT JOIN", result.WithKeyJoin);
             Assert.Contains("NumericValue", result.WithKeyJoin);
             Assert.Contains("@sort_attr", result.WithKeyJoin);
+            Assert.Single(parameters);
+        }
+
+        [Fact]
+        public void Emitter_EmitAttributeSortJoin_WithSummaryFallback_CoalescesDetailAndSummaryValues()
+        {
+            var emitter = new CriteriaSqlEmitter();
+            var repo = AttributeRepoFor(new AttributeDTO { Id = TestAttributeId, Name = "DISTRICT", Type = "STRING" });
+            var parameters = new List<Microsoft.Data.SqlClient.SqlParameter>();
+
+            var result = emitter.EmitAttributeSortJoin(
+                "DISTRICT", repo.Object,
+                "AssetDetailValueIntId", "AssetDetailId", parameters,
+                useSummaryFallback: true);
+
+            Assert.Equal("wk._SortVal", result.SortColumnRef);
+            Assert.Contains("FROM FilteredAssets fs", result.WithKeyJoin);
+            Assert.Contains("AssetSummaryDetailValueIntId", result.WithKeyJoin);
+            Assert.Contains("COALESCE", result.WithKeyJoin);
+            Assert.Contains("dv.TextValue", result.WithKeyJoin);
+            Assert.Contains("sv.TextValue", result.WithKeyJoin);
             Assert.Single(parameters);
         }
 

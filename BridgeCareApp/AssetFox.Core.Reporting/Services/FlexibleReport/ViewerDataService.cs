@@ -190,11 +190,11 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             var attrPivot = BuildAttributePivotCte(attributeColumns, "AssetSummaryDetailValueIntId", "AssetSummaryDetailId", parameters, useFallback: false);
 
             var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetSummaryDetailValueIntId", "AssetSummaryDetailId", "asd", parameters);
-            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetSummaryDetailValueIntId", "AssetSummaryDetailId", "asd", parameters);
-            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetSummaryDetailValueIntId", "AssetSummaryDetailId", "wk", parameters, $"wk._AssetKey");
+            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetSummaryDetailValueIntId", "AssetSummaryDetailId", "asd", parameters, assetKeyColumnName: keyColName);
+            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetSummaryDetailValueIntId", "AssetSummaryDetailId", "wk", parameters, $"wk._AssetKey", assetKeyColumnName: keyColName);
 
-            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
-            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
+            var fragmentCtePrefix = BuildFragmentCtePrefix(criteriaFragment, filterFragment);
+            var fragmentJoins = BuildFragmentJoins(criteriaFragment, filterFragment);
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -202,9 +202,9 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH {criteriaCtePrefix}FilteredAssets AS (
+;WITH {fragmentCtePrefix}FilteredAssets AS (
     SELECT asd.Id, asd.MaintainableAssetId
-    FROM dbo.AssetSummaryDetail asd{criteriaJoin}
+    FROM dbo.AssetSummaryDetail asd{fragmentJoins}
     WHERE asd.RunId = @RunId
     {criteriaWhere}
     {filterWhere}
@@ -298,12 +298,21 @@ ORDER BY pg.RowNum";
             var attrPivot = BuildAttributePivotCte(attributeColumns, "AssetDetailValueIntId", "AssetDetailId", parameters, useFallback: true);
             var costBudget = BuildCostBudgetCte(hasCost, hasBudget);
 
-            var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
-            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
-            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year");
+            var fallbackScope = BuildFallbackAssetDetailScope(timeScope == "year" && selectedYear.HasValue);
+            var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters,
+                useSummaryFallback: true,
+                fallbackAssetDetailJoinSql: fallbackScope.JoinSql,
+                fallbackAssetDetailWhereSql: fallbackScope.WhereSql);
+            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters,
+                useSummaryFallback: true,
+                fallbackAssetDetailJoinSql: fallbackScope.JoinSql,
+                fallbackAssetDetailWhereSql: fallbackScope.WhereSql,
+                assetKeyColumnName: keyColName);
+            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year",
+                useSummaryFallback: true, assetKeyColumnName: keyColName);
 
-            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
-            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
+            var fragmentCtePrefix = BuildFragmentCtePrefix(criteriaFragment, filterFragment);
+            var fragmentJoins = BuildFragmentJoins(criteriaFragment, filterFragment);
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -312,12 +321,12 @@ ORDER BY pg.RowNum";
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH {criteriaCtePrefix}FilteredAssets AS (
+;WITH {fragmentCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year, ad.AppliedTreatment,
         ({TreatmentCauseCaseExpression("ad")}) AS TreatmentCause,
         ({TreatmentStatusCaseExpression("ad")}) AS TreatmentStatus
     FROM dbo.AssetDetail ad
-    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{criteriaJoin}
+    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{fragmentJoins}
     WHERE ad.RunId = @RunId
     {yearFilter}
     {criteriaWhere}
@@ -391,12 +400,14 @@ ORDER BY pg.RowNum";
 
             var assetKeyJoin = BuildAssetKeyJoin("fa");
             var attrPivot = BuildAttributePivotCte(allAttrColumns, "AssetDetailValueIntId", "AssetDetailId", parameters, useFallback: true);
-            var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
-            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
-            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year");
+            var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters, useSummaryFallback: true);
+            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters,
+                useSummaryFallback: true, assetKeyColumnName: keyColName);
+            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year",
+                useSummaryFallback: true, assetKeyColumnName: keyColName);
 
-            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
-            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
+            var fragmentCtePrefix = BuildFragmentCtePrefix(criteriaFragment, filterFragment);
+            var fragmentJoins = BuildFragmentJoins(criteriaFragment, filterFragment);
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -404,12 +415,12 @@ ORDER BY pg.RowNum";
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH {criteriaCtePrefix}FilteredAssets AS (
+;WITH {fragmentCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year, ad.AppliedTreatment,
         ({TreatmentCauseCaseExpression("ad")}) AS TreatmentCause,
         ({TreatmentStatusCaseExpression("ad")}) AS TreatmentStatus
     FROM dbo.AssetDetail ad
-    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{criteriaJoin}
+    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{fragmentJoins}
     WHERE ad.RunId = @RunId
     {criteriaWhere}
     {filterWhere}
@@ -487,12 +498,14 @@ ORDER BY pg.RowNum";
 
             var assetKeyJoin = BuildAssetKeyJoin("fa");
             var attrPivot = BuildAttributePivotCte(allAttrColumns, "AssetDetailValueIntId", "AssetDetailId", parameters, useFallback: true);
-            var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
-            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
-            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year");
+            var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters, useSummaryFallback: true);
+            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters,
+                useSummaryFallback: true, assetKeyColumnName: keyColName);
+            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year",
+                useSummaryFallback: true, assetKeyColumnName: keyColName);
 
-            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
-            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
+            var fragmentCtePrefix = BuildFragmentCtePrefix(criteriaFragment, filterFragment);
+            var fragmentJoins = BuildFragmentJoins(criteriaFragment, filterFragment);
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -500,10 +513,10 @@ ORDER BY pg.RowNum";
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH {criteriaCtePrefix}FilteredAssets AS (
+;WITH {fragmentCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year
     FROM dbo.AssetDetail ad
-    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{criteriaJoin}
+    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{fragmentJoins}
     WHERE ad.RunId = @RunId
     {criteriaWhere}
     {filterWhere}
@@ -589,12 +602,14 @@ ORDER BY pg.RowNum";
             var assetKeyJoin = BuildAssetKeyJoin("fa");
             var attrPivot = BuildAttributePivotCte(attributeColumns, "AssetDetailValueIntId", "AssetDetailId", parameters, useFallback: true);
             var costBudget = BuildCostBudgetCte(hasCost, hasBudget);
-            var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
-            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters);
-            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year");
+            var criteriaFragment = TranslateSchemaCriteria(component.CriteriaExpression, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters, useSummaryFallback: true);
+            var filterFragment = TranslateViewerFilters(request.ColumnFilters, "AssetDetailValueIntId", "AssetDetailId", "ad", parameters,
+                useSummaryFallback: true, assetKeyColumnName: keyColName);
+            var sortResult = BuildSortExpression(request.SortBy, request.SortDirection, "AssetDetailValueIntId", "AssetDetailId", "wk", parameters, $"wk._AssetKey, wk.Year",
+                useSummaryFallback: true, assetKeyColumnName: keyColName);
 
-            var criteriaCtePrefix = string.IsNullOrEmpty(criteriaFragment.CriteriaCte) ? "" : $"{criteriaFragment.CriteriaCte},\n";
-            var criteriaJoin = string.IsNullOrEmpty(criteriaFragment.CriteriaJoin) ? "" : $"\n    {criteriaFragment.CriteriaJoin}";
+            var fragmentCtePrefix = BuildFragmentCtePrefix(criteriaFragment, filterFragment);
+            var fragmentJoins = BuildFragmentJoins(criteriaFragment, filterFragment);
             var criteriaWhere = criteriaFragment.IsEmpty ? "" : $"AND {criteriaFragment.WhereClause}";
             var filterWhere = filterFragment.IsEmpty ? "" : $"AND {filterFragment.WhereClause}";
 
@@ -603,12 +618,12 @@ ORDER BY pg.RowNum";
             var withKeySortJoin = string.IsNullOrEmpty(sortResult.WithKeyJoin) ? "" : $"\n    {sortResult.WithKeyJoin}";
 
             var sql = $@"
-;WITH {criteriaCtePrefix}FilteredAssets AS (
+;WITH {fragmentCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year, ad.AppliedTreatment,
         ({TreatmentCauseCaseExpression("ad")}) AS TreatmentCause,
         ({TreatmentStatusCaseExpression("ad")}) AS TreatmentStatus
     FROM dbo.AssetDetail ad
-    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{criteriaJoin}
+    INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{fragmentJoins}
     WHERE ad.RunId = @RunId
     AND ad.AppliedTreatment IS NOT NULL AND ad.AppliedTreatment <> 'No Treatment'
     {criteriaWhere}
@@ -1357,20 +1372,17 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             string valueTableName,
             string parentIdColumn,
             string parentAlias,
-            List<SqlParameter> parameters)
+            List<SqlParameter> parameters,
+            bool useSummaryFallback = false,
+            string fallbackAssetDetailJoinSql = "",
+            string fallbackAssetDetailWhereSql = "")
         {
             var fragment = _criteriaEmitter.EmitWhere(
                 criteriaExpression, _unitOfWork.AttributeRepo,
-                valueTableName, parentIdColumn, parentAlias, "sc");
+                valueTableName, parentIdColumn, parentAlias, "sc",
+                useSummaryFallback, fallbackAssetDetailJoinSql, fallbackAssetDetailWhereSql);
 
-            if (!fragment.IsEmpty)
-            {
-                foreach (var p in fragment.Parameters)
-                {
-                    if (!parameters.Any(existing => existing.ParameterName == p.ParameterName))
-                        parameters.Add(p);
-                }
-            }
+            AddFragmentParameters(fragment, parameters);
 
             return fragment;
         }
@@ -1380,21 +1392,33 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             string valueTableName,
             string parentIdColumn,
             string parentAlias,
-            List<SqlParameter> parameters)
+            List<SqlParameter> parameters,
+            bool useSummaryFallback = false,
+            string fallbackAssetDetailJoinSql = "",
+            string fallbackAssetDetailWhereSql = "",
+            string assetKeyColumnName = null)
         {
+            Dictionary<string, string> directColumnExpressions = null;
+            if (!string.IsNullOrWhiteSpace(assetKeyColumnName))
+            {
+                directColumnExpressions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    [assetKeyColumnName] = $@"(
+                        SELECT TOP 1 malFilter.LocationIdentifier
+                        FROM dbo.MaintainableAssetLocation malFilter
+                        WHERE malFilter.MaintainableAssetId = {parentAlias}.MaintainableAssetId
+                    )"
+                };
+            }
+
             var fragment = _criteriaEmitter.EmitColumnFilterWhere(
                 columnFilters, _unitOfWork.AttributeRepo,
                 valueTableName, parentIdColumn, parentAlias,
-                AssetDetailSimulationFields);
+                AssetDetailSimulationFields, useSummaryFallback,
+                fallbackAssetDetailJoinSql, fallbackAssetDetailWhereSql,
+                directColumnExpressions);
 
-            if (!fragment.IsEmpty)
-            {
-                foreach (var p in fragment.Parameters)
-                {
-                    if (!parameters.Any(existing => existing.ParameterName == p.ParameterName))
-                        parameters.Add(p);
-                }
-            }
+            AddFragmentParameters(fragment, parameters);
 
             return fragment;
         }
@@ -1406,12 +1430,20 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             string parentIdColumn,
             string parentAlias,
             List<SqlParameter> parameters,
-            string defaultSort)
+            string defaultSort,
+            bool useSummaryFallback = false,
+            string assetKeyColumnName = null)
         {
             var direction = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase) ? "DESC" : "ASC";
 
             if (string.IsNullOrWhiteSpace(sortBy))
                 return new SortExpressionResult { SortColumnRef = $"{defaultSort} {direction}" };
+
+            if (!string.IsNullOrWhiteSpace(assetKeyColumnName) &&
+                string.Equals(sortBy, assetKeyColumnName, StringComparison.OrdinalIgnoreCase))
+            {
+                return new SortExpressionResult { SortColumnRef = $"{parentAlias}._AssetKey {direction}" };
+            }
 
             // Check if it's a simulation field — direct column reference, no join needed
             if (AssetDetailSimulationFields.Contains(sortBy, StringComparer.OrdinalIgnoreCase))
@@ -1423,13 +1455,52 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             // EAV attribute sort — pre-compute in WithKey via a set-based subquery join
             var (sortColRef, withKeyJoin) = _criteriaEmitter.EmitAttributeSortJoin(
                 sortBy, _unitOfWork.AttributeRepo,
-                valueTableName, parentIdColumn, parameters);
+                valueTableName, parentIdColumn, parameters, useSummaryFallback);
 
             return new SortExpressionResult
             {
                 SortColumnRef = $"{sortColRef} {direction}",
                 WithKeyJoin = withKeyJoin
             };
+        }
+
+        private static void AddFragmentParameters(CriteriaSqlFragment fragment, List<SqlParameter> parameters)
+        {
+            foreach (var p in fragment.Parameters)
+            {
+                if (!parameters.Any(existing => existing.ParameterName == p.ParameterName))
+                    parameters.Add(p);
+            }
+        }
+
+        private static string BuildFragmentCtePrefix(params CriteriaSqlFragment[] fragments)
+        {
+            var ctes = fragments
+                .Where(f => !string.IsNullOrWhiteSpace(f?.CriteriaCte))
+                .Select(f => f.CriteriaCte)
+                .ToList();
+
+            return ctes.Any() ? $"{string.Join(",\n", ctes)},\n" : "";
+        }
+
+        private static string BuildFragmentJoins(params CriteriaSqlFragment[] fragments)
+        {
+            var joins = fragments
+                .Where(f => !string.IsNullOrWhiteSpace(f?.CriteriaJoin))
+                .Select(f => f.CriteriaJoin)
+                .ToList();
+
+            return joins.Any() ? $"\n    {string.Join("\n    ", joins)}" : "";
+        }
+
+        private static (string JoinSql, string WhereSql) BuildFallbackAssetDetailScope(bool selectedYearOnly)
+        {
+            if (!selectedYearOnly)
+                return ("", "");
+
+            return (
+                "INNER JOIN dbo.SimulationYearDetail sydFallback ON sydFallback.RunId = @RunId AND sydFallback.Id = adBase.SimulationYearDetailId",
+                "AND sydFallback.Year = @SelectedYear");
         }
 
         private PagedViewerResultDTO ExecutePagedQuery(
