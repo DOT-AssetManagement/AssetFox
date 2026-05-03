@@ -1,5 +1,16 @@
 <template>
     <div>
+        <v-checkbox
+            v-model="localConfig.showNoTreatment"
+            label='Show "No Treatment"'
+            density="compact"
+            hide-details
+            class="mb-2"
+            @update:model-value="emitUpdate"
+        />
+
+        <v-divider class="my-3" />
+
         <div class="text-caption text-uppercase mb-2" style="letter-spacing: 0.08em; color: #666;">Identifier Columns</div>
         <p class="text-caption text-grey mb-1">Static asset ID columns shown on the left side of the timeline.</p>
         <v-btn size="small" variant="outlined" class="text-none mb-2" @click="showIdPicker = true">

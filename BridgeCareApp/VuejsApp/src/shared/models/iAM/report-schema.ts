@@ -101,6 +101,7 @@ export interface TreatmentTimelineConfig {
     attributeColumns: ColumnDef[];
     yearDataFields: YearField[];
     sorting: SortingConfig;
+    showNoTreatment: boolean;
 }
 
 export interface WorkSummaryConfig {
@@ -252,6 +253,7 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
                     { type: 'cost', displayHeader: 'Cost', format: 'currency' },
                 ],
                 sorting: { ...emptySortingConfig },
+                showNoTreatment: false,
             } as TreatmentTimelineConfig;
         case 'workSummary':
             return {

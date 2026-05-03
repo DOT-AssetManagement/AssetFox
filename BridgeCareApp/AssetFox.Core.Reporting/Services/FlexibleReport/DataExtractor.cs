@@ -47,8 +47,18 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             var attributeColumns = GetConfigColumnDefs(config, "attributeColumns");
             var yearDataFields = GetConfigYearFields(config, "yearDataFields");
             var sorting = GetConfigSorting(config);
+            var showNoTreatment = GetConfigBool(config, "showNoTreatment");
 
             var yearlyRecords = ExtractYearlyAssets(output);
+            if (!showNoTreatment)
+            {
+                yearlyRecords = yearlyRecords
+                    .Where(r => !string.Equals(
+                        r.TryGetValue("appliedTreatment", out var treatment) ? treatment?.ToString() : null,
+                        "No Treatment",
+                        StringComparison.Ordinal))
+                    .ToList();
+            }
 
             // Group by asset
             var assetGroups = yearlyRecords

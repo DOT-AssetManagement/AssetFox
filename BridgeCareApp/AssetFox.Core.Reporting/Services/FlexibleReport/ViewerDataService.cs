@@ -376,6 +376,7 @@ ORDER BY pg.RowNum";
             var config = component.Config ?? new Dictionary<string, object>();
             var identifierColumns = GetConfigColumnDefs(config, "identifierColumns");
             var attributeColumns = GetConfigColumnDefs(config, "attributeColumns");
+            var showNoTreatment = GetConfigBool(config, "showNoTreatment");
 
             var allAttrColumns = new List<SimpleColumnDef>();
             allAttrColumns.AddRange(identifierColumns);
@@ -399,6 +400,13 @@ ORDER BY pg.RowNum";
                 new SqlParameter("@Offset", (request.Page - 1) * request.PageSize),
                 new SqlParameter("@PageSize", request.PageSize)
             };
+
+            var noTreatmentWhere = "";
+            if (!showNoTreatment)
+            {
+                parameters.Add(new SqlParameter("@NoTreatmentName", "No Treatment"));
+                noTreatmentWhere = "AND (ad.AppliedTreatment IS NULL OR ad.AppliedTreatment <> @NoTreatmentName)";
+            }
 
             var assetKeyJoin = BuildAssetKeyJoin("fa");
             var attrPivot = BuildAttributePivotCte(allAttrColumns, "AssetDetailValueIntId", "AssetDetailId", parameters, useFallback: true);
@@ -424,6 +432,7 @@ ORDER BY pg.RowNum";
     FROM dbo.AssetDetail ad
     INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{fragmentJoins}
     WHERE ad.RunId = @RunId
+    {noTreatmentWhere}
     {criteriaWhere}
     {filterWhere}
 ),
