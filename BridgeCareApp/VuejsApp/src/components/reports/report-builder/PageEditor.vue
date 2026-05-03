@@ -4,7 +4,7 @@
 
         <!-- Teleport Vue content into each gridstack-created widget -->
         <template v-for="tp in teleportTargets" :key="tp.compId">
-            <Teleport :to="tp.selector" v-if="tp.mounted">
+            <Teleport :to="tp.target" v-if="tp.mounted">
                 <GridComponentWrapper
                     :component="getComponent(tp.compId)!"
                     :selected="selectedId === tp.compId"
@@ -58,7 +58,7 @@ let grid: GridStack | null = null;
 let suppressChangeEvent = false;
 
 // Teleport tracking: maps component IDs to their DOM mount targets
-const teleportTargets = reactive<{ compId: string; selector: string; mounted: boolean }[]>([]);
+const teleportTargets = reactive<{ compId: string; target: HTMLElement; mounted: boolean }[]>([]);
 
 function getComponent(id: string): ReportComponent | undefined {
     return props.components.find(c => c.id === id);
@@ -66,8 +66,6 @@ function getComponent(id: string): ReportComponent | undefined {
 
 function addWidgetToGrid(comp: ReportComponent) {
     if (!grid) return;
-
-    const contentId = `gs-content-${comp.id}`;
 
     // Create widget via gridstack API
     const el = grid.addWidget({
@@ -78,22 +76,25 @@ function addWidgetToGrid(comp: ReportComponent) {
         h: comp.gridH,
         minW: 3,
         noResize: false,
-        content: `<div id="${contentId}" class="gs-vue-content"></div>`,
     });
 
+    const target = document.createElement('div');
+    target.className = 'gs-vue-content';
+    const contentEl = el.querySelector('.grid-stack-item-content');
+    (contentEl ?? el).replaceChildren(target);
+
     // Track teleport target
-    nextTick(() => {
-        const existing = teleportTargets.find(t => t.compId === comp.id);
-        if (!existing) {
-            teleportTargets.push({
-                compId: comp.id,
-                selector: `#${contentId}`,
-                mounted: true,
-            });
-        } else {
-            existing.mounted = true;
-        }
-    });
+    const existing = teleportTargets.find(t => t.compId === comp.id);
+    if (!existing) {
+        teleportTargets.push({
+            compId: comp.id,
+            target,
+            mounted: true,
+        });
+    } else {
+        existing.target = target;
+        existing.mounted = true;
+    }
 }
 
 function removeWidgetFromGrid(compId: string) {
@@ -111,11 +112,6 @@ function removeWidgetFromGrid(compId: string) {
 
 function initGrid() {
     if (!gridEl.value) return;
-
-    // Override gridstack's default textContent renderer so our HTML content
-    // string (Teleport target div) is rendered as actual DOM, not literal text.
-    // This is the documented approach for framework integrations.
-    GridStack.renderCB = (el, w) => { el.innerHTML = w.content ?? ''; };
 
     grid = GridStack.init({
         column: 12,

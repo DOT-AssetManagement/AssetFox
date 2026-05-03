@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.Reporting.Models.FlexibleReport;
 using AssetFox.Core.Reporting.Services.FlexibleReport;
 using AssetFoxCore.Controllers.BaseController;
 using AssetFoxCore.Security.Interfaces;
@@ -73,7 +74,12 @@ namespace AssetFoxCore.Controllers
                 // Validate schema JSON
                 if (!string.IsNullOrWhiteSpace(dto.SchemaJson))
                 {
-                    if (!SchemaParser.TryParse(dto.SchemaJson, out _, out var error))
+                    if (!SchemaParser.TryParse(dto.SchemaJson, out var schema, out var error))
+                    {
+                        return BadRequest($"Invalid schema JSON: {error}");
+                    }
+
+                    if (!ValidateSchemaIds(schema, out error))
                     {
                         return BadRequest($"Invalid schema JSON: {error}");
                     }
@@ -117,7 +123,12 @@ namespace AssetFoxCore.Controllers
                 // Validate schema JSON
                 if (!string.IsNullOrWhiteSpace(dto.SchemaJson))
                 {
-                    if (!SchemaParser.TryParse(dto.SchemaJson, out _, out var error))
+                    if (!SchemaParser.TryParse(dto.SchemaJson, out var schema, out var error))
+                    {
+                        return BadRequest($"Invalid schema JSON: {error}");
+                    }
+
+                    if (!ValidateSchemaIds(schema, out error))
                     {
                         return BadRequest($"Invalid schema JSON: {error}");
                     }
@@ -168,6 +179,31 @@ namespace AssetFoxCore.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { error = e.Message });
             }
+        }
+
+        private static bool ValidateSchemaIds(ReportSchemaDefinition schema, out string error)
+        {
+            error = null;
+
+            foreach (var page in schema.Pages ?? new List<ReportPage>())
+            {
+                if (!Guid.TryParse(page.Id, out _))
+                {
+                    error = "Every report page id must be a GUID.";
+                    return false;
+                }
+
+                foreach (var component in page.Components ?? new List<ReportComponent>())
+                {
+                    if (!Guid.TryParse(component.Id, out _))
+                    {
+                        error = "Every report component id must be a GUID.";
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }
