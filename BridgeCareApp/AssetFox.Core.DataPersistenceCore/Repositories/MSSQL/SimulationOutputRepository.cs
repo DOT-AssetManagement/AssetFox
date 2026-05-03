@@ -596,10 +596,13 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                         _unitOfWork.Context.Database.ExecuteSqlRaw(sql);
 
                         // 3. Re-enable (and re-trust) the same FKs
+                        // TODO: Remove inter-output-table FKs entirely — they provide no integrity benefit
+                        //       for machine-generated simulation data and force expensive NOCHECK/CHECK
+                        //       cycling on every partition switch (both save and delete paths).
                         _unitOfWork.Context.Database.ExecuteSqlRaw(@"
                             DECLARE @sql nvarchar(max) = N'';
-                            SELECT @sql = @sql + 
-                                  N'ALTER TABLE ' 
+                            SELECT @sql = @sql +
+                                  N'ALTER TABLE '
                                 + QUOTENAME(OBJECT_SCHEMA_NAME(fkc.parent_object_id))
                                 + N'.' + QUOTENAME(OBJECT_NAME(fkc.parent_object_id))
                                 + N' WITH CHECK CHECK CONSTRAINT ' + QUOTENAME(fk.name) + N';'

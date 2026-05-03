@@ -99,7 +99,7 @@
                     style='float:left;'
                 >
                     <span class="ghd-right-padding">Add Treatment</span>
-                    <v-icon>fas fa-plus</v-icon>
+                    <v-icon title="Add Treatment">fas fa-plus</v-icon>
                 </v-btn>
             </div>    
             <div>
@@ -113,7 +113,7 @@
                                     <div style="display: flex; flex-shrink: 0;">
                                     <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'"
                                     @click.stop="OnCloneTreatmentClicked(treatmentSelectItem.value)"  class="ghd-red">
-                                        <img class='img-general' :src="getUrl('assets/icons/copy.svg')"/>
+                                        <img class='img-general' :src="getUrl('assets/icons/copy.svg')" title="Copy"/>
                                     </v-btn>
                                     <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'" @click.stop="onShowConfirmDeleteTreatmentAlert(treatmentSelectItem.value)" class="ghd-red">
                                         <TrashCanSvg />
@@ -755,12 +755,12 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         selectTreatmentLibraryAction({
             libraryId: librarySelectItemValue.value,
         });
-    
-        if(!isNil(librarySelectItemValue.value)){
-            if (!isEmpty(librarySelectItemValue.value)){
-                getSimpleSelectableTreatmentsAction(librarySelectItemValue.value);
-            }
-        }           
+
+        if(!isNil(librarySelectItemValue.value) && !isEmpty(librarySelectItemValue.value)){
+            getSimpleSelectableTreatmentsAction(librarySelectItemValue.value);
+        } else {
+            simpleTreatments.value = [];
+        }
     }  
 
     watch(stateSimpleSelectableTreatments, () => onStateSimpleSelectableTreatments())

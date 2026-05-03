@@ -130,6 +130,18 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 budgetAmountEntities.Where(_ => !existingEntityIds.Contains(_.Id)).ToList(), _unitOfWork.UserEntity?.Id);
         }
 
+        public void ShiftAllScenarioBudgetAmountYears(Guid simulationId, int shift)
+        {
+            if (shift == 0) return;
+
+            var amounts = _unitOfWork.Context.ScenarioBudgetAmount
+                .Where(_ => _.ScenarioBudget.SimulationId == simulationId)
+                .ToList();
+
+            amounts.ForEach(_ => _.Year += shift);
+            _unitOfWork.Context.UpdateAll(amounts, _unitOfWork.UserEntity?.Id);
+        }
+
         public List<BudgetAmountDTO> GetLibraryBudgetAmounts(Guid libraryId)
         {
             if (!_unitOfWork.Context.BudgetLibrary.Any(_ => _.Id == libraryId))

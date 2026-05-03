@@ -10,6 +10,7 @@ using AssetFox.Core.Analysis;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Enums;
 using Microsoft.EntityFrameworkCore;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
@@ -24,7 +25,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulation.Id))
             {
-                throw new RowNotInTableException("No simulation was found for the given scenario.");
+                throw new SimulationDataValidationException("No simulation was found for the given scenario.", "Scenario");
             }
 
             if (!_unitOfWork.Context.AnalysisMethod.Any(_ => _.Simulation.Id == simulation.Id))
@@ -72,7 +73,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             // Atleast one budget priority should exist
             if (!analysisMethodEntity.Simulation.BudgetPriorities.Any())
             {
-                throw new RowNotInTableException("No budget priority was found for the given scenario.");
+                throw new SimulationDataValidationException("No budget priority was found for the given scenario.", "Budget Priority");
             }
 
             var attributeNameLookup = _unitOfWork.AttributeRepo.GetIdNameCache();
@@ -106,7 +107,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     Benefit = new BenefitDTO(),
                     CriterionLibrary = new CriterionLibraryDTO(),
                     LastKnownAssetCount = -1,
-                    SuperAssetAttribute = new Guid(),
+                    SuperAssetAttribute = string.Empty,
                 };
             }
 
@@ -147,6 +148,12 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             }
 
             var analysisMethodEntity = dto.ToEntity(simulationId, attributeEntity?.Id);
+
+            if (!string.IsNullOrEmpty(dto.SuperAssetAttribute))
+            {
+                var superAssetAttributeEntity = _unitOfWork.Context.Attribute.SingleOrDefault(_ => _.Name == dto.SuperAssetAttribute);
+                analysisMethodEntity.SuperAssetAttribute = superAssetAttributeEntity?.Id;
+            }
 
             _unitOfWork.Context.Upsert(analysisMethodEntity, _ => _.Id == dto.Id, _unitOfWork.UserEntity?.Id);
 

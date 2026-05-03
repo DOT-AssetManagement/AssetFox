@@ -41,7 +41,8 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             List<BaseCommittedProjectDTO> committedProjectsForWorkOutsideScope,
             bool shouldBundleFeasibleTreatments,
             Dictionary<string, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails,
-            string primaryKey)
+            string primaryKey,
+            SpendingStrategy spendingStrategy)
         {
             var workSummaryByBudgetModels = CreateWorkSummaryByBudgetModels(reportOutputData);
             var committedTreatments = new HashSet<string>();
@@ -138,7 +139,8 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
                     committedProjectsForWorkOutsideScope,
                     committedProjects,
                     shouldBundleFeasibleTreatments,
-                    primaryKey);
+                    primaryKey,
+                    spendingStrategy);
 
                 // Finally, advance for next budget label
                 currentCell.Row++;

@@ -1,12 +1,10 @@
 <template>
-        <v-row>
-            <v-col class="p-0">
-                <v-card
+        <v-row >
+            <v-card
                 class="mx-auto ghd-sidebar-scenario"
-                
                 elevation="0"
-                style="border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; border: 1px solid #999999;"
-            >
+                style="border-top-left-radius: 5px; border-bottom-left-radius: 
+                5px; border-bottom-right-radius: 5px; border: 1px solid #999999;">
                 <v-list
                     id = "EditScenario-navigation-vList"
                     class="ghd-navigation-list">
@@ -15,37 +13,36 @@
                         class="settings-list ghd-control-text"
                         :key="navigationTab.tabName"
                         :disabled="navigationTab.disabled"
-                        v-for="navigationTab in visibleNavigationTabs()"
-                    >
+                        v-for="navigationTab in visibleNavigationTabs()">
                         <v-list-item id="EditScenario-tabs-vListTile" :to="navigationTab.navigation" style="border-bottom: 1px solid #CCCCCC;">
                             <template v-slot:prepend>
-                                    <TreatmentSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Treatment'"/>  
-                                    <TargetConditionGoalSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Target Condition Goal'"/>  
-                                    <RemainingLifeLimitSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Remaining Life Limit'"/>  
-                                    <PerformanceCurveSvg style="height: 34px; width: 36px;"  class="scenario-icon" v-if="navigationTab.tabName === 'Deterioration Model'"/>  
-                                    <DeficientConditionGoalSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Deficient Condition Goal'"/>  
-                                    <InvestmentSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Investment'"/>  
-                                    <CashFlowSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Cash Flow'"/>  
-                                    <BudgetPrioritySvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Budget Priority'"/>  
-                                    <AnalysisMethodSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Analysis Method'"/>  
-                                    <CalculatedAttributeSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Calculated Attribute'"/>  
-                                    <CommittedProjectSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Committed Projects'"/>  
-                                    <ReportsSvg style="height: 38px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Reports & Outputs'"/>
+                                <TreatmentSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Treatment'"/>  
+                                <TargetConditionGoalSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Target Condition Goal'"/>  
+                                <RemainingLifeLimitSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Remaining Life Limit'"/>  
+                                <PerformanceCurveSvg style="height: 34px; width: 36px;"  class="scenario-icon" v-if="navigationTab.tabName === 'Deterioration Model'"/>  
+                                <DeficientConditionGoalSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Deficient Condition Goal'"/>  
+                                <InvestmentSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Investment'"/>  
+                                <CashFlowSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Cash Flow'"/>  
+                                <BudgetPrioritySvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Budget Priority'"/>  
+                                <AnalysisMethodSvg style="height: 38px; width: 34px"  class="scenario-icon" v-if="navigationTab.tabName === 'Analysis Method'"/>  
+                                <CalculatedAttributeSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Calculated Attribute'"/>  
+                                <CommittedProjectSvg style="height: 32px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Committed Projects'"/>  
+                                <ReportsSvg style="height: 38px; width: 32px"  class="scenario-icon-stroke" v-if="navigationTab.tabName === 'Reports & Outputs'"/>  
                             </template>
-                        <v-list-item-title style="display: flex; justify-content: space-between; align-items: center; padding-left: 5px; width: 100%;">
-    <span style="font-size: 1.1rem !important;">{{ navigationTab.tabName }}</span>
-    <i 
-        :class="[navigationTab.validationIcon, { 
-            'green-icon': navigationTab.validationIcon === 'fas fa-check-circle', 
-            'red-icon': navigationTab.validationIcon === 'fas fa-times-circle', 
-            'yellow-icon': navigationTab.validationIcon === 'fas fa-exclamation-circle' 
-        }]" 
-        v-if="navigationTab.validationIcon" 
-        style="margin-left: 30px; font-size: 1.3rem;"
-        v-b-tooltip.hover
-        :title="getTooltipText(navigationTab.validationIcon, navigationTab.tabName)">
-    </i>
-</v-list-item-title>
+                            <v-list-item-title style="display: flex; justify-content: space-between; align-items: center; padding-left: 5px; width: 100%;">
+                                <span style="font-size: 1.1rem !important;">{{ navigationTab.tabName }}</span>
+                                <i 
+                                    :class="[navigationTab.validationIcon, { 
+                                        'green-icon': navigationTab.validationIcon === 'fas fa-check-circle', 
+                                        'red-icon': navigationTab.validationIcon === 'fas fa-times-circle', 
+                                        'yellow-icon': navigationTab.validationIcon === 'fas fa-exclamation-circle' 
+                                    }]" 
+                                    v-if="navigationTab.validationIcon" 
+                                    style="margin-left: 30px; font-size: 1.3rem;"
+                                    v-b-tooltip.hover
+                                    :title="getTooltipText(navigationTab.validationIcon, navigationTab.tabName)">
+                                </i>
+                            </v-list-item-title>
                         </v-list-item>
                     </v-list-item>
                 </v-list>
@@ -63,10 +60,9 @@
                     </v-btn>
                 </div>
             </v-card>
-            </v-col>
-            
-            <v-col class=" p-0" cols="10">
-                <v-container class="p-0" fluid grid-list-xs >
+
+            <v-col cols="12" class="ghd-content-scenario" >
+                <v-container fluid grid-list-xs style="padding-left:20px;padding-right:20px;" >
                     <router-view></router-view>
                 </v-container>
             </v-col>
@@ -75,6 +71,7 @@
 
         <AlertPreChecks
             :dialogDataPreChecks="confirmAnalysisPreCheckAlertData"
+            :scenario="selectedScenarioName"
             @submit="onConfirmAnalysisPreCheckAlertSubmit"
         />
 
@@ -174,7 +171,6 @@ import CashFlowService from '@/services/cash-flow.service';
     async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioSimpleBudgetDetails', payload)}
     async function getSimulationRunSettingAction(payload?: any): Promise<any> { await store.dispatch('getSimulationRunSetting', payload);}
  
-
     let selectedScenarioId: string = getBlankGuid();
     let showImportExportCommittedProjectsDialog: boolean = false;
     let networkId: string = getBlankGuid();
@@ -182,9 +178,15 @@ import CashFlowService from '@/services/cash-flow.service';
     let networkName: string = '';
     let selectedScenario: Scenario = clone(emptyScenario);
     let runAnalysisScenario: Scenario = clone(emptyScenario);
-    let preCheckMessages: any;
-    let preCheckHeading: string;
+    
+    let preCheckErrorMessages: any = [];
+    let preCheckWarningMessages: any = [];
+    let preCheckSuccessMessages: any = [];
+    let preCheckErrorHeading: string = '';
+    let preCheckWarningHeading: string = '';
+    let preCheckSuccessHeading: string = '';
     let preCheckStatus: any;
+
     let emptyTreatmentBudgets: any;
     let confirmAnalysisRunAlertData= ref(clone(emptyAlertDataWithButtons));
     let confirmAnalysisPreCheckAlertData= ref(clone(emptyAlertPreChecksData));
@@ -197,6 +199,7 @@ import CashFlowService from '@/services/cash-flow.service';
     let isCommittedProjectsSet = ref(false);
     let hasScenarioBeenRun = ref(false);
     let isCommittedProjectsBudgetsUnset = ref(true);
+    let selectedScenarioName: string = "";
 
     let navigationTabs = ref<NavigationTab[]>([
     {
@@ -510,7 +513,9 @@ import CashFlowService from '@/services/cash-flow.service';
         });
 
         $emitter.on('InvestmentSettingsUpdated', () => {
-            // Update the disabled property of the Deterioration Model tab
+            // Invalidate budget priorities since they reference budgets from the previous investment settings
+            isBudgetPrioritySet.value = true;
+
             navigationTabs.value.forEach((tab) => {
                 if (tab.tabName === 'Deterioration Model') {
                     tab.disabled = false;
@@ -518,6 +523,14 @@ import CashFlowService from '@/services/cash-flow.service';
                 else if(tab.tabName === 'Investment')
                 {
                     tab.validationIcon = 'fas fa-check-circle';
+                }
+                else if(tab.tabName === 'Budget Priority')
+                {
+                    tab.validationIcon = 'fas fa-times-circle';
+                }
+                else if(tab.tabName === 'Committed Projects' || tab.tabName === 'Cash Flow')
+                {
+                    tab.disabled = true;
                 }
             })
         });
@@ -658,50 +671,54 @@ import CashFlowService from '@/services/cash-flow.service';
         confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
         runAnalysisScenario = selectedScenario;
 
-        if (submit == "pre-checks") {
-            preCheckMessages = [];
-                if (submit && selectedScenarioId !== getBlankGuid()) 
-                {
-                    await ScenarioService.upsertValidateSimulation(networkId, selectedScenarioId).then((response: AxiosResponse) => {
-                        if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
-                            addSuccessNotificationAction({message: "Simulation pre-checks completed",});
-                            if(response.data.length > 0)
+        if (submit == "pre-checks") {    
+            ResetData();       
+            if (submit && selectedScenarioId !== getBlankGuid()) 
+            {
+                await ScenarioService.upsertValidateSimulation(networkId, selectedScenarioId).then((response: AxiosResponse) => {
+                    if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
+                        addSuccessNotificationAction({message: "Simulation pre-checks completed",});
+                        if(response.data.length > 0)
+                        {
+                            preCheckStatus = response.data[0].status; // per current working, only error messages goes in via API
+                            SetPreCheckErrorHeading();
+                            for(const item of response.data)
                             {
-                                preCheckStatus = response.data[0].status;
-                                for(const item of response.data)
-                                {
-                                    if (item.message != '') {
-                                    preCheckMessages += item.message + ".";
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                preCheckStatus = 3;
+                                if (item.message != '') {
+                                    preCheckErrorMessages += item.message.replace('.','') + " (in " + item.location + ")" + ".";
+                                }                                                                
                             }
                         }
-                    });
-
-                }
-                // Check which treatments have no budgets and add them to the warning list
-                emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenarioId });
-                emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
-                    if (!treatment.budgets || treatment.budgets.length === 0) {
-                        preCheckMessages += `Treatment ${treatment.name} has no budgets.`
-                    }
-
-                    if (!treatment.assetType)
-                    {
-                        preCheckMessages += `Treatment Asset type is empty or invalid on ${treatment.name}.` 
-                    }
-
-                    if(isNaN(treatment.category) || isNaN(treatment.shadowForAnyTreatment) || isNaN(treatment.shadowForSameTreatment))
-                    {
-                        preCheckMessages += `A treatment detail is empty or invalid on ${treatment.name}.` 
+                        else
+                        {
+                            preCheckStatus = 3;
+                        }
                     }
                 });
 
-                secondRunAnalysisModal();
+            }
+            // Check which treatments have no budgets and add them to the warning list
+            emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenarioId });
+            emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
+                if (!treatment.budgets || treatment.budgets.length === 0) {
+                    preCheckWarningMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`
+                    SetPreCheckWarningHeadingStatus();
+                }
+
+                if (!treatment.assetType)
+                {
+                    preCheckWarningMessages += `Treatment Asset type is empty or invalid on ${treatment.name} (in Treatment).` 
+                    SetPreCheckWarningHeadingStatus();
+                }
+
+                if(isNaN(treatment.category) || isNaN(treatment.shadowForAnyTreatment) || isNaN(treatment.shadowForSameTreatment))
+                {
+                    preCheckWarningMessages += `A treatment detail is empty or invalid on ${treatment.name} (in Treatment).` 
+                    SetPreCheckWarningHeadingStatus();
+                }
+            });
+
+            secondRunAnalysisModal();
         }
         else if(submit == "continue") {
             store.dispatch('updateSimulationRunSettingName', simulationName);
@@ -717,46 +734,65 @@ import CashFlowService from '@/services/cash-flow.service';
 
     }
 
+    function SetPreCheckErrorHeading() {
+        preCheckErrorHeading ='Error';
+    }
+
+    function SetPreCheckWarningHeadingStatus() {
+        preCheckWarningHeading ='Warning';
+        preCheckStatus = 1;
+    }    
+
+    function SetPreCheckSuccessHeadingMessages() {
+        preCheckSuccessHeading = 'Success';
+        preCheckSuccessMessages += 'No warnings have been returned.' + 'No errors have been returned';
+    }
+
+    function ResetData() {
+        preCheckErrorMessages = [];
+        preCheckWarningMessages = [];
+        preCheckSuccessMessages = [];
+        preCheckErrorHeading = '';
+        preCheckWarningHeading = '';
+        preCheckSuccessHeading = '';
+    }
+
     function secondRunAnalysisModal() {
         confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
+        selectedScenarioName = selectedScenario.name;
 
-            if(preCheckStatus == 0)
-            {
-                preCheckHeading = 'Error';
-            }
-            else if(preCheckStatus == 1)
-            {
-                preCheckHeading = 'Warning';
-            }
-            else if(preCheckStatus == 2)
-            {
-                preCheckHeading = 'Information';
-            }
-            else if(preCheckStatus == 3)
-            {
-                preCheckHeading = 'Success';
-                preCheckMessages += 'No warnings have been returned.' + 'No errors have been returned';
-            }
+        if(preCheckStatus == 3)
+        {
+            SetPreCheckSuccessHeadingMessages();
+        }
 
-            if(preCheckStatus == 0)
-            {
+        if(preCheckErrorHeading != '')
+        {
+            (selectedScenario = clone(emptyScenario));
+            confirmAnalysisPreCheckAlertData.value = {
+                showDialog: true,
+                ErrorHeading: (preCheckErrorHeading),
+                ErrorMessage: (preCheckErrorMessages),
+                WarningHeading: (preCheckWarningHeading),
+                WarningMessage: (preCheckWarningMessages),
+                SuccessHeading: (preCheckSuccessHeading),
+                SuccessMessage: (preCheckSuccessMessages),
+                choice: false
+            }
+        }
+        else{
                 (selectedScenario = clone(emptyScenario));
                 confirmAnalysisPreCheckAlertData.value = {
                 showDialog: true,
-                heading: (preCheckHeading),
-                choice: false,
-                message:(preCheckMessages),
-                }
+                ErrorHeading: (preCheckErrorHeading),
+                ErrorMessage: (preCheckErrorMessages),
+                WarningHeading: (preCheckWarningHeading),
+                WarningMessage: (preCheckWarningMessages),
+                SuccessHeading: (preCheckSuccessHeading),
+                SuccessMessage: (preCheckSuccessMessages),
+                choice: true            
             }
-            else{
-                (selectedScenario = clone(emptyScenario));
-                confirmAnalysisPreCheckAlertData.value = {
-                showDialog: true,
-                heading: (preCheckHeading),
-                choice: true,
-                message:(preCheckMessages),
-                }
-            }
+        }
     }
 
     function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {

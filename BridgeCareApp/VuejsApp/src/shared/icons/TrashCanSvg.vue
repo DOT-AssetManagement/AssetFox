@@ -22,6 +22,7 @@
         stroke-linejoin="round"
         fill="none"
         />
+        <title>Delete</title>
     </svg>
 </template>
 

@@ -1,81 +1,84 @@
 <template>
     <v-row>
-        <v-col>
-            <h3 class="ghd-dialog">Output</h3>
-            <v-card class="elevation-0" style="border: 1px solid;" width="600px">
-                <div class="conjunction-and-messages-container" >
-                    <v-row :class="{'justify-space-between': !criteriaEditorData.isLibraryContext,
-                        'justify-start':criteriaEditorData.isLibraryContext}">
+        <v-col >
+            <v-row style="width: 600px; justify-self: center; margin: 0;">
+                <h3 class="ghd-dialog">Output</h3>
+                <v-card class="elevation-0" style="border: 1px solid; width: 600px; justify-self: center;"  >
+                    <div class="conjunction-and-messages-container" >
+                        <v-row :class="{'justify-space-between': !criteriaEditorData.isLibraryContext,
+                            'justify-start':criteriaEditorData.isLibraryContext}">
 
-                        <div style="padding:20px">
-                            <v-btn
-                                id="CriteriaEditor-addSubCriteria-btn"
-                                @click="onAddSubCriteria"
-                                class="ghd-white-bg ghd-blue ghd-button-text ghd-outline-button-padding ghd-button ghd-button-border"
-                                variant = "flat"
-                                >Add Subcriteria
-                            </v-btn>
-                        </div>
-                    </v-row>
-                </div>
-                <v-card-text :class="{'clauses-card-dialog':!criteriaEditorData.isLibraryContext,
-                    'clauses-card-library':criteriaEditorData.isLibraryContext}">  
-                    <div v-for="(clause, index) in subCriteriaClauses" :key="index">
-                        <v-textarea style="padding-left:0px;"
-                            :value="getValueForTextarea(index)"
-                            variant="outlined"
-                            @click="onClickSubCriteriaClauseTextarea(clause, index)"
-                            class="ghd-control-text"
-                            full-width
-                            no-resize
-                            readonly
-                            hide-details
-                            rows="3">
-                            <template v-slot:append>
-                                <v-btn id="CriteriaEditor-removeSubCriteria-btn"
-                                    @click.stop="onRemoveSubCriteria(index)"
-                                    class="ghd-red"
-                                    flat
-                                    icon>
-                                    <TrashCanSvg />
+                            <div style="padding:20px">
+                                <v-btn
+                                    id="CriteriaEditor-addSubCriteria-btn"
+                                    @click="onAddSubCriteria"
+                                    class="ghd-white-bg ghd-blue ghd-button-text ghd-outline-button-padding ghd-button ghd-button-border"
+                                    variant = "flat"
+                                    >Add Subcriteria
                                 </v-btn>
-                            </template>
-                        </v-textarea>
-                        <div style="margin: 5px;" v-if="index != subCriteriaClauses.length -1">OR</div>
-                        
+                            </div>
+                        </v-row>
                     </div>
-                </v-card-text>
-                <v-card-actions :class="{'validation-actions':criteriaEditorData.isLibraryContext,}">
-                    <v-row>
-                        <div class="validation-check-btn-container">
-                            <v-btn
-                                id="CriteriaEditor-checkOutput-btn"
-                                :disabled="onDisableCheckOutputButton()"
-                                @click="onCheckCriteria"
-                                class="ghd-white-bg ghd-blue ghd-button-text ghd-outline-button-padding ghd-button ghd-button-border"
-                                variant = "flat"
-                            >
-                                Check Output
-                            </v-btn>
+                    <v-card-text :class="{'clauses-card-dialog':!criteriaEditorData.isLibraryContext,
+                        'clauses-card-library':criteriaEditorData.isLibraryContext}">  
+                        <div v-for="(clause, index) in subCriteriaClauses" :key="index">
+                            <v-textarea style="padding-left:0px;"
+                                :value="getValueForTextarea(index)"
+                                variant="outlined"
+                                @click="onClickSubCriteriaClauseTextarea(clause, index)"
+                                class="ghd-control-text"
+                                full-width
+                                no-resize
+                                readonly
+                                hide-details
+                                rows="3">
+                                <template v-slot:append>
+                                    <v-btn id="CriteriaEditor-removeSubCriteria-btn"
+                                        @click.stop="onRemoveSubCriteria(index)"
+                                        class="ghd-red"
+                                        flat
+                                        icon>
+                                        <TrashCanSvg />
+                                    </v-btn>
+                                </template>
+                            </v-textarea>
+                            <div style="margin: 5px;" v-if="index != subCriteriaClauses.length -1">OR</div>
+                            
                         </div>
-                        <div style="padding: 10px;">
-                            <p class="invalid-message" v-if="invalidCriteriaMessage !== null">
-                                <strong>{{ invalidCriteriaMessage }}</strong>
-                            </p>
-                            <p id="CriteriaEditor-validOutput-p" class="valid-message" v-if="validCriteriaMessage !== null">
-                                <strong>{{ validCriteriaMessage }}</strong>
-                            </p>
-                            <p v-if="checkOutput">
-                                Please click here to check entire rule
-                            </p>
-                        </div>
-                    </v-row>
-                </v-card-actions>
-            </v-card>
+                    </v-card-text>
+                    <v-card-actions :class="{'validation-actions':criteriaEditorData.isLibraryContext,}">
+                        <v-row>
+                            <div class="validation-check-btn-container">
+                                <v-btn
+                                    id="CriteriaEditor-checkOutput-btn"
+                                    :disabled="onDisableCheckOutputButton()"
+                                    @click="onCheckCriteria"
+                                    class="ghd-white-bg ghd-blue ghd-button-text ghd-outline-button-padding ghd-button ghd-button-border"
+                                    variant = "flat"
+                                >
+                                    Check Output
+                                </v-btn>
+                            </div>
+                            <div style="padding: 10px;">
+                                <p class="invalid-message" v-if="invalidCriteriaMessage !== null">
+                                    <strong>{{ invalidCriteriaMessage }}</strong>
+                                </p>
+                                <p id="CriteriaEditor-validOutput-p" class="valid-message" v-if="validCriteriaMessage !== null">
+                                    <strong>{{ validCriteriaMessage }}</strong>
+                                </p>
+                                <p v-if="checkOutput">
+                                    Please click here to check entire rule
+                                </p>
+                            </div>
+                        </v-row>
+                    </v-card-actions>
+                </v-card>
+            </v-row>
         </v-col>
-        <v-col>
-            <h3 class="ghd-dialog">Criteria Editor</h3>
-            <v-card class="elevation-0" style="border: 1px solid;" width="600px">
+        <v-col >
+            <v-row style="width: 600px; justify-self: center; margin: 0;">
+                <h3 class="ghd-dialog">Criteria Editor</h3>
+                <v-card class="elevation-0" style="border: 1px solid;width: 100%; justify-self: center;"  >
                         <v-card-text
                             :class="{
                                 'criteria-editor-card-dialog':
@@ -147,7 +150,8 @@
                                 </div>       
                             </v-row>
                         </v-card-actions>
-            </v-card>
+                </v-card>
+            </v-row>    
         </v-col>
     </v-row>
     <div class="main-criteria-check-output-container">

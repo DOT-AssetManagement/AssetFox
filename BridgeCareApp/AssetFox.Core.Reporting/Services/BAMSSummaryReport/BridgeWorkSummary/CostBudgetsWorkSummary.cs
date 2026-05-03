@@ -85,7 +85,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
             
             var currentRow = currentCell.Row;
             currentCell.Row = 1;
-            FillRemainingBudgetSection(worksheet, simulationYears, currentCell, budgetTotalRow);
+            FillRemainingBudgetSection(worksheet, simulationYears, currentCell, budgetTotalRow, spendingStrategy);
             currentCell.Row = currentRow;
         }
 
@@ -256,8 +256,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
                 var year = simulationYears[columnIndex - 3];
                 worksheet.Cells[currentCell.Row, columnIndex].Formula = ExcelFormulas.RangeSum(startAddress, endAddress);
                 worksheet.Cells[currentCell.Row, columnIndex].Calculate();
-                //worksheet.Cells[currentCell.Row, columnIndex].Value = Convert.ToDecimal(worksheet.Cells[currentCell.Row, columnIndex].Value) +
-                                                                      //TotalCommittedSpent[year] + TotalMPMSSpent[year] + TotalSAPSpent[year] + TotalProjectBuilderSpent[year];
             }
 
             // Adding percentage after the Total (all years)
@@ -292,7 +290,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
                 var yearIndex = year - simulationYears[0];
                 var columnIndex = yearIndex + 3;
                 var budgetTotal = yearlyBudgetAmount.Sum(x => x.Value.BudgetAmounts[yearIndex].Value);
-                if (spendingStrategy == SpendingStrategy.UnlimitedSpending) // Or whatever indicates an unlimited budget
+                if (spendingStrategy == SpendingStrategy.UnlimitedSpending) // Or whatever indicates an unlimited budget                    
                 {
                     worksheet.Cells[currentCell.Row, columnIndex].Value = Convert.ToDecimal(worksheet.Cells[totalSpentRow, columnIndex].Value);
                 }
@@ -415,13 +413,13 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
         }
 
         private void FillRemainingBudgetSection(ExcelWorksheet worksheet, List<int> simulationYears, CurrentCell currentCell,
-             int budgetTotalRow)
+             int budgetTotalRow, SpendingStrategy spendingStrategy)
         {
             _bridgeWorkSummaryCommon.AddHeaders(worksheet, currentCell, simulationYears, "Budget Analysis", "");
             worksheet.Cells[currentCell.Row, simulationYears.Count + 3].Value = "Total Remaining Budget(all years)";
             ExcelHelper.ApplyStyle(worksheet.Cells[currentCell.Row, simulationYears.Count + 3]);
             ExcelHelper.ApplyBorder(worksheet.Cells[currentCell.Row, simulationYears.Count + 3]);
-            AddDetailsForRemainingBudget(worksheet, simulationYears, currentCell, budgetTotalRow);
+            AddDetailsForRemainingBudget(worksheet, simulationYears, currentCell, budgetTotalRow, spendingStrategy);
         }
 
         private Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> AddCostsOfCommittedWork(ExcelWorksheet worksheet, List<int> simulationYears, CurrentCell currentCell, Dictionary<int, Dictionary<string, List<CommittedProjectMetaData>>> yearlyCostCommittedProj)
@@ -984,7 +982,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
         }
 
         private void AddDetailsForRemainingBudget(ExcelWorksheet worksheet, List<int> simulationYears, CurrentCell currentCell,
-             int budgetTotalRow)
+             int budgetTotalRow, SpendingStrategy spendingStrategy)
         {
             int startRow, startColumn, row, column;
             _bridgeWorkSummaryCommon.SetRowColumns(currentCell, out startRow, out startColumn, out row, out column);
@@ -1013,11 +1011,14 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
                 var projectBuilderBudgetTotal = TotalProjectBuilderSpent[year];
                 var bamsBudgetTotal = totalSpent - (committedBudgetTotal + mpmsBudgetTotal + sapBudgetTotal + projectBuilderBudgetTotal);
                 var categoryBudgetTotals = new decimal[] { bamsBudgetTotal, committedBudgetTotal, mpmsBudgetTotal, sapBudgetTotal, projectBuilderBudgetTotal };
+                                
                 // Budget spent in each category
                 for (int rowIndex = 0; rowIndex < categoryBudgetTotals.Length; rowIndex++)
                 {
                     // Calculate percentage
-                    var percentage = categoryBudgetTotals[rowIndex] / yearlyBudget;
+                    var percentage = spendingStrategy == SpendingStrategy.UnlimitedSpending                                    
+                                    ? (categoryBudgetTotals[rowIndex] > 0 ? 100 : 0) / 100
+                                    : (yearlyBudget != 0 ? categoryBudgetTotals[rowIndex] / yearlyBudget : 0);
                     worksheet.Cells[row++, column].Value = percentage;
                 }
             }
@@ -1035,13 +1036,12 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
             ExcelHelper.ApplyBorder(worksheet.Cells[startRow, startColumn, row - 1, column + 1]);
 
             ExcelHelper.SetCustomFormat(worksheet.Cells[row - 6, fromColumn, row - 6, column + 1], ExcelHelperCellFormat.NegativeCurrency);
-            ExcelHelper.SetCustomFormat(worksheet.Cells[row - 5, fromColumn, row - 1, column], ExcelHelperCellFormat.Percentage);
+            ExcelHelper.SetCustomFormat(worksheet.Cells[row - 5, fromColumn, row - 1, column], ExcelHelperCellFormat.PercentageDecimal2);
 
             ExcelHelper.ApplyColor(worksheet.Cells[startRow, fromColumn, startRow, column], Color.Red);
             ExcelHelper.ApplyColor(worksheet.Cells[startRow + 1, fromColumn, row - 1, column], Color.FromArgb(248, 203, 173));
             _bridgeWorkSummaryCommon.UpdateCurrentCell(currentCell, row - 1, column);
         }
-
 
         private void FillWorkTypeTotalCommitted(Dictionary<TreatmentCategory, SortedDictionary<int, decimal>> workTypeTotalMPMS,
            TreatmentCategory category, List<int> simulationYears, int currYear, decimal treatmentCost)

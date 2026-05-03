@@ -523,9 +523,7 @@ namespace AssetFoxCore.Controllers
             {
                 reportObject = await _generator.Generate(reportName);
             }
-
-           // var criteria = parameters.SelectToken("expression")?.ToObject<IEnumerable<object>>().FirstOrDefault()?.ToString();
-
+           
             //generate report
             if (reportObject == null)
             {

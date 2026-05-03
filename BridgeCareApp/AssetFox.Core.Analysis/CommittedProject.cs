@@ -55,12 +55,12 @@ public sealed class CommittedProject : Treatment
 
         if (Budget == null)
         {
-            results.Add(ValidationStatus.Error, "Budget is unset.", this, nameof(Budget));
+            results.Add(ValidationStatus.Error, "Budget is unset.", this, nameof(Budget), "Committed Projects");
         }
 
         if (Cost < 0)
         {
-            results.Add(ValidationStatus.Error, "Cost is less than zero.", this, nameof(Cost));
+            results.Add(ValidationStatus.Error, "Cost is less than zero.", this, nameof(Cost), "Committed Projects");
         }
 
         return results;

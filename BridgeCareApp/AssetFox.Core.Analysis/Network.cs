@@ -41,21 +41,21 @@ public sealed class Network : WeakEntity, IValidator
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name));
+            results.Add(ValidationStatus.Error, "Name is blank.", this, nameof(Name), "Network");
         }
 
         if (Assets.Count == 0)
         {
-            results.Add(ValidationStatus.Error, "There are no assets.", this, nameof(Assets));
+            results.Add(ValidationStatus.Error, "There are no assets.", this, nameof(Assets), "Network");
         }
         else if (Assets.Select(asset => asset.AssetName).Distinct().Count() < Assets.Count)
         {
-            results.Add(ValidationStatus.Warning, "Multiple assets have the same name.", this, nameof(Assets));
+            results.Add(ValidationStatus.Warning, "Multiple assets have the same name.", this, nameof(Assets), "Network");
         }
 
         if (Simulations.Select(simulation => simulation.Name).Distinct().Count() < Simulations.Count)
         {
-            results.Add(ValidationStatus.Error, "Multiple simulations have the same name.", this, nameof(Simulations));
+            results.Add(ValidationStatus.Error, "Multiple simulations have the same name.", this, nameof(Simulations), "Network");
         }
 
         return results;

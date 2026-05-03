@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using MoreLinq.Extensions;
 using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
 using Microsoft.Extensions.DependencyModel;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 {
@@ -31,7 +32,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulation.Id))
             {
-                throw new RowNotInTableException("No simulation was found for the given scenario.");
+                throw new SimulationDataValidationException("No simulation was found for the given scenario.", "Scenario");
             }
 
             if (!_unitOfWork.Context.ScenarioSelectableTreatment.Any(_ => _.SimulationId == simulation.Id))

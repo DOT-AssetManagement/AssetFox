@@ -21,11 +21,11 @@ public sealed class BudgetPercentagePair : WeakEntity, IValidator
 
         if (Percentage < 0)
         {
-            results.Add(ValidationStatus.Error, "Percentage is less than zero.", this, nameof(Percentage));
+            results.Add(ValidationStatus.Error, "Percentage is less than zero.", this, nameof(Percentage), "Budget Priority");
         }
         else if (Percentage > 100)
         {
-            results.Add(ValidationStatus.Error, "Percentage is greater than 100.", this, nameof(Percentage));
+            results.Add(ValidationStatus.Error, "Percentage is greater than 100.", this, nameof(Percentage), "Budget Priority");
         }
 
         return results;

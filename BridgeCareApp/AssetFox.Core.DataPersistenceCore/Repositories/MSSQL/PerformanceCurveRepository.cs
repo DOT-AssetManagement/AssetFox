@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using AssetFox.Core.Analysis;
+using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.PerformanceCurve;
@@ -44,7 +45,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulation.Id))
             {
-                throw new RowNotInTableException("No simulation was found for the given scenario.");
+                throw new SimulationDataValidationException("No simulation was found for the given scenario.", "Scenario");
             }
 
             var attributeNameLookupDictionary = _unitOfWork.AttributeRepo.GetIdNameCache();

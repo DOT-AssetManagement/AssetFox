@@ -46,7 +46,7 @@ public sealed class Benefit : WeakEntity, IValidator
 
         if (Attribute == null)
         {
-            results.Add(ValidationStatus.Error, "Attribute is unset.", this, nameof(Attribute));
+            results.Add(ValidationStatus.Error, "Attribute is unset.", this, nameof(Attribute), "Attribute");
         }
 
         return results;

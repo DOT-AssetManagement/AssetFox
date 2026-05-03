@@ -805,6 +805,10 @@ display: none !important;
     padding-left: 295px !important;
 }
 
+.ghd-content-scenario{
+    padding-left: 300px !important;
+}
+
 .p-confirm-dialog {
     position: absolute;
     top: 35%;
