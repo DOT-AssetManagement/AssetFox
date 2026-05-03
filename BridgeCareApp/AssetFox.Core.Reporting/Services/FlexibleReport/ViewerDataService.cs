@@ -374,13 +374,10 @@ ORDER BY pg.RowNum";
         private PagedViewerResultDTO GetTreatmentTimelineData(ReportComponent component, ViewerDataRequestDTO request, int runId)
         {
             var config = component.Config ?? new Dictionary<string, object>();
-            var identifierColumns = GetConfigColumnDefs(config, "identifierColumns");
             var attributeColumns = GetConfigColumnDefs(config, "attributeColumns");
             var showNoTreatment = GetConfigBool(config, "showNoTreatment");
 
-            var allAttrColumns = new List<SimpleColumnDef>();
-            allAttrColumns.AddRange(identifierColumns);
-            allAttrColumns.AddRange(attributeColumns);
+            var allAttrColumns = new List<SimpleColumnDef>(attributeColumns);
 
             var keyAttrInfo = ResolveKeyAttribute(request.SimulationId);
             var keyColName = keyAttrInfo.Name ?? "Asset ID";
@@ -474,7 +471,7 @@ ORDER BY pg.RowNum";
         {
             var config = component.Config ?? new Dictionary<string, object>();
             var conditionAttrNames = GetConfigStringArray(config, "conditionAttributes");
-            var identifierColumns = GetConfigColumnDefs(config, "identifierColumns");
+            var attributeColumns = GetConfigColumnDefs(config, "attributeColumns");
 
             var keyAttrInfo = ResolveKeyAttribute(request.SimulationId);
             var keyColName = keyAttrInfo.Name ?? "Asset ID";
@@ -487,15 +484,15 @@ ORDER BY pg.RowNum";
             }).ToList();
 
             var allAttrColumns = new List<SimpleColumnDef>();
-            allAttrColumns.AddRange(identifierColumns);
+            allAttrColumns.AddRange(attributeColumns);
             allAttrColumns.AddRange(conditionColumns);
 
             var columns = new List<ViewerColumnDTO>();
             columns.Add(new ViewerColumnDTO { Key = keyColName, Header = keyColName, Format = "text" });
             columns.Add(new ViewerColumnDTO { Key = "year", Header = "Year", Format = "year", Filterable = true });
 
-            foreach (var idCol in identifierColumns)
-                columns.Add(new ViewerColumnDTO { Key = idCol.AttributeName, Header = idCol.DisplayHeader, Format = idCol.Format });
+            foreach (var attrCol in attributeColumns)
+                columns.Add(new ViewerColumnDTO { Key = attrCol.AttributeName, Header = attrCol.DisplayHeader, Format = attrCol.Format });
 
             foreach (var condCol in conditionColumns)
                 columns.Add(new ViewerColumnDTO { Key = condCol.AttributeName, Header = condCol.DisplayHeader, Format = condCol.Format });

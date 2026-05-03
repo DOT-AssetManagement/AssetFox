@@ -97,7 +97,6 @@ export interface AssetDetailConfig {
 }
 
 export interface TreatmentTimelineConfig {
-    identifierColumns: ColumnDef[];
     attributeColumns: ColumnDef[];
     yearDataFields: YearField[];
     sorting: SortingConfig;
@@ -118,7 +117,7 @@ export interface BudgetSummaryConfig {
 
 export interface ConditionTrackingConfig {
     conditionAttributes: string[];
-    identifierColumns: ColumnDef[];
+    attributeColumns: ColumnDef[];
     showInitialState: boolean;
 }
 
@@ -246,7 +245,6 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
             } as AssetDetailConfig;
         case 'treatmentTimeline':
             return {
-                identifierColumns: [],
                 attributeColumns: [],
                 yearDataFields: [
                     { type: 'treatment', displayHeader: 'Treatment', format: 'text' },
@@ -270,7 +268,7 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
         case 'conditionTracking':
             return {
                 conditionAttributes: [],
-                identifierColumns: [],
+                attributeColumns: [],
                 showInitialState: true,
             } as ConditionTrackingConfig;
         case 'fundedTreatmentList':

@@ -102,9 +102,9 @@ const previewText = computed(() => {
         }
         case 'treatmentTimeline': {
             const c = config as TreatmentTimelineConfig;
-            const idCols = c.identifierColumns?.length || 0;
+            const attrCols = c.attributeColumns?.length || 0;
             const yearFields = c.yearDataFields?.length || 0;
-            return `${idCols} ID column${idCols !== 1 ? 's' : ''} · ${yearFields} year field${yearFields !== 1 ? 's' : ''}`;
+            return `${attrCols} attribute column${attrCols !== 1 ? 's' : ''} · ${yearFields} year field${yearFields !== 1 ? 's' : ''}`;
         }
         case 'workSummary': {
             const c = config as WorkSummaryConfig;

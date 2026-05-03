@@ -43,7 +43,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
 
         public ReportTableData AssembleTreatmentTimelineData(SimulationOutput output, Dictionary<string, object> config)
         {
-            var identifierColumns = GetConfigColumnDefs(config, "identifierColumns");
             var attributeColumns = GetConfigColumnDefs(config, "attributeColumns");
             var yearDataFields = GetConfigYearFields(config, "yearDataFields");
             var sorting = GetConfigSorting(config);
@@ -67,11 +66,11 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
 
             var years = output.Years.Select(y => y.Year).OrderBy(y => y).ToList();
 
-            // Build column definitions: identifier cols + attribute cols + per-year columns
-            var columns = new List<ReportColumnDefinition>();
-
-            foreach (var col in identifierColumns)
-                columns.Add(new ReportColumnDefinition { Header = col.Header, DataPath = col.DataPath, Format = col.Format, Width = col.Width });
+            // Build column definitions: auto asset-key column + attribute cols + per-year columns
+            var columns = new List<ReportColumnDefinition>
+            {
+                new ReportColumnDefinition { Header = "Asset ID", DataPath = "assetName", Format = "text", Width = 18 }
+            };
 
             foreach (var col in attributeColumns)
                 columns.Add(new ReportColumnDefinition { Header = col.Header, DataPath = col.DataPath, Format = col.Format, Width = col.Width });
@@ -91,10 +90,9 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             {
                 var row = new List<object>();
 
-                // Use first record for identifier/attribute columns
+                // Use first record for asset key + attribute columns
                 var firstRecord = group.First();
-                foreach (var col in identifierColumns)
-                    row.Add(ResolveDataPath(firstRecord, col.DataPath));
+                row.Add(ResolveDataPath(firstRecord, "assetName"));
                 foreach (var col in attributeColumns)
                     row.Add(ResolveDataPath(firstRecord, col.DataPath));
 
@@ -249,14 +247,17 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
         public ReportTableData AssembleConditionTrackingData(SimulationOutput output, Dictionary<string, object> config)
         {
             var conditionAttributes = GetConfigStringList(config, "conditionAttributes");
-            var identifierColumns = GetConfigColumnDefs(config, "identifierColumns");
+            var attributeColumns = GetConfigColumnDefs(config, "attributeColumns");
             var showInitialState = GetConfigBool(config, "showInitialState", true);
 
             var years = output.Years.Select(y => y.Year).OrderBy(y => y).ToList();
 
-            // Build columns
-            var columns = new List<ReportColumnDefinition>();
-            foreach (var col in identifierColumns)
+            // Build columns: auto asset-key column + attribute cols + per-year condition cols
+            var columns = new List<ReportColumnDefinition>
+            {
+                new ReportColumnDefinition { Header = "Asset ID", DataPath = "assetName", Format = "text", Width = 18 }
+            };
+            foreach (var col in attributeColumns)
                 columns.Add(new ReportColumnDefinition { Header = col.Header, DataPath = col.DataPath, Format = col.Format, Width = col.Width });
 
             if (showInitialState)
@@ -288,7 +289,8 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 var row = new List<object>();
                 var firstRecord = group.First();
 
-                foreach (var col in identifierColumns)
+                row.Add(ResolveDataPath(firstRecord, "assetName"));
+                foreach (var col in attributeColumns)
                     row.Add(ResolveDataPath(firstRecord, col.DataPath));
 
                 if (showInitialState)

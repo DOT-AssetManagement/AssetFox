@@ -11,22 +11,8 @@
 
         <v-divider class="my-3" />
 
-        <div class="text-caption text-uppercase mb-2" style="letter-spacing: 0.08em; color: #666;">Identifier Columns</div>
-        <p class="text-caption text-grey mb-1">Static asset ID columns shown on the left side of the timeline.</p>
-        <v-btn size="small" variant="outlined" class="text-none mb-2" @click="showIdPicker = true">
-            <i class="fas fa-plus mr-2" style="font-size: 10px;" />
-            Add Identifiers
-        </v-btn>
-        <ColumnChipList
-            :columns="localConfig.identifierColumns"
-            chip-color="#2E7D32"
-            @update:columns="(cols) => { localConfig.identifierColumns = cols; emitUpdate(); }"
-        />
-
-        <v-divider class="my-3" />
-
         <div class="text-caption text-uppercase mb-2" style="letter-spacing: 0.08em; color: #666;">Static Attribute Columns</div>
-        <p class="text-caption text-grey mb-1">Additional asset attributes shown alongside identifiers.</p>
+        <p class="text-caption text-grey mb-1">Asset attributes shown to the left of the per-year columns. The asset key column is added automatically.</p>
         <v-btn size="small" variant="outlined" class="text-none mb-2" @click="showAttrPicker = true">
             <i class="fas fa-plus mr-2" style="font-size: 10px;" />
             Add Attributes
@@ -80,12 +66,6 @@
         </v-btn>
 
         <AttributeColumnPicker
-            v-model="showIdPicker"
-            :existing-attribute-names="localConfig.identifierColumns.map(c => c.attributeName)"
-            @save="onIdPickerSave"
-        />
-
-        <AttributeColumnPicker
             v-model="showAttrPicker"
             :existing-attribute-names="localConfig.attributeColumns.map(c => c.attributeName)"
             @save="onAttrPickerSave"
@@ -104,7 +84,6 @@ const props = defineProps<{ config: TreatmentTimelineConfig }>();
 const emit = defineEmits<{ (e: 'update:config', val: TreatmentTimelineConfig): void }>();
 
 const localConfig = ref<TreatmentTimelineConfig>(clone(props.config));
-const showIdPicker = ref(false);
 const showAttrPicker = ref(false);
 
 const yearFieldTypeOptions = [
@@ -114,14 +93,6 @@ const yearFieldTypeOptions = [
 ];
 
 watch(() => props.config, (val) => { localConfig.value = clone(val); }, { deep: true });
-
-function onIdPickerSave(names: string[]) {
-    const existing = new Map(localConfig.value.identifierColumns.map(c => [c.attributeName, c]));
-    localConfig.value.identifierColumns = names.map(name =>
-        existing.get(name) || { attributeName: name, displayHeader: name, format: 'text', width: 12 } as ColumnDef
-    );
-    emitUpdate();
-}
 
 function onAttrPickerSave(names: string[]) {
     const existing = new Map(localConfig.value.attributeColumns.map(c => [c.attributeName, c]));
