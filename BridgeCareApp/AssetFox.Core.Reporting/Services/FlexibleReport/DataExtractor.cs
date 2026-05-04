@@ -38,7 +38,55 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 records = ExtractYearlyAssets(output);
             }
 
-            return BuildTableFromRecords(records, attributeColumns, simulationColumns, sorting);
+            var table = BuildTableFromRecords(records, attributeColumns, simulationColumns, sorting);
+            if (showTotals)
+            {
+                AppendTotalsRow(table);
+            }
+            return table;
+        }
+
+        // Append a "Total" footer row that sums every numeric/currency column. The first column
+        // gets the literal "Total" label; non-numeric columns are left blank.
+        private static void AppendTotalsRow(ReportTableData table)
+        {
+            if (table.Columns.Count == 0 || table.Rows.Count == 0) return;
+
+            var totals = new List<object>(table.Columns.Count);
+            for (var c = 0; c < table.Columns.Count; c++)
+            {
+                var format = table.Columns[c].Format?.ToLowerInvariant();
+                var isNumeric = format == "number" || format == "currency" || format == "percent";
+
+                if (c == 0)
+                {
+                    totals.Add("Total");
+                    continue;
+                }
+
+                if (!isNumeric)
+                {
+                    totals.Add(null);
+                    continue;
+                }
+
+                double sum = 0;
+                foreach (var row in table.Rows)
+                {
+                    if (c >= row.Count) continue;
+                    var cell = row[c];
+                    if (cell == null) continue;
+                    if (cell is double d) sum += d;
+                    else if (cell is decimal dec) sum += (double)dec;
+                    else if (cell is int i) sum += i;
+                    else if (cell is long l) sum += l;
+                    else if (cell is float f) sum += f;
+                    else if (double.TryParse(cell.ToString(), out var parsed)) sum += parsed;
+                }
+                totals.Add(sum);
+            }
+
+            table.Rows.Add(totals);
         }
 
         public ReportTableData AssembleTreatmentTimelineData(SimulationOutput output, Dictionary<string, object> config)
@@ -132,8 +180,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             return new ReportTableData
             {
                 Columns = columns,
-                Rows = rows,
-                TotalRowCount = rows.Count
+                Rows = rows
             };
         }
 
@@ -142,6 +189,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             var groupByAttribute = GetConfigString(config, "groupByAttribute", "");
             var aggregateField = GetConfigString(config, "aggregateField", "cost");
             var aggregateFunction = GetConfigString(config, "aggregateFunction", "sum");
+            var includePercentages = GetConfigBool(config, "includePercentages");
 
             var records = ExtractYearlyAssets(output);
 
@@ -170,12 +218,57 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 aggregated.Columns[1].Format = format;
             }
 
+            if (includePercentages)
+            {
+                AppendPercentOfTotalColumn(aggregated, valueColumnIndex: 1);
+            }
+
             return aggregated;
+        }
+
+        // Add a "% of Total" column computed from `valueColumnIndex`. Each row gets its share of
+        // the column's grand total on a 0-100 scale (matches the rest of the URM percent convention).
+        private static void AppendPercentOfTotalColumn(ReportAggregationData data, int valueColumnIndex)
+        {
+            if (data?.Rows == null || data.Rows.Count == 0) return;
+
+            double total = 0;
+            foreach (var row in data.Rows)
+            {
+                if (valueColumnIndex >= row.Count) continue;
+                var cell = row[valueColumnIndex];
+                if (cell is double d) total += d;
+                else if (cell is decimal dec) total += (double)dec;
+                else if (cell is int i) total += i;
+                else if (cell is long l) total += l;
+                else if (cell is float f) total += f;
+            }
+
+            data.Columns.Add(new ReportColumnDefinition
+            {
+                Header = "% of Total",
+                DataPath = "percentOfTotal",
+                Format = "percent",
+                Width = 12
+            });
+
+            foreach (var row in data.Rows)
+            {
+                if (valueColumnIndex >= row.Count) { row.Add(0d); continue; }
+                var cell = row[valueColumnIndex];
+                double value = 0;
+                if (cell is double d) value = d;
+                else if (cell is decimal dec) value = (double)dec;
+                else if (cell is int i) value = i;
+                else if (cell is long l) value = l;
+                else if (cell is float f) value = f;
+
+                row.Add(total > 0 ? (value / total) * 100 : 0d);
+            }
         }
 
         public ReportTableData AssembleBudgetSummaryData(SimulationOutput output, Dictionary<string, object> config)
         {
-            var showAvailable = GetConfigBool(config, "showAvailableFunding", true);
             var showSpent = GetConfigBool(config, "showSpentAmount", true);
             var showRemaining = GetConfigBool(config, "showRemainingAmount", true);
 
@@ -197,8 +290,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
 
             foreach (var year in years)
             {
-                if (showAvailable)
-                    columns.Add(new ReportColumnDefinition { Header = $"{year} Available", DataPath = $"available_{year}", Format = "currency", Width = 15 });
                 if (showSpent)
                     columns.Add(new ReportColumnDefinition { Header = $"{year} Spent", DataPath = $"spent_{year}", Format = "currency", Width = 15 });
                 if (showRemaining)
@@ -240,7 +331,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                     var key = new { Budget = budgetName, Year = year };
                     var spent = spentByBudgetYear.ContainsKey(key) ? spentByBudgetYear[key] : 0.0;
 
-                    if (showAvailable) row.Add(available);
                     if (showSpent) row.Add(spent);
                     if (showRemaining) row.Add(available - spent);
                 }
@@ -250,8 +340,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             return new ReportTableData
             {
                 Columns = columns,
-                Rows = rows,
-                TotalRowCount = rows.Count
+                Rows = rows
             };
         }
 
@@ -328,8 +417,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             return new ReportTableData
             {
                 Columns = columns,
-                Rows = rows,
-                TotalRowCount = rows.Count
+                Rows = rows
             };
         }
 
@@ -401,8 +489,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             return new ReportTableData
             {
                 Columns = columns,
-                Rows = rows,
-                TotalRowCount = rows.Count
+                Rows = rows
             };
         }
 
@@ -642,8 +729,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
             return new ReportTableData
             {
                 Columns = columns,
-                Rows = rows,
-                TotalRowCount = rows.Count
+                Rows = rows
             };
         }
 
@@ -739,7 +825,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                         ["appliedTreatment"] = asset.AppliedTreatment,
                         ["treatmentCause"] = asset.TreatmentCause.ToString(),
                         ["treatmentStatus"] = asset.TreatmentStatus.ToString(),
-                        ["treatmentFundingIgnoresSpendingLimit"] = asset.TreatmentFundingIgnoresSpendingLimit
                     };
 
                     foreach (var kvp in asset.ValuePerNumericAttribute)
@@ -819,8 +904,7 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                         ["attributeName"] = goal.AttributeName,
                         ["goalIsMet"] = goal.GoalIsMet,
                         ["actualDeficientPercentage"] = goal.ActualDeficientPercentage,
-                        ["allowedDeficientPercentage"] = goal.AllowedDeficientPercentage,
-                        ["deficientLimit"] = goal.DeficientLimit
+                        ["allowedDeficientPercentage"] = goal.AllowedDeficientPercentage
                     });
                 }
             }

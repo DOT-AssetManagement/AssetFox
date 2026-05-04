@@ -6,10 +6,9 @@ namespace AssetFox.Core.Reporting.Models.FlexibleReport
 {
     public class ReportSchemaDefinition
     {
-        public string SchemaVersion { get; set; } = "3.0";
+        public string SchemaVersion { get; set; } = "1.0";
         public string Name { get; set; }
         public string Description { get; set; }
-        public PageSettings PageSettings { get; set; }
         public List<ReportPage> Pages { get; set; } = new();
 
         /// <summary>
@@ -29,12 +28,6 @@ namespace AssetFox.Core.Reporting.Models.FlexibleReport
         public List<ReportComponent> Components { get; set; } = new();
     }
 
-    public class PageSettings
-    {
-        public string Orientation { get; set; } = "landscape";
-        public string PaperSize { get; set; } = "letter";
-    }
-
     public class ReportComponent
     {
         public string Id { get; set; }
@@ -43,6 +36,9 @@ namespace AssetFox.Core.Reporting.Models.FlexibleReport
         public int Order { get; set; }
         public bool Visible { get; set; } = true;
         public string CriteriaExpression { get; set; }
+
+        public int PageSize { get; set; } = 10;
+        public bool StripedRows { get; set; }
 
         // Grid layout
         public int GridX { get; set; }

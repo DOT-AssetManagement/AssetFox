@@ -214,7 +214,6 @@ import {
     ReportComponent,
     ReportPage,
     emptyReportSchemaDTO,
-    emptyPageSettings,
     componentTypeInfo,
     createDefaultPage,
 } from '@/shared/models/iAM/report-schema';
@@ -408,7 +407,6 @@ function buildSchemaJson(): string {
         schemaVersion: '1.0',
         name: schemaName.value,
         description: schemaDescription.value,
-        pageSettings: clone(emptyPageSettings),
         pages: pages.value.map((p, pi) => ({
             ...p,
             order: pi,

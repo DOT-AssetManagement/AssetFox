@@ -36,7 +36,6 @@ export interface ReportSchemaDefinition {
     schemaVersion: string;
     name: string;
     description: string;
-    pageSettings: PageSettings;
     pages: ReportPage[];
 }
 
@@ -45,11 +44,6 @@ export interface ReportPage {
     name: string;
     order: number;
     components: ReportComponent[];
-}
-
-export interface PageSettings {
-    orientation: string;
-    paperSize: string;
 }
 
 export interface ReportComponent {
@@ -192,11 +186,6 @@ export type SimulationField =
 // Defaults
 // ============================================================
 
-export const emptyPageSettings: PageSettings = {
-    orientation: 'landscape',
-    paperSize: 'letter',
-};
-
 export const emptySortingConfig: SortingConfig = {
     field: '',
     direction: 'asc',
@@ -225,7 +214,6 @@ export const emptyReportSchemaDefinition: ReportSchemaDefinition = {
     schemaVersion: '1.0',
     name: '',
     description: '',
-    pageSettings: { ...emptyPageSettings },
     pages: [createDefaultPage()],
 };
 

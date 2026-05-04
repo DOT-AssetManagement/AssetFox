@@ -682,6 +682,7 @@ ORDER BY pg.RowNum";
             var groupByAttribute = GetConfigString(config, "groupByAttribute", "");
             var aggregateField = GetConfigString(config, "aggregateField", "count");
             var aggregateFunction = GetConfigString(config, "aggregateFunction", "count");
+            var includePercentages = GetConfigBool(config, "includePercentages");
 
             (string valueHeader, string valueFormat) = WorkSummaryHeaderResolver.Resolve(aggregateField, aggregateFunction);
 
@@ -717,6 +718,17 @@ ORDER BY pg.RowNum";
                     Filterable = false,
                     Sortable = false
                 });
+                if (includePercentages)
+                {
+                    columns.Add(new ViewerColumnDTO
+                    {
+                        Key = $"p{year}",
+                        Header = $"{year} %",
+                        Format = "percent",
+                        Filterable = false,
+                        Sortable = false
+                    });
+                }
             }
 
             var rows = new List<List<object>>();
@@ -887,12 +899,41 @@ ORDER BY adata.GroupValue, adata.Year";
                     yearValues[idx] = displayValue;
             }
 
-            // Build wide-format rows: [groupValue, y2025_val, y2026_val, ...]
+            // Build wide-format rows: [groupValue, y2025_val, [y2025_pct,] y2026_val, [y2026_pct,] ...]
+            // When includePercentages is on, each row's per-year value is divided by the year's
+            // grand total (across all groups) so columns sum to 100%.
+            var yearTotals = new double[years.Count];
+            if (includePercentages)
+            {
+                foreach (var kvp in pivotData)
+                {
+                    for (var yi = 0; yi < kvp.Value.Length; yi++)
+                    {
+                        var v = kvp.Value[yi];
+                        if (v is double d) yearTotals[yi] += d;
+                        else if (v is int i) yearTotals[yi] += i;
+                        else if (v is long l) yearTotals[yi] += l;
+                    }
+                }
+            }
+
             foreach (var kvp in pivotData.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
             {
                 var row = new List<object> { kvp.Key };
-                foreach (var val in kvp.Value)
-                    row.Add(val ?? (object)0);
+                for (var yi = 0; yi < kvp.Value.Length; yi++)
+                {
+                    var val = kvp.Value[yi] ?? (object)0;
+                    row.Add(val);
+                    if (includePercentages)
+                    {
+                        double numericVal = 0;
+                        if (val is double d) numericVal = d;
+                        else if (val is int i) numericVal = i;
+                        else if (val is long l) numericVal = l;
+                        var pct = yearTotals[yi] > 0 ? (numericVal / yearTotals[yi]) * 100 : 0d;
+                        row.Add(pct);
+                    }
+                }
                 rows.Add(row);
             }
 

@@ -48,7 +48,6 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
         {
             var section = new ReportSectionModel
             {
-                Id = component.Id ?? Guid.NewGuid().ToString(),
                 Type = component.Type,
                 Title = component.Title,
                 Order = component.Order,

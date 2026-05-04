@@ -304,58 +304,67 @@ namespace AssetFox.Core.Reporting
 
         private static void WriteTableToExcel(ExcelPackage package, string tabName, ReportTableData tableData)
         {
-            var worksheet = package.Workbook.Worksheets.Add(tabName);
-            var col = 1;
-
-            // Write headers
-            foreach (var column in tableData.Columns)
-            {
-                worksheet.Cells[1, col].Value = column.Header;
-                worksheet.Cells[1, col].Style.Font.Bold = true;
-                if (column.Width > 0)
-                {
-                    worksheet.Column(col).Width = column.Width;
-                }
-                col++;
-            }
-
-            // Write rows
-            var row = 2;
-            foreach (var dataRow in tableData.Rows)
-            {
-                col = 1;
-                foreach (var cellValue in dataRow)
-                {
-                    worksheet.Cells[row, col].Value = cellValue;
-                    col++;
-                }
-                row++;
-            }
+            WriteColumnarDataToWorksheet(package, tabName, tableData.Columns, tableData.Rows, applyColumnWidths: true);
         }
 
         private static void WriteAggregationToExcel(ExcelPackage package, string tabName, ReportAggregationData aggData)
         {
+            WriteColumnarDataToWorksheet(package, tabName, aggData.Columns, aggData.Rows, applyColumnWidths: false);
+        }
+
+        private static void WriteColumnarDataToWorksheet(
+            ExcelPackage package,
+            string tabName,
+            List<ReportColumnDefinition> columns,
+            List<List<object>> rows,
+            bool applyColumnWidths)
+        {
             var worksheet = package.Workbook.Worksheets.Add(tabName);
-            var col = 1;
 
-            foreach (var column in aggData.Columns)
+            for (var c = 0; c < columns.Count; c++)
             {
-                worksheet.Cells[1, col].Value = column.Header;
-                worksheet.Cells[1, col].Style.Font.Bold = true;
-                col++;
-            }
+                var column = columns[c];
+                var excelCol = c + 1;
 
-            var row = 2;
-            foreach (var dataRow in aggData.Rows)
-            {
-                col = 1;
-                foreach (var cellValue in dataRow)
+                worksheet.Cells[1, excelCol].Value = column.Header;
+                worksheet.Cells[1, excelCol].Style.Font.Bold = true;
+
+                if (applyColumnWidths && column.Width > 0)
                 {
-                    worksheet.Cells[row, col].Value = cellValue;
-                    col++;
+                    worksheet.Column(excelCol).Width = column.Width;
                 }
-                row++;
+
+                var numberFormat = ResolveExcelNumberFormat(column.Format);
+                if (!string.IsNullOrEmpty(numberFormat))
+                {
+                    worksheet.Column(excelCol).Style.Numberformat.Format = numberFormat;
+                }
             }
+
+            for (var r = 0; r < rows.Count; r++)
+            {
+                var dataRow = rows[r];
+                var excelRow = r + 2;
+                for (var c = 0; c < dataRow.Count; c++)
+                {
+                    worksheet.Cells[excelRow, c + 1].Value = dataRow[c];
+                }
+            }
+        }
+
+        // Map URM column format to an Excel format string. Returning null/empty leaves the
+        // column with the workbook's default ("General") formatting.
+        private static string ResolveExcelNumberFormat(string format)
+        {
+            // Percent values are stored on a 0-100 scale (e.g. 85 means 85%), so use a
+            // literal "%" suffix rather than Excel's "%" format, which would multiply by 100.
+            return format?.ToLowerInvariant() switch
+            {
+                "currency" => "$#,##0.00",
+                "number" => "#,##0.##",
+                "percent" => "0.0\"%\"",
+                _ => null,
+            };
         }
 
         private static void WriteTextToExcel(ExcelPackage package, string tabName, ReportTextData textData)

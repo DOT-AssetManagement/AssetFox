@@ -1071,7 +1071,6 @@ namespace AssetFox.Core.Reporting.Tests
                                 ""title"": ""Budget"",
                                 ""order"": 0,
                                 ""config"": {
-                                    ""showAvailableFunding"": true,
                                     ""showSpentAmount"": false,
                                     ""showRemainingAmount"": true
                                 }
@@ -1085,9 +1084,9 @@ namespace AssetFox.Core.Reporting.Tests
             var config = schema.Pages[0].Components[0].Config;
 
             // Newtonsoft deserializes booleans in Dictionary<string, object> as boxed bool
-            Assert.True(config["showAvailableFunding"] is bool);
-            Assert.Equal(true, (bool)config["showAvailableFunding"]);
+            Assert.True(config["showSpentAmount"] is bool);
             Assert.Equal(false, (bool)config["showSpentAmount"]);
+            Assert.Equal(true, (bool)config["showRemainingAmount"]);
         }
 
         [Fact]
