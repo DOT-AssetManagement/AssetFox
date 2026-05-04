@@ -104,7 +104,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 _unitOfWork.Context.CommittedProjectSettings.Update(existingComittedProjectTemplate);
             }
             _unitOfWork.Context.SaveChanges();
-         }
+        }
 
 
         public double GetDefaultNoTreatmentCost(TreatmentDTO treatment, Guid assetId)
