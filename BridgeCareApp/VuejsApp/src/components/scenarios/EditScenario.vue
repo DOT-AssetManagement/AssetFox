@@ -513,9 +513,7 @@ import CashFlowService from '@/services/cash-flow.service';
         });
 
         $emitter.on('InvestmentSettingsUpdated', () => {
-            // Invalidate budget priorities since they reference budgets from the previous investment settings
-            isBudgetPrioritySet.value = true;
-
+            // Update the disabled property of the Deterioration Model tab
             navigationTabs.value.forEach((tab) => {
                 if (tab.tabName === 'Deterioration Model') {
                     tab.disabled = false;
@@ -523,14 +521,6 @@ import CashFlowService from '@/services/cash-flow.service';
                 else if(tab.tabName === 'Investment')
                 {
                     tab.validationIcon = 'fas fa-check-circle';
-                }
-                else if(tab.tabName === 'Budget Priority')
-                {
-                    tab.validationIcon = 'fas fa-times-circle';
-                }
-                else if(tab.tabName === 'Committed Projects' || tab.tabName === 'Cash Flow')
-                {
-                    tab.disabled = true;
                 }
             })
         });

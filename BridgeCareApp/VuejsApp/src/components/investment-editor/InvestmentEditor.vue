@@ -404,7 +404,6 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { BudgetPriority, BudgetPriorityLibrary } from '@/shared/models/iAM/budget-priority';
-import BudgetPriorityService from '@/services/budget-priority.service';
 import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
 
@@ -1431,20 +1430,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 investmentPlanMutator(investmentPlanUpsert)
                 clearChanges();
                 addSuccessNotificationAction({message: "Modified investment"});
-
-                // Clear old budget priorities since they reference budgets from the previous investment library
-                const existingPriorities = await BudgetPriorityService.getScenarioBudgetPriorities(selectedScenarioId);
-                if (existingPriorities.data && existingPriorities.data.length > 0) {
-                    const idsToDelete: string[] = existingPriorities.data.map((bp: BudgetPriority) => bp.id);
-                    const clearBudgetPrioritySync: PaginSync<BudgetPriority> = {
-                        libraryId: null,
-                        updateRows: [],
-                        rowsForDeletion: idsToDelete,
-                        addedRows: [],
-                        isModified: true
-                    };
-                    await BudgetPriorityService.upsertScenarioBudgetPriorities(clearBudgetPrioritySync, selectedScenarioId);
-                }
 
                 librarySelectItemValue.value = null;
                 hasInvestmentJustBeenSaved = true;
