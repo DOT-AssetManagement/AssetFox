@@ -202,15 +202,19 @@ namespace AssetFox.Core.UniversalReporting.Components
             if (!resolvedAttrs.Any())
                 return result;
 
-            // Build CASE lines shared by both CTEs
-            var pivotCases = new StringBuilder();
-            foreach (var (col, paramName, isNumber) in resolvedAttrs)
+            static string BuildPivotCases(
+                IEnumerable<(SimpleColumnDef Col, string ParamName, bool IsNumber)> attrs,
+                string alias)
             {
-                string valueCol = isNumber ? "NumericValue" : "TextValue";
-                pivotCases.AppendLine($"        MAX(CASE WHEN adv.AttributeId = {paramName} THEN adv.{valueCol} END) AS [{col.AttributeName}],");
+                var pivotCases = new StringBuilder();
+                foreach (var (col, paramName, isNumber) in attrs)
+                {
+                    string valueCol = isNumber ? "NumericValue" : "TextValue";
+                    pivotCases.AppendLine($"        MAX(CASE WHEN {alias}.AttributeId = {paramName} THEN {alias}.{valueCol} END) AS [{col.AttributeName}],");
+                }
+
+                return pivotCases.ToString().TrimEnd().TrimEnd(',');
             }
-            // Trim the trailing comma+newline from the last CASE line
-            string pivotCasesStr = pivotCases.ToString().TrimEnd().TrimEnd(',');
 
             // Build SELECT column expressions (all reference pa.[] and optionally ps.[])
             var selectCols = new StringBuilder();
@@ -237,13 +241,8 @@ namespace AssetFox.Core.UniversalReporting.Components
                 // PivotedAttrs: one scan of per-year EAV for the paged AssetDetail IDs
                 // PivotedSummary: one scan of initial summary EAV for the corresponding MaintainableAsset IDs
                 // Both use IN (SELECT ... FROM PagedRows) so the optimizer can batch-scan the NCCI partition
-                var summaryPivotCases = new StringBuilder();
-                foreach (var (col, paramName, isNumber) in resolvedAttrs)
-                {
-                    string valueCol = isNumber ? "NumericValue" : "TextValue";
-                    summaryPivotCases.AppendLine($"        MAX(CASE WHEN asdv.AttributeId = {paramName} THEN asdv.{valueCol} END) AS [{col.AttributeName}],");
-                }
-                string summaryPivotCasesStr = summaryPivotCases.ToString().TrimEnd().TrimEnd(',');
+                string pivotCasesStr = BuildPivotCases(resolvedAttrs, "adv");
+                string summaryPivotCasesStr = BuildPivotCases(resolvedAttrs, "asdv");
 
                 result.CteSql = $@"PivotedAttrs AS (
     SELECT
@@ -271,6 +270,8 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             else
             {
                 // No fallback: one scan of the summary EAV table for the paged AssetSummaryDetail IDs
+                string pivotCasesStr = BuildPivotCases(resolvedAttrs, "asdv");
+
                 result.CteSql = $@"PivotedAttrs AS (
     SELECT
         asdv.{parentIdColumn},
