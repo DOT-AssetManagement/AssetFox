@@ -22,25 +22,6 @@
                         No simulation output available
                     </span>
                 </div>
-                <div class="viewer-actions ml-auto">
-                    <v-btn
-                        v-if="metadata && metadata.hasOutput"
-                        class="ghd-button ghd-blue-bg"
-                        variant="flat"
-                        :loading="isExporting"
-                        :disabled="isExporting || !schemaDefinition"
-                        @click="onExportReport"
-                    >
-                        <i class="fas fa-file-excel mr-2" />
-                        Export to Excel
-                    </v-btn>
-                    <span
-                        v-if="exportStatus"
-                        class="export-status"
-                    >
-                        {{ exportStatus }}
-                    </span>
-                </div>
             </div>
 
             <v-progress-linear
@@ -112,18 +93,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeMount, onBeforeUnmount, inject } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { ReportSchemaDTO, ReportSchemaDefinition, ReportPage } from '@/shared/models/iAM/report-schema';
 import { ViewerMetadata } from '@/shared/models/iAM/viewer';
-import ReportsService from '@/services/reports.service';
-import { Hub } from '@/connectionHub';
 import PageViewer from './PageViewer.vue';
 
 const store = useStore();
 const router = useRouter();
-const $emitter = inject('emitter') as any;
 
 // Route query params
 const schemaId = ref('');
@@ -136,10 +114,6 @@ const schemaDefinition = ref<ReportSchemaDefinition | null>(null);
 
 // Page state
 const activePageIndex = ref(0);
-const isExporting = ref(false);
-const exportStatus = ref('');
-const exportReportName = ref('UniversalReport');
-const exportReportId = ref('');
 
 // Store state
 const metadata = computed<ViewerMetadata>(() => store.state.viewerModule.viewerMetadata);
@@ -166,88 +140,6 @@ function goBack() {
         },
     });
 }
-
-async function onExportReport() {
-    if (!schemaId.value || !simulationId.value) return;
-
-    isExporting.value = true;
-    exportStatus.value = 'Starting Excel export...';
-
-    try {
-        const response = await store.dispatch('requestUniversalReportExport', {
-            schemaId: schemaId.value,
-            simulationId: simulationId.value,
-        });
-
-        exportReportName.value = response?.reportName || 'UniversalReport';
-        exportReportId.value = response?.reportId || '';
-    } catch (e) {
-        isExporting.value = false;
-        exportStatus.value = '';
-        exportReportId.value = '';
-    }
-}
-
-async function onReportGenerationStatus(data: any) {
-    const detail = data?.simulationReportDetail;
-    if (!detail || detail.simulationId !== simulationId.value || detail.reportType !== exportReportName.value) {
-        return;
-    }
-
-    if (exportReportId.value && detail.reportId && detail.reportId.toLowerCase() !== exportReportId.value.toLowerCase()) {
-        return;
-    }
-
-    exportStatus.value = detail.status || '';
-
-    if (isExporting.value && detail.status?.toLowerCase().includes('completed')) {
-        await downloadCompletedExport();
-    }
-}
-
-async function onReportTaskCompleted(data: any) {
-    const task = data?.task || '';
-    if (!isExporting.value || !task.includes(`${exportReportName.value} report`)) {
-        return;
-    }
-
-    exportStatus.value = 'Downloading Excel export...';
-    await downloadCompletedExport();
-}
-
-async function downloadCompletedExport() {
-    exportStatus.value = 'Downloading Excel export...';
-    try {
-        await ReportsService.downloadReport({
-            scenarioId: simulationId.value,
-            reportName: exportReportName.value,
-            simulationName: scenarioName.value,
-        });
-        store.dispatch('addSuccessNotification', { message: 'Excel export downloaded.' });
-    } catch (e) {
-        store.dispatch('addErrorNotification', { message: 'Excel export finished, but download failed.' });
-    } finally {
-        isExporting.value = false;
-        exportStatus.value = '';
-        exportReportId.value = '';
-    }
-}
-
-function onReportError() {
-    if (!isExporting.value) {
-        return;
-    }
-
-    isExporting.value = false;
-    exportStatus.value = '';
-    exportReportId.value = '';
-}
-
-onBeforeMount(() => {
-    $emitter?.on(Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent, onReportGenerationStatus);
-    $emitter?.on(Hub.BroadcastEventType.BroadcastTaskCompletedEvent, onReportTaskCompleted);
-    $emitter?.on(Hub.BroadcastEventType.BroadcastErrorEvent, onReportError);
-});
 
 onMounted(async () => {
     // Read route query params
@@ -278,9 +170,6 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-    $emitter?.off(Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent, onReportGenerationStatus);
-    $emitter?.off(Hub.BroadcastEventType.BroadcastTaskCompletedEvent, onReportTaskCompleted);
-    $emitter?.off(Hub.BroadcastEventType.BroadcastErrorEvent, onReportError);
     store.dispatch('clearViewerState');
 });
 </script>
@@ -329,15 +218,4 @@ onBeforeUnmount(() => {
     text-transform: none !important;
 }
 
-.viewer-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.export-status {
-    color: #4A4A4A;
-    font-size: 0.85rem;
-    white-space: nowrap;
-}
 </style>

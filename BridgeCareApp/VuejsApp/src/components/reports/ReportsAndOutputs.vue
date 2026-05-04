@@ -12,8 +12,8 @@
                 <span class="section-subtitle">View interactive reports from templates</span>
             </div>
             <v-divider :thickness="1" class="border-opacity-50 mb-3" />
-            <v-row align="center" class="mx-0">
-                <v-col cols="5">
+            <v-row align="center" class="mx-0 report-actions-panel">
+                <v-col cols="12" md="5" lg="4">
                     <v-select
                         v-model="selectedViewerSchemaId"
                         :items="reportSchemaItems"
@@ -27,9 +27,9 @@
                         no-data-text="No report templates available"
                     />
                 </v-col>
-                <v-col cols="auto">
+                <v-col cols="12" md="auto" class="viewer-action-buttons">
                     <v-btn
-                        class="ghd-button ghd-blue-bg"
+                        class="report-action-button report-action-button-primary"
                         :disabled="!selectedViewerSchemaId"
                         @click="onViewReport"
                         variant="flat"
@@ -37,6 +37,22 @@
                         <i class="fas fa-chart-bar mr-2" />
                         View Report
                     </v-btn>
+                    <v-btn
+                        class="report-action-button report-action-button-secondary"
+                        :disabled="!selectedViewerSchemaId || isExporting"
+                        :loading="isExporting"
+                        @click="onExportReport"
+                        variant="flat"
+                    >
+                        <i class="fas fa-file-excel mr-2" />
+                        Export Excel
+                    </v-btn>
+                    <span
+                        v-if="exportStatus"
+                        class="export-status"
+                    >
+                        {{ exportStatus }}
+                    </span>
                 </v-col>
             </v-row>
         </v-col>
@@ -251,6 +267,10 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 
     // Report Viewer state
     const selectedViewerSchemaId = ref<string>('');
+    const isExporting = ref(false);
+    const exportStatus = ref('');
+    const exportReportName = ref('UniversalReport');
+    const exportReportId = ref('');
     const reportSchemas = computed<ReportSchemaDTO[]>(() => store.state.reportSchemaModule.reportSchemas);
     const reportSchemaItems = computed(() =>
         reportSchemas.value.map((s: ReportSchemaDTO) => ({
@@ -302,12 +322,28 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
             Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent,
             getReportStatus,
         );
+        $emitter.on(
+            Hub.BroadcastEventType.BroadcastTaskCompletedEvent,
+            onReportTaskCompleted,
+        );
+        $emitter.on(
+            Hub.BroadcastEventType.BroadcastErrorEvent,
+            onReportError,
+        );
     });
 
     onBeforeUnmount(async () => {
         $emitter.off(
             Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent,
             getReportStatus,
+        );
+        $emitter.off(
+            Hub.BroadcastEventType.BroadcastTaskCompletedEvent,
+            onReportTaskCompleted,
+        );
+        $emitter.off(
+            Hub.BroadcastEventType.BroadcastErrorEvent,
+            onReportError,
         );
     });
     
@@ -383,6 +419,70 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
                 schemaName: schema?.name ?? 'Report',
             },
         });
+    }
+
+    async function onExportReport() {
+        if (!selectedViewerSchemaId.value || !selectedScenarioId.value) return;
+
+        isExporting.value = true;
+        exportStatus.value = 'Starting Excel export...';
+
+        try {
+            const response = await store.dispatch('requestUniversalReportExport', {
+                schemaId: selectedViewerSchemaId.value,
+                simulationId: selectedScenarioId.value,
+            });
+
+            exportReportName.value = response?.reportName || 'UniversalReport';
+            exportReportId.value = response?.reportId || '';
+        } catch (e) {
+            isExporting.value = false;
+            exportStatus.value = '';
+            exportReportId.value = '';
+        }
+    }
+
+    async function onReportTaskCompleted(data: any) {
+        const task = data?.task || '';
+        if (!isExporting.value || !task.includes(`${exportReportName.value} report`)) {
+            return;
+        }
+
+        exportStatus.value = 'Downloading Excel export...';
+        await downloadCompletedExport();
+    }
+
+    async function downloadCompletedExport() {
+        if (!isExporting.value) {
+            return;
+        }
+
+        isExporting.value = false;
+        exportStatus.value = 'Downloading Excel export...';
+
+        try {
+            await ReportsService.downloadReport({
+                scenarioId: selectedScenarioId.value,
+                reportName: exportReportName.value,
+                simulationName: simulationName.value,
+            });
+            addSuccessNotificationAction({ message: 'Excel export downloaded.' });
+        } catch (e) {
+            addErrorNotificationAction({ message: 'Excel export finished, but download failed.' });
+        } finally {
+            exportStatus.value = '';
+            exportReportId.value = '';
+        }
+    }
+
+    function onReportError() {
+        if (!isExporting.value) {
+            return;
+        }
+
+        isExporting.value = false;
+        exportStatus.value = '';
+        exportReportId.value = '';
     }
 
     const onRowSelect = (event:any) => {
@@ -601,16 +701,33 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 
     function getReportStatus(data: any) 
     {
-        if (data.simulationReportDetail.status) {
-        selectedReport.value = find(
-            propEq('name', data.simulationReportDetail.reportType),
-            currentPage.value,
-        ) as Report
-            const reportIndex = currentPage.value.findIndex(report => report.name === data.simulationReportDetail.reportType);
-            if(data.simulationReportDetail.status && reportIndex !== -1)
-            {
-                currentPage.value[reportIndex].reportStatus = data.simulationReportDetail.status;
+        const detail = data?.simulationReportDetail;
+        if (!detail?.status) {
+            return;
+        }
+
+        if (isExporting.value && detail.simulationId === selectedScenarioId.value && detail.reportType === exportReportName.value) {
+            if (!exportReportId.value || !detail.reportId || detail.reportId.toLowerCase() === exportReportId.value.toLowerCase()) {
+                exportStatus.value = detail.status;
+
+                if (detail.status.toLowerCase().includes('completed')) {
+                    void downloadCompletedExport();
+                }
             }
+        }
+
+        const updatedCurrentPageReport = find(
+            propEq('name', detail.reportType),
+            currentPage.value,
+        ) as Report | undefined;
+        if (updatedCurrentPageReport) {
+            selectedReport.value = updatedCurrentPageReport;
+        }
+
+        const reportIndex = currentPage.value.findIndex(report => report.name === detail.reportType);
+        if(reportIndex !== -1)
+        {
+            currentPage.value[reportIndex].reportStatus = detail.status;
         }
     }
 
@@ -675,6 +792,58 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 
 .viewer-schema-select {
     max-width: 400px;
+}
+
+.report-actions-panel {
+    background: #F7F9FC;
+    border: 1px solid #DDE6F1;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.viewer-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.report-action-button {
+    border-radius: 5px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    min-height: 38px;
+    padding: 0 16px !important;
+    text-transform: none !important;
+}
+
+.report-action-button-primary {
+    background-color: #2A578D !important;
+    color: #FFFFFF !important;
+}
+
+.report-action-button-secondary {
+    background-color: #2F6F4E !important;
+    color: #FFFFFF !important;
+}
+
+.report-action-button .v-btn__content,
+.report-action-button .v-progress-circular,
+.report-action-button i {
+    color: #FFFFFF !important;
+}
+
+.report-action-button:not(.v-btn--disabled) {
+    box-shadow: 0 1px 3px rgba(18, 32, 52, 0.16) !important;
+}
+
+.export-status {
+    color: #4A4A4A;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 </style>
