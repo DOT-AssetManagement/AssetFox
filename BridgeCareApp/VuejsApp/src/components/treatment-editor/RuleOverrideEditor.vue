@@ -1,46 +1,66 @@
 <template>
-    <v-card class="elevation-0 mb-4" style="border: 1px solid lightgray; padding: 10px;">
-        <v-card-title class="ghd-control-label ghd-md-gray" style="padding: 0; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
-            Rule Overrides
+    <v-card class="rule-override-card elevation-0 mb-4">
+        <div class="rule-override-header">
+            <div>
+                <div class="rule-override-title">Rule Overrides</div>
+                <div class="rule-override-summary">{{ overrideSummary }}</div>
+            </div>
             <v-btn
-                variant="flat"
-                class="ghd-white-bg ghd-blue ghd-button-text ghd-blue-border"
+                variant="outlined"
+                class="rule-override-primary-button ghd-blue ghd-button-text"
                 size="small"
                 @click="addOverride"
             >
-                <span class="ghd-right-padding">Add Override</span>
-                <v-icon size="small">fas fa-plus</v-icon>
+                <v-icon size="small" class="mr-1">fas fa-plus</v-icon>
+                Add Override
             </v-btn>
-        </v-card-title>
+        </div>
 
-        <v-card-text style="padding: 8px 0;">
-            <div v-if="localOverrides.length === 0" class="ghd-md-gray" style="font-size: 13px; padding: 8px 0;">
-                No rule overrides defined. Add an override to allow scenario users to toggle extra feasibility criteria.
+        <v-card-text class="rule-override-body">
+            <div v-if="localOverrides.length === 0" class="rule-override-empty">
+                <div class="rule-override-empty-title">No rule overrides yet</div>
+                <div class="rule-override-empty-copy">Scenario toggles will appear here after an override is added.</div>
             </div>
 
-            <v-expansion-panels v-model="expandedPanel" variant="accordion">
+            <v-expansion-panels
+                v-else
+                v-model="expandedPanel"
+                variant="accordion"
+                class="rule-override-panels"
+            >
                 <v-expansion-panel
                     v-for="(override, oIndex) in localOverrides"
-                    :key="override.id"
+                    :key="override.id || oIndex"
+                    class="rule-override-panel"
+                    elevation="0"
                 >
-                    <v-expansion-panel-title>
-                        <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
-                            <span class="ghd-control-text">{{ override.name || '(unnamed override)' }}</span>
-                            <v-btn
-                                icon
-                                variant="text"
-                                size="small"
-                                color="red"
-                                @click.stop="removeOverride(oIndex)"
-                                title="Delete override"
-                            >
-                                <v-icon size="small">fas fa-trash</v-icon>
-                            </v-btn>
+                    <v-expansion-panel-title class="rule-override-panel-title">
+                        <div class="rule-override-panel-heading">
+                            <div class="rule-override-panel-name">{{ getOverrideName(override) }}</div>
+                            <div class="rule-override-panel-meta">
+                                <span class="rule-override-chip">{{ getCriteriaCountLabel(override.criteria.length) }}</span>
+                                <span
+                                    class="rule-override-chip"
+                                    :class="{ 'rule-override-chip--muted': !override.isEnabledByDefault }"
+                                >
+                                    {{ override.isEnabledByDefault ? 'Default on' : 'Default off' }}
+                                </span>
+                            </div>
                         </div>
+                        <v-btn
+                            icon
+                            variant="text"
+                            size="small"
+                            class="rule-override-icon-button rule-override-icon-button--danger"
+                            @click.stop="removeOverride(oIndex)"
+                            title="Delete override"
+                        >
+                            <v-icon size="small">fas fa-trash</v-icon>
+                        </v-btn>
                     </v-expansion-panel-title>
-                    <v-expansion-panel-text>
-                        <v-row dense>
-                            <v-col cols="6">
+                    <v-expansion-panel-text class="rule-override-panel-text">
+                        <v-row dense class="rule-override-form-row">
+                            <v-col cols="12" md="7">
                                 <div class="rule-override-field-label">Name</div>
                                 <v-text-field
                                     aria-label="Name"
@@ -52,24 +72,26 @@
                                     @update:model-value="onChanged"
                                 />
                             </v-col>
-                            <v-col cols="6">
-                                <div class="rule-override-field-label rule-override-field-label-spacer" aria-hidden="true">Enabled by default</div>
-                                <v-switch
-                                    label="Enabled by default"
-                                    color="#2A578D"
-                                    density="compact"
-                                    class="rule-override-default-switch"
-                                    hide-details
-                                    v-model="override.isEnabledByDefault"
-                                    @update:model-value="onChanged"
-                                />
+                            <v-col cols="12" md="5">
+                                <div class="rule-override-default-control">
+                                    <div class="rule-override-field-label">Enabled by default</div>
+                                    <v-switch
+                                        aria-label="Enabled by default"
+                                        color="#2A578D"
+                                        density="compact"
+                                        inset
+                                        hide-details
+                                        v-model="override.isEnabledByDefault"
+                                        @update:model-value="onChanged"
+                                    />
+                                </div>
                             </v-col>
                         </v-row>
                         <v-row dense>
                             <v-col cols="12">
-                                <div class="rule-override-field-label">Description (optional)</div>
+                                <div class="rule-override-field-label">Description</div>
                                 <v-text-field
-                                    aria-label="Description (optional)"
+                                    aria-label="Description"
                                     variant="outlined"
                                     density="compact"
                                     class="ghd-control-border ghd-control-text"
@@ -80,12 +102,12 @@
                             </v-col>
                         </v-row>
 
-                        <div style="margin-top: 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
-                            <span class="ghd-control-label ghd-md-gray" style="font-size: 13px;">Criteria</span>
+                        <div class="rule-override-section-heading">
+                            <span>Criteria</span>
                             <v-btn
                                 variant="text"
                                 size="small"
-                                class="ghd-blue ghd-button-text"
+                                class="rule-override-text-button ghd-blue ghd-button-text"
                                 @click="addCriterion(oIndex)"
                             >
                                 <v-icon size="small" class="mr-1">fas fa-plus</v-icon>
@@ -93,79 +115,89 @@
                             </v-btn>
                         </div>
 
-                        <v-table v-if="override.criteria.length > 0" density="compact" style="border: 1px solid #e0e0e0;">
-                            <thead>
-                                <tr>
-                                    <th style="width: 280px;">Treatments</th>
-                                    <th style="width: 95px;">Operator</th>
-                                    <th>Criterion Expression</th>
-                                    <th style="width: 100px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(criterion, cIndex) in override.criteria" :key="criterion.id">
-                                    <td>
-                                        <v-autocomplete
-                                            :items="treatmentSelectItems"
-                                            item-title="text"
-                                            item-value="value"
-                                            multiple
-                                            chips
-                                            closable-chips
-                                            variant="outlined"
-                                            density="compact"
-                                            class="ghd-control-border ghd-control-text"
-                                            style="min-width: 240px; margin-top: 4px; margin-bottom: 4px;"
-                                            v-model="criterion.treatmentIds"
-                                            hide-details
-                                            @update:model-value="onChanged"
-                                        />
-                                    </td>
-                                    <td>
-                                        <v-select
-                                            :items="logicalOperatorItems"
-                                            variant="outlined"
-                                            density="compact"
-                                            class="ghd-control-border ghd-control-text"
-                                            style="min-width: 80px; margin-top: 4px; margin-bottom: 4px;"
-                                            v-model="criterion.logicalOperator"
-                                            hide-details
-                                            @update:model-value="onChanged"
-                                        />
-                                    </td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px; margin-bottom: 4px;">
-                                            <span class="ghd-control-text" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                                {{ criterion.criterionExpression || '(no expression)' }}
-                                            </span>
+                        <div v-if="override.criteria.length > 0" class="rule-override-table-wrap">
+                            <v-table density="compact" class="rule-override-criteria-table">
+                                <colgroup>
+                                    <col class="rule-override-treatment-column">
+                                    <col class="rule-override-operator-column">
+                                    <col>
+                                    <col class="rule-override-actions-column">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>Treatments</th>
+                                        <th>Operator</th>
+                                        <th>Expression</th>
+                                        <th class="rule-override-actions-heading">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(criterion, cIndex) in override.criteria" :key="criterion.id || cIndex">
+                                        <td class="rule-override-treatment-cell">
+                                            <v-autocomplete
+                                                :items="treatmentSelectItems"
+                                                item-title="text"
+                                                item-value="value"
+                                                multiple
+                                                chips
+                                                closable-chips
+                                                variant="outlined"
+                                                density="compact"
+                                                class="ghd-control-border ghd-control-text rule-override-treatment-select"
+                                                v-model="criterion.treatmentIds"
+                                                hide-details
+                                                @update:model-value="onChanged"
+                                            />
+                                        </td>
+                                        <td class="rule-override-operator-cell">
+                                            <v-select
+                                                :items="logicalOperatorItems"
+                                                variant="outlined"
+                                                density="compact"
+                                                class="ghd-control-border ghd-control-text rule-override-operator-select"
+                                                v-model="criterion.logicalOperator"
+                                                hide-details
+                                                @update:model-value="onChanged"
+                                            />
+                                        </td>
+                                        <td>
+                                            <div class="rule-override-expression">
+                                                <span
+                                                    class="rule-override-expression-text"
+                                                    :class="{ 'rule-override-expression-text--empty': !criterion.criterionExpression }"
+                                                >
+                                                    {{ criterion.criterionExpression || 'No expression' }}
+                                                </span>
+                                                <v-btn
+                                                    icon
+                                                    variant="text"
+                                                    size="small"
+                                                    class="rule-override-icon-button"
+                                                    @click="openCriterionEditor(oIndex, cIndex)"
+                                                    title="Edit expression"
+                                                >
+                                                    <v-icon size="small">fas fa-edit</v-icon>
+                                                </v-btn>
+                                            </div>
+                                        </td>
+                                        <td class="rule-override-actions-cell">
                                             <v-btn
                                                 icon
                                                 variant="text"
                                                 size="small"
-                                                @click="openCriterionEditor(oIndex, cIndex)"
-                                                title="Edit expression"
+                                                class="rule-override-icon-button rule-override-icon-button--danger"
+                                                @click="removeCriterion(oIndex, cIndex)"
+                                                title="Delete criterion"
                                             >
-                                                <v-icon size="small">fas fa-edit</v-icon>
+                                                <v-icon size="small">fas fa-trash</v-icon>
                                             </v-btn>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <v-btn
-                                            icon
-                                            variant="text"
-                                            size="small"
-                                            color="red"
-                                            @click="removeCriterion(oIndex, cIndex)"
-                                            title="Delete criterion"
-                                        >
-                                            <v-icon size="small">fas fa-trash</v-icon>
-                                        </v-btn>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </v-table>
-                        <div v-else class="ghd-md-gray" style="font-size: 12px; padding: 4px 0;">
-                            No criteria defined for this override.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </v-table>
+                        </div>
+                        <div v-else class="rule-override-empty rule-override-empty--compact">
+                            <div class="rule-override-empty-title">No criteria for this override</div>
                         </div>
                     </v-expansion-panel-text>
                 </v-expansion-panel>
@@ -180,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { clone } from 'ramda';
 import { TreatmentRuleOverride, TreatmentRuleOverrideCriterion, emptyTreatmentRuleOverride, emptyTreatmentRuleOverrideCriterion } from '@/shared/models/iAM/treatment-rule-override';
 import { SelectItem } from '@/shared/models/vue/select-item';
@@ -201,6 +233,8 @@ const criterionEditorDialogData = ref<GeneralCriterionEditorDialogData>(clone(em
 const logicalOperatorItems = ['AND', 'OR'];
 let editingOverrideIndex = -1;
 let editingCriterionIndex = -1;
+
+const overrideSummary = computed(() => getOverrideCountLabel(localOverrides.value.length));
 
 watch(() => props.ruleOverrides, (newVal) => {
     localOverrides.value = normalizeOverrides(clone(newVal));
@@ -240,6 +274,18 @@ function addCriterion(overrideIndex: number) {
 function removeCriterion(overrideIndex: number, criterionIndex: number) {
     localOverrides.value[overrideIndex].criteria.splice(criterionIndex, 1);
     onChanged();
+}
+
+function getOverrideName(ruleOverride: TreatmentRuleOverride): string {
+    return ruleOverride.name?.trim() || 'Untitled override';
+}
+
+function getOverrideCountLabel(count: number): string {
+    return `${count} ${count === 1 ? 'override' : 'overrides'}`;
+}
+
+function getCriteriaCountLabel(count: number): string {
+    return `${count} ${count === 1 ? 'criterion' : 'criteria'}`;
 }
 
 function openCriterionEditor(overrideIndex: number, criterionIndex: number) {
@@ -303,20 +349,276 @@ function normalizeTreatmentIds(
 </script>
 
 <style scoped>
+.rule-override-card {
+    border: 1px solid #d8dee7;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.rule-override-header {
+    align-items: center;
+    background: #f7f9fc;
+    border-bottom: 1px solid #e8edf3;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 12px;
+}
+
+.rule-override-title,
+.rule-override-panel-name,
+.rule-override-empty-title {
+    color: #333333;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.rule-override-summary,
+.rule-override-empty-copy {
+    color: #666666;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+.rule-override-primary-button {
+    border-color: #2A578D;
+    border-radius: 6px;
+    min-height: 32px;
+    padding: 0 10px !important;
+}
+
+.rule-override-body {
+    padding: 10px 12px 12px;
+}
+
+.rule-override-empty {
+    background: #fbfcfe;
+    border: 1px dashed #cfd8e3;
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+
+.rule-override-empty--compact {
+    margin-top: 4px;
+    padding: 10px 12px;
+}
+
+.rule-override-panels {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.rule-override-panel {
+    border: 1px solid #dfe5ec;
+    border-radius: 8px !important;
+    flex: 0 0 auto;
+    max-width: none;
+    overflow: hidden;
+    width: 100%;
+}
+
+.rule-override-panel-title {
+    min-height: 50px;
+    padding: 8px 10px 8px 12px;
+}
+
+.rule-override-panel-heading {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    min-width: 0;
+    width: 100%;
+}
+
+.rule-override-panel-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rule-override-panel-meta {
+    display: flex;
+    flex-shrink: 0;
+    gap: 6px;
+}
+
+.rule-override-chip {
+    background: #edf4fb;
+    border: 1px solid #c8d8e8;
+    border-radius: 999px;
+    color: #2A578D;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    padding: 0 8px;
+}
+
+.rule-override-chip--muted {
+    background: #f4f5f7;
+    border-color: #d8dde3;
+    color: #666666;
+}
+
+.rule-override-panel-text :deep(.v-expansion-panel-text__wrapper) {
+    background: #ffffff;
+    border-top: 1px solid #edf1f5;
+    padding: 10px 12px 12px;
+}
+
+.rule-override-form-row {
+    align-items: end;
+}
+
 .rule-override-field-label {
     color: #666666;
     font-family: 'Montserrat', sans-serif;
     font-size: 12px;
     font-weight: 500;
     line-height: 18px;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
-.rule-override-field-label-spacer {
-    visibility: hidden;
+.rule-override-default-control {
+    align-items: center;
+    border: 1px solid #e1e7ef;
+    border-radius: 8px;
+    display: inline-flex;
+    gap: 10px;
+    justify-content: flex-start;
+    min-height: 40px;
+    padding: 0 10px;
+    width: fit-content;
 }
 
-.rule-override-default-switch {
-    margin-top: 0;
+.rule-override-default-control :deep(.v-input) {
+    flex: 0 0 auto;
+}
+
+.rule-override-section-heading {
+    align-items: center;
+    color: #666666;
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    justify-content: space-between;
+    margin: 8px 0 4px;
+}
+
+.rule-override-text-button {
+    border-radius: 6px;
+    min-height: 28px;
+    padding: 0 8px !important;
+}
+
+.rule-override-table-wrap {
+    border: 1px solid #dfe5ec;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.rule-override-criteria-table {
+    background: #ffffff;
+}
+
+.rule-override-criteria-table :deep(th) {
+    background: #f7f9fc;
+    color: #666666;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    height: 34px;
+}
+
+.rule-override-criteria-table :deep(td) {
+    border-bottom: 1px solid #edf1f5;
+    padding: 6px;
+    vertical-align: middle;
+}
+
+.rule-override-criteria-table :deep(tbody tr:last-child td) {
+    border-bottom: 0;
+}
+
+.rule-override-treatment-column,
+.rule-override-treatment-cell {
+    width: 36%;
+}
+
+.rule-override-operator-column,
+.rule-override-operator-cell {
+    width: 140px;
+}
+
+.rule-override-actions-column,
+.rule-override-actions-heading,
+.rule-override-actions-cell {
+    text-align: center;
+    width: 88px;
+}
+
+.rule-override-treatment-select {
+    min-width: 240px;
+}
+
+.rule-override-operator-select {
+    min-width: 118px;
+}
+
+.rule-override-expression {
+    align-items: center;
+    background: #fbfcfe;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    display: flex;
+    gap: 6px;
+    min-height: 36px;
+    padding: 2px 4px 2px 10px;
+}
+
+.rule-override-expression-text {
+    color: #333333;
+    flex: 1;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rule-override-expression-text--empty {
+    color: #888888;
+    font-style: italic;
+}
+
+.rule-override-icon-button {
+    color: #2A578D;
+    flex: 0 0 auto;
+}
+
+.rule-override-icon-button--danger {
+    color: #b64343;
+}
+
+@media (max-width: 960px) {
+    .rule-override-header,
+    .rule-override-panel-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .rule-override-primary-button {
+        align-self: flex-start;
+    }
+
+    .rule-override-table-wrap {
+        overflow-x: auto;
+    }
 }
 </style>

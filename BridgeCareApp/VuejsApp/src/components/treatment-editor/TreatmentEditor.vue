@@ -58,7 +58,7 @@
             </v-btn>
         </v-col>
     </v-row>
-    <v-row v-if="hasScenario" style="margin-top: 0px; margin-bottom: -10px;">
+    <v-row v-if="hasScenario && ruleOverrides.length > 0" style="margin-top: 0px; margin-bottom: -10px;">
         <v-col cols="12">
             <RuleOverrideToggles
                 :key="ruleOverrideTogglesKey"
