@@ -155,7 +155,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public string GetUserCriteria(Guid userId)
         {
-            return _unitOfWork.Context.UserCriteria.FirstOrDefault(_ => _.UserId == userId)?.Criteria;
+            return _unitOfWork.Context.UserCriteria.AsNoTracking().FirstOrDefault(_ => _.UserId == userId)?.Criteria;
         }
     }
 }

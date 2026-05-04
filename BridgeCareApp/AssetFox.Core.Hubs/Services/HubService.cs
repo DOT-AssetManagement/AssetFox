@@ -35,7 +35,7 @@ namespace AssetFox.Core.Hubs.Services
 
         Dictionary<string, string> IHubService.errorList => _errorList;//throw new System.NotImplementedException();
 
-        public void SendRealTimeErrorMessage(string username, string arg, Exception e)
+        public void SendRealTimeErrorMessage(string username, string arg, Exception e, bool shouldRethrowError = true)
         {
             Task sendTask;
 
@@ -52,10 +52,13 @@ namespace AssetFox.Core.Hubs.Services
 
             sendTask.GetAwaiter().GetResult();
 
-            var edi = ExceptionDispatchInfo.Capture(e);
-            edi.Throw();
+            if (shouldRethrowError)
+            {
+                var edi = ExceptionDispatchInfo.Capture(e);
+                edi.Throw();
+            }       
         }
-        public void SendRealTimeErrorMessage(string username, string arg1, string arg2, Exception e)
+        public void SendRealTimeErrorMessage(string username, string arg1, string arg2, Exception e, bool shouldRethrowError = true)
         {
             if (string.IsNullOrEmpty(username))
             {
@@ -65,8 +68,12 @@ namespace AssetFox.Core.Hubs.Services
             {
                 _hubContext?.Clients?.Group(username)?.SendAsync(HubConstant.BroadcastError, arg1, e.StackTrace, arg2);
             }
-            var edi = ExceptionDispatchInfo.Capture(e);
-            edi.Throw();
+
+            if (shouldRethrowError)
+            {
+                var edi = ExceptionDispatchInfo.Capture(e);
+                edi.Throw();
+            }           
         }
 
         public void SendRealTimeMessage(string username, string method, object arg)

@@ -40,12 +40,13 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
            _unitOfWork.SimulationRepo.DeleteSimulationReports(SimulationId);
         }
 
-        public void OnFault(IServiceProvider serviceProvider, string errorMessage)
+        public void OnFault(IServiceProvider serviceProvider, Exception? e)
         {
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
+            var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{SimulationController.SimulationError}::DeleteSimulation - {errorMessage}");
+            _hubService.SendRealTimeMessage(UserId, $"{SimulationController.SimulationError}::DeleteSimulation - {errorMessage}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)

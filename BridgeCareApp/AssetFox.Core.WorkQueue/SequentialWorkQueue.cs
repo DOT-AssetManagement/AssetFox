@@ -150,7 +150,7 @@ public class SequentialWorkQueue<T>
                 else
                 {
                     _log.Error($"{WorkCompletion.Exception?.InnerException?.Message ?? ""}\r\n{WorkCompletion.Exception?.InnerException?.StackTrace ?? ""}");
-                    WorkSpec.OnFault(serviceProvider, WorkCompletion.Exception?.InnerException?.Message ?? "");
+                    WorkSpec.OnFault(serviceProvider, WorkCompletion.Exception?.InnerException ?? null);
                 }
 
                 RemoveFromQueue(false);
