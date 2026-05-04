@@ -737,9 +737,9 @@ namespace AssetFox.Core.UniversalReporting.Tests
         [Fact]
         public void SchemaParser_RoundTrip_AllComponentTypes_Preserved()
         {
-            // Ensure all 8 component types survive JSON round-trip correctly
+            // Ensure all 7 component types survive JSON round-trip correctly
             var types = new[] { "assetDetail", "treatmentTimeline", "conditionTracking",
-                "fundedTreatmentList", "workSummary", "budgetSummary", "goalTracking", "textBlock" };
+                "fundedTreatmentList", "workSummary", "budgetSummary", "textBlock" };
 
             var components = types.Select((t, i) => new ReportComponent
             {
@@ -753,7 +753,7 @@ namespace AssetFox.Core.UniversalReporting.Tests
             var schemaDto = CreateSchemaDTO(components);
             var parsed = SchemaParser.Parse(schemaDto.SchemaJson);
 
-            Assert.Equal(8, parsed.Pages[0].Components.Count);
+            Assert.Equal(7, parsed.Pages[0].Components.Count);
             for (int i = 0; i < types.Length; i++)
             {
                 Assert.Equal(types[i], parsed.Pages[0].Components[i].Type);
@@ -767,7 +767,7 @@ namespace AssetFox.Core.UniversalReporting.Tests
             // Test that the switch expression in GetComponentData handles all known types
             // by verifying the type string matches what would be lowered
             var knownTypes = new[] { "assetDetail", "treatmentTimeline", "conditionTracking",
-                "fundedTreatmentList", "workSummary", "budgetSummary", "goalTracking", "textBlock" };
+                "fundedTreatmentList", "workSummary", "budgetSummary", "textBlock" };
 
             foreach (var type in knownTypes)
             {
@@ -781,7 +781,6 @@ namespace AssetFox.Core.UniversalReporting.Tests
                     "fundedtreatmentlist" => true,
                     "worksummary" => true,
                     "budgetsummary" => true,
-                    "goaltracking" => true,
                     "textblock" => true,
                     _ => false
                 };
@@ -1127,78 +1126,6 @@ namespace AssetFox.Core.UniversalReporting.Tests
             Assert.Equal(2025L, (long)selectedYear);
 
             // GetConfigInt must handle this — it checks for both int and long
-        }
-
-        #endregion
-
-        #region GoalTracking Config Tests
-
-        [Fact]
-        public void GoalTracking_DefaultGoalType_IsTarget()
-        {
-            var json = @"{
-                ""schemaVersion"": ""1.0"",
-                ""name"": ""Test"",
-                ""description"": """",
-                ""pages"": [
-                    {
-                        ""id"": ""page-1"",
-                        ""name"": ""Page 1"",
-                        ""order"": 0,
-                        ""components"": [
-                            {
-                                ""id"": ""gt-1"",
-                                ""type"": ""goalTracking"",
-                                ""title"": ""Goals"",
-                                ""order"": 0,
-                                ""config"": {}
-                            }
-                        ]
-                    }
-                ]
-            }";
-
-            var schema = SchemaParser.Parse(json);
-            var config = schema.Pages[0].Components[0].Config;
-
-            // GetConfigString(config, "goalType", "target") should default to "target"
-            // when goalType is not in config
-            Assert.False(config.ContainsKey("goalType"));
-        }
-
-        [Fact]
-        public void GoalTracking_DeficientGoalType_HandlesCorrectly()
-        {
-            var json = @"{
-                ""schemaVersion"": ""1.0"",
-                ""name"": ""Test"",
-                ""description"": """",
-                ""pages"": [
-                    {
-                        ""id"": ""page-1"",
-                        ""name"": ""Page 1"",
-                        ""order"": 0,
-                        ""components"": [
-                            {
-                                ""id"": ""gt-1"",
-                                ""type"": ""goalTracking"",
-                                ""title"": ""Deficient Goals"",
-                                ""order"": 0,
-                                ""config"": {
-                                    ""goalType"": ""deficient"",
-                                    ""showGoalName"": true,
-                                    ""showActualVsTarget"": true,
-                                    ""showMetStatus"": true
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }";
-
-            var schema = SchemaParser.Parse(json);
-            var config = schema.Pages[0].Components[0].Config;
-            Assert.Equal("deficient", config["goalType"]?.ToString());
         }
 
         #endregion

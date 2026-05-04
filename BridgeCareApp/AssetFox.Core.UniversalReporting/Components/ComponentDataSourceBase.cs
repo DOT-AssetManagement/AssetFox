@@ -580,7 +580,7 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
 
         /// <summary>
         /// Applies in-memory filtering, sorting, and pagination to a fully-materialized row list.
-        /// Used by non-SQL aggregation methods (BudgetSummary, WorkSummary, GoalTracking)
+        /// Used by non-SQL aggregation methods (BudgetSummary, WorkSummary)
         /// that build all rows in C# and need to filter/sort/page the result before returning.
         /// </summary>
         protected static PagedViewerResultDTO ApplyInMemoryFilterSortAndPaginate(

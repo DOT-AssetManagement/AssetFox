@@ -42,7 +42,6 @@ const componentTypes: ComponentType[] = [
     'budgetSummary',
     'conditionTracking',
     'fundedTreatmentList',
-    'goalTracking',
     'textBlock',
 ];
 </script>

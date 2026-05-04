@@ -86,11 +86,6 @@
                 :config="localComponent.config as FundedTreatmentListConfig"
                 @update:config="onConfigUpdate"
             />
-            <GoalTrackingConfigEditor
-                v-else-if="localComponent.type === 'goalTracking'"
-                :config="localComponent.config as GoalTrackingConfig"
-                @update:config="onConfigUpdate"
-            />
             <TextBlockConfigEditor
                 v-else-if="localComponent.type === 'textBlock'"
                 :config="localComponent.config as TextBlockConfig"
@@ -132,7 +127,6 @@ import {
     BudgetSummaryConfig,
     ConditionTrackingConfig,
     FundedTreatmentListConfig,
-    GoalTrackingConfig,
     TextBlockConfig,
     componentTypeInfo,
     pageSizeOptions,
@@ -144,7 +138,6 @@ import WorkSummaryConfigEditor from './configs/WorkSummaryConfig.vue';
 import BudgetSummaryConfigEditor from './configs/BudgetSummaryConfig.vue';
 import ConditionTrackingConfigEditor from './configs/ConditionTrackingConfig.vue';
 import FundedTreatmentListConfigEditor from './configs/FundedTreatmentListConfig.vue';
-import GoalTrackingConfigEditor from './configs/GoalTrackingConfig.vue';
 import TextBlockConfigEditor from './configs/TextBlockConfig.vue';
 
 const props = defineProps<{

@@ -95,7 +95,6 @@ export type ComponentType =
     | 'budgetSummary'
     | 'conditionTracking'
     | 'fundedTreatmentList'
-    | 'goalTracking'
     | 'textBlock';
 
 // ============================================================
@@ -142,13 +141,6 @@ export interface FundedTreatmentListConfig {
     sorting: SortingConfig;
 }
 
-export interface GoalTrackingConfig {
-    goalType: 'target' | 'deficient';
-    showGoalName: boolean;
-    showActualVsTarget: boolean;
-    showMetStatus: boolean;
-}
-
 export interface TextBlockConfig {
     content: string;
     style: 'heading' | 'subheading' | 'body' | 'note';
@@ -161,7 +153,6 @@ export type ComponentConfig =
     | BudgetSummaryConfig
     | ConditionTrackingConfig
     | FundedTreatmentListConfig
-    | GoalTrackingConfig
     | TextBlockConfig;
 
 // ============================================================
@@ -290,13 +281,6 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
                 ],
                 sorting: { ...emptySortingConfig },
             } as FundedTreatmentListConfig;
-        case 'goalTracking':
-            return {
-                goalType: 'target',
-                showGoalName: true,
-                showActualVsTarget: true,
-                showMetStatus: true,
-            } as GoalTrackingConfig;
         case 'textBlock':
             return {
                 content: '',
@@ -401,13 +385,6 @@ export const componentTypeInfo: Record<ComponentType, ComponentTypeInfo> = {
         icon: 'fas fa-list-alt',
         color: '#BF360C',
         chipColor: '#FBE9E7',
-    },
-    goalTracking: {
-        label: 'Goal Tracking',
-        description: 'Target or deficient condition goal progress by year',
-        icon: 'fas fa-bullseye',
-        color: '#558B2F',
-        chipColor: '#F1F8E9',
     },
     textBlock: {
         label: 'Text Block',

@@ -74,7 +74,6 @@ import {
     WorkSummaryConfig,
     FundedTreatmentListConfig,
     ConditionTrackingConfig,
-    GoalTrackingConfig,
     TextBlockConfig,
 } from '@/shared/models/iAM/report-schema';
 
@@ -130,10 +129,6 @@ const previewText = computed(() => {
             const c = config as FundedTreatmentListConfig;
             const colCount = (c.columns?.length || 0) + (c.simulationColumns?.length || 0);
             return `${colCount} column${colCount !== 1 ? 's' : ''}`;
-        }
-        case 'goalTracking': {
-            const c = config as GoalTrackingConfig;
-            return `${c.goalType === 'target' ? 'Target' : 'Deficient'} goals`;
         }
         case 'textBlock': {
             const c = config as TextBlockConfig;

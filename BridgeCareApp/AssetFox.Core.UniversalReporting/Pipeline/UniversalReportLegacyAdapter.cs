@@ -159,7 +159,6 @@ public sealed class UniversalReportLegacyAdapter : IReport
             new FundedTreatmentListDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new WorkSummaryDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new BudgetSummaryDataSource(unitOfDataPersistenceWork, criteriaEmitter),
-            new GoalTrackingDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new TextBlockDataSource(unitOfDataPersistenceWork, criteriaEmitter)
         };
 
