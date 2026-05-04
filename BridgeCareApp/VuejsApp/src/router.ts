@@ -68,8 +68,6 @@ const NoRole = () =>
     import(
         /*webpackChunkName: "noRole" */ '@/components/authentication/NoRole.vue'
     );
-const Inventory = () =>
-    import(/*webpackChunkName: "inventory" */ '@/components/Inventory.vue');
 const UserCriteriaEditor = () =>
     import(
         /*webpackChunkName: "userCriteria" */ '@/components/user-criteria/UserCriteria.vue'
@@ -224,12 +222,6 @@ const beforeEnterFunc = (to: any, from: any, next: any) => {
 const router = createRouter({
     history: createWebHistory(),
     routes: [
-        {
-            path: '/Inventory/',
-            name: 'Inventory',
-            component: Inventory,
-            beforeEnter: beforeEnterFunc,
-        },
         {
             path: '/ReportBuilder/',
             name: 'ReportBuilder',

@@ -63,14 +63,6 @@
                             Administration
                         </v-btn>
                         <v-btn
-                            id="App-inventory-btn"
-                            @click="onNavigate('/Inventory/')"
-                            class="assetFox-blue-pantone-281"
-                            variant = "flat"
-                        >
-                            Inventory
-                        </v-btn>
-                        <v-btn
                             id="App-reportBuilder-btn"
                             @click="onNavigate('/ReportBuilder/')"
                             class="assetFox-blue-pantone-281"
