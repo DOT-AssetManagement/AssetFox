@@ -3,7 +3,10 @@ import { createPinia } from 'pinia';
 const pinia = createPinia();
 
 export * from './alert.store';
+export * from './admin-site-settings.store';
+export * from './announcement.store';
 export * from './authentication.store';
+export * from './azure-b2c.store';
 export * from './busy.store';
 export * from './config.store';
 export * from './notification.store';
