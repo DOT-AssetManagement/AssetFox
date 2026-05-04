@@ -32,10 +32,10 @@ const props = defineProps<{
     simulationId: string;
 }>();
 
-// Sort by gridY then gridX for document flow
+// Sort by gridY then gridX for document flow.
+// The `visible` flag controls Excel export inclusion only — the live viewer always renders every component.
 const sortedComponents = computed(() => {
     return [...props.components]
-        .filter(c => c.visible !== false)
         .sort((a, b) => {
             if (a.gridY !== b.gridY) return a.gridY - b.gridY;
             return a.gridX - b.gridX;

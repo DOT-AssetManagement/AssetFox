@@ -217,6 +217,14 @@ namespace AssetFox.Core.Reporting
             {
                 if (!section.Visible) continue;
 
+                // Text blocks are presentation-only — they exist on the live viewer page
+                // and have no meaningful representation in an Excel worksheet, so they
+                // are always skipped regardless of the section's Visible flag.
+                if (string.Equals(section.Type, "textBlock", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 var tabName = GetWorksheetName(section, usedWorksheetNames);
 
                 // All table-producing component types (assetDetail, treatmentTimeline,

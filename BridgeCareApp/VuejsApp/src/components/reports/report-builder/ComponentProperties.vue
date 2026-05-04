@@ -17,8 +17,9 @@
                 @blur="ensureTitle"
             />
             <v-checkbox
+                v-if="localComponent.type !== 'textBlock'"
                 v-model="localComponent.visible"
-                label="Include in report"
+                label="Include in excel report"
                 density="compact"
                 hide-details
                 class="mb-1"

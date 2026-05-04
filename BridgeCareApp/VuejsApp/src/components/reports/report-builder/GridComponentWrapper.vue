@@ -1,7 +1,7 @@
 <template>
     <div
         class="grid-component-wrapper"
-        :class="{ 'grid-component-wrapper--selected': selected, 'grid-component-wrapper--hidden': !component.visible }"
+        :class="{ 'grid-component-wrapper--selected': selected, 'grid-component-wrapper--hidden': excludedFromExcel }"
         @click.stop="$emit('select')"
     >
         <!-- Header — entire bar is the drag surface -->
@@ -30,13 +30,15 @@
             </v-chip>
 
             <v-chip
-                v-if="!component.visible"
+                v-if="excludedFromExcel"
                 size="x-small"
                 color="#F5F5F5"
                 variant="flat"
                 class="mr-1"
+                title="Excluded from Excel export"
             >
-                <i class="fas fa-eye-slash" style="font-size: 8px;" />
+                <i class="fas fa-file-excel" style="font-size: 8px; margin-right: 3px;" />
+                <i class="fas fa-times" style="font-size: 8px;" />
             </v-chip>
 
             <v-btn
@@ -88,6 +90,13 @@ defineEmits<{
 
 const typeInfo = computed(() => componentTypeInfo[props.component.type]);
 const hasFilter = computed(() => !!props.component.criteriaExpression && props.component.criteriaExpression.trim().length > 0);
+
+// Text blocks are presentation-only and never appear in the Excel export, so we don't badge them as
+// "excluded" — that's their permanent state. For all other component types, the user-facing
+// "Include in excel report" checkbox toggles this badge.
+const excludedFromExcel = computed(() =>
+    props.component.type !== 'textBlock' && !props.component.visible,
+);
 
 const previewText = computed(() => {
     const config = props.component.config;

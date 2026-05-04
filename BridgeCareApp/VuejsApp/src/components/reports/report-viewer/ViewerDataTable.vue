@@ -74,9 +74,12 @@
                         <td
                             v-for="(header, colIdx) in tableHeaders"
                             :key="header.key"
-                            :class="{ 'text-right': isNumericFormat(header.format) }"
+                            :class="{
+                                'text-right': isNumericFormat(header.format),
+                                'numeric-cell': isNumericFormat(header.format),
+                            }"
                         >
-                            <div class="clamped-cell">
+                            <div :class="isNumericFormat(header.format) ? 'numeric-cell-content' : 'clamped-cell'">
                                 {{ formatCell(item[colIdx], header.format) }}
                             </div>
                         </td>
@@ -381,6 +384,17 @@ onBeforeUnmount(() => {
 .viewer-data-table :deep(td) {
     min-width: 80px;
     max-width: 360px;
+}
+
+/* Numeric / currency columns size to their content and never wrap so values
+   like "$1,234,567.89" always read on a single line. */
+.viewer-data-table :deep(td.numeric-cell) {
+    max-width: none;
+    white-space: nowrap;
+}
+
+.numeric-cell-content {
+    white-space: nowrap;
 }
 
 .clamped-cell {

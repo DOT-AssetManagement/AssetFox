@@ -71,12 +71,12 @@
                 />
 
                 <v-alert
-                    v-if="activePage && activePage.components.filter(c => c.visible !== false).length === 0"
+                    v-if="activePage && activePage.components.length === 0"
                     type="info"
                     variant="tonal"
                     class="mt-4"
                 >
-                    This page has no visible components. Open the Report Builder to add components.
+                    This page has no components. Open the Report Builder to add components.
                 </v-alert>
 
                 <v-alert

@@ -159,7 +159,18 @@ namespace AssetFox.Core.Reporting.Services.FlexibleReport
                 }
             }
 
-            return AggregationEngine.Aggregate(records, groupPath, aggregateFunction, valuePath);
+            var aggregated = AggregationEngine.Aggregate(records, groupPath, aggregateFunction, valuePath);
+
+            // Override the value column header/format with the friendly title shared with the live viewer
+            // (e.g. "Total Cost" instead of "sum(simulation.cost)") so the Excel export matches the UI.
+            if (aggregated.Columns != null && aggregated.Columns.Count >= 2)
+            {
+                var (header, format) = WorkSummaryHeaderResolver.Resolve(aggregateField, aggregateFunction);
+                aggregated.Columns[1].Header = header;
+                aggregated.Columns[1].Format = format;
+            }
+
+            return aggregated;
         }
 
         public ReportTableData AssembleBudgetSummaryData(SimulationOutput output, Dictionary<string, object> config)

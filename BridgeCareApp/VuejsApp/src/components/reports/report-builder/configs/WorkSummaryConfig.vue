@@ -14,20 +14,20 @@
 
         <div class="text-caption text-uppercase mb-2" style="letter-spacing: 0.08em; color: #666;">Aggregation</div>
         <v-row dense class="mb-3">
-            <v-col cols="6">
+            <v-col :cols="showFunctionPicker ? 6 : 12">
                 <v-select
                     v-model="localConfig.aggregateField"
                     :items="aggregateFieldOptions"
                     label="Value to aggregate"
                     variant="outlined"
                     density="compact"
-                    @update:model-value="emitUpdate"
+                    @update:model-value="onAggregateFieldChange"
                 />
             </v-col>
-            <v-col cols="6">
+            <v-col v-if="showFunctionPicker" cols="6">
                 <v-select
                     v-model="localConfig.aggregateFunction"
-                    :items="aggregateFunctionOptions"
+                    :items="availableFunctionOptions"
                     label="Function"
                     variant="outlined"
                     density="compact"
@@ -50,7 +50,7 @@
 import { ref, watch, computed } from 'vue';
 import { clone } from 'ramda';
 import { useStore } from 'vuex';
-import { WorkSummaryConfig, aggregateFunctionOptions } from '@/shared/models/iAM/report-schema';
+import { WorkSummaryConfig, AggregateFunction, aggregateFunctionOptions } from '@/shared/models/iAM/report-schema';
 
 const props = defineProps<{ config: WorkSummaryConfig }>();
 const emit = defineEmits<{ (e: 'update:config', val: WorkSummaryConfig): void }>();
@@ -69,6 +69,28 @@ const aggregateFieldOptions = [
     { title: 'Treatment Cost', value: 'cost' },
     { title: 'Asset Count', value: 'count' },
 ];
+
+// Which aggregation functions are valid for each field. Asset Count is always
+// COUNT(*), so the function picker is hidden for that field entirely.
+const validFunctionsByField: Record<string, AggregateFunction[]> = {
+    cost: ['sum', 'avg', 'min', 'max'],
+    count: ['count'],
+};
+
+const showFunctionPicker = computed(() => localConfig.value.aggregateField !== 'count');
+
+const availableFunctionOptions = computed(() => {
+    const allowed = validFunctionsByField[localConfig.value.aggregateField] ?? [];
+    return aggregateFunctionOptions.filter((opt) => allowed.includes(opt.value));
+});
+
+function onAggregateFieldChange() {
+    const allowed = validFunctionsByField[localConfig.value.aggregateField] ?? [];
+    if (!allowed.includes(localConfig.value.aggregateFunction)) {
+        localConfig.value.aggregateFunction = allowed[0];
+    }
+    emitUpdate();
+}
 
 function emitUpdate() {
     emit('update:config', clone(localConfig.value));

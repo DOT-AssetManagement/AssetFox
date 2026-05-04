@@ -683,21 +683,7 @@ ORDER BY pg.RowNum";
             var aggregateField = GetConfigString(config, "aggregateField", "count");
             var aggregateFunction = GetConfigString(config, "aggregateFunction", "count");
 
-            // Determine the value column header and format based on aggregate
-            string valueHeader;
-            string valueFormat;
-            if (aggregateField.Equals("cost", StringComparison.OrdinalIgnoreCase))
-            {
-                valueHeader = aggregateFunction.Equals("count", StringComparison.OrdinalIgnoreCase)
-                    ? "Count" : $"{aggregateFunction}(Cost)";
-                valueFormat = aggregateFunction.Equals("count", StringComparison.OrdinalIgnoreCase)
-                    ? "number" : "currency";
-            }
-            else
-            {
-                valueHeader = $"{aggregateFunction}({aggregateField})";
-                valueFormat = "number";
-            }
+            (string valueHeader, string valueFormat) = WorkSummaryHeaderResolver.Resolve(aggregateField, aggregateFunction);
 
             var context = _unitOfWork.Context;
 
