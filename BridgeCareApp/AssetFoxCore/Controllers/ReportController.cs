@@ -12,12 +12,13 @@ using AssetFox.Core.DTOs;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFox.Core.Reporting;
-using AssetFox.Core.Reporting.Services.FlexibleReport;
+using AssetFox.Core.UniversalReporting.Viewer;
 using AssetFoxCore.Controllers.BaseController;
 using AssetFoxCore.Interfaces;
 using AssetFoxCore.Models;
 using AssetFoxCore.Security.Interfaces;
 using AssetFoxCore.Services;
+using AssetFoxCore.Services.Reporting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -55,6 +56,12 @@ namespace AssetFoxCore.Controllers
             public string reportStatus  { get; set; }
         }
 
+        public class UniversalReportExportRequest
+        {
+            public Guid SchemaId { get; set; }
+            public Guid SimulationId { get; set; }
+        }
+
         #region "API functions"
 
         [HttpPost]
@@ -63,7 +70,7 @@ namespace AssetFoxCore.Controllers
         public async Task<IActionResult> GetHtml(string reportName)
         {
             // NOTE:  This might be useful:  https://weblog.west-wind.com/posts/2013/dec/13/accepting-raw-request-body-content-with-aspnet-web-api
-                        
+
             var parameters = await GetParameters();
             var report = await GenerateReport(reportName, ReportType.HTML, parameters);
 
@@ -184,7 +191,7 @@ namespace AssetFoxCore.Controllers
                 return CreateErrorListing(message);
             }
 
-            if (string.IsNullOrWhiteSpace(report.Result)) 
+            if (string.IsNullOrWhiteSpace(report.Result))
             {
                 var message = new List<string>() { $"The report metadata for {simulationName} (type: {reportName}) did not include a valid file path." };
                 return CreateErrorListing(message);
@@ -241,12 +248,12 @@ namespace AssetFoxCore.Controllers
                 // and streams the file efficiently.
                 return File(fileStream, mimeType, downloadFileName);
             }
-            catch (IOException ex) 
+            catch (IOException ex)
             {
                 var message = new List<string>() { $"An error occurred while trying to access the report file for {simulationName} (type: {reportName}).", ex.Message };
                 return CreateErrorListing(message); // Or return StatusCode(500, ...)
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 return CreateErrorListing(new List<string>() { $"An unexpected error occurred: {e.Message}" });
             }
@@ -404,7 +411,7 @@ namespace AssetFoxCore.Controllers
         public async Task<IActionResult> DeleteAllGeneratedReports(Guid simulationId)
         {
             var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
-         
+
             if (simulationId == Guid.Empty)
             {
                 var message = new List<string>() { $"No simulation or report name provided." };
@@ -430,22 +437,45 @@ namespace AssetFoxCore.Controllers
         }
 
         [HttpPost]
-        [Route("GetFlexibleReportData/{schemaId}")]
+        [Route("universal/export")]
         [Authorize]
-        public IActionResult GetFlexibleReportData(Guid schemaId)
+        public IActionResult ExportUniversalReport([FromBody] UniversalReportExportRequest request)
         {
             try
             {
-                var parameters = GetParameters().Result;
-                var simulationIdStr = parameters?.SelectToken("simulationId")?.ToString();
-                if (!Guid.TryParse(simulationIdStr, out var simulationId))
+                if (request == null || request.SchemaId == Guid.Empty || request.SimulationId == Guid.Empty)
                 {
-                    return BadRequest("simulationId is required in the request body.");
+                    return BadRequest("schemaId and simulationId are required.");
                 }
 
-                var report = new AssetFox.Core.Reporting.FlexibleSchemaReport(UnitOfWork, "FlexibleReport", null, HubService);
-                var model = report.BuildReportModel(schemaId, simulationId);
-                return Ok(model);
+                var simulationName = UnitOfWork.SimulationRepo.GetSimulationName(request.SimulationId);
+                var reportId = Guid.NewGuid();
+                var parameters = new JObject
+                {
+                    ["scenarioId"] = request.SimulationId,
+                    ["simulationId"] = request.SimulationId,
+                    ["schemaId"] = request.SchemaId,
+                    ["reportId"] = reportId
+                };
+
+                var workItem = new ReportGenerationWorkitem(
+                    parameters,
+                    UserInfo.Name,
+                    simulationName,
+                    UniversalReportFactory.ReportName);
+
+                var workHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                HubService.SendRealTimeMessage(
+                    UserInfo.Name,
+                    HubConstant.BroadcastFastWorkQueueUpdate,
+                    request.SimulationId.ToString());
+
+                return Ok(new
+                {
+                    reportId,
+                    workId = workHandle.WorkId,
+                    reportName = UniversalReportFactory.ReportName
+                });
             }
             catch (Exception e)
             {
@@ -502,14 +532,14 @@ namespace AssetFoxCore.Controllers
             {
                 using var reader = new StreamReader(Request.Body, Encoding.UTF8);
                 data = await reader.ReadToEndAsync();
-            }            
+            }
             var parameterObj = JObject.Parse(data);
-            
+
             return parameterObj;
         }
 
         private async Task<IReport> GenerateReport(string reportName, ReportType expectedReportType, JObject parameters)
-        {            
+        {
             var simulationId = parameters.SelectToken("scenarioId")?.ToObject<IEnumerable<object>>().FirstOrDefault()?.ToString();
             var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
             IReport reportObject;
@@ -523,7 +553,7 @@ namespace AssetFoxCore.Controllers
             {
                 reportObject = await _generator.Generate(reportName);
             }
-           
+
             //generate report
             if (reportObject == null)
             {
@@ -545,7 +575,7 @@ namespace AssetFoxCore.Controllers
             // Run the report as long as it does not have any existing errors (i.e., failure on generation)
             // Note:  If report was switched to a FailureReport previously, this will not run again
             if (!reportObject.Errors.Any())
-            {                
+            {
                 await reportObject.Run(parameters.ToString());
             }
 
@@ -573,7 +603,7 @@ namespace AssetFoxCore.Controllers
                 MimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             };
         }
-        
+
         private byte[] FetchFromFileLocation(string filePath)
         {
             if (System.IO.File.Exists(filePath) == false)

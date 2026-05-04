@@ -72,6 +72,20 @@ const actions = {
                 dispatch('addErrorNotification', { message: 'Failed to delete report schema.' });
             });
     },
+    async requestUniversalReportExport(
+        { dispatch }: any,
+        payload: { schemaId: string; simulationId: string },
+    ) {
+        return await ReportSchemaService.requestUniversalReportExport(payload)
+            .then((response: AxiosResponse) => {
+                dispatch('addSuccessNotification', { message: 'Excel export queued.' });
+                return response.data;
+            })
+            .catch((error) => {
+                dispatch('addErrorNotification', { message: 'Failed to start Excel export.' });
+                throw error;
+            });
+    },
 };
 
 const getters = {};

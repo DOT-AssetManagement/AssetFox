@@ -26,4 +26,8 @@ export default class ReportSchemaService {
     static getDefaults(): AxiosPromise {
         return coreAxiosInstance.get(`${API.ReportSchema}/defaults`);
     }
+
+    static requestUniversalReportExport(payload: { schemaId: string; simulationId: string }): AxiosPromise {
+        return coreAxiosInstance.post(`${API.Report}/universal/export`, payload);
+    }
 }

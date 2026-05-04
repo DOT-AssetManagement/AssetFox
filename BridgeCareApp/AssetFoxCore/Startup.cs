@@ -22,8 +22,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AssetFoxCore.Services;
 using AssetFox.Core.Reporting.Concrete.GeneralSummary;
-using AssetFox.Core.Reporting.Services.FlexibleReport;
+using AssetFox.Core.UniversalReporting.Components;
+using AssetFox.Core.UniversalReporting.Execution;
+using AssetFox.Core.UniversalReporting.Export;
+using AssetFox.Core.UniversalReporting.Pipeline;
+using AssetFox.Core.UniversalReporting.Query;
+using AssetFox.Core.UniversalReporting.Transforms;
+using AssetFox.Core.UniversalReporting.Viewer;
 using AssetFoxCore.Interfaces;
+using AssetFoxCore.Services.Reporting;
 using static AssetFoxCore.Security.SecurityConstants;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
@@ -102,6 +109,23 @@ namespace AssetFoxCore
             services.AddScoped<ICompleteSimulationCloningService, CompleteSimulationCloningService>();
             services.AddScoped<CriteriaSqlEmitter>();
             services.AddScoped<IViewerDataService, ViewerDataService>();
+            services.AddScoped<IComponentDataSource, AssetDetailDataSource>();
+            services.AddScoped<IComponentDataSource, TreatmentTimelineDataSource>();
+            services.AddScoped<IComponentDataSource, ConditionTrackingDataSource>();
+            services.AddScoped<IComponentDataSource, FundedTreatmentListDataSource>();
+            services.AddScoped<IComponentDataSource, WorkSummaryDataSource>();
+            services.AddScoped<IComponentDataSource, BudgetSummaryDataSource>();
+            services.AddScoped<IComponentDataSource, GoalTrackingDataSource>();
+            services.AddScoped<IComponentDataSource, TextBlockDataSource>();
+            services.AddScoped<ComponentDataSourceRegistry>();
+            services.AddScoped<PagedQueryExecutor>();
+            services.AddScoped<StreamingQueryExecutor>();
+            services.AddScoped<IRowTransform, PercentOfTotalTransform>();
+            services.AddScoped<IRowTransform, TotalsRowTransform>();
+            services.AddScoped<TransformPipeline>();
+            services.AddScoped<IUniversalQueryEngine, UniversalQueryEngine>();
+            services.AddScoped<IUniversalReportExporter, UniversalReportExcelExporter>();
+            services.AddScoped<UniversalReportRunner>();
 
             services.AddSingleton<IAnalysisEventLoggingService, AnalysisEventLoggingService>();
         }
@@ -126,7 +150,7 @@ namespace AssetFoxCore
             reportFactoryList.Add(new FlexibleAuditReportFactory());
             reportFactoryList.Add(new GeneralSummaryReportFactory());
             reportFactoryList.Add(new UserDefinedReportFactory());
-            reportFactoryList.Add(new FlexibleSchemaReportFactory());
+            reportFactoryList.Add(new UniversalReportFactory());
             services.AddSingleton<IReportLookupLibrary>(service => new ReportLookupLibrary(reportFactoryList));
         }
 
