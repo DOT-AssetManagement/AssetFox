@@ -23,6 +23,7 @@ using Microsoft.Extensions.Hosting;
 using AssetFoxCore.Services;
 using AssetFox.Core.Reporting.Concrete.GeneralSummary;
 using AssetFox.Core.UniversalReporting.Components;
+using AssetFox.Core.UniversalReporting.Charts;
 using AssetFox.Core.UniversalReporting.Execution;
 using AssetFox.Core.UniversalReporting.Export;
 using AssetFox.Core.UniversalReporting.Pipeline;
@@ -108,6 +109,7 @@ namespace AssetFoxCore
             services.AddScoped<IAggregationService, AggregationService>();
             services.AddScoped<ICompleteSimulationCloningService, CompleteSimulationCloningService>();
             services.AddScoped<CriteriaSqlEmitter>();
+            services.AddScoped<ChartTemplateValidator>();
             services.AddScoped<IViewerDataService, ViewerDataService>();
             services.AddScoped<IComponentDataSource, AssetDetailDataSource>();
             services.AddScoped<IComponentDataSource, TreatmentTimelineDataSource>();
@@ -116,6 +118,9 @@ namespace AssetFoxCore
             services.AddScoped<IComponentDataSource, WorkSummaryDataSource>();
             services.AddScoped<IComponentDataSource, BudgetSummaryDataSource>();
             services.AddScoped<IComponentDataSource, TextBlockDataSource>();
+            services.AddScoped<IComponentDataSource, BarChartDataSource>();
+            services.AddScoped<IComponentDataSource, PieChartDataSource>();
+            services.AddScoped<IComponentDataSource, LineChartDataSource>();
             services.AddScoped<ComponentDataSourceRegistry>();
             services.AddScoped<PagedQueryExecutor>();
             services.AddScoped<StreamingQueryExecutor>();

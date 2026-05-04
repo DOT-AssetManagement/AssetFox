@@ -42,6 +42,9 @@ const componentTypes: ComponentType[] = [
     'budgetSummary',
     'conditionTracking',
     'fundedTreatmentList',
+    'barChart',
+    'pieChart',
+    'lineChart',
     'textBlock',
 ];
 </script>

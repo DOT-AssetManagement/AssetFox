@@ -95,6 +95,9 @@ export type ComponentType =
     | 'budgetSummary'
     | 'conditionTracking'
     | 'fundedTreatmentList'
+    | 'barChart'
+    | 'pieChart'
+    | 'lineChart'
     | 'textBlock';
 
 // ============================================================
@@ -146,6 +149,61 @@ export interface TextBlockConfig {
     style: 'heading' | 'subheading' | 'body' | 'note';
 }
 
+export type ChartKind = 'bar' | 'pie' | 'line';
+export type ChartRole = 'dimension' | 'measure' | 'series' | 'tooltip';
+export type ChartAggregation = 'sum' | 'avg' | 'count' | 'min' | 'max';
+
+export interface ChartFieldBinding {
+    source: string;
+    field: string;
+    label: string;
+    role: ChartRole;
+    aggregate?: ChartAggregation;
+    format: ColumnFormat | 'year';
+}
+
+export interface ChartYearScope {
+    mode: 'allYears' | 'selectedYear' | 'range';
+    selectedYear?: number;
+    startYear?: number;
+    endYear?: number;
+}
+
+export interface ChartLimit {
+    topN?: number;
+    includeOther: boolean;
+}
+
+export interface ChartFilterOptions {
+    excludeNoTreatment: boolean;
+}
+
+export interface ChartDisplayOptions {
+    showLegend: boolean;
+    legendPosition: 'right' | 'bottom';
+    showLabels: boolean;
+    showGridLines: boolean;
+    stacked: boolean;
+    horizontal: boolean;
+    showMarkers: boolean;
+    donut: boolean;
+}
+
+export interface ChartConfig {
+    chartKind: ChartKind;
+    mode: string;
+    bindings: {
+        category?: ChartFieldBinding;
+        value?: ChartFieldBinding;
+        series?: ChartFieldBinding;
+        tooltip?: ChartFieldBinding[];
+    };
+    yearScope: ChartYearScope;
+    limit: ChartLimit;
+    filters: ChartFilterOptions;
+    display: ChartDisplayOptions;
+}
+
 export type ComponentConfig =
     | AssetDetailConfig
     | TreatmentTimelineConfig
@@ -153,6 +211,7 @@ export type ComponentConfig =
     | BudgetSummaryConfig
     | ConditionTrackingConfig
     | FundedTreatmentListConfig
+    | ChartConfig
     | TextBlockConfig;
 
 // ============================================================
@@ -281,12 +340,48 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
                 ],
                 sorting: { ...emptySortingConfig },
             } as FundedTreatmentListConfig;
+        case 'barChart':
+            return createDefaultChartConfig('bar');
+        case 'pieChart':
+            return createDefaultChartConfig('pie');
+        case 'lineChart':
+            return createDefaultChartConfig('line');
         case 'textBlock':
             return {
                 content: '',
                 style: 'body',
             } as TextBlockConfig;
     }
+}
+
+export const standardChartColors = ['#2A578D', '#2F6F4E', '#C77700', '#7A4E9D', '#2F6F7E', '#B23A48', '#5B667A', '#8A6A00'];
+
+export function createDefaultChartConfig(kind: ChartKind): ChartConfig {
+    return {
+        chartKind: kind,
+        mode: kind === 'bar' ? 'single' : kind === 'pie' ? 'pie' : 'line',
+        bindings: {},
+        yearScope: {
+            mode: 'allYears',
+        },
+        limit: {
+            topN: kind === 'pie' ? 8 : undefined,
+            includeOther: kind === 'pie',
+        },
+        filters: {
+            excludeNoTreatment: false,
+        },
+        display: {
+            showLegend: true,
+            legendPosition: 'right',
+            showLabels: kind === 'pie',
+            showGridLines: kind !== 'pie',
+            stacked: false,
+            horizontal: false,
+            showMarkers: kind === 'line',
+            donut: false,
+        },
+    };
 }
 
 export function pageSizeToGridH(pageSize: number): number {
@@ -298,6 +393,7 @@ export function pageSizeToGridH(pageSize: number): number {
 
 export function createDefaultComponent(type: ComponentType): ReportComponent {
     const pageSize = 10;
+    const isChart = isChartComponentType(type);
     return {
         id: getNewGuid(),
         type,
@@ -310,7 +406,7 @@ export function createDefaultComponent(type: ComponentType): ReportComponent {
         gridX: 0,
         gridY: 0,
         gridW: 12,
-        gridH: pageSizeToGridH(pageSize),
+        gridH: isChart ? 4 : pageSizeToGridH(pageSize),
         config: createDefaultConfig(type),
     };
 }
@@ -386,6 +482,27 @@ export const componentTypeInfo: Record<ComponentType, ComponentTypeInfo> = {
         color: '#BF360C',
         chipColor: '#FBE9E7',
     },
+    barChart: {
+        label: 'Bar Chart',
+        description: 'Compare values across categories or years',
+        icon: 'fas fa-chart-bar',
+        color: '#1565C0',
+        chipColor: '#E3F2FD',
+    },
+    pieChart: {
+        label: 'Pie Chart',
+        description: 'Show a part-to-whole breakdown',
+        icon: 'fas fa-chart-pie',
+        color: '#7A4E9D',
+        chipColor: '#F3E5F5',
+    },
+    lineChart: {
+        label: 'Line Chart',
+        description: 'Track values over simulation years',
+        icon: 'fas fa-chart-line',
+        color: '#2F6F4E',
+        chipColor: '#E8F5E9',
+    },
     textBlock: {
         label: 'Text Block',
         description: 'Free-text annotation or heading',
@@ -394,6 +511,10 @@ export const componentTypeInfo: Record<ComponentType, ComponentTypeInfo> = {
         chipColor: '#FAFAFA',
     },
 };
+
+export function isChartComponentType(type: ComponentType | string): boolean {
+    return type === 'barChart' || type === 'pieChart' || type === 'lineChart';
+}
 
 // ============================================================
 // Simulation Fields Metadata

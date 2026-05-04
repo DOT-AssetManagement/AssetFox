@@ -4,6 +4,7 @@ using AssetFox.Core.DTOs;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFox.Core.Reporting;
+using AssetFox.Core.UniversalReporting.Charts;
 using AssetFox.Core.UniversalReporting.Components;
 using AssetFox.Core.UniversalReporting.Execution;
 using AssetFox.Core.UniversalReporting.Export;
@@ -151,6 +152,7 @@ public sealed class UniversalReportLegacyAdapter : IReport
         }
 
         var criteriaEmitter = new CriteriaSqlEmitter();
+        var chartValidator = new ChartTemplateValidator();
         var dataSources = new IComponentDataSource[]
         {
             new AssetDetailDataSource(unitOfDataPersistenceWork, criteriaEmitter),
@@ -159,7 +161,10 @@ public sealed class UniversalReportLegacyAdapter : IReport
             new FundedTreatmentListDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new WorkSummaryDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new BudgetSummaryDataSource(unitOfDataPersistenceWork, criteriaEmitter),
-            new TextBlockDataSource(unitOfDataPersistenceWork, criteriaEmitter)
+            new TextBlockDataSource(unitOfDataPersistenceWork, criteriaEmitter),
+            new BarChartDataSource(unitOfDataPersistenceWork, criteriaEmitter, chartValidator),
+            new PieChartDataSource(unitOfDataPersistenceWork, criteriaEmitter, chartValidator),
+            new LineChartDataSource(unitOfDataPersistenceWork, criteriaEmitter, chartValidator)
         };
 
         var registry = new ComponentDataSourceRegistry(dataSources);

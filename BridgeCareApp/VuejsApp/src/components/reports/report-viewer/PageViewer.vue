@@ -9,6 +9,12 @@
                     v-if="component.type === 'textBlock'"
                     :component="component"
                 />
+                <ViewerChart
+                    v-else-if="isChartComponentType(component.type)"
+                    :component="component"
+                    :schemaId="schemaId"
+                    :simulationId="simulationId"
+                />
                 <ViewerDataTable
                     v-else
                     :component="component"
@@ -22,9 +28,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ReportComponent } from '@/shared/models/iAM/report-schema';
+import { ReportComponent, isChartComponentType } from '@/shared/models/iAM/report-schema';
 import ViewerDataTable from './ViewerDataTable.vue';
 import ViewerTextBlock from './ViewerTextBlock.vue';
+import ViewerChart from './ViewerChart.vue';
 
 const props = defineProps<{
     components: ReportComponent[];

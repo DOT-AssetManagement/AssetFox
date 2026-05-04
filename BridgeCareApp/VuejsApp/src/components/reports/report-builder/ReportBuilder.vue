@@ -303,6 +303,7 @@ import {
     componentTypeInfo,
     createDefaultPage,
 } from '@/shared/models/iAM/report-schema';
+import { validateReportChartComponents } from '@/shared/utils/report-chart-validation';
 import ComponentPalette from './ComponentPalette.vue';
 import PageEditor from './PageEditor.vue';
 import ComponentProperties from './ComponentProperties.vue';
@@ -527,6 +528,18 @@ function buildSchemaJson(nameOverride = schemaName.value): string {
 }
 
 async function onSave() {
+    const chartIssues = validateReportChartComponents(pages.value);
+    const firstBlocker = chartIssues.find(issue => issue.blocker);
+    if (firstBlocker) {
+        activePageIndex.value = firstBlocker.pageIndex;
+        selectedComponentId.value = firstBlocker.componentId;
+        store.dispatch('addErrorNotification', {
+            message: 'Fix chart configuration before saving.',
+            longMessage: firstBlocker.message,
+        });
+        return;
+    }
+
     saving.value = true;
     saveSuccess.value = false;
 

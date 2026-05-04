@@ -74,6 +74,7 @@ import {
     WorkSummaryConfig,
     FundedTreatmentListConfig,
     ConditionTrackingConfig,
+    ChartConfig,
     TextBlockConfig,
 } from '@/shared/models/iAM/report-schema';
 
@@ -129,6 +130,15 @@ const previewText = computed(() => {
             const c = config as FundedTreatmentListConfig;
             const colCount = (c.columns?.length || 0) + (c.simulationColumns?.length || 0);
             return `${colCount} column${colCount !== 1 ? 's' : ''}`;
+        }
+        case 'barChart':
+        case 'pieChart':
+        case 'lineChart': {
+            const c = config as ChartConfig;
+            const value = c.bindings?.value?.label || 'value';
+            const category = c.bindings?.category?.label || 'category';
+            const series = c.bindings?.series?.label;
+            return `${value} by ${category}${series ? ` · ${series}` : ''}`;
         }
         case 'textBlock': {
             const c = config as TextBlockConfig;

@@ -35,6 +35,7 @@ import {
     ReportComponent,
     ComponentType,
     createDefaultComponent,
+    isChartComponentType,
     pageSizeToGridH,
 } from '@/shared/models/iAM/report-schema';
 import GridComponentWrapper from './GridComponentWrapper.vue';
@@ -176,7 +177,7 @@ function initGrid() {
         newComp.gridX = newNode.x ?? 0;
         newComp.gridY = newNode.y ?? 0;
         newComp.gridW = newNode.w ?? 12;
-        newComp.gridH = pageSizeToGridH(newComp.pageSize);
+        newComp.gridH = isChartComponentType(newComp.type) ? 4 : pageSizeToGridH(newComp.pageSize);
 
         emit('component-dropped', newComp);
     });
@@ -226,7 +227,7 @@ function syncWidgetProperties(comps: ReportComponent[]) {
         if (el) {
             const node = (el as any).gridstackNode as GridStackNode | undefined;
             if (node) {
-                const expectedH = pageSizeToGridH(comp.pageSize);
+                const expectedH = isChartComponentType(comp.type) ? comp.gridH || 4 : pageSizeToGridH(comp.pageSize);
                 if (node.h !== expectedH) {
                     grid!.update(el, { h: expectedH });
                 }

@@ -5,6 +5,7 @@ using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Enums;
 using AssetFox.Core.Hubs.Interfaces;
+using AssetFox.Core.UniversalReporting.Charts;
 using AssetFox.Core.UniversalReporting.Schema;
 using AssetFoxCore.Controllers.BaseController;
 using AssetFoxCore.Models;
@@ -25,13 +26,16 @@ namespace AssetFoxCore.Controllers
             IUnitOfWork unitOfWork,
             IHubService hubService,
             IHttpContextAccessor httpContextAccessor,
-            IClaimHelper claimHelper)
+            IClaimHelper claimHelper,
+            ChartTemplateValidator chartTemplateValidator)
             : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
             _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
+            _chartTemplateValidator = chartTemplateValidator ?? throw new ArgumentNullException(nameof(chartTemplateValidator));
         }
 
         private readonly IClaimHelper _claimHelper;
+        private readonly ChartTemplateValidator _chartTemplateValidator;
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
         private bool IncludeAllTemplates => !_claimHelper.RequirePermittedCheck();
 
@@ -118,6 +122,11 @@ namespace AssetFoxCore.Controllers
                     {
                         return BadRequest($"Invalid schema JSON: {error}");
                     }
+
+                    if (!ValidateChartTemplates(schema, out error))
+                    {
+                        return BadRequest($"Invalid schema JSON: {error}");
+                    }
                 }
 
                 if (dto.Id == Guid.Empty)
@@ -172,6 +181,11 @@ namespace AssetFoxCore.Controllers
                     }
 
                     if (!ValidateSchemaIds(schema, out error))
+                    {
+                        return BadRequest($"Invalid schema JSON: {error}");
+                    }
+
+                    if (!ValidateChartTemplates(schema, out error))
                     {
                         return BadRequest($"Invalid schema JSON: {error}");
                     }
@@ -406,6 +420,23 @@ namespace AssetFoxCore.Controllers
                 }
             }
 
+            return true;
+        }
+
+        private bool ValidateChartTemplates(ReportSchemaDefinition schema, out string error)
+        {
+            var blockers = _chartTemplateValidator.ValidateSchema(schema)
+                .Where(issue => issue.Blocker)
+                .Select(issue => issue.Message)
+                .ToList();
+
+            if (blockers.Count > 0)
+            {
+                error = string.Join(" ", blockers);
+                return false;
+            }
+
+            error = null;
             return true;
         }
     }

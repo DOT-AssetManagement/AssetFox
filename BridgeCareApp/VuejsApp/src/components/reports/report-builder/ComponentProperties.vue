@@ -26,7 +26,7 @@
                 @update:model-value="emitUpdate"
             />
             <v-select
-                v-if="localComponent.type !== 'textBlock'"
+                v-if="localComponent.type !== 'textBlock' && !isChartComponentType(localComponent.type)"
                 v-model="localComponent.pageSize"
                 :items="pageSizeOptions"
                 label="Rows per page"
@@ -37,7 +37,7 @@
                 @update:model-value="emitUpdate"
             />
             <v-checkbox
-                v-if="localComponent.type !== 'textBlock'"
+                v-if="localComponent.type !== 'textBlock' && !isChartComponentType(localComponent.type)"
                 v-model="localComponent.stripedRows"
                 label="Alternating row colors"
                 density="compact"
@@ -91,6 +91,12 @@
                 :config="localComponent.config as TextBlockConfig"
                 @update:config="onConfigUpdate"
             />
+            <ChartConfigEditor
+                v-else-if="isChartComponentType(localComponent.type)"
+                :component-type="localComponent.type"
+                :config="localComponent.config as ChartConfig"
+                @update:config="onConfigUpdate"
+            />
         </div>
 
         <v-divider class="my-2" />
@@ -128,7 +134,9 @@ import {
     ConditionTrackingConfig,
     FundedTreatmentListConfig,
     TextBlockConfig,
+    ChartConfig,
     componentTypeInfo,
+    isChartComponentType,
     pageSizeOptions,
 } from '@/shared/models/iAM/report-schema';
 import ComponentFilterButton from './shared/ComponentFilterButton.vue';
@@ -139,6 +147,7 @@ import BudgetSummaryConfigEditor from './configs/BudgetSummaryConfig.vue';
 import ConditionTrackingConfigEditor from './configs/ConditionTrackingConfig.vue';
 import FundedTreatmentListConfigEditor from './configs/FundedTreatmentListConfig.vue';
 import TextBlockConfigEditor from './configs/TextBlockConfig.vue';
+import ChartConfigEditor from './configs/ChartConfig.vue';
 
 const props = defineProps<{
     component: ReportComponent | null;
