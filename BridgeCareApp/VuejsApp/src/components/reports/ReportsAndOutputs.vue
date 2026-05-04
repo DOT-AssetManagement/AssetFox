@@ -12,49 +12,22 @@
                 <span class="section-subtitle">View interactive reports from templates</span>
             </div>
             <v-divider :thickness="1" class="border-opacity-50 mb-3" />
-            <v-row align="center" class="mx-0 report-actions-panel">
-                <v-col cols="12" md="5" lg="4">
-                    <v-select
-                        v-model="selectedViewerSchemaId"
-                        :items="reportSchemaItems"
-                        item-title="text"
-                        item-value="value"
-                        label="Select a report template"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        class="viewer-schema-select"
-                        no-data-text="No report templates available"
-                    />
-                </v-col>
-                <v-col cols="12" md="auto" class="viewer-action-buttons">
-                    <v-btn
-                        class="report-action-button report-action-button-primary"
-                        :disabled="!selectedViewerSchemaId"
-                        @click="onViewReport"
-                        variant="flat"
-                    >
-                        <i class="fas fa-chart-bar mr-2" />
-                        View Report
-                    </v-btn>
-                    <v-btn
-                        class="report-action-button report-action-button-secondary"
-                        :disabled="!selectedViewerSchemaId || isExporting"
-                        :loading="isExporting"
-                        @click="onExportReport"
-                        variant="flat"
-                    >
-                        <i class="fas fa-file-excel mr-2" />
-                        Export Excel
-                    </v-btn>
-                    <span
-                        v-if="exportStatus"
-                        class="export-status"
-                    >
-                        {{ exportStatus }}
-                    </span>
-                </v-col>
-            </v-row>
+            <ReportTemplateBrowser
+                :selected-id="selectedViewerSchemaId"
+                :show-select="false"
+                :show-view="true"
+                :show-export="true"
+                action-style="buttons"
+                :large="true"
+                :exporting-id="isExporting ? selectedViewerSchemaId : ''"
+                @select="onSelectViewerSchema"
+                @view="onViewReport"
+                @export="onExportReport"
+            />
+            <div v-if="exportStatus" class="export-status-row">
+                <i class="fas fa-spinner fa-spin" />
+                <span>{{ exportStatus }}</span>
+            </div>
         </v-col>
 
         <!-- Generated Reports Section -->
@@ -237,6 +210,7 @@ import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel, Pams
 import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/UserDefinedReportInputDialog.vue';
 import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
 import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
+import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vue';
 
     let store = useStore();
     const router = useRouter();
@@ -267,17 +241,11 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 
     // Report Viewer state
     const selectedViewerSchemaId = ref<string>('');
+    const selectedViewerSchema = ref<ReportSchemaDTO | null>(null);
     const isExporting = ref(false);
     const exportStatus = ref('');
     const exportReportName = ref('UniversalReport');
     const exportReportId = ref('');
-    const reportSchemas = computed<ReportSchemaDTO[]>(() => store.state.reportSchemaModule.reportSchemas);
-    const reportSchemaItems = computed(() =>
-        reportSchemas.value.map((s: ReportSchemaDTO) => ({
-            text: s.name,
-            value: s.id,
-        })),
-    );
 
     const criterionEditorDialogData = ref<GeneralCriterionEditorDialogData>(clone(emptyGeneralCriterionEditorDialogData));
     const currentPage = ref<Report[]>([]);
@@ -361,7 +329,6 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
                 router.push('/Scenarios/');
             }
 
-        await store.dispatch('getReportSchemas');
         await getSimulationReportsAction();
         await getReportGenerationStatus();
     });
@@ -406,30 +373,36 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
     }, { deep: true, immediate: true });
 
 
-    function onViewReport() {
-        if (!selectedViewerSchemaId.value) return;
-        const schema = reportSchemas.value.find(
-            (s: ReportSchemaDTO) => s.id === selectedViewerSchemaId.value,
-        );
+    function onSelectViewerSchema(schema: ReportSchemaDTO) {
+        selectedViewerSchemaId.value = schema.id;
+        selectedViewerSchema.value = schema;
+    }
+
+    function onViewReport(schema?: ReportSchemaDTO) {
+        const targetSchema = schema || selectedViewerSchema.value;
+        if (!targetSchema?.id) return;
+        onSelectViewerSchema(targetSchema);
         router.push({
             path: '/ReportViewer/Scenario',
             query: {
                 ...router.currentRoute.value.query,
-                schemaId: selectedViewerSchemaId.value,
-                schemaName: schema?.name ?? 'Report',
+                schemaId: targetSchema.id,
+                schemaName: targetSchema.name || 'Report',
             },
         });
     }
 
-    async function onExportReport() {
-        if (!selectedViewerSchemaId.value || !selectedScenarioId.value) return;
+    async function onExportReport(schema?: ReportSchemaDTO) {
+        const targetSchema = schema || selectedViewerSchema.value;
+        if (!targetSchema?.id || !selectedScenarioId.value) return;
+        onSelectViewerSchema(targetSchema);
 
         isExporting.value = true;
         exportStatus.value = 'Starting Excel export...';
 
         try {
             const response = await store.dispatch('requestUniversalReportExport', {
-                schemaId: selectedViewerSchemaId.value,
+                schemaId: targetSchema.id,
                 simulationId: selectedScenarioId.value,
             });
 
@@ -756,11 +729,12 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 }
 
 .report-viewer-section {
-    padding: 16px 16px 8px 16px;
+    padding: 16px 16px 12px 16px;
 }
 
 .generated-reports-section {
-    padding: 8px 16px 0 16px;
+    margin-top: 24px;
+    padding: 16px 16px 0 16px;
 }
 
 .section-header {
@@ -844,6 +818,28 @@ import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
     font-size: 0.85rem;
     font-weight: 500;
     white-space: nowrap;
+}
+
+.export-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: fit-content;
+    max-width: min(100%, 640px);
+    margin: 16px auto 0 auto;
+    padding: 10px 18px;
+    background: #F2F6FB;
+    border: 1px solid #D6E2F0;
+    border-radius: 999px;
+    box-shadow: 0 1px 3px rgba(18, 32, 52, 0.08);
+    color: #24364B;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.export-status-row i {
+    color: #2A578D;
 }
 
 </style>

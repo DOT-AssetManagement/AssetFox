@@ -5,7 +5,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
 {
     public static class ReportSchemaMapper
     {
-        public static ReportSchemaDTO ToDTO(this ReportSchemaEntity entity) =>
+        public static ReportSchemaDTO ToDTO(this ReportSchemaEntity entity, UserEntity creator = null) =>
             new ReportSchemaDTO
             {
                 Id = entity.Id,
@@ -14,7 +14,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 SchemaJson = entity.SchemaJson,
                 ReportCategory = entity.ReportCategory,
                 IsSystemDefault = entity.IsSystemDefault,
-                CreatedByName = entity.CreatedBy.ToString(),
+                IsSharedWithAll = entity.IsSharedWithAll,
+                CreatedByName = creator?.Username ?? entity.CreatedBy.ToString(),
                 CreatedDate = entity.CreatedDate,
                 ModifiedDate = entity.LastModifiedDate
             };
@@ -37,7 +38,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 Description = dto.Description,
                 SchemaJson = dto.SchemaJson,
                 ReportCategory = dto.ReportCategory,
-                IsSystemDefault = dto.IsSystemDefault
+                IsSystemDefault = dto.IsSystemDefault,
+                IsSharedWithAll = dto.IsSharedWithAll
             };
             return entity;
         }

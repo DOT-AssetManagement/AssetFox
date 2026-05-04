@@ -22,38 +22,97 @@
                     @update:model-value="markDirty"
                 />
             </div>
-            <div class="d-flex align-center ga-2 flex-shrink-0">
-                <v-btn
-                    size="small"
-                    variant="outlined"
-                    class="text-none"
-                    @click="onNew"
+            <div class="report-builder__actions">
+                <div class="report-builder__action-group">
+                    <v-btn
+                        size="small"
+                        variant="outlined"
+                        class="text-none"
+                        @click="onNew"
+                    >
+                        <i class="fas fa-file mr-2" style="font-size: 10px;" />
+                        New
+                    </v-btn>
+                    <v-btn
+                        size="small"
+                        variant="outlined"
+                        class="text-none"
+                        @click="showLoadDialog = true"
+                    >
+                        <i class="fas fa-folder-open mr-2" style="font-size: 10px;" />
+                        Load
+                    </v-btn>
+                    <v-btn
+                        size="small"
+                        variant="outlined"
+                        class="text-none"
+                        :disabled="!currentSchema?.canShare"
+                        @click="openShareDialog()"
+                    >
+                        <i class="fas fa-share-alt mr-2" style="font-size: 10px;" />
+                        Share
+                    </v-btn>
+                    <v-btn
+                        v-if="canDeleteTemplate"
+                        size="small"
+                        variant="outlined"
+                        class="text-none report-builder__delete-template-btn"
+                        @click="showDeleteTemplateConfirm = true"
+                    >
+                        <i class="fas fa-trash mr-2" style="font-size: 10px;" />
+                        Delete
+                    </v-btn>
+                </div>
+                <div
+                    v-if="hasAdminAccess || isSystemDefault || isReadOnly"
+                    class="report-builder__status-group"
                 >
-                    <i class="fas fa-file mr-2" style="font-size: 10px;" />
-                    New
-                </v-btn>
-                <v-btn
-                    size="small"
-                    variant="outlined"
-                    class="text-none"
-                    @click="showLoadDialog = true"
-                >
-                    <i class="fas fa-folder-open mr-2" style="font-size: 10px;" />
-                    Load
-                </v-btn>
-                <v-btn
-                    size="small"
-                    color="#2A578D"
-                    variant="flat"
-                    class="text-none"
-                    :disabled="!schemaName"
-                    :loading="saving"
-                    @click="onSave"
-                >
-                    <i class="fas fa-save mr-2" style="font-size: 10px;" />
-                    Save
-                    <i v-if="saveSuccess" class="fas fa-check ml-1" style="font-size: 10px;" />
-                </v-btn>
+                    <v-btn
+                        v-if="hasAdminAccess"
+                        size="small"
+                        :variant="isSystemDefault ? 'flat' : 'outlined'"
+                        :color="isSystemDefault ? '#2A578D' : undefined"
+                        class="text-none report-builder__system-action"
+                        :class="{ 'report-builder__system-action--active': isSystemDefault }"
+                        @click="toggleSystemDefault"
+                    >
+                        <i class="fas fa-star mr-2" style="font-size: 10px;" />
+                        System default
+                    </v-btn>
+                    <v-chip
+                        v-else-if="isSystemDefault"
+                        size="small"
+                        color="#ECEFF3"
+                        variant="flat"
+                        class="report-builder__system-chip"
+                    >
+                        System default
+                    </v-chip>
+                    <v-chip
+                        v-if="isReadOnly"
+                        size="small"
+                        color="#FFF4DE"
+                        variant="flat"
+                        class="report-builder__readonly-chip"
+                    >
+                        Read only
+                    </v-chip>
+                </div>
+                <div class="report-builder__save-group">
+                    <v-btn
+                        size="small"
+                        color="#2A578D"
+                        variant="flat"
+                        class="text-none"
+                        :disabled="!schemaName"
+                        :loading="saving"
+                        @click="onSave"
+                    >
+                        <i class="fas fa-save mr-2" style="font-size: 10px;" />
+                        {{ isReadOnly ? 'Save Copy' : 'Save' }}
+                        <i v-if="saveSuccess" class="fas fa-check ml-1" style="font-size: 10px;" />
+                    </v-btn>
+                </div>
             </div>
         </div>
 
@@ -142,39 +201,35 @@
         </div>
 
         <!-- Load dialog -->
-        <v-dialog v-model="showLoadDialog" max-width="520">
+        <v-dialog v-model="showLoadDialog" max-width="1120">
             <v-card class="rounded-lg">
-                <v-card-title class="d-flex align-center pa-4">
+                <v-card-title class="d-flex align-center report-builder__load-title">
                     <i class="fas fa-folder-open mr-2" style="font-size: 14px; color: #888;" />
-                    <span class="text-subtitle-1 font-weight-medium">Load Report Schema</span>
+                    <span class="text-subtitle-1 font-weight-medium">Load Report Template</span>
                     <v-spacer />
                     <v-btn icon size="x-small" variant="text" @click="showLoadDialog = false">
                         <i class="fas fa-times" style="font-size: 12px; color: #999;" />
                     </v-btn>
                 </v-card-title>
                 <v-divider />
-                <v-card-text class="pa-0" style="max-height: 400px; overflow-y: auto;">
-                    <v-list v-if="availableSchemas.length > 0" density="compact">
-                        <v-list-item
-                            v-for="schema in availableSchemas"
-                            :key="schema.id"
-                            @click="onLoadSchema(schema)"
-                            class="load-schema-item"
-                        >
-                            <template #prepend>
-                                <i class="fas fa-file-alt mr-3" style="font-size: 12px; color: #AAA;" />
-                            </template>
-                            <v-list-item-title class="text-body-2 font-weight-medium">{{ schema.name }}</v-list-item-title>
-                            <v-list-item-subtitle class="text-caption">{{ schema.description || 'No description' }}</v-list-item-subtitle>
-                        </v-list-item>
-                    </v-list>
-                    <div v-else class="text-center pa-8">
-                        <i class="fas fa-inbox" style="font-size: 28px; color: #D0D5DD;" />
-                        <div class="text-caption text-grey mt-2">No saved schemas</div>
-                    </div>
+                <v-card-text class="report-builder__load-body">
+                    <ReportTemplateBrowser
+                        :selected-id="currentSchemaId"
+                        :dense="true"
+                        select-text="Load"
+                        :show-share="true"
+                        @select="onLoadSchema"
+                        @share="openShareDialog"
+                    />
                 </v-card-text>
             </v-card>
         </v-dialog>
+
+        <ShareReportTemplateDialog
+            v-model="showShareDialog"
+            :schema="shareDialogSchema"
+            @saved="onSharingSaved"
+        />
 
         <!-- Delete component confirmation dialog -->
         <v-dialog v-model="showDeleteConfirm" max-width="360">
@@ -201,11 +256,42 @@
                 </div>
             </v-card>
         </v-dialog>
+
+        <!-- Delete template confirmation dialog -->
+        <v-dialog v-model="showDeleteTemplateConfirm" max-width="420">
+            <v-card class="rounded-lg pa-4">
+                <div class="text-subtitle-1 font-weight-medium mb-2">Delete report template?</div>
+                <div class="text-body-2 text-grey mb-4">
+                    {{ deleteTemplateMessage }}
+                </div>
+                <div class="d-flex justify-end ga-2">
+                    <v-btn
+                        size="small"
+                        variant="text"
+                        class="text-none"
+                        :disabled="deletingTemplate"
+                        @click="showDeleteTemplateConfirm = false"
+                    >
+                        Cancel
+                    </v-btn>
+                    <v-btn
+                        size="small"
+                        color="error"
+                        variant="flat"
+                        class="text-none"
+                        :loading="deletingTemplate"
+                        @click="confirmDeleteTemplate"
+                    >
+                        Delete
+                    </v-btn>
+                </div>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { clone } from 'ramda';
 import { useStore } from 'vuex';
 import {
@@ -220,6 +306,8 @@ import {
 import ComponentPalette from './ComponentPalette.vue';
 import PageEditor from './PageEditor.vue';
 import ComponentProperties from './ComponentProperties.vue';
+import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vue';
+import ShareReportTemplateDialog from '@/components/reports/ShareReportTemplateDialog.vue';
 
 const store = useStore();
 
@@ -228,6 +316,8 @@ const schemaName = ref('');
 const schemaDescription = ref('');
 const pages = ref<ReportPage[]>([createDefaultPage()]);
 const currentSchemaId = ref('');
+const currentSchema = ref<ReportSchemaDTO | null>(null);
+const isSystemDefault = ref(false);
 
 // Page state
 const activePageIndex = ref(0);
@@ -243,12 +333,12 @@ const showDeleteConfirm = ref(false);
 const pendingDeleteId = ref('');
 const saving = ref(false);
 const saveSuccess = ref(false);
+const showShareDialog = ref(false);
+const shareDialogSchema = ref<ReportSchemaDTO | null>(null);
+const showDeleteTemplateConfirm = ref(false);
+const deletingTemplate = ref(false);
 
 // Computed
-const availableSchemas = computed<ReportSchemaDTO[]>(
-    () => store.state.reportSchemaModule.reportSchemas
-);
-
 const activePage = computed<ReportPage | null>(() =>
     pages.value[activePageIndex.value] || null
 );
@@ -258,9 +348,29 @@ const selectedComponent = computed<ReportComponent | null>(() => {
     return activePage.value.components.find(c => c.id === selectedComponentId.value) || null;
 });
 
+const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+
+const isReadOnly = computed<boolean>(() =>
+    !!currentSchemaId.value && currentSchema.value?.canModify === false
+);
+
+const canDeleteTemplate = computed<boolean>(() =>
+    !!currentSchemaId.value && (hasAdminAccess.value || currentSchema.value?.canShare === true)
+);
+
+const deleteTemplateMessage = computed<string>(() => {
+    const name = schemaName.value || currentSchema.value?.name || 'this report template';
+    return `This will permanently delete "${name}" and remove it from shared template lists.`;
+});
+
 // Methods
 function markDirty() {
     store.commit('isDirtyMutator', true);
+}
+
+function toggleSystemDefault() {
+    isSystemDefault.value = !isSystemDefault.value;
+    markDirty();
 }
 
 // --- Page management ---
@@ -402,10 +512,10 @@ function prepareLoadedPages(loadedPages: ReportPage[]): ReportPage[] {
     }));
 }
 
-function buildSchemaJson(): string {
+function buildSchemaJson(nameOverride = schemaName.value): string {
     const definition: ReportSchemaDefinition = {
         schemaVersion: '1.0',
-        name: schemaName.value,
+        name: nameOverride,
         description: schemaDescription.value,
         pages: pages.value.map((p, pi) => ({
             ...p,
@@ -421,23 +531,29 @@ async function onSave() {
     saveSuccess.value = false;
 
     const now = new Date().toISOString();
+    const savingAsCopy = isReadOnly.value;
+    const name = savingAsCopy && schemaName.value === currentSchema.value?.name
+        ? `${schemaName.value} Copy`
+        : schemaName.value;
     const dto: ReportSchemaDTO = {
-        id: currentSchemaId.value || '00000000-0000-0000-0000-000000000000',
-        name: schemaName.value,
+        ...clone(emptyReportSchemaDTO),
+        id: savingAsCopy ? '00000000-0000-0000-0000-000000000000' : currentSchemaId.value || '00000000-0000-0000-0000-000000000000',
+        name,
         description: schemaDescription.value,
-        schemaJson: buildSchemaJson(),
-        reportCategory: '',
-        isSystemDefault: false,
-        createdByName: '',
+        schemaJson: buildSchemaJson(name),
+        reportCategory: currentSchema.value?.reportCategory || '',
+        isSystemDefault: !savingAsCopy && hasAdminAccess.value && isSystemDefault.value,
+        isSharedWithAll: savingAsCopy ? false : currentSchema.value?.isSharedWithAll || false,
         createdDate: now,
         modifiedDate: now,
     };
 
-    await store.dispatch('saveReportSchema', { schema: dto });
+    const saved = await store.dispatch('saveReportSchema', { schema: dto }) as ReportSchemaDTO | null;
 
-    const saved = store.state.reportSchemaModule.selectedReportSchema;
     if (saved?.id) {
         currentSchemaId.value = saved.id;
+        currentSchema.value = saved;
+        schemaName.value = saved.name;
     }
 
     saving.value = false;
@@ -445,11 +561,24 @@ async function onSave() {
     setTimeout(() => { saveSuccess.value = false; }, 2000);
 }
 
-function onLoadSchema(schema: ReportSchemaDTO) {
+async function onLoadSchema(schema: ReportSchemaDTO) {
     showLoadDialog.value = false;
+    let fullSchema = schema;
+
+    if (!fullSchema.schemaJson) {
+        await store.dispatch('getReportSchema', { id: schema.id });
+        fullSchema = store.state.reportSchemaModule.selectedReportSchema as ReportSchemaDTO;
+    }
+
+    loadSchemaIntoBuilder(fullSchema);
+}
+
+function loadSchemaIntoBuilder(schema: ReportSchemaDTO) {
     currentSchemaId.value = schema.id;
+    currentSchema.value = schema;
     schemaName.value = schema.name;
     schemaDescription.value = schema.description;
+    isSystemDefault.value = schema.isSystemDefault;
 
     try {
         const definition = JSON.parse(schema.schemaJson) as ReportSchemaDefinition;
@@ -468,8 +597,10 @@ function onLoadSchema(schema: ReportSchemaDTO) {
 
 function onNew() {
     currentSchemaId.value = '';
+    currentSchema.value = null;
     schemaName.value = '';
     schemaDescription.value = '';
+    isSystemDefault.value = false;
     pages.value = [createDefaultPage()];
     activePageIndex.value = 0;
     selectedComponentId.value = '';
@@ -477,9 +608,39 @@ function onNew() {
     store.commit('isDirtyMutator', false);
 }
 
-onMounted(async () => {
-    await store.dispatch('getReportSchemas');
-});
+async function confirmDeleteTemplate() {
+    if (!canDeleteTemplate.value || !currentSchemaId.value) {
+        showDeleteTemplateConfirm.value = false;
+        return;
+    }
+
+    deletingTemplate.value = true;
+    const deleted = await store.dispatch('deleteReportSchema', { id: currentSchemaId.value }) as boolean;
+    deletingTemplate.value = false;
+    showDeleteTemplateConfirm.value = false;
+
+    if (deleted) {
+        onNew();
+    }
+}
+
+function openShareDialog(schema?: ReportSchemaDTO) {
+    const target = schema || currentSchema.value;
+    if (!target?.id || !target.canShare) {
+        return;
+    }
+
+    shareDialogSchema.value = target;
+    showShareDialog.value = true;
+}
+
+function onSharingSaved(schema: ReportSchemaDTO) {
+    if (schema.id === currentSchemaId.value) {
+        currentSchema.value = schema;
+        store.commit('selectedReportSchemaMutator', schema);
+    }
+    shareDialogSchema.value = schema;
+}
 </script>
 
 <style scoped>
@@ -521,6 +682,80 @@ onMounted(async () => {
 .report-builder__desc-field :deep(input) {
     font-size: 13px;
     color: #888;
+}
+
+.report-builder__actions,
+.report-builder__action-group,
+.report-builder__status-group,
+.report-builder__save-group {
+    display: flex;
+    align-items: center;
+}
+
+.report-builder__actions {
+    flex-shrink: 0;
+    gap: 12px;
+}
+
+.report-builder__action-group,
+.report-builder__status-group {
+    gap: 8px;
+}
+
+.report-builder__status-group {
+    min-height: 30px;
+    padding-left: 12px;
+    border-left: 1px solid #E1E7EE;
+}
+
+.report-builder__delete-template-btn {
+    border-color: #E3B5B1 !important;
+    color: #B42318 !important;
+}
+
+.report-builder__delete-template-btn :deep(.v-btn__content),
+.report-builder__delete-template-btn i {
+    color: #B42318 !important;
+}
+
+.report-builder__readonly-chip {
+    color: #7A4E00 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+}
+
+.report-builder__system-action {
+    height: 30px !important;
+    border-color: #C8D3DF !important;
+    color: #526071 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    padding: 0 12px !important;
+}
+
+.report-builder__system-action :deep(.v-btn__content) {
+    line-height: 1;
+}
+
+.report-builder__system-action--active {
+    color: #FFFFFF !important;
+    box-shadow: none !important;
+}
+
+.report-builder__system-chip {
+    color: #526071 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+}
+
+.report-builder__load-title {
+    min-height: 42px;
+    padding: 8px 12px !important;
+}
+
+.report-builder__load-body {
+    padding: 8px 10px 10px 10px !important;
 }
 
 .report-builder__page-tabs {

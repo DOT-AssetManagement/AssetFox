@@ -1,4 +1,5 @@
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
+import { LibraryUser } from '@/shared/models/iAM/user';
 
 // ============================================================
 // Schema DTO (persisted to database)
@@ -11,9 +12,19 @@ export interface ReportSchemaDTO {
     schemaJson: string;
     reportCategory: string;
     isSystemDefault: boolean;
+    isSharedWithAll: boolean;
     createdByName: string;
     createdDate: string;
     modifiedDate: string;
+    ownerName: string;
+    currentUserAccessLevel: number | null;
+    canModify: boolean;
+    canShare: boolean;
+    isShared: boolean;
+    sharedUserCount: number;
+    pageCount: number;
+    componentCount: number;
+    users: LibraryUser[];
 }
 
 export const emptyReportSchemaDTO: ReportSchemaDTO = {
@@ -23,9 +34,19 @@ export const emptyReportSchemaDTO: ReportSchemaDTO = {
     schemaJson: '',
     reportCategory: '',
     isSystemDefault: false,
+    isSharedWithAll: false,
     createdByName: '',
     createdDate: new Date().toISOString(),
     modifiedDate: new Date().toISOString(),
+    ownerName: '',
+    currentUserAccessLevel: null,
+    canModify: false,
+    canShare: false,
+    isShared: false,
+    sharedUserCount: 0,
+    pageCount: 0,
+    componentCount: 0,
+    users: [],
 };
 
 // ============================================================
