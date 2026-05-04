@@ -350,11 +350,12 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
         canceled = cancellationToken.IsCancellationRequested;
     }
 
-    public void OnFault(IServiceProvider serviceProvider, string errorMessage)
+    public void OnFault(IServiceProvider serviceProvider, Exception? e)
     {
         using var scope = serviceProvider.CreateScope();
         var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
         var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var errorMessage = e?.Message ?? string.Empty;
         var message = new SimulationAnalysisDetailDTO()
         {
             SimulationId = SimulationId,
@@ -362,7 +363,7 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
             LastRun = DateTime.Now
         };
         _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastSimulationAnalysisDetail, message);
-        _hubService.SendRealTimeMessage(UserInfo.Name, HubConstant.BroadcastError, $"Scenario Error::RunSimulation - {errorMessage}");
+        _hubService.SendRealTimeErrorMessage(UserInfo.Name, $"Scenario Error::RunSimulation - {errorMessage}", e ?? new Exception(), false);
         try
         {
             _unitOfWork.SimulationAnalysisDetailRepo.UpsertSimulationAnalysisDetail(message);
