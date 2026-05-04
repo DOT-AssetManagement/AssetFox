@@ -41,12 +41,13 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { TreatmentRuleOverride, ScenarioOverrideSetting } from '@/shared/models/iAM/treatment-rule-override';
+import { SimpleTreatment } from '@/shared/models/iAM/treatment';
 import TreatmentRuleOverrideService from '@/services/treatment-rule-override.service';
 
 const props = defineProps<{
     ruleOverrides: TreatmentRuleOverride[];
     scenarioId: string;
-    treatmentNames: string[];
+    treatments: SimpleTreatment[];
 }>();
 
 const emit = defineEmits(['changed']);
@@ -75,44 +76,54 @@ async function loadSettings() {
 }
 
 function isOverrideEnabled(ruleOverride: TreatmentRuleOverride): boolean {
-    const setting = scenarioSettings.value.find(s => s.overrideName === ruleOverride.name);
-    return setting ? setting.isEnabled : ruleOverride.isEnabledByDefault;
+    const setting = scenarioSettings.value.find(s => s.overrideId === ruleOverride.id || s.overrideName === ruleOverride.name);
+    return setting ? setting.isEnabled : ruleOverride.isEnabled ?? ruleOverride.isEnabledByDefault;
 }
 
-async function onToggle(ruleOverride: TreatmentRuleOverride, enabled: boolean) {
-    const existingIndex = scenarioSettings.value.findIndex(s => s.overrideName === ruleOverride.name);
+function onToggle(ruleOverride: TreatmentRuleOverride, enabled: boolean) {
+    const changedSetting = { overrideId: ruleOverride.id, overrideName: ruleOverride.name, isEnabled: enabled };
+    const existingIndex = scenarioSettings.value.findIndex(s => s.overrideId === ruleOverride.id || s.overrideName === ruleOverride.name);
     if (existingIndex >= 0) {
-        scenarioSettings.value[existingIndex].isEnabled = enabled;
+        scenarioSettings.value[existingIndex] = {
+            ...scenarioSettings.value[existingIndex],
+            ...changedSetting,
+        };
     } else {
-        scenarioSettings.value.push({ overrideName: ruleOverride.name, isEnabled: enabled });
+        scenarioSettings.value.push(changedSetting);
     }
 
-    try {
-        await TreatmentRuleOverrideService.upsertScenarioOverrideSettings(
-            props.scenarioId,
-            scenarioSettings.value,
-        );
-    } catch {
-        // Error handled by axios interceptor
-    }
-
-    emit('changed');
+    emit('changed', changedSetting);
 }
 
 function hasUnmatchedTreatments(ruleOverride: TreatmentRuleOverride): boolean {
+    const treatmentIds = new Set(props.treatments.map(treatment => treatment.id.toLowerCase()));
     return ruleOverride.criteria.some(
-        c => !props.treatmentNames.some(
-            name => name.toLowerCase() === c.treatmentName.toLowerCase()
-        )
+        c => getCriterionTreatmentIds(c).some(treatmentId => !treatmentIds.has(treatmentId.toLowerCase()))
     );
 }
 
 function getUnmatchedWarning(ruleOverride: TreatmentRuleOverride): string {
+    const treatmentIds = new Set(props.treatments.map(treatment => treatment.id.toLowerCase()));
     const unmatched = ruleOverride.criteria
-        .filter(c => !props.treatmentNames.some(
-            name => name.toLowerCase() === c.treatmentName.toLowerCase()
-        ))
-        .map(c => c.treatmentName);
+        .flatMap(c => getCriterionTreatmentIds(c)
+            .filter(treatmentId => !treatmentIds.has(treatmentId.toLowerCase())));
     return `This override references treatment(s) not found in the current treatment list: ${unmatched.join(', ')}. It may have no effect.`;
+}
+
+function getCriterionTreatmentIds(criterion: TreatmentRuleOverride['criteria'][number]): string[] {
+    if (criterion.treatmentIds?.length) {
+        return criterion.treatmentIds;
+    }
+
+    if (criterion.treatments?.length) {
+        return criterion.treatments.map(treatment => treatment.id);
+    }
+
+    if (criterion.treatmentName) {
+        const treatment = props.treatments.find(item => item.name.toLowerCase() === criterion.treatmentName?.toLowerCase());
+        return treatment ? [treatment.id] : [];
+    }
+
+    return [];
 }
 </script>

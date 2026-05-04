@@ -7,11 +7,15 @@ namespace AssetFoxCore.Services
 {
     internal class TreatmentCloner
     {
-        internal static TreatmentDTO Clone(TreatmentDTO treatment, Guid ownerId)
+        internal static TreatmentDTO Clone(
+            TreatmentDTO treatment,
+            Guid ownerId,
+            IReadOnlyDictionary<Guid, BudgetDTO> clonedBudgetsBySourceId)
         {            
             var cloneCriterionLibrary = CriterionLibraryCloner.CloneNullPropagating(treatment.CriterionLibrary, ownerId);
             var cloneTreatmentCost = TreatmentCostCloner.CloneList(treatment.Costs, ownerId);
             var cloneTreatmentConsequence = TreatmentConsequenceCloner.CloneList(treatment.Consequences, ownerId);            
+            var clonedBudgets = CloneTreatmentBudgets(treatment, clonedBudgetsBySourceId);
             var clone = new TreatmentDTO
             {
               Name = treatment.Name,
@@ -21,8 +25,8 @@ namespace AssetFoxCore.Services
               ShadowForSameTreatment = treatment.ShadowForSameTreatment,
               CriterionLibrary = cloneCriterionLibrary,
               AssetType = treatment.AssetType,
-              BudgetIds = treatment.BudgetIds,
-              Budgets = treatment.Budgets,
+              BudgetIds = clonedBudgets.Select(budget => budget.Id).ToList(),
+              Budgets = clonedBudgets,
               Category = treatment.Category,
               Consequences = cloneTreatmentConsequence,
               Costs = cloneTreatmentCost,
@@ -35,27 +39,61 @@ namespace AssetFoxCore.Services
             return clone;
         }
 
-        internal static List<TreatmentDTO> CloneList(IEnumerable<TreatmentDTO> treatments, Guid ownerId)
+        internal static List<TreatmentDTO> CloneList(
+            IEnumerable<TreatmentDTO> treatments,
+            Guid ownerId,
+            IReadOnlyDictionary<Guid, BudgetDTO> clonedBudgetsBySourceId)
         {
-            var cloneList = new List<TreatmentDTO>();
-            foreach (var treatment in treatments)
-            {
-                var childClone = Clone(treatment, ownerId);
-                cloneList.Add(childClone);
-            }
+            var sourceTreatments = (treatments ?? new List<TreatmentDTO>()).ToList();
+            var cloneList = sourceTreatments
+                .Select(treatment => Clone(treatment, ownerId, clonedBudgetsBySourceId))
+                .ToList();
+
+            var clonedTreatmentsBySourceId = sourceTreatments
+                .Zip(cloneList, (source, clone) => new { Source = source, Clone = clone })
+                .Where(pair => pair.Source.Id != Guid.Empty)
+                .GroupBy(pair => pair.Source.Id)
+                .ToDictionary(group => group.Key, group => group.First().Clone);
 
             // Clone supersede rules here(to get correct prevent treatment ids assigned for rules
-            foreach (var treatmentClone in cloneList)
+            foreach (var treatmentPair in sourceTreatments.Zip(cloneList, (source, clone) => new { Source = source, Clone = clone }))
             {
-                var treatment = treatments.FirstOrDefault(_ => _.Name == treatmentClone.Name);
-                if (treatment.SupersedeRules.Any())
+                if (treatmentPair.Source.SupersedeRules != null && treatmentPair.Source.SupersedeRules.Any())
                 {
-                    var cloneSupersedeRules = TreatmentSupersedeRuleCloner.CloneList(treatment.SupersedeRules, cloneList, ownerId);
-                    treatmentClone.SupersedeRules = cloneSupersedeRules;
+                    var cloneSupersedeRules = TreatmentSupersedeRuleCloner.CloneList(treatmentPair.Source.SupersedeRules, clonedTreatmentsBySourceId, ownerId);
+                    treatmentPair.Clone.SupersedeRules = cloneSupersedeRules;
                 }
             }
 
             return cloneList;
+        }
+
+        private static List<TreatmentBudgetDTO> CloneTreatmentBudgets(
+            TreatmentDTO treatment,
+            IReadOnlyDictionary<Guid, BudgetDTO> clonedBudgetsBySourceId)
+        {
+            if (clonedBudgetsBySourceId == null)
+            {
+                return treatment.Budgets ?? new List<TreatmentBudgetDTO>();
+            }
+
+            var sourceBudgetIds = (treatment.BudgetIds ?? new List<Guid>())
+                .Concat((treatment.Budgets ?? new List<TreatmentBudgetDTO>()).Select(budget => budget.Id))
+                .Where(id => id != Guid.Empty)
+                .Distinct();
+
+            return sourceBudgetIds
+                .Where(clonedBudgetsBySourceId.ContainsKey)
+                .Select(sourceBudgetId =>
+                {
+                    var clonedBudget = clonedBudgetsBySourceId[sourceBudgetId];
+                    return new TreatmentBudgetDTO
+                    {
+                        Id = clonedBudget.Id,
+                        Name = clonedBudget.Name
+                    };
+                })
+                .ToList();
         }
     }
 }

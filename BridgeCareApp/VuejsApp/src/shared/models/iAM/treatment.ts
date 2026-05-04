@@ -73,6 +73,7 @@ export interface Treatment {
     assetType: string;
     isModified: boolean;
     libraryId: string;
+    sourceTreatmentId?: string;
     isUnselectable: boolean;
     supersedeRules: TreatmentSupersedeRule[]
 }

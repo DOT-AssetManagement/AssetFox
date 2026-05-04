@@ -149,6 +149,7 @@ namespace AssetFoxCore.Controllers
                     {
                         var library = UnitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibaryNoChildren(selectableTreatment.LibraryId);
                         if (library != null) library.IsModified = selectableTreatment.IsModified;
+                        if (library != null) library.RuleOverrides = UnitOfWork.TreatmentRuleOverrideRepo.GetRuleOverridesBySimulationId(simulationId);
                         result = library;
                     }                                         
                 });
@@ -443,7 +444,11 @@ namespace AssetFoxCore.Controllers
                     var dtos = _treatmentPagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);
                     TreatmentDtoListService.AddLibraryIdToScenarioSelectableTreatments(dtos, pagingSync.LibraryId);
                     TreatmentDtoListService.AddModifiedToScenarioSelectableTreatments(dtos, pagingSync.IsModified);
-                    UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(dtos, simulationId);
+                    UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(dtos, simulationId, pagingSync.LibraryId.HasValue);
+                    if (pagingSync.LibraryId.HasValue)
+                    {
+                        UnitOfWork.TreatmentRuleOverrideRepo.ReplaceScenarioRuleOverridesFromLibrary(simulationId, pagingSync.LibraryId.Value, dtos);
+                    }
                 });
 
                 return Ok();
@@ -1168,6 +1173,11 @@ namespace AssetFoxCore.Controllers
             {
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertRuleOverrides - {e.Message}", e);
                 return Unauthorized(e.Message);
+            }
+            catch (InvalidOperationException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertRuleOverrides - {e.Message}", e);
+                return BadRequest(e.Message);
             }
             catch (Exception e)
             {

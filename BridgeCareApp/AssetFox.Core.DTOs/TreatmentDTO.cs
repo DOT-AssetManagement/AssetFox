@@ -56,6 +56,11 @@ namespace AssetFox.Core.DTOs
         public Guid LibraryId { get; set; }
 
         /// <summary>
+        /// Original treatment id when a library treatment is cloned into a scenario.
+        /// </summary>
+        public Guid? SourceTreatmentId { get; set; }
+
+        /// <summary>
         /// Defines the assets that can use this treatment
         /// </summary>
         public CriterionLibraryDTO CriterionLibrary { get; set; }

@@ -41,20 +41,24 @@
                     <v-expansion-panel-text>
                         <v-row dense>
                             <v-col cols="6">
+                                <div class="rule-override-field-label">Name</div>
                                 <v-text-field
-                                    label="Name"
+                                    aria-label="Name"
                                     variant="outlined"
                                     density="compact"
                                     class="ghd-control-border ghd-control-text"
+                                    hide-details
                                     v-model="override.name"
                                     @update:model-value="onChanged"
                                 />
                             </v-col>
                             <v-col cols="6">
+                                <div class="rule-override-field-label rule-override-field-label-spacer" aria-hidden="true">Enabled by default</div>
                                 <v-switch
                                     label="Enabled by default"
                                     color="#2A578D"
                                     density="compact"
+                                    class="rule-override-default-switch"
                                     hide-details
                                     v-model="override.isEnabledByDefault"
                                     @update:model-value="onChanged"
@@ -63,11 +67,13 @@
                         </v-row>
                         <v-row dense>
                             <v-col cols="12">
+                                <div class="rule-override-field-label">Description (optional)</div>
                                 <v-text-field
-                                    label="Description (optional)"
+                                    aria-label="Description (optional)"
                                     variant="outlined"
                                     density="compact"
                                     class="ghd-control-border ghd-control-text"
+                                    hide-details
                                     v-model="override.description"
                                     @update:model-value="onChanged"
                                 />
@@ -90,7 +96,8 @@
                         <v-table v-if="override.criteria.length > 0" density="compact" style="border: 1px solid #e0e0e0;">
                             <thead>
                                 <tr>
-                                    <th style="width: 200px;">Treatment Name</th>
+                                    <th style="width: 280px;">Treatments</th>
+                                    <th style="width: 95px;">Operator</th>
                                     <th>Criterion Expression</th>
                                     <th style="width: 100px;">Actions</th>
                                 </tr>
@@ -98,15 +105,31 @@
                             <tbody>
                                 <tr v-for="(criterion, cIndex) in override.criteria" :key="criterion.id">
                                     <td>
-                                        <v-select
+                                        <v-autocomplete
                                             :items="treatmentSelectItems"
                                             item-title="text"
-                                            item-value="text"
+                                            item-value="value"
+                                            multiple
+                                            chips
+                                            closable-chips
                                             variant="outlined"
                                             density="compact"
                                             class="ghd-control-border ghd-control-text"
-                                            style="min-width: 160px; margin-top: 4px; margin-bottom: 4px;"
-                                            v-model="criterion.treatmentName"
+                                            style="min-width: 240px; margin-top: 4px; margin-bottom: 4px;"
+                                            v-model="criterion.treatmentIds"
+                                            hide-details
+                                            @update:model-value="onChanged"
+                                        />
+                                    </td>
+                                    <td>
+                                        <v-select
+                                            :items="logicalOperatorItems"
+                                            variant="outlined"
+                                            density="compact"
+                                            class="ghd-control-border ghd-control-text"
+                                            style="min-width: 80px; margin-top: 4px; margin-bottom: 4px;"
+                                            v-model="criterion.logicalOperator"
+                                            hide-details
                                             @update:model-value="onChanged"
                                         />
                                     </td>
@@ -175,14 +198,16 @@ const emit = defineEmits(['update:ruleOverrides']);
 const localOverrides = ref<TreatmentRuleOverride[]>([]);
 const expandedPanel = ref<number | undefined>(undefined);
 const criterionEditorDialogData = ref<GeneralCriterionEditorDialogData>(clone(emptyGeneralCriterionEditorDialogData));
+const logicalOperatorItems = ['AND', 'OR'];
 let editingOverrideIndex = -1;
 let editingCriterionIndex = -1;
 
 watch(() => props.ruleOverrides, (newVal) => {
-    localOverrides.value = clone(newVal);
+    localOverrides.value = normalizeOverrides(clone(newVal));
 }, { immediate: true, deep: true });
 
 function onChanged() {
+    localOverrides.value = normalizeOverrides(localOverrides.value);
     emit('update:ruleOverrides', clone(localOverrides.value));
 }
 
@@ -190,6 +215,7 @@ function addOverride() {
     const newOverride: TreatmentRuleOverride = {
         ...clone(emptyTreatmentRuleOverride),
         id: getNewGuid(),
+        isEnabled: true,
     };
     localOverrides.value.push(newOverride);
     expandedPanel.value = localOverrides.value.length - 1;
@@ -205,6 +231,7 @@ function addCriterion(overrideIndex: number) {
     const newCriterion: TreatmentRuleOverrideCriterion = {
         ...clone(emptyTreatmentRuleOverrideCriterion),
         id: getNewGuid(),
+        sortOrder: localOverrides.value[overrideIndex].criteria.length,
     };
     localOverrides.value[overrideIndex].criteria.push(newCriterion);
     onChanged();
@@ -235,4 +262,61 @@ function onCriterionEditorSubmit(criterionExpression: string) {
     editingOverrideIndex = -1;
     editingCriterionIndex = -1;
 }
+
+function normalizeOverrides(overrides: TreatmentRuleOverride[]): TreatmentRuleOverride[] {
+    const treatmentIdByName = new Map(
+        props.treatmentSelectItems.map(item => [item.text.toLowerCase(), item.value.toString()]),
+    );
+
+    return (overrides || []).map(ruleOverride => ({
+        ...ruleOverride,
+        isEnabled: ruleOverride.isEnabled ?? ruleOverride.isEnabledByDefault,
+        criteria: (ruleOverride.criteria || []).map((criterion, index) => ({
+            ...criterion,
+            logicalOperator: criterion.logicalOperator === 'OR' ? 'OR' : 'AND',
+            sortOrder: index,
+            treatmentIds: normalizeTreatmentIds(criterion, treatmentIdByName),
+            treatments: criterion.treatments || [],
+        })),
+    }));
+}
+
+function normalizeTreatmentIds(
+    criterion: TreatmentRuleOverrideCriterion,
+    treatmentIdByName: Map<string, string>,
+): string[] {
+    if (criterion.treatmentIds?.length) {
+        return criterion.treatmentIds.map(id => id.toString());
+    }
+
+    if (criterion.treatments?.length) {
+        return criterion.treatments.map(treatment => treatment.id);
+    }
+
+    if (criterion.treatmentName) {
+        const treatmentId = treatmentIdByName.get(criterion.treatmentName.toLowerCase());
+        return treatmentId ? [treatmentId] : [];
+    }
+
+    return [];
+}
 </script>
+
+<style scoped>
+.rule-override-field-label {
+    color: #666666;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 18px;
+    margin-bottom: 2px;
+}
+
+.rule-override-field-label-spacer {
+    visibility: hidden;
+}
+
+.rule-override-default-switch {
+    margin-top: 0;
+}
+</style>
