@@ -36,13 +36,15 @@ const actions = {
     },
     async getSimulationAnalysisSetting({ commit }: any, payload: any) {
         try {
-            const response: AxiosResponse = await AnalysisMethodService.getSimulationAnalysisSetting(payload.scenarioId);
-                if (response.data === false) {
+                const response: AxiosResponse = await AnalysisMethodService.getSimulationAnalysisSetting(payload.scenarioId);                
+                if (response.data === false) {                
                 commit('simulationAnalysisMethodMutator', false);
             } else if (response.data && typeof response.data === 'object') {
-                if ('isSettingStored' in response.data) {
+                if ('isSettingStored' in response.data) {             
                     commit('simulationAnalysisMethodMutator', response.data.isSettingStored);
                 }
+            } else if (response.data === true) {
+                 commit('simulationAnalysisMethodMutator',true);
             }
         } catch (error) {
             console.error('Error fetching analysis setting:', error);
