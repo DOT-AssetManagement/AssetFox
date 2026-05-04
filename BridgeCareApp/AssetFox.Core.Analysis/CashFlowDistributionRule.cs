@@ -25,22 +25,22 @@ public sealed class CashFlowDistributionRule : CompilableExpression
 
         if (CostCeiling <= 0)
         {
-            results.Add(ValidationStatus.Error, "Cost ceiling is less than or equal to zero.", this, nameof(CostCeiling));
+            results.Add(ValidationStatus.Error, "Cost ceiling is less than or equal to zero.", this, nameof(CostCeiling), "Cash Flow");
         }
 
         if (YearlyPercentages.Any(percentage => percentage < 0))
         {
-            results.Add(ValidationStatus.Error, "At least one yearly percentage is less than zero.", this, nameof(YearlyPercentages));
+            results.Add(ValidationStatus.Error, "At least one yearly percentage is less than zero.", this, nameof(YearlyPercentages), "Cash Flow");
         }
 
         if (YearlyPercentages.Any(percentage => percentage > 100))
         {
-            results.Add(ValidationStatus.Error, "At least one yearly percentage is greater than 100.", this, nameof(YearlyPercentages));
+            results.Add(ValidationStatus.Error, "At least one yearly percentage is greater than 100.", this, nameof(YearlyPercentages), "Cash Flow");
         }
 
         if (YearlyPercentages.Sum() != 100)
         {
-            results.Add(ValidationStatus.Error, "Yearly percentages do not sum to 100.", this, nameof(YearlyPercentages));
+            results.Add(ValidationStatus.Error, "Yearly percentages do not sum to 100.", this, nameof(YearlyPercentages), "Cash Flow");
         }
 
         return results;

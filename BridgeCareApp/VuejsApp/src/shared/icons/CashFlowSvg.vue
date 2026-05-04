@@ -12,14 +12,12 @@
 <rect width="16" height="16" fill="white"/>
 </clipPath>
 </defs>
+<title>Cash Flow</title>
 </svg>
-
 </template>
 
 <script setup lang='ts'>
-
 </script>
 
-<style >
-
+<style>
 </style>

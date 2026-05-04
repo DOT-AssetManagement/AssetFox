@@ -22,6 +22,7 @@
         stroke-linecap="round"
         stroke-linejoin="round"
         />
+        <title>Edit</title>
     </svg>
 </template>
 

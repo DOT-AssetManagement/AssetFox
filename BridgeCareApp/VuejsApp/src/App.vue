@@ -90,13 +90,13 @@
                         :close-on-content-click="false"
                     >
                         <template v-slot:activator="{ props }">
-                            <button
-                                  
+                            <button                                  
                                 id="App-notification-button"
                                 v-bind="props"
                                 @click="onNotificationMenuSelect"
                                 class="notification-icon"
-                                icon>
+                                icon 
+                                title="Notifications">
                                 <img style="position:absolute; top:20px; height:25px;" :src="getUrl('assets/icons/bell.svg')"/>
                                 <v-badge
                                     v-if="notificationCounter > 0"
@@ -174,7 +174,9 @@
                             </v-list>         
                         </v-card>
                     </v-menu>     
-                    <v-btn @click="onBugButtonClicked" style="margin-left: 35px; margin-right: 20px; height: 30px; width: 30px;" icon ><i class="fas fa-bug"></i></v-btn>
+                    <v-btn @click="onBugButtonClicked" style="margin-left: 35px; margin-right: 20px; height: 30px; width: 30px;" icon >
+                        <i class="fas fa-bug" title="Report a bug"></i>
+                    </v-btn>
                     <v-divider class="mx-1 navbar-divider" vertical style="background-color: #798899; left: 0px;position: relative;" />
                     <img style="height:40px; position:relative; top:2px; margin-left: 10px;" :src="getUrl('assets/icons/user-no-circle.svg')"/>
                     <span id="App-username-span">{{ username }}</span>
@@ -220,6 +222,7 @@
                         class="mx-2"
                         icon
                         color="#ffffff"
+                        title="Logout"
                     >
                     <font-awesome-icon :icon="['fas', 'sign-out-alt']"/>
                     </v-btn>

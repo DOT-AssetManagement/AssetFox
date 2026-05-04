@@ -17,11 +17,10 @@
                     >
                     <v-list-item id="EditScenario-tabs-vListTile" :to="navigationTab.navigation" style="border-bottom: 1px solid #CCCCCC;">
                             <template v-slot:prepend>
-                                <AttributesSvg id="EditAdmin-security-btn" style="height: 38px; width: 34px"  class="raw-data-icon" v-if="navigationTab.tabName === 'Security'"/>    
-                                    <DataSourceSvg id="EditAdmin-site-btn" style="height: 30px; width: 36px" class="raw-data-icon" v-if="navigationTab.tabName === 'Site'"/>
-                                    <NetworksSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Data'"/>    
-                                    <!-- <NetworksSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Storage'"/>        -->
-                                    <font-awesome-icon :icon="faHdd"  v-if="navigationTab.tabName === 'Storage'" size="lg" style="color: #cbcbcb; height: 26px;"/>              
+                                <SecuritySvg id="EditAdmin-security-btn" style="height: 38px; width: 34px"  class="raw-data-icon" v-if="navigationTab.tabName === 'Security'"/>    
+                                <SiteSvg id="EditAdmin-site-btn" style="height: 30px; width: 36px" class="raw-data-icon" v-if="navigationTab.tabName === 'Site'"/>
+                                <DataSvg id="EditAdmin-data-btn" style="height: 34px; width: 34px" class="raw-data-icon" v-if="navigationTab.tabName === 'Data'"/>
+                                <font-awesome-icon :icon="faHdd"  v-if="navigationTab.tabName === 'Storage'" size="lg" style="color: #cbcbcb; height: 26px;" title="Storage"/>              
                             </template>
                             <v-list-item-title style="width: auto; padding-left: 5px;" v-text="navigationTab.tabName"></v-list-item-title>
                         </v-list-item>
@@ -46,9 +45,9 @@ import router from '@/router';
 import { any, clone, isNil, propEq } from 'ramda';
 import { NavigationTab } from '@/shared/models/iAM/navigation-tab';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
-import AttributesSvg from '@/shared/icons/AttributesSvg.vue';
-import DataSourceSvg from '@/shared/icons/DataSourceSvg.vue';
-import NetworksSvg from '@/shared/icons/NetworksSvg.vue';
+import SecuritySvg from '@/shared/icons/SecuritySvg.vue';
+import SiteSvg from '@/shared/icons/SiteSvg.vue';
+import DataSvg from '@/shared/icons/DataSvg.vue';
 
 import { createDecipheriv } from 'crypto';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
