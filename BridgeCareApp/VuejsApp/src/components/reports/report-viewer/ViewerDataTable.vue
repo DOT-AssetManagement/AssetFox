@@ -1,5 +1,18 @@
 <template>
-    <v-card class="viewer-card elevation-2 mb-4">
+    <v-card
+        class="viewer-card elevation-2 mb-4"
+        @mouseover="onTableMouseOver"
+        @mouseout="onTableMouseOut"
+    >
+        <!-- Shared tooltip for truncated cells -->
+        <div
+            v-if="hoverTooltip.visible"
+            class="cell-hover-tooltip"
+            :style="hoverTooltip.style"
+        >
+            {{ hoverTooltip.text }}
+        </div>
+
         <v-card-title class="viewer-card-title d-flex align-center">
             <i :class="componentIcon" class="mr-2" />
             <span>{{ component.title }}</span>
@@ -63,7 +76,9 @@
                             :key="header.key"
                             :class="{ 'text-right': isNumericFormat(header.format) }"
                         >
-                            {{ formatCell(item[colIdx], header.format) }}
+                            <div class="clamped-cell">
+                                {{ formatCell(item[colIdx], header.format) }}
+                            </div>
                         </td>
                     </tr>
                 </template>
@@ -79,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onBeforeUnmount } from 'vue';
 import { ReportComponent, componentTypeInfo, pageSizeOptions } from '@/shared/models/iAM/report-schema';
 import { ViewerColumn, PagedViewerResult } from '@/shared/models/iAM/viewer';
 import ViewerService from '@/services/viewer.service';
@@ -113,6 +128,68 @@ const isLoading = ref(false);
 // Column filters
 const columnFilters = reactive<Record<string, string>>({});
 let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+// In-flight request controller — used to cancel a previous fetch when a new one starts,
+// or when the component unmounts (e.g. user switches report tab mid-load).
+let activeFetchController: AbortController | null = null;
+
+// Shared hover tooltip state — one tooltip per table instead of one per cell,
+// driven by event delegation on the table container. Avoids creating thousands of
+// v-tooltip instances on large tables.
+const hoverTooltip = reactive<{
+    visible: boolean;
+    text: string;
+    style: Record<string, string>;
+}>({
+    visible: false,
+    text: '',
+    style: {},
+});
+let hoverShowTimer: ReturnType<typeof setTimeout> | null = null;
+
+function findClampedCell(target: EventTarget | null): HTMLElement | null {
+    let el = target as HTMLElement | null;
+    while (el && el !== document.body) {
+        if (el.classList && el.classList.contains('clamped-cell')) return el;
+        el = el.parentElement;
+    }
+    return null;
+}
+
+function onTableMouseOver(e: MouseEvent) {
+    const cell = findClampedCell(e.target);
+    if (!cell) return;
+    // Only show tooltip when the content is actually truncated.
+    const truncated =
+        cell.scrollHeight > cell.clientHeight + 1 ||
+        cell.scrollWidth > cell.clientWidth + 1;
+    if (!truncated) return;
+
+    if (hoverShowTimer) clearTimeout(hoverShowTimer);
+    hoverShowTimer = setTimeout(() => {
+        const rect = cell.getBoundingClientRect();
+        hoverTooltip.text = cell.textContent || '';
+        hoverTooltip.style = {
+            top: `${rect.bottom + 4}px`,
+            left: `${rect.left}px`,
+        };
+        hoverTooltip.visible = true;
+    }, 400);
+}
+
+function onTableMouseOut(e: MouseEvent) {
+    const cell = findClampedCell(e.target);
+    if (!cell) return;
+    // Only hide if leaving the cell entirely (not moving to a child element).
+    const related = e.relatedTarget as Node | null;
+    if (related && cell.contains(related)) return;
+
+    if (hoverShowTimer) {
+        clearTimeout(hoverShowTimer);
+        hoverShowTimer = null;
+    }
+    hoverTooltip.visible = false;
+}
 
 // Table data
 const tableHeaders = ref<TableHeader[]>([]);
@@ -176,6 +253,14 @@ function onOptionsUpdate(options: any) {
 }
 
 async function fetchData() {
+    // Cancel any in-flight request before starting a new one — prevents stale responses
+    // from clobbering fresh data when filters/sort/page change quickly.
+    if (activeFetchController) {
+        activeFetchController.abort();
+    }
+    const controller = new AbortController();
+    activeFetchController = controller;
+
     isLoading.value = true;
     try {
         const sortKey = sortBy.value.length > 0 ? sortBy.value[0].key : '';
@@ -200,7 +285,11 @@ async function fetchData() {
                 sortDirection: sortDir,
                 columnFilters: filters,
             },
+            controller.signal,
         );
+
+        // If a newer request superseded this one, drop the response on the floor.
+        if (controller.signal.aborted) return;
 
         if (hasValue(response, 'data')) {
             const result: PagedViewerResult = response.data;
@@ -220,11 +309,25 @@ async function fetchData() {
             totalRowCount.value = result.totalRowCount;
         }
     } catch (e: any) {
+        // Axios surfaces aborts as ERR_CANCELED — silently ignore those.
+        if (e?.code === 'ERR_CANCELED' || e?.name === 'CanceledError' || controller.signal.aborted) {
+            return;
+        }
         console.error('Failed to fetch viewer data:', e);
     } finally {
-        isLoading.value = false;
+        if (activeFetchController === controller) {
+            activeFetchController = null;
+            isLoading.value = false;
+        }
     }
 }
+
+onBeforeUnmount(() => {
+    // Cancel in-flight request and clear any pending tooltip timer.
+    if (activeFetchController) activeFetchController.abort();
+    if (hoverShowTimer) clearTimeout(hoverShowTimer);
+    if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
+});
 
 // Note: no onMounted fetchData() call needed — Vuetify's v-data-table-server
 // fires update:options on initial render, which triggers onOptionsUpdate → fetchData().
@@ -269,5 +372,40 @@ async function fetchData() {
 
 .striped-row:hover {
     background-color: #EDF0F5 !important;
+}
+
+.viewer-data-table :deep(table) {
+    table-layout: auto;
+}
+
+.viewer-data-table :deep(td) {
+    min-width: 80px;
+    max-width: 360px;
+}
+
+.clamped-cell {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+.cell-hover-tooltip {
+    position: fixed;
+    background: rgba(33, 33, 33, 0.95);
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    padding: 6px 10px;
+    border-radius: 4px;
+    max-width: 500px;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 </style>

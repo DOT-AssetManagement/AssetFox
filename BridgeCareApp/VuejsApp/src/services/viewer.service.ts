@@ -13,10 +13,12 @@ export default class ViewerService {
         schemaId: string,
         componentId: string,
         request: ViewerDataRequest,
+        signal?: AbortSignal,
     ): AxiosPromise {
         return coreAxiosInstance.post(
             `${API.Report}/ViewerData/${schemaId}/${componentId}`,
             request,
+            { signal },
         );
     }
 }
