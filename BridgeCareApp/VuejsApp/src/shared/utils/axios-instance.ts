@@ -50,4 +50,5 @@ export const API = {
     AdminSettings: '/api/AdminSiteSettings',
     AdminData: '/api/AdminData',
     DataSourceMapping: '/api/DataSourceMapping',
+    ReportSchema: '/api/ReportSchema',
 };

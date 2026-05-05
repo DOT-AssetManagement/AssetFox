@@ -271,6 +271,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public virtual DbSet<ReportIndexEntity> ReportIndex { get; set; }
 
+        public virtual DbSet<ReportSchemaEntity> ReportSchema { get; set; }
+
+        public virtual DbSet<ReportSchemaUserEntity> ReportSchemaUser { get; set; }
+
         public virtual DbSet<AnnouncementEntity> Announcement { get; set; }
 
         public virtual DbSet<ScenarioPerformanceCurveEntity> ScenarioPerformanceCurve { get; set; }
@@ -2399,6 +2403,27 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.SimulationUserJoins)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ReportSchemaUserEntity>(entity =>
+            {
+                entity.HasKey(e => new { e.ReportSchemaId, e.UserId });
+
+                entity.ToTable("ReportSchema_User");
+
+                entity.HasIndex(e => e.ReportSchemaId);
+
+                entity.HasIndex(e => e.UserId);
+
+                entity.HasOne(d => d.ReportSchema)
+                    .WithMany(p => p.Users)
+                    .HasForeignKey(d => d.ReportSchemaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.ReportSchemaUsers)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });

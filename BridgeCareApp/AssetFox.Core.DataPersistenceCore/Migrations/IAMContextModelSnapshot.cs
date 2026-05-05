@@ -3384,6 +3384,79 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.ToTable("ReportIndex");
                 });
 
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ReportSchemaEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsSystemDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSharedWithAll")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReportCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SchemaJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReportSchema");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ReportSchemaUserEntity", b =>
+                {
+                    b.Property<Guid>("ReportSchemaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AccessLevel")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ReportSchemaId", "UserId");
+
+                    b.HasIndex("ReportSchemaId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ReportSchema_User", (string)null);
+                });
+
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget.CriterionLibraryScenarioBudgetEntity", b =>
                 {
                     b.Property<Guid>("CriterionLibraryId")
@@ -6573,6 +6646,25 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.Navigation("Simulation");
                 });
 
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ReportSchemaUserEntity", b =>
+                {
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ReportSchemaEntity", "ReportSchema")
+                        .WithMany("Users")
+                        .HasForeignKey("ReportSchemaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.UserEntity", "User")
+                        .WithMany("ReportSchemaUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReportSchema");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget.CriterionLibraryScenarioBudgetEntity", b =>
                 {
                     b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.CriterionLibraryEntity", "CriterionLibrary")
@@ -7871,6 +7963,11 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.Navigation("CriterionLibraryScenarioTreatmentSupersedeRuleJoin");
                 });
 
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ReportSchemaEntity", b =>
+                {
+                    b.Navigation("Users");
+                });
+
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationEntity", b =>
                 {
                     b.Navigation("AnalysisMethod");
@@ -7962,6 +8059,8 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.Navigation("PerformanceCurveLibraryUsers");
 
                     b.Navigation("RemainingLifeLimitLibraryUsers");
+
+                    b.Navigation("ReportSchemaUsers");
 
                     b.Navigation("SimulationUserJoins");
 

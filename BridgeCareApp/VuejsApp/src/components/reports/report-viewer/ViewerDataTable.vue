@@ -1,0 +1,425 @@
+<template>
+    <v-card
+        class="viewer-card elevation-2 mb-4"
+        @mouseover="onTableMouseOver"
+        @mouseout="onTableMouseOut"
+    >
+        <!-- Shared tooltip for truncated cells -->
+        <div
+            v-if="hoverTooltip.visible"
+            class="cell-hover-tooltip"
+            :style="hoverTooltip.style"
+        >
+            {{ hoverTooltip.text }}
+        </div>
+
+        <v-card-title class="viewer-card-title d-flex align-center">
+            <i :class="componentIcon" class="mr-2" />
+            <span>{{ component.title }}</span>
+            <v-chip
+                size="x-small"
+                :color="componentChipColor"
+                variant="flat"
+                class="ml-3"
+            >
+                {{ componentTypeLabel }}
+            </v-chip>
+            <v-spacer />
+            <span class="total-badge" v-if="totalRowCount > 0">
+                {{ totalRowCount.toLocaleString() }} rows
+            </span>
+        </v-card-title>
+
+        <v-card-text class="pa-0">
+            <v-data-table-server
+                :headers="tableHeaders"
+                :items="tableRows"
+                :items-length="totalRowCount"
+                :items-per-page-options="pageSizeOptions"
+                v-model:page="page"
+                v-model:items-per-page="pageSize"
+                v-model:sort-by="sortBy"
+                sort-asc-icon="custom:GhdTableSortAscSvg"
+                sort-desc-icon="custom:GhdTableSortDescSvg"
+                :loading="isLoading"
+                @update:options="onOptionsUpdate"
+                class="ghd-table viewer-data-table"
+                density="compact"
+            >
+                <!-- Filter row -->
+                <template v-slot:thead>
+                    <tr class="filter-row">
+                        <td
+                            v-for="header in tableHeaders"
+                            :key="'filter-' + header.key"
+                            class="filter-cell"
+                        >
+                            <v-text-field
+                                v-if="header.filterable !== false"
+                                v-model="columnFilters[header.key]"
+                                density="compact"
+                                variant="outlined"
+                                hide-details
+                                placeholder="Filter..."
+                                class="filter-input"
+                                @update:model-value="onFilterDebounced"
+                            />
+                        </td>
+                    </tr>
+                </template>
+
+                <!-- Formatted cells -->
+                <template v-slot:item="{ item, index }">
+                    <tr :class="{ 'striped-row': useStripedRows && index % 2 === 1 }">
+                        <td
+                            v-for="(header, colIdx) in tableHeaders"
+                            :key="header.key"
+                            :class="{
+                                'text-right': isNumericFormat(header.format),
+                                'numeric-cell': isNumericFormat(header.format),
+                            }"
+                        >
+                            <div :class="isNumericFormat(header.format) ? 'numeric-cell-content' : 'clamped-cell'">
+                                {{ formatCell(item[colIdx], header.format) }}
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+
+                <template v-slot:no-data>
+                    <div class="text-center pa-4 text-grey">
+                        {{ isLoading ? 'Loading...' : 'No data available' }}
+                    </div>
+                </template>
+            </v-data-table-server>
+        </v-card-text>
+    </v-card>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, computed, onBeforeUnmount } from 'vue';
+import { ReportComponent, componentTypeInfo, pageSizeOptions } from '@/shared/models/iAM/report-schema';
+import { ViewerColumn, PagedViewerResult } from '@/shared/models/iAM/viewer';
+import ViewerService from '@/services/viewer.service';
+import { hasValue } from '@/shared/utils/has-value-util';
+
+interface TableHeader {
+    title: string;
+    key: string;
+    sortable: boolean;
+    filterable: boolean;
+    format: string;
+}
+
+const props = defineProps<{
+    component: ReportComponent;
+    schemaId: string;
+    simulationId: string;
+}>();
+
+// Use component's configured page size, falling back to 10
+const configuredPageSize = props.component.pageSize || 10;
+const useStripedRows = computed(() => props.component.stripedRows ?? false);
+
+// Pagination state
+const page = ref(1);
+const pageSize = ref(configuredPageSize);
+const sortBy = ref<{ key: string; order: string }[]>([]);
+const totalRowCount = ref(0);
+const isLoading = ref(false);
+
+// Column filters
+const columnFilters = reactive<Record<string, string>>({});
+let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+// In-flight request controller — used to cancel a previous fetch when a new one starts,
+// or when the component unmounts (e.g. user switches report tab mid-load).
+let activeFetchController: AbortController | null = null;
+
+// Shared hover tooltip state — one tooltip per table instead of one per cell,
+// driven by event delegation on the table container. Avoids creating thousands of
+// v-tooltip instances on large tables.
+const hoverTooltip = reactive<{
+    visible: boolean;
+    text: string;
+    style: Record<string, string>;
+}>({
+    visible: false,
+    text: '',
+    style: {},
+});
+let hoverShowTimer: ReturnType<typeof setTimeout> | null = null;
+
+function findClampedCell(target: EventTarget | null): HTMLElement | null {
+    let el = target as HTMLElement | null;
+    while (el && el !== document.body) {
+        if (el.classList && el.classList.contains('clamped-cell')) return el;
+        el = el.parentElement;
+    }
+    return null;
+}
+
+function onTableMouseOver(e: MouseEvent) {
+    const cell = findClampedCell(e.target);
+    if (!cell) return;
+    // Only show tooltip when the content is actually truncated.
+    const truncated =
+        cell.scrollHeight > cell.clientHeight + 1 ||
+        cell.scrollWidth > cell.clientWidth + 1;
+    if (!truncated) return;
+
+    if (hoverShowTimer) clearTimeout(hoverShowTimer);
+    hoverShowTimer = setTimeout(() => {
+        const rect = cell.getBoundingClientRect();
+        hoverTooltip.text = cell.textContent || '';
+        hoverTooltip.style = {
+            top: `${rect.bottom + 4}px`,
+            left: `${rect.left}px`,
+        };
+        hoverTooltip.visible = true;
+    }, 400);
+}
+
+function onTableMouseOut(e: MouseEvent) {
+    const cell = findClampedCell(e.target);
+    if (!cell) return;
+    // Only hide if leaving the cell entirely (not moving to a child element).
+    const related = e.relatedTarget as Node | null;
+    if (related && cell.contains(related)) return;
+
+    if (hoverShowTimer) {
+        clearTimeout(hoverShowTimer);
+        hoverShowTimer = null;
+    }
+    hoverTooltip.visible = false;
+}
+
+// Table data
+const tableHeaders = ref<TableHeader[]>([]);
+const tableRows = ref<any[][]>([]);
+
+// Component metadata
+const typeInfo = componentTypeInfo[props.component.type];
+const componentIcon = typeInfo?.icon || 'fas fa-table';
+const componentTypeLabel = typeInfo?.label || props.component.type;
+const componentChipColor = typeInfo?.color || '#E3F2FD';
+
+function isNumericFormat(format: string): boolean {
+    return format === 'number' || format === 'currency' || format === 'percent';
+}
+
+function formatCell(value: any, format: string): string {
+    if (value === null || value === undefined || value === '') return '';
+
+    switch (format) {
+        case 'currency': {
+            const num = typeof value === 'number' ? value : parseFloat(value);
+            if (isNaN(num)) return String(value);
+            return '$' + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        case 'percent': {
+            const num = typeof value === 'number' ? value : parseFloat(value);
+            if (isNaN(num)) return String(value);
+            return num.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+        }
+        case 'number': {
+            const num = typeof value === 'number' ? value : parseFloat(value);
+            if (isNaN(num)) return String(value);
+            return num.toLocaleString();
+        }
+        case 'year': {
+            // Year format: render as plain integer without comma separators (e.g. 2026, not 2,026)
+            const num = typeof value === 'number' ? value : parseInt(value, 10);
+            if (isNaN(num)) return String(value);
+            return String(num);
+        }
+        default:
+            return String(value);
+    }
+}
+
+function onFilterDebounced() {
+    if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
+    filterDebounceTimer = setTimeout(() => {
+        page.value = 1;
+        fetchData();
+    }, 300);
+}
+
+function onOptionsUpdate(options: any) {
+    // Vuetify fires this on page/pageSize/sort changes (including initial mount).
+    // Sync local state from the Vuetify-provided options object to ensure consistency.
+    if (options.page !== undefined) page.value = options.page;
+    if (options.itemsPerPage !== undefined) pageSize.value = options.itemsPerPage;
+    if (options.sortBy !== undefined) sortBy.value = options.sortBy;
+    fetchData();
+}
+
+async function fetchData() {
+    // Cancel any in-flight request before starting a new one — prevents stale responses
+    // from clobbering fresh data when filters/sort/page change quickly.
+    if (activeFetchController) {
+        activeFetchController.abort();
+    }
+    const controller = new AbortController();
+    activeFetchController = controller;
+
+    isLoading.value = true;
+    try {
+        const sortKey = sortBy.value.length > 0 ? sortBy.value[0].key : '';
+        const sortDir = sortBy.value.length > 0 ? sortBy.value[0].order : 'asc';
+
+        // Build clean column filters (strip empty values)
+        const filters: Record<string, string> = {};
+        for (const key in columnFilters) {
+            if (columnFilters[key] && columnFilters[key].trim()) {
+                filters[key] = columnFilters[key].trim();
+            }
+        }
+
+        const response = await ViewerService.getComponentData(
+            props.schemaId,
+            props.component.id,
+            {
+                simulationId: props.simulationId,
+                page: page.value,
+                pageSize: pageSize.value,
+                sortBy: sortKey,
+                sortDirection: sortDir,
+                columnFilters: filters,
+            },
+            controller.signal,
+        );
+
+        // If a newer request superseded this one, drop the response on the floor.
+        if (controller.signal.aborted) return;
+
+        if (hasValue(response, 'data')) {
+            const result: PagedViewerResult = response.data;
+
+            // Build headers from response columns (first time or if columns change)
+            if (result.columns && result.columns.length > 0) {
+                tableHeaders.value = result.columns.map((col: ViewerColumn) => ({
+                    title: col.header,
+                    key: col.key,
+                    sortable: col.sortable,
+                    filterable: col.filterable,
+                    format: col.format || 'text',
+                }));
+            }
+
+            tableRows.value = result.rows || [];
+            totalRowCount.value = result.totalRowCount;
+        }
+    } catch (e: any) {
+        // Axios surfaces aborts as ERR_CANCELED — silently ignore those.
+        if (e?.code === 'ERR_CANCELED' || e?.name === 'CanceledError' || controller.signal.aborted) {
+            return;
+        }
+        console.error('Failed to fetch viewer data:', e);
+    } finally {
+        if (activeFetchController === controller) {
+            activeFetchController = null;
+            isLoading.value = false;
+        }
+    }
+}
+
+onBeforeUnmount(() => {
+    // Cancel in-flight request and clear any pending tooltip timer.
+    if (activeFetchController) activeFetchController.abort();
+    if (hoverShowTimer) clearTimeout(hoverShowTimer);
+    if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
+});
+
+// Note: no onMounted fetchData() call needed — Vuetify's v-data-table-server
+// fires update:options on initial render, which triggers onOptionsUpdate → fetchData().
+</script>
+
+<style scoped>
+.filter-row {
+    background: #F5F6F8;
+}
+
+.filter-cell {
+    padding: 4px 8px !important;
+}
+
+.filter-input {
+    font-size: 0.8rem;
+}
+
+.filter-input :deep(.v-field) {
+    min-height: 28px;
+}
+
+.filter-input :deep(.v-field__input) {
+    padding: 2px 8px;
+    min-height: 28px;
+    font-size: 0.8rem;
+}
+
+.total-badge {
+    color: #666;
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+.viewer-data-table :deep(th) {
+    white-space: nowrap;
+}
+
+.striped-row {
+    background-color: #F5F7FA;
+}
+
+.striped-row:hover {
+    background-color: #EDF0F5 !important;
+}
+
+.viewer-data-table :deep(table) {
+    table-layout: auto;
+}
+
+.viewer-data-table :deep(td) {
+    min-width: 80px;
+    max-width: 360px;
+}
+
+/* Numeric / currency columns size to their content and never wrap so values
+   like "$1,234,567.89" always read on a single line. */
+.viewer-data-table :deep(td.numeric-cell) {
+    max-width: none;
+    white-space: nowrap;
+}
+
+.numeric-cell-content {
+    white-space: nowrap;
+}
+
+.clamped-cell {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+.cell-hover-tooltip {
+    position: fixed;
+    background: rgba(33, 33, 33, 0.95);
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    padding: 6px 10px;
+    border-radius: 4px;
+    max-width: 500px;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+</style>
