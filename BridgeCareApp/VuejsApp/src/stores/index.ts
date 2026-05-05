@@ -4,6 +4,8 @@ const pinia = createPinia();
 
 export * from './alert.store';
 export * from './admin-site-settings.store';
+export * from './admin-data.store';
+export * from './analysis-method.store';
 export * from './announcement.store';
 export * from './authentication.store';
 export * from './azure-b2c.store';
