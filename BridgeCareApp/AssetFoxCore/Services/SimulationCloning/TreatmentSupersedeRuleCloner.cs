@@ -19,12 +19,20 @@ namespace AssetFoxCore.Services
             return cloneTreatmentSupersedeRule;
         }
 
-        internal static List<TreatmentSupersedeRuleDTO> CloneList(IEnumerable<TreatmentSupersedeRuleDTO> treatmentSupersedeRules, List<TreatmentDTO> cloneListWithoutSupersedeRules, Guid ownerId)
+        internal static List<TreatmentSupersedeRuleDTO> CloneList(
+            IEnumerable<TreatmentSupersedeRuleDTO> treatmentSupersedeRules,
+            IReadOnlyDictionary<Guid, TreatmentDTO> clonedTreatmentsBySourceId,
+            Guid ownerId)
         {
             var cloneList = new List<TreatmentSupersedeRuleDTO>();
-            foreach (var treatmentSupersedeRule in treatmentSupersedeRules)
+            foreach (var treatmentSupersedeRule in treatmentSupersedeRules ?? new List<TreatmentSupersedeRuleDTO>())
             {
-                var preventSupersedeRule = cloneListWithoutSupersedeRules.FirstOrDefault(_ => _.Name == treatmentSupersedeRule.treatment.Name);
+                if (treatmentSupersedeRule.treatment == null
+                    || !clonedTreatmentsBySourceId.TryGetValue(treatmentSupersedeRule.treatment.Id, out var preventSupersedeRule))
+                {
+                    continue;
+                }
+
                 var cloneTreatmentSupersedeRule = Clone(treatmentSupersedeRule, preventSupersedeRule, ownerId);
                 cloneList.Add(cloneTreatmentSupersedeRule);
             }

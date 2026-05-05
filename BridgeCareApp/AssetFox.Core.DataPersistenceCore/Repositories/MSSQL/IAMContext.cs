@@ -227,6 +227,18 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public virtual DbSet<TreatmentLibraryUserEntity> TreatmentLibraryUser { get; set; }
 
+        public virtual DbSet<TreatmentRuleOverrideEntity> TreatmentRuleOverride { get; set; }
+
+        public virtual DbSet<TreatmentRuleOverrideCriterionEntity> TreatmentRuleOverrideCriterion { get; set; }
+
+        public virtual DbSet<TreatmentRuleOverrideCriterionTreatmentEntity> TreatmentRuleOverrideCriterionTreatment { get; set; }
+
+        public virtual DbSet<ScenarioTreatmentRuleOverrideEntity> ScenarioTreatmentRuleOverride { get; set; }
+
+        public virtual DbSet<ScenarioTreatmentRuleOverrideCriterionEntity> ScenarioTreatmentRuleOverrideCriterion { get; set; }
+
+        public virtual DbSet<ScenarioTreatmentRuleOverrideCriterionTreatmentEntity> ScenarioTreatmentRuleOverrideCriterionTreatment { get; set; }
+
         public virtual DbSet<PerformanceCurveLibraryUserEntity> PerformanceCurveLibraryUser { get; set; }
 
         public virtual DbSet<TreatmentSchedulingEntity> TreatmentScheduling { get; set; }
@@ -2135,7 +2147,106 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
             });
-            
+
+            modelBuilder.Entity<TreatmentRuleOverrideEntity>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(256);
+
+                entity.HasIndex(e => new { e.TreatmentLibraryId, e.Name }).IsUnique();
+
+                entity.HasOne(d => d.TreatmentLibrary)
+                    .WithMany(p => p.RuleOverrides)
+                    .HasForeignKey(d => d.TreatmentLibraryId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<TreatmentRuleOverrideCriterionEntity>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.LogicalOperator).IsRequired().HasMaxLength(3);
+
+                entity.Property(e => e.CriterionExpression).IsRequired();
+
+                entity.HasIndex(e => e.TreatmentRuleOverrideId);
+
+                entity.HasOne(d => d.TreatmentRuleOverride)
+                    .WithMany(p => p.Criteria)
+                    .HasForeignKey(d => d.TreatmentRuleOverrideId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<TreatmentRuleOverrideCriterionTreatmentEntity>(entity =>
+            {
+                entity.HasKey(e => new { e.TreatmentRuleOverrideCriterionId, e.SelectableTreatmentId });
+
+                entity.ToTable("TreatmentRuleOverrideCriterion_Treatment");
+
+                entity.HasIndex(e => e.SelectableTreatmentId);
+
+                entity.HasOne(d => d.TreatmentRuleOverrideCriterion)
+                    .WithMany(p => p.TreatmentJoins)
+                    .HasForeignKey(d => d.TreatmentRuleOverrideCriterionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.SelectableTreatment)
+                    .WithMany()
+                    .HasForeignKey(d => d.SelectableTreatmentId)
+                    .OnDelete(DeleteBehavior.ClientCascade);
+            });
+
+            modelBuilder.Entity<ScenarioTreatmentRuleOverrideEntity>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(256);
+
+                entity.HasIndex(e => new { e.SimulationId, e.Name }).IsUnique();
+
+                entity.HasIndex(e => e.SourceTreatmentRuleOverrideId);
+
+                entity.HasOne(d => d.Simulation)
+                    .WithMany(p => p.TreatmentRuleOverrides)
+                    .HasForeignKey(d => d.SimulationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ScenarioTreatmentRuleOverrideCriterionEntity>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.LogicalOperator).IsRequired().HasMaxLength(3);
+
+                entity.Property(e => e.CriterionExpression).IsRequired();
+
+                entity.HasIndex(e => e.ScenarioTreatmentRuleOverrideId);
+
+                entity.HasOne(d => d.ScenarioTreatmentRuleOverride)
+                    .WithMany(p => p.Criteria)
+                    .HasForeignKey(d => d.ScenarioTreatmentRuleOverrideId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ScenarioTreatmentRuleOverrideCriterionTreatmentEntity>(entity =>
+            {
+                entity.HasKey(e => new { e.ScenarioTreatmentRuleOverrideCriterionId, e.ScenarioSelectableTreatmentId });
+
+                entity.ToTable("ScenarioTreatmentRuleOverrideCriterion_Treatment");
+
+                entity.HasIndex(e => e.ScenarioSelectableTreatmentId);
+
+                entity.HasOne(d => d.ScenarioTreatmentRuleOverrideCriterion)
+                    .WithMany(p => p.TreatmentJoins)
+                    .HasForeignKey(d => d.ScenarioTreatmentRuleOverrideCriterionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.ScenarioSelectableTreatment)
+                    .WithMany()
+                    .HasForeignKey(d => d.ScenarioSelectableTreatmentId)
+                    .OnDelete(DeleteBehavior.ClientCascade);
+            });
             modelBuilder.Entity<TreatmentSchedulingEntity>(entity =>
             {
                 entity.HasIndex(e => e.TreatmentId);
@@ -2557,7 +2668,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 entity.HasIndex(e => new { e.RunId, e.SimulationYearDetailId })
                       .HasDatabaseName("IX_BudgetDetail_SimulationYearDetailId");
 
-                // FK to SimulationYearDetail is optional; omit if you don�t enforce it
+                // FK to SimulationYearDetail is optional; omit if you don't enforce it
                 entity.HasOne(e => e.SimulationYearDetail)
                       .WithMany(y => y.Budgets)
                       .HasForeignKey(e => new { e.RunId, e.SimulationYearDetailId });

@@ -62,6 +62,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
 
         ISelectableTreatmentRepository SelectableTreatmentRepo { get; }
 
+        ITreatmentRuleOverrideRepository TreatmentRuleOverrideRepo { get; }
+
         ITreatmentLibraryUserRepository TreatmentLibraryUserRepo { get; }
 
         ISimulationAnalysisDetailRepository SimulationAnalysisDetailRepo { get; }

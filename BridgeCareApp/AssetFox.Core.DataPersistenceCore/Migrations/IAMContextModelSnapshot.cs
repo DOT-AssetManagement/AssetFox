@@ -2970,6 +2970,113 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.ToTable("TreatmentPerformanceFactor");
                 });
 
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideCriterionEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CriterionExpression")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LogicalOperator")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TreatmentRuleOverrideId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TreatmentRuleOverrideId");
+
+                    b.ToTable("TreatmentRuleOverrideCriterion");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideCriterionTreatmentEntity", b =>
+                {
+                    b.Property<Guid>("TreatmentRuleOverrideCriterionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SelectableTreatmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TreatmentRuleOverrideCriterionId", "SelectableTreatmentId");
+
+                    b.HasIndex("SelectableTreatmentId");
+
+                    b.ToTable("TreatmentRuleOverrideCriterion_Treatment", (string)null);
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsEnabledByDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid>("TreatmentLibraryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TreatmentLibraryId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("TreatmentRuleOverride");
+                });
+
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSchedulingEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4438,6 +4545,118 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.HasIndex("ScenarioSelectableTreatmentId");
 
                     b.ToTable("ScenarioTreatmentPerformanceFactor");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideCriterionEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CriterionExpression")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LogicalOperator")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<Guid>("ScenarioTreatmentRuleOverrideId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScenarioTreatmentRuleOverrideId");
+
+                    b.ToTable("ScenarioTreatmentRuleOverrideCriterion");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideCriterionTreatmentEntity", b =>
+                {
+                    b.Property<Guid>("ScenarioTreatmentRuleOverrideCriterionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ScenarioSelectableTreatmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ScenarioTreatmentRuleOverrideCriterionId", "ScenarioSelectableTreatmentId");
+
+                    b.HasIndex("ScenarioSelectableTreatmentId");
+
+                    b.ToTable("ScenarioTreatmentRuleOverrideCriterion_Treatment", (string)null);
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid>("SimulationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SourceTreatmentRuleOverrideId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceTreatmentRuleOverrideId");
+
+                    b.HasIndex("SimulationId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ScenarioTreatmentRuleOverride");
                 });
 
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSchedulingEntity", b =>
@@ -6291,6 +6510,47 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.Navigation("SelectableTreatment");
                 });
 
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideCriterionEntity", b =>
+                {
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideEntity", "TreatmentRuleOverride")
+                        .WithMany("Criteria")
+                        .HasForeignKey("TreatmentRuleOverrideId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TreatmentRuleOverride");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideCriterionTreatmentEntity", b =>
+                {
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.SelectableTreatmentEntity", "SelectableTreatment")
+                        .WithMany()
+                        .HasForeignKey("SelectableTreatmentId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired();
+
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideCriterionEntity", "TreatmentRuleOverrideCriterion")
+                        .WithMany("TreatmentJoins")
+                        .HasForeignKey("TreatmentRuleOverrideCriterionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SelectableTreatment");
+
+                    b.Navigation("TreatmentRuleOverrideCriterion");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideEntity", b =>
+                {
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentLibraryEntity", "TreatmentLibrary")
+                        .WithMany("RuleOverrides")
+                        .HasForeignKey("TreatmentLibraryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TreatmentLibrary");
+                });
+
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSchedulingEntity", b =>
                 {
                     b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.SelectableTreatmentEntity", "SelectableTreatment")
@@ -6922,6 +7182,47 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.Navigation("ScenarioSelectableTreatment");
                 });
 
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideCriterionEntity", b =>
+                {
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideEntity", "ScenarioTreatmentRuleOverride")
+                        .WithMany("Criteria")
+                        .HasForeignKey("ScenarioTreatmentRuleOverrideId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ScenarioTreatmentRuleOverride");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideCriterionTreatmentEntity", b =>
+                {
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioSelectableTreatmentEntity", "ScenarioSelectableTreatment")
+                        .WithMany()
+                        .HasForeignKey("ScenarioSelectableTreatmentId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired();
+
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideCriterionEntity", "ScenarioTreatmentRuleOverrideCriterion")
+                        .WithMany("TreatmentJoins")
+                        .HasForeignKey("ScenarioTreatmentRuleOverrideCriterionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ScenarioSelectableTreatment");
+
+                    b.Navigation("ScenarioTreatmentRuleOverrideCriterion");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideEntity", b =>
+                {
+                    b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationEntity", "Simulation")
+                        .WithMany("TreatmentRuleOverrides")
+                        .HasForeignKey("SimulationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Simulation");
+                });
+
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSchedulingEntity", b =>
                 {
                     b.HasOne("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioSelectableTreatmentEntity", "ScenarioSelectableTreatment")
@@ -7503,9 +7804,21 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
 
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentLibraryEntity", b =>
                 {
+                    b.Navigation("RuleOverrides");
+
                     b.Navigation("Treatments");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideCriterionEntity", b =>
+                {
+                    b.Navigation("TreatmentJoins");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentRuleOverrideEntity", b =>
+                {
+                    b.Navigation("Criteria");
                 });
 
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment.TreatmentSupersedeRuleEntity", b =>
@@ -7635,6 +7948,16 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.Navigation("ScenarioTreatmentCostEquationJoin");
                 });
 
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideCriterionEntity", b =>
+                {
+                    b.Navigation("TreatmentJoins");
+                });
+
+            modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentRuleOverrideEntity", b =>
+                {
+                    b.Navigation("Criteria");
+                });
+
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment.ScenarioTreatmentSupersedeRuleEntity", b =>
                 {
                     b.Navigation("CriterionLibraryScenarioTreatmentSupersedeRuleJoin");
@@ -7684,6 +8007,8 @@ namespace AssetFox.Core.DataPersistenceCore.Migrations
                     b.Navigation("SimulationReports");
 
                     b.Navigation("SimulationUserJoins");
+
+                    b.Navigation("TreatmentRuleOverrides");
                 });
 
             modelBuilder.Entity("AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.SimulationOutputEntity", b =>

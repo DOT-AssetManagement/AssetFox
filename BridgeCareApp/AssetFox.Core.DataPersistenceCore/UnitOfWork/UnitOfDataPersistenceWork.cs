@@ -62,6 +62,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private ICalculatedAttributesRepository _calculatedAttributesRepo;
         private IRemainingLifeLimitRepository _remainingLifeLimitRepo;
         private ISelectableTreatmentRepository _selectableTreatmentRepo;
+        private ITreatmentRuleOverrideRepository _treatmentRuleOverrideRepo;
         private ISimulationAnalysisDetailRepository _simulationAnalysisDetailRepo;
         private ISimulationLogRepository _simulationLogRepo;
         private ISimulationOutputRepository _simulationOutputRepo;
@@ -129,6 +130,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         public IRemainingLifeLimitRepository RemainingLifeLimitRepo => _remainingLifeLimitRepo ??= new RemainingLifeLimitRepository(this);
 
         public ISelectableTreatmentRepository SelectableTreatmentRepo => _selectableTreatmentRepo ??= new SelectableTreatmentRepository(this);
+
+        public ITreatmentRuleOverrideRepository TreatmentRuleOverrideRepo => _treatmentRuleOverrideRepo ??= new TreatmentRuleOverrideRepository(this);
 
         public ISimulationAnalysisDetailRepository SimulationAnalysisDetailRepo => _simulationAnalysisDetailRepo ??= new SimulationAnalysisDetailRepository(this);
 

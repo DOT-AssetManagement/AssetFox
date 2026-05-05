@@ -45,6 +45,11 @@ namespace AssetFox.Core.DTOs
         public IList<TreatmentDTO> Treatments { get; set; }
 
         /// <summary>
+        /// Scenario treatment rule overrides.
+        /// </summary>
+        public IList<TreatmentRuleOverrideDTO> TreatmentRuleOverrides { get; set; }
+
+        /// <summary>
         /// The Target Condition Goal repository of a simulation.
         /// </summary>
         public IList<TargetConditionGoalDTO> TargetConditionGoals { get; set; }
