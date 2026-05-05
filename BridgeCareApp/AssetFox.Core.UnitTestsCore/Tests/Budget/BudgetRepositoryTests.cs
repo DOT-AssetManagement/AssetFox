@@ -97,6 +97,34 @@ namespace AssetFox.Core.UnitTestsCore.Tests
         }
 
         [Fact]
+        public void UpsertOrDeleteScenarioBudgets_ReplacesBudgetWithSameName_RetargetsExistingBudgetPriorityPair()
+        {
+            AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+            NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
+            var simulationId = simulation.Id;
+            var oldBudgetId = Guid.NewGuid();
+            var newBudgetId = Guid.NewGuid();
+            var budgetName = RandomStrings.WithPrefix("Budget");
+            var oldBudget = BudgetDtos.New(oldBudgetId, budgetName);
+            var newBudget = BudgetDtos.New(newBudgetId, budgetName);
+            TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(new List<BudgetDTO> { oldBudget }, simulationId);
+            var budgetPriority = BudgetPriorityDtos.WithPercentagePair(budgetName, oldBudgetId);
+            var originalPair = budgetPriority.BudgetPercentagePairs.Single();
+            TestHelper.UnitOfWork.BudgetPriorityRepo.UpsertOrDeleteScenarioBudgetPriorities(
+                new List<BudgetPriorityDTO> { budgetPriority },
+                simulationId);
+
+            TestHelper.UnitOfWork.BudgetRepo.UpsertOrDeleteScenarioBudgets(new List<BudgetDTO> { newBudget }, simulationId);
+
+            var priorityAfter = TestHelper.UnitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId).Single();
+            var pairAfter = priorityAfter.BudgetPercentagePairs.Single();
+            Assert.Equal(newBudgetId, pairAfter.BudgetId);
+            Assert.Equal(budgetName, pairAfter.BudgetName);
+            Assert.Equal(originalPair.Percentage, pairAfter.Percentage);
+        }
+
+        [Fact]
         public void UpsertBudgetLibrary_NullDto_Throws()
         {
             //setup
