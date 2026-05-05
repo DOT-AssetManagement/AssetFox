@@ -26,6 +26,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
             PerformanceCurveLibraryUsers = new HashSet<PerformanceCurveLibraryUserEntity>();
             TreatmentLibraryUsers = new HashSet<TreatmentLibraryUserEntity>();
             TargetConditionGoalLibraryUsers = new HashSet<TargetConditionGoalLibraryUserEntity>();
+            ReportSchemaUsers = new HashSet<ReportSchemaUserEntity>();
         }
 
         public Guid Id { get; set; }
@@ -58,5 +59,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
         public ICollection<BudgetPriorityLibraryUserEntity> BudgetPriorityLibraryUsers { get; set; }
         public ICollection<PerformanceCurveLibraryUserEntity> PerformanceCurveLibraryUsers { get; set; }
         public ICollection<TargetConditionGoalLibraryUserEntity> TargetConditionGoalLibraryUsers { get; set; }
+        public ICollection<ReportSchemaUserEntity> ReportSchemaUsers { get; set; }
     }
 }

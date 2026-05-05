@@ -79,6 +79,13 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 UserId = dto.UserId,
                 AccessLevel = (int)dto.AccessLevel
             };
+        public static ReportSchemaUserEntity ToReportSchemaUserEntity(this LibraryUserDTO dto, Guid reportSchemaId) =>
+            new ReportSchemaUserEntity
+            {
+                ReportSchemaId = reportSchemaId,
+                UserId = dto.UserId,
+                AccessLevel = (int)dto.AccessLevel
+            };
         public static LibraryUserDTO ToDto(this RemainingLifeLimitLibraryUserEntity entity) =>
             new LibraryUserDTO
             {
@@ -136,6 +143,13 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 AccessLevel = (LibraryAccessLevel)entity.AccessLevel
             };
         public static LibraryUserDTO ToDto(this TargetConditionGoalLibraryUserEntity entity) =>
+            new LibraryUserDTO
+            {
+                UserId = entity.UserId,
+                UserName = entity.User?.Username,
+                AccessLevel = (LibraryAccessLevel)entity.AccessLevel
+            };
+        public static LibraryUserDTO ToDto(this ReportSchemaUserEntity entity) =>
             new LibraryUserDTO
             {
                 UserId = entity.UserId,

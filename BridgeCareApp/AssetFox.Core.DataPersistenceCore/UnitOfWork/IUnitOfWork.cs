@@ -92,6 +92,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
 
         IReportIndexRepository ReportIndexRepository { get; }
 
+        IReportSchemaRepository ReportSchemaRepo { get; }
+
         IAssetData AssetDataRepository { get; }
 
         IAnnouncementRepository AnnouncementRepo { get; }

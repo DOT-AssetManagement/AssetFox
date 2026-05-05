@@ -63,12 +63,12 @@
                             Administration
                         </v-btn>
                         <v-btn
-                            id="App-inventory-btn"
-                            @click="onNavigate('/Inventory/')"
+                            id="App-reportBuilder-btn"
+                            @click="onNavigate('/ReportBuilder/')"
                             class="assetFox-blue-pantone-281"
-                            variant = "flat"
+                            variant="flat"
                         >
-                            Inventory
+                            Report Builder
                         </v-btn>
                         <v-btn
                             id="App-news-btn"
@@ -399,6 +399,8 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         'GenerateReport',
         'AggregateNetworkData',
         'RefreshToken',
+        'ViewerData',
+        'ViewerMetadata',
     ];
     let esecSecurityType: string = SecurityTypes.esec;
     let b2cSecurityType: string = SecurityTypes.b2c;

@@ -1,11 +1,47 @@
 <template>
-    <v-card height="800px" class="elevation-0 vcard-main-layout">
+    <v-card class="elevation-0 vcard-main-layout" style="min-height: 800px;">
     <v-row column class="Montserrat-font-family" justify-start>
-        <div style="padding: 10px;">
-            <v-subheader  class="ghd-md-gray ghd-control-label">
-                Available Reports
-            </v-subheader>
-        </div>
+
+        <!-- Report Viewer Section -->
+        <v-col cols="12" class="report-viewer-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-eye section-icon" />
+                    Report Viewer
+                </h3>
+                <span class="section-subtitle">View interactive reports from templates</span>
+            </div>
+            <v-divider :thickness="1" class="border-opacity-50 mb-3" />
+            <ReportTemplateBrowser
+                :selected-id="selectedViewerSchemaId"
+                :show-select="false"
+                :show-view="true"
+                :show-export="true"
+                action-style="buttons"
+                :large="true"
+                :exporting-id="isExporting ? selectedViewerSchemaId : ''"
+                @select="onSelectViewerSchema"
+                @view="onViewReport"
+                @export="onExportReport"
+            />
+            <div v-if="exportStatus" class="export-status-row">
+                <i class="fas fa-spinner fa-spin" />
+                <span>{{ exportStatus }}</span>
+            </div>
+        </v-col>
+
+        <!-- Generated Reports Section -->
+        <v-col cols="12" class="generated-reports-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-file-excel section-icon" />
+                    Generated Reports
+                </h3>
+                <span class="section-subtitle">Generate and download Excel reports</span>
+            </div>
+            <v-divider :thickness="1" class="border-opacity-50 mb-3" />
+        </v-col>
+
         <v-col cols = "12">
             <v-row class="data-table" justify-left>
                 <v-col>
@@ -173,6 +209,8 @@ import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton
 import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel, PamsPbExportReportRequestModel, emptyPamsPbExportReportRequestModel } from '@/shared/models/iAM/reports';
 import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/UserDefinedReportInputDialog.vue';
 import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
+import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
+import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vue';
 
     let store = useStore();
     const router = useRouter();
@@ -200,6 +238,14 @@ import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/
     const simulationName = ref('');
 
     let rules: InputValidationRules = clone(validationRules);
+
+    // Report Viewer state
+    const selectedViewerSchemaId = ref<string>('');
+    const selectedViewerSchema = ref<ReportSchemaDTO | null>(null);
+    const isExporting = ref(false);
+    const exportStatus = ref('');
+    const exportReportName = ref('UniversalReport');
+    const exportReportId = ref('');
 
     const criterionEditorDialogData = ref<GeneralCriterionEditorDialogData>(clone(emptyGeneralCriterionEditorDialogData));
     const currentPage = ref<Report[]>([]);
@@ -244,12 +290,28 @@ import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/
             Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent,
             getReportStatus,
         );
+        $emitter.on(
+            Hub.BroadcastEventType.BroadcastTaskCompletedEvent,
+            onReportTaskCompleted,
+        );
+        $emitter.on(
+            Hub.BroadcastEventType.BroadcastErrorEvent,
+            onReportError,
+        );
     });
 
     onBeforeUnmount(async () => {
         $emitter.off(
             Hub.BroadcastEventType.BroadcastReportGenerationStatusEvent,
             getReportStatus,
+        );
+        $emitter.off(
+            Hub.BroadcastEventType.BroadcastTaskCompletedEvent,
+            onReportTaskCompleted,
+        );
+        $emitter.off(
+            Hub.BroadcastEventType.BroadcastErrorEvent,
+            onReportError,
         );
     });
     
@@ -267,8 +329,8 @@ import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/
                 router.push('/Scenarios/');
             }
 
-        await getSimulationReportsAction();        
-        await getReportGenerationStatus();        
+        await getSimulationReportsAction();
+        await getReportGenerationStatus();
     });
 
     watch(stateSimulationReportNames, () => {
@@ -310,6 +372,91 @@ import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/
         }
     }, { deep: true, immediate: true });
 
+
+    function onSelectViewerSchema(schema: ReportSchemaDTO) {
+        selectedViewerSchemaId.value = schema.id;
+        selectedViewerSchema.value = schema;
+    }
+
+    function onViewReport(schema?: ReportSchemaDTO) {
+        const targetSchema = schema || selectedViewerSchema.value;
+        if (!targetSchema?.id) return;
+        onSelectViewerSchema(targetSchema);
+        router.push({
+            path: '/ReportViewer/Scenario',
+            query: {
+                ...router.currentRoute.value.query,
+                schemaId: targetSchema.id,
+                schemaName: targetSchema.name || 'Report',
+            },
+        });
+    }
+
+    async function onExportReport(schema?: ReportSchemaDTO) {
+        const targetSchema = schema || selectedViewerSchema.value;
+        if (!targetSchema?.id || !selectedScenarioId.value) return;
+        onSelectViewerSchema(targetSchema);
+
+        isExporting.value = true;
+        exportStatus.value = 'Starting Excel export...';
+
+        try {
+            const response = await store.dispatch('requestUniversalReportExport', {
+                schemaId: targetSchema.id,
+                simulationId: selectedScenarioId.value,
+            });
+
+            exportReportName.value = response?.reportName || 'UniversalReport';
+            exportReportId.value = response?.reportId || '';
+        } catch (e) {
+            isExporting.value = false;
+            exportStatus.value = '';
+            exportReportId.value = '';
+        }
+    }
+
+    async function onReportTaskCompleted(data: any) {
+        const task = data?.task || '';
+        if (!isExporting.value || !task.includes(`${exportReportName.value} report`)) {
+            return;
+        }
+
+        exportStatus.value = 'Downloading Excel export...';
+        await downloadCompletedExport();
+    }
+
+    async function downloadCompletedExport() {
+        if (!isExporting.value) {
+            return;
+        }
+
+        isExporting.value = false;
+        exportStatus.value = 'Downloading Excel export...';
+
+        try {
+            await ReportsService.downloadReport({
+                scenarioId: selectedScenarioId.value,
+                reportName: exportReportName.value,
+                simulationName: simulationName.value,
+            });
+            addSuccessNotificationAction({ message: 'Excel export downloaded.' });
+        } catch (e) {
+            addErrorNotificationAction({ message: 'Excel export finished, but download failed.' });
+        } finally {
+            exportStatus.value = '';
+            exportReportId.value = '';
+        }
+    }
+
+    function onReportError() {
+        if (!isExporting.value) {
+            return;
+        }
+
+        isExporting.value = false;
+        exportStatus.value = '';
+        exportReportId.value = '';
+    }
 
     const onRowSelect = (event:any) => {
         selectedReport.value = {
@@ -527,16 +674,33 @@ import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/
 
     function getReportStatus(data: any) 
     {
-        if (data.simulationReportDetail.status) {
-        selectedReport.value = find(
-            propEq('name', data.simulationReportDetail.reportType),
-            currentPage.value,
-        ) as Report
-            const reportIndex = currentPage.value.findIndex(report => report.name === data.simulationReportDetail.reportType);
-            if(data.simulationReportDetail.status && reportIndex !== -1)
-            {
-                currentPage.value[reportIndex].reportStatus = data.simulationReportDetail.status;
+        const detail = data?.simulationReportDetail;
+        if (!detail?.status) {
+            return;
+        }
+
+        if (isExporting.value && detail.simulationId === selectedScenarioId.value && detail.reportType === exportReportName.value) {
+            if (!exportReportId.value || !detail.reportId || detail.reportId.toLowerCase() === exportReportId.value.toLowerCase()) {
+                exportStatus.value = detail.status;
+
+                if (detail.status.toLowerCase().includes('completed')) {
+                    void downloadCompletedExport();
+                }
             }
+        }
+
+        const updatedCurrentPageReport = find(
+            propEq('name', detail.reportType),
+            currentPage.value,
+        ) as Report | undefined;
+        if (updatedCurrentPageReport) {
+            selectedReport.value = updatedCurrentPageReport;
+        }
+
+        const reportIndex = currentPage.value.findIndex(report => report.name === detail.reportType);
+        if(reportIndex !== -1)
+        {
+            currentPage.value[reportIndex].reportStatus = detail.status;
         }
     }
 
@@ -559,10 +723,123 @@ import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/
 }
 
 .green-icon.disabled {
-    color: transparent !important;  /* Inherit color from parent */
+    color: transparent !important;
     --svg-color: #999999;
-    background-color: transparent !important; /* Maintain the background color */
+    background-color: transparent !important;
+}
 
+.report-viewer-section {
+    padding: 16px 16px 12px 16px;
+}
+
+.generated-reports-section {
+    margin-top: 24px;
+    padding: 16px 16px 0 16px;
+}
+
+.section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.section-title {
+    color: #002E6C;
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+}
+
+.section-icon {
+    color: #2A578D;
+    margin-right: 6px;
+    font-size: 0.95rem;
+}
+
+.section-subtitle {
+    color: #4A4A4A;
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.viewer-schema-select {
+    max-width: 400px;
+}
+
+.report-actions-panel {
+    background: #F7F9FC;
+    border: 1px solid #DDE6F1;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.viewer-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.report-action-button {
+    border-radius: 5px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    min-height: 38px;
+    padding: 0 16px !important;
+    text-transform: none !important;
+}
+
+.report-action-button-primary {
+    background-color: #2A578D !important;
+    color: #FFFFFF !important;
+}
+
+.report-action-button-secondary {
+    background-color: #2F6F4E !important;
+    color: #FFFFFF !important;
+}
+
+.report-action-button .v-btn__content,
+.report-action-button .v-progress-circular,
+.report-action-button i {
+    color: #FFFFFF !important;
+}
+
+.report-action-button:not(.v-btn--disabled) {
+    box-shadow: 0 1px 3px rgba(18, 32, 52, 0.16) !important;
+}
+
+.export-status {
+    color: #4A4A4A;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.export-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: fit-content;
+    max-width: min(100%, 640px);
+    margin: 16px auto 0 auto;
+    padding: 10px 18px;
+    background: #F2F6FB;
+    border: 1px solid #D6E2F0;
+    border-radius: 999px;
+    box-shadow: 0 1px 3px rgba(18, 32, 52, 0.08);
+    color: #24364B;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.export-status-row i {
+    color: #2A578D;
 }
 
 </style>
