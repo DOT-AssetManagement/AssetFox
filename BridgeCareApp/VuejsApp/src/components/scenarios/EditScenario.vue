@@ -785,11 +785,18 @@ import CashFlowService from '@/services/cash-flow.service';
         }
     }
 
+    function closePreCheckDialog() {
+        confirmAnalysisPreCheckAlertData.value = {
+            ...confirmAnalysisPreCheckAlertData.value,
+            showDialog: false,
+        };
+    }
+
     function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
         store.dispatch('updateSimulationRunSettingName', simulationName);
         store.dispatch('updateSimulationRunSettingId', selectedScenarioId);
 
-        confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
+        closePreCheckDialog();
 
         selectedScenario = runAnalysisScenario;
 
