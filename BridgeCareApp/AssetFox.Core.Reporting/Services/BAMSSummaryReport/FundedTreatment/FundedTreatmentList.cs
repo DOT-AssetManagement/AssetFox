@@ -61,8 +61,10 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
 
             void fillHeaders(int row, int firstColumn, IEnumerable<string> headers)
             {
-                foreach (var (index, header) in headers.Index())
+                var indexedHeaders = headers.ToList();
+                for (var index = 0; index < indexedHeaders.Count; index++)
                 {
+                    var header = indexedHeaders[index];
                     worksheet.Cells[row, index + firstColumn].Style.WrapText = false;
                     worksheet.Cells[row, index + firstColumn].Value = header;
                 }
@@ -97,8 +99,9 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
 
             void mergeHeaderRows(int column) => ExcelHelper.MergeCells(worksheet, headerRow, column, headerRow + 1, column);
 
-            foreach (var (index, header) in HeadersRow1.Index())
+            for (var index = 0; index < HeadersRow1.Count; index++)
             {
+                var header = HeadersRow1[index];
                 if (header is "" or ANALYSIS_YEARS or PRIOR_GCR or RESULTING_GCR)
                 {
                     continue;
