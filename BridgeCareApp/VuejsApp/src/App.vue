@@ -282,6 +282,7 @@
             <Alert :dialog-data="stackTraceAlert" @submit="onStackTraceSubmit" />
             <Alert :dialog-data="bugReportAlert" @submit="onBugReportSubmit" />
             <NewsDialog :showDialog="showNewsDialog" @close="onCloseNewsDialog()" />
+            <ConfirmDialog group="navigation" />
         </v-main>
     </v-app>
 </template>
@@ -332,6 +333,7 @@ import mitt, { Emitter, EventType } from 'mitt'
 import vuetify from '@/plugins/vuetify';
 import { getUrl } from './shared/utils/get-url';
 import { UserInfoLocal } from './shared/models/iAM/authentication';
+import ConfirmDialog from 'primevue/confirmdialog';
 
     let store = useStore();
     const config = computed<Config | null>(() => store.getters.getConfig);
@@ -862,7 +864,9 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
      * @param route The route name to use when navigating a user
      */
     function onNavigate(route: any) {
-        if (router.currentRoute.value.path !== route.path) {
+        const targetPath = typeof route === 'string' ? route : route.path;
+
+        if (router.currentRoute.value.path !== targetPath) {
             hasSelectedScenario.value = false;
             router.push(route).catch(() => {});
         }
