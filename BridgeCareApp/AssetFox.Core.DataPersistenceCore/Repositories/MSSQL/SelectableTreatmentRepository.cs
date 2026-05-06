@@ -184,11 +184,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public List<TreatmentLibraryDTO> GetAllTreatmentLibraries()
         {
-            if (!_unitOfWork.Context.SelectableTreatment.Any())
-            {
-                return new List<TreatmentLibraryDTO>();
-            }
-
             var entities = _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
                 .AsSplitQuery()
                 .Include(_ => _.Treatments)
@@ -231,11 +226,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public List<TreatmentLibraryDTO> GetAllTreatmentLibrariesNoChildren()
         {
-            if (!_unitOfWork.Context.SelectableTreatment.Any())
-            {
-                return new List<TreatmentLibraryDTO>();
-            }
-
             var entities = _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
                 .Include(_ => _.Treatments)
                 .Include(_ => _.RuleOverrides)
