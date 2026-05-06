@@ -74,8 +74,7 @@
     <PackageReference Include="Microsoft.Graph" Version="5.103.0" />
     <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.3.93" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="4.14.0" />
-    <PackageReference Include="NuGet.Common" Version="7.3.0" />  <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
-    <PackageReference Include="NuGet.ProjectModel" Version="7.3.0" /> <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
+    <PackageReference Include="NuGet.Protocol" Version="7.3.1" /> <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Verson="4.5.0" Version="4.14.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Verson="4.5.0" Version="4.14.0" />
