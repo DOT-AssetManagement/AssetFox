@@ -335,12 +335,9 @@ async function getIsSharedLibraryAction(payload?: any): Promise<any> {await stor
 async function getHasPermittedAccessAction(payload?: any): Promise<any> {await store.dispatch('getHasPermittedAccess', payload);}
 async function getCashFlowRuleLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCashFlowRuleLibraries', payload);}
 async function selectedCashFlowRuleLibraryAction(payload?: any): Promise<any> {await store.dispatch('selectCashFlowRuleLibrary', payload);}
-async function upsertCashFlowRuleLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertCashFlowRuleLibrary', payload);}
 async function deleteCashFlowRuleLibraryAction(payload?: any): Promise<any> {await store.dispatch('deleteCashFlowRuleLibrary', payload);}
 function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-async function getScenarioCashFlowRulesAction(payload?: any): Promise<any> {await store.dispatch('getScenarioCashFlowRules', payload);}
-async function upsertScenarioCashFlowRulesAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioCashFlowRules', payload);}
 function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
 async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
  function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
@@ -818,11 +815,6 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
     }
 
     function onUpsertCashFlowRuleLibrary() {
-        // const cashFlowRuleLibrary: CashFlowRuleLibrary = {
-        //     ...clone(selectedCashFlowRuleLibrary),
-        //     cashFlowRules: clone(currentPage),
-        // };
-
         const upsertRequest: LibraryUpsertPagingRequest<CashFlowRuleLibrary, CashFlowRule> = {
                 library: selectedCashFlowRuleLibrary.value,
                 isNewLibrary: false,
