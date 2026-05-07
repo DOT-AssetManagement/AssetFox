@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Treatment;
+using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Treatment;
 using AssetFox.Core.Analysis;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Enums;
@@ -117,10 +117,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
         public static TreatmentLibraryEntity ToEntity(this TreatmentLibraryDTO dto) =>
             new TreatmentLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };
 
-        public static SelectableTreatment CreateSelectableTreatment(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
+        public static SelectableTreatment CreateSelectableTreatment(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments, List<ScenarioTreatmentRuleOverrideCriterionEntity> activeOverrideCriteria = null)
         {
             var selectableTreatment = simulation.AddTreatment();
-            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments);
+            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments, activeOverrideCriteria);
 
             if (selectableTreatment.Name == "No Treatment")
             {
@@ -129,14 +129,14 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
             return selectableTreatment;
         }
 
-        public static SelectableTreatment ToDomain(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
+        public static SelectableTreatment ToDomain(this ScenarioSelectableTreatmentEntity entity, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments, List<ScenarioTreatmentRuleOverrideCriterionEntity> activeOverrideCriteria = null)
         {
             var selectableTreatment = new SelectableTreatment(simulation);
-            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments);
+            PopulateSelectableTreatment(entity, selectableTreatment, simulation, simpleTreatments, activeOverrideCriteria);
             return selectableTreatment;
         }
 
-        private static void PopulateSelectableTreatment(ScenarioSelectableTreatmentEntity entity, SelectableTreatment selectableTreatment, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments)
+        private static void PopulateSelectableTreatment(ScenarioSelectableTreatmentEntity entity, SelectableTreatment selectableTreatment, Simulation simulation, List<ScenarioSelectableTreatmentEntity> simpleTreatments, List<ScenarioTreatmentRuleOverrideCriterionEntity> activeOverrideCriteria = null)
         {
             selectableTreatment.Id = entity.Id;
             selectableTreatment.Name = entity.Name;
@@ -184,8 +184,13 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 entity.ScenarioTreatmentCosts.ForEach(_ => _.CreateTreatmentCost(selectableTreatment));
             }
 
+            var baseExpression = entity.CriterionLibraryScenarioSelectableTreatmentJoin?.CriterionLibrary.MergedCriteriaExpression ?? string.Empty;
+
+            baseExpression = CombineOverrideCriteria(baseExpression, activeOverrideCriteria?
+                .Where(c => c.TreatmentJoins != null && c.TreatmentJoins.Any(t => t.ScenarioSelectableTreatmentId == entity.Id)));
+
             var feasibility = selectableTreatment.AddFeasibilityCriterion();
-            feasibility.Expression = entity.CriterionLibraryScenarioSelectableTreatmentJoin?.CriterionLibrary.MergedCriteriaExpression ?? string.Empty;
+            feasibility.Expression = baseExpression;
 
             if (entity.ScenarioTreatmentSchedulings.Any())
             {
@@ -275,8 +280,194 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 IsShared = entity.IsShared,
                 Treatments = entity.Treatments.Any()
                     ? entity.Treatments.Select(_ => _.ToDto(treatmentList)).OrderBy(t => t.Name).ToList()
-                    : new List<TreatmentDTO>()
+                    : new List<TreatmentDTO>(),
+                RuleOverrides = entity.RuleOverrides != null && entity.RuleOverrides.Any()
+                    ? entity.RuleOverrides.Select(_ => _.ToDto()).OrderBy(o => o.Name).ToList()
+                    : new List<TreatmentRuleOverrideDTO>()
             };
+
+        public static TreatmentRuleOverrideDTO ToDto(this TreatmentRuleOverrideEntity entity) =>
+            new TreatmentRuleOverrideDTO
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                IsEnabledByDefault = entity.IsEnabledByDefault,
+                IsEnabled = entity.IsEnabledByDefault,
+                Criteria = entity.Criteria != null && entity.Criteria.Any()
+                    ? entity.Criteria.OrderBy(_ => _.SortOrder).Select(_ => _.ToDto()).ToList()
+                    : new List<TreatmentRuleOverrideCriterionDTO>()
+            };
+
+        public static TreatmentRuleOverrideCriterionDTO ToDto(this TreatmentRuleOverrideCriterionEntity entity) =>
+            new TreatmentRuleOverrideCriterionDTO
+            {
+                Id = entity.Id,
+                LogicalOperator = NormalizeLogicalOperator(entity.LogicalOperator),
+                SortOrder = entity.SortOrder,
+                CriterionExpression = entity.CriterionExpression,
+                TreatmentIds = entity.TreatmentJoins != null && entity.TreatmentJoins.Any()
+                    ? entity.TreatmentJoins.Select(_ => _.SelectableTreatmentId).ToList()
+                    : new List<Guid>(),
+                Treatments = entity.TreatmentJoins != null && entity.TreatmentJoins.Any()
+                    ? entity.TreatmentJoins
+                        .Where(_ => _.SelectableTreatment != null)
+                        .Select(_ => new SimpleTreatmentDTO
+                        {
+                            Id = _.SelectableTreatmentId,
+                            Name = _.SelectableTreatment.Name
+                        })
+                        .OrderBy(_ => _.Name)
+                        .ToList()
+                    : new List<SimpleTreatmentDTO>()
+            };
+
+        public static TreatmentRuleOverrideDTO ToDto(this ScenarioTreatmentRuleOverrideEntity entity) =>
+            new TreatmentRuleOverrideDTO
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                SourceTreatmentRuleOverrideId = entity.SourceTreatmentRuleOverrideId,
+                IsEnabledByDefault = entity.IsEnabled,
+                IsEnabled = entity.IsEnabled,
+                Criteria = entity.Criteria != null && entity.Criteria.Any()
+                    ? entity.Criteria.OrderBy(_ => _.SortOrder).Select(_ => _.ToDto()).ToList()
+                    : new List<TreatmentRuleOverrideCriterionDTO>()
+            };
+
+        public static TreatmentRuleOverrideCriterionDTO ToDto(this ScenarioTreatmentRuleOverrideCriterionEntity entity) =>
+            new TreatmentRuleOverrideCriterionDTO
+            {
+                Id = entity.Id,
+                LogicalOperator = NormalizeLogicalOperator(entity.LogicalOperator),
+                SortOrder = entity.SortOrder,
+                CriterionExpression = entity.CriterionExpression,
+                TreatmentIds = entity.TreatmentJoins != null && entity.TreatmentJoins.Any()
+                    ? entity.TreatmentJoins.Select(_ => _.ScenarioSelectableTreatmentId).ToList()
+                    : new List<Guid>(),
+                Treatments = entity.TreatmentJoins != null && entity.TreatmentJoins.Any()
+                    ? entity.TreatmentJoins
+                        .Where(_ => _.ScenarioSelectableTreatment != null)
+                        .Select(_ => new SimpleTreatmentDTO
+                        {
+                            Id = _.ScenarioSelectableTreatmentId,
+                            Name = _.ScenarioSelectableTreatment.Name
+                        })
+                        .OrderBy(_ => _.Name)
+                        .ToList()
+                    : new List<SimpleTreatmentDTO>()
+            };
+
+        public static ScenarioTreatmentRuleOverrideEntity ToScenarioEntity(this TreatmentRuleOverrideDTO dto, Guid simulationId, BaseEntityProperties baseEntityProperties = null)
+        {
+            var entity = new ScenarioTreatmentRuleOverrideEntity
+            {
+                Id = dto.Id != Guid.Empty ? dto.Id : Guid.NewGuid(),
+                SimulationId = simulationId,
+                SourceTreatmentRuleOverrideId = dto.SourceTreatmentRuleOverrideId,
+                Name = dto.Name,
+                Description = dto.Description,
+                IsEnabled = dto.IsEnabled
+            };
+            BaseEntityPropertySetter.SetBaseEntityProperties(entity, baseEntityProperties);
+
+            foreach (var criterionDto in dto.Criteria ?? new List<TreatmentRuleOverrideCriterionDTO>())
+            {
+                var criterionEntity = new ScenarioTreatmentRuleOverrideCriterionEntity
+                {
+                    Id = criterionDto.Id != Guid.Empty ? criterionDto.Id : Guid.NewGuid(),
+                    ScenarioTreatmentRuleOverrideId = entity.Id,
+                    LogicalOperator = NormalizeLogicalOperator(criterionDto.LogicalOperator),
+                    SortOrder = criterionDto.SortOrder,
+                    CriterionExpression = criterionDto.CriterionExpression
+                };
+                BaseEntityPropertySetter.SetBaseEntityProperties(criterionEntity, baseEntityProperties);
+
+                foreach (var treatmentId in criterionDto.TreatmentIds?.Where(id => id != Guid.Empty).Distinct() ?? Enumerable.Empty<Guid>())
+                {
+                    var treatmentJoin = new ScenarioTreatmentRuleOverrideCriterionTreatmentEntity
+                    {
+                        ScenarioTreatmentRuleOverrideCriterionId = criterionEntity.Id,
+                        ScenarioSelectableTreatmentId = treatmentId
+                    };
+                    BaseEntityPropertySetter.SetBaseEntityProperties(treatmentJoin, baseEntityProperties);
+                    criterionEntity.TreatmentJoins.Add(treatmentJoin);
+                }
+
+                entity.Criteria.Add(criterionEntity);
+            }
+
+            return entity;
+        }
+
+        private static string CombineOverrideCriteria(string baseExpression, IEnumerable<ScenarioTreatmentRuleOverrideCriterionEntity> overrideCriteria)
+        {
+            var baseCriteriaExpression = baseExpression?.Trim() ?? string.Empty;
+            if (overrideCriteria == null)
+            {
+                return baseCriteriaExpression;
+            }
+
+            var criteria = overrideCriteria
+                .Where(overrideCriterion => !string.IsNullOrWhiteSpace(overrideCriterion.CriterionExpression))
+                .Select(overrideCriterion => new
+                {
+                    LogicalOperator = NormalizeLogicalOperator(overrideCriterion.LogicalOperator),
+                    CriterionExpression = ParenthesizeExpression(overrideCriterion.CriterionExpression)
+                })
+                .ToList();
+            if (!criteria.Any())
+            {
+                return baseCriteriaExpression;
+            }
+
+            var andExpressions = new List<string>();
+            if (!string.IsNullOrWhiteSpace(baseCriteriaExpression))
+            {
+                andExpressions.Add(ParenthesizeExpression(baseCriteriaExpression));
+            }
+
+            andExpressions.AddRange(criteria
+                .Where(overrideCriterion => overrideCriterion.LogicalOperator == "AND")
+                .Select(overrideCriterion => overrideCriterion.CriterionExpression));
+
+            var expressionGroups = new List<string>();
+            if (andExpressions.Any())
+            {
+                var andGroupExpression = string.Join(" AND ", andExpressions);
+                expressionGroups.Add(andExpressions.Count > 1 ? ParenthesizeExpression(andGroupExpression) : andGroupExpression);
+            }
+
+            expressionGroups.AddRange(criteria
+                .Where(overrideCriterion => overrideCriterion.LogicalOperator == "OR")
+                .Select(overrideCriterion => overrideCriterion.CriterionExpression));
+
+            return string.Join(" OR ", expressionGroups);
+        }
+
+        private static string ParenthesizeExpression(string expression)
+        {
+            var trimmedExpression = expression?.Trim() ?? string.Empty;
+            return string.IsNullOrWhiteSpace(trimmedExpression)
+                ? string.Empty
+                : $"({trimmedExpression})";
+        }
+
+        private static string NormalizeLogicalOperator(string logicalOperator)
+        {
+            if (string.Equals(logicalOperator, "OR", StringComparison.OrdinalIgnoreCase))
+            {
+                return "OR";
+            }
+
+            if (string.Equals(logicalOperator, "AND", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(logicalOperator))
+            {
+                return "AND";
+            }
+
+            throw new InvalidOperationException("Treatment override criteria only support AND or OR append operators.");
+        }
 
         public static TreatmentDTO ToDtoNullSafe(this SelectableTreatmentEntity entity)
         {

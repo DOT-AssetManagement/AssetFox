@@ -63,7 +63,7 @@ namespace AssetFoxCoreTests.Tests
             }
 
             public void OnCompletion(IServiceProvider serviceProvider) {}
-            public void OnFault(IServiceProvider serviceProvider, string errorMessage) => throw new NotImplementedException();
+            public void OnFault(IServiceProvider serviceProvider, Exception? e) => throw new NotImplementedException();
             public void OnUpdate(IServiceProvider serviceProvider) { }
         }
     }

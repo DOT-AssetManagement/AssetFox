@@ -20,6 +20,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
             CommittedProjects = new HashSet<CommittedProjectEntity>();
             SimulationUserJoins = new HashSet<SimulationUserEntity>();
             SimulationLogs = new HashSet<SimulationLogEntity>();
+            TreatmentRuleOverrides = new HashSet<ScenarioTreatmentRuleOverrideEntity>();
         }
 
         public Guid Id { get; set; }
@@ -59,6 +60,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
         public virtual ICollection<ScenarioCalculatedAttributeEntity> CalculatedAttributes { get; set; }
 
         public virtual ICollection<ScenarioSelectableTreatmentEntity> SelectableTreatments { get; set; }
+
+        public virtual ICollection<ScenarioTreatmentRuleOverrideEntity> TreatmentRuleOverrides { get; set; }
 
         public virtual ICollection<ScenarioTargetConditionGoalEntity> ScenarioTargetConditionalGoals { get; set; }
 

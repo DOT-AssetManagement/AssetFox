@@ -12,7 +12,8 @@ import {
     onHandleLogout,
 } from '@/shared/utils/authentication-utils';
 import { createRouter, createWebHistory } from 'vue-router';
-import { useConfirm } from 'primevue/useconfirm';
+// @ts-ignore primevue does not publish a declaration for this internal bus.
+import ConfirmationEventBus from 'primevue/confirmationeventbus';
 import AuthenticationService from './services/authentication.service';
 
 // Lazily-loaded pages
@@ -68,8 +69,6 @@ const NoRole = () =>
     import(
         /*webpackChunkName: "noRole" */ '@/components/authentication/NoRole.vue'
     );
-const Inventory = () =>
-    import(/*webpackChunkName: "inventory" */ '@/components/Inventory.vue');
 const UserCriteriaEditor = () =>
     import(
         /*webpackChunkName: "userCriteria" */ '@/components/user-criteria/UserCriteria.vue'
@@ -97,6 +96,14 @@ const CommittedProjectsEditor = () =>
 const CalculatedAttributeEditor = () =>
     import(
         /*webpackChunkName: "CalculatedAttributeEditor" */ '@/components/calculated-attribute-editor/CalculatedAttributeEditor.vue'
+    );
+const ReportBuilder = () =>
+    import(
+        '@/components/reports/report-builder/ReportBuilder.vue'
+    );
+const ReportViewer = () =>
+    import(
+        '@/components/reports/report-viewer/ReportViewer.vue'
     );
 const EditRawData = () =>
     import(
@@ -136,17 +143,29 @@ const AccessDenied = () =>
     );
     
 
+const navigationConfirmGroup = 'navigation';
+
 const onHandlingUnsavedChanges = (to: any, next: any): void => {
     // @ts-ignore
     if (store.state.unsavedChangesFlagModule.hasUnsavedChanges) {
-        // @ts-ignore
-        const confirm = useConfirm(); 
-        confirm.require({
+        let hasSettled = false;
+        const settleNavigation = (shouldContinue: boolean) => {
+            if (hasSettled) {
+                return;
+            }
+
+            hasSettled = true;
+            shouldContinue ? next() : next(false);
+        };
+
+        ConfirmationEventBus.emit('confirm', {
+            group: navigationConfirmGroup,
             message: "You have unsaved changes. Are you sure you wish to continue?",
             acceptLabel: "Continue",
             rejectLabel: "Close",
-            accept: ()=>next(),
-            reject: ()=>next(false)
+            accept: () => settleNavigation(true),
+            reject: () => settleNavigation(false),
+            onHide: () => settleNavigation(false)
         });
     } else {
         next();
@@ -217,9 +236,9 @@ const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
-            path: '/Inventory/',
-            name: 'Inventory',
-            component: Inventory,
+            path: '/ReportBuilder/',
+            name: 'ReportBuilder',
+            component: ReportBuilder,
             beforeEnter: beforeEnterFunc,
         },
         {
@@ -305,6 +324,13 @@ const router = createRouter({
                     beforeEnter: beforeEachFunc,
                 },
             ],
+        },
+        {
+            path: '/ReportViewer/Scenario',
+            name: 'ReportViewer',
+            component: ReportViewer,
+            props: true,
+            beforeEnter: beforeEachFunc,
         },
         {
             path: '/EditLibrary/',

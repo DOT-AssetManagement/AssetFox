@@ -318,12 +318,14 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
             _unitOfWork.AsTransaction(() =>
             {
+                var budgetPrioritiesBeforeBudgetChanges = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
                 DeleteScenarioBudgets(changes.BudgetsForDeletion);
                 InsertScenarioBudgets(changes.AddedBudgets, simulationId);
                 UpdateScenarioBudgets(changes.UpdatedBudgets, simulationId);
                 _unitOfWork.BudgetAmountRepo.ShiftAllScenarioBudgetAmountYears(simulationId, changes.FirstYearAnalysisBudgetShift);
                 _unitOfWork.BudgetAmountRepo.SaveScenarioBudgetAmounts(changes, simulationId);
                 _unitOfWork.InvestmentPlanRepo.UpsertInvestmentPlan(changes.Investment, simulationId);
+                SynchronizeScenarioBudgetPriorityPercentagePairs(simulationId, budgetPrioritiesBeforeBudgetChanges);
             });
         }
 
@@ -464,6 +466,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("No simulation was found for the given scenario.");
             }
 
+            var budgetPrioritiesBeforeBudgetChanges = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
             var budgetEntities = budgets.Select(_ => _.ToScenarioEntity(simulationId)).ToList();
             var budgetNames = new List<string>();
 
@@ -519,31 +522,11 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var budgetEntitiesToAdd = budgetEntities.Where(_ => !existingEntityIds.Contains(_.Id)).ToList();
             _unitOfWork.Context.AddAll(
                 budgetEntitiesToAdd, _unitOfWork.UserEntity?.Id);
-            if (budgetEntitiesToAdd.Any())
-            {
-                var existingBudgetPriorities = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
-                var percentagePairEntities = new List<BudgetPercentagePairEntity>();
-                foreach (var entity in budgetEntitiesToAdd)
-                {
-                    foreach (var priority in existingBudgetPriorities)
-                    {
-                        var newPercentagePair = new BudgetPercentagePairDTO
-                        {
-                            BudgetId = entity.Id,
-                            BudgetName = entity.Name,
-                            Id = Guid.NewGuid(),
-                            Percentage = 100,
-                        };
-                        var newPercentagePairEntity = BudgetPercentagePairMapper.ToEntity(newPercentagePair, priority.Id);
-                        percentagePairEntities.Add(newPercentagePairEntity);
-                    }
-                }
-                _unitOfWork.Context.AddRange(percentagePairEntities);
-            }
 
             var budgetAmountsPerBudgetId = budgets.ToDictionary(_ => _.Id, _ => _.BudgetAmounts);
 
             _unitOfWork.BudgetAmountRepo.UpsertOrDeleteScenarioBudgetAmounts(budgetAmountsPerBudgetId, simulationId);
+            SynchronizeScenarioBudgetPriorityPercentagePairs(simulationId, budgetPrioritiesBeforeBudgetChanges);
 
             _unitOfWork.Context.DeleteAll<CriterionLibraryScenarioBudgetEntity>(_ =>
                 _.ScenarioBudget.SimulationId == simulationId);
@@ -574,6 +557,48 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 _unitOfWork.Context.AddAll(criteria, _unitOfWork.UserEntity?.Id);
                 _unitOfWork.Context.AddAll(criterionJoins, _unitOfWork.UserEntity?.Id);
             }
+        }
+
+        private void SynchronizeScenarioBudgetPriorityPercentagePairs(Guid simulationId, List<BudgetPriorityDTO> sourceBudgetPriorities)
+        {
+            var currentBudgetPriorities = _unitOfWork.BudgetPriorityRepo.GetScenarioBudgetPriorities(simulationId);
+            if (!currentBudgetPriorities.Any())
+            {
+                return;
+            }
+
+            var sourcePriorities = sourceBudgetPriorities?.Any() == true
+                ? sourceBudgetPriorities
+                : currentBudgetPriorities;
+            var sourcePrioritiesById = sourcePriorities
+                .GroupBy(_ => _.Id)
+                .ToDictionary(_ => _.Key, _ => _.First());
+
+            foreach (var currentBudgetPriority in currentBudgetPriorities)
+            {
+                if (sourcePrioritiesById.TryGetValue(currentBudgetPriority.Id, out var sourceBudgetPriority))
+                {
+                    currentBudgetPriority.BudgetPercentagePairs =
+                        sourceBudgetPriority.BudgetPercentagePairs ?? new List<BudgetPercentagePairDTO>();
+                }
+            }
+
+            var currentBudgets = GetScenarioSimpleBudgetDetails(simulationId);
+            BudgetPriorityPercentagePairSynchronizer.SynchronizeWithBudgets(currentBudgetPriorities, currentBudgets);
+            ReplaceScenarioBudgetPriorityPercentagePairs(simulationId, currentBudgetPriorities);
+        }
+
+        private void ReplaceScenarioBudgetPriorityPercentagePairs(Guid simulationId, List<BudgetPriorityDTO> budgetPriorities)
+        {
+            _unitOfWork.Context.DeleteAll<BudgetPercentagePairEntity>(_ =>
+                _.ScenarioBudgetPriority.SimulationId == simulationId);
+
+            var percentagePairEntities = budgetPriorities
+                .Where(_ => _.BudgetPercentagePairs != null)
+                .SelectMany(_ => _.BudgetPercentagePairs.Select(pair => pair.ToEntity(_.Id)))
+                .ToList();
+
+            _unitOfWork.Context.AddAll(percentagePairEntities, _unitOfWork.UserEntity?.Id);
         }
 
         public void UpsertOrDeleteScenarioBudgetsWithInvestmentPlan(List<BudgetDTO> budgets, InvestmentPlanDTO investmentPlan, Guid simulationId)

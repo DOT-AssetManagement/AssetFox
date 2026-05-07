@@ -10,8 +10,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryE
         {
             Treatments = new HashSet<SelectableTreatmentEntity>();
             Users = new HashSet<TreatmentLibraryUserEntity>();
+            RuleOverrides = new HashSet<TreatmentRuleOverrideEntity>();
         }
         public virtual ICollection<TreatmentLibraryUserEntity> Users { get; set; }
         public virtual ICollection<SelectableTreatmentEntity> Treatments { get; set; }
+        public virtual ICollection<TreatmentRuleOverrideEntity> RuleOverrides { get; set; }
     }
 }

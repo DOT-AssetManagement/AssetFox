@@ -437,3 +437,9 @@ BridgeCareApp/AppliedResearchAssociates.iAM.TestHelpers/testConnections.json
 /BridgeCareApp/AssetFoxCore/testConnections.json.json
 /BridgeCareApp/AssetFox.Core.DataPersistenceCore/Repositories/MSSQL/migrationConnection.json
 /BridgeCareApp/AssetFoxCore/Logs
+/BridgeCareApp/AssetFoxCore/CommittedProjects
+/BridgeCareApp/AssetFox.Core.DataPersistenceCore/test.sql
+/BridgeCareApp/overview.md
+/overview.md
+/BridgeCareApp/excelrefactor.md
+/BridgeCareApp/charting.md

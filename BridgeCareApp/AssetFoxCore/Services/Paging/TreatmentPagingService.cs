@@ -39,6 +39,7 @@ namespace AssetFoxCore.Services
                 rows.ForEach(_ =>
                 {
                     FixNullLists(_);
+                    _.SourceTreatmentId = _.Id;
                     _.Id = Guid.NewGuid();
                     if (_.CriterionLibrary != null)
                     {
@@ -94,6 +95,7 @@ namespace AssetFoxCore.Services
             // PASS 1: Assign IDs and populate the Map
             foreach (var row in rows)
             {
+                row.SourceTreatmentId = row.Id;
                 row.Id = Guid.NewGuid();
 
                 if (!string.IsNullOrEmpty(row.Name) && !nameIdMap.ContainsKey(row.Name))

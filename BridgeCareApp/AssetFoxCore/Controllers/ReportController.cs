@@ -12,11 +12,14 @@ using AssetFox.Core.DTOs;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFox.Core.Reporting;
+using AssetFox.Core.UniversalReporting.Viewer;
 using AssetFoxCore.Controllers.BaseController;
 using AssetFoxCore.Interfaces;
 using AssetFoxCore.Models;
 using AssetFoxCore.Security.Interfaces;
 using AssetFoxCore.Services;
+using AssetFoxCore.Services.Reporting;
+using AssetFoxCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,14 +37,19 @@ namespace AssetFoxCore.Controllers
         private readonly IGeneralWorkQueueService _generalWorkQueueService;
         public const string ReportError = "Report Error";
         private readonly UnitOfDataPersistenceWork _unitOfWork;
+        private readonly IViewerDataService _viewerDataService;
+        private readonly IClaimHelper _claimHelper;
+        private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
 
         public ReportController(UnitOfDataPersistenceWork unitOfDataPersistenceWork, IReportGenerator generator, IEsecSecurity esecSecurity, UnitOfDataPersistenceWork unitOfWork, IHubService hubService,
-            IHttpContextAccessor httpContextAccessor, ILog logger, IGeneralWorkQueueService generalWorkQueService) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor, ILog logger, IGeneralWorkQueueService generalWorkQueService, IViewerDataService viewerDataService, IClaimHelper claimHelper) : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
             _log = logger ?? throw new ArgumentNullException(nameof(logger));
             _generalWorkQueueService = generalWorkQueService ?? throw new ArgumentNullException(nameof(generalWorkQueService));
             _unitOfWork = unitOfWork;
+            _viewerDataService = viewerDataService ?? throw new ArgumentNullException(nameof(viewerDataService));
+            _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
         }
 
         public class ReportDetails
@@ -52,6 +60,12 @@ namespace AssetFoxCore.Controllers
             public string reportStatus  { get; set; }
         }
 
+        public class UniversalReportExportRequest
+        {
+            public Guid SchemaId { get; set; }
+            public Guid SimulationId { get; set; }
+        }
+
         #region "API functions"
 
         [HttpPost]
@@ -60,7 +74,7 @@ namespace AssetFoxCore.Controllers
         public async Task<IActionResult> GetHtml(string reportName)
         {
             // NOTE:  This might be useful:  https://weblog.west-wind.com/posts/2013/dec/13/accepting-raw-request-body-content-with-aspnet-web-api
-                        
+
             var parameters = await GetParameters();
             var report = await GenerateReport(reportName, ReportType.HTML, parameters);
 
@@ -168,6 +182,14 @@ namespace AssetFoxCore.Controllers
                 var message = new List<string>() { $"A simulation with the ID of {simulationId} is not available in the database." };
                 return CreateErrorListing(message);
             }
+            try
+            {
+                _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { error = e.Message });
+            }
             // simulationName can be derived from simulation object if needed, or use the one fetched earlier.
 
             var report = UnitOfWork.ReportIndexRepository.GetAllForScenario(simulationId)
@@ -181,7 +203,7 @@ namespace AssetFoxCore.Controllers
                 return CreateErrorListing(message);
             }
 
-            if (string.IsNullOrWhiteSpace(report.Result)) 
+            if (string.IsNullOrWhiteSpace(report.Result))
             {
                 var message = new List<string>() { $"The report metadata for {simulationName} (type: {reportName}) did not include a valid file path." };
                 return CreateErrorListing(message);
@@ -238,12 +260,12 @@ namespace AssetFoxCore.Controllers
                 // and streams the file efficiently.
                 return File(fileStream, mimeType, downloadFileName);
             }
-            catch (IOException ex) 
+            catch (IOException ex)
             {
                 var message = new List<string>() { $"An error occurred while trying to access the report file for {simulationName} (type: {reportName}).", ex.Message };
                 return CreateErrorListing(message); // Or return StatusCode(500, ...)
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 return CreateErrorListing(new List<string>() { $"An unexpected error occurred: {e.Message}" });
             }
@@ -401,7 +423,7 @@ namespace AssetFoxCore.Controllers
         public async Task<IActionResult> DeleteAllGeneratedReports(Guid simulationId)
         {
             var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
-         
+
             if (simulationId == Guid.Empty)
             {
                 var message = new List<string>() { $"No simulation or report name provided." };
@@ -426,6 +448,107 @@ namespace AssetFoxCore.Controllers
             return Ok($"All reports for {simulationName} have been successfully deleted.");
         }
 
+        [HttpPost]
+        [Route("universal/export")]
+        [Authorize]
+        public IActionResult ExportUniversalReport([FromBody] UniversalReportExportRequest request)
+        {
+            try
+            {
+                if (request == null || request.SchemaId == Guid.Empty || request.SimulationId == Guid.Empty)
+                {
+                    return BadRequest("schemaId and simulationId are required.");
+                }
+
+                CheckCanReadReportTemplate(request.SchemaId);
+                _claimHelper.CheckUserSimulationReadAuthorization(request.SimulationId, UserId);
+                var simulationName = UnitOfWork.SimulationRepo.GetSimulationName(request.SimulationId);
+                var reportId = Guid.NewGuid();
+                var parameters = new JObject
+                {
+                    ["scenarioId"] = request.SimulationId,
+                    ["simulationId"] = request.SimulationId,
+                    ["schemaId"] = request.SchemaId,
+                    ["reportId"] = reportId
+                };
+
+                var workItem = new ReportGenerationWorkitem(
+                    parameters,
+                    UserInfo.Name,
+                    simulationName,
+                    UniversalReportFactory.ReportName);
+
+                var workHandle = _generalWorkQueueService.CreateAndRunInFastQueue(workItem);
+                HubService.SendRealTimeMessage(
+                    UserInfo.Name,
+                    HubConstant.BroadcastFastWorkQueueUpdate,
+                    request.SimulationId.ToString());
+
+                return Ok(new
+                {
+                    reportId,
+                    workId = workHandle.WorkId,
+                    reportName = UniversalReportFactory.ReportName
+                });
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { error = e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = e.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("ViewerMetadata/{simulationId}")]
+        [Authorize]
+        public IActionResult GetViewerMetadata(Guid simulationId)
+        {
+            try
+            {
+                _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
+                var metadata = _viewerDataService.GetMetadata(simulationId);
+                return Ok(metadata);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { error = e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = e.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("ViewerData/{schemaId}/{componentId}")]
+        [Authorize]
+        public IActionResult GetViewerData(Guid schemaId, string componentId, [FromBody] ViewerDataRequestDTO request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest("Request body is required.");
+                }
+
+                CheckCanReadReportTemplate(schemaId);
+                _claimHelper.CheckUserSimulationReadAuthorization(request.SimulationId, UserId);
+                var result = _viewerDataService.GetComponentData(schemaId, componentId, request);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { error = e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = e.Message });
+            }
+        }
+
         #endregion
 
         #region "Internal functions"
@@ -438,14 +561,20 @@ namespace AssetFoxCore.Controllers
             {
                 using var reader = new StreamReader(Request.Body, Encoding.UTF8);
                 data = await reader.ReadToEndAsync();
-            }            
+            }
             var parameterObj = JObject.Parse(data);
-            
+
             return parameterObj;
         }
 
+        private void CheckCanReadReportTemplate(Guid schemaId)
+        {
+            var access = UnitOfWork.ReportSchemaRepo.GetLibraryAccess(schemaId, UserId);
+            _claimHelper.CheckGetLibraryUsersValidity(access, UserId);
+        }
+
         private async Task<IReport> GenerateReport(string reportName, ReportType expectedReportType, JObject parameters)
-        {            
+        {
             var simulationId = parameters.SelectToken("scenarioId")?.ToObject<IEnumerable<object>>().FirstOrDefault()?.ToString();
             var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
             IReport reportObject;
@@ -459,7 +588,7 @@ namespace AssetFoxCore.Controllers
             {
                 reportObject = await _generator.Generate(reportName);
             }
-           
+
             //generate report
             if (reportObject == null)
             {
@@ -481,7 +610,7 @@ namespace AssetFoxCore.Controllers
             // Run the report as long as it does not have any existing errors (i.e., failure on generation)
             // Note:  If report was switched to a FailureReport previously, this will not run again
             if (!reportObject.Errors.Any())
-            {                
+            {
                 await reportObject.Run(parameters.ToString());
             }
 
@@ -509,7 +638,7 @@ namespace AssetFoxCore.Controllers
                 MimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             };
         }
-        
+
         private byte[] FetchFromFileLocation(string filePath)
         {
             if (System.IO.File.Exists(filePath) == false)

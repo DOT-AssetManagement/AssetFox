@@ -1,5 +1,5 @@
 <template>
-    <v-card height="1000px" class="elevation-0 vcard-main-layout" style="margin-top: -10px;">    
+    <v-card class="elevation-0 vcard-main-layout" style="margin-top: -10px; min-height: 1000px;">    
     <v-row style="margin-top: 5px;">
         <v-col>
             <v-select
@@ -57,7 +57,19 @@
                     Upload
             </v-btn>
         </v-col>
-    </v-row><br>    
+    </v-row>
+    <v-row v-if="hasScenario && ruleOverrides.length > 0" style="margin-top: 0px; margin-bottom: -10px;">
+        <v-col cols="12">
+            <RuleOverrideToggles
+                :key="ruleOverrideTogglesKey"
+                :ruleOverrides="ruleOverrides"
+                :scenarioId="selectedScenarioId"
+                :treatments="simpleTreatments"
+                @changed="onRuleOverrideToggleChanged"
+            />
+        </v-col>
+    </v-row>
+    <br>
     <v-row>
         <v-col style="padding-right: 5px;margin-top: -50px;">                       
             <v-btn
@@ -146,6 +158,9 @@
                                 >
                                     <TreatmentDetailsTab
                                         :selectedTreatmentDetails='selectedTreatmentDetails'
+                                        :selectedTreatmentId='selectedTreatment.id'
+                                        :selectedTreatmentName='selectedTreatment.name'
+                                        :ruleOverrides='ruleOverrides'
                                         :rules='rules'
                                         :callFromScenario='hasScenario'
                                         :callFromLibrary='!hasScenario'
@@ -241,8 +256,17 @@
         <v-col cols="12">
             <v-row justify="center" v-show='hasSelectedLibrary && !hasScenario'>
                 <v-col>
+                    <RuleOverrideEditor
+                        :ruleOverrides="selectedTreatmentLibrary.ruleOverrides"
+                        :treatmentSelectItems="treatmentSelectItems"
+                        @update:ruleOverrides="onRuleOverridesChanged"
+                    />
+                </v-col>
+            </v-row>
+            <v-row justify="center" v-show='hasSelectedLibrary && !hasScenario'>
+                <v-col>
                     <v-subheader class="ghd-control-label ghd-md-gray">Description</v-subheader>
-                    <v-textarea                        
+                    <v-textarea
                         class='ghd-control-border ghd-control-text'
                         no-resize
                         variant="outlined"
@@ -423,6 +447,10 @@ import { useConfirm } from 'primevue/useconfirm';
 import ConfirmDialog from 'primevue/confirmdialog';
 import AuthenticationService from '@/services/authentication.service';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
+import RuleOverrideToggles from '@/components/treatment-editor/RuleOverrideToggles.vue';
+import RuleOverrideEditor from '@/components/treatment-editor/RuleOverrideEditor.vue';
+import TreatmentRuleOverrideService from '@/services/treatment-rule-override.service';
+import { ScenarioOverrideSetting, TreatmentRuleOverride } from '@/shared/models/iAM/treatment-rule-override';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import CreateAsNewLibraryButton from '@/shared/components/buttons/CreateAsNewLibraryButton.vue';
@@ -635,6 +663,10 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
 
     const shareTreatmentLibraryDialogData = ref<ShareTreatmentLibraryDialogData>(clone(emptyShareTreatmentLibraryDialogData));
     let loadedScenarioId: string = '';
+    const ruleOverrides = ref<TreatmentRuleOverride[]>([]);
+    const ruleOverrideTogglesKey = ref(0);
+    let pendingScenarioOverrideSettings: ScenarioOverrideSetting[] = [];
+    let hasPendingScenarioOverrideSettings = false;
     let parentLibraryId: string  = uuidNIL;
     let parentLibraryName = ref('None');
     let scenarioParentLIbrary: string | null = null;
@@ -668,6 +700,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             hasScenario.value = true;
             await getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId);
             await getTreatmentLibraryBySimulationIdAction(selectedScenarioId);
+            ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
             await getScenarioPerformanceCurvesAction(selectedScenarioId);
             
             treatmentTabs = [...treatmentTabs, 'Budgets'];
@@ -726,11 +759,12 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
     
     watch(stateScenarioTreatmentLibrary, () => onStateScenarioTreatmentLibraryChanged())
     function onStateScenarioTreatmentLibraryChanged() {
-
         setParentLibraryName(stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : "None");
         scenarioLibraryIsModified = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.isModified : false;
         loadedParentId = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : uuidNIL;
         loadedParentName = parentLibraryName.value;
+
+        ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
     }
 
     watch(librarySelectItemValue, () => onLibrarySelectItemValueChangedCheckUnsaved())
@@ -778,6 +812,9 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         selectedTreatmentLibrary.value = clone(
             stateSelectedTreatmentLibrary.value
         );
+        if (stateSelectedTreatmentLibrary.value?.id && stateSelectedTreatmentLibrary.value.id !== uuidNIL) {
+            ruleOverrides.value = stateSelectedTreatmentLibrary.value.ruleOverrides || [];
+        }
     }
 
     watch(isSharedLibrary, () => onStateSharedAccessChanged())
@@ -930,6 +967,8 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         updatedRowsMap.clear();
         addedRows = [];
         treatmentCache = [];
+        pendingScenarioOverrideSettings = [];
+        hasPendingScenarioOverrideSettings = false;
     }
 
     function onSetTreatmentSelectItemValue(treatmentId: string | number) {
@@ -1135,20 +1174,28 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             updateRows: Array.from(updatedRowsMap.values()).map(r => r[1]),
             addedRows: addedRows,
             isModified: scenarioLibraryIsModified,
-        }, selectedScenarioId).then((response: AxiosResponse) => {
+        }, selectedScenarioId).then(async (response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
+                if (hasPendingScenarioOverrideSettings) {
+                    await TreatmentRuleOverrideService.upsertScenarioOverrideSettings(
+                        selectedScenarioId,
+                        pendingScenarioOverrideSettings,
+                    );
+                }
                 clearChanges();
                 if(hasSelectedLibrary.value){
                     librarySelectItemValue.value = "";
                     getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId)
                 }
                 treatmentCache.push(selectedTreatment.value);
-                
+
                 addSuccessNotificationAction({message: "Modified scenario's treatments"});
-                $emitter.emit('TreatmentSettingsUpdated');                 
-                
+                $emitter.emit('TreatmentSettingsUpdated');
+
+                await getTreatmentLibraryBySimulationIdAction(selectedScenarioId);
+                ruleOverrideTogglesKey.value += 1;
                 checkHasUnsavedChanges();
-            }           
+            }
         });
     }
 
@@ -1166,9 +1213,20 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                 scenarioId: null
         }
 
-        TreatmentService.upsertTreatmentLibrary(upsertRequest).then((response: AxiosResponse) => {
+        TreatmentService.upsertTreatmentLibrary(upsertRequest).then(async (response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                clearChanges();              
+                // Save rule overrides separately
+                if (selectedTreatmentLibrary.value.ruleOverrides?.length >= 0) {
+                    try {
+                        await TreatmentRuleOverrideService.upsertRuleOverrides(
+                            selectedTreatmentLibrary.value.id,
+                            selectedTreatmentLibrary.value.ruleOverrides,
+                        );
+                    } catch {
+                        // Error handled by axios interceptor
+                    }
+                }
+                clearChanges();
                 addedOrUpdatedTreatmentLibraryMutator(selectedTreatmentLibrary.value);
                 selectedTreatmentLibraryMutator(selectedTreatmentLibrary.value.id);
             }
@@ -1187,6 +1245,40 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             simpleTreatments.value = append({name: newTreatment.name, id: newTreatment.id}, simpleTreatments.value);
             setTimeout(() => (treatmentSelectItemValue.value = newTreatment.id));
         }
+    }
+
+    function onRuleOverridesChanged(overrides: TreatmentRuleOverride[]) {
+        selectedTreatmentLibrary.value.ruleOverrides = overrides;
+        checkHasUnsavedChanges();
+    }
+
+    function upsertPendingScenarioOverrideSetting(setting: ScenarioOverrideSetting) {
+        const existingIndex = pendingScenarioOverrideSettings.findIndex(
+            pendingSetting =>
+                pendingSetting.overrideId === setting.overrideId ||
+                pendingSetting.overrideName === setting.overrideName,
+        );
+
+        if (existingIndex >= 0) {
+            pendingScenarioOverrideSettings[existingIndex] = setting;
+        } else {
+            pendingScenarioOverrideSettings.push(setting);
+        }
+
+        hasPendingScenarioOverrideSettings = true;
+    }
+
+    function onRuleOverrideToggleChanged(setting: ScenarioOverrideSetting) {
+        upsertPendingScenarioOverrideSetting(setting);
+
+        ruleOverrides.value = ruleOverrides.value.map(ruleOverride =>
+            ruleOverride.id === setting.overrideId || ruleOverride.name === setting.overrideName
+                ? { ...ruleOverride, isEnabled: setting.isEnabled }
+                : ruleOverride
+        );
+
+        $emitter.emit('TreatmentSettingsUpdated');
+        checkHasUnsavedChanges();
     }
 
     function modifySelectedTreatmentDetails(treatmentDetails: TreatmentDetails) {
@@ -1345,9 +1437,12 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         treatmentSelectItemValue.value = "";
         librarySelectItemValue.value = "";
         setTimeout(() => {
-            if (hasScenario.value) {       
-                clearChanges();        
+            if (hasScenario.value) {
+                clearChanges();
                 simpleTreatments.value = clone(stateSimpleScenarioSelectableTreatments.value);
+                ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
+                ruleOverrideTogglesKey.value += 1;
+                checkHasUnsavedChanges();
             }
         });
         parentLibraryName.value = loadedParentName;
@@ -1357,8 +1452,11 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
     function reset(){
         treatmentSelectItemValue.value = "";
         librarySelectItemValue.value = "";
-        clearChanges();        
+        clearChanges();
         simpleTreatments.value = clone(stateSimpleScenarioSelectableTreatments.value);
+        ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
+        ruleOverrideTogglesKey.value += 1;
+        checkHasUnsavedChanges();
     }
 
     function onShowConfirmDeleteAlert() {
@@ -1709,7 +1807,8 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
     function checkHasUnsavedChanges(){
         const hasUnsavedChanges: boolean = 
             addedRows.length > 0 ||
-            updatedRowsMap.size > 0 || 
+            updatedRowsMap.size > 0 ||
+            hasPendingScenarioOverrideSettings ||
             (hasScenario.value && hasSelectedLibrary.value) ||
             (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTreatmentLibrary.value, stateSelectedTreatmentLibrary.value))
         setHasUnsavedChangesAction({ value: hasUnsavedChanges });

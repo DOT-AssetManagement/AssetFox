@@ -7,6 +7,8 @@ namespace AssetFox.Core.DTOs
     {
         public List<TreatmentDTO> Treatments { get; set; }
 
+        public List<TreatmentRuleOverrideDTO> RuleOverrides { get; set; } = new List<TreatmentRuleOverrideDTO>();
+
         public bool IsModified { get; set; }
     }
 }

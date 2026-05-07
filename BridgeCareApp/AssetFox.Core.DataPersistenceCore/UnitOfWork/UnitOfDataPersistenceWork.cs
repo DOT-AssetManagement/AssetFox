@@ -60,6 +60,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private ICalculatedAttributesRepository _calculatedAttributesRepo;
         private IRemainingLifeLimitRepository _remainingLifeLimitRepo;
         private ISelectableTreatmentRepository _selectableTreatmentRepo;
+        private ITreatmentRuleOverrideRepository _treatmentRuleOverrideRepo;
         private ISimulationAnalysisDetailRepository _simulationAnalysisDetailRepo;
         private ISimulationLogRepository _simulationLogRepo;
         private ISimulationOutputRepository _simulationOutputRepo;
@@ -75,6 +76,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private IBenefitQuantifierRepository _benefitQuantifierRepo;
         private IUserCriteriaRepository _userCriteriaRepo;
         private IReportIndexRepository _reportIndexRepo;
+        private IReportSchemaRepository _reportSchemaRepo;
         private IAssetData _assetDataRepository;
         private IAnnouncementRepository _announcementRepo;
         private IDataSourceRepository _dataSourceRepo;
@@ -127,6 +129,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
 
         public ISelectableTreatmentRepository SelectableTreatmentRepo => _selectableTreatmentRepo ??= new SelectableTreatmentRepository(this);
 
+        public ITreatmentRuleOverrideRepository TreatmentRuleOverrideRepo => _treatmentRuleOverrideRepo ??= new TreatmentRuleOverrideRepository(this);
+
         public ISimulationAnalysisDetailRepository SimulationAnalysisDetailRepo => _simulationAnalysisDetailRepo ??= new SimulationAnalysisDetailRepository(this);
 
         public ISimulationLogRepository SimulationLogRepo => _simulationLogRepo ??= new SimulationLogRepository(this);
@@ -156,6 +160,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         public IUserCriteriaRepository UserCriteriaRepo => _userCriteriaRepo ??= new UserCriteriaRepository(this);
 
         public IReportIndexRepository ReportIndexRepository => _reportIndexRepo ??= new ReportIndexRepository(this);
+
+        public IReportSchemaRepository ReportSchemaRepo => _reportSchemaRepo ??= new ReportSchemaRepository(this);
 
         public IAssetData AssetDataRepository => _assetDataRepository ??= new MaintainableAssetDataRepository(this);
 

@@ -154,6 +154,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 var simulationEntity = _unitOfWork.Context.Simulation.AsNoTracking()
                     .Single(_ => _.Id == simulationId);
 
+                var budgets = _unitOfWork.BudgetRepo.GetScenarioSimpleBudgetDetails(simulationId);
+                BudgetPriorityPercentagePairSynchronizer.SynchronizeWithBudgets(budgetPriorities, budgets);
+
                 var budgetPriorityEntities = budgetPriorities
                     .Select(_ => _.ToScenarioEntity(simulationId))
                     .ToList();

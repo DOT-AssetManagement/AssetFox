@@ -124,6 +124,74 @@ namespace AssetFoxCoreTests.Tests.BudgetPriority
             ObjectAssertions.EquivalentExcluding(expected, resultDto, x => x.BudgetPercentagePairs[0].Id);
         }
 
+        [Fact]
+        public void GetSyncedScenarioDataset_PercentagePairHasStaleIdButUniqueMatchingName_RetargetsPair()
+        {
+            var unitOfWork = UnitOfWorkMocks.New();
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
+            var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var simulationId = Guid.NewGuid();
+            var currentBudgetId = Guid.NewGuid();
+            var oldBudgetId = Guid.NewGuid();
+            var scenarioBudgetPriorityId = Guid.NewGuid();
+            var simpleBudgetDto = SimpleBudgetDetailDtos.Dto(currentBudgetId, "Budget");
+            var budgetPriorityDto = BudgetPriorityDtos.New(scenarioBudgetPriorityId);
+            var stalePercentagePair = new BudgetPercentagePairDTO
+            {
+                Id = Guid.NewGuid(),
+                BudgetId = oldBudgetId,
+                BudgetName = "Budget",
+                Percentage = 42,
+            };
+            budgetPriorityDto.BudgetPercentagePairs.Add(stalePercentagePair);
+            budgetPriorityRepo.Setup(b => b.GetScenarioBudgetPriorities(simulationId)).ReturnsList(budgetPriorityDto);
+            budgetRepo.Setup(br => br.GetScenarioSimpleBudgetDetails(simulationId)).ReturnsList(simpleBudgetDto);
+            var service = CreatePagingService(unitOfWork);
+            var request = new PagingSyncModel<BudgetPriorityDTO>();
+
+            var result = service.GetSyncedScenarioDataSet(simulationId, request);
+
+            var percentagePair = result.Single().BudgetPercentagePairs.Single();
+            Assert.Equal(stalePercentagePair.Id, percentagePair.Id);
+            Assert.Equal(currentBudgetId, percentagePair.BudgetId);
+            Assert.Equal("Budget", percentagePair.BudgetName);
+            Assert.Equal(42, percentagePair.Percentage);
+        }
+
+        [Fact]
+        public void GetSyncedScenarioDataset_PercentagePairHasStaleIdButDuplicateMatchingName_UsesDefaults()
+        {
+            var unitOfWork = UnitOfWorkMocks.New();
+            var budgetPriorityRepo = BudgetPriorityRepositoryMocks.New(unitOfWork);
+            var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var simulationId = Guid.NewGuid();
+            var firstBudgetId = Guid.NewGuid();
+            var secondBudgetId = Guid.NewGuid();
+            var scenarioBudgetPriorityId = Guid.NewGuid();
+            var firstBudget = SimpleBudgetDetailDtos.Dto(firstBudgetId, "Budget");
+            var secondBudget = SimpleBudgetDetailDtos.Dto(secondBudgetId, "Budget");
+            var budgetPriorityDto = BudgetPriorityDtos.New(scenarioBudgetPriorityId);
+            var stalePercentagePair = new BudgetPercentagePairDTO
+            {
+                Id = Guid.NewGuid(),
+                BudgetId = Guid.NewGuid(),
+                BudgetName = "Budget",
+                Percentage = 42,
+            };
+            budgetPriorityDto.BudgetPercentagePairs.Add(stalePercentagePair);
+            budgetPriorityRepo.Setup(b => b.GetScenarioBudgetPriorities(simulationId)).ReturnsList(budgetPriorityDto);
+            budgetRepo.Setup(br => br.GetScenarioSimpleBudgetDetails(simulationId)).ReturnsList(firstBudget, secondBudget);
+            var service = CreatePagingService(unitOfWork);
+            var request = new PagingSyncModel<BudgetPriorityDTO>();
+
+            var result = service.GetSyncedScenarioDataSet(simulationId, request);
+
+            var budgetIds = result.Single().BudgetPercentagePairs.Select(_ => _.BudgetId).ToList();
+            ObjectAssertions.Equivalent(new List<Guid> { firstBudgetId, secondBudgetId }, budgetIds);
+            Assert.All(result.Single().BudgetPercentagePairs, _ => Assert.Equal(100, _.Percentage));
+            Assert.DoesNotContain(result.Single().BudgetPercentagePairs, _ => _.Id == stalePercentagePair.Id);
+        }
+
 
         [Fact]
         public void GetScenarioPage_Search_ThinDto_DoesNotThrow()

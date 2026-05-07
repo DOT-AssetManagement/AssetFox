@@ -36,23 +36,7 @@ namespace AssetFoxCore.Services
                     }
                 });
             var budgets = _unitOfWork.BudgetRepo.GetScenarioSimpleBudgetDetails(simulationId);
-            //this gets rid of percentage pairs that shouldn't be there and adds the ones that should
-            rows.ForEach(row =>
-            {
-                row.BudgetPercentagePairs ??= new List<BudgetPercentagePairDTO>();
-                row.BudgetPercentagePairs = row.BudgetPercentagePairs.Where(_ => budgets.Any(__ => __.Name == _.BudgetName)).ToList();
-                budgets.ForEach(_ =>
-                {
-                    if (!row.BudgetPercentagePairs.Any(__ => __.BudgetName == _.Name))
-                        row.BudgetPercentagePairs.Add(new BudgetPercentagePairDTO()
-                        {
-                            Id = Guid.NewGuid(),
-                            BudgetId = _.Id,
-                            BudgetName = _.Name,
-                            Percentage = 100
-                        });
-                });
-            });
+            BudgetPriorityPercentagePairSynchronizer.SynchronizeWithBudgets(rows, budgets);
             return rows;
         }
 

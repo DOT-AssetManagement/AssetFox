@@ -388,9 +388,9 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
 
     // watch(benefit, onAnalysisChanged)
     watch(analysisMethod, onAnalysisChanged)
-     async function onAnalysisChanged() {
+     async function onAnalysisChanged() {             
+        await getSimulationAnalysisSettingAction({ scenarioId: selectedScenarioId.value });
         hasUnsavedChanges.value = !equals(analysisMethod.value, stateAnalysisMethod.value) || !stateSimulationAnalysisSetting.value;
-
         setHasUnsavedChangesAction({
             value:
                 hasUnsavedChanges.value
@@ -401,7 +401,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     }
 
     watch(stateSimulationAnalysisSetting, (newVal) => {
-        if(newVal === false)
+        if(newVal === false)        
         {
             hasUnsavedChanges.value = true;
         }
@@ -549,17 +549,6 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
                 $emitter.emit('AnalysisMethodUpdated');              
             }
         }
-        // const form: any = $refs.form;
-
-        // await(form.validate(), () =>{
-        //     if(form.result.valid){
-        //         upsertAnalysisMethodAction({
-        //         analysisMethod: analysisMethod,
-        //         scenarioId: selectedScenarioId,
-        //     });
-        //     }
-        // })
-         
     }
 
     function onConfirmEmptyCriteriaAlert() {
@@ -573,12 +562,10 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     }
 
     async function onConfirmEmptyCriteriaAlertSubmit(submit: boolean) {
-        ConfirmEmptyCriteria.value = clone(emptyAlertData);
-
+        ConfirmEmptyCriteria.value = clone(emptyAlertData);        
         if (submit) {
             if(analysisMethod.value.benefit.id === getBlankGuid())
             analysisMethod.value.benefit.id = getNewGuid();
-
             const responseData = await store.dispatch('upsertAnalysisMethod', { analysisMethod: analysisMethod.value, scenarioId: selectedScenarioId.value});
             
             if(responseData === "Analysis Method successfully updated")
