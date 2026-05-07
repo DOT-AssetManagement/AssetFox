@@ -325,7 +325,7 @@ namespace AssetFoxCoreTests.Tests
             // Act + Assert
             await controller.ImportLibraryInvestmentBudgetsExcelFile();
 
-            var messages = hubServiceMock.GetThreeArgumentErrorMessages();
+            var messages = hubServiceMock.GetFourArgumentErrorMessages();
             var message = messages.Single();
             Assert.Contains("Request MIME type is invalid.", message);
         }
@@ -342,7 +342,7 @@ namespace AssetFoxCoreTests.Tests
             // Act + Assert
             await controller.ImportLibraryInvestmentBudgetsExcelFile();
 
-            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            var message = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains("Investment budgets file not found.", message);
         }
 
@@ -359,7 +359,7 @@ namespace AssetFoxCoreTests.Tests
 
             // Act + Assert
             await controller.ImportLibraryInvestmentBudgetsExcelFile();
-            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            var message = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains("Request contained no budget library id.", message);
         }
 
@@ -375,7 +375,7 @@ namespace AssetFoxCoreTests.Tests
             // Act + Assert
             await controller.ImportScenarioInvestmentBudgetsExcelFile();
 
-            var message = hubserviceMock.GetSingleThreeArgumentErrorMessage();
+            var message = hubserviceMock.GetSingleFourArgumentErrorMessage();
             Assert.Contains("Investment budgets file not found.", message);
         }
 
@@ -393,7 +393,7 @@ namespace AssetFoxCoreTests.Tests
             // Act + Assert
             await controller.ImportScenarioInvestmentBudgetsExcelFile();
 
-            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            var message = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains("Request contained no simulation id.", message);
         }
 

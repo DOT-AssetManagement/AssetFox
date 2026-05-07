@@ -70,7 +70,7 @@ namespace AssetFoxCoreTests.Tests.Integration
 
             await controller.UpsertPerformanceCurveLibrary(upsertRequest);
 
-            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            var message = hubService.GetSingleFourArgumentErrorMessage();
             var libraryAfter = TestHelper.UnitOfWork.PerformanceCurveRepo.GetPerformanceCurveLibrary(libraryId);
             ObjectAssertions.Equivalent(libraryBefore, libraryAfter);
         }
