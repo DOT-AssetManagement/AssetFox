@@ -69,6 +69,7 @@ namespace AssetFoxCoreTests.Tests.Treatment
             var treatmentId = Guid.NewGuid();
             var dto = TreatmentDtos.Dto(treatmentId);
             var dtoClone = TreatmentDtos.Dto(treatmentId);
+            dtoClone.SourceTreatmentId = treatmentId;
             dtoClone.Consequences = new List<TreatmentConsequenceDTO>();
             dtoClone.Costs = new List<TreatmentCostDTO>();
             dtoClone.SupersedeRules = new List<TreatmentSupersedeRuleDTO>();
