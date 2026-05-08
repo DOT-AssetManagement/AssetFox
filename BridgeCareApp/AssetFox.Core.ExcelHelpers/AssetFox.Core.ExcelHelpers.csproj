@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" /> <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AssetFox.Core.Data\AssetFox.Core.Data.csproj" />
     <ProjectReference Include="..\AssetFox.Core.DTOs\AssetFox.Core.DTOs.csproj" />
   </ItemGroup>
