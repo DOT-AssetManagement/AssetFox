@@ -169,7 +169,6 @@ import CashFlowService from '@/services/cash-flow.service';
     async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {await store.dispatch('getSimpleScenarioSelectableTreatments', payload);}
     async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioSimpleBudgetDetails', payload)}
-    async function getSimulationRunSettingAction(payload?: any): Promise<any> { await store.dispatch('getSimulationRunSetting', payload);}
  
     let selectedScenarioId: string = getBlankGuid();
     let showImportExportCommittedProjectsDialog: boolean = false;
