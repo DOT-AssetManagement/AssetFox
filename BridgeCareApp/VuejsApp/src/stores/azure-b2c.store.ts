@@ -129,16 +129,13 @@ export const useAzureB2CStore = defineStore('azureB2C', {
             const accountDetails: msal.Account = await this.app.getAccount();
             if (hasValue(accountDetails.name)) {
                 localStorage.setItem('LoggedInUser', accountDetails.name);
-                await authenticationStore.setAzureUserInfo({
-                    status: true,
-                    username: accountDetails.name,
-                });
+                await authenticationStore.setAzureUserInfo(
+                    true,
+                    accountDetails.name,
+                );
             } else {
                 localStorage.removeItem('LoggedInUser');
-                await authenticationStore.setAzureUserInfo({
-                    status: false,
-                    username: '',
-                });
+                await authenticationStore.setAzureUserInfo(false, '');
             }
         },
     },

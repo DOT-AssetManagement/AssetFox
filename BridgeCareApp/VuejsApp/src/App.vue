@@ -326,61 +326,84 @@ import {
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import NewsDialog from '@/components/NewsDialog.vue'
 import { Announcement, emptyAnnouncement } from '@/shared/models/iAM/announcement';
-import { useStore } from 'vuex';
+import {
+    useAdminDataStore,
+    useAdminSiteSettingsStore,
+    useAlertStore,
+    useAnnouncementStore,
+    useAttributeStore,
+    useAuthenticationStore,
+    useAzureB2CStore,
+    useBusyStore,
+    useConfigStore,
+    useNetworkStore,
+    useNotificationStore,
+    useUserStore,
+} from '@/stores';
+import { useScenarioStore } from '@/stores/scenario.store';
 import router from './router';
 import mitt, { Emitter, EventType } from 'mitt'
 import vuetify from '@/plugins/vuetify';
 import { getUrl } from './shared/utils/get-url';
 import { UserInfoLocal } from './shared/models/iAM/authentication';
 
-    let store = useStore();
-    const config = computed<Config | null>(() => store.getters.getConfig);
-    let authenticated = computed(() => store.state.authenticationModule.authenticated);
-    let hasRole = computed<boolean>(() => store.state.authenticationModule.hasRole);
-    let username = computed<string>(() => store.state.authenticationModule.username);
-    let hasAdminAccess = computed(() => store.state.authenticationModule.hasAdminAccess);
-    const refreshing = computed<boolean>(() => store.state.authenticationModule.refreshing);
-    let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
-    let updatedSimulationRunSettingName = computed(() => store.state.scenarioModule.simulationRunSettingName);
-    const notifications = computed<Notification[]>(() => store.state.notificationModule.notifications);
-    const notificationCounter = computed<number>(() => store.state.notificationModule.counter);
-    const stateSelectedScenario = computed<Scenario>(() => store.state.scenarioModule.selectedScenario);
-    const packageVersion = computed<string>(() => store.state.announcementModule.packageVersion);
-    const securityType = computed<string>(() => store.state.authenticationModule.securityType);
-    const announcements = computed(() => store.state.announcementModule.announcements);
-    const currentUser = computed<User>(() =>store.state.userModule.currentUser);
-    const stateImplementationName = computed<string>(()=>store.state.adminSiteSettingsModule.implementationName);
-    const stateInventoryReportNames = computed<string[]>(() => store.state.adminDataModule.inventoryReportNames);
-    const stateAlertMessage = computed<string>(() => store.state.alertModule.alertMessage);
-    const adminEmail = computed<string>(() => store.state.adminSiteSettingsModule.adminContactEmail);
-    const stateAlert = ref<boolean>(store.state.alertModule.alert);
-    async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
-    async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload);}
-    async function getAttributesAction(payload?: any): Promise<any> { await store.dispatch('getAttributes', payload);}
-    async function getAnnouncementsAction(payload?: any): Promise<any> { await store.dispatch('getAnnouncements', payload);}
-    function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
-    function addWarningNotificationAction(payload?: any) { store.dispatch('addWarningNotification', payload);}
-    function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);} 
-    function addErrorNotificationWithStackTraceAction(payload?: any) { store.dispatch('addErrorNotificationWithStackTrace', payload);} 
-    function addInfoNotificationAction(payload?: any) { store.dispatch('addInfoNotification', payload);} 
-    function addTaskCompletedNotificationAction(payload: any) { store.dispatch('addTaskCompletedNotification', payload)}
-    function removeNotificationAction(payload?: any) { store.dispatch('removeNotification', payload);}
-    function clearNotificationCounterAction(payload?: any) { store.dispatch('clearNotificationCounter', payload);} 
-    async function generatePollingSessionIdAction(payload?: any): Promise<any> { await store.dispatch('generatePollingSessionId', payload);}
-    async function getAllUsersAction(payload?: any): Promise<any> { await store.dispatch('getAllUsers', payload);}
-    async function getUserCriteriaFilterAction(payload?: any): Promise<any> { await store.dispatch('getUserCriteriaFilter', payload);} 
-    function loadNotificationsActions(payload?: any) {  store.dispatch('loadNotifications', payload);} 
-    async function azureB2CLoginAction(payload?: any): Promise<any> { await store.dispatch('azureB2CLogin', payload);} 
-    async function localDebugLoginAction(payload?: any): Promise<any> { await store.dispatch('localDebugLogin', payload);} 
-    async function azureB2CLogoutAction(payload?: any): Promise<any> { await store.dispatch('azureB2CLogout', payload);} 
-    async function getCurrentUserByUserNameAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserByUserName', payload);}
-    async function updateUserLastNewsAccessDateAction(payload?: any): Promise<any> { await store.dispatch('updateUserLastNewsAccessDate', payload);}
-    async function getImplementationNameAction(payload?: any): Promise<any> { await store.dispatch('getImplementationName', payload);}
-    async function getInventoryReportsAction(payload?: any): Promise<any> { await store.dispatch('getInventoryReports', payload);} 
-    function setAlertMessageAction(payload?: any) { store.dispatch('setAlertMessage', payload);} 
-    function incrementProcessCounterAction(payload?: any) { store.dispatch('incrementProcessCounter', payload);}
-    function decrementProcessCounterAction(payload?: any) { store.dispatch('decrementProcessCounter', payload);}
-    function setProcessCounterAction(payload?: any) { store.dispatch('setProcessCounter', payload);}
+    const configStore = useConfigStore();
+    const authenticationStore = useAuthenticationStore();
+    const scenarioStore = useScenarioStore();
+    const notificationStore = useNotificationStore();
+    const announcementStore = useAnnouncementStore();
+    const userStore = useUserStore();
+    const adminSiteSettingsStore = useAdminSiteSettingsStore();
+    const adminDataStore = useAdminDataStore();
+    const alertStore = useAlertStore();
+    const busyStore = useBusyStore();
+    const azureB2CStore = useAzureB2CStore();
+    const networkStore = useNetworkStore();
+    const attributeStore = useAttributeStore();
+
+    const config = computed<Config | null>(() => configStore.getConfig);
+    let authenticated = computed(() => authenticationStore.authenticated);
+    let hasRole = computed<boolean>(() => authenticationStore.hasRole);
+    let username = computed<string>(() => authenticationStore.username);
+    let hasAdminAccess = computed(() => authenticationStore.hasAdminAccess);
+    const refreshing = computed<boolean>(() => authenticationStore.refreshing);
+    let simulationRunSettingId = computed(() => scenarioStore.simulationRunSettingId);
+    let updatedSimulationRunSettingName = computed(() => scenarioStore.simulationRunSettingName);
+    const notifications = computed<Notification[]>(() => notificationStore.notifications);
+    const notificationCounter = computed<number>(() => notificationStore.counter);
+    const stateSelectedScenario = computed<Scenario>(() => scenarioStore.selectedScenario);
+    const packageVersion = computed<string>(() => announcementStore.packageVersion);
+    const securityType = computed<string>(() => authenticationStore.securityType);
+    const announcements = computed(() => announcementStore.announcements);
+    const currentUser = computed<User>(() => userStore.currentUser);
+    const stateImplementationName = computed<string>(() => adminSiteSettingsStore.implementationName);
+    const stateInventoryReportNames = computed<string[]>(() => adminDataStore.inventoryReportNames);
+    const stateAlertMessage = computed<string>(() => alertStore.alertMessage);
+    const adminEmail = computed<string>(() => adminSiteSettingsStore.adminContactEmail);
+    async function logOutAction(): Promise<any> { await authenticationStore.logOut(); }
+    async function getNetworksAction(): Promise<any> { await networkStore.getNetworks(); }
+    async function getAttributesAction(): Promise<any> { await attributeStore.getAttributes(); }
+    async function getAnnouncementsAction(): Promise<any> { await announcementStore.getAnnouncements(); }
+    function addSuccessNotificationAction(payload?: any) { notificationStore.addSuccessNotification(payload); }
+    function addWarningNotificationAction(payload?: any) { notificationStore.addWarningNotification(payload); }
+    function addErrorNotificationAction(payload?: any) { notificationStore.addErrorNotification(payload); }
+    function addErrorNotificationWithStackTraceAction(payload?: any) { notificationStore.addErrorNotificationWithStackTrace(payload); }
+    function addInfoNotificationAction(payload?: any) { notificationStore.addInfoNotification(payload); }
+    function addTaskCompletedNotificationAction(payload: any) { notificationStore.addTaskCompletedNotification(payload); }
+    function removeNotificationAction(payload?: any) { notificationStore.removeNotification(payload); }
+    function clearNotificationCounterAction() { notificationStore.clearNotificationCounter(); }
+    async function getAllUsersAction(): Promise<any> { await userStore.getAllUsers(); }
+    async function getUserCriteriaFilterAction(): Promise<any> { await userStore.getUserCriteriaFilter(); }
+    async function azureB2CLoginAction(): Promise<any> { await azureB2CStore.azureB2CLogin(); }
+    async function localDebugLoginAction(payload?: any): Promise<any> { await authenticationStore.localDebugLogin(payload); }
+    async function azureB2CLogoutAction(): Promise<any> { await azureB2CStore.azureB2CLogout(); }
+    async function getCurrentUserByUserNameAction(payload?: any): Promise<any> { await userStore.getCurrentUserByUserName(payload); }
+    async function updateUserLastNewsAccessDateAction(id: string, accessDate: string): Promise<any> { await userStore.updateUserLastNewsAccessDate(id, accessDate); }
+    async function getImplementationNameAction(): Promise<any> { await adminSiteSettingsStore.getImplementationName(); }
+    function setAlertMessageAction(payload?: any) { alertStore.setAlertMessage(payload); }
+    function incrementProcessCounterAction() { busyStore.incrementProcessCounter(); }
+    function decrementProcessCounterAction() { busyStore.decrementProcessCounter(); }
+    function setProcessCounterAction(payload?: any) { busyStore.setProcessCounter(payload); }
 
     let drawer: boolean = false;
     let latestNewsDate: string = '0001-01-01';
@@ -480,7 +503,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     }
 
     function authenticatedWithRole() {
-        return authenticated && hasRole;
+        return authenticated.value && hasRole.value;
     }
     
     watch(stateSelectedScenario, () => {
@@ -534,7 +557,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         packageVersionEnv.value = import.meta.env.VITE_APP_VERSION // declared in .env files
 
         if (!config.value) {
-            store.dispatch('loadConfig').catch(error => {
+            configStore.loadConfig().catch(error => {
                 console.error("Failed to load config in App.vue:", error);
             });
         }
@@ -625,7 +648,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         );
 
         if (
-            securityType === SecurityTypes.esec &&
+            securityType.value === SecurityTypes.esec &&
             UnsecuredRoutePathNames.indexOf(
                 router.currentRoute.value.name as string,
             ) === -1
@@ -696,7 +719,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     }
 
     async function checkToken() {
-        await store.dispatch('checkBrowserTokens');
+        await authenticationStore.checkBrowserTokens();
     }
 
 
@@ -877,7 +900,10 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     function onShowNewsDialog() {
         showNewsDialog.value = true;
         if (currentUser.value.id != getBlankGuid()) {
-            updateUserLastNewsAccessDateAction({id: currentUser.value.id, accessDate: latestNewsDate});
+            updateUserLastNewsAccessDateAction(
+                currentUser.value.id,
+                latestNewsDate,
+            );
         }
         hasUnreadNewsItem = false;
     }

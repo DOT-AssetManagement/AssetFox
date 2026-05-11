@@ -6,7 +6,6 @@ import AuthenticationStart from '@/components/authentication/AuthenticationStart
 import { hasValue } from '@/shared/utils/has-value-util';
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import { SecurityTypes } from '@/shared/utils/security-types';
-import store from '@/store/root-store';
 import {
     isAuthenticatedUser,
     onHandleLogout,
@@ -14,6 +13,11 @@ import {
 import { createRouter, createWebHistory } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import AuthenticationService from './services/authentication.service';
+import pinia, {
+    useAuthenticationStore,
+    useUnsavedChangesStore,
+    useUserStore,
+} from '@/stores';
 
 // Lazily-loaded pages
 const Scenario = () =>
@@ -135,10 +139,22 @@ const AccessDenied = () =>
         /*webpackChunkName: "AccessDenied" */ '@/components/AccessDenied.vue'
     );
     
+function getAuthenticationStore() {
+    return useAuthenticationStore(pinia);
+}
+
+function getUnsavedChangesStore() {
+    return useUnsavedChangesStore(pinia);
+}
+
+function getUserStore() {
+    return useUserStore(pinia);
+}
 
 const onHandlingUnsavedChanges = (to: any, next: any): void => {
-    // @ts-ignore
-    if (store.state.unsavedChangesFlagModule.hasUnsavedChanges) {
+    const unsavedChangesStore = getUnsavedChangesStore();
+
+    if (unsavedChangesStore.hasUnsavedChanges) {
         // @ts-ignore
         const confirm = useConfirm(); 
         confirm.require({
@@ -154,6 +170,8 @@ const onHandlingUnsavedChanges = (to: any, next: any): void => {
 };
 
 const beforeEachFunc = (to: any, from: any, next: any) => {
+    const authenticationStore = getAuthenticationStore();
+
     if(to.name == "AuthenticationStart" && from.name == "AccessDenied" || to.name == "Authentication" && from.name == "AccessDenied")
     {
         onHandleLogout();
@@ -161,21 +179,17 @@ const beforeEachFunc = (to: any, from: any, next: any) => {
     }
     if (UnsecuredRoutePathNames.indexOf(to.name) === -1) {
         const hasAuthInfo: boolean =
-            // @ts-ignore
-            store.state.authenticationModule.securityType === SecurityTypes.esec
+            authenticationStore.securityType === SecurityTypes.esec
                 ? hasValue(localStorage.getItem('UserTokens'))
                 : hasValue(localStorage.getItem('LoggedInUser'));
-        // @ts-ignore
-        if (!store.state.authenticationModule.authenticated && !hasAuthInfo) {
+        if (!authenticationStore.authenticated && !hasAuthInfo) {
             next('/AuthenticationStart/');
         } else if (
-            // @ts-ignore
-            !store.state.authenticationModule.authenticated &&
+            !authenticationStore.authenticated &&
             hasAuthInfo
         ) {            
             isAuthenticatedUser().then((isAuthenticated: boolean | void) => {
-                // @ts-ignore
-                let isAccessDenied = store.state.authenticationModule.accessDenied;
+                let isAccessDenied = authenticationStore.accessDenied;
                 if(isAccessDenied == false)
                 {
                     isAuthenticated = true;
@@ -198,14 +212,14 @@ const beforeEachFunc = (to: any, from: any, next: any) => {
 // TODO should we call beforeEachFunc instead of beforeEnterFunc? OR have beforeEnterFunc updated for when its ESEC so that checkBrowserTokens get called and
 // refrshToken will be invoked!!
 const beforeEnterFunc = (to: any, from: any, next: any) => {
+    const authenticationStore = getAuthenticationStore();
+    const userStore = getUserStore();
     
     if (
+        !authenticationStore.hasRole ||
         // @ts-ignore
-        !store.state.authenticationModule.hasRole ||
-        // @ts-ignore
-        (!store.state.userModule.currentUserCriteriaFilter.hasAccess &&
-            // @ts-ignore
-            !store.state.authenticationModule.hasAdminAccess)
+        (!userStore.currentUserCriteriaFilter.hasAccess &&
+            !authenticationStore.hasAdminAccess)
     ) {
         next('/NoRole/');
     } else {

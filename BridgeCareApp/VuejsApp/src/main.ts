@@ -13,6 +13,7 @@ import App from './App.vue';
 import router from './router';
 import { useRoute, useRouter } from 'vue-router';
 import store from './store/root-store';
+import { useAuthenticationStore, useConfigStore } from './stores';
 import './assets/css/main.css';
 import VueScreen from 'vue-screen';
 // @ts-ignore
@@ -43,9 +44,16 @@ import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css';
 import "primeflex/primeflex.css";
 
-store.dispatch('loadConfig').then(() => {
-    const config = store.getters.getConfig;
-    store.dispatch('setSecurityType', config.securityType);
+const configStore = useConfigStore(pinia);
+const authenticationStore = useAuthenticationStore(pinia);
+
+configStore.loadConfig().then(() => {
+    const config = configStore.getConfig;
+    if (!config) {
+        throw new Error('Config was not loaded before application bootstrap');
+    }
+
+    authenticationStore.setSecurityType(config.securityType);
 
     const app = createApp(App);
 
