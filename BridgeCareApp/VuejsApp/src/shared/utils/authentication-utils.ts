@@ -12,31 +12,13 @@ import pinia, {
     useUserStore,
 } from '@/stores';
 
-function getAuthenticationStore() {
-    return useAuthenticationStore(pinia);
-}
-
-function getAzureB2CStore() {
-    return useAzureB2CStore(pinia);
-}
-
-function getConfigStore() {
-    return useConfigStore(pinia);
-}
-
-function getNotificationStore() {
-    return useNotificationStore(pinia);
-}
-
-function getUserStore() {
-    return useUserStore(pinia);
-}
+const authenticationStore = useAuthenticationStore(pinia);
+const azureB2CStore = useAzureB2CStore(pinia);
+const configStore = useConfigStore(pinia);
+const notificationStore = useNotificationStore(pinia);
+const userStore = useUserStore(pinia);
 
 const isAuthenticatedEsecUser = () => {
-    const authenticationStore = getAuthenticationStore();
-    const notificationStore = getNotificationStore();
-    const userStore = getUserStore();
-
     return authenticationStore
         .checkBrowserTokens()
         .then(async () => {
@@ -70,10 +52,6 @@ const isAuthenticatedEsecUser = () => {
 };
 
 const isAuthenticatedAzureUser = () => {
-    const authenticationStore = getAuthenticationStore();
-    const azureB2CStore = getAzureB2CStore();
-    const notificationStore = getNotificationStore();
-
     return azureB2CStore
         .getAzureB2CAccessToken()
         .then(() =>
@@ -100,11 +78,8 @@ const isAuthenticatedAzureUser = () => {
 };
 
 const isAuthenticatedLocalDebugUserUser = () => {
-    const authenticationStore = getAuthenticationStore();
-    const configStore = getConfigStore();
-
     if(hasValue(localStorage.getItem('LoggedInUser'))){
-        var config = configStore.getConfig;
+        var config = configStore.config;
         if (!config) {
             return Promise.resolve(false);
         }
@@ -116,8 +91,6 @@ const isAuthenticatedLocalDebugUserUser = () => {
 };
 
 export const isAuthenticatedUser = () => {
-    const authenticationStore = getAuthenticationStore();
-
     if (authenticationStore.securityType === SecurityTypes.esec) {
         return isAuthenticatedEsecUser();
     }
@@ -129,8 +102,6 @@ export const isAuthenticatedUser = () => {
 };
 
 const onLogout = () => {
-    const authenticationStore = getAuthenticationStore();
-
     authenticationStore.logOut().then(() => {
         clearRefreshIntervalID(); 
         localStorage.clear();
@@ -139,14 +110,10 @@ const onLogout = () => {
 };
 
 const onAzureLogout = () => {
-    const azureB2CStore = getAzureB2CStore();
-
     azureB2CStore.azureB2CLogout().then(() => onLogout());
 };
 
 export const onHandleLogout = () => {
-    const authenticationStore = getAuthenticationStore();
-
     if (
         authenticationStore.securityType === SecurityTypes.esec
     ) {

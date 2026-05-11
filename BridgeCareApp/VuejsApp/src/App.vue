@@ -48,7 +48,7 @@
                             @click="onNavigate('/EditRawData/')"
                             class="assetFox-blue-pantone-281"
                             variant = "flat"
-                            v-if="hasAdminAccess"
+                            v-if="authenticationStore.hasAdminAccess"
                             
                         >
                             Raw Data
@@ -58,7 +58,7 @@
                             @click="onNavigate('/EditAdmin/')"
                             class="assetFox-blue-pantone-281"
                             variant = "flat"
-                            v-if="hasAdminAccess"
+                            v-if="authenticationStore.hasAdminAccess"
                         >
                             Administration
                         </v-btn>
@@ -99,11 +99,11 @@
                                 title="Notifications">
                                 <img style="position:absolute; top:20px; height:25px;" :src="getUrl('assets/icons/bell.svg')"/>
                                 <v-badge
-                                    v-if="notificationCounter > 0"
+                                    v-if="notificationStore.counter > 0"
                                     overlap
                                     style="position: absolute;"
                                     :size="30"
-                                    :content="notificationCounter"
+                                    :content="notificationStore.counter"
                                     :animated="true"
                                     fontSize="12px"
                                     counterStyle="round"
@@ -124,7 +124,7 @@
                             </v-toolbar>
                             <v-list>
                                 <v-list-group
-                                    v-for="(notification, index) in notifications"
+                                    v-for="(notification, index) in notificationStore.notifications"
                                     :key="notification.id"                                    
                                     v-model="notification.active"
                                     append-icon=""
@@ -144,7 +144,7 @@
                                                         {{ notification.shortMessage }}                                            
                                                     </v-list-item-content>
                                                 </v-col>
-                                                <v-col v-if="hasAdminAccess && !isNil(notification.stackTrace)" align-self="center"> 
+                                                <v-col v-if="authenticationStore.hasAdminAccess && !isNil(notification.stackTrace)" align-self="center"> 
                                                     <v-btn size="small" variant="text" @click.stop="onStackTraceClick(index)">
                                                             Show Stack
                                                     </v-btn>
@@ -179,12 +179,12 @@
                     </v-btn>
                     <v-divider class="mx-1 navbar-divider" vertical style="background-color: #798899; left: 0px;position: relative;" />
                     <img style="height:40px; position:relative; top:2px; margin-left: 10px;" :src="getUrl('assets/icons/user-no-circle.svg')"/>
-                    <span id="App-username-span">{{ username }}</span>
+                    <span id="App-username-span">{{ authenticationStore.username }}</span>
                 </v-toolbar-title>
-                <v-toolbar-title class="white--text" v-if="!authenticated" style="justify-content: end; display: flex;max-width: 150px">
+                <v-toolbar-title class="white--text" v-if="!authenticationStore.authenticated" style="justify-content: end; display: flex;max-width: 150px">
                     <v-btn
                         style="background-color: #002E6C;"
-                        v-if="securityType === b2cSecurityType"
+                        v-if="authenticationStore.securityType === b2cSecurityType"
                         @click="onAzureLogin"
                         class="mx-2"
                         icon
@@ -194,7 +194,7 @@
                     </v-btn>
                     <v-btn
                         style="background-color: #002E6C;"
-                        v-if="securityType === localDebugSecurityType"
+                        v-if="authenticationStore.securityType === localDebugSecurityType"
                         @click="onLocalDebugLogin"
                         class="mx-2"
                         icon
@@ -204,7 +204,7 @@
                     </v-btn>
                     <v-btn
                         style="background-color: #002E6C;"
-                        v-if="securityType === esecSecurityType && currentURL != 'AuthenticationStart'"
+                        v-if="authenticationStore.securityType === esecSecurityType && currentURL != 'AuthenticationStart'"
                         @click="onNavigate('/AuthenticationStart/')"
                         class="mx-2"
                         icon
@@ -213,11 +213,11 @@
                         <font-awesome-icon :icon="['fas','sign-in-alt']"/>
                     </v-btn>
                 </v-toolbar-title>
-                <v-toolbar-title class="white--text" v-if="authenticated" style="justify-content: end; display: flex;max-width: 150px">
+                <v-toolbar-title class="white--text" v-if="authenticationStore.authenticated" style="justify-content: end; display: flex;max-width: 150px">
                     <v-btn
                         style="background-color: #002E6C;"
                         id="App-b2cLogout-vbtn"
-                        v-if="securityType === b2cSecurityType || securityType === localDebugSecurityType"
+                        v-if="authenticationStore.securityType === b2cSecurityType || authenticationStore.securityType === localDebugSecurityType"
                         @click="onAzureLogout"
                         class="mx-2"
                         icon
@@ -229,7 +229,7 @@
                     <v-btn
                         style="background-color: #002E6C;"  
                         id="App-esecLogout-vbtn"
-                        v-if="securityType === esecSecurityType"
+                        v-if="authenticationStore.securityType === esecSecurityType"
                         @click="onLogout"
                         class="mx-2"
                         icon                        
@@ -242,7 +242,7 @@
                 <v-alert
                 v-model='alert'
                 type="info">
-                    {{stateAlertMessage}}
+                    {{ alertStore.alertMessage }}
                 </v-alert>
                 <div class="scenario-status" v-if="hasSelectedScenario" style="margin-bottom: 20px; height: auto;">
                         <br>
@@ -361,50 +361,6 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     const networkStore = useNetworkStore();
     const attributeStore = useAttributeStore();
 
-    const config = computed<Config | null>(() => configStore.getConfig);
-    let authenticated = computed(() => authenticationStore.authenticated);
-    let hasRole = computed<boolean>(() => authenticationStore.hasRole);
-    let username = computed<string>(() => authenticationStore.username);
-    let hasAdminAccess = computed(() => authenticationStore.hasAdminAccess);
-    const refreshing = computed<boolean>(() => authenticationStore.refreshing);
-    let simulationRunSettingId = computed(() => scenarioStore.simulationRunSettingId);
-    let updatedSimulationRunSettingName = computed(() => scenarioStore.simulationRunSettingName);
-    const notifications = computed<Notification[]>(() => notificationStore.notifications);
-    const notificationCounter = computed<number>(() => notificationStore.counter);
-    const stateSelectedScenario = computed<Scenario>(() => scenarioStore.selectedScenario);
-    const packageVersion = computed<string>(() => announcementStore.packageVersion);
-    const securityType = computed<string>(() => authenticationStore.securityType);
-    const announcements = computed(() => announcementStore.announcements);
-    const currentUser = computed<User>(() => userStore.currentUser);
-    const stateImplementationName = computed<string>(() => adminSiteSettingsStore.implementationName);
-    const stateInventoryReportNames = computed<string[]>(() => adminDataStore.inventoryReportNames);
-    const stateAlertMessage = computed<string>(() => alertStore.alertMessage);
-    const adminEmail = computed<string>(() => adminSiteSettingsStore.adminContactEmail);
-    async function logOutAction(): Promise<any> { await authenticationStore.logOut(); }
-    async function getNetworksAction(): Promise<any> { await networkStore.getNetworks(); }
-    async function getAttributesAction(): Promise<any> { await attributeStore.getAttributes(); }
-    async function getAnnouncementsAction(): Promise<any> { await announcementStore.getAnnouncements(); }
-    function addSuccessNotificationAction(payload?: any) { notificationStore.addSuccessNotification(payload); }
-    function addWarningNotificationAction(payload?: any) { notificationStore.addWarningNotification(payload); }
-    function addErrorNotificationAction(payload?: any) { notificationStore.addErrorNotification(payload); }
-    function addErrorNotificationWithStackTraceAction(payload?: any) { notificationStore.addErrorNotificationWithStackTrace(payload); }
-    function addInfoNotificationAction(payload?: any) { notificationStore.addInfoNotification(payload); }
-    function addTaskCompletedNotificationAction(payload: any) { notificationStore.addTaskCompletedNotification(payload); }
-    function removeNotificationAction(payload?: any) { notificationStore.removeNotification(payload); }
-    function clearNotificationCounterAction() { notificationStore.clearNotificationCounter(); }
-    async function getAllUsersAction(): Promise<any> { await userStore.getAllUsers(); }
-    async function getUserCriteriaFilterAction(): Promise<any> { await userStore.getUserCriteriaFilter(); }
-    async function azureB2CLoginAction(): Promise<any> { await azureB2CStore.azureB2CLogin(); }
-    async function localDebugLoginAction(payload?: any): Promise<any> { await authenticationStore.localDebugLogin(payload); }
-    async function azureB2CLogoutAction(): Promise<any> { await azureB2CStore.azureB2CLogout(); }
-    async function getCurrentUserByUserNameAction(payload?: any): Promise<any> { await userStore.getCurrentUserByUserName(payload); }
-    async function updateUserLastNewsAccessDateAction(id: string, accessDate: string): Promise<any> { await userStore.updateUserLastNewsAccessDate(id, accessDate); }
-    async function getImplementationNameAction(): Promise<any> { await adminSiteSettingsStore.getImplementationName(); }
-    function setAlertMessageAction(payload?: any) { alertStore.setAlertMessage(payload); }
-    function incrementProcessCounterAction() { busyStore.incrementProcessCounter(); }
-    function decrementProcessCounterAction() { busyStore.decrementProcessCounter(); }
-    function setProcessCounterAction(payload?: any) { busyStore.setProcessCounter(payload); }
-
     let drawer: boolean = false;
     let latestNewsDate: string = '0001-01-01';
     let currentUserLastNewsAccessDate: string = '0001-01-01';
@@ -439,8 +395,8 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     let inventoryReportName: string = '';
     let alert: Ref<boolean> = ref(false);
 
-    const agencyLogoFilename = computed(() => config.value?.logos?.agencyFilename);
-    const implementationLogoFilename = computed(() => config.value?.logos?.implementationFilename);
+    const agencyLogoFilename = computed(() => configStore.config?.logos?.agencyFilename);
+    const implementationLogoFilename = computed(() => configStore.config?.logos?.implementationFilename);
 
     const agencyLogoError = ref(false);
     const implementationLogoError = ref(false);
@@ -503,43 +459,43 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     }
 
     function authenticatedWithRole() {
-        return authenticated.value && hasRole.value;
+        return authenticationStore.authenticated && authenticationStore.hasRole;
     }
     
-    watch(stateSelectedScenario, () => {
-        selectedScenario.value = clone(stateSelectedScenario.value);
+    watch(() => scenarioStore.selectedScenario, () => {
+        selectedScenario.value = clone(scenarioStore.selectedScenario);
         hasSelectedScenario.value= selectedScenario.value.id !== getBlankGuid();
         selectedScenarioHasStatus.value = hasValue(selectedScenario.value.status);
     })
 
-    watch(authenticated, () => {
-        if (authenticated.value) {
+    watch(() => authenticationStore.authenticated, () => {
+        if (authenticationStore.authenticated) {
             onAuthenticate();
         }
     });
 
-    watch(announcements, () => {
-        latestNewsDate = getDateOnly(announcements.value[0].createdDate.toString()); 
+    watch(() => announcementStore.announcements, () => {
+        latestNewsDate = getDateOnly(announcementStore.announcements[0].createdDate.toString()); 
     });
 
-    watch(currentUser, () => {
-        currentUserLastNewsAccessDate = getDateOnly(currentUser.value.lastNewsAccessDate);
+    watch(() => userStore.currentUser, () => {
+        currentUserLastNewsAccessDate = getDateOnly(userStore.currentUser.lastNewsAccessDate);
         checkLastNewsAccessDate();
     });
 
-    watch(stateImplementationName, () =>  {
-        implementationName.value = stateImplementationName.value;
+    watch(() => adminSiteSettingsStore.implementationName, () =>  {
+        implementationName.value = adminSiteSettingsStore.implementationName;
     })
 
-    watch(stateInventoryReportNames, onStateInventoryReportNamesChanged)
+    watch(() => adminDataStore.inventoryReportNames, onStateInventoryReportNamesChanged)
     function onStateInventoryReportNamesChanged(){
-        if(stateInventoryReportNames.value.length > 0)
-            inventoryReportName = stateInventoryReportNames.value[0]
+        if(adminDataStore.inventoryReportNames.length > 0)
+            inventoryReportName = adminDataStore.inventoryReportNames[0]
     }
 
-    watch(stateAlertMessage, onStateAlertMessageChanged)
+    watch(() => alertStore.alertMessage, onStateAlertMessageChanged)
     function onStateAlertMessageChanged(){
-        if(stateAlertMessage.value.trim() !== ''){
+        if(alertStore.alertMessage.trim() !== ''){
             alert.value = true;
         }
         else
@@ -549,14 +505,14 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     watch(alert, onAlertChanged)
     function onAlertChanged(){
         if(!alert.value){
-            setAlertMessageAction('');
+            alertStore.setAlertMessage('');
         }
     }
         
     function created() {
         packageVersionEnv.value = import.meta.env.VITE_APP_VERSION // declared in .env files
 
-        if (!config.value) {
+        if (!configStore.config) {
             configStore.loadConfig().catch(error => {
                 console.error("Failed to load config in App.vue:", error);
             });
@@ -567,13 +523,13 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
             request: AxiosRequestConfig,
         ) {
             request.headers = setContentTypeCharset(request.headers);
-            if (refreshing.value) {
+            if (authenticationStore.refreshing) {
                 await new Promise(_ => setTimeout(_, 5000));
             }
 
             request.headers = setAuthHeader(request.headers);
             if(ignoredAPIs.every((ignored: string) => request.url!.indexOf(ignored) === -1,))
-                incrementProcessCounterAction();
+                busyStore.incrementProcessCounter();
             return request;
         }
 
@@ -594,7 +550,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
             response.headers = setContentTypeCharset(response.headers);
             if(!isNil(response.config.url)){
                 if(ignoredAPIs.every((ignored: string) => response.config.url!.indexOf(ignored) === -1,))
-                    new Promise(_ => setTimeout(_, 10)).then(() => decrementProcessCounterAction()) 
+                    new Promise(_ => setTimeout(_, 10)).then(() => busyStore.decrementProcessCounter()) 
             }         
             return response;
         };
@@ -610,11 +566,11 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
                     error.response.headers,
                 );
             }    
-            setProcessCounterAction(0);
+            busyStore.setProcessCounter(0);
             unauthorizedError = hasValue(unauthorizedError) ? error.response!.data : "User is not authorized!";
             if (error.response!.status === 500) return;
             
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: error.response!.status === 403 ? "Authorization Failed" : "HTTP Error",
                 longMessage: error.response!.status === 403 ? unauthorizedError : getErrorMessage(error),
             });
@@ -648,7 +604,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         );
 
         if (
-            securityType.value === SecurityTypes.esec &&
+            authenticationStore.securityType === SecurityTypes.esec &&
             UnsecuredRoutePathNames.indexOf(
                 router.currentRoute.value.name as string,
             ) === -1
@@ -682,7 +638,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         
         currentURL = router.currentRoute.value.name;
 
-        if(securityType.value === SecurityTypes.esec)
+        if(authenticationStore.securityType === SecurityTypes.esec)
         {
             startTokenCheckTimer(); 
         }
@@ -690,7 +646,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         if(implementationName.value === "")
             implementationName.value = "BridgeCare"
         else
-            implementationName.value = stateImplementationName.value
+            implementationName.value = adminSiteSettingsStore.implementationName
     });
 
     onBeforeUnmount(() => beforeDestroy());
@@ -728,13 +684,13 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         let stackTrace: string = data.stackTrace !== undefined ? data.stackTrace.toString() : "";
         let spl = errorNotification.split('::');
         if (spl.length > 0 ) {
-            addErrorNotificationWithStackTraceAction( {
+            notificationStore.addErrorNotificationWithStackTrace( {
                 message: spl[0],
                 longMessage: spl.length>1 ? spl[1] : 'Unknown Error',
                 stackTrace: stackTrace
             });
         } else {
-            addErrorNotificationWithStackTraceAction( {
+            notificationStore.addErrorNotificationWithStackTrace( {
                 message: 'Server Error',
                 longMessage: data.error,
                 stackTrace: stackTrace
@@ -743,7 +699,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     }
 
     function onAddInfoNotification(data: any) {
-        addInfoNotificationAction({
+        notificationStore.addInfoNotification({
             message: 'Server Update',
             longMessage: data.info
         });
@@ -753,12 +709,12 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         let warningNotification:string = data.warning.toString();
         let spl = warningNotification.split('::');
         if (spl.length > 0) {
-            addWarningNotificationAction({
+            notificationStore.addWarningNotification({
                 message: spl[0],
                 longMessage: spl.length > 1 ? spl[1] : ''
             });
         } else {
-            addWarningNotificationAction({
+            notificationStore.addWarningNotification({
                 message: 'Server Warning',
                 longMessage: data.warning,
             });
@@ -769,7 +725,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
 
         const taskMessage = data.task as string;
         const taskMessageLowerCase = taskMessage.toLowerCase();
-        addTaskCompletedNotificationAction({
+        notificationStore.addTaskCompletedNotification({
             message: 'Task Completed',
             longMessage: taskMessage
         });
@@ -831,19 +787,19 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
 
     function onAzureLogin() {
         if (router.currentRoute.value.name === 'AuthenticationStart') {
-            azureB2CLoginAction();
+            azureB2CStore.azureB2CLogin();
         } else {
             router.push('/AuthenticationStart');
         }
     }
 
     function onAzureLogout() {
-        azureB2CLogoutAction().then(() => onLogout());
+        azureB2CStore.azureB2CLogout().then(() => onLogout());
     }
 
     function onLocalDebugLogin() {
-        var payload = config.value?.localDegugInfo as UserInfoLocal
-        localDebugLoginAction(payload).then(() => router.push('/Scenarios/'));
+        var payload = configStore.config?.localDegugInfo as UserInfoLocal
+        Promise.resolve(authenticationStore.localDebugLogin(payload)).then(() => router.push('/Scenarios/'));
     }
     
     /**
@@ -851,17 +807,17 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
      */
     function onAuthenticate() {
         //$forceUpdate();
-        getNetworksAction().then(() =>
-        getAttributesAction().then(() =>
-        getAllUsersAction().then(() =>
-        getAnnouncementsAction().then(() =>
-        getUserCriteriaFilterAction().then(() =>{
-            if (username != null && username.value != '') {
-                getCurrentUserByUserNameAction(username.value);
+        networkStore.getNetworks().then(() =>
+        attributeStore.getAttributes().then(() =>
+        userStore.getAllUsers().then(() =>
+        announcementStore.getAnnouncements().then(() =>
+        userStore.getUserCriteriaFilter().then(() =>{
+            if (authenticationStore.username != null && authenticationStore.username !== '') {
+                userStore.getCurrentUserByUserName(authenticationStore.username);
             }
         }).then(() =>
         //If these gets are placed before authorization, GetUserInformation() in EsecSecurity.cs will throw an error, as its HttpRequest will have no Authorization header!
-        getImplementationNameAction()
+        adminSiteSettingsStore.getImplementationName()
         )))));
     }
   function $forceUpdate() {
@@ -873,7 +829,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
      * and redirects users to the landing page
      */
     function onLogout() {
-        logOutAction().then(() => {
+        authenticationStore.logOut().then(() => {
             onNavigate('/iAM/');
         });
     }
@@ -890,18 +846,18 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
     }
 
     function onNotificationMenuSelect() {
-        clearNotificationCounterAction();
+        notificationStore.clearNotificationCounter();
     }
 
     function onRemoveNotification(id: number) {
-        removeNotificationAction(id);
+        notificationStore.removeNotification(id);
     }
 
     function onShowNewsDialog() {
         showNewsDialog.value = true;
-        if (currentUser.value.id != getBlankGuid()) {
-            updateUserLastNewsAccessDateAction(
-                currentUser.value.id,
+        if (userStore.currentUser.id != getBlankGuid()) {
+            userStore.updateUserLastNewsAccessDate(
+                userStore.currentUser.id,
                 latestNewsDate,
             );
         }
@@ -917,15 +873,15 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
             showDialog: true,
             heading: 'Stack Trace',
             choice: false,
-            message: notifications.value[index].stackTrace!,        
+            message: notificationStore.notifications[index].stackTrace!,        
         };
         
     }
 
     function onBugButtonClicked() {
         let message = 'Please contact the administrator to report a bug.';        
-        if(adminEmail.value.trim() !== '')            
-            message += ` Email: ${adminEmail.value}`;
+        if(adminSiteSettingsStore.adminContactEmail.trim() !== '')            
+            message += ` Email: ${adminSiteSettingsStore.adminContactEmail}`;
         bugReportAlert.value = {
             showDialog: true,
             heading: 'Report a Bug',
@@ -946,7 +902,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         hasUnreadNewsItem = newsAccessDateComparison(latestNewsDate, currentUserLastNewsAccessDate);
     }
 
-    const toggleExpand = (active:boolean,index:number) => {notifications.value[index].active=!active};
+    const toggleExpand = (active:boolean,index:number) => {notificationStore.notifications[index].active=!active};
 </script>
 
 <style>

@@ -48,7 +48,7 @@ const configStore = useConfigStore(pinia);
 const authenticationStore = useAuthenticationStore(pinia);
 
 configStore.loadConfig().then(() => {
-    const config = configStore.getConfig;
+    const config = configStore.config;
     if (!config) {
         throw new Error('Config was not loaded before application bootstrap');
     }

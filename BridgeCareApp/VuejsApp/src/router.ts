@@ -138,22 +138,12 @@ const AccessDenied = () =>
     import(
         /*webpackChunkName: "AccessDenied" */ '@/components/AccessDenied.vue'
     );
-    
-function getAuthenticationStore() {
-    return useAuthenticationStore(pinia);
-}
 
-function getUnsavedChangesStore() {
-    return useUnsavedChangesStore(pinia);
-}
-
-function getUserStore() {
-    return useUserStore(pinia);
-}
+const authenticationStore = useAuthenticationStore(pinia);
+const unsavedChangesStore = useUnsavedChangesStore(pinia);
+const userStore = useUserStore(pinia);
 
 const onHandlingUnsavedChanges = (to: any, next: any): void => {
-    const unsavedChangesStore = getUnsavedChangesStore();
-
     if (unsavedChangesStore.hasUnsavedChanges) {
         // @ts-ignore
         const confirm = useConfirm(); 
@@ -170,8 +160,6 @@ const onHandlingUnsavedChanges = (to: any, next: any): void => {
 };
 
 const beforeEachFunc = (to: any, from: any, next: any) => {
-    const authenticationStore = getAuthenticationStore();
-
     if(to.name == "AuthenticationStart" && from.name == "AccessDenied" || to.name == "Authentication" && from.name == "AccessDenied")
     {
         onHandleLogout();
@@ -212,9 +200,6 @@ const beforeEachFunc = (to: any, from: any, next: any) => {
 // TODO should we call beforeEachFunc instead of beforeEnterFunc? OR have beforeEnterFunc updated for when its ESEC so that checkBrowserTokens get called and
 // refrshToken will be invoked!!
 const beforeEnterFunc = (to: any, from: any, next: any) => {
-    const authenticationStore = getAuthenticationStore();
-    const userStore = getUserStore();
-    
     if (
         !authenticationStore.hasRole ||
         // @ts-ignore
