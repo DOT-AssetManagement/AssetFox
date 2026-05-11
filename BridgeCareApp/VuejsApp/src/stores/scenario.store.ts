@@ -11,37 +11,6 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useNotificationStore } from './notification.store';
 
-export interface ScenarioSelectionPayload {
-    scenarioId: string;
-}
-
-export interface SimulationAnalysisDetailPayload {
-    simulationAnalysisDetail: SimulationAnalysisDetail;
-}
-
-export interface QueuedWorkStatusPayload {
-    workQueueStatusUpdate: QueuedWork;
-}
-
-export interface SimulationReportDetailPayload {
-    simulationReportDetail: SimulationReportDetail;
-}
-
-export interface RunSimulationPayload {
-    networkId: string;
-    scenarioId?: string;
-}
-
-export interface MigrateLegacyScenarioPayload {
-    simulationId: number;
-    networkId: string;
-}
-
-export interface CreateScenarioPayload {
-    scenario: Scenario;
-    networkId: string;
-}
-
 export interface CloneScenarioPayload {
     scenarioId: string;
     destinationNetworkId: string;
@@ -54,23 +23,6 @@ export interface CloneScenarioWithDestinationNetworkPayload {
     destinationNetworkId: string;
     networkId: string;
     name: string;
-}
-
-export interface UpdateScenarioPayload {
-    scenario: Scenario;
-}
-
-export interface DeleteScenarioPayload {
-    scenarioId: string | number;
-    scenarioName: string;
-}
-
-export interface ScenarioBySimulationIdPayload {
-    simulationId: string;
-}
-
-export interface CancelWorkQueueItemPayload {
-    simulationId: string;
 }
 
 export interface ScenarioStoreState {
@@ -220,20 +172,20 @@ export const useScenarioStore = defineStore('scenario', {
         scenarioNames: [],
     }),
     actions: {
-        selectScenario(payload: ScenarioSelectionPayload) {
-            selectedScenarioMutator(this, payload.scenarioId);
+        selectScenario(scenarioId: string) {
+            selectedScenarioMutator(this, scenarioId);
         },
-        updateSimulationAnalysisDetail(payload: SimulationAnalysisDetailPayload) {
-            simulationAnalysisDetailMutator(this, payload.simulationAnalysisDetail);
+        updateSimulationAnalysisDetail(simulationAnalysisDetail: SimulationAnalysisDetail) {
+            simulationAnalysisDetailMutator(this, simulationAnalysisDetail);
         },
-        updateQueuedWorkStatus(payload: QueuedWorkStatusPayload) {
-            workQueStatusUpdateMutator(this, payload.workQueueStatusUpdate);
+        updateQueuedWorkStatus(workQueueStatusUpdate: QueuedWork) {
+            workQueStatusUpdateMutator(this, workQueueStatusUpdate);
         },
-        updateFastQueuedWorkStatus(payload: QueuedWorkStatusPayload) {
-            fastWorkQueStatusUpdateMutator(this, payload.workQueueStatusUpdate);
+        updateFastQueuedWorkStatus(workQueueStatusUpdate: QueuedWork) {
+            fastWorkQueStatusUpdateMutator(this, workQueueStatusUpdate);
         },
-        updateSimulationReportDetail(payload: SimulationReportDetailPayload) {
-            simulationReportDetailMutator(this, payload.simulationReportDetail);
+        updateSimulationReportDetail(simulationReportDetail: SimulationReportDetail) {
+            simulationReportDetailMutator(this, simulationReportDetail);
         },
         updateSimulationRunSettingId(payload: string | number) {
             this.simulationRunSettingId = payload;
@@ -290,11 +242,11 @@ export const useScenarioStore = defineStore('scenario', {
                 },
             );
         },
-        async runSimulation(payload: RunSimulationPayload) {
+        async runSimulation(networkId: string, scenarioId?: string) {
             const notificationStore = useNotificationStore();
             await ScenarioService.runSimulation(
-                payload.networkId,
-                payload.scenarioId,
+                networkId,
+                scenarioId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
@@ -306,9 +258,9 @@ export const useScenarioStore = defineStore('scenario', {
                 }
             });
         },
-        async migrateLegacySimulationData(payload: MigrateLegacyScenarioPayload) {
+        async migrateLegacySimulationData(simulationId: number, networkId: string) {
             const response = await ScenarioService.migrateLegacySimulationData(
-                payload.simulationId,
+                simulationId,
             );
 
             if (
@@ -318,15 +270,15 @@ export const useScenarioStore = defineStore('scenario', {
                 await getScenarios(this);
             }
         },
-        async createScenario(payload: CreateScenarioPayload) {
+        async createScenario(scenario: Scenario, networkId: string) {
             const notificationStore = useNotificationStore();
             return await ScenarioService.createScenario(
-                payload.scenario,
-                payload.networkId,
+                scenario,
+                networkId,
             ).then((response: AxiosResponse) => {
                 if (hasValue(response, 'data')) {
                     notificationStore.addSuccessNotification({
-                        message: `Created scenario ${payload.scenario.name}`,
+                        message: `Created scenario ${scenario.name}`,
                     });
                 }
 
@@ -377,13 +329,13 @@ export const useScenarioStore = defineStore('scenario', {
                 },
             );
         },
-        async updateScenario(payload: UpdateScenarioPayload) {
+        async updateScenario(scenario: Scenario) {
             const notificationStore = useNotificationStore();
-            return await ScenarioService.updateScenario(payload.scenario).then(
+            return await ScenarioService.updateScenario(scenario).then(
                 (response: AxiosResponse) => {
                     if (hasValue(response, 'data')) {
                         notificationStore.addSuccessNotification({
-                            message: `Updated scenario ${payload.scenario.name}`,
+                            message: `Updated scenario ${scenario.name}`,
                         });
                     }
 
@@ -391,16 +343,16 @@ export const useScenarioStore = defineStore('scenario', {
                 },
             );
         },
-        async deleteScenario(payload: DeleteScenarioPayload) {
+        async deleteScenario(scenarioId: string | number, scenarioName: string) {
             const notificationStore = useNotificationStore();
-            return await ScenarioService.deleteScenario(payload.scenarioId as any).then(
+            return await ScenarioService.deleteScenario(scenarioId as any).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
                         notificationStore.addSuccessNotification({
-                            message: `Deleting scenario ${payload.scenarioName}`,
+                            message: `Deleting scenario ${scenarioName}`,
                         });
                     }
 
@@ -425,9 +377,9 @@ export const useScenarioStore = defineStore('scenario', {
                 return response;
             });
         },
-        async cancelWorkQueueItem(payload: CancelWorkQueueItemPayload) {
+        async cancelWorkQueueItem(simulationId: string) {
             const notificationStore = useNotificationStore();
-            return await ScenarioService.cancelWorkQueueItem(payload.simulationId).then(
+            return await ScenarioService.cancelWorkQueueItem(simulationId).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&
@@ -459,10 +411,10 @@ export const useScenarioStore = defineStore('scenario', {
                 },
             );
         },
-        async getCurrentUserOrSharedScenario(payload: ScenarioBySimulationIdPayload) {
+        async getCurrentUserOrSharedScenario(simulationId: string) {
             if (this.currentUserOrSharedScenario.id === emptyScenario.id) {
                 await ScenarioService.getCurrentUserOrSharedScenario(
-                    payload.simulationId,
+                    simulationId,
                 ).then((response: AxiosResponse<Scenario>) => {
                     if (hasValue(response, 'data')) {
                         this.currentUserOrSharedScenario = clone(response.data);

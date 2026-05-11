@@ -17,11 +17,6 @@ import {
 } from '@/shared/models/iAM/data-source';
 import { TestStringData } from '@/shared/models/iAM/test-string';
 
-export interface DataSourceImportPayload {
-    file: File;
-    id: string;
-}
-
 export interface DataSourceStoreState {
     dataSources: Datasource[];
     dataSourceTypes: string[];
@@ -131,11 +126,11 @@ export const useDataSourceStore = defineStore('dataSource', {
                 },
             );
         },
-        async importExcelSpreadsheetFile(payload: DataSourceImportPayload) {
+        async importExcelSpreadsheetFile(file: File, id: string) {
             const notificationStore = useNotificationStore();
             await DataSourceService.importExcelSpreadsheet(
-                payload.file,
-                payload.id,
+                file,
+                id,
             ).then((response: AxiosResponse) => {
                 if (hasValue(response, 'data')) {
                     this.isSuccessfulImport = true;

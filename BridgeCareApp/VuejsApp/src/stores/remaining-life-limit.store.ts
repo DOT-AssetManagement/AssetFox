@@ -10,18 +10,6 @@ import {
     RemainingLifeLimitLibrary,
 } from '@/shared/models/iAM/remaining-life-limit';
 
-export interface RemainingLifeLimitLibrarySelectionPayload {
-    libraryId: string;
-}
-
-export interface RemainingLifeLimitDeletePayload {
-    libraryId: string;
-}
-
-export interface RemainingLifeLimitSharedLibraryPayload {
-    id: string;
-}
-
 export interface RemainingLifeLimitStoreState {
     remainingLifeLimitLibraries: RemainingLifeLimitLibrary[];
     selectedRemainingLifeLimitLibrary: RemainingLifeLimitLibrary;
@@ -62,10 +50,8 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
                   ) as RemainingLifeLimitLibrary)
                 : clone(emptyRemainingLifeLimitLibrary);
         },
-        selectRemainingLifeLimitLibrary(
-            payload: RemainingLifeLimitLibrarySelectionPayload,
-        ) {
-            this.selectedRemainingLifeLimitLibraryMutator(payload.libraryId);
+        selectRemainingLifeLimitLibrary(libraryId: string) {
+            this.selectedRemainingLifeLimitLibraryMutator(libraryId);
         },
         async getRemainingLifeLimitLibraries() {
             await RemainingLifeLimitService.getRemainingLifeLimitLibraries().then(
@@ -76,12 +62,10 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
                 },
             );
         },
-        async deleteRemainingLifeLimitLibrary(
-            payload: RemainingLifeLimitDeletePayload,
-        ) {
+        async deleteRemainingLifeLimitLibrary(libraryId: string) {
             const notificationStore = useNotificationStore();
             await RemainingLifeLimitService.deleteRemainingLifeLimitLibrary(
-                payload.libraryId,
+                libraryId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
@@ -89,7 +73,7 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
                 ) {
                     this.remainingLifeLimitLibraries = reject(
                         (library: RemainingLifeLimitLibrary) =>
-                            payload.libraryId === library.id,
+                            libraryId === library.id,
                         this.remainingLifeLimitLibraries,
                     ) as RemainingLifeLimitLibrary[];
                     notificationStore.addSuccessNotification({
@@ -98,11 +82,9 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
                 }
             });
         },
-        async getIsSharedRemainingLifeLimitLibrary(
-            payload: RemainingLifeLimitSharedLibraryPayload,
-        ) {
+        async getIsSharedRemainingLifeLimitLibrary(id: string) {
             await RemainingLifeLimitService.getIsSharedRemainingLifeLimitLibrary(
-                payload.id,
+                id,
             ).then((response: AxiosResponse<boolean>) => {
                 if (
                     hasValue(response, 'status') &&

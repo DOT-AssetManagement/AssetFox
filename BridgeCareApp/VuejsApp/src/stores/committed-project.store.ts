@@ -7,11 +7,6 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useNotificationStore } from './notification.store';
 
-export interface CommittedProjectsImportPayload {
-    file: File;
-    selectedScenarioId: string;
-}
-
 export interface CommittedProjectsStoreState {
     sectionCommittedProjects: SectionCommittedProject[];
 }
@@ -65,11 +60,11 @@ export const useCommittedProjectStore = defineStore('committedProject', {
                 }
             });
         },
-        async importCommittedProjects(payload: CommittedProjectsImportPayload) {
+        async importCommittedProjects(file: File, selectedScenarioId: string) {
             const notificationStore = useNotificationStore();
             await CommittedProjectsService.importCommittedProjects(
-                payload.file,
-                payload.selectedScenarioId,
+                file,
+                selectedScenarioId,
             ).then((response: AxiosResponse) => {
                 if (hasValue(response, 'data')) {
                     notificationStore.addSuccessNotification({

@@ -13,12 +13,6 @@ import {
 import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
 import { useAlertStore } from './alert.store';
 
-export interface PerformanceCurveImportPayload {
-    file: File;
-    id: string;
-    currentUserCriteriaFilter: UserCriteriaFilter;
-}
-
 export interface PerformanceCurveStoreState {
     performanceCurveLibraries: PerformanceCurveLibrary[];
     selectedPerformanceCurveLibrary: PerformanceCurveLibrary;
@@ -119,14 +113,16 @@ export const usePerformanceCurveStore = defineStore('performanceCurve', {
             );
         },
         async importScenarioPerformanceCurvesFile(
-            payload: PerformanceCurveImportPayload,
+            file: File,
+            id: string,
+            currentUserCriteriaFilter: UserCriteriaFilter,
         ) {
             const alertStore = useAlertStore();
             await PerformanceCurveService.importPerformanceCurves(
-                payload.file,
-                payload.id,
+                file,
+                id,
                 true,
-                payload.currentUserCriteriaFilter,
+                currentUserCriteriaFilter,
             ).then((response: AxiosResponse) => {
                 if (response) {
                     alertStore.setAlertMessage(
@@ -136,14 +132,16 @@ export const usePerformanceCurveStore = defineStore('performanceCurve', {
             });
         },
         async importLibraryPerformanceCurvesFile(
-            payload: PerformanceCurveImportPayload,
+            file: File,
+            id: string,
+            currentUserCriteriaFilter: UserCriteriaFilter,
         ) {
             const alertStore = useAlertStore();
             await PerformanceCurveService.importPerformanceCurves(
-                payload.file,
-                payload.id,
+                file,
+                id,
                 false,
-                payload.currentUserCriteriaFilter,
+                currentUserCriteriaFilter,
             ).then((response: AxiosResponse) => {
                 if (response) {
                     alertStore.setAlertMessage(
@@ -152,8 +150,8 @@ export const usePerformanceCurveStore = defineStore('performanceCurve', {
                 }
             });
         },
-        async getIsSharedPerformanceCurveLibrary(payload: { id: string }) {
-            await PerformanceCurveService.getIsSharedLibrary(payload.id).then(
+        async getIsSharedPerformanceCurveLibrary(id: string) {
+            await PerformanceCurveService.getIsSharedLibrary(id).then(
                 (response: AxiosResponse<boolean>) => {
                     if (
                         hasValue(response, 'status') &&

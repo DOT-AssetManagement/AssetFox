@@ -10,14 +10,6 @@ import {
     emptyCashFlowRuleLibrary,
 } from '@/shared/models/iAM/cash-flow';
 
-export interface CashFlowRuleLibrarySelectionPayload {
-    libraryId: string;
-}
-
-export interface SharedCashFlowLibraryPayload {
-    id: string;
-}
-
 export interface CashFlowStoreState {
     cashFlowRuleLibraries: CashFlowRuleLibrary[];
     selectedCashFlowRuleLibrary: CashFlowRuleLibrary;
@@ -99,8 +91,8 @@ export const useCashFlowStore = defineStore('cashFlow', {
                 },
             );
         },
-        async getIsSharedCashFlowRuleLibrary(payload: SharedCashFlowLibraryPayload) {
-            await CashFlowService.getIsSharedCashFlowRuleLibrary(payload.id).then(
+        async getIsSharedCashFlowRuleLibrary(id: string) {
+            await CashFlowService.getIsSharedCashFlowRuleLibrary(id).then(
                 (response: AxiosResponse<boolean>) => {
                     if (
                         hasValue(response, 'status') &&

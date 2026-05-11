@@ -11,22 +11,6 @@ import {
     emptyCriterionLibrary,
 } from '@/shared/models/iAM/criteria';
 
-export interface CriterionLibrarySelectionPayload {
-    libraryId: string;
-}
-
-export interface CriterionLibraryDeletePayload {
-    libraryId: string;
-}
-
-export interface CriterionValidityPayload {
-    isValid: boolean;
-}
-
-export interface CriterionLibraryUpsertPayload {
-    library: CriterionLibrary;
-}
-
 export interface CriterionLibraryStoreState {
     criterionLibraries: CriterionLibrary[];
     selectedCriterionLibrary: CriterionLibrary;
@@ -57,11 +41,11 @@ export const useCriterionLibraryStore = defineStore('criterionLibrary', {
         hasPermittedAccess: false,
     }),
     actions: {
-        setSelectedCriterionIsValid(payload: CriterionValidityPayload) {
-            this.selectedCriterionIsValid = payload.isValid;
+        setSelectedCriterionIsValid(isValid: boolean) {
+            this.selectedCriterionIsValid = isValid;
         },
-        upsertSelectedScenarioRelatedCriterion(payload: CriterionLibraryUpsertPayload) {
-            this.scenarioRelatedCriteria = clone(payload.library);
+        upsertSelectedScenarioRelatedCriterion(library: CriterionLibrary) {
+            this.scenarioRelatedCriteria = clone(library);
         },
         async getCriterionLibraries() {
             await CriterionLibraryService.getCriterionLibraries().then(
@@ -72,10 +56,10 @@ export const useCriterionLibraryStore = defineStore('criterionLibrary', {
                 },
             );
         },
-        async getSelectedCriterionLibrary(payload: CriterionLibrarySelectionPayload) {
-            if (!isNil(payload.libraryId) && payload.libraryId !== getBlankGuid()) {
+        async getSelectedCriterionLibrary(libraryId: string) {
+            if (!isNil(libraryId) && libraryId !== getBlankGuid()) {
                 await CriterionLibraryService.getSelectedCriterionLibrary(
-                    payload.libraryId,
+                    libraryId,
                 ).then((response: AxiosResponse<CriterionLibrary>) => {
                     if (hasValue(response, 'data')) {
                         this.selectedCriterionLibrary = clone(response.data);
@@ -85,10 +69,10 @@ export const useCriterionLibraryStore = defineStore('criterionLibrary', {
                 this.selectedCriterionLibrary = clone(emptyCriterionLibrary);
             }
         },
-        async selectScenarioRelatedCriterion(payload: CriterionLibrarySelectionPayload) {
-            if (payload.libraryId !== getBlankGuid()) {
+        async selectScenarioRelatedCriterion(libraryId: string) {
+            if (libraryId !== getBlankGuid()) {
                 await CriterionLibraryService.getSelectedCriterionLibrary(
-                    payload.libraryId,
+                    libraryId,
                 ).then((response: AxiosResponse<CriterionLibrary>) => {
                     if (hasValue(response, 'data')) {
                         this.scenarioRelatedCriteria = clone(response.data);
@@ -98,28 +82,25 @@ export const useCriterionLibraryStore = defineStore('criterionLibrary', {
                 this.scenarioRelatedCriteria = clone(emptyCriterionLibrary);
             }
         },
-        selectCriterionLibrary(payload: CriterionLibrarySelectionPayload) {
+        selectCriterionLibrary(libraryId: string) {
             const selectedLibrary = find(
-                propEq('id', payload.libraryId),
+                propEq('id', libraryId),
                 this.criterionLibraries,
             ) as CriterionLibrary | undefined;
             this.selectedCriterionLibrary = selectedLibrary
                 ? clone(selectedLibrary)
                 : clone(emptyCriterionLibrary);
         },
-        async upsertCriterionLibrary(
-            payload: CriterionLibraryUpsertPayload,
-        ): Promise<string> {
+        async upsertCriterionLibrary(library: CriterionLibrary): Promise<string> {
             const notificationStore = useNotificationStore();
             let returningId = getBlankGuid();
 
-            await CriterionLibraryService.upsertCriterionLibrary(payload.library).then(
+            await CriterionLibraryService.upsertCriterionLibrary(library).then(
                 (response: AxiosResponse<string>) => {
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
-                        const library = payload.library;
                         const message = any(
                             propEq('id', library.id),
                             this.criterionLibraries,
@@ -146,16 +127,16 @@ export const useCriterionLibraryStore = defineStore('criterionLibrary', {
 
             return returningId;
         },
-        async deleteCriterionLibrary(payload: CriterionLibraryDeletePayload) {
+        async deleteCriterionLibrary(libraryId: string) {
             const notificationStore = useNotificationStore();
-            await CriterionLibraryService.deleteCriterionLibrary(payload.libraryId).then(
+            await CriterionLibraryService.deleteCriterionLibrary(libraryId).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
                         this.criterionLibraries = reject(
-                            propEq('id', payload.libraryId),
+                            propEq('id', libraryId),
                             this.criterionLibraries,
                         ) as CriterionLibrary[];
                         this.selectedCriterionIsValid = false;

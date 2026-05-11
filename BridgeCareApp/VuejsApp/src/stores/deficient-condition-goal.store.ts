@@ -10,18 +10,6 @@ import {
     emptyDeficientConditionGoalLibrary,
 } from '@/shared/models/iAM/deficient-condition-goal';
 
-export interface DeficientConditionGoalLibrarySelectionPayload {
-    libraryId: string;
-}
-
-export interface DeficientConditionGoalSharedLibraryPayload {
-    id: string;
-}
-
-export interface DeficientConditionGoalDeletePayload {
-    libraryId: string;
-}
-
 export interface DeficientConditionGoalStoreState {
     deficientConditionGoalLibraries: DeficientConditionGoalLibrary[];
     selectedDeficientConditionGoalLibrary: DeficientConditionGoalLibrary;
@@ -64,10 +52,8 @@ export const useDeficientConditionGoalStore = defineStore('deficientConditionGoa
                   ) as DeficientConditionGoalLibrary)
                 : clone(emptyDeficientConditionGoalLibrary);
         },
-        selectDeficientConditionGoalLibrary(
-            payload: DeficientConditionGoalLibrarySelectionPayload,
-        ) {
-            this.selectedDeficientConditionGoalLibraryMutator(payload.libraryId);
+        selectDeficientConditionGoalLibrary(libraryId: string) {
+            this.selectedDeficientConditionGoalLibraryMutator(libraryId);
         },
         async getDeficientConditionGoalLibraries() {
             await DeficientConditionGoalService.getDeficientConditionGoalLibraries().then(
@@ -78,12 +64,10 @@ export const useDeficientConditionGoalStore = defineStore('deficientConditionGoa
                 },
             );
         },
-        async deleteDeficientConditionGoalLibrary(
-            payload: DeficientConditionGoalDeletePayload,
-        ) {
+        async deleteDeficientConditionGoalLibrary(libraryId: string) {
             const notificationStore = useNotificationStore();
             await DeficientConditionGoalService.deleteDeficientConditionGoalLibrary(
-                payload.libraryId,
+                libraryId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
@@ -91,7 +75,7 @@ export const useDeficientConditionGoalStore = defineStore('deficientConditionGoa
                 ) {
                     this.deficientConditionGoalLibraries = reject(
                         (library: DeficientConditionGoalLibrary) =>
-                            payload.libraryId === library.id,
+                            libraryId === library.id,
                         this.deficientConditionGoalLibraries,
                     ) as DeficientConditionGoalLibrary[];
                     notificationStore.addSuccessNotification({
@@ -112,11 +96,9 @@ export const useDeficientConditionGoalStore = defineStore('deficientConditionGoa
                 },
             );
         },
-        async getIsSharedDeficientConditionGoalLibrary(
-            payload: DeficientConditionGoalSharedLibraryPayload,
-        ) {
+        async getIsSharedDeficientConditionGoalLibrary(id: string) {
             await DeficientConditionGoalService.getIsSharedDeficientConditionGoalLibrary(
-                payload.id,
+                id,
             ).then((response: AxiosResponse<boolean>) => {
                 if (
                     hasValue(response, 'status') &&

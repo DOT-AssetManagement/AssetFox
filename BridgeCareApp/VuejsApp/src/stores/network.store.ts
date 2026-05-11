@@ -10,30 +10,6 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useNotificationStore } from './notification.store';
 
-export interface NetworkCompatibilityPayload {
-    networkId: string;
-}
-
-export interface CreateNetworkPayload {
-    network: Network;
-    dataSourceId: string;
-    parameters: Attribute;
-}
-
-export interface EditNetworkNamePayload {
-    networkId: string;
-    newNetworkName: string;
-}
-
-export interface BenefitQuantifierPayload {
-    benefitQuantifier: BenefitQuantifier;
-}
-
-export interface AggregateNetworkDataPayload {
-    dataSource: string;
-    networkId: string;
-}
-
 export interface NetworkStoreState {
     networks: Network[];
     selectedNetwork: Network;
@@ -88,8 +64,8 @@ export const useNetworkStore = defineStore('network', {
                 },
             );
         },
-        async getCompatibleNetworks(payload: NetworkCompatibilityPayload) {
-            await NetworkService.getCompatibleNetworks(payload.networkId).then(
+        async getCompatibleNetworks(networkId: string) {
+            await NetworkService.getCompatibleNetworks(networkId).then(
                 (response: AxiosResponse<Network[]>) => {
                     if (hasValue(response, 'data')) {
                         this.compatibleNetworks = clone(response.data);
@@ -97,12 +73,16 @@ export const useNetworkStore = defineStore('network', {
                 },
             );
         },
-        async createNetwork(payload: CreateNetworkPayload) {
+        async createNetwork(
+            network: Network,
+            dataSourceId: string,
+            parameters: Attribute,
+        ) {
             const notificationStore = useNotificationStore();
             return await NetworkService.createNetwork(
-                payload.network.name,
-                payload.dataSourceId,
-                payload.parameters,
+                network.name,
+                dataSourceId,
+                parameters,
             ).then((response: AxiosResponse<string>) => {
                 if (hasValue(response, 'data')) {
                     const message = any(propEq('id', response.data), this.networks)
@@ -143,11 +123,11 @@ export const useNetworkStore = defineStore('network', {
                 },
             );
         },
-        async editNetworkName(payload: EditNetworkNamePayload) {
+        async editNetworkName(networkId: string, newNetworkName: string) {
             const notificationStore = useNotificationStore();
             return await NetworkService.EditNetworkName(
-                payload.networkId,
-                payload.newNetworkName,
+                networkId,
+                newNetworkName,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
@@ -161,10 +141,10 @@ export const useNetworkStore = defineStore('network', {
                 return response;
             });
         },
-        async upsertBenefitQuantifier(payload: BenefitQuantifierPayload) {
+        async upsertBenefitQuantifier(benefitQuantifier: BenefitQuantifier) {
             const notificationStore = useNotificationStore();
             return await NetworkService.upsertBenefitQuantifier(
-                payload.benefitQuantifier,
+                benefitQuantifier,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
@@ -172,7 +152,7 @@ export const useNetworkStore = defineStore('network', {
                 ) {
                     this.networks = applyBenefitQuantifier(
                         this.networks,
-                        payload.benefitQuantifier,
+                        benefitQuantifier,
                     );
                     notificationStore.addSuccessNotification({
                         message: 'Benefit quantifier upsertted',
@@ -182,11 +162,11 @@ export const useNetworkStore = defineStore('network', {
                 return response;
             });
         },
-        async aggregateNetworkData(payload: AggregateNetworkDataPayload) {
+        async aggregateNetworkData(dataSource: string, networkId: string) {
             const notificationStore = useNotificationStore();
             return await AggregationService.AggregateNetworkData(
-                payload.dataSource,
-                payload.networkId,
+                dataSource,
+                networkId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&

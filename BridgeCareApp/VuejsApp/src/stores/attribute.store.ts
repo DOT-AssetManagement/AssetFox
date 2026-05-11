@@ -14,22 +14,6 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useNotificationStore } from './notification.store';
 
-export interface AttributeSelectPayload {
-    attributeId: string;
-}
-
-export interface AttributeSelectValuesPayload {
-    attributeNames: string[];
-}
-
-export interface AttributeUpsertPayload {
-    attribute: Attribute;
-}
-
-export interface AttributeTypePayload {
-    type: string;
-}
-
 export interface AttributeStoreState {
     attributes: Attribute[];
     selectedAttribute: Attribute;
@@ -170,9 +154,9 @@ export const useAttributeStore = defineStore('attribute', {
                 },
             );
         },
-        async getAttributeSelectValues(payload: AttributeSelectValuesPayload) {
+        async getAttributeSelectValues(attributeNames: string[]) {
             const notificationStore = useNotificationStore();
-            await AttributeService.getAttributeSelectValues(payload.attributeNames).then(
+            await AttributeService.getAttributeSelectValues(attributeNames).then(
                 (response: AxiosResponse<AttributeSelectValuesResult[]>) => {
                     if (hasValue(response, 'data')) {
                         const attributesSelectValues: AttributeSelectValues[] = [];
@@ -195,7 +179,7 @@ export const useAttributeStore = defineStore('attribute', {
                         );
                         this.checkedSelectAttributes = appendCheckedSelectAttributes(
                             this.checkedSelectAttributes,
-                            payload.attributeNames,
+                            attributeNames,
                         );
 
                         if (hasValue(warningMessages)) {
@@ -227,11 +211,9 @@ export const useAttributeStore = defineStore('attribute', {
                 },
             );
         },
-        async upsertAttribute(payload: AttributeUpsertPayload) {
+        async upsertAttribute(attribute: Attribute) {
             const notificationStore = useNotificationStore();
-            const attribute = payload.attribute;
-
-            await AttributeService.upsertAttribute(payload as unknown as Attribute).then(
+            await AttributeService.upsertAttribute(attribute).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&

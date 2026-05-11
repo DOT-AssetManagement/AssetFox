@@ -15,23 +15,14 @@ export interface AnalysisMethodStoreState {
     simulationAnalysisSetting: boolean;
 }
 
-export interface ScenarioIdPayload {
-    scenarioId: string;
-}
-
-export interface UpsertAnalysisMethodPayload {
-    analysisMethod: AnalysisMethod;
-    scenarioId: string;
-}
-
 export const useAnalysisMethodStore = defineStore('analysisMethod', {
     state: (): AnalysisMethodStoreState => ({
         analysisMethod: clone(emptyAnalysisMethod) as AnalysisMethod,
         simulationAnalysisSetting: true,
     }),
     actions: {
-        async getAnalysisMethod(payload: ScenarioIdPayload) {
-            await AnalysisMethodService.getAnalysisMethod(payload.scenarioId).then(
+        async getAnalysisMethod(scenarioId: string) {
+            await AnalysisMethodService.getAnalysisMethod(scenarioId).then(
                 (response: AxiosResponse) => {
                     if (hasValue(response, 'data')) {
                         this.analysisMethod = clone(response.data as AnalysisMethod);
@@ -39,11 +30,11 @@ export const useAnalysisMethodStore = defineStore('analysisMethod', {
                 },
             );
         },
-        async getSimulationAnalysisSetting(payload: ScenarioIdPayload) {
+        async getSimulationAnalysisSetting(scenarioId: string) {
             try {
                 const response: AxiosResponse =
                     await AnalysisMethodService.getSimulationAnalysisSetting(
-                        payload.scenarioId,
+                        scenarioId,
                     );
                 if (response.data === false) {
                     this.simulationAnalysisSetting = false;
@@ -59,17 +50,17 @@ export const useAnalysisMethodStore = defineStore('analysisMethod', {
                 this.simulationAnalysisSetting = false;
             }
         },
-        async upsertAnalysisMethod(payload: UpsertAnalysisMethodPayload) {
+        async upsertAnalysisMethod(analysisMethod: AnalysisMethod, scenarioId: string) {
             const notificationStore = useNotificationStore();
             return await AnalysisMethodService.upsetAnalysisMethod(
-                payload.analysisMethod,
-                payload.scenarioId,
+                analysisMethod,
+                scenarioId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
                     http2XX.test(response.status.toString())
                 ) {
-                    this.analysisMethod = clone(payload.analysisMethod);
+                    this.analysisMethod = clone(analysisMethod);
                     notificationStore.addSuccessNotification({
                         message: 'Analysis method saved successfully',
                     });

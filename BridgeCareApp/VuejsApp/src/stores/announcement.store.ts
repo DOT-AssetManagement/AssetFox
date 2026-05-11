@@ -12,14 +12,6 @@ export interface AnnouncementStoreState {
     packageVersion: string;
 }
 
-export interface UpsertAnnouncementPayload {
-    announcement: Announcement;
-}
-
-export interface DeleteAnnouncementPayload {
-    deletedAnnouncementId: string;
-}
-
 export const useAnnouncementStore = defineStore('announcement', {
     state: (): AnnouncementStoreState => ({
         announcements: [] as Announcement[],
@@ -35,35 +27,35 @@ export const useAnnouncementStore = defineStore('announcement', {
                 },
             );
         },
-        async upsertAnnouncement(payload: UpsertAnnouncementPayload) {
+        async upsertAnnouncement(announcement: Announcement) {
             const notificationStore = useNotificationStore();
-            await AnnouncementService.upsertAnnouncement(payload.announcement).then(
+            await AnnouncementService.upsertAnnouncement(announcement).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
-                        const message: string = any(propEq('id', payload.announcement.id), this.announcements)
+                        const message: string = any(propEq('id', announcement.id), this.announcements)
                          ? 'Updated announcement' : 'Added announcement';
 
                         this.announcements = any(
-                            propEq('id', payload.announcement.id),this.announcements)
+                            propEq('id', announcement.id),this.announcements)
                             ? update(
                                 findIndex(
-                                    propEq('id', payload.announcement.id),
+                                    propEq('id', announcement.id),
                                     this.announcements),
-                                payload.announcement,
-                                this.announcements) : prepend(payload.announcement, this.announcements);
+                                announcement,
+                                this.announcements) : prepend(announcement, this.announcements);
 
                         notificationStore.addSuccessNotification({ message });
                     }
                 },
             );
         },
-        async deleteAnnouncement(payload: DeleteAnnouncementPayload) {
+        async deleteAnnouncement(deletedAnnouncementId: string) {
             const notificationStore = useNotificationStore();
             await AnnouncementService.deleteAnnouncement(
-                payload.deletedAnnouncementId,
+                deletedAnnouncementId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
@@ -71,9 +63,9 @@ export const useAnnouncementStore = defineStore('announcement', {
                 ) {
                     if (
                         any(
-                            propEq('id', payload.deletedAnnouncementId),this.announcements)) {
+                            propEq('id', deletedAnnouncementId),this.announcements)) {
                         this.announcements = reject(
-                            (announcement: Announcement) => announcement.id === payload.deletedAnnouncementId,
+                            (announcement: Announcement) => announcement.id === deletedAnnouncementId,
                             this.announcements);
                     }
                     notificationStore.addSuccessNotification({

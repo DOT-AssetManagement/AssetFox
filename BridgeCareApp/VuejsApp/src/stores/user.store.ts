@@ -20,23 +20,6 @@ export interface UserStoreState {
     checkedForCriteria: boolean;
 }
 
-export interface UserActivationPayload {
-    userId: string;
-}
-
-export interface UpdateUserCriteriaFilterPayload {
-    userCriteriaFilter: UserCriteriaFilter;
-}
-
-export interface RevokeUserCriteriaFilterPayload {
-    userCriteriaId: string;
-}
-
-export interface UpdateUserLastNewsAccessDatePayload {
-    id: string;
-    accessDate: string;
-}
-
 export const useUserStore = defineStore('user', {
     state: (): UserStoreState => ({
         users: [] as User[],
@@ -76,23 +59,23 @@ export const useUserStore = defineStore('user', {
             );
         },
 
-        async deactivateUser(payload: UserActivationPayload) {
+        async deactivateUser(userId: string) {
             const notificationStore = useNotificationStore();
-            await UserService.deactivateUser(payload.userId).then(
+            await UserService.deactivateUser(userId).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
                         this.usersCriteriaFilter = this.usersCriteriaFilter.map((user) => {
-                            if (user.userId === payload.userId) {
+                            if (user.userId === userId) {
                                 return { ...user, activeStatus: false };
                             }
                             return user;
                         });
 
                         this.users = this.users.map((user) => {
-                            if (user.id === payload.userId) {
+                            if (user.id === userId) {
                                 return { ...user, activeStatus: false };
                             }
                             return user;
@@ -104,23 +87,23 @@ export const useUserStore = defineStore('user', {
                 },
             );
         },
-        async reactivateUser(payload: UserActivationPayload) {
+        async reactivateUser(userId: string) {
             const notificationStore = useNotificationStore();
-            await UserService.reactivateUser(payload.userId).then(
+            await UserService.reactivateUser(userId).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
                         this.usersCriteriaFilter = this.usersCriteriaFilter.map((user) => {
-                            if (user.userId === payload.userId) {
+                            if (user.userId === userId) {
                                 return { ...user, activeStatus: true };
                             }
                             return user;
                         });
 
                         this.users = this.users.map((user) => {
-                            if (user.id === payload.userId) {
+                            if (user.id === userId) {
                                 return { ...user, activeStatus: true };
                             }
                             return user;
@@ -173,37 +156,37 @@ export const useUserStore = defineStore('user', {
                 },
             );
         },
-        async updateUserCriteriaFilter(payload: UpdateUserCriteriaFilterPayload) {
+        async updateUserCriteriaFilter(userCriteriaFilter: UserCriteriaFilter) {
             const notificationStore = useNotificationStore();
             await UserService.updateUserCriteriaFilterData(
-                payload.userCriteriaFilter,
+                userCriteriaFilter,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
                     http2XX.test(response.status.toString())
                 ) {
                     var criteriaIndex = findIndex(
-                        propEq('userId', payload.userCriteriaFilter.userId),
+                        propEq('userId', userCriteriaFilter.userId),
                         this.usersCriteriaFilter,
                     );
                     if (criteriaIndex != -1) {
                         this.usersCriteriaFilter[criteriaIndex].criteria =
-                            payload.userCriteriaFilter.criteria;
+                            userCriteriaFilter.criteria;
                         this.usersCriteriaFilter[criteriaIndex].hasAccess =
-                            payload.userCriteriaFilter.hasAccess;
+                            userCriteriaFilter.hasAccess;
                         this.usersCriteriaFilter[criteriaIndex].hasCriteria =
-                            payload.userCriteriaFilter.hasCriteria;
+                            userCriteriaFilter.hasCriteria;
                     } else {
-                        this.usersCriteriaFilter.push(payload.userCriteriaFilter);
+                        this.usersCriteriaFilter.push(userCriteriaFilter);
                     }
 
                     var index = findIndex(
-                        propEq('id', payload.userCriteriaFilter.userId),
+                        propEq('id', userCriteriaFilter.userId),
                         this.users,
                     );
                     if (index != -1) {
                         var data = this.users[index];
-                        data.hasInventoryAccess = payload.userCriteriaFilter.hasAccess;
+                        data.hasInventoryAccess = userCriteriaFilter.hasAccess;
                         this.users = update(index, data, this.users);
                     }
                     notificationStore.addSuccessNotification({
@@ -212,23 +195,23 @@ export const useUserStore = defineStore('user', {
                 }
             });
         },
-        async revokeUserCriteriaFilter(payload: RevokeUserCriteriaFilterPayload) {
+        async revokeUserCriteriaFilter(userCriteriaId: string) {
             const notificationStore = useNotificationStore();
             await UserService.revokeUserCriteriaFilterData(
-                payload.userCriteriaId,
+                userCriteriaId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
                     http2XX.test(response.status.toString())
                 ) {
                     var index = findIndex(
-                        propEq('criteriaId', payload.userCriteriaId),
+                        propEq('criteriaId', userCriteriaId),
                         this.usersCriteriaFilter,
                     );
                     var currUserFilter = this.usersCriteriaFilter[index];
 
                     this.usersCriteriaFilter = reject(
-                        propEq('criteriaId', payload.userCriteriaId),
+                        propEq('criteriaId', userCriteriaId),
                         this.usersCriteriaFilter,
                     );
 
@@ -249,11 +232,11 @@ export const useUserStore = defineStore('user', {
                 }
             });
         },
-        async updateUserLastNewsAccessDate(payload: UpdateUserLastNewsAccessDatePayload) {
+        async updateUserLastNewsAccessDate(id: string, accessDate: string) {
             const notificationStore = useNotificationStore();
             let data: UserNewsAccessDate = {
-                id: payload.id,
-                lastNewsAccessDate: payload.accessDate
+                id,
+                lastNewsAccessDate: accessDate
             };
 
             await UserService.updateLastNewsAccessDate(

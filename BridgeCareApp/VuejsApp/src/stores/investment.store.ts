@@ -17,15 +17,6 @@ import {
 import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
 import { useAlertStore } from './alert.store';
 
-export interface UpsertInvestmentPayload {
-    investment: Investment;
-    scenarioId: string;
-}
-
-export interface ScenarioSimpleBudgetDetailsPayload {
-    scenarioId: string;
-}
-
 export interface InvestmentBudgetsImportPayload {
     file: File;
     overwriteBudgets: boolean;
@@ -97,18 +88,18 @@ export const useInvestmentStore = defineStore('investment', {
                 },
             );
         },
-        async upsertInvestment(payload: UpsertInvestmentPayload) {
+        async upsertInvestment(investment: Investment, scenarioId: string) {
             const notificationStore = useNotificationStore();
             await InvestmentService.upsertInvestment(
-                payload.investment as any,
-                payload.scenarioId,
+                investment as any,
+                scenarioId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
                     http2XX.test(response.status.toString())
                 ) {
-                    this.scenarioBudgets = clone(payload.investment.scenarioBudgets);
-                    this.investmentPlan = clone(payload.investment.investmentPlan);
+                    this.scenarioBudgets = clone(investment.scenarioBudgets);
+                    this.investmentPlan = clone(investment.investmentPlan);
                     notificationStore.addSuccessNotification({
                         message: 'Modified investment',
                     });
@@ -143,11 +134,9 @@ export const useInvestmentStore = defineStore('investment', {
                 },
             );
         },
-        async getScenarioSimpleBudgetDetails(
-            payload: ScenarioSimpleBudgetDetailsPayload,
-        ) {
+        async getScenarioSimpleBudgetDetails(scenarioId: string) {
             await InvestmentService.getScenarioSimpleBudgetDetails(
-                payload.scenarioId,
+                scenarioId,
             ).then((response: AxiosResponse<SimpleBudgetDetail[]>) => {
                 if (hasValue(response, 'data')) {
                     this.scenarioSimpleBudgetDetails = clone(response.data);

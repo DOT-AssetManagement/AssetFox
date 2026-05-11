@@ -112,9 +112,9 @@ export const useCalculatedAttributeStore = defineStore('calculatedAttribute', {
                 }
             });
         },
-        async getIsSharedCalculatedAttributeLibrary(payload: { id: string }) {
+        async getIsSharedCalculatedAttributeLibrary(id: string) {
             await CalculatedAttributeService.getIsSharedCalculatedAttributeLibrary(
-                payload.id,
+                id,
             ).then((response: AxiosResponse<boolean>) => {
                 if (
                     hasValue(response, 'status') &&

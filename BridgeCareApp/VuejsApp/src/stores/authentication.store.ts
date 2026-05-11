@@ -22,15 +22,6 @@ export interface AuthenticationStoreState {
     accessDenied: boolean;
 }
 
-export interface AuthenticationCodePayload {
-    code: string;
-}
-
-export interface AzureUserInfoPayload {
-    status: boolean;
-    username: string;
-}
-
 function resetAuthenticationState(state: AuthenticationStoreState) {
     state.hasRole = false;
     state.checkedForRole = false;
@@ -56,8 +47,8 @@ export const useAuthenticationStore = defineStore('authentication', {
         accessDenied: false,
     }),
     actions: {
-        async getUserTokens(payload: AuthenticationCodePayload) {
-            await AuthenticationService.getUserTokens(payload.code).then(
+        async getUserTokens(code: string) {
+            await AuthenticationService.getUserTokens(code).then(
                 (response: AxiosResponse) => {
                     const expirationInMilliseconds = moment().add(30, 'minutes');                
                     if (
@@ -207,8 +198,8 @@ export const useAuthenticationStore = defineStore('authentication', {
                 );
             }
         },
-        async setAzureUserInfo(payload: AzureUserInfoPayload) {
-            if (payload.status) {    
+        async setAzureUserInfo(status: boolean, username: string) {
+            if (status) {    
                 var activeStatus = await AuthenticationService.getActiveStatus();
                 if(activeStatus.data == true)
                     {
@@ -220,7 +211,7 @@ export const useAuthenticationStore = defineStore('authentication', {
                                 this.hasRole = true;
                                 this.checkedForRole = true;
                                 this.hasAdminAccess = hasAdminAccess;
-                                this.username = payload.username;
+                                this.username = username;
                                 this.authenticated = true;
                                 this.hasSimulationAccess = false;
                                 this.accessDenied = true;

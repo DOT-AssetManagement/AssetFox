@@ -12,14 +12,6 @@ import {
 } from '@/shared/models/iAM/budget-priority';
 import { LibraryUser } from '@/shared/models/iAM/user';
 
-export interface BudgetPriorityLibrarySelectionPayload {
-    libraryId: string;
-}
-
-export interface SharedLibraryPayload {
-    id: string;
-}
-
 export interface BudgetPriorityStoreState {
     budgetPriorityLibraries: BudgetPriorityLibrary[];
     selectedBudgetPriorityLibrary: BudgetPriorityLibrary;
@@ -58,8 +50,8 @@ export const useBudgetPriorityStore = defineStore('budgetPriority', {
                   ) as BudgetPriorityLibrary)
                 : clone(emptyBudgetPriorityLibrary);
         },
-        selectBudgetPriorityLibrary(payload: BudgetPriorityLibrarySelectionPayload) {
-            this.selectedBudgetPriorityLibraryMutator(payload.libraryId);
+        selectBudgetPriorityLibrary(libraryId: string) {
+            this.selectedBudgetPriorityLibraryMutator(libraryId);
         },
         async getBudgetPriorityLibraries() {
             await BudgetPriorityService.getBudgetPriorityLibraries().then(
@@ -101,8 +93,8 @@ export const useBudgetPriorityStore = defineStore('budgetPriority', {
                 },
             );
         },
-        async getIsSharedBudgetPriorityLibrary(payload: SharedLibraryPayload) {
-            await BudgetPriorityService.getIsSharedBudgetPriorityLibrary(payload.id).then(
+        async getIsSharedBudgetPriorityLibrary(id: string) {
+            await BudgetPriorityService.getIsSharedBudgetPriorityLibrary(id).then(
                 (response: AxiosResponse<boolean>) => {
                     if (
                         hasValue(response, 'status') &&

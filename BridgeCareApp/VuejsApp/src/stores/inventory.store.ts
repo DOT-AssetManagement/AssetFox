@@ -5,15 +5,6 @@ import InventoryService from '@/services/inventory.service';
 import { InventoryItem, InventoryParam } from '@/shared/models/iAM/inventory';
 import { hasValue } from '@/shared/utils/has-value-util';
 
-export interface InventoryStaticHtmlPayload {
-    reportType: string;
-    filterData: InventoryParam;
-}
-
-export interface InventoryQueryPayload {
-    querySet: InventoryParam[];
-}
-
 export interface InventoryStoreState {
     inventoryItems: InventoryItem[];
     staticHTMLForInventory: string | null;
@@ -38,18 +29,18 @@ export const useInventoryStore = defineStore('inventory', {
                 this.inventoryItems = clone(mappedItems);
             }
         },
-        async getStaticInventoryHTML(payload: InventoryStaticHtmlPayload) {
+        async getStaticInventoryHTML(reportType: string, filterData: InventoryParam) {
             await InventoryService.getStaticInventoryHTML(
-                payload.reportType,
-                payload.filterData,
+                reportType,
+                filterData,
             ).then((response: AxiosResponse<string>) => {
                 if (hasValue(response, 'data')) {
                     this.staticHTMLForInventory = response.data;
                 }
             });
         },
-        async getQuery(payload: InventoryQueryPayload) {
-            await InventoryService.getQuery(payload.querySet).then(
+        async getQuery(querySet: InventoryParam[]) {
+            await InventoryService.getQuery(querySet).then(
                 (response: AxiosResponse<InventoryParam[]>) => {
                     if (hasValue(response, 'data')) {
                         this.querySet = clone(response.data);

@@ -10,18 +10,6 @@ import {
     TargetConditionGoalLibrary,
 } from '@/shared/models/iAM/target-condition-goal';
 
-export interface TargetConditionGoalLibrarySelectionPayload {
-    libraryId: string;
-}
-
-export interface TargetConditionGoalDeletePayload {
-    libraryId: string;
-}
-
-export interface TargetConditionGoalSharedLibraryPayload {
-    id: string;
-}
-
 export interface TargetConditionGoalStoreState {
     targetConditionGoalLibraries: TargetConditionGoalLibrary[];
     selectedTargetConditionGoalLibrary: TargetConditionGoalLibrary;
@@ -62,10 +50,8 @@ export const useTargetConditionGoalStore = defineStore('targetConditionGoal', {
                   ) as TargetConditionGoalLibrary)
                 : clone(emptyTargetConditionGoalLibrary);
         },
-        selectTargetConditionGoalLibrary(
-            payload: TargetConditionGoalLibrarySelectionPayload,
-        ) {
-            this.selectedTargetConditionGoalLibraryMutator(payload.libraryId);
+        selectTargetConditionGoalLibrary(libraryId: string) {
+            this.selectedTargetConditionGoalLibraryMutator(libraryId);
         },
         async getTargetConditionGoalLibraries() {
             await TargetConditionGoalService.getTargetConditionGoalLibraries().then(
@@ -76,12 +62,10 @@ export const useTargetConditionGoalStore = defineStore('targetConditionGoal', {
                 },
             );
         },
-        async deleteTargetConditionGoalLibrary(
-            payload: TargetConditionGoalDeletePayload,
-        ) {
+        async deleteTargetConditionGoalLibrary(libraryId: string) {
             const notificationStore = useNotificationStore();
             await TargetConditionGoalService.deleteTargetConditionGoalLibrary(
-                payload.libraryId,
+                libraryId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
@@ -89,7 +73,7 @@ export const useTargetConditionGoalStore = defineStore('targetConditionGoal', {
                 ) {
                     this.targetConditionGoalLibraries = reject(
                         (library: TargetConditionGoalLibrary) =>
-                            payload.libraryId === library.id,
+                            libraryId === library.id,
                         this.targetConditionGoalLibraries,
                     ) as TargetConditionGoalLibrary[];
                     notificationStore.addSuccessNotification({
@@ -98,10 +82,8 @@ export const useTargetConditionGoalStore = defineStore('targetConditionGoal', {
                 }
             });
         },
-        async getIsSharedTargetConditionGoalLibrary(
-            payload: TargetConditionGoalSharedLibraryPayload,
-        ) {
-            await TargetConditionGoalService.getIsSharedLibrary(payload.id).then(
+        async getIsSharedTargetConditionGoalLibrary(id: string) {
+            await TargetConditionGoalService.getIsSharedLibrary(id).then(
                 (response: AxiosResponse<boolean>) => {
                     if (
                         hasValue(response, 'status') &&
