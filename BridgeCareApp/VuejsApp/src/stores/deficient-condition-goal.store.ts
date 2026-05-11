@@ -29,28 +29,6 @@ export interface DeficientConditionGoalStoreState {
     isSharedLibrary: boolean;
 }
 
-function selectDeficientConditionGoalLibraryById(
-    libraries: DeficientConditionGoalLibrary[],
-    libraryId: string,
-): DeficientConditionGoalLibrary {
-    return any(propEq('id', libraryId), libraries)
-        ? (find(propEq('id', libraryId), libraries) as DeficientConditionGoalLibrary)
-        : clone(emptyDeficientConditionGoalLibrary);
-}
-
-function upsertDeficientConditionGoalLibraryState(
-    libraries: DeficientConditionGoalLibrary[],
-    library: DeficientConditionGoalLibrary,
-): DeficientConditionGoalLibrary[] {
-    return any(propEq('id', library.id), libraries)
-        ? (update(
-              findIndex(propEq('id', library.id), libraries),
-              library,
-              libraries,
-          ) as DeficientConditionGoalLibrary[])
-        : (append(library, libraries) as DeficientConditionGoalLibrary[]);
-}
-
 export const useDeficientConditionGoalStore = defineStore('deficientConditionGoal', {
     state: (): DeficientConditionGoalStoreState => ({
         deficientConditionGoalLibraries: [],
@@ -64,17 +42,27 @@ export const useDeficientConditionGoalStore = defineStore('deficientConditionGoa
         addedOrUpdatedDeficientConditionGoalLibraryMutator(
             library: DeficientConditionGoalLibrary,
         ) {
-            this.deficientConditionGoalLibraries = upsertDeficientConditionGoalLibraryState(
+            this.deficientConditionGoalLibraries = any(
+                propEq('id', library.id),
                 this.deficientConditionGoalLibraries,
-                library,
-            );
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.deficientConditionGoalLibraries),
+                      library,
+                      this.deficientConditionGoalLibraries,
+                  ) as DeficientConditionGoalLibrary[])
+                : (append(library, this.deficientConditionGoalLibraries) as DeficientConditionGoalLibrary[]);
         },
         selectedDeficientConditionGoalLibraryMutator(libraryId: string) {
-            this.selectedDeficientConditionGoalLibrary =
-                selectDeficientConditionGoalLibraryById(
-                    this.deficientConditionGoalLibraries,
-                    libraryId,
-                );
+            this.selectedDeficientConditionGoalLibrary = any(
+                propEq('id', libraryId),
+                this.deficientConditionGoalLibraries,
+            )
+                ? (find(
+                      propEq('id', libraryId),
+                      this.deficientConditionGoalLibraries,
+                  ) as DeficientConditionGoalLibrary)
+                : clone(emptyDeficientConditionGoalLibrary);
         },
         selectDeficientConditionGoalLibrary(
             payload: DeficientConditionGoalLibrarySelectionPayload,

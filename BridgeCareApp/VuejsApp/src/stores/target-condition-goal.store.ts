@@ -29,28 +29,6 @@ export interface TargetConditionGoalStoreState {
     isSharedLibrary: boolean;
 }
 
-function selectTargetConditionGoalLibraryById(
-    libraries: TargetConditionGoalLibrary[],
-    libraryId: string,
-): TargetConditionGoalLibrary {
-    return any(propEq('id', libraryId), libraries)
-        ? (find(propEq('id', libraryId), libraries) as TargetConditionGoalLibrary)
-        : clone(emptyTargetConditionGoalLibrary);
-}
-
-function upsertTargetConditionGoalLibrary(
-    libraries: TargetConditionGoalLibrary[],
-    library: TargetConditionGoalLibrary,
-): TargetConditionGoalLibrary[] {
-    return any(propEq('id', library.id), libraries)
-        ? (update(
-              findIndex(propEq('id', library.id), libraries),
-              library,
-              libraries,
-          ) as TargetConditionGoalLibrary[])
-        : (append(library, libraries) as TargetConditionGoalLibrary[]);
-}
-
 export const useTargetConditionGoalStore = defineStore('targetConditionGoal', {
     state: (): TargetConditionGoalStoreState => ({
         targetConditionGoalLibraries: [],
@@ -62,17 +40,27 @@ export const useTargetConditionGoalStore = defineStore('targetConditionGoal', {
         addedOrUpdatedTargetConditionGoalLibraryMutator(
             library: TargetConditionGoalLibrary,
         ) {
-            this.targetConditionGoalLibraries = upsertTargetConditionGoalLibrary(
+            this.targetConditionGoalLibraries = any(
+                propEq('id', library.id),
                 this.targetConditionGoalLibraries,
-                library,
-            );
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.targetConditionGoalLibraries),
+                      library,
+                      this.targetConditionGoalLibraries,
+                  ) as TargetConditionGoalLibrary[])
+                : (append(library, this.targetConditionGoalLibraries) as TargetConditionGoalLibrary[]);
         },
         selectedTargetConditionGoalLibraryMutator(libraryId: string) {
-            this.selectedTargetConditionGoalLibrary =
-                selectTargetConditionGoalLibraryById(
-                    this.targetConditionGoalLibraries,
-                    libraryId,
-                );
+            this.selectedTargetConditionGoalLibrary = any(
+                propEq('id', libraryId),
+                this.targetConditionGoalLibraries,
+            )
+                ? (find(
+                      propEq('id', libraryId),
+                      this.targetConditionGoalLibraries,
+                  ) as TargetConditionGoalLibrary)
+                : clone(emptyTargetConditionGoalLibrary);
         },
         selectTargetConditionGoalLibrary(
             payload: TargetConditionGoalLibrarySelectionPayload,

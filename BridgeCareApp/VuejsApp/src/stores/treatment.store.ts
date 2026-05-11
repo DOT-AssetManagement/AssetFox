@@ -14,48 +14,6 @@ import {
     TreatmentLibrary,
 } from '@/shared/models/iAM/treatment';
 
-export interface TreatmentLibrarySelectionPayload {
-    libraryId: string;
-}
-
-export interface ScenarioPayload {
-    scenarioId: string;
-}
-
-export interface SimulationIdPayload {
-    simulationId: string;
-}
-
-export interface TreatmentImportPayload {
-    file: File;
-    id: string;
-}
-
-export interface DeleteTreatmentPayload {
-    treatments: SimpleTreatment[];
-    treatment: Treatment;
-    libraryId: string;
-}
-
-export interface DeleteScenarioSelectableTreatmentPayload {
-    scenarioSelectableTreatment: Treatment;
-    simulationId: string;
-    treatments: SimpleTreatment[];
-}
-
-export interface UpsertOrDeleteTreatmentLibraryUsersPayload {
-    libraryId: string;
-    proposedUsers: LibraryUser[];
-}
-
-export interface IsSharedTreatmentLibraryPayload {
-    id: string;
-}
-
-export interface DeleteTreatmentLibraryPayload {
-    libraryId: string;
-}
-
 export interface TreatmentStoreState {
     treatmentLibraries: TreatmentLibrary[];
     selectedTreatmentLibrary: TreatmentLibrary;
@@ -65,36 +23,6 @@ export interface TreatmentStoreState {
     simpleSelectableTreatments: SimpleTreatment[];
     hasPermittedAccess: boolean;
     isSharedLibrary: boolean;
-}
-
-function selectedTreatmentLibraryMutator(
-    state: TreatmentStoreState,
-    libraryId: string,
-) {
-    if (any(propEq('id', libraryId), state.treatmentLibraries)) {
-        state.selectedTreatmentLibrary = find(
-            propEq('id', libraryId),
-            state.treatmentLibraries,
-        ) as TreatmentLibrary;
-    } else {
-        state.selectedTreatmentLibrary = clone(emptyTreatmentLibrary);
-    }
-}
-
-function addedOrUpdatedTreatmentLibraryMutator(
-    state: TreatmentStoreState,
-    library: TreatmentLibrary,
-) {
-    state.treatmentLibraries = any(
-        propEq('id', library.id),
-        state.treatmentLibraries,
-    )
-        ? (update(
-              findIndex(propEq('id', library.id), state.treatmentLibraries),
-              library,
-              state.treatmentLibraries,
-          ) as TreatmentLibrary[])
-        : (append(library, state.treatmentLibraries) as TreatmentLibrary[]);
 }
 
 function deletedTreatmentLibraryMutator(
@@ -121,8 +49,8 @@ export const useTreatmentStore = defineStore('treatment', {
         isSharedLibrary: false,
     }),
     actions: {
-        selectTreatmentLibrary(payload: TreatmentLibrarySelectionPayload) {
-            selectedTreatmentLibraryMutator(this, payload.libraryId);
+        selectTreatmentLibrary(libraryId: string) {
+            this.selectedTreatmentLibraryMutator(libraryId);
         },
         async getTreatmentLibraries() {
             await TreatmentService.getTreatmentLibraries().then(
@@ -133,9 +61,9 @@ export const useTreatmentStore = defineStore('treatment', {
                 },
             );
         },
-        async getScenarioSelectableTreatments(payload: ScenarioPayload) {
+        async getScenarioSelectableTreatments(scenarioId: string) {
             const response = await TreatmentService.getScenarioSelectedTreatments(
-                payload.scenarioId,
+                scenarioId,
             );
 
             if (hasValue(response, 'data')) {
@@ -162,9 +90,7 @@ export const useTreatmentStore = defineStore('treatment', {
                 },
             );
         },
-        async getTreatmentLibraryBySimulationId(payload: string | SimulationIdPayload) {
-            const simulationId = typeof payload === 'string' ? payload : payload.simulationId;
-
+        async getTreatmentLibraryBySimulationId(simulationId: string) {
             await TreatmentService.getTreatmentLibraryBySimulationId(simulationId).then(
                 (response: AxiosResponse<TreatmentLibrary>) => {
                     if (hasValue(response, 'data')) {
@@ -173,15 +99,15 @@ export const useTreatmentStore = defineStore('treatment', {
                 },
             );
         },
-        async deleteTreatmentLibrary(payload: DeleteTreatmentLibraryPayload) {
+        async deleteTreatmentLibrary(libraryId: string) {
             const notificationStore = useNotificationStore();
-            await TreatmentService.deleteTreatmentLibrary(payload.libraryId).then(
+            await TreatmentService.deleteTreatmentLibrary(libraryId).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
-                        deletedTreatmentLibraryMutator(this, payload.libraryId);
+                        deletedTreatmentLibraryMutator(this, libraryId);
                         notificationStore.addSuccessNotification({
                             message: 'Deleted treatment library',
                         });
@@ -189,11 +115,11 @@ export const useTreatmentStore = defineStore('treatment', {
                 },
             );
         },
-        async importScenarioTreatmentsFile(payload: TreatmentImportPayload) {
+        async importScenarioTreatmentsFile(file: File, id: string) {
             const alertStore = useAlertStore();
             await TreatmentService.importTreatments(
-                payload.file,
-                payload.id,
+                file,
+                id,
                 true,
             ).then((response: AxiosResponse) => {
                 if (!isNil(response)) {
@@ -203,11 +129,11 @@ export const useTreatmentStore = defineStore('treatment', {
                 }
             });
         },
-        async importLibraryTreatmentsFile(payload: TreatmentImportPayload) {
+        async importLibraryTreatmentsFile(file: File, id: string) {
             const alertStore = useAlertStore();
             await TreatmentService.importTreatments(
-                payload.file,
-                payload.id,
+                file,
+                id,
                 false,
             ).then((response: AxiosResponse) => {
                 if (!isNil(response)) {
@@ -217,13 +143,11 @@ export const useTreatmentStore = defineStore('treatment', {
                 }
             });
         },
-        async importScenarioTreatmentSupersedeRulesFile(
-            payload: TreatmentImportPayload,
-        ) {
+        async importScenarioTreatmentSupersedeRulesFile(file: File, id: string) {
             const alertStore = useAlertStore();
             await TreatmentService.importSupersedeRules(
-                payload.file,
-                payload.id,
+                file,
+                id,
                 true,
             ).then((response: AxiosResponse) => {
                 if (!isNil(response)) {
@@ -233,13 +157,11 @@ export const useTreatmentStore = defineStore('treatment', {
                 }
             });
         },
-        async importLibraryTreatmentSupersedeRulesFile(
-            payload: TreatmentImportPayload,
-        ) {
+        async importLibraryTreatmentSupersedeRulesFile(file: File, id: string) {
             const alertStore = useAlertStore();
             await TreatmentService.importSupersedeRules(
-                payload.file,
-                payload.id,
+                file,
+                id,
                 false,
             ).then((response: AxiosResponse) => {
                 if (!isNil(response)) {
@@ -249,37 +171,42 @@ export const useTreatmentStore = defineStore('treatment', {
                 }
             });
         },
-        async deleteTreatment(payload: DeleteTreatmentPayload) {
+        async deleteTreatment(
+            treatments: SimpleTreatment[],
+            treatment: Treatment,
+            libraryId: string,
+        ) {
             const notificationStore = useNotificationStore();
-            await TreatmentService.deleteTreatment(
-                payload.treatment,
-                payload.libraryId,
-            ).then((response: AxiosResponse) => {
+            await TreatmentService.deleteTreatment(treatment, libraryId).then(
+                (response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
                     http2XX.test(response.status.toString())
                 ) {
-                    this.simpleSelectableTreatments = clone(payload.treatments);
-                    selectedTreatmentLibraryMutator(this, payload.libraryId);
+                    this.simpleSelectableTreatments = clone(treatments);
+                    this.selectedTreatmentLibraryMutator(libraryId);
                     notificationStore.addSuccessNotification({
                         message: 'Deleted treatment',
                     });
                 }
-            });
+                },
+            );
         },
         async deleteScenarioSelectableTreatment(
-            payload: DeleteScenarioSelectableTreatmentPayload,
+            scenarioSelectableTreatment: Treatment,
+            simulationId: string,
+            treatments: SimpleTreatment[],
         ) {
             const notificationStore = useNotificationStore();
             await TreatmentService.deleteScenarioSelectableTreatment(
-                payload.scenarioSelectableTreatment,
-                payload.simulationId,
+                scenarioSelectableTreatment,
+                simulationId,
             ).then((response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
                     http2XX.test(response.status.toString())
                 ) {
-                    this.simpleScenarioSelectableTreatments = clone(payload.treatments);
+                    this.simpleScenarioSelectableTreatments = clone(treatments);
                     notificationStore.addSuccessNotification({
                         message: 'Deleted scenario treatment',
                     });
@@ -287,11 +214,12 @@ export const useTreatmentStore = defineStore('treatment', {
             });
         },
         async upsertOrDeleteTreatmentLibraryUsers(
-            payload: UpsertOrDeleteTreatmentLibraryUsersPayload,
+            libraryId: string,
+            proposedUsers: LibraryUser[],
         ) {
             await TreatmentService.upsertOrDeleteTreatmentLibraryUsers(
-                payload.libraryId,
-                payload.proposedUsers,
+                libraryId,
+                proposedUsers,
             ).then((_response: AxiosResponse) => {});
         },
         async getHasPermittedAccess() {
@@ -306,8 +234,8 @@ export const useTreatmentStore = defineStore('treatment', {
                 },
             );
         },
-        async getIsSharedTreatmentLibrary(payload: IsSharedTreatmentLibraryPayload) {
-            await TreatmentService.getIsSharedLibrary(payload.id).then(
+        async getIsSharedTreatmentLibrary(id: string) {
+            await TreatmentService.getIsSharedLibrary(id).then(
                 (response: AxiosResponse<boolean>) => {
                     if (
                         hasValue(response, 'status') &&
@@ -318,11 +246,27 @@ export const useTreatmentStore = defineStore('treatment', {
                 },
             );
         },
-        addedOrUpdatedTreatmentLibraryMutator(payload: { library: TreatmentLibrary }) {
-            addedOrUpdatedTreatmentLibraryMutator(this, payload.library);
+        addedOrUpdatedTreatmentLibraryMutator(library: TreatmentLibrary) {
+            this.treatmentLibraries = any(
+                propEq('id', library.id),
+                this.treatmentLibraries,
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.treatmentLibraries),
+                      library,
+                      this.treatmentLibraries,
+                  ) as TreatmentLibrary[])
+                : (append(library, this.treatmentLibraries) as TreatmentLibrary[]);
         },
-        selectedTreatmentLibraryMutator(payload: TreatmentLibrarySelectionPayload) {
-            selectedTreatmentLibraryMutator(this, payload.libraryId);
+        selectedTreatmentLibraryMutator(libraryId: string) {
+            if (any(propEq('id', libraryId), this.treatmentLibraries)) {
+                this.selectedTreatmentLibrary = find(
+                    propEq('id', libraryId),
+                    this.treatmentLibraries,
+                ) as TreatmentLibrary;
+            } else {
+                this.selectedTreatmentLibrary = clone(emptyTreatmentLibrary);
+            }
         },
     },
 });

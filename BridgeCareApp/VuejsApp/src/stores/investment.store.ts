@@ -43,28 +43,6 @@ export interface InvestmentStoreState {
     hasPermittedAccess: boolean;
 }
 
-function selectBudgetLibraryById(
-    libraries: BudgetLibrary[],
-    libraryId: string,
-): BudgetLibrary {
-    return any(propEq('id', libraryId), libraries)
-        ? (find(propEq('id', libraryId), libraries) as BudgetLibrary)
-        : clone(emptyBudgetLibrary);
-}
-
-function upsertBudgetLibraryState(
-    libraries: BudgetLibrary[],
-    library: BudgetLibrary,
-): BudgetLibrary[] {
-    return any(propEq('id', library.id), libraries)
-        ? (update(
-              findIndex(propEq('id', library.id), libraries),
-              library,
-              libraries,
-          ) as BudgetLibrary[])
-        : (append(library, libraries) as BudgetLibrary[]);
-}
-
 export const useInvestmentStore = defineStore('investment', {
     state: (): InvestmentStoreState => ({
         budgetLibraries: [],
@@ -77,16 +55,27 @@ export const useInvestmentStore = defineStore('investment', {
     }),
     actions: {
         budgetLibraryMutator(library: BudgetLibrary) {
-            this.budgetLibraries = upsertBudgetLibraryState(
+            this.budgetLibraries = any(
+                propEq('id', library.id),
                 this.budgetLibraries,
-                library,
-            );
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.budgetLibraries),
+                      library,
+                      this.budgetLibraries,
+                  ) as BudgetLibrary[])
+                : (append(library, this.budgetLibraries) as BudgetLibrary[]);
         },
         selectedBudgetLibraryMutator(libraryId: string) {
-            this.selectedBudgetLibrary = selectBudgetLibraryById(
+            this.selectedBudgetLibrary = any(
+                propEq('id', libraryId),
                 this.budgetLibraries,
-                libraryId,
-            );
+            )
+                ? (find(
+                      propEq('id', libraryId),
+                      this.budgetLibraries,
+                  ) as BudgetLibrary)
+                : clone(emptyBudgetLibrary);
         },
         investmentPlanMutator(investmentPlan: InvestmentPlan) {
             this.investmentPlan = clone(investmentPlan);

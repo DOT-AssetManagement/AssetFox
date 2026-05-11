@@ -27,28 +27,6 @@ export interface BudgetPriorityStoreState {
     isSharedLibrary: boolean;
 }
 
-function upsertBudgetPriorityLibrary(
-    libraries: BudgetPriorityLibrary[],
-    library: BudgetPriorityLibrary,
-): BudgetPriorityLibrary[] {
-    return any(propEq('id', library.id), libraries)
-        ? (update(
-              findIndex(propEq('id', library.id), libraries),
-              library,
-              libraries,
-          ) as BudgetPriorityLibrary[])
-        : (append(library, libraries) as BudgetPriorityLibrary[]);
-}
-
-function selectBudgetPriorityLibraryById(
-    libraries: BudgetPriorityLibrary[],
-    libraryId: string,
-): BudgetPriorityLibrary {
-    return any(propEq('id', libraryId), libraries)
-        ? (find(propEq('id', libraryId), libraries) as BudgetPriorityLibrary)
-        : clone(emptyBudgetPriorityLibrary);
-}
-
 export const useBudgetPriorityStore = defineStore('budgetPriority', {
     state: (): BudgetPriorityStoreState => ({
         budgetPriorityLibraries: [],
@@ -58,16 +36,27 @@ export const useBudgetPriorityStore = defineStore('budgetPriority', {
     }),
     actions: {
         budgetPriorityLibraryMutator(library: BudgetPriorityLibrary) {
-            this.budgetPriorityLibraries = upsertBudgetPriorityLibrary(
+            this.budgetPriorityLibraries = any(
+                propEq('id', library.id),
                 this.budgetPriorityLibraries,
-                library,
-            );
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.budgetPriorityLibraries),
+                      library,
+                      this.budgetPriorityLibraries,
+                  ) as BudgetPriorityLibrary[])
+                : (append(library, this.budgetPriorityLibraries) as BudgetPriorityLibrary[]);
         },
         selectedBudgetPriorityLibraryMutator(libraryId: string) {
-            this.selectedBudgetPriorityLibrary = selectBudgetPriorityLibraryById(
+            this.selectedBudgetPriorityLibrary = any(
+                propEq('id', libraryId),
                 this.budgetPriorityLibraries,
-                libraryId,
-            );
+            )
+                ? (find(
+                      propEq('id', libraryId),
+                      this.budgetPriorityLibraries,
+                  ) as BudgetPriorityLibrary)
+                : clone(emptyBudgetPriorityLibrary);
         },
         selectBudgetPriorityLibrary(payload: BudgetPriorityLibrarySelectionPayload) {
             this.selectedBudgetPriorityLibraryMutator(payload.libraryId);

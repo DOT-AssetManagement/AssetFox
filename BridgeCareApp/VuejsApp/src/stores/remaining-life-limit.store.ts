@@ -29,28 +29,6 @@ export interface RemainingLifeLimitStoreState {
     isSharedLibrary: boolean;
 }
 
-function selectRemainingLifeLimitLibraryById(
-    libraries: RemainingLifeLimitLibrary[],
-    libraryId: string,
-): RemainingLifeLimitLibrary {
-    return any(propEq('id', libraryId), libraries)
-        ? (find(propEq('id', libraryId), libraries) as RemainingLifeLimitLibrary)
-        : clone(emptyRemainingLifeLimitLibrary);
-}
-
-function upsertRemainingLifeLimitLibrary(
-    libraries: RemainingLifeLimitLibrary[],
-    library: RemainingLifeLimitLibrary,
-): RemainingLifeLimitLibrary[] {
-    return any(propEq('id', library.id), libraries)
-        ? (update(
-              findIndex(propEq('id', library.id), libraries),
-              library,
-              libraries,
-          ) as RemainingLifeLimitLibrary[])
-        : (append(library, libraries) as RemainingLifeLimitLibrary[]);
-}
-
 export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
     state: (): RemainingLifeLimitStoreState => ({
         remainingLifeLimitLibraries: [],
@@ -62,17 +40,27 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
         addedOrUpdatedRemainingLifeLimitLibraryMutator(
             library: RemainingLifeLimitLibrary,
         ) {
-            this.remainingLifeLimitLibraries = upsertRemainingLifeLimitLibrary(
+            this.remainingLifeLimitLibraries = any(
+                propEq('id', library.id),
                 this.remainingLifeLimitLibraries,
-                library,
-            );
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.remainingLifeLimitLibraries),
+                      library,
+                      this.remainingLifeLimitLibraries,
+                  ) as RemainingLifeLimitLibrary[])
+                : (append(library, this.remainingLifeLimitLibraries) as RemainingLifeLimitLibrary[]);
         },
         selectedRemainingLifeLimitLibraryMutator(libraryId: string) {
-            this.selectedRemainingLifeLimitLibrary =
-                selectRemainingLifeLimitLibraryById(
-                    this.remainingLifeLimitLibraries,
-                    libraryId,
-                );
+            this.selectedRemainingLifeLimitLibrary = any(
+                propEq('id', libraryId),
+                this.remainingLifeLimitLibraries,
+            )
+                ? (find(
+                      propEq('id', libraryId),
+                      this.remainingLifeLimitLibraries,
+                  ) as RemainingLifeLimitLibrary)
+                : clone(emptyRemainingLifeLimitLibrary);
         },
         selectRemainingLifeLimitLibrary(
             payload: RemainingLifeLimitLibrarySelectionPayload,

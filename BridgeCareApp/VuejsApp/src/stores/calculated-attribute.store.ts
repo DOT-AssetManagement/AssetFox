@@ -21,28 +21,6 @@ export interface CalculatedAttributeStoreState {
     isSharedLibrary: boolean;
 }
 
-function selectCalculatedAttributeLibraryById(
-    libraries: CalculatedAttributeLibrary[],
-    libraryId: string,
-): CalculatedAttributeLibrary {
-    return any(propEq('id', libraryId), libraries)
-        ? (find(propEq('id', libraryId), libraries) as CalculatedAttributeLibrary)
-        : clone(emptyCalculatedAttributeLibrary);
-}
-
-function upsertCalculatedAttributeLibraryState(
-    libraries: CalculatedAttributeLibrary[],
-    library: CalculatedAttributeLibrary,
-): CalculatedAttributeLibrary[] {
-    return any(propEq('id', library.id), libraries)
-        ? (update(
-              findIndex(propEq('id', library.id), libraries),
-              library,
-              libraries,
-          ) as CalculatedAttributeLibrary[])
-        : (append(library, libraries) as CalculatedAttributeLibrary[]);
-}
-
 export const useCalculatedAttributeStore = defineStore('calculatedAttribute', {
     state: (): CalculatedAttributeStoreState => ({
         calculatedAttributeLibraries: [],
@@ -54,16 +32,27 @@ export const useCalculatedAttributeStore = defineStore('calculatedAttribute', {
     }),
     actions: {
         calculatedAttributeLibraryMutator(library: CalculatedAttributeLibrary) {
-            this.calculatedAttributeLibraries = upsertCalculatedAttributeLibraryState(
+            this.calculatedAttributeLibraries = any(
+                propEq('id', library.id),
                 this.calculatedAttributeLibraries,
-                library,
-            );
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.calculatedAttributeLibraries),
+                      library,
+                      this.calculatedAttributeLibraries,
+                  ) as CalculatedAttributeLibrary[])
+                : (append(library, this.calculatedAttributeLibraries) as CalculatedAttributeLibrary[]);
         },
         selectedCalculatedAttributeLibraryMutator(libraryId: string) {
-            this.selectedCalculatedAttributeLibrary = selectCalculatedAttributeLibraryById(
+            this.selectedCalculatedAttributeLibrary = any(
+                propEq('id', libraryId),
                 this.calculatedAttributeLibraries,
-                libraryId,
-            );
+            )
+                ? (find(
+                      propEq('id', libraryId),
+                      this.calculatedAttributeLibraries,
+                  ) as CalculatedAttributeLibrary)
+                : clone(emptyCalculatedAttributeLibrary);
         },
         selectCalculatedAttributeLibrary(libraryId: string) {
             this.selectedCalculatedAttributeLibraryMutator(libraryId);

@@ -25,28 +25,6 @@ export interface CashFlowStoreState {
     isSharedLibrary: boolean;
 }
 
-function selectCashFlowRuleLibraryById(
-    libraries: CashFlowRuleLibrary[],
-    libraryId: string,
-): CashFlowRuleLibrary {
-    return any(propEq('id', libraryId), libraries)
-        ? (find(propEq('id', libraryId), libraries) as CashFlowRuleLibrary)
-        : clone(emptyCashFlowRuleLibrary);
-}
-
-function upsertCashFlowRuleLibrary(
-    libraries: CashFlowRuleLibrary[],
-    library: CashFlowRuleLibrary,
-): CashFlowRuleLibrary[] {
-    return any(propEq('id', library.id), libraries)
-        ? (update(
-              findIndex(propEq('id', library.id), libraries),
-              library,
-              libraries,
-          ) as CashFlowRuleLibrary[])
-        : (append(library, libraries) as CashFlowRuleLibrary[]);
-}
-
 export const useCashFlowStore = defineStore('cashFlow', {
     state: (): CashFlowStoreState => ({
         cashFlowRuleLibraries: [],
@@ -56,16 +34,27 @@ export const useCashFlowStore = defineStore('cashFlow', {
     }),
     actions: {
         cashFlowRuleLibraryMutator(library: CashFlowRuleLibrary) {
-            this.cashFlowRuleLibraries = upsertCashFlowRuleLibrary(
+            this.cashFlowRuleLibraries = any(
+                propEq('id', library.id),
                 this.cashFlowRuleLibraries,
-                library,
-            );
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.cashFlowRuleLibraries),
+                      library,
+                      this.cashFlowRuleLibraries,
+                  ) as CashFlowRuleLibrary[])
+                : (append(library, this.cashFlowRuleLibraries) as CashFlowRuleLibrary[]);
         },
         selectedCashFlowRuleLibraryMutator(libraryId: string) {
-            this.selectedCashFlowRuleLibrary = selectCashFlowRuleLibraryById(
+            this.selectedCashFlowRuleLibrary = any(
+                propEq('id', libraryId),
                 this.cashFlowRuleLibraries,
-                libraryId,
-            );
+            )
+                ? (find(
+                      propEq('id', libraryId),
+                      this.cashFlowRuleLibraries,
+                  ) as CashFlowRuleLibrary)
+                : clone(emptyCashFlowRuleLibrary);
         },
         selectCashFlowRuleLibrary(libraryId: string) {
             this.selectedCashFlowRuleLibraryMutator(libraryId);

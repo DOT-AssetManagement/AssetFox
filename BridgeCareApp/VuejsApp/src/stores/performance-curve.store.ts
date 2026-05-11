@@ -29,28 +29,6 @@ export interface PerformanceCurveStoreState {
     distinctPerformanceFactorAttributes: string[];
 }
 
-function selectPerformanceCurveLibraryById(
-    libraries: PerformanceCurveLibrary[],
-    libraryId: string,
-): PerformanceCurveLibrary {
-    return any(propEq('id', libraryId), libraries)
-        ? (find(propEq('id', libraryId), libraries) as PerformanceCurveLibrary)
-        : clone(emptyPerformanceCurveLibrary);
-}
-
-function upsertPerformanceCurveLibraryState(
-    libraries: PerformanceCurveLibrary[],
-    library: PerformanceCurveLibrary,
-): PerformanceCurveLibrary[] {
-    return any(propEq('id', library.id), libraries)
-        ? (update(
-              findIndex(propEq('id', library.id), libraries),
-              library,
-              libraries,
-          ) as PerformanceCurveLibrary[])
-        : (append(library, libraries) as PerformanceCurveLibrary[]);
-}
-
 export const usePerformanceCurveStore = defineStore('performanceCurve', {
     state: (): PerformanceCurveStoreState => ({
         performanceCurveLibraries: [],
@@ -63,16 +41,27 @@ export const usePerformanceCurveStore = defineStore('performanceCurve', {
     }),
     actions: {
         performanceCurveLibraryMutator(library: PerformanceCurveLibrary) {
-            this.performanceCurveLibraries = upsertPerformanceCurveLibraryState(
+            this.performanceCurveLibraries = any(
+                propEq('id', library.id),
                 this.performanceCurveLibraries,
-                library,
-            );
+            )
+                ? (update(
+                      findIndex(propEq('id', library.id), this.performanceCurveLibraries),
+                      library,
+                      this.performanceCurveLibraries,
+                  ) as PerformanceCurveLibrary[])
+                : (append(library, this.performanceCurveLibraries) as PerformanceCurveLibrary[]);
         },
         selectedPerformanceCurveLibraryMutator(libraryId: string) {
-            this.selectedPerformanceCurveLibrary = selectPerformanceCurveLibraryById(
+            this.selectedPerformanceCurveLibrary = any(
+                propEq('id', libraryId),
                 this.performanceCurveLibraries,
-                libraryId,
-            );
+            )
+                ? (find(
+                      propEq('id', libraryId),
+                      this.performanceCurveLibraries,
+                  ) as PerformanceCurveLibrary)
+                : clone(emptyPerformanceCurveLibrary);
         },
         selectPerformanceCurveLibrary(libraryId: string) {
             this.selectedPerformanceCurveLibraryMutator(libraryId);
