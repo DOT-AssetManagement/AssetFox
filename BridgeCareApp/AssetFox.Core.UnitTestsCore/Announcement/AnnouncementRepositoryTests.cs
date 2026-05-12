@@ -68,7 +68,7 @@ namespace AssetFox.Core.UnitTestsCore.Announcement
             var dtos = TestHelper.UnitOfWork.AnnouncementRepo.Announcements();
 
             Assert.True(dtos.Any());
-            Assert.Single(dtos.Where(dto => dto.Id == announcementId));
+            Assert.Single(dtos, dto => dto.Id == announcementId);
         }
 
         [Fact]

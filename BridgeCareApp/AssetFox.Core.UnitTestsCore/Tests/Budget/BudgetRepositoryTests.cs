@@ -785,6 +785,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
             var budgetDto = BudgetDtos.New();
             var budgetDtos = new List<BudgetDTO> { budgetDto };

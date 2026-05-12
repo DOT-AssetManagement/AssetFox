@@ -3,6 +3,7 @@ using Xunit;
 using Moq;
 using System;
 using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataUnitTests.Tests.Attributes
 {

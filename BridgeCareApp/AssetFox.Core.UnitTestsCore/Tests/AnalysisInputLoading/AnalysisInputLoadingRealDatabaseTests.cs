@@ -40,6 +40,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             var asset = MaintainableAssets.InNetwork(networkId, keyAttributeName, assetId);
             var assets = new List<MaintainableAsset> { asset };
             var network = NetworkTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, assets, networkId, TestAttributeIds.BrKeyId, networkName);
+            AdminSettingsTestSetup.SetupBamsAdminSettings(TestHelper.UnitOfWork, networkName, keyAttributeName, keyAttributeName);
             var assetIds = assets.Select(a => a.Id).ToList();
             var requiredAttributeIds = new List<Guid> { TestAttributeIds.AgeId };
             var simulationId = Guid.NewGuid();
@@ -74,7 +75,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             var ageAttributeAsList = new List<AttributeDTO> { ageAttribute };
             var mappedAttributeList = AttributeDtoDomainMapper.ToDomainList(ageAttributeAsList, "");
             AggregatedResultTestSetup.SetNumericAggregatedResultsInDb(TestHelper.UnitOfWork, assets, mappedAttributeList, 30);
-            var calculatedAttribute = CalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
+            var calculatedAttribute = TestCalculatedAttributeDtos.ForAttribute(conditionIndexAttribute);
             var calculatedAttributeEquation = calculatedAttribute.Equations.Single();
             calculatedAttributeEquation.Equation.Expression = "100 - [AGE]";
             TestHelper.UnitOfWork.ClearAttributeIdNameCache();

@@ -44,7 +44,6 @@ namespace AssetFox.Core.Reporting
         private PAMSParameters _failedQuery = new PAMSParameters { County = "unknown", SR = 0, SEG = "0" };
 
         private List<SegmentAttributeDatum> _sectionData;
-        private InventoryParameters sectionIds;
 
         public PAMSInventorySectionsReport(IUnitOfWork uow, string name, ReportIndexDTO results, string suffix)
         {

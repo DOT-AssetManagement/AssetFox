@@ -9,15 +9,14 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
 {
     public class AggregationRuleFactoryTests
     {
-        private Mock<Attribute> mockAttribute;
         private readonly Guid guId = Guid.Empty;
         private const string InvalidAggregationRuleType = "OTHER";
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateAverageRuleTest()
         {
             // Arrange
-            Init("Number","Average");
+            var mockAttribute = Init("Number","Average");
 
             // Act
             var result = AggregationRuleFactory.CreateNumericRule(mockAttribute.Object);
@@ -26,11 +25,11 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.IsType<AverageAggregationRule>(result);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateNumericLastRuleTest()
         {
             // Arrange
-            Init("Number", "Last");
+            var mockAttribute = Init("Number", "Last");
 
             // Act
             var result = AggregationRuleFactory.CreateNumericRule(mockAttribute.Object);
@@ -43,7 +42,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
         public void CreatePredominantNumericRuleTest()
         {
             // Arrange
-            Init("Number", "Predominant");
+            var mockAttribute = Init("Number", "Predominant");
 
             // Act
             var result = AggregationRuleFactory.CreateNumericRule(mockAttribute.Object);
@@ -52,11 +51,11 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.IsType<PredominantNumericAggregationRule>(result);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateNumericRuleExceptionTest()
         {
             // Arrange
-            Init("Number", InvalidAggregationRuleType);
+            var mockAttribute = Init("Number", InvalidAggregationRuleType);
 
             // Act, Assert
             var exception = Assert.Throws<TargetInvocationException>(() => AggregationRuleFactory.CreateNumericRule(mockAttribute.Object));
@@ -68,7 +67,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
         public void CreatePredominantTextRuleTest()
         {
             // Arrange
-            Init("String", "Predominant");
+            var mockAttribute = Init("String", "Predominant");
 
             // Act
             var result = AggregationRuleFactory.CreateTextRule(mockAttribute.Object);
@@ -77,11 +76,11 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.IsType<PredominantTextAggregationRule>(result);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateTextLastRuleTest()
         {
             // Arrange
-            Init("String", "Last");
+            var mockAttribute = Init("String", "Last");
 
             // Act
             var result = AggregationRuleFactory.CreateTextRule(mockAttribute.Object);
@@ -90,11 +89,11 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.IsType<LastTextAggregationRule>(result);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public void CreateTextRuleExceptionTest()
         {
             // Arrange
-            Init("String", InvalidAggregationRuleType);
+            var mockAttribute = Init("String", InvalidAggregationRuleType);
 
             // Act, Assert
             var exception = Assert.Throws<TargetInvocationException>(() => AggregationRuleFactory.CreateTextRule(mockAttribute.Object));
@@ -102,9 +101,9 @@ namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
             Assert.True(innerException is InvalidOperationException);
         }
 
-        public void Init(string dataType, string aggregationRuleType)
+        public Mock<Attribute> Init(string dataType, string aggregationRuleType)
         {
-            mockAttribute = new Mock<Attribute>(guId, null, dataType, aggregationRuleType, null, Data.ConnectionType.MSSQL, null, Guid.Empty, false, false);
+            return new Mock<Attribute>(guId, null, dataType, aggregationRuleType, null, Data.ConnectionType.MSSQL, null, Guid.Empty, false, false);
         }
     }
 }

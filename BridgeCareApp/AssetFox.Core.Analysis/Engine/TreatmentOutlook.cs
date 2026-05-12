@@ -9,7 +9,7 @@ namespace AssetFox.Core.Analysis.Engine;
 
 internal sealed class TreatmentOutlook
 {
-    private const bool InternalSummaryShouldBeDumped = false;
+    private static readonly bool InternalSummaryShouldBeDumped = false;
 
     private static readonly ConcurrentDictionary<SimulationRunner, string> DumpFolderNamePerSimulationRun;
 

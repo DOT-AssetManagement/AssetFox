@@ -31,7 +31,7 @@ namespace AssetFox.Core.DataUnitTests.Tests.Networking
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(1, result.MaintainableAssets.Count);
+            Assert.Single(result.MaintainableAssets);
         }
     }
 }

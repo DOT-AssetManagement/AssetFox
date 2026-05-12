@@ -478,7 +478,7 @@ namespace AssetFoxCoreTests.Tests
         {
             var httpContext = new DefaultHttpContext();
             HttpContextSetup.AddAuthorizationHeader(httpContext);
-            httpContext.Request.Headers.Add("Content-Type", "multipart/form-data");
+            httpContext.Request.Headers.Append("Content-Type", "multipart/form-data");
 
             var formData = new Dictionary<string, StringValues>()
             {

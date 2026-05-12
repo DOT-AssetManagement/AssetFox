@@ -16,9 +16,5 @@ namespace AssetFox.CalculateEvaluate
         public CalculateEvaluateParsingException(string message, Exception innerException) : base(message, innerException)
         {
         }
-
-        protected CalculateEvaluateParsingException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 }

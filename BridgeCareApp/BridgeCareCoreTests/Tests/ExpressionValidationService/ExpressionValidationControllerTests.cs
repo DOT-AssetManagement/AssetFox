@@ -237,7 +237,7 @@ namespace AssetFoxCoreTests.Tests
         }
 
         [Fact]
-        public void ValidateInvalidPiecewiseEquation_NotValid()
+        public async Task ValidateInvalidPiecewiseEquation_NotValid()
         {
             // Act + Assert
             var unitOfWork = UnitOfWorkMocks.EveryoneExists();
@@ -248,7 +248,7 @@ namespace AssetFoxCoreTests.Tests
             {
                 var invalidEquation = testDataSet[0] as EquationValidationParameters;
                 var result = controller.GetEquationValidationResult(invalidEquation);
-                var objectResult = (OkObjectResult)result.Result;
+                var objectResult = (OkObjectResult)await result;
                 var actualValidationResult = (ValidationResult)objectResult.Value;
                 var expectedValidationResult = testDataSet[1] as ValidationResult;
                 ObjectAssertions.Equivalent(expectedValidationResult, actualValidationResult);  

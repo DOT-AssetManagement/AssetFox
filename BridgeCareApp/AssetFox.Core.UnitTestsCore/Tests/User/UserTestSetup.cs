@@ -11,7 +11,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.User
 {
     public static class UserTestSetup
     {
-        public static string NameForEntityInDb(IUnitOfWork unitOfWork, bool isAdmin, string? username = null)
+        public static string NameForEntityInDb(IUnitOfWork unitOfWork, bool isAdmin, string username = null)
         {
             var resolveUsername = username ?? RandomStrings.WithPrefix("user");
             unitOfWork.UserRepo.AddUser(resolveUsername, isAdmin);

@@ -5,7 +5,6 @@ using AssetFox.Core.ExcelHelpers;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFoxCore.Utils;
-using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -91,7 +90,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
             var projectsPerKey = new Dictionary<(string locationIdentifier, int projectYear, string treatment), SectionCommittedProjectDTO>();
 
             var maintainableAssetIdsPerLocationId = GetMaintainableAssetsPerLocationId(simulation.NetworkId);
-            if (maintainableAssetIdsPerLocationId.IsNullOrEmpty())
+            if (maintainableAssetIdsPerLocationId == null || maintainableAssetIdsPerLocationId.Count == 0)
             {
                 HandleValidationError(_hubService, userId, $"No maintainable assets were found for Network Id: {simulation.NetworkId}");
                 return new List<SectionCommittedProjectDTO>();

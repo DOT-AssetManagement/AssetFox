@@ -12,7 +12,7 @@ namespace AssetFoxCoreTests.Tests.Integration
         public static TNetwork ModelForEntityInDbViaFactory(IUnitOfWork unitOfWork, DataAttribute attribute, NetworkCreationParameters parameters, string networkName,
             ExcelRawDataDTO excelRawDataDto)
         {
-            var network = NetworkTestSetupViaFactory.ModelViaFactory(unitOfWork, attribute, parameters, networkName, excelRawDataDto);
+            var network = NetworkTestSetupViaFactory.ModelViaFactory(unitOfWork, attribute, parameters, networkName, excelRawDataDto, null); // WjTodo -- fix the null
 
             // insert network domain data into the data source
             unitOfWork.NetworkRepo.CreateNetwork(network);

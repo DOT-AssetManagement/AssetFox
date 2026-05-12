@@ -203,6 +203,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
         [Fact]
         public void SimulationInDbWithBudgetAndAmount_Delete_DeletesAll()
         {
+            // Saw a failure with GetAttributeValueHistory with an empty key.
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);

@@ -15,6 +15,7 @@ namespace AssetFox.Core.DataUnitTests
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("testConnections.json")
+                .AddJsonFile("encryption.json", true, true)
                 .AddJsonStream(GetStream())
                 .Build();
             return config;

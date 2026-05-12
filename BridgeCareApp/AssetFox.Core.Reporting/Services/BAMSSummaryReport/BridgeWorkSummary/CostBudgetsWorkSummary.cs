@@ -17,7 +17,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeWorkSummary
     {
         private BridgeWorkSummaryCommon _bridgeWorkSummaryCommon;
         private WorkSummaryModel _workSummaryModel;
-        private ReportHelper _reportHelper;
 
         private Dictionary<int, decimal> TotalCulvertSpent = new();
         private Dictionary<int, decimal> TotalBridgeSpent = new();

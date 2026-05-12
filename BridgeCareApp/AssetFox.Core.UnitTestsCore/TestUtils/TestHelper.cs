@@ -28,11 +28,7 @@ namespace AssetFox.Core.UnitTestsCore.TestUtils
                 UnitOfWork = new UnitOfDataPersistenceWork(config, dbContext);
                 DatabaseResetter.ResetDatabase(UnitOfWork);
             }
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-#pragma warning disable CS0168 // Variable is declared but never used
-            catch (Exception e)
-#pragma warning restore CS0168 // Variable is declared but never used
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
+            catch (Exception)
             {
                 if (Debugger.IsAttached)
                 {

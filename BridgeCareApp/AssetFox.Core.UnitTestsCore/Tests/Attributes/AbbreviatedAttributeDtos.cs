@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AssetFox.Core.Common;
 using AssetFox.Core.DTOs;
 
 namespace AssetFox.Core.UnitTestsCore.Tests

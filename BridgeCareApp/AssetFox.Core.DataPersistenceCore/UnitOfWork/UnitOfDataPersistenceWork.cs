@@ -1,5 +1,4 @@
 using System;
-using System.Data.SqlClient;
 using System.Linq;
 using AssetFox.Core.DataPersistenceCore.Repositories;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
@@ -27,7 +26,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
             Config = config ?? throw new ArgumentNullException(nameof(config));
             Context = context ?? throw new ArgumentNullException(nameof(context));
 
-            EncryptionKey = Config.GetChildren().Count() > 0 && Config != null ? Config.GetSection("EncryptionKey").Value : String.Empty;
+            EncryptionKey = Config.GetChildren().Any() && Config != null ? Config.GetSection("EncryptionKey").Value : String.Empty;
         }
                 
         public string EncryptionKey { get; }
@@ -41,7 +40,6 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
 
         private IAnalysisMethodRepository _analysisMethodRepo;
         private IAttributeDatumRepository _attributeDatumRepo;
-        private IAttributeMetaDataRepository _attributeMetaDataRepo;
         private IAttributeRepository _attributeRepo;
         private IAttributeValueHistoryRepository _attributeValueHistoryRepo;
         private IBenefitRepository _benefitRepo;
@@ -53,8 +51,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private ICommittedProjectRepository _committedProjectRepo;      
         private ICriterionLibraryRepository _criterionLibraryRepo;
         private IDeficientConditionGoalRepository _deficientConditionGoalRepo;
-        private IExcelRawDataRepository _excelWorksheetRepo;
-        private IDataSourceMappingRepository _dataSourceMappingRepo;
+        private IExcelRawDataRepository _excelWorksheetRepo;  // should we delete this? 
+        private IDataSourceMappingRepository _dataSourceMappingRepo; // should we delete this?
         private IInvestmentPlanRepository _investmentPlanRepo;
         private IMaintainableAssetRepository _maintainableAssetRepo;
         private INetworkRepository _networkRepo;
