@@ -173,8 +173,10 @@ import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton
 import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel, PamsPbExportReportRequestModel, emptyPamsPbExportReportRequestModel } from '@/shared/models/iAM/reports';
 import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/UserDefinedReportInputDialog.vue';
 import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
+import { useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const authenticationStore = useAuthenticationStore();
     const router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>> 
     const stateSimulationReportNames = computed<string[]>(() => store.state.adminDataModule.simulationReportNames);
@@ -183,7 +185,7 @@ import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/
     async function getSimulationReportsAction(payload?: any): Promise<any> { await store.dispatch('getSimulationReports',payload);} 
     async function updateSimulationReportDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationReportDetail', payload)}  
     const notifications = computed<Notification[]>(() => store.state.notificationModule.notifications);
-    let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+    let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 
     let editShow = ref<boolean>(false);
     let showUserDefinedReportInputDialog = ref<boolean>(false);

@@ -48,11 +48,12 @@ import NetworksSvg from '@/shared/icons/NetworksSvg.vue';
 import { useStore } from 'vuex';
 import {useRouter} from 'vue-router'
 import router from '@/router';
+import { useAuthenticationStore } from '@/stores';
 
 
     let store = useStore();
-    let hasAdminAccess: boolean = store.state.authenticationModule.hasAdminAccess;
-    let userId: string = store.state.authenticationModule.userId;
+    const authenticationStore = useAuthenticationStore();
+    let hasAdminAccess: boolean = authenticationStore.hasAdminAccess;
 
 
     let networkId: string = getBlankGuid();

@@ -100,15 +100,17 @@ import { toRefs, computed, watch, ref } from 'vue';
 import { useStore } from 'vuex';
 import Dialog from 'primevue/dialog';
 import { getNewGuid } from '@/shared/utils/uuid-utils';
+import { useAuthenticationStore } from '@/stores';
 
 const emit = defineEmits(['close'])
 let store = useStore();
+const authenticationStore = useAuthenticationStore();
 let props = defineProps<{
     showDialog: boolean
 }>()
 const { showDialog } = toRefs(props);
 const announcements = computed<Announcement[]>(() => store.state.announcementModule.announcements);
-const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 async function upsertAnnouncementAction(payload?: any): Promise<any> {await store.dispatch('upsertAnnouncement', payload);}
 async function deleteAnnouncementAction(payload?: any): Promise<any> {await store.dispatch('deleteAnnouncement', payload);}
 const announcementListOffset = ref<number>(0);

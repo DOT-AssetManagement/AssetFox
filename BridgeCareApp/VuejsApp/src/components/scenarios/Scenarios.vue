@@ -622,8 +622,10 @@ import router from '@/router';
 import { useRoute } from 'vue-router';
 import ReportsService from '@/services/reports.service';
 import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
+import { useAuthenticationStore } from '@/stores';
 
     let store = useStore(); 
+    const authenticationStore = useAuthenticationStore();
     const $router = useRouter();     
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     
@@ -644,10 +646,9 @@ import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
     let stateTotalFastQueuedItems = computed<number>(() => store.state.scenarioModule.totalFastQueuedItems);
     let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
 
-    let authenticated:boolean = (store.state.authenticationModule.authenticated);
-    let userId: string = (store.state.authenticationModule.userId);
-    let hasAdminAccess: boolean = (store.state.authenticationModule.hasAdminAccess) ; 
-    let hasSimulationAccess:boolean = (store.state.authenticationModule.hasSimulationAccess) ; 
+    let authenticated:boolean = authenticationStore.authenticated;
+    let hasAdminAccess: boolean = authenticationStore.hasAdminAccess ; 
+    let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
 
     function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload)}
     function addWarningNotificationAction(payload?: any){ store.dispatch('addWarningNotification', payload)}

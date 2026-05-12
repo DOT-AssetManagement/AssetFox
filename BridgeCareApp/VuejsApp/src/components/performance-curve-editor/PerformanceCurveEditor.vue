@@ -518,9 +518,11 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
+import { useAuthenticationStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
 let store = useStore();
+const authenticationStore = useAuthenticationStore();
 const confirm = useConfirm();
 
 let statePerformanceCurveLibraries = computed<PerformanceCurveLibrary[]>(() => store.state.performanceCurveModule.performanceCurveLibraries);
@@ -528,7 +530,7 @@ let stateSelectedPerformanceCurveLibrary = computed<PerformanceCurveLibrary>(() 
 let stateScenarioPerformanceCurves = computed<PerformanceCurveLibrary[]>(() => store.state.performanceCurveModule.scenarioPerformanceCurves);
 let stateNumericAttributes = computed<Attribute[]>(() => store.state.attributeModule.numericAttributes);
 let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 let currentUserCriteriaFilter = ref<UserCriteriaFilter>(store.state.userModule.currentUserCriteriaFilter);
 let hasPermittedAccess = computed<boolean>(() => store.state.performanceCurveModule.hasPermittedAccess);
 let isSharedLibrary = computed<boolean>(() => store.state.performanceCurveModule.isSharedLibrary);

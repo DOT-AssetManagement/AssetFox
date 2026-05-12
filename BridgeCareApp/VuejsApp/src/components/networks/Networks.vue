@@ -193,14 +193,16 @@ import { useStore } from 'vuex';
 import mitt, { Emitter, EventType } from 'mitt';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { NIL } from 'uuid';
+import { useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const authenticationStore = useAuthenticationStore();
     let stateNetworks = computed<Network[]>(()=>store.state.networkModule.networks);
     let stateSelectedNetwork = computed<Network>(()=>store.state.networkModule.selectedNetwork) ;
     let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
     let stateDataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+    let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
     
     async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
     async function getDataSources(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}

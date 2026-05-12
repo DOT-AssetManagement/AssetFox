@@ -286,8 +286,10 @@
     import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
     import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
     import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
+    import { useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const authenticationStore = useAuthenticationStore();
     const confirm = useConfirm();
     const $router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
@@ -296,7 +298,7 @@
     let stateSelectedBudgetPriorityLibrary = computed<BudgetPriorityLibrary>(() => store.state.budgetPriorityModule.selectedBudgetPriorityLibrary);
     let stateScenarioBudgetPriorities = computed<BudgetPriority[]>(() => store.state.budgetPriorityModule.scenarioBudgetPriorities);
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+    let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
     let hasPermittedAccess = computed<boolean>(() => store.state.budgetPriorityModule.hasPermittedAccess);
     let isSharedLibrary = computed<boolean>(() => store.state.budgetPriorityModule.isSharedLibrary);
     async function getIsSharedLibraryAction(payload?: any): Promise<any>{await store.dispatch('getIsSharedBudgetPriorityLibrary', payload)}

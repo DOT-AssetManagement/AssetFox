@@ -142,16 +142,18 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { useAuthenticationStore } from '@/stores';
 
     let dialogLibraryId = shallowRef<string>('');
     let dialogIsFromScenario = shallowRef<boolean>();
     let dialogIsFromLibrary: boolean;
     let store = useStore();
+    const authenticationStore = useAuthenticationStore();
 
     let stateCriterionLibraries = ref<CriterionLibrary[]>(store.state.criterionModule.criterionLibraries)
     let stateSelectedCriterionLibrary = ref<CriterionLibrary>(store.state.criterionModule.selectedCriterionLibrary)
     let scenarioRelatedCriteria = ref<CriterionLibrary>(store.state.criterionModule.scenarioRelatedCriteria)
-    let hasAdminAccess = ref<boolean>(store.state.authenticationModule.hasAdminAccess)
+    let hasAdminAccess = ref<boolean>(authenticationStore.hasAdminAccess)
     let hasPermittedAccess = ref<boolean>(store.state.criterionModule.hasPermittedAccess)
 
     async function getHasPermittedAccessAction(payload?: any): Promise<any> {

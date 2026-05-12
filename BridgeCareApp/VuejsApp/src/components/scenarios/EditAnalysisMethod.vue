@@ -243,8 +243,10 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
+import { useAuthenticationStore } from '@/stores';
 
     let store = useStore(); 
+    const authenticationStore = useAuthenticationStore();
     const router = useRouter(); 
     // ToDo - verify if below is correct. Its used in onUpsertAnalysisMethod()
     const $refs = inject('$refs') as any
@@ -256,7 +258,7 @@ import AnalysisMethodService from '@/services/analysis-method.service';
     const stateAttributes = computed<Attribute[]>( ()=> store.state.attributeModule.attributes) ;
     const stateSimulationAnalysisSetting = computed<boolean>( ()=> store.state.analysisMethodModule.simulationAnalysisSetting);
 
-    const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ; 
+    const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
 
     async function getAnalysisMethodAction(payload?: any): Promise<any>{await store.dispatch('getAnalysisMethod', payload)} 
     async function upsertAnalysisMethodAction(payload?: any): Promise<any>{await store.dispatch('upsertAnalysisMethod', payload)} 

@@ -407,8 +407,10 @@ import { BudgetPriority, BudgetPriorityLibrary } from '@/shared/models/iAM/budge
 import BudgetPriorityService from '@/services/budget-priority.service';
 import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
+import { useAuthenticationStore } from '@/stores';
 
 let store = useStore();
+const authenticationStore = useAuthenticationStore();
 const confirm = useConfirm();
 const emit = defineEmits(['submit'])
 const $router = useRouter();
@@ -424,7 +426,7 @@ let stateScenarioBudgetPriorities = computed<BudgetPriority[]>(() => store.state
 let stateInvestmentPlan = computed<InvestmentPlan>(() => store.state.investmentModule.investmentPlan);
 let stateScenarioBudgets = ref<Budget[]>(store.state.investmentModule.scenarioBudgets);
 const hasUnsavedChanges = computed<boolean>(() => (store.state.unsavedChangesFlagModule.hasUnsavedChanges));
-const hasAdminAccess = computed<boolean>(()=> (store.state.authenticationModule.hasAdminAccess)); 
+const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess); 
 
 let isSuccessfulImport = ref<boolean>(store.state.investmentModule.isSuccessfulImport);
 let currentUserCriteriaFilter = ref<UserCriteriaFilter>(store.state.userModule.currentUserCriteriaFilter);

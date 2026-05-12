@@ -123,8 +123,10 @@ import { Console } from 'console';
 import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
+import { useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const authenticationStore = useAuthenticationStore();
     let hasSelectedAttribute = ref<boolean>(false);
     let selectAttributeItemValue = ref<string | null>(null);
     let selectedAttribute = ref<Attribute>(clone(emptyAttribute));
@@ -140,7 +142,7 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
     let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes) ;
     let stateSelectedAttribute = computed<Attribute>(() => store.state.attributeModule.selectedAttribute) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
-    let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ;
+    let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ;
     let selectAttributeItems = ref<SelectItem[]>([]);
     
     async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}

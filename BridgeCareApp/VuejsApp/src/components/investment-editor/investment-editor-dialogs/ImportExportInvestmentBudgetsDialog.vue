@@ -40,8 +40,10 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import UploadButton from '@/shared/components/buttons/UploadButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 import OkButton from '@/shared/components/buttons/OkButton.vue';
+import { useAuthenticationStore } from '@/stores';
 
 let store = useStore();
+const authenticationStore = useAuthenticationStore();
 const emit = defineEmits(['submit', 'submitSuccessImport'])
 const props = defineProps<{
     showDialog: boolean,
@@ -52,7 +54,7 @@ async function addErrorNotificationAction(payload?: any): Promise<any> {await st
 function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImportMutator', payload);}
 let isSuccessfulImport = computed<boolean>(() => store.state.investmentModule.isSuccessfulImport);
 const stateIsSuccessfuImport = computed<boolean>(() => store.state.investmentModule.isSuccessfulImport);
-const hasAdminAccess = computed<boolean>(()=> (store.state.authenticationModule.hasAdminAccess)); 
+const hasAdminAccess = computed<boolean>(()=> authenticationStore.hasAdminAccess); 
 
 let investmentBudgetsFile = ref<File | null>(null);
 let overwriteBudgets = ref(true);

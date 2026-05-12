@@ -35,12 +35,14 @@
     } from '@/shared/utils/authentication-utils';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+    import { useAuthenticationStore } from '@/stores';
 
     let store = useStore();
-    let authenticated: boolean = (store.state.authenticationModule.authenticated);
-    let hasRole: boolean = (store.state.authenticationModule.hasRole) ;
-    let checkedForRole: boolean = (store.state.authenticationModule.checkedForRole) ;
-    let securityType: string = (store.state.authenticationModule.securityType) ;
+    const authenticationStore = useAuthenticationStore();
+    let authenticated: boolean = authenticationStore.authenticated;
+    let hasRole: boolean = authenticationStore.hasRole ;
+    let checkedForRole: boolean = authenticationStore.checkedForRole ;
+    let securityType: string = authenticationStore.securityType ;
     let currentUserCriteriaFilter: UserCriteriaFilter = (store.state.userModule.currentUserCriteriaFilter) ;
     const config = (store.state.configModule.config);
 

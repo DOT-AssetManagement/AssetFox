@@ -308,8 +308,10 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
+import { useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const authenticationStore = useAuthenticationStore();
     const confirm = useConfirm();
     const $router = useRouter();
 
@@ -318,7 +320,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
     let stateNumericAttributes = computed<Attribute[]>(() =>store.state.attributeModule.numericAttributes);
     let stateScenarioRemainingLifeLimits = computed<RemainingLifeLimit[]>(() =>store.state.remainingLifeLimitModule.scenarioRemainingLifeLimits);
     let hasUnsavedChanges = computed<boolean>(() =>store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    let hasAdminAccess = computed<boolean>(() =>store.state.authenticationModule.hasAdminAccess) ;
+    let hasAdminAccess = computed<boolean>(() =>authenticationStore.hasAdminAccess) ;
     let isSharedLibrary = computed<boolean>(() =>store.state.remainingLifeLimitModule.isSharedLibrary);
 
     async function getIsSharedLibraryAction(payload?: any): Promise<any>{await store.dispatch('getIsSharedRemainingLifeLimitLibrary', payload)}

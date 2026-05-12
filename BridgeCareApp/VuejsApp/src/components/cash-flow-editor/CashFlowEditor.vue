@@ -316,9 +316,11 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { emit } from 'process';
+import { useAuthenticationStore } from '@/stores';
 
 
 let store = useStore();
+const authenticationStore = useAuthenticationStore();
 const confirm = useConfirm();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 // const stateSimulationReportNames = computed<string[]>(() => store.state.adminDataModule.simulationReportNames);
@@ -327,7 +329,7 @@ const stateCashFlowRuleLibraries = computed<CashFlowRuleLibrary[]>(() => store.s
 let stateSelectedCashRuleFlowLibrary = computed<CashFlowRuleLibrary>(() => store.state.cashFlowModule.selectedCashFlowRuleLibrary);
 let stateScenarioCashFlowRules = computed<CashFlowRule[]>(() => store.state.cashFlowModule.scenarioCashFlowRules);
 let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 let hasPermittedAccess = computed<boolean>(() => store.state.cashFlowModule.hasPermittedAccess);
 let isSharedLibrary = computed<boolean>(() => store.state.cashFlowModule.isSharedLibrary);
 

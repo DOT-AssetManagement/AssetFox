@@ -21,13 +21,15 @@
     import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import AuthenticationService from '@/services/authentication.service';
+    import { useAuthenticationStore } from '@/stores';
 
     let store = useStore();
-    let authenticated = computed<boolean>(() => store.state.authenticationModule.authenticated);  
-    let hasRole= computed<boolean>(() => store.state.authenticationModule.hasRole);
-    let hasAdminAccess= computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+    const authenticationStore = useAuthenticationStore();
+    let authenticated = computed<boolean>(() => authenticationStore.authenticated);  
+    let hasRole= computed<boolean>(() => authenticationStore.hasRole);
+    let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
     let currentUserCriteriaFilter= computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
-    let securityType: string = store.state.authenticationModule.securityType;
+    let securityType: string = authenticationStore.securityType;
 
     function setSuccessMessageAction(payload?: any) { store.dispatch('setSuccessMessage');}
     function setErrorMessageAction(payload?: any){ store.dispatch('setErrorMessage');}

@@ -143,21 +143,21 @@ import { inject } from 'vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
+import { useAuthenticationStore } from '@/stores';
 
     let store = useStore(); 
+    const authenticationStore = useAuthenticationStore();
     const router = useRouter(); 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
     const stateNetworks: Network[] = shallowReactive(store.state.networkModule.networks) ;
-    const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ; 
-    let hasSimulationAccess:boolean = (store.state.authenticationModule.hasSimulationAccess) ; 
+    const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
+    let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
 
     const stateSelectedScenario = computed<Scenario>(() => store.state.scenarioModule.selectedScenario) ;
     const stateSharedScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentSharedScenariosPage) ;
     const stateUserScenariosPage = computed<Scenario[]>(() =>store.state.scenarioModule.currentUserScenarioPage) ;
     let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
-
-    let userId = ref<string>(store.state.authenticationModule.userId);
 
     function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification',payload)}
     function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification',payload)}

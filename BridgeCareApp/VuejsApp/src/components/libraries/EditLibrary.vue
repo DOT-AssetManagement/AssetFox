@@ -65,11 +65,12 @@ import TargetConditionGoalSvg from '@/shared/icons/TargetConditionGoalSvg.vue';
 import TreatmentSvg from '@/shared/icons/TreatmentSvg.vue';
 import CalculatedAttributeSvg from '@/shared/icons/CalculatedAttributeSvg.vue';
 import { useStore } from 'vuex'; 
+import { useAuthenticationStore } from '@/stores';
 
     let store = useStore(); 
+    const authenticationStore = useAuthenticationStore();
 
-    const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ; 
-    let userId = ref<string>(store.state.authenticationModule.userId);
+    const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
 
     let networkId: string = getBlankGuid();
     let networkName: string = '';

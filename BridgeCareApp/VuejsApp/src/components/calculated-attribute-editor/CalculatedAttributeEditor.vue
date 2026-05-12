@@ -375,8 +375,10 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { getUrl } from '@/shared/utils/get-url';
+import { useAuthenticationStore } from '@/stores';
 
 let store = useStore();
+const authenticationStore = useAuthenticationStore();
 const confirm = useConfirm();
 let stateCalculatedAttributeLibraries = computed<CalculatedAttributeLibrary[]>(() => store.state.calculatedAttributeModule.calculatedAttributeLibraries);
 const stateSelectedCalculatedAttributeLibrary = computed<CalculatedAttributeLibrary>(() => store.state.calculatedAttributeModule.selectedCalculatedAttributeLibrary);
@@ -384,7 +386,7 @@ const stateScenarioCalculatedAttributes = computed<CalculatedAttribute[]>(() => 
 let stateSelectedLibraryCalculatedAttributes = computed<CalculatedAttribute[]>(() => store.state.calculatedAttributeModule.selectedLibraryCalculatedAttributes);
 let stateCalculatedAttributes = computed<Attribute[]>(() => store.state.calculatedAttributeModule.calculatedAttributes);
 const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 let isSharedLibrary = computed<boolean>(() => store.state.calculatedAttributeModule.isSharedLibrary);
 
     async function getIsSharedLibraryAction(payload?: any): Promise<any> {await store.dispatch('getIsSharedCalculatedAttributeLibrary', payload);}

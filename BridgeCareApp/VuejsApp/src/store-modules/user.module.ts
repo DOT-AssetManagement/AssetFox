@@ -9,6 +9,7 @@ import {
     UserCriteriaFilter,
 } from '@/shared/models/iAM/user-criteria-filter';
 import store from '@/store/root-store';
+import { useAuthenticationStore } from '@/stores';
 
 const state = {
     users: [] as User[],
@@ -166,6 +167,8 @@ const actions = {
     },
 
     async getUserCriteriaFilter({ commit, dispatch }: any) {
+            const authenticationStore = useAuthenticationStore();
+
             // @ts-ignore
             if (!store.state.userModule.checkedForCriteria) {
             const message =
@@ -183,8 +186,7 @@ const actions = {
                         );
                         if (
                             !userCriteriaFilter.hasAccess &&
-                            // @ts-ignore
-                            !store.state.authenticationModule.hasAdminAccess
+                            !authenticationStore.hasAdminAccess
                         ) {
                             dispatch('addInfoNotification', {
                                 message: 'Access Denied.',
