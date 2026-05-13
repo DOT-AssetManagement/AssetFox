@@ -20,6 +20,10 @@ export const useAnalysisMethodStore = defineStore('analysisMethod', {
         analysisMethod: clone(emptyAnalysisMethod) as AnalysisMethod,
         simulationAnalysisSetting: true,
     }),
+    getters: {
+        getAnalysisMethod: (state) => state.analysisMethod,
+        getSimulationAnalysisSetting: (state) => state.simulationAnalysisSetting,
+    },
     actions: {
         async getAnalysisMethod(scenarioId: string) {
             await AnalysisMethodService.getAnalysisMethod(scenarioId).then(

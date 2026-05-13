@@ -31,6 +31,11 @@ export const useUserStore = defineStore('user', {
         checkedForCriteria: false,
     }),
     getters: {
+        getUsers: (state) => state.users,
+        getUsersCriteriaFilter: (state) => state.usersCriteriaFilter,
+        getCurrentUserCriteriaFilter: (state) => state.currentUserCriteriaFilter,
+        getCurrentUser: (state) => state.currentUser,
+        getCheckedForCriteria: (state) => state.checkedForCriteria,
         getUserNameById: (state) => (id: string) => {
             var userIndex = findIndex(
                 propEq('id', id),

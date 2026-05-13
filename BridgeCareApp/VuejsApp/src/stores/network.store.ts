@@ -181,4 +181,9 @@ export const useNetworkStore = defineStore('network', {
             });
         },
     },
+    getters: {        
+        getNetworks: (state) => state.networks,
+        getSelectedNetwork: (state) => state.selectedNetwork,
+        getCompatibleNetworks: (state) => state.compatibleNetworks
+    }
 });

@@ -38,6 +38,17 @@ export const useAdminDataStore = defineStore('adminData', {
         assetType: [],
         constraintType: '',
     }),
+    getters: {
+        getAvailableReportNames: (state) => state.availableReportNames,
+        getSimulationReportNames: (state) => state.simulationReportNames,
+        getInventoryReportNames: (state) => state.inventoryReportNames,
+        getPrimaryNetwork: (state) => state.primaryNetwork,
+        getRawdataNetwork: (state) => state.rawdataNetwork,
+        getKeyFields: (state) => state.keyFields,
+        getRawDataKeyFields: (state) => state.rawDataKeyFields,
+        getAssetType: (state) => state.assetType,
+        getConstraintType: (state) => state.constraintType,
+    },
     actions: {
         async getAvailableReports() {
             await AdminDataService.getAvailableReportNames().then(

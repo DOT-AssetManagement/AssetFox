@@ -269,4 +269,14 @@ export const useTreatmentStore = defineStore('treatment', {
             }
         },
     },
+    getters: {
+        getTreatmentLibraries: (state) => state.treatmentLibraries,
+        getSelectedTreatmentLibrary: (state) => state.selectedTreatmentLibrary,
+        getScenarioSelectableTreatments: (state) => state.scenarioSelectableTreatments,
+        getScenarioTreatmentLibrary: (state) => state.scenarioTreatmentLibrary,
+        getSimpleScenarioSelectableTreatments: (state) => state.simpleScenarioSelectableTreatments,
+        getSimpleSelectableTreatments: (state) => state.simpleSelectableTreatments,
+        getHasPermittedAccess: (state) => state.hasPermittedAccess,
+        getIsSharedLibrary: (state) => state.isSharedLibrary
+    }
 });

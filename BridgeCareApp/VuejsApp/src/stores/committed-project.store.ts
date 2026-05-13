@@ -74,4 +74,7 @@ export const useCommittedProjectStore = defineStore('committedProject', {
             });
         },
     },
+    getters: {       
+         getSectionCommittedProjects: (state) => state.sectionCommittedProjects
+    }
 });

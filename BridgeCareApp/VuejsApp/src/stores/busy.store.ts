@@ -8,6 +8,9 @@ export const useBusyStore = defineStore('busy', {
     state: (): BusyStoreState => ({
         processCounter: 0,
     }),
+    getters: {
+        getProcessCounter: (state) => state.processCounter,
+    },
     actions: {
         incrementProcessCounter() {
             this.processCounter += 1;

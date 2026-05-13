@@ -111,4 +111,9 @@ export const useNotificationStore = defineStore('notification', {
             this.counter = 0;
         },
     },
+    getters: {        
+        getNotifications: (state) => state.notifications,
+        getCounter: (state) => state.counter,
+        getTotalNotifications: (state) => state.totalNotifications
+    }
 });

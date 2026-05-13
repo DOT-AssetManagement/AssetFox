@@ -95,4 +95,10 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
             });
         },
     },
+    getters: {
+        getRemainingLifeLimitLibraries: (state) => state.remainingLifeLimitLibraries,
+        getSelectedRemainingLifeLimitLibrary: (state) => state.selectedRemainingLifeLimitLibrary,
+        getHasPermittedAccess: (state) => state.hasPermittedAccess,
+        getIsSharedLibrary: (state) => state.isSharedLibrary
+    }
 });

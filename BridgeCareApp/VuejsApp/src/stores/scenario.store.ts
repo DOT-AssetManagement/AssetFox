@@ -423,4 +423,22 @@ export const useScenarioStore = defineStore('scenario', {
             }
         },
     },
+    getters: {
+        getScenarios: (state) => state.scenarios,
+        getCurrentSharedScenariosPage: (state) => state.currentSharedScenariosPage,
+        getCurrentUserScenarioPage: (state) => state.currentUserScenarioPage,
+        getTotalSharedScenarios: (state) => state.totalSharedScenarios,
+        getTotalUserScenarios: (state) => state.totalUserScenarios,
+        getSelectedScenario: (state) => state.selectedScenario,
+        getCurrentUserOrSharedScenario: (state) => state.currentUserOrSharedScenario,
+        getQueuedSimulations: (state) => state.queuedSimulations,
+        getCurrentWorkQueuePage: (state) => state.currentWorkQueuePage,
+        getTotalQueuedSimulations: (state) => state.totalQueuedSimulations,
+        getFastQueueItems: (state) => state.fastQueueitems,
+        getCurrentFastWorkQueuePage: (state) => state.currentFastWorkQueuePage,
+        getTotalFastQueuedItems: (state) => state.totalFastQueuedItems,
+        getSimulationRunSettingId: (state) => state.simulationRunSettingId,
+        getSimulationRunSettingName: (state) => state.simulationRunSettingName,
+        getScenarioNames: (state) => state.scenarioNames,
+    }
 });

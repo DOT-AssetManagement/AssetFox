@@ -919,26 +919,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             });
     }
 
-    // async function OnGetTemplateClick(){
-    //    await CommittedProjectsService.getUploadedCommittedProjectTemplate()
-    //         .then((response: AxiosResponse) => {
-    //                 if(response.data.toString() != ""){
-    //                     FileDownload(convertBase64ToArrayBuffer(response.data), 'Committed Project Template', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    //                     isAdminTemplateUploaded = true;
-    //                 }
-    //                 else{
-    //                      CommittedProjectsService.getCommittedProjectTemplate(networkId)
-    //                         .then((response: AxiosResponse) => {
-    //                     if (hasValue(response, 'data')) {
-    //                       const fileInfo: FileInfo = response.data as FileInfo;  
-    //                       FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
-    //                     }
-    //             });
-    //                 }
-    //         });
-    //     }
-
-    
 
     function OnAddCommittedProjectClick(){
         const newRow: SectionCommittedProject = clone(emptySectionCommittedProject)
@@ -1141,19 +1121,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         };
     }
 
-/*     function handleAddCommittedProjectTemplateUpload(event: { target: { files: any[]; }; }){
-             const file = event.target.files[0];
-             CommittedProjectsService.addCommittedProjectTemplate(file).then((response: AxiosResponse) => {
-                if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                    addSuccessNotificationAction({message:'Uploaded Template'})      
-                }
-            });
-    }
-
-    function onAddSelectedTemplate(){
-        document.getElementById("addCommittedProjectTemplate")?.click();
-    }
- */    
     function onDownloadSelectedTemplate(){
         CommittedProjectsService.getSelectedCommittedProjectTemplate(templateItemSelected.value)
             .then((response: AxiosResponse) => {

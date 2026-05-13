@@ -17,6 +17,10 @@ export const useAnnouncementStore = defineStore('announcement', {
         announcements: [] as Announcement[],
         packageVersion: import.meta.env.PACKAGE_VERSION || '0',
     }),
+    getters: {
+        getAnnouncements: (state) => state.announcements,
+        getPackageVersion: (state) => state.packageVersion,
+    },
     actions: {
         async getAnnouncements() {
             await AnnouncementService.getAnnouncements().then(

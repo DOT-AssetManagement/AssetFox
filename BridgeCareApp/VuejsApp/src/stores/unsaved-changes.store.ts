@@ -13,4 +13,7 @@ export const useUnsavedChangesStore = defineStore('unsavedChanges', {
             this.hasUnsavedChanges = value;
         },
     },
+    getters: {
+        getHasUnsavedChanges: (state) => state.hasUnsavedChanges
+    }
 });

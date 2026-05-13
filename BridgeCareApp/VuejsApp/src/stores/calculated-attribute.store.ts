@@ -125,4 +125,12 @@ export const useCalculatedAttributeStore = defineStore('calculatedAttribute', {
             });
         },
     },
+    getters: {
+        getCalculatedAttributeLibraries: (state) => state.calculatedAttributeLibraries,
+        getSelectedCalculatedAttributeLibrary: (state) => state.selectedCalculatedAttributeLibrary,
+        getScenarioCalculatedAttributes: (state) => state.scenarioCalculatedAttributes,
+        getSelectedLibraryCalculatedAttributes: (state) => state.selectedLibraryCalculatedAttributes,
+        getCalculatedAttributes: (state) => state.calculatedAttributes,
+        getIsSharedLibrary: (state) => state.isSharedLibrary
+    }
 });

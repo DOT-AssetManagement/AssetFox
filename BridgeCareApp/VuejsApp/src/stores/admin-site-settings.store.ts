@@ -46,6 +46,12 @@ export const useAdminSiteSettingsStore = defineStore('adminSiteSettings', {
         adminContactEmail: '',
         isSuccessfulImport: false,
     }),
+    getters: {
+        getProductLogo: (state) => state.productLogo,
+        getImplementationName: (state) => state.implementationName,
+        getAdminContactEmail: (state) => state.adminContactEmail,
+        getIsSuccessfulImport: (state) => state.isSuccessfulImport,
+    },
     actions: {
         async getImplementationName() {
             await AdminSiteSettingsService.getImplementationName().then(

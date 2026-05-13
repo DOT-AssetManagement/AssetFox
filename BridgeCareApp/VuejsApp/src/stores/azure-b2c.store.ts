@@ -23,6 +23,11 @@ export const useAzureB2CStore = defineStore('azureB2C', {
         app: new msal.UserAgentApplication(msalConfig),
         appPasswordReset: new msal.UserAgentApplication(msalPasswordResetConfig),
     }),
+    getters: {
+        getAuthenticatedFromAzure: (state) => state.authenticatedFromAzure,
+        getApp: (state) => state.app,
+        getAppPasswordReset: (state) => state.appPasswordReset,
+    },
     actions: {
         setAuthenticatedFromAzure(status: boolean) {
             this.authenticatedFromAzure = status;

@@ -16,9 +16,6 @@ export interface AuthenticationStoreState {
     username: string;
     refreshing: boolean;
     securityType: string;
-    pennDotSecurityType: string;
-    azureSecurityType: string;
-    localDebugSecurityType: string;
     accessDenied: boolean;
 }
 
@@ -41,9 +38,6 @@ export const useAuthenticationStore = defineStore('authentication', {
         username: '',
         refreshing: false,
         securityType: 'B2C',
-        pennDotSecurityType: 'ESEC',
-        azureSecurityType: 'B2C',
-        localDebugSecurityType:'LocalDebug',
         accessDenied: false,
     }),
     actions: {
@@ -241,4 +235,18 @@ export const useAuthenticationStore = defineStore('authentication', {
             localStorage.setItem('LoggedInUser', user.name);
         }
     },
+    getters:{
+        getAuthenticated: (state => state.authenticated),
+        getHasRole: (state => state.hasRole),
+        getCheckedForRole: (state => state.checkedForRole),
+        getHasAdminAccess: (state => state.hasAdminAccess),
+        getHasSimulationAccess: (state => state.hasSimulationAccess),
+        getUsername: (state => state.username),
+        getRefreshing: (state => state.refreshing),
+        getSecurityType: (state => state.securityType),
+        getAccessDenied: (state => state.accessDenied),
+        pennDotSecurityType: (state => 'ESEC'),
+        azureSecurityType: (state => 'B2C'),
+        localDebugSecurityType: (state => 'LocalDebug'),
+    }
 });

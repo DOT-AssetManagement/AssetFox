@@ -49,4 +49,9 @@ export const useInventoryStore = defineStore('inventory', {
             );
         },
     },
+    getters: {
+        getInventoryItems: (state) => state.inventoryItems,
+        getStaticHTMLForInventory: (state) => state.staticHTMLForInventory,
+        getQuerySet: (state) => state.querySet
+    }
 });

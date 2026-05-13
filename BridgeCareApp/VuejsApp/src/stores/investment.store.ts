@@ -186,4 +186,13 @@ export const useInvestmentStore = defineStore('investment', {
             );
         },
     },
+    getters: {
+        getBudgetLibraries: (state) => state.budgetLibraries,
+        getSelectedBudgetLibrary: (state) => state.selectedBudgetLibrary,
+        getInvestmentPlan: (state) => state.investmentPlan,
+        getScenarioSimpleBudgetDetails: (state) => state.scenarioSimpleBudgetDetails,
+        getScenarioBudgets: (state) => state.scenarioBudgets,
+        getIsSuccessfulImport: (state) => state.isSuccessfulImport,
+        getHasPermittedAccess: (state) => state.hasPermittedAccess
+    }
 });
