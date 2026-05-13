@@ -63,17 +63,16 @@ import { SelectItem } from '@/shared/models/vue/select-item';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
 import { clone } from 'ramda';
 import { useStore } from 'vuex'; 
+import { useAdminDataStore } from '@/stores';
 
     let store = useStore(); 
+    const adminDataStore = useAdminDataStore();
 
     const props = defineProps<{dialogData: ReportsDownloaderDialogData}>();
     let showDialogComputed = computed(() => props.dialogData.showModal);
 
-    let stateSimulationReportNames: string[] = (store.state.adminDataModule.simulationReportNames)
-
     function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification')}
     function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification')}
-    async function getSimulationReportsAction(payload?: any): Promise<any>{await store.dispatch('getSimulationReports')}
 
     let reports: SelectItem[] = [];   
     let selectedReport: string = ''; 
@@ -82,9 +81,8 @@ import { useStore } from 'vuex';
 
     onMounted(()=> mounted)
     function mounted() {
-        getSimulationReportsAction().then(() => {
-            //const reports: string[] = clone(stateSimulationReportNames)
-            let reports: string[] = clone(stateSimulationReportNames)
+        adminDataStore.getSimulationReports().then(() => {
+            let reports: string[] = clone(adminDataStore.getSimulationReportNames)
             // ToDo - Had to Comment the below and change above from const to variable
             // reports = reports.map(rep => {
             //     return {text: rep, value: rep}
@@ -129,19 +127,20 @@ import { useStore } from 'vuex';
         isDownloading = true;
         props.dialogData.showModal = false;        
         await ReportsService.downloadReport(
-            props.dialogData.scenarioId, selectedReport
-        ).then((response: AxiosResponse<any>) => {
-            isDownloading = false;
-            if (hasValue(response, 'data')) {
-                const fileInfo: FileInfo = response.data as FileInfo;
-                FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
-            } else {
-                addErrorNotificationAction({
-                    message: 'Failed to download report.',
-                    longMessage:
-                        'Failed to download the summary report. Make sure the scenario has been run',
-                });
+            {
+                scenarioId: props.dialogData.scenarioId,
+                reportName: selectedReport,
+                simulationName: props.dialogData.name,
             }
+        ).then(() => {
+            isDownloading = false;
+        }).catch(() => {
+            isDownloading = false;
+            addErrorNotificationAction({
+                message: 'Failed to download report.',
+                longMessage:
+                    'Failed to download the summary report. Make sure the scenario has been run',
+            });
         });
     }
 

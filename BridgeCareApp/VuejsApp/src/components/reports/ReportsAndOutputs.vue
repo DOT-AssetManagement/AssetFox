@@ -173,16 +173,15 @@ import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton
 import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel, PamsPbExportReportRequestModel, emptyPamsPbExportReportRequestModel } from '@/shared/models/iAM/reports';
 import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/UserDefinedReportInputDialog.vue';
 import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
-import { useAuthenticationStore } from '@/stores';
+import { useAdminDataStore, useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const adminDataStore = useAdminDataStore();
     const authenticationStore = useAuthenticationStore();
     const router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>> 
-    const stateSimulationReportNames = computed<string[]>(() => store.state.adminDataModule.simulationReportNames);
     function addErrorNotificationAction(payload?: any) {  store.dispatch('addErrorNotification',payload);} 
     function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification',payload);} 
-    async function getSimulationReportsAction(payload?: any): Promise<any> { await store.dispatch('getSimulationReports',payload);} 
     async function updateSimulationReportDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationReportDetail', payload)}  
     const notifications = computed<Notification[]>(() => store.state.notificationModule.notifications);
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
@@ -269,12 +268,12 @@ import { useAuthenticationStore } from '@/stores';
                 router.push('/Scenarios/');
             }
 
-        await getSimulationReportsAction();        
+        await adminDataStore.getSimulationReports();        
         await getReportGenerationStatus();        
     });
 
-    watch(stateSimulationReportNames, () => {
-        stateSimulationReportNames.value.forEach(reportName => {
+    watch(() => adminDataStore.getSimulationReportNames, () => {
+        adminDataStore.getSimulationReportNames.forEach(reportName => {
             currentPage.value.push({
                 id: getNewGuid(),
                 name: reportName,
@@ -282,7 +281,7 @@ import { useAuthenticationStore } from '@/stores';
                 isGenerated: false                
             });
         });
-        if(stateSimulationReportNames.value.length > 0)
+        if(adminDataStore.getSimulationReportNames.length > 0)
             selectedReport.value = currentPage.value[0];
 
     });

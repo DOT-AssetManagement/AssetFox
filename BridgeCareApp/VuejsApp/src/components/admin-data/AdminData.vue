@@ -170,38 +170,14 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { Console } from 'console';
 import { report } from 'process';
+import { useAdminDataStore } from '@/stores';
 
     let store = useStore();
-    let stateAvailableReportNames = computed<string[]>(()=>store.state.adminDataModule.availableReportNames);
-    let stateSimulationReportNames = computed<string[]>(()=>store.state.adminDataModule.simulationReportNames);
-    let stateInventoryReportNames = computed<string[]>(()=>store.state.adminDataModule.inventoryReportNames);
-    let statePrimaryNetwork = computed<string>(()=>store.state.adminDataModule.primaryNetwork);
-    let stateKeyFields = computed<string[]>(()=>store.state.adminDataModule.keyFields);
-    let stateRawDataKeyFields = computed<string[]>(()=>store.state.adminDataModule.rawDataKeyFields);
-    let stateRawdataNetwork = computed<string>(()=>store.state.adminDataModule.rawdataNetwork);
-    let stateAssetType = computed<string[]>(()=>store.state.adminDataModule.assetType);
-    let stateConstraintType = computed<string>(()=>store.state.adminDataModule.constraintType);
+    const adminDataStore = useAdminDataStore();
     let hasUnsavedChanges = computed<boolean>(()=>store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let stateNetworks = computed<Network[]>(()=>store.state.networkModule.networks);
     let stateAttributes = computed<Attribute[]>(()=>store.state.attributeModule.attributes);
 
-    async function getAvailableReportsAction(payload?: any): Promise<any> {await store.dispatch('getAvailableReports',payload);}
-    async function getSimulationReportsAction(payload?: any): Promise<any> {await store.dispatch('getSimulationReports',payload);}
-    async function getInventoryReportsAction(payload?: any): Promise<any> {await store.dispatch('getInventoryReports',payload);}
-    async function getPrimaryNetworkAction(payload?: any): Promise<any> {await store.dispatch('getPrimaryNetwork',payload);}
-    async function getRawdataNetworkAction(payload?: any): Promise<any> {await store.dispatch('getRawdataNetwork',payload);}
-    async function getKeyFieldsAction(payload?: any): Promise<any> {await store.dispatch('getKeyFields',payload);}
-    async function getRawDataKeyFieldsAction(payload?: any): Promise<any> {await store.dispatch('getRawDataKeyFields',payload);}
-    async function getAssetTypeAction(payload?: any): Promise<any> {await store.dispatch('getAssetType',payload);}
-    async function getConstraintTypeAction(payload?: any): Promise<any> {await store.dispatch('getConstraintType',payload);}
-    async function setSimulationReportsAction(payload?: any): Promise<any> {await store.dispatch('setSimulationReports',payload);}
-    async function setInventoryReportsAction(payload?: any): Promise<any> {await store.dispatch('setInventoryReports',payload);}
-    async function setPrimaryNetworkAction(payload?: any): Promise<any> {await store.dispatch('setPrimaryNetwork',payload);}
-    async function setRawdataNetworkAction(payload?: any): Promise<any> {await store.dispatch('setRawdataNetwork',payload);}
-    async function setKeyFieldsAction(payload?: any): Promise<any> {await store.dispatch('setKeyFields',payload);}
-    async function setRawDataKeyFieldsAction(payload?: any): Promise<any> {await store.dispatch('setRawDataKeyFields',payload);}
-    async function setAssetTypeAction(payload?: any): Promise<any> {await store.dispatch('setAssetType',payload);}
-    async function setConstraintTypeAction(payload?: any): Promise<any> {await store.dispatch('setConstraintType',payload);}
     async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks',payload);}
     async function getAttributes(payload?: any): Promise<any> {await store.dispatch('getAttributes',payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
@@ -247,18 +223,18 @@ import { report } from 'process';
     let constraintTypeRadioGroup = shallowRef<string>('');
     created();
     function created() {
-                 getPrimaryNetworkAction();
-                 getRawdataNetworkAction();
-                 getKeyFieldsAction();
-                 getRawDataKeyFieldsAction();
-                 getAssetTypeAction();
-                 getConstraintTypeAction();
+                 adminDataStore.getPrimaryNetwork();
+                 adminDataStore.getRawdataNetwork();
+                 adminDataStore.getKeyFields();
+                 adminDataStore.getRawDataKeyFields();
+                 adminDataStore.getAssetType();
+                 adminDataStore.getConstraintType();
                 onStateConstraintTypeChanged();
                 getAttributes();
                 getNetworks();
-                getAvailableReportsAction();
-                 getSimulationReportsAction();
-                getInventoryReportsAction();
+                adminDataStore.getAvailableReports();
+                 adminDataStore.getSimulationReports();
+                adminDataStore.getInventoryReports();
         (() => {
             
             (async () => { 
@@ -289,12 +265,12 @@ import { report } from 'process';
             keyFieldsForDialog.value.push(value.name);
         });
     })
-    watch(stateSimulationReportNames,() => {
-        selectedSimulationReports.value = clone(stateSimulationReportNames.value);
+    watch(() => adminDataStore.getSimulationReportNames,() => {
+        selectedSimulationReports.value = clone(adminDataStore.getSimulationReportNames);
     })
-    watch(stateAvailableReportNames,() => 
+    watch(() => adminDataStore.getAvailableReportNames,() => 
     {
-        selectedAvailableReports = clone(stateAvailableReportNames.value);
+        selectedAvailableReports = clone(adminDataStore.getAvailableReportNames);
 
         const reports = ref<string[]>([])
         selectedAvailableReports.forEach(function(value){
@@ -304,39 +280,39 @@ import { report } from 'process';
         simulationReports = clone(reports.value);
         inventoryReports = clone(reports.value);
     })
-    watch(stateInventoryReportNames,() =>
+    watch(() => adminDataStore.getInventoryReportNames,() =>
     {
-        selectedInventoryReports.value = clone(stateInventoryReportNames.value);
+        selectedInventoryReports.value = clone(adminDataStore.getInventoryReportNames);
     })
-    watch(statePrimaryNetwork,() => {
-        selectPrimaryNetworkItemValue.value = statePrimaryNetwork.value;
+    watch(() => adminDataStore.getPrimaryNetwork,() => {
+        selectPrimaryNetworkItemValue.value = adminDataStore.getPrimaryNetwork;
     }, { immediate: true })
     function onStatePrimaryNetworkChanged()
     {
-        selectPrimaryNetworkItemValue.value = statePrimaryNetwork.value;
+        selectPrimaryNetworkItemValue.value = adminDataStore.getPrimaryNetwork;
     }
-    watch(stateRawdataNetwork,() =>  {
-        selectRawdataNetworkItemValue.value = stateRawdataNetwork.value;
+    watch(() => adminDataStore.getRawdataNetwork,() =>  {
+        selectRawdataNetworkItemValue.value = adminDataStore.getRawdataNetwork;
     }, { immediate: true })
     function  onStateRawdataNetworkChanged()
     {
-        selectPrimaryNetworkItemValue.value = statePrimaryNetwork.value;
+        selectPrimaryNetworkItemValue.value = adminDataStore.getPrimaryNetwork;
     }
-    watch(stateKeyFields,() => {
-        selectedKeyFields.value = clone(stateKeyFields.value);
+    watch(() => adminDataStore.getKeyFields,() => {
+        selectedKeyFields.value = clone(adminDataStore.getKeyFields);
     })
-    watch(stateRawDataKeyFields,() =>{
-        selectedRawDataKeyFields.value = clone(stateRawDataKeyFields.value);
+    watch(() => adminDataStore.getRawDataKeyFields,() =>{
+        selectedRawDataKeyFields.value = clone(adminDataStore.getRawDataKeyFields);
     })
-    watch(stateAssetType,() =>{
-        selectedAssetTypes.value = clone(stateAssetType.value);
+    watch(() => adminDataStore.getAssetType,() =>{
+        selectedAssetTypes.value = clone(adminDataStore.getAssetType);
     })
-    watch(stateConstraintType,() => {
-        constraintTypeRadioGroup.value = stateConstraintType.value
+    watch(() => adminDataStore.getConstraintType,() => {
+        constraintTypeRadioGroup.value = adminDataStore.getConstraintType
     })
     function onStateConstraintTypeChanged()
     {
-        constraintTypeRadioGroup.value = stateConstraintType.value
+        constraintTypeRadioGroup.value = adminDataStore.getConstraintType
     }
     //watch(networks,() =>{
       //  selectPrimaryNetworkItems = networks.map(_ => {
@@ -401,14 +377,14 @@ import { report } from 'process';
     function onSaveClick(){
         
         (async () => {
-            await setPrimaryNetworkAction(primaryNetwork.value); 
-            await setRawdataNetworkAction(rawdataNetwork.value);
-            await setConstraintTypeAction(constraintTypeRadioGroup.value);
-            await setSimulationReportsAction(convertToDelimited(selectedSimulationReports.value, ','));
-            await setInventoryReportsAction(convertToDelimited(selectedInventoryReports.value, ','));
-            await setKeyFieldsAction(convertToDelimited(selectedKeyFields.value, ','));
-            await setRawDataKeyFieldsAction(convertToDelimited(selectedRawDataKeyFields.value, ','));
-            await setAssetTypeAction(convertToDelimited(selectedAssetTypes.value, ','));                   
+            await adminDataStore.setPrimaryNetwork(primaryNetwork.value); 
+            await adminDataStore.setRawdataNetwork(rawdataNetwork.value);
+            await adminDataStore.setConstraintType(constraintTypeRadioGroup.value);
+            await adminDataStore.setSimulationReports(convertToDelimited(selectedSimulationReports.value, ','));
+            await adminDataStore.setInventoryReports(convertToDelimited(selectedInventoryReports.value, ','));
+            await adminDataStore.setKeyFields(convertToDelimited(selectedKeyFields.value, ','));
+            await adminDataStore.setRawDataKeyFields(convertToDelimited(selectedRawDataKeyFields.value, ','));
+            await adminDataStore.setAssetType(convertToDelimited(selectedAssetTypes.value, ','));                   
         })();
     }
     function onEditKeyFieldsClick(){
@@ -527,13 +503,13 @@ import { report } from 'process';
 
     //Subroutines
     function checkHasUnsaved(){
-        const hasChanged = hasUnsavedChangesCore('', selectedInventoryReports.value, stateInventoryReportNames.value) ||
-            hasUnsavedChangesCore('', selectedSimulationReports.value, stateSimulationReportNames.value) ||
-            hasUnsavedChangesCore('', selectedKeyFields.value, stateKeyFields.value) ||
-            hasUnsavedChangesCore('', selectedRawDataKeyFields.value, stateRawDataKeyFields.value) ||
-            hasUnsavedChangesCore('', selectedAssetTypes.value, stateAssetType.value) ||
-            primaryNetwork.value != statePrimaryNetwork.value || rawdataNetwork.value != stateRawdataNetwork.value ||
-            constraintTypeRadioGroup.value != stateConstraintType.value
+        const hasChanged = hasUnsavedChangesCore('', selectedInventoryReports.value, adminDataStore.getInventoryReportNames) ||
+            hasUnsavedChangesCore('', selectedSimulationReports.value, adminDataStore.getSimulationReportNames) ||
+            hasUnsavedChangesCore('', selectedKeyFields.value, adminDataStore.getKeyFields) ||
+            hasUnsavedChangesCore('', selectedRawDataKeyFields.value, adminDataStore.getRawDataKeyFields) ||
+            hasUnsavedChangesCore('', selectedAssetTypes.value, adminDataStore.getAssetType) ||
+            primaryNetwork.value != adminDataStore.getPrimaryNetwork || rawdataNetwork.value != adminDataStore.getRawdataNetwork ||
+            constraintTypeRadioGroup.value != adminDataStore.getConstraintType
         setHasUnsavedChangesAction({ value: hasChanged });
     }
     function convertToDelimited(listToBeDelimited: string[], delimitValue: string){

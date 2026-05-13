@@ -2,7 +2,7 @@
     <div style="width: 300px; margin: 0 auto;">
         <v-autocomplete
             v-model="inventoryReportName" 
-            :items="stateInventoryReportNames"
+            :items="adminDataStore.getInventoryReportNames"
             :label="`Select an Inventory Report`"
             variant="outlined"
             density="compact"
@@ -49,25 +49,18 @@
     import { useStore } from 'vuex';
     import { useRouter } from 'vue-router';
     import { coreAxiosInstance } from '@/shared/utils/axios-instance';
+    import { useAdminDataStore } from '@/stores';
 
     let store = useStore();
+    const adminDataStore = useAdminDataStore();
     const emit = defineEmits(['submit'])
     const inventoryItems = computed<InventoryItem[]>(()=>store.state.inventoryModule.inventoryItems);
     const staticHTMLForInventory = computed<any>(()=>store.state.inventoryModule.staticHTMLForInventory);
     const querySet = computed<InventoryParam[]>(()=>store.state.inventoryModule.querySet);
-    const stateKeyFields = computed<string[]>(()=>store.state.adminDataModule.keyFields);
-    const stateRawDataKeyFields = computed<string[]>(()=>store.state.adminDataModule.rawDataKeyFields);
-    const stateInventoryReportNames = computed<string[]>(()=>store.state.adminDataModule.inventoryReportNames);
-    const stateConstraintType = computed<string>(()=>store.state.adminDataModule.constraintType);
     
     async function getInventoryAction(payload?: any): Promise<any> {await store.dispatch('getInventory',payload);}
     async function getStaticInventoryHTMLAction(payload?: any): Promise<any> {await store.dispatch('getStaticInventoryHTML',payload);}
-    async function getInventoryReportsAction(payload?: any): Promise<any> {await store.dispatch('getInventoryReports',payload);}
-    async function getKeyFieldsAction(payload?: any): Promise<any> {await store.dispatch('getKeyFields', payload);}
-    async function getConstraintTypeAction(payload?: any): Promise<any> {await store.dispatch('getConstraintType',payload);}
     async function getQueryAction(payload?: any): Promise<any> {await store.dispatch('getQuery',payload);}
-    async function getRawDataKeyFieldsAction(payload?: any): Promise<any> {await store.dispatch('getRawDataKeyFields',payload);}
-    async function getKeyPropertiesAction(payload?: any): Promise<any> {await store.dispatch('getKeyFields',payload);}
         
     
     const keyAttributeValues = ref<string[][]>([]);
@@ -148,9 +141,9 @@
            // sanitizedHTML = $sanitize(staticHTMLForInventory.value);
         })
 
-        watch(stateInventoryReportNames,()=>{
-            if(stateInventoryReportNames.value.length > 0)
-                inventoryReportName.value = stateInventoryReportNames.value[0]
+        watch(() => adminDataStore.getInventoryReportNames,()=>{
+            if(adminDataStore.getInventoryReportNames.length > 0)
+                inventoryReportName.value = adminDataStore.getInventoryReportNames[0]
             
             lastThreeLetters = inventoryReportName.value.slice(-3);
             reportType = lastThreeLetters[1];
@@ -172,11 +165,11 @@
             }
         });
  */ 
-        watch(stateRawDataKeyFields,()=>{
-                inventoryDetails.value = clone(stateRawDataKeyFields.value);
+        watch(() => adminDataStore.getRawDataKeyFields,()=>{
+            inventoryDetails.value = clone(adminDataStore.getRawDataKeyFields);
 
                 inventoryDetails.value.forEach(_ => selectedKeys.push(""));
-                if(!stateInventoryReportNames.value.some(_ => _.includes("(R)")))
+            if(!adminDataStore.getInventoryReportNames.some(_ => _.includes("(R)")))
                 {
                     getInventoryAction(inventoryDetails.value);
                 }
@@ -186,8 +179,8 @@
                 }
         });
 
-        watch(stateConstraintType,()=>{
-            constraintDetails = stateConstraintType.value;
+        watch(() => adminDataStore.getConstraintType,()=>{
+            constraintDetails = adminDataStore.getConstraintType;
         });
 
         watch(querySet,()=>{
@@ -213,11 +206,11 @@
          */
         onMounted(() => {
             (async () => { 
-                await getConstraintTypeAction();
-                await getInventoryReportsAction();
-                await getKeyFieldsAction(); 
-                await getRawDataKeyFieldsAction();
-                await getConstraintTypeAction();
+                await adminDataStore.getConstraintType();
+                await adminDataStore.getInventoryReports();
+                await adminDataStore.getKeyFields(); 
+                await adminDataStore.getRawDataKeyFields();
+                await adminDataStore.getConstraintType();
             })();
         })
 
@@ -267,7 +260,7 @@
         }
 
         function onSelectInventoryItem(index: number){
-            constraintDetails = stateConstraintType.value;
+            constraintDetails = adminDataStore.getConstraintType;
             if(constraintDetails == 'OR')
             {
                 HandleSelectedItems(index);

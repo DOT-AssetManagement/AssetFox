@@ -323,7 +323,6 @@ let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const confirm = useConfirm();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-// const stateSimulationReportNames = computed<string[]>(() => store.state.adminDataModule.simulationReportNames);
 
 const stateCashFlowRuleLibraries = computed<CashFlowRuleLibrary[]>(() => store.state.cashFlowModule.cashFlowRuleLibraries);
 let stateSelectedCashRuleFlowLibrary = computed<CashFlowRuleLibrary>(() => store.state.cashFlowModule.selectedCashFlowRuleLibrary);
