@@ -35,16 +35,17 @@
     } from '@/shared/utils/authentication-utils';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-    import { useAuthenticationStore } from '@/stores';
+    import { useAuthenticationStore, useConfigStore } from '@/stores';
 
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
+    const configStore = useConfigStore();
     let authenticated: boolean = authenticationStore.authenticated;
     let hasRole: boolean = authenticationStore.hasRole ;
     let checkedForRole: boolean = authenticationStore.checkedForRole ;
     let securityType: string = authenticationStore.securityType ;
     let currentUserCriteriaFilter: UserCriteriaFilter = (store.state.userModule.currentUserCriteriaFilter) ;
-    const config = (store.state.configModule.config);
+    const config = configStore.getConfig;
 
     async function azureB2CLoginAction(payload?: any): Promise<any> { await store.dispatch('azureB2CLogin');} 
 
@@ -78,6 +79,10 @@ import { useRouter } from 'vue-router';
     }
 
     function onRedirect() { 
+        if (!config) {
+            return;
+        }
+
         let href: string = `${config.authorizationEndpoint}?response_type=code&scope=openid&scope=${config.esecScope}`;
         href += `&client_id=${config.clientId}`;
         href += `&redirect_uri=${config.redirectUri}`;
