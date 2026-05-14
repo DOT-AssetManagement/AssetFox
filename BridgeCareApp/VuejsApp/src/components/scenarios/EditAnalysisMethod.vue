@@ -484,7 +484,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     }
 
     function setSuperAssetAttributes() {
-        const superAssetAttributeSelectItems: SelectItem[] = attributeStore.getAttributes.map(
+        const superAssetAttributeSelectItems: SelectItem[] = attributeStore.attributesgetter.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,

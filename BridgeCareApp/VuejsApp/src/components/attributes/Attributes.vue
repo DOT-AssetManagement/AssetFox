@@ -145,7 +145,6 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     let selectAttributeItems = ref<SelectItem[]>([]);
     
     async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
-    async function getExcelSpreadsheetColumnHeadersAction(payload?: any): Promise<any> {await store.dispatch('getExcelSpreadsheetColumnHeaders', payload);}
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
     async function getUserNameByIdGetter(payload?: any): Promise<any> {await store.dispatch('getUserNameById', payload);}
     function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
@@ -160,8 +159,8 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         setHasUnsavedChangesAction({ value: false });
     }
 
-        watch(attributeStore.getAttributes, () =>  {
-            let temp = clone(attributeStore.getAttributes)
+        watch(attributeStore.attributesgetter, () =>  {
+            let temp = clone(attributeStore.attributesgetter)
             temp.forEach(_ => {
                 selectAttributeItems.value.push({text: _.name, value: _.id})
             })
@@ -212,7 +211,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
         await attributeStore.upsertAttribute(createAttributeRequest.attribute);
             
-        if (!isNil(attributeStore.getAttributes.find(_ => _.id === selectAttr.id))) {
+        if (!isNil(attributeStore.attributesgetter.find(_ => _.id === selectAttr.id))) {
             selectedAttribute.value.id = selectAttr.id;
             if (isInsert) selectAttributeItemValue.value = selectedAttribute.value.id;
         }

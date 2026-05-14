@@ -244,7 +244,7 @@
         
     const showAttributeDialog = ref(false);
     const currentEditingAttributes = ref<string[]>([]);
-    let attributeSelectItems = computed(() => attributeStore.getAttributes.map(attr => attr.name));
+    let attributeSelectItems = computed(() => attributeStore.attributesgetter.map(attr => attr.name));
     
     const showYearDialog = ref(false);
     const currentEditingYears = ref<number[]>([]);

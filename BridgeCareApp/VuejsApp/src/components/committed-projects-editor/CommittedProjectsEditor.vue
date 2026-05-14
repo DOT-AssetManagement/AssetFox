@@ -650,14 +650,14 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     });
 
 
-    watch(attributeStore.getAttributes, () => {
-        attributeSelectItems = attributeStore.getAttributes.map(
+    watch(attributeStore.attributesgetter, () => {
+        attributeSelectItems = attributeStore.attributesgetter.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name
             }),
         );
-        let keyAttr = attributeStore.getAttributes.find(_ => _.id == network.keyAttribute);
+        let keyAttr = attributeStore.attributesgetter.find(_ => _.id == network.keyAttribute);
         if(!isNil(keyAttr)){
             keyattr = keyAttr.name;
             cpGridHeaders.value[0].title = keyattr;

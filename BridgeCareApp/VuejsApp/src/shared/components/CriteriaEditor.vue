@@ -269,7 +269,7 @@ const tab = ref<any>(null);
 
         setSubCriteriaClauses(mainCriteria);
 
-        if (hasValue(attributeStore.getAttributes)) {
+        if (hasValue(attributeStore.attributesgetter)) {
             
             onStateAttributesChanged();
             onStateAttributesSelectValues();
@@ -320,9 +320,9 @@ const tab = ref<any>(null);
         }
     });
 
-    watch(attributeStore.getAttributes, onStateAttributesChanged);
+    watch(attributeStore.attributesgetter, onStateAttributesChanged);
     function onStateAttributesChanged(){
-        if (hasValue(attributeStore.getAttributes)) {
+        if (hasValue(attributeStore.attributesgetter)) {
             setQueryBuilderRules();
         }
     }
@@ -402,7 +402,7 @@ const tab = ref<any>(null);
     }
 
     function setQueryBuilderRules() {
-        queryBuilderRules.value = attributeStore.getAttributes.map(
+        queryBuilderRules.value = attributeStore.attributesgetter.map(
             (attribute: Attribute) => ({
                 type: attribute.type,
                 label: attribute.name,

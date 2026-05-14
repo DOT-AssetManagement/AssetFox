@@ -91,7 +91,7 @@ import { useAttributeStore } from '@/stores';
         onTreatmentChange();
     });
 
-    watch(attributeStore.getAttributes, () =>  {
+    watch(attributeStore.attributesgetter, () =>  {
         setAttributeSelectItems();
     });
 
@@ -123,8 +123,8 @@ import { useAttributeStore } from '@/stores';
     });
 
     function setAttributeSelectItems() {
-        if (hasValue(attributeStore.getAttributes)) {
-            attributeSelectItems.value = attributeStore.getAttributes.map((attribute: Attribute) => ({
+        if (hasValue(attributeStore.attributesgetter)) {
+            attributeSelectItems.value = attributeStore.attributesgetter.map((attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,
             }));
@@ -140,7 +140,7 @@ import { useAttributeStore } from '@/stores';
         let testStateAttributes:Attribute[] = [];
         if(callFromLibrary.value){
             stateDistinctPerformanceFactorAttributes.value.forEach(attr => {
-                attributeStore.getAttributes.forEach((state: Attribute) => {
+                attributeStore.attributesgetter.forEach((state: Attribute) => {
                     if (state.name === attr) {
                         if (testStateAttributes.findIndex((o) => { return o.name === attr }) === -1){
                             testStateAttributes.push(state);
@@ -151,7 +151,7 @@ import { useAttributeStore } from '@/stores';
         }
         else{
             stateScenarioPerformanceCurves.value.forEach(curve => {
-                attributeStore.getAttributes.forEach((state: Attribute) => {
+                attributeStore.attributesgetter.forEach((state: Attribute) => {
                     if (state.name === curve.attribute) {
                         if (testStateAttributes.findIndex((o) => { return o.name === curve.attribute }) === -1){
                             testStateAttributes.push(state);

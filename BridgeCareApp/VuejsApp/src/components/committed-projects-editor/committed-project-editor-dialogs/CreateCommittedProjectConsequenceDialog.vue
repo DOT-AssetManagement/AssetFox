@@ -85,8 +85,8 @@ import { useAttributeStore } from '@/stores';
   }
 
   function setAttributes() {
-    if (hasValue(attributeStore.getAttributes)) {
-      attributeNames = getPropertyValues('name', attributeStore.getAttributes);
+    if (hasValue(attributeStore.attributesgetter)) {
+      attributeNames = getPropertyValues('name', attributeStore.attributesgetter);
 
       // if (showDialog) {
       //   setNewDeficientConditionGoalDefaultValues();

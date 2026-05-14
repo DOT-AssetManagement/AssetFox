@@ -190,13 +190,13 @@ const props = defineProps<{
         consequencesGridData.value = clone(selectedTreatmentConsequences.value);
     });
 
-    watch(attributeStore.getAttributes, () => {
+    watch(attributeStore.attributesgetter, () => {
         setAttributeSelectItems();
     });
 
     function setAttributeSelectItems() {
-        if (hasValue(attributeStore.getAttributes)) {
-            attributeSelectItems.value = attributeStore.getAttributes.map((attribute: Attribute) => ({
+        if (hasValue(attributeStore.attributesgetter)) {
+            attributeSelectItems.value = attributeStore.attributesgetter.map((attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,
             }));

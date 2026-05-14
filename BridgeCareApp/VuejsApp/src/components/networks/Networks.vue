@@ -193,19 +193,18 @@ import { useStore } from 'vuex';
 import mitt, { Emitter, EventType } from 'mitt';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { NIL } from 'uuid';
-import { useAttributeStore, useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
+    const dataSourceStore = useDataSourceStore();
     let stateNetworks = computed<Network[]>(()=>store.state.networkModule.networks);
     let stateSelectedNetwork = computed<Network>(()=>store.state.networkModule.selectedNetwork) ;
-    let stateDataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
     
     async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
-    async function getDataSources(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}
     function selectNetworkAction(payload?: any) { store.dispatch('selectNetwork', payload);}
     async function createNetworkAction(payload?: any): Promise<any> {await store.dispatch('createNetwork', payload);}
     async function deleteNetworkAction(payload?: any): Promise<any> {await store.dispatch('deleteNetwork', payload);}
@@ -250,7 +249,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     function created() {
         attributeStore.getAttributes();
         getNetworks();
-        getDataSources();
+        dataSourceStore.getDataSources();
     }
     onMounted(() => mounted); 
     function mounted() {
@@ -271,15 +270,15 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         selectNetworkItems.value = stateNetworks.value.map(_ => ({text: _.name, value: _.id}))
     })
 
-    watch(attributeStore.getAttributes, () => { 
-        attributeRows.value = clone(attributeStore.getAttributes);
-        attributeStore.getAttributes.forEach(_ => {
+    watch(attributeStore.attributesgetter, () => { 
+        attributeRows.value = clone(attributeStore.attributesgetter);
+        attributeStore.attributesgetter.forEach(_ => {
                 selectKeyAttributeItems.value.push({text:_.name,value:_.id})
             })
         });
 
-    watch(stateDataSources, () => {  
-        stateDataSources.value.forEach(_ => {
+    watch(() => dataSourceStore.dataSourcesGetter, () => {  
+        dataSourceStore.dataSourcesGetter.forEach(_ => {
             selectDataSourceItems.value.push({text:_.name,value:_.id});
             if(_.name == "None") {
                 noneDatasourceId = _.id;

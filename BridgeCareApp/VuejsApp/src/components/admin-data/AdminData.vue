@@ -257,10 +257,10 @@ import { useAdminDataStore, useAttributeStore } from '@/stores';
             selectRawDataNetworkItems.value.push({text:_.name,value:_.name})
         });
     })
-    watch(attributeStore.getAttributes,() => {
+    watch(attributeStore.attributesgetter,() => {
         
-        keyFields = clone(attributeStore.getAttributes).map(_ =>_.name) //.map(_ => _.name)
-        attributeStore.getAttributes.forEach(function (value) {
+        keyFields = clone(attributeStore.attributesgetter).map(_ =>_.name) //.map(_ => _.name)
+        attributeStore.attributesgetter.forEach(function (value) {
             keyFieldsForDialog.value.push(value.name);
         });
     })

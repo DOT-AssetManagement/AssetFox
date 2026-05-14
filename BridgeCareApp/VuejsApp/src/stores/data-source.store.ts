@@ -17,10 +17,15 @@ import {
 } from '@/shared/models/iAM/data-source';
 import { TestStringData } from '@/shared/models/iAM/test-string';
 
+const emptyRawDataColumns: RawDataColumns = {
+    columnHeaders: [],
+    warningMessage: '',
+};
+
 export interface DataSourceStoreState {
     dataSources: Datasource[];
     dataSourceTypes: string[];
-    excelColumns: RawDataColumns[];
+    excelColumns: RawDataColumns;
     isSuccessfulImport: boolean;
     sqlCommandResponse: SqlCommandResponse;
     dataSourceMappings: DataSourceMappingData[];
@@ -36,7 +41,7 @@ export const useDataSourceStore = defineStore('dataSource', {
     state: (): DataSourceStoreState => ({
         dataSources: [],
         dataSourceTypes: [],
-        excelColumns: [],
+        excelColumns: emptyRawDataColumns,
         isSuccessfulImport: false,
         sqlCommandResponse: emptySqlCommandResponse,
         dataSourceMappings: [],
@@ -119,7 +124,7 @@ export const useDataSourceStore = defineStore('dataSource', {
         },
         async getExcelSpreadsheetColumnHeaders(payload: string) {
             await DataSourceService.getExcelSpreadsheetColumnHeaders(payload).then(
-                (response: AxiosResponse<RawDataColumns[]>) => {
+                (response: AxiosResponse<RawDataColumns>) => {
                     if (hasValue(response, 'status')) {
                         this.excelColumns = clone(response.data);
                     }
