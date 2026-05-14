@@ -95,7 +95,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
             deficientConditionGoal.Id = entity.Id;
             var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
             deficientConditionGoal.Attribute = simulation.Network.Explorer.NumberAttributes
-                .Single(_ => _.Name == entity.Attribute.Name);
+                .Single(_ => _.Name == attributeName);
             deficientConditionGoal.AllowedDeficientPercentage = entity.AllowedDeficientPercentage;
             deficientConditionGoal.DeficientLimit = entity.DeficientLimit;
             deficientConditionGoal.Name = entity.Name;
