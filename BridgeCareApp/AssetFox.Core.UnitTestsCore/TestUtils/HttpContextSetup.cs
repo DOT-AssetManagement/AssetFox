@@ -14,7 +14,7 @@ namespace AssetFoxCoreTests.Helpers
     public static class HttpContextSetup
     {
         public static void AddAuthorizationHeader(DefaultHttpContext context) =>
-            context.Request.Headers.Add("Authorization", "Bearer abc123");
+            context.Request.Headers.Append("Authorization", "Bearer abc123");
 
         public static DefaultHttpContext WithAuthorizationHeader(Dictionary<string, StringValues> queryStore = null)
         {

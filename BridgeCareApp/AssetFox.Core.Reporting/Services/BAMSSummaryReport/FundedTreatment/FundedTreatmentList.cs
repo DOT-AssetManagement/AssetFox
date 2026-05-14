@@ -277,8 +277,8 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
         private class FundedTreatmentReportInfo {
             public SimulationYearDetail Year { get; init; }
             public AssetDetail Asset { get; init; }
-            public TreatmentOptionDetail? TreatmentOption { get; init; }
-            public TreatmentConsiderationDetail? TreatmentConsideration { get; init; }
+            public TreatmentOptionDetail TreatmentOption { get; init; }
+            public TreatmentConsiderationDetail TreatmentConsideration { get; init; }
             public bool IsCashFlowed { get; set; }
             public int LengthInYears { get; set; } = 1;
             public bool IsAnalysisLengthExceeded { get; set; } = false;
@@ -329,7 +329,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
                                 cashFlow.ReasonAgainstCashFlow is ReasonAgainstCashFlow.None));
 
                     var exceedsLastYear = isCashFlowed && treatmentConsiderations.Any(c => c.TreatmentName == asset.AppliedTreatment
-                        && c.CashFlowConsiderations.Any(flow => flow.ReasonAgainstCashFlow is ReasonAgainstCashFlow.LastYearOfCashFlowIsOutsideOfAnalysisPeriod));
+                        && c.CashFlowConsiderations.Any(flow => flow.ReasonAgainstCashFlow is ReasonAgainstCashFlow.LastYearOfCashFlowIsOutsideOfAnalysisPeriod)); // The Last Year thing is obsolete. Do we still need to reference it (for example to handle old simulations)?
 
                     if (treatmentsPerSection.ContainsKey(id))
                     {

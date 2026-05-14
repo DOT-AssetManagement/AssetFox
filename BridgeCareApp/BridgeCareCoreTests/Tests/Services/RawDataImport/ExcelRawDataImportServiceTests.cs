@@ -103,7 +103,7 @@ namespace AssetFoxCoreTests.Tests
             var result = service.ImportRawData(dataSourceId, excelPackage.Workbook.Worksheets[0]);
 
             var warningMessage = result.WarningMessage;
-            Assert.Equal(warningMessage, ExcelRawDataImportService.TopSpreadsheetRowIsEmpty);
+            Assert.Equal(ExcelRawDataImportService.TopSpreadsheetRowIsEmpty, warningMessage);
         }
 
 

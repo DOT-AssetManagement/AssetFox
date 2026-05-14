@@ -6,8 +6,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities
     {
         public Guid SimulationYearDetailId { get; set; }
 
-        public int RunId { get; set; }
-
         public virtual SimulationYearDetailEntity SimulationYearDetail { get; set; }
 
         public double ActualDeficientPercentage { get; set; }

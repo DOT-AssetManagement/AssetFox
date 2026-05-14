@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AssetFox.Core.Analysis;
+using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using MoreLinq;
 
@@ -76,6 +77,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 foreach (var entity in yearOfHistory)
                 {
                     var attributeName = attributeNameLookup.GetAttributeNameOrEmptyString(entity.AttributeId);
+                    if (!attributePerName.ContainsKey(attributeName))
+                    {
+                        DebugHelper.Noop();
+                    }
                     var attribute = attributePerName[attributeName];
                     var history = maintainableAsset.GetHistory(attribute);
                     var value = getValue(entity);

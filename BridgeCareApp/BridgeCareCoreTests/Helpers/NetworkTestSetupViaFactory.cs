@@ -14,11 +14,11 @@ namespace AssetFoxCoreTests.Helpers
     public static class NetworkTestSetupViaFactory
     {
 
-        public static TNetwork ModelViaFactory(IUnitOfWork unitOfWork, DataAttribute attribute, NetworkCreationParameters parameters, string networkName, ExcelRawDataDTO excelRawDataDto)
+        public static TNetwork ModelViaFactory(IUnitOfWork unitOfWork, DataAttribute attribute, NetworkCreationParameters parameters, string networkName, ExcelRawDataDTO excelRawDataDto, DataSourceMappingDTO dataSourceMapping)
         {
             var allDataSource = parameters.NetworkDefinitionAttribute.DataSource;
             var mappedDataSource = AllDataSourceMapper.ToSpecificDto(allDataSource);
-            var attributeConnection = AttributeConnectionBuilder.Build(attribute, mappedDataSource, unitOfWork, excelRawDataDto);
+            var attributeConnection = AttributeConnectionBuilder.Build(attribute, dataSourceMapping, mappedDataSource, unitOfWork, excelRawDataDto);
             var data = AttributeDataBuilder.GetData(attributeConnection);
             var network = NetworkFactory.CreateNetworkFromAttributeDataRecords(
                   data, parameters.DefaultEquation);

@@ -27,7 +27,6 @@ namespace AssetFox.Core.Reporting
         private readonly FlexibleAssetsTab _assetTab;
         private readonly FlexibleDecisionTab _decisionTab;
         private readonly ReportHelper _reportHelper;
-        private readonly GetConditionAttributesService _getConditionAttributesService;
 
         public FlexibleAuditReport(IUnitOfWork unitOfWork, string name, ReportIndexDTO results, IHubService hubService)
         {

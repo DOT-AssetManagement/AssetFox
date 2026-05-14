@@ -16,8 +16,4 @@ public class SimulationException : Exception
     public SimulationException(string message, Exception innerException) : base(message, innerException)
     {
     }
-
-    protected SimulationException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
 }

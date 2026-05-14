@@ -237,7 +237,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
                 _unitOfWork.Commit();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 _unitOfWork.Rollback();
                 throw;

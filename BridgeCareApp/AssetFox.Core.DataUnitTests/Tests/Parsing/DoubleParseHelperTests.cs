@@ -32,9 +32,10 @@ namespace AssetFox.Core.DataUnitTests.Tests.Parsing
             Assert.Null(parseNull);
         }
 
+        [Fact(Skip ="Need to write")]
         public void TryParseNullableDouble_LongInput_Succeeds()
         {
-            long input = 1000000000000000000L;
+        //    long input = 1000000000000000000L;
         }
     }
 }

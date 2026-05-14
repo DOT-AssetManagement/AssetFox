@@ -7,20 +7,20 @@ namespace AssetFox.Core.DataUnitTests.Tests
     public class DirectionalRouteTests
     {
         private readonly DirectionalRoute directionalRoute;
-        private Mock<DirectionalRoute> mockDirectionalRoute;
         private const string locationIdentifier = "TestUniqueId";
         private const string locationIdentifier2 = "TestUniqueId2";
 
         public DirectionalRouteTests()
         {
             directionalRoute = new DirectionalRoute(locationIdentifier, Direction.N);
-            Init(locationIdentifier, Direction.N);
         }        
 
         [Fact]
         public void MatchOnTest()
         {
             // Act
+            var mockDirectionalRoute = Init(locationIdentifier, Direction.S);
+
             var doesMatch = directionalRoute.MatchOn(mockDirectionalRoute.Object);
 
             // Assert
@@ -31,7 +31,7 @@ namespace AssetFox.Core.DataUnitTests.Tests
         public void MatchOnOnlyLocationIdentifierTest()
         {
             // Arrange
-            Init(locationIdentifier, Direction.S);
+            var mockDirectionalRoute = Init(locationIdentifier, Direction.S);
 
             // Act
             var doesMatch = directionalRoute.MatchOn(mockDirectionalRoute.Object);
@@ -44,7 +44,7 @@ namespace AssetFox.Core.DataUnitTests.Tests
         public void MatchOnFalseTest()
         {
             // Arrange
-            Init(locationIdentifier2, Direction.N);
+            var mockDirectionalRoute = Init(locationIdentifier2, Direction.N);
 
             // Act
             var doesMatch = directionalRoute.MatchOn(mockDirectionalRoute.Object);
@@ -53,9 +53,10 @@ namespace AssetFox.Core.DataUnitTests.Tests
             Assert.False(doesMatch);
         }
 
-        private void Init(string locationIdentifier, Direction direction)
+        private Mock<DirectionalRoute> Init(string locationIdentifier, Direction direction)
         {
-            mockDirectionalRoute = new Mock<DirectionalRoute>(locationIdentifier, direction);
+            var mockDirectionalRoute = new Mock<DirectionalRoute>(locationIdentifier, direction);
+            return mockDirectionalRoute;
         }
     }
 }

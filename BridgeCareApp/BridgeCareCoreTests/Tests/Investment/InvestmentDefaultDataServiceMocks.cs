@@ -12,7 +12,7 @@ namespace AssetFoxCoreTests.Tests
 {
     public static class InvestmentDefaultDataServiceMocks
     {
-        public static Mock<IInvestmentDefaultDataService> New(InvestmentDefaultData? defaultData = null)
+        public static Mock<IInvestmentDefaultDataService> New(InvestmentDefaultData defaultData = null)
         {
             var resolveDefaultData = defaultData ?? new InvestmentDefaultData();
             var mock = new Mock<IInvestmentDefaultDataService>();

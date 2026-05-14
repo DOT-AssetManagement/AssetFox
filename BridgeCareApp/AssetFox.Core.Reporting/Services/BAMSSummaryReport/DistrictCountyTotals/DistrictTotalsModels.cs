@@ -21,8 +21,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.DistrictCountyTotal
 
         public static AnchoredExcelRegionModel DistrictTotalsContent(SimulationOutput output)
         {
-            int startingRow = 0;
-
             var districtList = output.InitialAssetSummaries.Select(_ => _.ValuePerTextAttribute["DISTRICT"]).Distinct().Select(_ => int.Parse(_)).OrderBy(_ => _).Where(_ => _ != 37).ToList();
 
             return new AnchoredExcelRegionModel

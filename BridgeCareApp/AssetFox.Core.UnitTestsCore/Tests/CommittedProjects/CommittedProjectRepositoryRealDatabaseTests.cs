@@ -417,7 +417,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
             TestHelper.UnitOfWork.CommittedProjectRepo.GetSimulationCommittedProjects(testSimulation);
 
             // Assert
-            Assert.Equal(0, testSimulation.CommittedProjects.Count);
+            Assert.Empty(testSimulation.CommittedProjects);
         }
 
         [Fact]

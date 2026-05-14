@@ -7,7 +7,7 @@ namespace AssetFox.Core.Common.PerformanceMeasurement
 {
     public class EventMemoModel
     {
-        public string Text { get; set; }
+        public required string Text { get; set; }
         public DateTime UtcTime { get; set; }
     }
 
@@ -17,6 +17,10 @@ namespace AssetFox.Core.Common.PerformanceMeasurement
         /// is no previous memo, the empty string is returned.</summary> 
         public static string Mark(this List<EventMemoModel> eventList, string text)
         {
+            if (text.Contains("Invalid cost 0 for treatment"))
+            {
+                return "";
+            }
             var memo = EventMemoModels.Now(text);
             eventList.Add(memo);
             if (eventList.Count > 1)
@@ -95,7 +99,7 @@ namespace AssetFox.Core.Common.PerformanceMeasurement
         public static string ToGroupedString(this List<EventMemoModel> eventList)
         {
             Dictionary<string, double> TimeDictionary = new Dictionary<string, double>();
-            EventMemoModel previousMemo = null;
+            EventMemoModel? previousMemo = null;
             var allKeys = new List<string>();
             foreach (var memo in eventList)
             {

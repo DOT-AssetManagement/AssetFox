@@ -12,6 +12,10 @@ namespace AssetFox.Core.DataUnitTests
         public static string BridgeCare(IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("BridgeCareConnex");
+            if (connectionString == null)
+            {
+                throw new Exception("Configuration is missing the connection string");
+            }
             return connectionString;
         }
     }

@@ -105,23 +105,6 @@ namespace AssetFoxCore.Utils
             }
         }
 
-
-
-
-        /// <summary>
-        /// Checks if user need permitted check, if so checks further if it is authorized to perform action.
-        /// </summary>
-        /// <param name="owner"></param>
-        /// <exception cref="UnauthorizedAccessException"></exception>
-        [Obsolete("Should not be used in new library sharing.")]
-        public void CheckIfAdminOrOwner(Guid owner, Guid userId)
-        {
-            if (RequirePermittedCheck() && owner != userId)
-            {
-                throw new UnauthorizedAccessException(LibraryModifyUnauthorizedMessage);
-            }
-        }
-
         public void CheckUserLibraryModifyAuthorization(LibraryUserAccessModel accessModel, Guid userId)
         {
             if (RequirePermittedCheck() && accessModel.LibraryExists)

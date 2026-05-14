@@ -9,6 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+**/copilot-instructions.md
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -384,6 +385,7 @@ iAM-legacy/DatabaseManager.dll
 
 # test connection file
 /BridgeCareApp/AppliedResearchAssociates.iAM.TestHelpers/testConnections.json
+/BridgeCareApp/AssetFox.Core.TestHelpers/testConnections.json
 
 # esec file
 /BridgeCareApp/BridgeCareCore/esec.json
@@ -418,6 +420,9 @@ BridgeCareApp/AppliedResearchAssociates.iAM.TestHelpers/testConnections.json
 /BridgeCareApp/AppliedResearchAssociates.iAM.DataMinerUnitTests/testConnections.json
 /BridgeCareApp/AppliedResearchAssociates.iAM.UnitTestsCore/testConnections.json
 /BridgeCareApp/AppliedResearchAssociates.iAM.DataUnitTests/testConnections.json
+
+# Encryption key
+**/encryption.json
 
 # Intended for large resource files, but really anything the coder wants to ignore
 [gG]it[iI]gnored/

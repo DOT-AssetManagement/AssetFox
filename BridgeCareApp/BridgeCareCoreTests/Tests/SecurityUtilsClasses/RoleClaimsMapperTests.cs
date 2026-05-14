@@ -15,7 +15,7 @@ namespace AssetFoxCoreTests.Tests
 
             // Assert
             Assert.IsType<List<string>>(result);
-            Assert.Equal(result.First(), SecurityConstants.Role.Administrator);
+            Assert.Equal(SecurityConstants.Role.Administrator, result.First());
         }
 
         // TODO add edge cases for GetInternalRole later
@@ -28,7 +28,7 @@ namespace AssetFoxCoreTests.Tests
 
             // Assert
             Assert.IsType<List<string>>(result);
-            Assert.Equal(66, result.Count);
+            Assert.Equal(67, result.Count);
         }
 
         [Fact]

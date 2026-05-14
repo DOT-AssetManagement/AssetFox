@@ -9,7 +9,7 @@ using AssetFox.Core.UnitTestsCore.Tests.Attributes;
 
 namespace AssetFoxCoreTests.Tests
 {
-    public static class CalculatedAttributeDtos
+    public static class TestCalculatedAttributeDtos
     {
         public static CalculatedAttributeDTO Age(Guid? id = null, Guid? equationCriterionPairId = null, Guid? equationId = null)
         {

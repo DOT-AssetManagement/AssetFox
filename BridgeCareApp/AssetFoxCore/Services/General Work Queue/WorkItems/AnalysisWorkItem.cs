@@ -281,8 +281,7 @@ public record AnalysisWorkItem(Guid NetworkId, Guid SimulationId, UserInfo UserI
         markAndLog("RunValidation");
         
         runner.Run(false, cancellationToken);
-        markAndLog("Run complete");
-        var timingsOutput = memos.ToMultilineString();
+        var timingsOutput = memos.ToMultilineString(true);
         _log.Debug(timingsOutput);
 
         void RunValidation(SimulationRunner runner)

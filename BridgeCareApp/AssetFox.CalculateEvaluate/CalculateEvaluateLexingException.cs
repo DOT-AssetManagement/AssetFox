@@ -16,9 +16,5 @@ namespace AssetFox.CalculateEvaluate
         public CalculateEvaluateLexingException(string message, Exception innerException) : base(message, innerException)
         {
         }
-
-        protected CalculateEvaluateLexingException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 }

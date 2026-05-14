@@ -155,7 +155,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 return _unitOfWork.Context.CommittedProjectSettings.Where(_ => _.Key == "Committed Project Template").FirstOrDefault().Value;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return "";
             }
@@ -167,7 +167,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 return _unitOfWork.Context.CommittedProjectTemplates.Where(_ => _.Key == filename).FirstOrDefault().Value;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw;
             }
