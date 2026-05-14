@@ -347,7 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { useAlertStore, useAttributeStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useCommittedProjectStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -363,6 +363,7 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import TreatmentSelectionPopup from './committed-project-editor-dialogs/TreatmentSelectionPopup.vue';
 
     let store = useStore();
+    const committedProjectStore = useCommittedProjectStore();
     const $router = useRouter();    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     created();
@@ -427,7 +428,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
     let AllCommittedProjectsValid: boolean = false;
 
-    const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
     const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
     const attributeStore = useAttributeStore();
     const stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() =>store.state.investmentModule.scenarioSimpleBudgetDetails);
@@ -440,7 +440,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
     async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any> { await store.dispatch('getScenarioSimpleBudgetDetails', payload); }
     async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload); }
-    async function deleteSimulationCommittedProjectsAction(payload?: any): Promise<any> { await store.dispatch('deleteSimulationCommittedProjects', payload); }
     function selectTreatmentLibraryAction(payload?: any){ store.dispatch('selectTreatmentLibrary', payload); }
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
     function addSuccessNotificationAction(payload?: any) {  store.dispatch('addSuccessNotification', payload); }
@@ -687,8 +686,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         );
     });
 
-    watch(stateSectionCommittedProjects, () => {
-        sectionCommittedProjects.value = clone(stateSectionCommittedProjects.value);
+    watch(() => committedProjectStore.getSectionCommittedProjects, () => {
+        sectionCommittedProjects.value = clone(committedProjectStore.getSectionCommittedProjects);
         setCpItems();
     });
 
@@ -1135,7 +1134,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         alertDataForDeletingCommittedProjects.value = { ...emptyAlertData };
 
         if (doDelete) {
-            deleteSimulationCommittedProjectsAction(scenarioId);
+            committedProjectStore.deleteSimulationCommittedProjects(scenarioId);
             $emitter.emit('AllCommittedProjectsDeleted');
             CommittedProjectsService.deleteSimulationCommittedProjects(scenarioId).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){

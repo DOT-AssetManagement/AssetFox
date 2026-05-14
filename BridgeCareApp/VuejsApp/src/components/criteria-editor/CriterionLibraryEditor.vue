@@ -142,58 +142,17 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { useAuthenticationStore } from '@/stores';
+import { useAuthenticationStore, useCriterionLibraryStore } from '@/stores';
 
     let dialogLibraryId = shallowRef<string>('');
     let dialogIsFromScenario = shallowRef<boolean>();
     let dialogIsFromLibrary: boolean;
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
-
-    let stateCriterionLibraries = ref<CriterionLibrary[]>(store.state.criterionModule.criterionLibraries)
-    let stateSelectedCriterionLibrary = ref<CriterionLibrary>(store.state.criterionModule.selectedCriterionLibrary)
-    let scenarioRelatedCriteria = ref<CriterionLibrary>(store.state.criterionModule.scenarioRelatedCriteria)
-    let hasAdminAccess = ref<boolean>(authenticationStore.hasAdminAccess)
-    let hasPermittedAccess = ref<boolean>(store.state.criterionModule.hasPermittedAccess)
-
-    async function getHasPermittedAccessAction(payload?: any): Promise<any> {
-        await store.dispatch('getHasPermittedAccess');
-    }
-
-    async function getCriterionLibrariesAction(payload?: any): Promise<any> {
-        await store.dispatch('getCriterionLibraries');
-    }
-
-    async function upsertCriterionLibraryAction(payload?: any): Promise<any> {
-        await store.dispatch('upsertCriterionLibrary');
-    }
-
-     function selectCriterionLibraryAction(payload?: any) {
-        store.dispatch('selectCriterionLibrary');
-    }
-
-    async function deleteCriterionLibraryAction(payload?: any): Promise<any> {
-        await store.dispatch('deleteCriterionLibrary');
-    }
-
-     function setSelectedCriterionIsValidAction(payload?: any) {
-        store.dispatch('setSelectedCriterionIsValid');
-    }
+    const criterionLibraryStore = useCriterionLibraryStore();
 
     function setHasUnsavedChangesAction(payload?: any){
         store.dispatch('setHasUnsavedChanges');
-    }
-
-    async function selectScenarioRelatedCriterionAction(payload?: any): Promise<any> {
-        await store.dispatch('selectScenarioRelatedCriterion');
-    }
-
-    async function upsertSelectedScenarioRelatedCriterionAction(payload?: any): Promise<any> {
-        await store.dispatch('upsertSelectedScenarioRelatedCriterion');
-    }
-
-    async function getSelectedCriterionLibraryAction(payload?: any): Promise<any> {
-        await store.dispatch('getSelectedCriterionLibrary');
     }
 
     async function getUserNameByIdGetter(payload?: any): Promise<any> {
@@ -228,10 +187,10 @@ import { useAuthenticationStore } from '@/stores';
    created();
    function created() {
          ((vm: any) => {
-            vm.getHasPermittedAccessAction();
+            criterionLibraryStore.getHasPermittedAccess();
             if ($router.currentRoute.value.path.indexOf('CriterionLibraryEditor/Library') !== -1) {
                 vm.librarySelectItemValue = null;
-                vm.getCriterionLibrariesAction();
+                criterionLibraryStore.getCriterionLibraries();
             } else {
                 vm.isLibraryContext = false;
             }
@@ -246,18 +205,16 @@ import { useAuthenticationStore } from '@/stores';
     }
 
 
-    watch(stateCriterionLibraries, () => onStateCriterionLibrariesChanged)
+    watch(() => criterionLibraryStore.criterionLibrariesGetter, () => onStateCriterionLibrariesChanged())
     function onStateCriterionLibrariesChanged() {
-        criterionLibrarySelectItems = stateCriterionLibraries.value
+        criterionLibrarySelectItems = criterionLibraryStore.criterionLibrariesGetter
             .filter((lib: CriterionLibrary) => lib.isSingleUse == false)
             .map((library: CriterionLibrary) => ({
                 text: library.name,
                 value: library.id,
             }));
         if (!isLibraryContext && hasValue(librarySelectItemValue)) {
-            getSelectedCriterionLibraryAction({
-                libraryId: librarySelectItemValue,
-            });
+            criterionLibraryStore.getSelectedCriterionLibrary(librarySelectItemValue as any);
         }
     }
 
@@ -273,26 +230,24 @@ import { useAuthenticationStore } from '@/stores';
 
     watch(librarySelectItemValue, () => onLibrarySelectItemValueChanged) 
     function onLibrarySelectItemValueChanged(){
-            getSelectedCriterionLibraryAction({
-                libraryId: librarySelectItemValue.value
-            });
+        criterionLibraryStore.getSelectedCriterionLibrary(librarySelectItemValue.value);
     }
 
-    watch(stateSelectedCriterionLibrary, () => onStateSelectedCriterionLibraryChanged)
+    watch(() => criterionLibraryStore.selectedCriterionLibraryGetter, () => onStateSelectedCriterionLibraryChanged())
     function onStateSelectedCriterionLibraryChanged(){
         canUpdateOrCreate.value = false;
         selectedCriterionLibrary = clone(
-            stateSelectedCriterionLibrary.value
+            criterionLibraryStore.selectedCriterionLibraryGetter
         );
     }
 
-    watch(scenarioRelatedCriteria, onScenarioRelatedCriteria)
+    watch(() => criterionLibraryStore.getScenarioRelatedCriteria, onScenarioRelatedCriteria)
     function onScenarioRelatedCriteria() {
         criteriaForScenario = dialogLibraryId;
         callFromScenario = dialogIsFromScenario;
         callFromLibraryToEditCriterion = dialogIsFromLibrary;
         selectedScenarioRelatedCriteria = clone(
-            scenarioRelatedCriteria.value
+            criterionLibraryStore.getScenarioRelatedCriteria
         );
         criteriaEditorData = {
             ...criteriaEditorData,
@@ -339,7 +294,7 @@ import { useAuthenticationStore } from '@/stores';
                 value: hasUnsavedChangesCore(
                     'criterion-library',
                     selectedCriterionLibrary,
-                    stateSelectedCriterionLibrary,
+                    criterionLibraryStore.selectedCriterionLibraryGetter,
                 ),
             });
         } else {
@@ -349,8 +304,8 @@ import { useAuthenticationStore } from '@/stores';
 
    onMounted(() => mounted());
    function mounted() {
-        if (hasValue(stateCriterionLibraries)) {
-            criterionLibrarySelectItems = stateCriterionLibraries.value
+        if (hasValue(criterionLibraryStore.criterionLibrariesGetter)) {
+            criterionLibrarySelectItems = criterionLibraryStore.criterionLibrariesGetter
             .filter((lib: CriterionLibrary) => lib.isSingleUse == false)
             .map((library: CriterionLibrary) => ({
                 text: library.name,
@@ -361,15 +316,13 @@ import { useAuthenticationStore } from '@/stores';
                 (!isLibraryContext || !dialogIsFromLibrary) &&
                 hasValue(librarySelectItemValue)
             ) {
-                getSelectedCriterionLibraryAction({
-                    libraryId: librarySelectItemValue
-            });
+                criterionLibraryStore.getSelectedCriterionLibrary(librarySelectItemValue as any);
             }
         }
     }
 
     function checkLibraryEditPermission() {
-        hasLibraryEditPermission = hasAdminAccess || (hasPermittedAccess && checkUserIsLibraryOwner());
+        hasLibraryEditPermission.value = authenticationStore.getHasAdminAccess || ((criterionLibraryStore.hasPermittedAccessGetter && checkUserIsLibraryOwner()) as any);
     }
 
     async function checkUserIsLibraryOwner() {
@@ -409,14 +362,14 @@ import { useAuthenticationStore } from '@/stores';
                     mergedCriteriaExpression: result.criteria!,
                     isSingleUse: true,
                 };
-                upsertSelectedScenarioRelatedCriterionAction({
-                    library: selectedScenarioRelatedCriteria,
-                });
+                criterionLibraryStore.upsertSelectedScenarioRelatedCriterion(
+                    selectedScenarioRelatedCriteria,
+                );
             }
 
-            setSelectedCriterionIsValidAction({ isValid: true });
+            criterionLibraryStore.setSelectedCriterionIsValid(true);
         } else {
-            setSelectedCriterionIsValidAction({ isValid: false });
+            criterionLibraryStore.setSelectedCriterionIsValid(false);
         }
     }
 
@@ -428,9 +381,8 @@ import { useAuthenticationStore } from '@/stores';
             if(isNil(dialogIsFromLibrary) || dialogIsFromLibrary){
                 criterionLibrary.isSingleUse = false;
             }
-            upsertCriterionLibraryAction({
-                library: criterionLibrary,
-            }).then(() => (librarySelectItemValue.value = criterionLibrary.id));
+            criterionLibraryStore.upsertCriterionLibrary(criterionLibrary)
+                .then(() => (librarySelectItemValue.value = criterionLibrary.id));
 
             hasCreatedLibrary.value = true;
         }
@@ -449,9 +401,8 @@ import { useAuthenticationStore } from '@/stores';
         confirmDeleteAlertData = clone(emptyAlertData);
 
         if (submit) {
-            deleteCriterionLibraryAction({
-                libraryId: selectedCriterionLibrary.id,
-            }).then(() => (librarySelectItemValue.value = ''));
+            criterionLibraryStore.deleteCriterionLibrary(selectedCriterionLibrary.id)
+                .then(() => (librarySelectItemValue.value = ''));
         }
     }
 
