@@ -108,9 +108,9 @@ export const useTargetConditionGoalStore = defineStore('targetConditionGoal', {
         },
     },
     getters: {
-        getTargetConditionGoalLibraries: (state) => state.targetConditionGoalLibraries,
+        targetConditionGoalLibrariesGetter: (state) => state.targetConditionGoalLibraries,
         getSelectedTargetConditionGoalLibrary: (state) => state.selectedTargetConditionGoalLibrary,
-        getHasPermittedAccess: (state) => state.hasPermittedAccess,
+        hasPermittedAccessGetter: (state) => state.hasPermittedAccess,
         getIsSharedLibrary: (state) => state.isSharedLibrary
     }
 });

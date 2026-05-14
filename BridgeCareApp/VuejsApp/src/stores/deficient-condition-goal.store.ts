@@ -110,9 +110,9 @@ export const useDeficientConditionGoalStore = defineStore('deficientConditionGoa
         },
     },
     getters: {
-        getDeficientConditionGoalLibraries: (state) => state.deficientConditionGoalLibraries,
+        deficientConditionGoalLibrariesGetter: (state) => state.deficientConditionGoalLibraries,
         getSelectedDeficientConditionGoalLibrary: (state) => state.selectedDeficientConditionGoalLibrary,
-        getHasPermittedAccess: (state) => state.hasPermittedAccess,
+        hasPermittedAccessGetter: (state) => state.hasPermittedAccess,
         getIsSharedLibrary: (state) => state.isSharedLibrary
     }
 });

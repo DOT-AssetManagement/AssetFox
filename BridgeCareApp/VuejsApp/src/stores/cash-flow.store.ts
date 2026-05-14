@@ -105,9 +105,9 @@ export const useCashFlowStore = defineStore('cashFlow', {
         },
     },
     getters: {
-        getCashFlowRuleLibraries: (state) => state.cashFlowRuleLibraries,
+        cashFlowRuleLibrariesGetter: (state) => state.cashFlowRuleLibraries,
         getSelectedCashFlowRuleLibrary: (state) => state.selectedCashFlowRuleLibrary,
-        getHasPermittedAccess: (state) => state.hasPermittedAccess,
+        hasPermittedAccessGetter: (state) => state.hasPermittedAccess,
         getIsSharedLibrary: (state) => state.isSharedLibrary
     }
 });

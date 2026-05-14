@@ -179,12 +179,12 @@ export const usePerformanceCurveStore = defineStore('performanceCurve', {
         },
     },
     getters: {
-        getPerformanceCurveLibraries: (state) => state.performanceCurveLibraries,
+        performanceCurveLibrariesGetter: (state) => state.performanceCurveLibraries,
         getSelectedPerformanceCurveLibrary: (state) => state.selectedPerformanceCurveLibrary,
-        getScenarioPerformanceCurves: (state) => state.scenarioPerformanceCurves,
-        getHasPermittedAccess: (state) => state.hasPermittedAccess,
+        scenarioPerformanceCurvesGetter: (state) => state.scenarioPerformanceCurves,
+        hasPermittedAccessGetter: (state) => state.hasPermittedAccess,
         getIsSharedLibrary: (state) => state.isSharedLibrary,
-        getIsDeteriorationModelApiRunning: (state) => state.isDeteriorationModelApiRunning,
+        isDeteriorationModelApiRunningGetter: (state) => state.isDeteriorationModelApiRunning,
         getDistinctPerformanceFactorAttributes: (state) => state.distinctPerformanceFactorAttributes
     }
 });

@@ -176,14 +176,14 @@ export const useNetworkStore = defineStore('network', {
                         message: 'Aggregation Started',
                     });
                 }
-
+                
                 return response;
             });
         },
     },
     getters: {        
-        getNetworks: (state) => state.networks,
+        networksGetter: (state) => state.networks,
         getSelectedNetwork: (state) => state.selectedNetwork,
-        getCompatibleNetworks: (state) => state.compatibleNetworks
+        compatibleNetworksGetter: (state) => state.compatibleNetworks
     }
 });

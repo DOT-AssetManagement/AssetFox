@@ -279,14 +279,14 @@ export const useAttributeStore = defineStore('attribute', {
         },
     },
     getters:{
-        getAttributes: (state) => state.attributes,
+        attributesgetter: (state) => state.attributes,
         getSelectedAttribute: (state) => state.selectedAttribute,
         getStringAttributes: (state) => state.stringAttributes,
         getNumericAttributes: (state) => state.numericAttributes,
         getAttributesSelectValues: (state) => state.attributesSelectValues,
         getCheckedSelectAttributes: (state) => state.checkedSelectAttributes,
-        getAttributeDataSourceTypes: (state) => state.attributeDataSourceTypes,
+        attributeDataSourceTypesGetter: (state) => state.attributeDataSourceTypes,
         getAggregationRules: (state) => state.aggregationRules,
-        getAggregationRulesForType: (state) => state.aggregationRulesForType,
+        aggregationRulesForTypeGetter: (state) => state.aggregationRulesForType,
     }
 });

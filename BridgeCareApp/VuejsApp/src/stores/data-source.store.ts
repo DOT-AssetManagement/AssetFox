@@ -151,11 +151,11 @@ export const useDataSourceStore = defineStore('dataSource', {
         },
     },
     getters: {
-        getDataSources: (state) => state.dataSources,
-        getDataSourceTypes: (state) => state.dataSourceTypes,
+        dataSourcesGetter: (state) => state.dataSources,
+        dataSourceTypesGetter: (state) => state.dataSourceTypes,
         getExcelColumns: (state) => state.excelColumns,
         getIsSuccessfulImport: (state) => state.isSuccessfulImport,
         getSqlCommandResponse: (state) => state.sqlCommandResponse,
-        getDataSourceMappings: (state) => state.dataSourceMappings,
+        dataSourceMappingsGetter: (state) => state.dataSourceMappings,
     },
 });

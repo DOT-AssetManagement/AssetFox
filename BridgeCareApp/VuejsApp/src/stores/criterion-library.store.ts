@@ -161,10 +161,10 @@ export const useCriterionLibraryStore = defineStore('criterionLibrary', {
         },
     },
     getters: {
-        getCriterionLibraries: (state) => state.criterionLibraries,
-        getSelectedCriterionLibrary: (state) => state.selectedCriterionLibrary,
+        criterionLibrariesGetter: (state) => state.criterionLibraries,
+        selectedCriterionLibraryGetter: (state) => state.selectedCriterionLibrary,
         getSelectedCriterionIsValid: (state) => state.selectedCriterionIsValid,
         getScenarioRelatedCriteria: (state) => state.scenarioRelatedCriteria,
-        getHasPermittedAccess: (state) => state.hasPermittedAccess
+        hasPermittedAccessGetter: (state) => state.hasPermittedAccess
     },
 });
