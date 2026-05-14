@@ -107,9 +107,9 @@ export const useBudgetPriorityStore = defineStore('budgetPriority', {
         },
     },
     getters: {
-        getBudgetPriorityLibraries: (state) => state.budgetPriorityLibraries,
-        getSelectedBudgetPriorityLibrary: (state) => state.selectedBudgetPriorityLibrary,
-        getHasPermittedAccess: (state) => state.hasPermittedAccess,
-        getIsSharedLibrary: (state) => state.isSharedLibrary
+        BudgetPriorityLibrariesGetter: (state) => state.budgetPriorityLibraries,
+        SelectedBudgetPriorityLibraryGetter: (state) => state.selectedBudgetPriorityLibrary,
+        HasPermittedAccessGetter: (state) => state.hasPermittedAccess,
+        GetIsSharedLibrary: (state) => state.isSharedLibrary
     }
 });

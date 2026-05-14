@@ -123,7 +123,7 @@ import { useAdminDataStore } from '@/stores';
         }
     }
 
-    async function onDownloadReport() {        
+    async function onDownloadReport() {  //seemed to be broken check out later BCT      
         isDownloading = true;
         props.dialogData.showModal = false;        
         await ReportsService.downloadReport(

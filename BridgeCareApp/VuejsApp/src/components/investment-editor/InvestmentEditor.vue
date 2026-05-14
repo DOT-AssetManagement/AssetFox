@@ -403,7 +403,7 @@ import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.v
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-import { BudgetPriority, BudgetPriorityLibrary } from '@/shared/models/iAM/budget-priority';
+import { BudgetPriority } from '@/shared/models/iAM/budget-priority';
 import BudgetPriorityService from '@/services/budget-priority.service';
 import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
@@ -420,9 +420,6 @@ const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 const stateBudgetLibraries = computed<BudgetLibrary[]>(() => store.state.investmentModule.budgetLibraries) ;  
 
 const stateSelectedBudgetLibrary = computed<BudgetLibrary>(() => store.state.investmentModule.selectedBudgetLibrary);
-let stateSelectedBudgetPriorityLibrary = computed<BudgetPriorityLibrary>(() => store.state.budgetPriorityModule.selectedBudgetPriorityLibrary);
-let stateBudgetPriorityLibraries = computed<BudgetPriorityLibrary[]>(() => store.state.budgetPriorityModule.budgetPriorityLibraries);
-let stateScenarioBudgetPriorities = computed<BudgetPriority[]>(() => store.state.budgetPriorityModule.scenarioBudgetPriorities);
 
 let stateInvestmentPlan = computed<InvestmentPlan>(() => store.state.investmentModule.investmentPlan);
 let stateScenarioBudgets = ref<Budget[]>(store.state.investmentModule.scenarioBudgets);

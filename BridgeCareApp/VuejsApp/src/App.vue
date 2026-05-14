@@ -474,8 +474,8 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         }
     });
 
-    watch(() => announcementStore.announcements, () => {
-        latestNewsDate = getDateOnly(announcementStore.announcements[0].createdDate.toString()); 
+    watch(() => announcementStore.getAnnouncements, () => {
+        latestNewsDate = getDateOnly(announcementStore.getAnnouncements[0].createdDate.toString()); 
     });
 
     watch(() => userStore.currentUser, () => {

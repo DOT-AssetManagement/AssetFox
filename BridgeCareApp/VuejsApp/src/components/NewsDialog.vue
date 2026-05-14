@@ -84,7 +84,7 @@
     <div style='display: flex; align-items: center; justify-content: center;'>
             <v-btn @click='seeOlderAnnouncements()' class='assetFox-blue-bg text-white' round
                    style='margin-top: 0; margin-bottom: 10px'
-                   v-if='announcementListOffset < announcements.length - (hasAdminAccess ? 9 : 10)'>
+                   v-if='announcementListOffset < announcementStore.getAnnouncements.length - (hasAdminAccess ? 9 : 10)'>
                 See Older Announcements
             </v-btn>
         </div>
