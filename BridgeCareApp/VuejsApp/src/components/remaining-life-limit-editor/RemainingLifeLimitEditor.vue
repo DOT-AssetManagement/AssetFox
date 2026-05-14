@@ -308,16 +308,16 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const confirm = useConfirm();
     const $router = useRouter();
 
     const stateRemainingLifeLimitLibraries = computed<RemainingLifeLimitLibrary[]>(() => store.state.remainingLifeLimitModule.remainingLifeLimitLibraries);
     const stateSelectedRemainingLifeLimitLibrary = computed<RemainingLifeLimitLibrary>(() =>store.state.remainingLifeLimitModule.selectedRemainingLifeLimitLibrary);
-    let stateNumericAttributes = computed<Attribute[]>(() =>store.state.attributeModule.numericAttributes);
     let stateScenarioRemainingLifeLimits = computed<RemainingLifeLimit[]>(() =>store.state.remainingLifeLimitModule.scenarioRemainingLifeLimits);
     let hasUnsavedChanges = computed<boolean>(() =>store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() =>authenticationStore.hasAdminAccess) ;
@@ -458,6 +458,7 @@ import { useAuthenticationStore } from '@/stores';
             await initializePages();                            
         }
 
+        await attributeStore.getAttributes();
         setAttributesSelectListItems();
     });
 
@@ -533,7 +534,7 @@ import { useAuthenticationStore } from '@/stores';
         isShared = isSharedLibrary.value;
     });
     
-    watch(stateNumericAttributes, ()=> {
+    watch(attributeStore.getNumericAttributes, ()=> {
         setAttributesSelectListItems();
     });
 
@@ -601,8 +602,8 @@ import { useAuthenticationStore } from '@/stores';
     // });
 
     function setAttributesSelectListItems() {
-        if (hasValue(stateNumericAttributes)) {
-            numericAttributeSelectItems.value = stateNumericAttributes.value.map(
+        if (hasValue(attributeStore.getNumericAttributes)) {
+            numericAttributeSelectItems.value = attributeStore.getNumericAttributes.map(
                 (attribute: Attribute) => ({
                     text: attribute.name,
                     value: attribute.name,

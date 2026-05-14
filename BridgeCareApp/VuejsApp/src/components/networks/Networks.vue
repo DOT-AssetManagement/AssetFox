@@ -193,20 +193,19 @@ import { useStore } from 'vuex';
 import mitt, { Emitter, EventType } from 'mitt';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { NIL } from 'uuid';
-import { useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     let stateNetworks = computed<Network[]>(()=>store.state.networkModule.networks);
     let stateSelectedNetwork = computed<Network>(()=>store.state.networkModule.selectedNetwork) ;
-    let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
     let stateDataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
     
     async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
     async function getDataSources(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}
-    async function getAttributes(payload?: any): Promise<any> {await store.dispatch('getAttributes', payload);}
     function selectNetworkAction(payload?: any) { store.dispatch('selectNetwork', payload);}
     async function createNetworkAction(payload?: any): Promise<any> {await store.dispatch('createNetwork', payload);}
     async function deleteNetworkAction(payload?: any): Promise<any> {await store.dispatch('deleteNetwork', payload);}
@@ -249,7 +248,7 @@ import { useAuthenticationStore } from '@/stores';
 
     created();
     function created() {
-        getAttributes();
+        attributeStore.getAttributes();
         getNetworks();
         getDataSources();
     }
@@ -272,9 +271,9 @@ import { useAuthenticationStore } from '@/stores';
         selectNetworkItems.value = stateNetworks.value.map(_ => ({text: _.name, value: _.id}))
     })
 
-    watch(stateAttributes, () => { 
-        attributeRows.value = clone(stateAttributes.value);
-        stateAttributes.value.forEach(_ => {
+    watch(attributeStore.getAttributes, () => { 
+        attributeRows.value = clone(attributeStore.getAttributes);
+        attributeStore.getAttributes.forEach(_ => {
                 selectKeyAttributeItems.value.push({text:_.name,value:_.id})
             })
         });

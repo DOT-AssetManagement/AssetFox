@@ -243,7 +243,7 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
-import { useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
@@ -254,8 +254,7 @@ import { useAuthenticationStore } from '@/stores';
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
     const stateAnalysisMethod = computed<AnalysisMethod>(() => store.state.analysisMethodModule.analysisMethod) ;
-    const stateNumericAttributes = computed<Attribute[]>( ()=> store.state.attributeModule.numericAttributes) ;
-    const stateAttributes = computed<Attribute[]>( ()=> store.state.attributeModule.attributes) ;
+    const attributeStore = useAttributeStore();
     const stateSimulationAnalysisSetting = computed<boolean>( ()=> store.state.analysisMethodModule.simulationAnalysisSetting);
 
     const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
@@ -369,7 +368,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         console.error('Error in action chain:', error);
     });
 
-        if (hasValue(stateNumericAttributes.value)) {
+        if (hasValue(attributeStore.getNumericAttributes)) {
             setBenefitAndWeightingAttributes();
             setSuperAssetAttributes();
         }
@@ -409,8 +408,8 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         }
     });
 
-    watch(stateNumericAttributes, () => {
-        if (hasValue(stateNumericAttributes.value)) {
+    watch(attributeStore.getNumericAttributes, () => {
+        if (hasValue(attributeStore.getNumericAttributes)) {
             setBenefitAndWeightingAttributes();
             setSuperAssetAttributes();
             setBenefitAttributeIfEmpty();
@@ -471,7 +470,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     }
 
     function setBenefitAndWeightingAttributes() {
-        const numericAttributeSelectItems: SelectItem[] = stateNumericAttributes.value.map(
+        const numericAttributeSelectItems: SelectItem[] = attributeStore.getNumericAttributes.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,
@@ -485,7 +484,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     }
 
     function setSuperAssetAttributes() {
-        const superAssetAttributeSelectItems: SelectItem[] = stateAttributes.value.map(
+        const superAssetAttributeSelectItems: SelectItem[] = attributeStore.getAttributes.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,

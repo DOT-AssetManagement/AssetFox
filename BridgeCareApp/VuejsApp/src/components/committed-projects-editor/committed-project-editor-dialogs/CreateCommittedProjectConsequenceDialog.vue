@@ -61,6 +61,7 @@ import { createDecipheriv } from 'crypto';
 import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
+import { useAttributeStore } from '@/stores';
 
   let store = useStore();
   const emit = defineEmits(['submit']);
@@ -77,17 +78,15 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
   let inputRules: InputValidationRules = rules;
   let attributeNames: string[] = [];
 
-  // @State(state => state.attributeModule.attributes) stateAttributes: Attribute[];
-  // async function stateAttributes(payload?: any): Promise<any>{ await store.dispatch('');}
-  const stateAttributes = reactive<Attribute[]>(store.state.attributeModule.attributes);
+  const attributeStore = useAttributeStore();
 
   function disableSubmitButton() {
     return !(inputRules['generalRules'].valueIsNotEmpty(newConsequence.changeValue) === true);
   }
 
   function setAttributes() {
-    if (hasValue(stateAttributes)) {
-      attributeNames = getPropertyValues('name', stateAttributes);
+    if (hasValue(attributeStore.getAttributes)) {
+      attributeNames = getPropertyValues('name', attributeStore.getAttributes);
 
       // if (showDialog) {
       //   setNewDeficientConditionGoalDefaultValues();

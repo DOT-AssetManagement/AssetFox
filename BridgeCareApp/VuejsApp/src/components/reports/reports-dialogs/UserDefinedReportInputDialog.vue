@@ -228,6 +228,7 @@
     import { useStore } from 'vuex';
     import { Attribute } from '@/shared/models/iAM/attribute';
     import { InvestmentPlan } from '@/shared/models/iAM/investment';
+    import { useAttributeStore } from '@/stores';
     const props = defineProps({
         showDialog: Boolean
     })
@@ -236,14 +237,14 @@
     const selectedScenarioId = ref('');
 
     let store = useStore();
+    const attributeStore = useAttributeStore();
     import { useRouter } from 'vue-router'; 
     const router = useRouter();    
     let newUserDefinedReportRequestModel = ref<UserDefinedReportRequestModel>({...emptyUserDefinedReportRequestModel});    
         
     const showAttributeDialog = ref(false);
     const currentEditingAttributes = ref<string[]>([]);
-    let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
-    let attributeSelectItems = computed(() => stateAttributes.value.map(attr => attr.name));
+    let attributeSelectItems = computed(() => attributeStore.getAttributes.map(attr => attr.name));
     
     const showYearDialog = ref(false);
     const currentEditingYears = ref<number[]>([]);

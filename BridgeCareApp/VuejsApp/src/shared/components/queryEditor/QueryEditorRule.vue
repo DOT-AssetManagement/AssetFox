@@ -108,11 +108,10 @@ import { AttributeSelectValues } from '@/shared/models/iAM/attribute';
 import { hasValue } from '@/shared/utils/has-value-util';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import { Equation } from '@/shared/models/iAM/equation';
+import { useAttributeStore } from '@/stores';
 
     let store = useStore();
-    async function getAttributeSelectValuesAction(payload?: any): Promise<any> {await store.dispatch('getAttributeSelectValues',payload);}
-    const stateAttributesSelectValues = computed<AttributeSelectValues[]>(() => store.state.attributeModule.attributesSelectValues);
-    const stateCheckedSelectAttributes = computed<string[]>(() => store.state.attributeModule.checkedSelectAttributes);
+    const attributeStore = useAttributeStore();
     const emit = defineEmits(['update:criteriaRule', 'delete'])
     let selectedOperator = ref<string | null>('=');
     let selectedValue = ref<string | null>(null);
@@ -144,8 +143,8 @@ import { Equation } from '@/shared/models/iAM/equation';
             selectedOperator.value = clone(props.criteriaRule.selectedOperator)
         if(!isNil(props.criteriaRule.value))
             selectedValue.value = clone(props.criteriaRule.value)
-        if(isNil(stateCheckedSelectAttributes.value.find(_ => _ === props.criteriaRule.selectedOperand))){
-            await getAttributeSelectValuesAction({attributeNames: [props.criteriaRule.selectedOperand]});
+        if(isNil(attributeStore.getCheckedSelectAttributes.find(_ => _ === props.criteriaRule.selectedOperand))){
+            await attributeStore.getAttributeSelectValues([props.criteriaRule.selectedOperand]);
         }
         if(props.criteriaRule.isEquation){
             queryRule.value = {

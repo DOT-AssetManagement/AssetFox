@@ -71,34 +71,35 @@ import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { on } from 'events';
+import { useAttributeStore } from '@/stores';
 
 let store = useStore();
+const attributeStore = useAttributeStore();
 const emit = defineEmits(['submit'])
 const props = defineProps<{
     showDialog: boolean
     }>()
     let showDialogComputed = computed(() => props.showDialog);
-    let stateNumericAttributes = computed<Attribute[]>(() => store.state.attributeModule.numericAttributes);
     let attributeSelectItems = ref<SelectItem[]>([]);
     let newPerformanceCurve = ref<PerformanceCurve>({...emptyPerformanceCurve, id: getNewGuid()});
     let rules: InputValidationRules = validationRules;
 
   onMounted(()=>mounted())
   function mounted() {
-    if (hasValue(stateNumericAttributes.value)) {
+    if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributeSelectItems();
     }
   }
 
-  watch(stateNumericAttributes,()=>onStateNumericAttributesChanged())
+  watch(attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
   function onStateNumericAttributesChanged() {
-    if (hasValue(stateNumericAttributes.value)) {
+    if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributeSelectItems();
     }
   }
 
   function setAttributeSelectItems() {
-    attributeSelectItems.value = stateNumericAttributes.value.map((attribute: Attribute) => ({
+    attributeSelectItems.value = attributeStore.getNumericAttributes.map((attribute: Attribute) => ({
       text: attribute.name,
       value: attribute.name
     }));

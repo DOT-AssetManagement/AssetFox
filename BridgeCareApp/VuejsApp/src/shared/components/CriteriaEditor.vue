@@ -227,22 +227,19 @@ import { getUrl } from "../utils/get-url";
 import { reactive } from 'vue';
 import QueryEditor from "../components/queryEditor/QueryEditorGroup.vue"
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
+import { useAttributeStore } from '@/stores';
 
 let store = useStore();
+const attributeStore = useAttributeStore();
 const $router = useRouter();
 const emit = defineEmits(['submit','submitCriteriaEditorResult'])
 const props = defineProps<{
     criteriaEditorData: CriteriaEditorData
     }>()
 const { criteriaEditorData } = toRefs(props);
-const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
-const stateAttributesSelectValues = computed<AttributeSelectValues[]>(() => store.state.attributeModule.attributesSelectValues);
 const stateNetworks = computed<Network[]>(() => store.state.networkModule.networks);
 const currentUserCriteriaFilter = computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
-const stateCheckedSelectAttributes = computed<string[]>(() => store.state.attributeModule.checkedSelectAttributes);
 
-async function getAttributesAction(payload?: any): Promise<any> {await store.dispatch('getAttributes', payload);}
-async function getAttributeSelectValuesAction(payload?: any): Promise<any> {await store.dispatch('getAttributeSelectValues',payload);}
 function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification',payload);}
 const tab = ref<any>(null);
     const queryBuilderRules = ref<CriteriaConfigRule[]>([]);
@@ -272,7 +269,7 @@ const tab = ref<any>(null);
 
         setSubCriteriaClauses(mainCriteria);
 
-        if (hasValue(stateAttributes)) {
+        if (hasValue(attributeStore.getAttributes)) {
             
             onStateAttributesChanged();
             onStateAttributesSelectValues();
@@ -323,9 +320,9 @@ const tab = ref<any>(null);
         }
     });
 
-    watch(stateAttributes, onStateAttributesChanged);
+    watch(attributeStore.getAttributes, onStateAttributesChanged);
     function onStateAttributesChanged(){
-        if (hasValue(stateAttributes.value)) {
+        if (hasValue(attributeStore.getAttributes)) {
             setQueryBuilderRules();
         }
     }
@@ -354,9 +351,9 @@ const tab = ref<any>(null);
             }
 
             /* if (hasValue(missingAttributes)) {
-                getAttributeSelectValuesAction({
+                attributeStore.getAttributeSelectValues(
                     attributeNames: missingAttributes,
-                });
+                );
             } */
         }
     });
@@ -365,13 +362,13 @@ const tab = ref<any>(null);
         resetSubCriteriaValidationProperties();
     });
 
-    watch(stateAttributesSelectValues, onStateAttributesSelectValues)
+    watch(attributeStore.getAttributesSelectValues, onStateAttributesSelectValues)
     function onStateAttributesSelectValues(){
         if (
             hasValue(queryBuilderRules.value) &&
-            hasValue(stateAttributesSelectValues.value)
+            hasValue(attributeStore.getAttributesSelectValues)
         ) {
-            const filteredAttributesSelectValues: AttributeSelectValues[] = stateAttributesSelectValues.value.filter(
+            const filteredAttributesSelectValues: AttributeSelectValues[] = attributeStore.getAttributesSelectValues.filter(
                 (asv: AttributeSelectValues) => hasValue(asv.values),
             );
             if (hasValue(filteredAttributesSelectValues)) {
@@ -405,7 +402,7 @@ const tab = ref<any>(null);
     }
 
     function setQueryBuilderRules() {
-        queryBuilderRules.value = stateAttributes.value.map(
+        queryBuilderRules.value = attributeStore.getAttributes.map(
             (attribute: Attribute) => ({
                 type: attribute.type,
                 label: attribute.name,
@@ -950,7 +947,7 @@ const tab = ref<any>(null);
             if (
                 !any(
                     propEq('attribute', criteriaRule.rule),
-                    stateAttributesSelectValues.value,
+                    attributeStore.getAttributesSelectValues,
                 ) &&
                 missingAttributes.indexOf(criteriaRule.rule) === -1
             ) {
@@ -965,7 +962,7 @@ const tab = ref<any>(null);
         let attributesToCheck: string[] = [];
         loadCriteriaSelectAttributesRecurse(criteria, attributesToCheck) 
         if(attributesToCheck.length != 0)       
-            await getAttributeSelectValuesAction({attributeNames: Array.from(new Set(attributesToCheck))});
+            await attributeStore.getAttributeSelectValues(Array.from(new Set(attributesToCheck)));
     }
 
     async function loadCriteriaSelectAttributesRecurse(criteria: Criteria, attributesToCheck: string[]){
@@ -977,7 +974,7 @@ const tab = ref<any>(null);
                 loadCriteriaSelectAttributesRecurse(_.query as Criteria, attributesToCheck)
                 else
                 {
-                    if(isNil(stateCheckedSelectAttributes.value.find(__ => __ === (_.query as CriteriaRule).selectedOperand)))
+                    if(isNil(attributeStore.getCheckedSelectAttributes.find(__ => __ === (_.query as CriteriaRule).selectedOperand)))
                     {
                         attributesToCheck.push((_.query as CriteriaRule).selectedOperand)
                     }

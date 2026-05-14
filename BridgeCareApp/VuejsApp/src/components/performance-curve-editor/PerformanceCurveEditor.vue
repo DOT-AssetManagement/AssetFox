@@ -518,18 +518,18 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-import { useAlertStore, useAuthenticationStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useAuthenticationStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
 let store = useStore();
 const alertStore = useAlertStore();
+const attributeStore = useAttributeStore();
 const authenticationStore = useAuthenticationStore();
 const confirm = useConfirm();
 
 let statePerformanceCurveLibraries = computed<PerformanceCurveLibrary[]>(() => store.state.performanceCurveModule.performanceCurveLibraries);
 let stateSelectedPerformanceCurveLibrary = computed<PerformanceCurveLibrary>(() => store.state.performanceCurveModule.selectedPerformanceCurveLibrary);
 let stateScenarioPerformanceCurves = computed<PerformanceCurveLibrary[]>(() => store.state.performanceCurveModule.scenarioPerformanceCurves);
-let stateNumericAttributes = computed<Attribute[]>(() => store.state.attributeModule.numericAttributes);
 let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 let currentUserCriteriaFilter = ref<UserCriteriaFilter>(store.state.userModule.currentUserCriteriaFilter);
@@ -842,7 +842,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
         onPaginationChanged();
     }
 
-    watch(stateNumericAttributes,()=>onStateNumericAttributesChanged())
+    watch(attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
     function onStateNumericAttributesChanged() {
         setAttributeSelectItems();
     }
@@ -891,8 +891,8 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
     }
 
     function setAttributeSelectItems() {
-        if (hasValue(stateNumericAttributes)) {
-            attributeSelectItems = stateNumericAttributes.value.map(
+        if (hasValue(attributeStore.getNumericAttributes)) {
+            attributeSelectItems = attributeStore.getNumericAttributes.map(
                 (attribute: Attribute) => ({
                     text: attribute.name,
                     value: attribute.name,
@@ -992,7 +992,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
         ) as PerformanceCurve;
         var selectedAttr = find(
             propEq('name', selectedPerformanceCurve.attribute),
-            stateNumericAttributes.value,
+            attributeStore.getNumericAttributes,
         ) as Attribute;
 
         if (!isNil(selectedPerformanceCurve) && !isNil(selectedAttr)) {

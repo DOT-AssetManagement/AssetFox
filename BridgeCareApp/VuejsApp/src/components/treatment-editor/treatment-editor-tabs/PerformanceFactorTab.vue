@@ -7,9 +7,9 @@
                               sort-asc-icon="custom:GhdTableSortAscSvg"
                               sort-desc-icon="custom:GhdTableSortDescSvg"
                               hide-actions>
-                    <template slot='items' slot-scope='props' v-slot:item="props">
+                    <template v-slot:item="props">
                         <tr>
-                            <td v-for='header in factorGridHeaders'>
+                            <td v-for='header in factorGridHeaders' :key='header.key'>
                                 <editDialog
                                     v-if="header.key !== 'equation' && header.key !== 'criterionLibrary' && header.key !== ''"
                                     v-model:return-value='props.item[header.key]'
@@ -59,6 +59,7 @@ import {
 } from '@/shared/models/iAM/performance';
 import { clone } from 'ramda';
 import { useStore } from 'vuex';
+import { useAttributeStore } from '@/stores';
 
     const props = defineProps<{
         selectedTreatmentPerformanceFactors: TreatmentPerformanceFactor[],
@@ -71,8 +72,7 @@ import { useStore } from 'vuex';
     const { selectedTreatmentPerformanceFactors, selectedTreatment, scenarioId, rules, callFromScenario, callFromLibrary } = toRefs(props);
     const emit = defineEmits(['submit', 'onAddConsequence', 'onModifyConsequence', 'onRemoveConsequence','onModifyPerformanceFactor']);
     let store = useStore();
-
-    const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
+    const attributeStore = useAttributeStore();
     const stateScenarioPerformanceCurves = computed<PerformanceCurve[]>(() => store.state.performanceCurveModule.scenarioPerformanceCurves)
     const stateDistinctPerformanceFactorAttributes = computed<string[]>(() => store.state.performanceCurveModule.distinctPerformanceFactorAttributes)
 
@@ -91,7 +91,7 @@ import { useStore } from 'vuex';
         onTreatmentChange();
     });
 
-    watch(stateAttributes, () =>  {
+    watch(attributeStore.getAttributes, () =>  {
         setAttributeSelectItems();
     });
 
@@ -123,8 +123,8 @@ import { useStore } from 'vuex';
     });
 
     function setAttributeSelectItems() {
-        if (hasValue(stateAttributes.value)) {
-            attributeSelectItems.value = stateAttributes.value.map((attribute: Attribute) => ({
+        if (hasValue(attributeStore.getAttributes)) {
+            attributeSelectItems.value = attributeStore.getAttributes.map((attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,
             }));
@@ -140,7 +140,7 @@ import { useStore } from 'vuex';
         let testStateAttributes:Attribute[] = [];
         if(callFromLibrary.value){
             stateDistinctPerformanceFactorAttributes.value.forEach(attr => {
-                stateAttributes.value.forEach(state => {
+                attributeStore.getAttributes.forEach((state: Attribute) => {
                     if (state.name === attr) {
                         if (testStateAttributes.findIndex((o) => { return o.name === attr }) === -1){
                             testStateAttributes.push(state);
@@ -151,7 +151,7 @@ import { useStore } from 'vuex';
         }
         else{
             stateScenarioPerformanceCurves.value.forEach(curve => {
-                stateAttributes.value.forEach(state => {
+                attributeStore.getAttributes.forEach((state: Attribute) => {
                     if (state.name === curve.attribute) {
                         if (testStateAttributes.findIndex((o) => { return o.name === curve.attribute }) === -1){
                             testStateAttributes.push(state);

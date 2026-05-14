@@ -170,16 +170,15 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { Console } from 'console';
 import { report } from 'process';
-import { useAdminDataStore } from '@/stores';
+import { useAdminDataStore, useAttributeStore } from '@/stores';
 
     let store = useStore();
     const adminDataStore = useAdminDataStore();
+    const attributeStore = useAttributeStore();
     let hasUnsavedChanges = computed<boolean>(()=>store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let stateNetworks = computed<Network[]>(()=>store.state.networkModule.networks);
-    let stateAttributes = computed<Attribute[]>(()=>store.state.attributeModule.attributes);
 
     async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks',payload);}
-    async function getAttributes(payload?: any): Promise<any> {await store.dispatch('getAttributes',payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
 
     const selectPrimaryNetworkItems= ref<SelectItem[]>([]);
@@ -230,7 +229,7 @@ import { useAdminDataStore } from '@/stores';
                  adminDataStore.getAssetType();
                  adminDataStore.getConstraintType();
                 onStateConstraintTypeChanged();
-                getAttributes();
+                attributeStore.getAttributes();
                 getNetworks();
                 adminDataStore.getAvailableReports();
                  adminDataStore.getSimulationReports();
@@ -258,10 +257,10 @@ import { useAdminDataStore } from '@/stores';
             selectRawDataNetworkItems.value.push({text:_.name,value:_.name})
         });
     })
-    watch(stateAttributes,() => {
+    watch(attributeStore.getAttributes,() => {
         
-        keyFields = clone(stateAttributes.value).map(_ =>_.name) //.map(_ => _.name)
-        stateAttributes.value.forEach(function (value) {
+        keyFields = clone(attributeStore.getAttributes).map(_ =>_.name) //.map(_ => _.name)
+        attributeStore.getAttributes.forEach(function (value) {
             keyFieldsForDialog.value.push(value.name);
         });
     })

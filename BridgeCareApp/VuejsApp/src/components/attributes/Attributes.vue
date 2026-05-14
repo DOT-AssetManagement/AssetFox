@@ -123,9 +123,10 @@ import { Console } from 'console';
 import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
-import { useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     let hasSelectedAttribute = ref<boolean>(false);
     let selectAttributeItemValue = ref<string | null>(null);
@@ -139,24 +140,19 @@ import { useAuthenticationStore } from '@/stores';
         {text: 'NUMBER', value: 'NUMBER'}
     ]);
 
-    let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes) ;
-    let stateSelectedAttribute = computed<Attribute>(() => store.state.attributeModule.selectedAttribute) ;
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ;
     let selectAttributeItems = ref<SelectItem[]>([]);
     
     async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
-    async function getAttributes(payload?: any): Promise<any> {await store.dispatch('getAttributes', payload);}
     async function getExcelSpreadsheetColumnHeadersAction(payload?: any): Promise<any> {await store.dispatch('getExcelSpreadsheetColumnHeaders', payload);}
-    function selectAttributeAction(payload?: any) { store.dispatch('selectAttribute', payload);}
-    async function upsertAttributeAction(payload?: any): Promise<any> {await store.dispatch('upsertAttribute', payload);}
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
     async function getUserNameByIdGetter(payload?: any): Promise<any> {await store.dispatch('getUserNameById', payload);}
     function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
 
     created()
     function created() {
-        getAttributes();
+        attributeStore.getAttributes();
     }
 
     onBeforeUnmount(() => beforeDestroy)
@@ -164,25 +160,25 @@ import { useAuthenticationStore } from '@/stores';
         setHasUnsavedChangesAction({ value: false });
     }
 
-    watch(stateAttributes, () =>  {
-            let temp = clone(stateAttributes.value)
+        watch(attributeStore.getAttributes, () =>  {
+            let temp = clone(attributeStore.getAttributes)
             temp.forEach(_ => {
                 selectAttributeItems.value.push({text: _.name, value: _.id})
             })
     })
 
     watch(selectAttributeItemValue, () =>  {
-        selectAttributeAction(selectAttributeItemValue.value);
+        attributeStore.selectAttribute(selectAttributeItemValue.value ?? '');
         hasSelectedAttribute.value = true;
     })
     
     watch(selectedAttribute, () =>  {
-        const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedAttribute.value, stateSelectedAttribute.value);
+        const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedAttribute.value, attributeStore.getSelectedAttribute);
         setHasUnsavedChangesAction({ value: hasUnsavedChanges });        
     })
 
-    watch(stateSelectedAttribute, () =>  {       
-        selectedAttribute.value = clone(stateSelectedAttribute.value);      
+    watch(attributeStore.getSelectedAttribute, () =>  {       
+        selectedAttribute.value = clone(attributeStore.getSelectedAttribute);      
     })
 
     function onSetSelectedAttributeProperty(property: string, value: any){
@@ -199,7 +195,7 @@ import { useAuthenticationStore } from '@/stores';
     }
 
     function onDiscardChanges() {
-        selectedAttribute.value = clone(stateSelectedAttribute.value);
+        selectedAttribute.value = clone(attributeStore.getSelectedAttribute);
     }
 
     async function saveAttribute() {
@@ -214,9 +210,9 @@ import { useAuthenticationStore } from '@/stores';
             attribute: selectAttr
         };
 
-        await upsertAttributeAction(createAttributeRequest);
+        await attributeStore.upsertAttribute(createAttributeRequest.attribute);
             
-        if (!isNil(stateAttributes.value.find(_ => _.id === selectAttr.id))) {
+        if (!isNil(attributeStore.getAttributes.find(_ => _.id === selectAttr.id))) {
             selectedAttribute.value.id = selectAttr.id;
             if (isInsert) selectAttributeItemValue.value = selectedAttribute.value.id;
         }

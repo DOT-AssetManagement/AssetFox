@@ -367,15 +367,15 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
     let store = useStore();
+    const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const confirm = useConfirm();
     const $router = useRouter();
     let stateDeficientConditionGoalLibraries = computed<DeficientConditionGoalLibrary[]>(() => store.state.deficientConditionGoalModule.deficientConditionGoalLibraries);
     let stateSelectedDeficientConditionGoalLibrary = computed<DeficientConditionGoalLibrary>(() => store.state.deficientConditionGoalModule.selectedDeficientConditionGoalLibrary);
-    let stateNumericAttributes = computed<Attribute[]>(() => store.state.attributeModule.numericAttributeNames);
     let stateScenarioDeficientConditionGoals = computed<DeficientConditionGoal[]>(() => store.state.deficientConditionGoalModule.scenarioDeficientConditionGoals);
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
@@ -390,7 +390,6 @@ import { useAuthenticationStore } from '@/stores';
     async function selectDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('selectDeficientConditionGoalLibrary', payload);}
     async function upsertDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertDeficientConditionGoalLibrary', payload);}
     async function deleteDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('deleteDeficientConditionGoalLibrary', payload);}
-    async function getAttributesAction(payload?: any): Promise<any> {await store.dispatch('getAttributes', payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
     async function getScenarioDeficientConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('getScenarioDeficientConditionGoals', payload);}
     async function upsertScenarioDeficientConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioDeficientConditionGoals', payload);}
@@ -401,7 +400,6 @@ import { useAuthenticationStore } from '@/stores';
     function addedOrUpdatedDeficientConditionGoalLibraryMutator(payload: any){store.commit('addedOrUpdatedDeficientConditionGoalLibraryMutator', payload);}
     function selectedDeficientConditionGoalLibraryMutator(payload: any){store.commit('selectedDeficientConditionGoalLibraryMutator', payload);}
 
-    let getNumericAttributesGetter: any = store.getters.getNumericAttributes;
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
 
     const selectedScenarioId = ref<string>(getBlankGuid());
@@ -513,7 +511,8 @@ import { useAuthenticationStore } from '@/stores';
     onMounted(async () => {
         librarySelectItemValue.value = null;
         await getDeficientConditionGoalLibrariesAction()
-        numericAttributeNames = getPropertyValues('name', getNumericAttributesGetter);
+        await attributeStore.getAttributes();
+        numericAttributeNames = getPropertyValues('name', attributeStore.getNumericAttributes);
         await getHasPermittedAccessAction()
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.DeficientConditionGoal) !== -1) {
             selectedScenarioId.value = $router.currentRoute.value.query.scenarioId as string;
@@ -614,9 +613,9 @@ import { useAuthenticationStore } from '@/stores';
         selectedDeficientConditionGoalIds = getPropertyValues('id', selectedGridRows.value,) as string[];
     }
 
-    watch(stateNumericAttributes, () => onStateNumericAttributesChanged())
+    watch(attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
     function onStateNumericAttributesChanged() {
-        numericAttributeNames = getPropertyValues('name', stateNumericAttributes.value);
+        numericAttributeNames = getPropertyValues('name', attributeStore.getNumericAttributes);
     }
 
     watch(stateScenarioDeficientConditionGoals, () => onStateScenarioDeficientConditionGoalsChanged())

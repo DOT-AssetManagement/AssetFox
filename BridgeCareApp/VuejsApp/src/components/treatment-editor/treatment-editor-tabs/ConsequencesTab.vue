@@ -148,6 +148,7 @@ import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData
 import { getUrl } from '@/shared/utils/get-url';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import EditSvg from '@/shared/icons/EditSvg.vue';
+import { useAttributeStore } from '@/stores';
 
 const props = defineProps<{
          selectedTreatmentConsequences: TreatmentConsequence[],
@@ -158,8 +159,7 @@ const props = defineProps<{
     const { selectedTreatmentConsequences, rules, callFromScenario, callFromLibrary } = toRefs(props);
     const emit = defineEmits(['submit', 'onAddConsequence', 'onModifyConsequence', 'onRemoveConsequence'])
     let store = useStore();
-
-    const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
+    const attributeStore = useAttributeStore();
     
 
     const consequencesGridHeaders: any[] = [
@@ -190,13 +190,13 @@ const props = defineProps<{
         consequencesGridData.value = clone(selectedTreatmentConsequences.value);
     });
 
-    watch(stateAttributes, () => {
+    watch(attributeStore.getAttributes, () => {
         setAttributeSelectItems();
     });
 
     function setAttributeSelectItems() {
-        if (hasValue(stateAttributes.value)) {
-            attributeSelectItems.value = stateAttributes.value.map((attribute: Attribute) => ({
+        if (hasValue(attributeStore.getAttributes)) {
+            attributeSelectItems.value = attributeStore.getAttributes.map((attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,
             }));

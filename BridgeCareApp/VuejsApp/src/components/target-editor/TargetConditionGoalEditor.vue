@@ -320,16 +320,16 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAuthenticationStore } from '@/stores';
+import { useAuthenticationStore, useAttributeStore } from '@/stores';
 
     let store = useStore();
+    const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const $router = useRouter(); 
     const confirm = useConfirm();
 
     const stateTargetConditionGoalLibraries = computed<TargetConditionGoalLibrary[]>(() =>store.state.targetConditionGoalModule.targetConditionGoalLibraries);
     const stateSelectedTargetConditionLibrary = computed<TargetConditionGoalLibrary>(() =>store.state.targetConditionGoalModule.selectedTargetConditionGoalLibrary) 
-    const stateNumericAttributes = computed<Attribute[]>(() =>store.state.attributeModule.numericAttributeNames);
     const stateScenarioTargetConditionGoals = computed<TargetConditionGoal[]>(() =>store.state.targetConditionGoalModule.scenarioTargetConditionGoals);
     const hasUnsavedChanges = computed<boolean>(() =>store.state.unsavedChangesFlagModule.hasUnsavedChanges); 
     const hasAdminAccess = computed<boolean>(() =>authenticationStore.hasAdminAccess);
@@ -343,7 +343,6 @@ import { useAuthenticationStore } from '@/stores';
     function selectTargetConditionGoalLibraryAction(payload?: any) { store.dispatch('selectTargetConditionGoalLibrary',payload);}
     async function upsertTargetConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertTargetConditionGoalLibrary',payload);}
     async function deleteTargetConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('deleteTargetConditionGoalLibrary',payload);}
-    async function getAttributesAction(payload?: any): Promise<any> {await store.dispatch('getAttributes',payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
     async function getScenarioTargetConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('getScenarioTargetConditionGoals',payload);}
     async function upsertScenarioTargetConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioTargetConditionGoals',payload);}
@@ -354,7 +353,6 @@ import { useAuthenticationStore } from '@/stores';
     function addedOrUpdatedTargetConditionGoalLibraryMutator(payload:any){store.commit('addedOrUpdatedTargetConditionGoalLibraryMutator',payload);} 
     function selectedTargetConditionGoalLibraryMutator(payload:any){store.commit('selectedTargetConditionGoalLibraryMutator',payload);} 
    
-    let getNumericAttributesGetter = store.getters.getNumericAttributes;
     let getUserNameByIdGetter = store.getters.getUserNameById;
 
     const addedRows = ref<TargetConditionGoal[]>([]);
@@ -466,7 +464,8 @@ import { useAuthenticationStore } from '@/stores';
     onMounted(async () => {
         librarySelectItemValue.value = null;
         await getTargetConditionGoalLibrariesAction();
-        numericAttributeNames.value = getPropertyValues('name', getNumericAttributesGetter);
+        await attributeStore.getAttributes();
+        numericAttributeNames.value = getPropertyValues('name', attributeStore.getNumericAttributes);
         await getHasPermittedAccessAction();
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.TargetConditionGoal) !== -1) { 
             //selectedScenarioId = to.query.scenarioId;
@@ -538,7 +537,7 @@ import { useAuthenticationStore } from '@/stores';
             hasCreatedLibrary = false;
         }
 
-        numericAttributeNames.value = getPropertyValues('name', getNumericAttributesGetter);
+        numericAttributeNames.value = getPropertyValues('name', attributeStore.getNumericAttributes);
 
         clearChanges();
         initializing = false;
@@ -551,9 +550,9 @@ import { useAuthenticationStore } from '@/stores';
         selectedTargetConditionGoalIds.value = getPropertyValues('id', selectedGridRows.value,) as string[];
     });
 
-    watch(stateNumericAttributes,()=> onStateNumericAttributesChanged)
+    watch(attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
     function onStateNumericAttributesChanged() {
-        numericAttributeNames.value = getPropertyValues('name', stateNumericAttributes.value);
+        numericAttributeNames.value = getPropertyValues('name', attributeStore.getNumericAttributes);
     }
 
     watch(stateScenarioTargetConditionGoals,()=> onStateScenarioTargetConditionGoalsChanged)

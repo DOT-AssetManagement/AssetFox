@@ -74,6 +74,7 @@ import {isEqual} from '@/shared/utils/has-unsaved-changes-helper';
 import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
+import { useAttributeStore } from '@/stores';
 
   const props = defineProps<{
           showDialog: boolean,
@@ -83,8 +84,8 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
   const { showDialog, currentNumberOfTargetConditionGoals } = toRefs(props);
 
   let store = useStore();
+  const attributeStore = useAttributeStore();
   const emit = defineEmits(['submit'])
-  const stateNumericAttributes = computed<Attribute[]>(() => store.state.attributeModule.numericAttributes);
 
   let newTargetConditionGoal = ref<TargetConditionGoal>({...emptyTargetConditionGoal, id: getNewGuid()});
   const numericAttributeNames = ref<string[]>([]);
@@ -97,7 +98,7 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
     setNumericAttributeNames();
   });
 
-  watch(stateNumericAttributes,()=> {
+  watch(attributeStore.getNumericAttributes,()=> {
     setNumericAttributeNames();
   });
 
@@ -125,8 +126,8 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
   }
 
   function setNumericAttributeNames() {
-    if (hasValue(stateNumericAttributes) && !isEqual(numericAttributeNames.value, stateNumericAttributes)) {
-      numericAttributeNames.value = getPropertyValues('name', stateNumericAttributes.value);
+    if (hasValue(attributeStore.getNumericAttributes) && !isEqual(numericAttributeNames.value, attributeStore.getNumericAttributes)) {
+      numericAttributeNames.value = getPropertyValues('name', attributeStore.getNumericAttributes);
     }
   }
 

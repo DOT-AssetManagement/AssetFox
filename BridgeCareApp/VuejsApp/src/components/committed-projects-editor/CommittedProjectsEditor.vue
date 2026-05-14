@@ -347,7 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { useAlertStore } from '@/stores';
+import { useAlertStore, useAttributeStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -429,7 +429,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
     const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
-    const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
+    const attributeStore = useAttributeStore();
     const stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() =>store.state.investmentModule.scenarioSimpleBudgetDetails);
     const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     const networks = computed<Network[]>(() => store.state.networkModule.networks);
@@ -439,7 +439,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     //async function getTreatmentLibrariesAction(payload?: any): Promise<any> { await store.dispatch('getTreatmentLibraries', payload); }
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
     async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any> { await store.dispatch('getScenarioSimpleBudgetDetails', payload); }
-    async function getAttributesAction(payload?: any): Promise<any> { await store.dispatch('getAttributes', payload); }
     async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload); }
     async function deleteSimulationCommittedProjectsAction(payload?: any): Promise<any> { await store.dispatch('deleteSimulationCommittedProjects', payload); }
     function selectTreatmentLibraryAction(payload?: any){ store.dispatch('selectTreatmentLibrary', payload); }
@@ -583,7 +582,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             }
         });
         await getScenarioSimpleBudgetDetailsAction({scenarioId: scenarioId});
-        await getAttributesAction();
+        await attributeStore.getAttributes();
         
         await getCurrentUserOrSharedScenarioAction({simulationId: scenarioId});
         await selectScenarioAction({ scenarioId: scenarioId });
@@ -652,14 +651,14 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     });
 
 
-    watch(stateAttributes, () => {
-        attributeSelectItems = stateAttributes.value.map(
+    watch(attributeStore.getAttributes, () => {
+        attributeSelectItems = attributeStore.getAttributes.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name
             }),
         );
-        let keyAttr = stateAttributes.value.find(_ => _.id == network.keyAttribute);
+        let keyAttr = attributeStore.getAttributes.find(_ => _.id == network.keyAttribute);
         if(!isNil(keyAttr)){
             keyattr = keyAttr.name;
             cpGridHeaders.value[0].title = keyattr;
