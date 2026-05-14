@@ -347,6 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
+import { useAlertStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -447,7 +448,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     async function addErrorNotificationAction(payload?: any): Promise<any> { await store.dispatch('addErrorNotification', payload); } 
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserOrSharedScenario', payload); }
     function selectScenarioAction(payload?: any){  store.dispatch('selectScenario', payload); }
-    function setAlertMessageAction(payload?: any){ store.dispatch('setAlertMessage', payload); }
+    const alertStore = useAlertStore();
     
     let selectedCpItems = ref<SectionCommittedProjectTableData[]>([]);
     let sectionCommittedProjects = ref<SectionCommittedProject[]>([]);
@@ -588,7 +589,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         await selectScenarioAction({ scenarioId: scenarioId });
         await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
             if(response.data){
-                setAlertMessageAction("Committed project import has been added to the queue");
+                alertStore.setAlertMessage("Committed project import has been added to the queue");
             }
         });
         await initializePages();
@@ -613,7 +614,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
         );
-        setAlertMessageAction('');
+        alertStore.setAlertMessage('');
     }
 
     async function validateAllCommittedProjects()
@@ -1099,7 +1100,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     scenarioId,
                     ).then((response: any) =>{
                         if(!isNil(response))
-                            setAlertMessageAction("Committed project import has been added to the queue");                        
+                            alertStore.setAlertMessage("Committed project import has been added to the queue");                        
                     })
             } else {
                 addErrorNotificationAction({
@@ -1638,7 +1639,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             projectPagination.page = 1
             clearChanges();
             onPaginationChanged().then(() => {
-                setAlertMessageAction('');
+                alertStore.setAlertMessage('');
                 if (totalItems.value > 0) {
                     dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any invalid cells.';
                     validateAllCommittedProjects();

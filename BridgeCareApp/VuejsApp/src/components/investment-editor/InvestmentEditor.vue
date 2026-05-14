@@ -407,9 +407,10 @@ import { BudgetPriority, BudgetPriorityLibrary } from '@/shared/models/iAM/budge
 import BudgetPriorityService from '@/services/budget-priority.service';
 import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
-import { useAuthenticationStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore } from '@/stores';
 
 let store = useStore();
+const alertStore = useAlertStore();
 const authenticationStore = useAuthenticationStore();
 const confirm = useConfirm();
 const emit = defineEmits(['submit'])
@@ -449,7 +450,6 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
 async function importScenarioInvestmentBudgetsFileAction(payload?: any): Promise<any> {await store.dispatch('importScenarioInvestmentBudgetsFile', payload);}
 async function importLibraryInvestmentBudgetsFileAction(payload?: any): Promise<any> {await store.dispatch('importLibraryInvestmentBudgetsFile', payload);}
 async function getCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCriterionLibraries', payload);}
-function setAlertMessageAction(payload?: any) { store.dispatch('setAlertMessage', payload);}
 function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload);}
     
 let getModifiedDate = store.getters.getLibraryDateModified;
@@ -593,7 +593,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     //                 hasScenario.value = true;
     //                 ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
     //                     if(response.data){
-    //                         setAlertMessageAction("An investment import has been added to the queue")
+    //                         alertStore.setAlertMessage("An investment import has been added to the queue")
     //                     }
     //                 })
     //                 await initializePages();
@@ -621,7 +621,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             hasScenario.value = true;
             ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("An investment import has been added to the queue")
+                    alertStore.setAlertMessage("An investment import has been added to the queue")
                 }
             })
                 await initializePages();
@@ -803,10 +803,10 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             hasCreatedLibrary = false;
             ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedBudgetLibrary.value.id, workType: WorkType.ImportLibraryInvestment}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("An investment import has been added to the queue")
+                    alertStore.setAlertMessage("An investment import has been added to the queue")
                 }
                 else
-                    setAlertMessageAction("");
+                    alertStore.setAlertMessage("");
             })
         }
         clearChanges();
@@ -1762,7 +1762,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             clearChanges()
             pagination.page = 1
             initializePages().then(async () => {
-                setAlertMessageAction('');
+                alertStore.setAlertMessage('');
                 isSuccessfulImportMutator(true);
                 await getBudgetLibrariesAction()
                 if(hasScenario.value){                

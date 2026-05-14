@@ -109,26 +109,19 @@
 </v-row>
 </template>
 <script lang="ts" setup>
-import Vue, { computed } from 'vue';
-import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
+import { ref } from 'vue';
+import { useAdminSiteSettingsStore } from '@/stores';
 
-let store = useStore();
-let implementationName = computed<string>(()=>store.state.adminSiteSettingsModule.implementationName);
-let implementationLogo = computed<string>(()=>store.state.adminSiteSettingsModule.implementationLogo);
+const adminSiteSettingsStore = useAdminSiteSettingsStore();
 let ImplementationID = ref('');
 let adminContactEmail = ref('');
-async function getImplementationNameAction(payload?: any): Promise<any> {await store.dispatch('getImplementationName',payload);}
-async function importImplementationNameAction(implementationName:string): Promise<any> {await store.dispatch('importImplementationName',implementationName);}
-async function importProductLogoAction(payload?: any): Promise<any> {await store.dispatch('importProductLogo',payload);}
-async function setAdminContactEmailAction(adminContactEmail: string): Promise<any> {await store.dispatch('setAdminContactEmail', adminContactEmail);}
 
 function onSaveAdminContactEmail() {
-  setAdminContactEmailAction(adminContactEmail.value);
+  adminSiteSettingsStore.setAdminContactEmail(adminContactEmail.value);
 }
   
 function onSaveImplementationName() {
-  importImplementationNameAction(ImplementationID.value);
+  adminSiteSettingsStore.importImplementationName(ImplementationID.value);
 }
 
 function onUploadImplementationLogo() {
@@ -137,7 +130,7 @@ function onUploadImplementationLogo() {
 
 function handleImplementationLogoUpload(payload: any){
   const file = payload.target.files[0];
-  importProductLogoAction(file);  
+  adminSiteSettingsStore.importProductLogo(file);  
 }
 
 </script>

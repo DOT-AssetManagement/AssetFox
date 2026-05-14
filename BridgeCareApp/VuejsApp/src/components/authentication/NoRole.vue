@@ -27,13 +27,13 @@
 <script setup lang="ts">
 import { getUrl } from '@/shared/utils/get-url';
 import { computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { useAdminSiteSettingsStore } from '@/stores';
 
-const store = useStore();
-const adminContactEmail = computed(() => store.state.adminSiteSettingsModule.adminContactEmail);
+const adminSiteSettingsStore = useAdminSiteSettingsStore();
+const adminContactEmail = computed(() => adminSiteSettingsStore.getAdminContactEmail);
 
 onMounted(() => {
-    store.dispatch('getAdminContactEmail');
+    adminSiteSettingsStore.getAdminContactEmail();
 });
 
 </script>

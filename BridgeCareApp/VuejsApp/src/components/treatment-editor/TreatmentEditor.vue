@@ -432,12 +432,13 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAuthenticationStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore } from '@/stores';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
     const confirm = useConfirm();
     let store = useStore();
+    const alertStore = useAlertStore();
     const authenticationStore = useAuthenticationStore();
     let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
     let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
@@ -566,9 +567,6 @@ async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?
   await store.dispatch('getDistinctScenarioPerformanceFactorAttributeNames', payload);
 }
 
- function setAlertMessageAction(payload?: any): void {
-   store.dispatch('setAlertMessage', payload);
-}
 async function getHasPermittedAccessAction(payload?: any): Promise<any>{await store.dispatch('getHasPermittedAccess', payload)}
 
 
@@ -681,7 +679,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
               
             await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioTreatment}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("A treatment curve has been added to the queue")
+                    alertStore.setAlertMessage("A treatment curve has been added to the queue")
                 }
             })
         }
@@ -702,7 +700,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
         );
-        setAlertMessageAction('');
+        alertStore.setAlertMessage('');
     }  
 
     watch(stateScenarioSimpleBudgetDetails,  () => onStateScenarioInvestmentLibraryChanged())
@@ -796,10 +794,10 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             getDateModified();
             ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedTreatmentLibrary.value.id, workType: WorkType.ImportLibraryTreatment}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("A treatment import has been added to the queue")
+                    alertStore.setAlertMessage("A treatment import has been added to the queue")
                 }
                 else
-                    setAlertMessageAction("");
+                    alertStore.setAlertMessage("");
             })
         }
 
@@ -1612,7 +1610,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                     });
 
                 }
-                setAlertMessageAction('');
+                alertStore.setAlertMessage('');
                 // Set the success message and show the popup
                 importSuccessMessage.value = message;
                 showSuccessPopup.value = true;

@@ -70,6 +70,7 @@
 import Vue, { computed } from 'vue';
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
     import { useStore } from 'vuex';
+    import { useAlertStore } from '@/stores';
     import {SimulationOutputDeletionParameters} from '@/shared/models/iAM/simulation-output-deletion-params'
     import Alert from '@/shared/modals/Alert.vue';
 import { emptyAlertData } from '@/shared/models/modals/alert-data';
@@ -84,6 +85,7 @@ import { Emitter, EventType } from 'mitt';
 import { Hub } from '@/connectionHub';
 
     let store = useStore();
+    const alertStore = useAlertStore();
     let lowerBoundDate = ref('');
     let upperBoundDate = ref('');
     let isDeletionInProgress = false;
@@ -91,12 +93,11 @@ import { Hub } from '@/connectionHub';
     let confirmDeleteAlertData = ref(clone(emptyAlertData));
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     async function deleteScenarioOutputAction(payload?: any): Promise<any> {await store.dispatch('deleteScenarioOutput',payload);}
-    function setAlertMessageAction(payload?: any) { store.dispatch('setAlertMessage', payload);}
 
     onMounted( () => {
             ScenarioService.GetQueuedWorkByWorkType(WorkType.DeleteSimulationOutput).then(response => {
                 if(response.data){
-                    setAlertMessageAction("Simulation output deletion is currently already in the queue")
+                    alertStore.setAlertMessage("Simulation output deletion is currently already in the queue")
                     isDeletionInProgress = true;
                 }
             })
@@ -112,13 +113,13 @@ import { Hub } from '@/connectionHub';
             Hub.BroadcastEventType.BroadcastSimulationOutputDeletionCompletionEvent,
             onDeletionComplete,
         );
-        setAlertMessageAction('');
+        alertStore.setAlertMessage('');
     });
 
     function DeleteScenarioOutputs() {
         let dateParams: SimulationOutputDeletionParameters = {lowerBoundDate: new Date(lowerBoundDate.value), upperBoundDate: new Date(upperBoundDate.value)}
         deleteScenarioOutputAction(dateParams).then(response => {
-            setAlertMessageAction("Simulation output deletion is currently already in the queue")
+            alertStore.setAlertMessage("Simulation output deletion is currently already in the queue")
         })
     }
 
@@ -150,6 +151,6 @@ import { Hub } from '@/connectionHub';
 
     function onDeletionComplete(){
         isDeletionInProgress = false;
-        setAlertMessageAction('');
+        alertStore.setAlertMessage('');
     }
 </script>

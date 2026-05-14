@@ -518,10 +518,11 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-import { useAuthenticationStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
 let store = useStore();
+const alertStore = useAlertStore();
 const authenticationStore = useAuthenticationStore();
 const confirm = useConfirm();
 
@@ -550,7 +551,6 @@ async function importLibraryPerformanceCurvesFileAction(payload?: any): Promise<
 function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
 async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
 function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload);}
-function setAlertMessageAction(payload?: any) { store.dispatch('setAlertMessage', payload);}
 
 let getUserNameByIdGetter: any = store.getters.getUserNameById
 function performanceCurveLibraryMutator(payload:any){store.commit('performanceCurveLibraryMutator', payload);}
@@ -681,7 +681,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             hasScenario.value = true;
             await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioPerformanceCurve}).then(async response => {
                 if(response.data){
-                    setAlertMessageAction("A performance curve import has been added to the queue")
+                    alertStore.setAlertMessage("A performance curve import has been added to the queue")
                 }
                 await initializePages()
                 hasScenario.value = true;
@@ -708,7 +708,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             importCompleted,
         );
 
-        setAlertMessageAction('');
+        alertStore.setAlertMessage('');
     }
 
     async function onPaginationChanged() {
@@ -828,10 +828,10 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             hasCreatedLibrary = false;
             ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedPerformanceCurveLibrary.value.id, workType: WorkType.ImportLibraryPerformanceCurve}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("A performance curve import has been added to the queue")
+                    alertStore.setAlertMessage("A performance curve import has been added to the queue")
                 }
                 else
-                    setAlertMessageAction("");
+                    alertStore.setAlertMessage("");
             })
         }
 
@@ -1364,7 +1364,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             clearChanges();
             performancePagination.value.page = 1
             onPaginationChanged().then(() => {
-                setAlertMessageAction('');
+                alertStore.setAlertMessage('');
             })
             dialogMessage.value = "Successfully uploaded performance curves.";
             showSuccessPopup.value = true;
