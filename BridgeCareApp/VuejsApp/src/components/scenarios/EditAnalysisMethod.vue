@@ -252,9 +252,7 @@ import { useAnalysisMethodStore, useAttributeStore, useAuthenticationStore, useN
 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
-    const stateAnalysisMethod = computed<AnalysisMethod>(() => analysisMethodStore.getAnalysisMethod) ;
     const attributeStore = useAttributeStore();
-    const stateSimulationAnalysisSetting = computed<boolean>( ()=> analysisMethodStore.getSimulationAnalysisSetting);
 
     const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
     const unsavedChangesStore = useUnsavedChangesStore();
@@ -368,11 +366,11 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
         unsavedChangesStore.setHasUnsavedChanges(false);
     });
 
-    watch(stateAnalysisMethod, () => {
+    watch(() =>analysisMethodStore.analysisMethodGetter, () => {
         analysisMethod.value = {
-            ...stateAnalysisMethod.value,
+            ...analysisMethodStore.analysisMethodGetter,
             benefit: {
-                ...stateAnalysisMethod.value.benefit,
+                ...analysisMethodStore.analysisMethodGetter.benefit,
             },
         };
     });
@@ -380,7 +378,7 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
     // watch(benefit, onAnalysisChanged)
     watch(analysisMethod, onAnalysisChanged)
      async function onAnalysisChanged() {
-        hasUnsavedChanges.value = !equals(analysisMethod.value, stateAnalysisMethod.value) || !stateSimulationAnalysisSetting.value;
+        hasUnsavedChanges.value = !equals(analysisMethod.value, analysisMethodStore.analysisMethodGetter) || !analysisMethodStore.simulationAnalysisSettingGetter;
 
         unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges.value);
 
@@ -388,14 +386,14 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
          updateAssetCountString();
     }
 
-    watch(stateSimulationAnalysisSetting, (newVal) => {
+    watch(() => analysisMethodStore.simulationAnalysisSettingGetter, (newVal) => {
         if(newVal === false)
         {
             hasUnsavedChanges.value = true;
         }
     });
 
-    watch(attributeStore.getNumericAttributes, () => {
+    watch(() =>attributeStore.getNumericAttributes, () => {
         if (hasValue(attributeStore.getNumericAttributes)) {
             setBenefitAndWeightingAttributes();
             setSuperAssetAttributes();
@@ -565,9 +563,8 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
         } 
     }
 
-
     function onDiscardChanges() {
-        analysisMethod.value = clone(stateAnalysisMethod.value);
+        analysisMethod.value = clone(analysisMethodStore.analysisMethodGetter);
     }
 
 

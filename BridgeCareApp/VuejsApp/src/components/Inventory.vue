@@ -146,17 +146,8 @@
             }
         })
         
-/*          watch(stateKeyFields,()=>{
-            if(reportType === 'P') {
-                inventoryDetails.value = clone(stateKeyFields.value);
-                inventoryDetails.value.forEach(_ => selectedKeys.push(""));
-
-                inventoryStore.getInventory(inventoryDetails.value);
-            }
-        });
- */ 
-        watch(() => adminDataStore.getRawDataKeyFields,()=>{
-            inventoryDetails.value = clone(adminDataStore.getRawDataKeyFields);
+        watch(() => adminDataStore.rawDataKeyFieldsGetter,()=>{
+            inventoryDetails.value = clone(adminDataStore.rawDataKeyFieldsGetter);
 
                 inventoryDetails.value.forEach(_ => selectedKeys.push(""));
             if(!adminDataStore.getInventoryReportNames.some(_ => _.includes("(R)")))
@@ -169,8 +160,8 @@
                 }
         });
 
-        watch(() => adminDataStore.getConstraintType,()=>{
-            constraintDetails = adminDataStore.getConstraintType;
+        watch(() => adminDataStore.constraintTypeGetter,()=>{
+            constraintDetails = adminDataStore.constraintTypeGetter;
         });
 
         watch(() => inventoryStore.getQuerySet,()=>{
@@ -200,7 +191,7 @@
                 await adminDataStore.getInventoryReports();
                 await adminDataStore.getKeyFields(); 
                 await adminDataStore.getRawDataKeyFields();
-                await adminDataStore.getConstraintType();
+                await adminDataStore.getConstraintType();//why is this being called twice? BCT
             })();
         })
 
@@ -250,7 +241,7 @@
         }
 
         function onSelectInventoryItem(index: number){
-            constraintDetails = adminDataStore.getConstraintType;
+            constraintDetails = adminDataStore.constraintTypeGetter;
             if(constraintDetails == 'OR')
             {
                 HandleSelectedItems(index);

@@ -188,7 +188,7 @@ const props = defineProps<{
         consequencesGridData.value = clone(selectedTreatmentConsequences.value);
     });
 
-    watch(attributeStore.attributesgetter, () => {
+    watch(() => attributeStore.attributesgetter, () => {
         setAttributeSelectItems();
     });
 

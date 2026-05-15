@@ -222,7 +222,7 @@ import { useAdminDataStore } from '@/stores';
 
         assetTypeMap.clear();
         // Populate assetTypeMap and assetTypeReverseMap
-        adminDataStore.getAssetType.forEach((assetType, index) => {
+        adminDataStore.assetTypeGetter.forEach((assetType, index) => {
             // Assign numerical indices to each asset type
             assetTypeMap.set(assetType, assetType);
             assetTypeReverseMap.set(assetType, assetType);

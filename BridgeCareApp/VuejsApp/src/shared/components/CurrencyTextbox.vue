@@ -19,9 +19,7 @@ const { inputRef, formattedValue, numberValue, setValue } = useCurrencyInput({
   valueRange: { min: -1 },
 });
 
-watch(
-  () => props.modelValue,
-  (value) => {
+watch(() => props.modelValue, (value) => {
     setValue(value);
   }
 );

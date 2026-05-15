@@ -818,7 +818,7 @@ let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess)
         onPaginationChanged();
     }
 
-    watch(attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
+    watch(() => attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
     function onStateNumericAttributesChanged() {
         setAttributeSelectItems();
     }

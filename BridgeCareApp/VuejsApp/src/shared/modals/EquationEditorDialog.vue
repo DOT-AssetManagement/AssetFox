@@ -455,7 +455,7 @@ const props = defineProps<{
   * onStateNumericAttributesChanged => the numeric attribute watcher is used to trigger a function to set the
    * attributesList object.
    */
-  watch(attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
+  watch(() => attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
   function onStateNumericAttributesChanged() {
     if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributesList();

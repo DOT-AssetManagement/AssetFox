@@ -527,13 +527,12 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
         selectedTargetConditionGoalIds.value = getPropertyValues('id', selectedGridRows.value,) as string[];
     });
 
-    watch(attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
+    watch(() => attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
     function onStateNumericAttributesChanged() {
         numericAttributeNames.value = getPropertyValues('name', attributeStore.getNumericAttributes);
     }
 
     watch(currentPage,()=> {
-
         // Get parent name from library id
         librarySelectItems.value.forEach(library => {
             if (library.value === parentLibraryId) {

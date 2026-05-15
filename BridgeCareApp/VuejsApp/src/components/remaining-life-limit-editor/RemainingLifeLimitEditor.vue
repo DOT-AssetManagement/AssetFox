@@ -514,7 +514,7 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
         isShared = remainingLifeLimitStore.getIsSharedLibrary;
     });
     
-    watch(attributeStore.getNumericAttributes, ()=> {
+    watch(() => attributeStore.getNumericAttributes, ()=> {
         setAttributesSelectListItems();
     });
 

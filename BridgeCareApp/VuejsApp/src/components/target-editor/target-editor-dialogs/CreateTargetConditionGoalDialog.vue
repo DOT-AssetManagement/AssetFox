@@ -96,7 +96,7 @@ import { useAttributeStore } from '@/stores';
     setNumericAttributeNames();
   });
 
-  watch(attributeStore.getNumericAttributes,()=> {
+  watch(() =>attributeStore.getNumericAttributes,()=> {
     setNumericAttributeNames();
   });
 

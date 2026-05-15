@@ -590,7 +590,7 @@ import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalSto
         selectedDeficientConditionGoalIds = getPropertyValues('id', selectedGridRows.value,) as string[];
     }
 
-    watch(attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
+    watch(() => attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
     function onStateNumericAttributesChanged() {
         numericAttributeNames = getPropertyValues('name', attributeStore.getNumericAttributes);
     }

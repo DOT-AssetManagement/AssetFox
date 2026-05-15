@@ -384,7 +384,7 @@
     function onBeforeUnmountFunc() {
         unsavedChangesStore.setHasUnsavedChanges(false);
     }
-    watch(budgetPriorityStore.BudgetPriorityLibrariesGetter, onStateBudgetPriorityLibrariesChanged)
+    watch(() => budgetPriorityStore.BudgetPriorityLibrariesGetter, onStateBudgetPriorityLibrariesChanged)
     function onStateBudgetPriorityLibrariesChanged() {
         librarySelectItems.value = budgetPriorityStore.BudgetPriorityLibrariesGetter.map((library: BudgetPriorityLibrary) => ({
             text: library.name,
@@ -414,7 +414,7 @@
         trueLibrarySelectItemValue = librarySelectItemValue.value;
         budgetPriorityStore.selectBudgetPriorityLibrary(librarySelectItemValue.value ?? '');
     }
-    watch(budgetPriorityStore.SelectedBudgetPriorityLibraryGetter, onStateSelectedPriorityLibraryChanged)
+    watch(() =>budgetPriorityStore.SelectedBudgetPriorityLibraryGetter, onStateSelectedPriorityLibraryChanged)
     function onStateSelectedPriorityLibraryChanged() {
         selectedBudgetPriorityLibrary.value = clone(budgetPriorityStore.SelectedBudgetPriorityLibraryGetter);
     }

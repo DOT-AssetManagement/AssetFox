@@ -152,11 +152,11 @@ import { useAttributeStore, useAuthenticationStore, useUnsavedChangesStore } fro
         unsavedChangesStore.setHasUnsavedChanges(false);
     }
 
-        watch(attributeStore.attributesgetter, () =>  {
-            let temp = clone(attributeStore.attributesgetter)
-            temp.forEach(_ => {
-                selectAttributeItems.value.push({text: _.name, value: _.id})
-            })
+    watch(() => attributeStore.attributesgetter, () =>  {
+        let temp = clone(attributeStore.attributesgetter)
+        temp.forEach(_ => {
+            selectAttributeItems.value.push({text: _.name, value: _.id})
+        })
     })
 
     watch(selectAttributeItemValue, () =>  {
@@ -169,7 +169,7 @@ import { useAttributeStore, useAuthenticationStore, useUnsavedChangesStore } fro
         unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);        
     })
 
-    watch(attributeStore.getSelectedAttribute, () =>  {       
+    watch(() =>attributeStore.getSelectedAttribute, () =>  {       
         selectedAttribute.value = clone(attributeStore.getSelectedAttribute);      
     })
 

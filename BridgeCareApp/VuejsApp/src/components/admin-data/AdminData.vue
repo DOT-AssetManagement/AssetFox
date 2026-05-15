@@ -252,7 +252,7 @@ import { useAdminDataStore, useAttributeStore, useNetworkStore, useUnsavedChange
             selectRawDataNetworkItems.value.push({text:_.name,value:_.name})
         });
     })
-    watch(attributeStore.attributesgetter,() => {
+    watch(() => attributeStore.attributesgetter,() => {
         
         keyFields = clone(attributeStore.attributesgetter).map(_ =>_.name) //.map(_ => _.name)
         attributeStore.attributesgetter.forEach(function (value) {
@@ -278,44 +278,37 @@ import { useAdminDataStore, useAttributeStore, useNetworkStore, useUnsavedChange
     {
         selectedInventoryReports.value = clone(adminDataStore.getInventoryReportNames);
     })
-    watch(() => adminDataStore.getPrimaryNetwork,() => {
-        selectPrimaryNetworkItemValue.value = adminDataStore.getPrimaryNetwork;
+    watch(() => adminDataStore.primaryNetworkGetter,() => {
+        selectPrimaryNetworkItemValue.value = adminDataStore.primaryNetworkGetter;
     }, { immediate: true })
     function onStatePrimaryNetworkChanged()
     {
-        selectPrimaryNetworkItemValue.value = adminDataStore.getPrimaryNetwork;
+        selectPrimaryNetworkItemValue.value = adminDataStore.primaryNetworkGetter;
     }
-    watch(() => adminDataStore.getRawdataNetwork,() =>  {
-        selectRawdataNetworkItemValue.value = adminDataStore.getRawdataNetwork;
+    watch(() => adminDataStore.rawdataNetworkGetter,() =>  {
+        selectRawdataNetworkItemValue.value = adminDataStore.rawdataNetworkGetter;
     }, { immediate: true })
     function  onStateRawdataNetworkChanged()
     {
-        selectPrimaryNetworkItemValue.value = adminDataStore.getPrimaryNetwork;
+        selectPrimaryNetworkItemValue.value = adminDataStore.primaryNetworkGetter;
     }
-    watch(() => adminDataStore.getKeyFields,() => {
-        selectedKeyFields.value = clone(adminDataStore.getKeyFields);
+    watch(() => adminDataStore.keyFieldsGetter,() => {
+        selectedKeyFields.value = clone(adminDataStore.keyFieldsGetter);
     })
-    watch(() => adminDataStore.getRawDataKeyFields,() =>{
-        selectedRawDataKeyFields.value = clone(adminDataStore.getRawDataKeyFields);
+    watch(() => adminDataStore.rawDataKeyFieldsGetter,() =>{
+        selectedRawDataKeyFields.value = clone(adminDataStore.rawDataKeyFieldsGetter);
     })
-    watch(() => adminDataStore.getAssetType,() =>{
-        selectedAssetTypes.value = clone(adminDataStore.getAssetType);
+    watch(() => adminDataStore.assetTypeGetter,() =>{
+        selectedAssetTypes.value = clone(adminDataStore.assetTypeGetter);
     })
-    watch(() => adminDataStore.getConstraintType,() => {
-        constraintTypeRadioGroup.value = adminDataStore.getConstraintType
+    watch(() => adminDataStore.constraintTypeGetter,() => {
+        constraintTypeRadioGroup.value = adminDataStore.constraintTypeGetter
     })
     function onStateConstraintTypeChanged()
     {
-        constraintTypeRadioGroup.value = adminDataStore.getConstraintType
+        constraintTypeRadioGroup.value = adminDataStore.constraintTypeGetter
     }
-    //watch(networks,() =>{
-      //  selectPrimaryNetworkItems = networks.map(_ => {
-       //     return {text: _.name, value: _.name}
-      //  });
-      //  selectRawDataNetworkItems = networks.map(_ => {
-      //      return {text: _.name, value: _.name}
-       // });
-    //})
+    
     watch(selectedKeyFields,() => {
         keyFieldsDelimited.value = '';
         keyFieldsDelimited.value = convertToDelimited(selectedKeyFields.value, ', ')
@@ -499,11 +492,11 @@ import { useAdminDataStore, useAttributeStore, useNetworkStore, useUnsavedChange
     function checkHasUnsaved(){
         const hasChanged = hasUnsavedChangesCore('', selectedInventoryReports.value, adminDataStore.getInventoryReportNames) ||
             hasUnsavedChangesCore('', selectedSimulationReports.value, adminDataStore.getSimulationReportNames) ||
-            hasUnsavedChangesCore('', selectedKeyFields.value, adminDataStore.getKeyFields) ||
-            hasUnsavedChangesCore('', selectedRawDataKeyFields.value, adminDataStore.getRawDataKeyFields) ||
-            hasUnsavedChangesCore('', selectedAssetTypes.value, adminDataStore.getAssetType) ||
-            primaryNetwork.value != adminDataStore.getPrimaryNetwork || rawdataNetwork.value != adminDataStore.getRawdataNetwork ||
-            constraintTypeRadioGroup.value != adminDataStore.getConstraintType
+            hasUnsavedChangesCore('', selectedKeyFields.value, adminDataStore.keyFieldsGetter) ||
+            hasUnsavedChangesCore('', selectedRawDataKeyFields.value, adminDataStore.rawDataKeyFieldsGetter) ||
+            hasUnsavedChangesCore('', selectedAssetTypes.value, adminDataStore.assetTypeGetter) ||
+            primaryNetwork.value != adminDataStore.primaryNetworkGetter || rawdataNetwork.value != adminDataStore.rawdataNetworkGetter ||
+            constraintTypeRadioGroup.value != adminDataStore.constraintTypeGetter
         unsavedChangesStore.setHasUnsavedChanges(hasChanged);
     }
     function convertToDelimited(listToBeDelimited: string[], delimitValue: string){

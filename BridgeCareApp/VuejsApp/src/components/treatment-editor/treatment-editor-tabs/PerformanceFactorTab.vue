@@ -88,7 +88,7 @@ import { useAttributeStore, usePerformanceCurveStore } from '@/stores';
         onTreatmentChange();
     });
 
-    watch(attributeStore.attributesgetter, () =>  {
+    watch(() => attributeStore.attributesgetter, () =>  {
         setAttributeSelectItems();
     });
 

@@ -637,7 +637,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     });
 
 
-    watch(attributeStore.attributesgetter, () => {
+    watch(() =>attributeStore.attributesgetter, () => {
         attributeSelectItems = attributeStore.attributesgetter.map(
             (attribute: Attribute) => ({
                 text: attribute.name,

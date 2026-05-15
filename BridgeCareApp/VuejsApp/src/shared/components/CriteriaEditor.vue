@@ -317,7 +317,7 @@ const tab = ref<any>(null);
         }
     });
 
-    watch(attributeStore.attributesgetter, onStateAttributesChanged);
+    watch(() => attributeStore.attributesgetter, onStateAttributesChanged);
     function onStateAttributesChanged(){
         if (hasValue(attributeStore.attributesgetter)) {
             setQueryBuilderRules();
@@ -359,7 +359,7 @@ const tab = ref<any>(null);
         resetSubCriteriaValidationProperties();
     });
 
-    watch(attributeStore.getAttributesSelectValues, onStateAttributesSelectValues)
+    watch(() => attributeStore.getAttributesSelectValues, onStateAttributesSelectValues)
     function onStateAttributesSelectValues(){
         if (
             hasValue(queryBuilderRules.value) &&

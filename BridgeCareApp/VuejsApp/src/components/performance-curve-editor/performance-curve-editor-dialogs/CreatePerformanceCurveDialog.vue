@@ -89,7 +89,7 @@ const props = defineProps<{
     }
   }
 
-  watch(attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
+  watch(() => attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
   function onStateNumericAttributesChanged() {
     if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributeSelectItems();

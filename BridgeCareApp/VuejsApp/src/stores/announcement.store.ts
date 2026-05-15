@@ -18,7 +18,7 @@ export const useAnnouncementStore = defineStore('announcement', {
         packageVersion: import.meta.env.PACKAGE_VERSION || '0',
     }),
     getters: {
-        getAnnouncements: (state) => state.announcements,
+        announcementsGetter: (state) => state.announcements,
         getPackageVersion: (state) => state.packageVersion,
     },
     actions: {

@@ -258,7 +258,7 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore, useNetwo
         selectNetworkItems.value = networkStore.networksGetter.map(_ => ({text: _.name, value: _.id}))
     })
 
-    watch(attributeStore.attributesgetter, () => { 
+    watch(() => attributeStore.attributesgetter, () => { 
         attributeRows.value = clone(attributeStore.attributesgetter);
         attributeStore.attributesgetter.forEach(_ => {
                 selectKeyAttributeItems.value.push({text:_.name,value:_.id})

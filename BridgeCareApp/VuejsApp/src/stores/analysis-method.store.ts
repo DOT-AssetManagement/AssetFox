@@ -21,8 +21,8 @@ export const useAnalysisMethodStore = defineStore('analysisMethod', {
         simulationAnalysisSetting: true,
     }),
     getters: {
-        getAnalysisMethod: (state) => state.analysisMethod,
-        getSimulationAnalysisSetting: (state) => state.simulationAnalysisSetting,
+        analysisMethodGetter: (state) => state.analysisMethod,
+        simulationAnalysisSettingGetter: (state) => state.simulationAnalysisSetting,
     },
     actions: {
         async getAnalysisMethod(scenarioId: string) {

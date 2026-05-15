@@ -62,7 +62,9 @@ import { useAttributeStore } from '@/stores';
     showDialog: boolean
   }>()
   let showDialogComputed = computed(() => props.showDialog);
-  watch(attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
+
+  watch(() => attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
+
   function onStateNumericAttributesChanged() {
     if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributeSelectItems();
@@ -76,13 +78,13 @@ import { useAttributeStore } from '@/stores';
       }
     }
 
-
     function setAttributeSelectItems() {
     attributeSelectItems = attributeStore.getNumericAttributes.map((attribute: Attribute) => ({
       text: attribute.name,
       value: attribute.name
     }));
   }
+  
   function onSubmit(submit: boolean) {
     if (submit) {
       emit('submit', newCalculatedAttribute);

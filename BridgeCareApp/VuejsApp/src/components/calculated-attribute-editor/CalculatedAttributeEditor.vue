@@ -613,7 +613,7 @@ const confirm = useConfirm();
         selectedCalculatedAttributeLibrary.value.isDefault = isDefaultBool.value;
         checkHasUnsavedChanges()
     }
-    watch(calculatedAttributeStore.calculatedAttributesGetter,()=>onStateCalculatedAttributesChanged())
+    watch(() => calculatedAttributeStore.calculatedAttributesGetter,()=>onStateCalculatedAttributesChanged())
     function onStateCalculatedAttributesChanged() {
         setAttributeSelectItems();
     }
@@ -883,17 +883,13 @@ const confirm = useConfirm();
         getModifiedDate();
     }
     
-        watch(() => calculatedAttributeStore.getIsSharedLibrary,()=> onStateSharedAccessChanged())
+    watch(() => calculatedAttributeStore.getIsSharedLibrary,()=> onStateSharedAccessChanged())
     function onStateSharedAccessChanged() {
          isShared =  calculatedAttributeStore.getIsSharedLibrary;
          if (!isNil( selectedCalculatedAttributeLibrary.value) ) {
             calculatedAttributeStore.selectCalculatedAttributeLibrary(selectedCalculatedAttributeLibrary.value.id);
             isShared = calculatedAttributeStore.getIsSharedLibrary;
-                    }
-        //if (!isNullOrUndefined(selectedCalculatedAttributeLibrary)) {
-
-             //selectedCalculatedAttributeLibrary.isShared =  isShared;
-        //} 
+        }
     }
     function setTiming(selectedItem: number) {
          setTimingsMultiSelect(selectedItem);

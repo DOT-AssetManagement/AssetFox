@@ -84,7 +84,7 @@
     <div style='display: flex; align-items: center; justify-content: center;'>
             <v-btn @click='seeOlderAnnouncements()' class='assetFox-blue-bg text-white' round
                    style='margin-top: 0; margin-bottom: 10px'
-                   v-if='announcementListOffset < announcementStore.getAnnouncements.length - (hasAdminAccess ? 9 : 10)'>
+                   v-if='announcementListOffset < announcementStore.announcementsGetter.length - (hasAdminAccess ? 9 : 10)'>
                 See Older Announcements
             </v-btn>
         </div>
@@ -115,10 +115,10 @@ const newAnnouncementTitle = ref<string>("");
 const newAnnouncementContent = ref<string>("");
 const selectedAnnouncementForEdit = ref<Announcement | undefined>(undefined);
 
-    watch(announcementStore.getAnnouncements, () => {
+    watch(() => announcementStore.announcementsGetter, () => {
     });
     function getVisibleAnnouncements() {
-        return announcementStore.getAnnouncements.slice(announcementListOffset.value, announcementListOffset.value + (hasAdminAccess.value ? 9 : 10));
+        return announcementStore.announcementsGetter.slice(announcementListOffset.value, announcementListOffset.value + (hasAdminAccess.value ? 9 : 10));
     }
 
     function formatDate(announcementDate: Date) {
@@ -199,7 +199,7 @@ const selectedAnnouncementForEdit = ref<Announcement | undefined>(undefined);
 
     function seeOlderAnnouncements() {
         const increment = hasAdminAccess ? 9 : 10;
-        if (announcementListOffset.value < announcementStore.getAnnouncements.length - increment) {
+        if (announcementListOffset.value < announcementStore.announcementsGetter.length - increment) {
             announcementListOffset.value += increment;
         } else {
             announcementListOffset.value = announcementListOffset.value - increment;
