@@ -432,7 +432,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, usePerformanceCurveStore } from '@/stores';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
@@ -442,10 +442,9 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     const authenticationStore = useAuthenticationStore();
     const investmentStore = useInvestmentStore();
     const notificationStore = useNotificationStore();
+    const performanceCurveStore = usePerformanceCurveStore();
     let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
     let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
-    let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
-    //let allScenarioTreatments = computed<Treatment[]>(() => store.state.treatmentModule.allScenarioTreatments);    
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let stateScenarioTreatmentLibrary= computed<TreatmentLibrary>(() => store.state.treatmentModule.scenarioTreatmentLibrary);
     let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
@@ -453,7 +452,6 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     let stateSimpleScenarioSelectableTreatments= computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
     let stateSimpleSelectableTreatments= computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleSelectableTreatments);
     let isSharedLibrary= computed<boolean>(() => store.state.treatmentModule.isSharedLibrary);
-    let stateScenarioPerformanceCurves= computed<PerformanceCurve[]>(() => store.state.performanceCurveModule.scenarioPerformanceCurves);
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
 
  async function getTreatmentLibrariesAction(payload?: any): Promise<any> {
@@ -538,14 +536,6 @@ function selectScenarioAction(payload?: any) {
 
 async function getAllScenarioTreatmentsAction(payload?: any) {
   await store.dispatch('getAllScenarioTreatments', payload);
-}
-
-async function getScenarioPerformanceCurvesAction(payload?: any): Promise<any> {
-  await store.dispatch('getScenarioPerformanceCurves', payload);
-}
-
-async function getDistinctScenarioPerformanceFactorAttributeNamesAction(payload?: any): Promise<any> {
-  await store.dispatch('getDistinctScenarioPerformanceFactorAttributeNames', payload);
 }
 
 async function getHasPermittedAccessAction(payload?: any): Promise<any>{await store.dispatch('getHasPermittedAccess', payload)}
@@ -636,7 +626,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         {
             librarySelectItemValue.value = "";
         await getTreatmentLibrariesAction();
-        await getDistinctScenarioPerformanceFactorAttributeNamesAction();
+        await performanceCurveStore.getDistinctScenarioPerformanceFactorAttributeNames();
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.Treatment) !== -1) {
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
             loadedScenarioId = selectedScenarioId;
@@ -649,7 +639,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             hasScenario.value = true;
             await getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId);
             await getTreatmentLibraryBySimulationIdAction(selectedScenarioId);
-            await getScenarioPerformanceCurvesAction(selectedScenarioId);
+            await performanceCurveStore.getScenarioPerformanceCurves(selectedScenarioId);
             
             treatmentTabs = [...treatmentTabs, 'Budgets'];
             await investmentStore.getScenarioSimpleBudgetDetails(selectedScenarioId)
@@ -700,7 +690,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         );
     }
 
-    watch(stateScenarioPerformanceCurves, () => onStateScenarioPerformanceCurvesChanged())
+    watch(() => performanceCurveStore.scenarioPerformanceCurvesGetter, () => onStateScenarioPerformanceCurvesChanged())
     function onStateScenarioPerformanceCurvesChanged() {
 
     }

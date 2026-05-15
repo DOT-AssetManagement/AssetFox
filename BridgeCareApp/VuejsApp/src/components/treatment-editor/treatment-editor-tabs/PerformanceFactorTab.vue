@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang='ts'>
-import { watch, toRefs, computed, onMounted, ref, shallowRef } from 'vue';
+import { watch, toRefs, onMounted, ref, shallowRef } from 'vue';
 import { TreatmentAttributeFactor, TreatmentPerformanceFactor, Treatment } from '@/shared/models/iAM/treatment';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { SelectItem } from '@/shared/models/vue/select-item';
@@ -58,8 +58,7 @@ import {
     PerformanceCurve,
 } from '@/shared/models/iAM/performance';
 import { clone } from 'ramda';
-import { useStore } from 'vuex';
-import { useAttributeStore } from '@/stores';
+import { useAttributeStore, usePerformanceCurveStore } from '@/stores';
 
     const props = defineProps<{
         selectedTreatmentPerformanceFactors: TreatmentPerformanceFactor[],
@@ -71,10 +70,8 @@ import { useAttributeStore } from '@/stores';
     }>(); 
     const { selectedTreatmentPerformanceFactors, selectedTreatment, scenarioId, rules, callFromScenario, callFromLibrary } = toRefs(props);
     const emit = defineEmits(['submit', 'onAddConsequence', 'onModifyConsequence', 'onRemoveConsequence','onModifyPerformanceFactor']);
-    let store = useStore();
     const attributeStore = useAttributeStore();
-    const stateScenarioPerformanceCurves = computed<PerformanceCurve[]>(() => store.state.performanceCurveModule.scenarioPerformanceCurves)
-    const stateDistinctPerformanceFactorAttributes = computed<string[]>(() => store.state.performanceCurveModule.distinctPerformanceFactorAttributes)
+    const performanceCurveStore = usePerformanceCurveStore();
 
     const factorGridHeaders: any[] = [
         { title: 'Attribute', key: 'attribute', align: 'left', sortable: false, class: '', width: '175px' },
@@ -118,7 +115,7 @@ import { useAttributeStore } from '@/stores';
         }
     }
 
-    watch(stateScenarioPerformanceCurves, () => {
+    watch(() => performanceCurveStore.scenarioPerformanceCurvesGetter, () => {
         buildDataFromCurves();
     });
 
@@ -139,7 +136,7 @@ import { useAttributeStore } from '@/stores';
     function buildDataFromCurves() {
         let testStateAttributes:Attribute[] = [];
         if(callFromLibrary.value){
-            stateDistinctPerformanceFactorAttributes.value.forEach(attr => {
+            performanceCurveStore.getDistinctPerformanceFactorAttributes.forEach(attr => {
                 attributeStore.attributesgetter.forEach((state: Attribute) => {
                     if (state.name === attr) {
                         if (testStateAttributes.findIndex((o) => { return o.name === attr }) === -1){
@@ -150,7 +147,7 @@ import { useAttributeStore } from '@/stores';
             });
         }
         else{
-            stateScenarioPerformanceCurves.value.forEach(curve => {
+            performanceCurveStore.scenarioPerformanceCurvesGetter.forEach(curve => {
                 attributeStore.attributesgetter.forEach((state: Attribute) => {
                     if (state.name === curve.attribute) {
                         if (testStateAttributes.findIndex((o) => { return o.name === curve.attribute }) === -1){
