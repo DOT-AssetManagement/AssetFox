@@ -21,7 +21,7 @@ namespace AssetFoxCore.Services
             }
             switch (dataSource.Type)
             {
-            case "MSSQL":
+            case "SQL":
                 return new SqlAttributeConnection(attribute, dataSource);
 
             case "Excel":

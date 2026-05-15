@@ -61,8 +61,10 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
 
             void fillHeaders(int row, int firstColumn, IEnumerable<string> headers)
             {
-                foreach (var (index, header) in headers.Index())
+                var indexedHeaders = headers.ToList();
+                for (var index = 0; index < indexedHeaders.Count; index++)
                 {
+                    var header = indexedHeaders[index];
                     worksheet.Cells[row, index + firstColumn].Style.WrapText = false;
                     worksheet.Cells[row, index + firstColumn].Value = header;
                 }
@@ -97,8 +99,9 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
 
             void mergeHeaderRows(int column) => ExcelHelper.MergeCells(worksheet, headerRow, column, headerRow + 1, column);
 
-            foreach (var (index, header) in HeadersRow1.Index())
+            for (var index = 0; index < HeadersRow1.Count; index++)
             {
+                var header = HeadersRow1[index];
                 if (header is "" or ANALYSIS_YEARS or PRIOR_GCR or RESULTING_GCR)
                 {
                     continue;
@@ -277,8 +280,8 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
         private class FundedTreatmentReportInfo {
             public SimulationYearDetail Year { get; init; }
             public AssetDetail Asset { get; init; }
-            public TreatmentOptionDetail? TreatmentOption { get; init; }
-            public TreatmentConsiderationDetail? TreatmentConsideration { get; init; }
+            public TreatmentOptionDetail TreatmentOption { get; init; }
+            public TreatmentConsiderationDetail TreatmentConsideration { get; init; }
             public bool IsCashFlowed { get; set; }
             public int LengthInYears { get; set; } = 1;
             public bool IsAnalysisLengthExceeded { get; set; } = false;
@@ -329,7 +332,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.FundedTreatment
                                 cashFlow.ReasonAgainstCashFlow is ReasonAgainstCashFlow.None));
 
                     var exceedsLastYear = isCashFlowed && treatmentConsiderations.Any(c => c.TreatmentName == asset.AppliedTreatment
-                        && c.CashFlowConsiderations.Any(flow => flow.ReasonAgainstCashFlow is ReasonAgainstCashFlow.LastYearOfCashFlowIsOutsideOfAnalysisPeriod));
+                        && c.CashFlowConsiderations.Any(flow => flow.ReasonAgainstCashFlow is ReasonAgainstCashFlow.LastYearOfCashFlowIsOutsideOfAnalysisPeriod)); // The Last Year thing is obsolete. Do we still need to reference it (for example to handle old simulations)?
 
                     if (treatmentsPerSection.ContainsKey(id))
                     {

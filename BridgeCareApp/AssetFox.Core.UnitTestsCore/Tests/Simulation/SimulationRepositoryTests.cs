@@ -206,6 +206,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             var unitOfWork = TestHelper.UnitOfWork;
             AttributeTestSetup.CreateAttributes(unitOfWork);
             NetworkTestSetup.CreateNetwork(unitOfWork);
+            unitOfWork.ClearAttributeIdNameCache();
             var simulation = SimulationTestSetup.DomainSimulation(TestHelper.UnitOfWork);
             var simulationId = simulation.Id;
             var investmentPlan = simulation.InvestmentPlan;

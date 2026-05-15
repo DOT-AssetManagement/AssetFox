@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Mindbox.Data.Linq" Version="3.0.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.9.1" /> <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" /> <!--Higher version of transitive dependency. Remove when the transitive dependency surpasses this version.-->
   </ItemGroup>
 
 </Project>

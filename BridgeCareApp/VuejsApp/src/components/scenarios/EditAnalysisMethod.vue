@@ -377,9 +377,8 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
 
     // watch(benefit, onAnalysisChanged)
     watch(analysisMethod, onAnalysisChanged)
-     async function onAnalysisChanged() {
-        hasUnsavedChanges.value = !equals(analysisMethod.value, analysisMethodStore.analysisMethodGetter) || !analysisMethodStore.simulationAnalysisSettingGetter;
-
+        await getSimulationAnalysisSettingAction({ scenarioId: selectedScenarioId.value });
+        hasUnsavedChanges.value = !equals(analysisMethod.value, stateAnalysisMethod.value) || !stateSimulationAnalysisSetting.value;
         unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges.value);
 
          setBenefitAttributeIfEmpty();
@@ -548,12 +547,10 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
     }
 
     async function onConfirmEmptyCriteriaAlertSubmit(submit: boolean) {
-        ConfirmEmptyCriteria.value = clone(emptyAlertData);
-
+        ConfirmEmptyCriteria.value = clone(emptyAlertData);        
         if (submit) {
             if(analysisMethod.value.benefit.id === getBlankGuid())
             analysisMethod.value.benefit.id = getNewGuid();
-
             const responseData = await analysisMethodStore.upsertAnalysisMethod(analysisMethod.value, selectedScenarioId.value);
             
             if(responseData === "Analysis Method successfully updated")

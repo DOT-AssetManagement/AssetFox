@@ -130,7 +130,7 @@ namespace AssetFoxCoreTests.Tests
             await controller.ImportCommittedProjects();
 
             // Assert
-            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            var message = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains("Committed project file not found.", message);
             _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never());
 
@@ -156,7 +156,7 @@ namespace AssetFoxCoreTests.Tests
 
             // Assert
             _mockService.Verify(_ => _.ImportCommittedProjectFiles(It.IsAny<Guid>(), It.IsAny<ExcelPackage>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never());
-            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            var message = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains(CommittedProjectController.RequestMimeTypeIsInvalid, message);
         }
 
@@ -178,7 +178,7 @@ namespace AssetFoxCoreTests.Tests
             // Act + Assert
             await controller.ImportCommittedProjects();
 
-            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            var message = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains(CommittedProjectController.RequestMimeTypeIsInvalid, message);
         }
 
@@ -478,7 +478,7 @@ namespace AssetFoxCoreTests.Tests
         {
             var httpContext = new DefaultHttpContext();
             HttpContextSetup.AddAuthorizationHeader(httpContext);
-            httpContext.Request.Headers.Add("Content-Type", "multipart/form-data");
+            httpContext.Request.Headers.Append("Content-Type", "multipart/form-data");
 
             var formData = new Dictionary<string, StringValues>()
             {

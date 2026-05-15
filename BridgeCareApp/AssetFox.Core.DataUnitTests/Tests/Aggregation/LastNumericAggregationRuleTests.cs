@@ -8,6 +8,7 @@ using AssetFox.Core.DataUnitTests.TestUtils;
 using Xunit;
 using Moq;
 using Attribute = AssetFox.Core.Data.Attributes.Attribute;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.DataUnitTests.Tests.Aggregation
 {

@@ -12,7 +12,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
 {
     public static class CriterionLibraryTestSetup
     {
-        public static CriterionLibraryDTO TestCriterionLibrary(string? namePrefix = null, string mergedCriteriaExpression = null, bool isSingleUse = true)
+        public static CriterionLibraryDTO TestCriterionLibrary(string namePrefix = null, string mergedCriteriaExpression = null, bool isSingleUse = true)
         {
             var resolvedNamePrefix = namePrefix ?? "Test Criterion Library ";
             var resolvedCriteriaExpression = mergedCriteriaExpression ?? "Test Expression";

@@ -34,7 +34,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import { toRefs, watch, ref} from 'vue';
 import { CreateTreatmentLibraryDialogData } from '@/shared/models/modals/create-treatment-library-dialog-data';
 import {
@@ -56,7 +55,12 @@ import XButton from '@/shared/components/buttons/XButton.vue';
     const props = defineProps<{dialogData: CreateTreatmentLibraryDialogData}>()
     const { dialogData } = toRefs(props);
     const emit = defineEmits(['submit'])
-    const userStore = useUserStore();
+    let store = useStore();
+    const getIdByUserNameGetter: (username: string) => string = store.getters.getIdByUserName;
+
+    function getOwnerId(username: string): string {
+        return getIdByUserNameGetter(username) || store.state.userModule?.currentUser?.id || getBlankGuid();
+    }
 
     const newTreatmentLibrary = ref<TreatmentLibrary>({...emptyTreatmentLibrary, id: getNewGuid(),});
 
@@ -94,7 +98,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
                     ),
                 }),
             ),
-            owner: userStore.getIdByUserName(currentUser),
+            owner: getOwnerId(currentUser),
         };
     });
 

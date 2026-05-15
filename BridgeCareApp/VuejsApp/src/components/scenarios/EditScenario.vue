@@ -491,9 +491,7 @@ import { useTreatmentStore } from '@/stores/treatment.store';
         });
 
         $emitter.on('InvestmentSettingsUpdated', () => {
-            // Invalidate budget priorities since they reference budgets from the previous investment settings
-            isBudgetPrioritySet.value = true;
-
+            // Update the disabled property of the Deterioration Model tab
             navigationTabs.value.forEach((tab) => {
                 if (tab.tabName === 'Deterioration Model') {
                     tab.disabled = false;
@@ -501,14 +499,6 @@ import { useTreatmentStore } from '@/stores/treatment.store';
                 else if(tab.tabName === 'Investment')
                 {
                     tab.validationIcon = 'fas fa-check-circle';
-                }
-                else if(tab.tabName === 'Budget Priority')
-                {
-                    tab.validationIcon = 'fas fa-times-circle';
-                }
-                else if(tab.tabName === 'Committed Projects' || tab.tabName === 'Cash Flow')
-                {
-                    tab.disabled = true;
                 }
             })
         });
@@ -773,11 +763,18 @@ import { useTreatmentStore } from '@/stores/treatment.store';
         }
     }
 
-    function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
-        scenarioStore.updateSimulationRunSettingName(simulationName);
-        scenarioStore.updateSimulationRunSettingId(selectedScenarioId);
+    function closePreCheckDialog() {
+        confirmAnalysisPreCheckAlertData.value = {
+            ...confirmAnalysisPreCheckAlertData.value,
+            showDialog: false,
+        };
+    }
 
-        confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
+    function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
+        store.dispatch('updateSimulationRunSettingName', simulationName);
+        store.dispatch('updateSimulationRunSettingId', selectedScenarioId);
+
+        closePreCheckDialog();
 
         selectedScenario = runAnalysisScenario;
 

@@ -44,7 +44,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
                 var code = "ZDVhZjg1MGMtZTVjMS00ZWIyLWE0OWUtNmQ5NGI2YmIzY2UyLUh5a2RyZGZVdXFvRTNHSDUwZE1YWHRZcm5pdz0=";
                 
                 // Act
-                var response = await _client.GetAsync($"/api/Authentication/UserTokens/{code}");
+                var response = await _client.GetAsync($"/api/Authentication/UserTokens/{code}", TestContext.Current.CancellationToken);
 
                 //Assert                
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);

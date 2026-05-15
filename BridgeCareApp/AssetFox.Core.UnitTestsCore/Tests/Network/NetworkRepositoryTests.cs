@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AssetFox.Core.Common;
 using AssetFox.Core.Data;
 using AssetFox.Core.Data.Networking;
 using AssetFox.Core.DataPersistenceCore.Repositories;
@@ -149,6 +150,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var networkId = NetworkTestSetup.NetworkId;
 
             var keyAttribute = TestHelper.UnitOfWork.NetworkRepo.GetNetworkKeyAttribute(networkId);

@@ -149,6 +149,7 @@ namespace AssetFoxCore.Controllers
                     {
                         var library = UnitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibaryNoChildren(selectableTreatment.LibraryId);
                         if (library != null) library.IsModified = selectableTreatment.IsModified;
+                        if (library != null) library.RuleOverrides = UnitOfWork.TreatmentRuleOverrideRepo.GetRuleOverridesBySimulationId(simulationId);
                         result = library;
                     }                                         
                 });
@@ -443,7 +444,11 @@ namespace AssetFoxCore.Controllers
                     var dtos = _treatmentPagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);
                     TreatmentDtoListService.AddLibraryIdToScenarioSelectableTreatments(dtos, pagingSync.LibraryId);
                     TreatmentDtoListService.AddModifiedToScenarioSelectableTreatments(dtos, pagingSync.IsModified);
-                    UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(dtos, simulationId);
+                    UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(dtos, simulationId, pagingSync.LibraryId.HasValue);
+                    if (pagingSync.LibraryId.HasValue)
+                    {
+                        UnitOfWork.TreatmentRuleOverrideRepo.ReplaceScenarioRuleOverridesFromLibrary(simulationId, pagingSync.LibraryId.Value, dtos);
+                    }
                 });
 
                 return Ok();
@@ -521,7 +526,7 @@ namespace AssetFoxCore.Controllers
                 {
                     excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new Exception("An invalid file was used.");
                 }
@@ -589,7 +594,7 @@ namespace AssetFoxCore.Controllers
                 {
                     excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new Exception("An invalid file was used.");
                 }
@@ -717,7 +722,7 @@ namespace AssetFoxCore.Controllers
                 {
                     excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new Exception("An invalid file was used.");
                 }
@@ -775,7 +780,7 @@ namespace AssetFoxCore.Controllers
                 {
                     excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new Exception("An invalid file was used.");
                 }
@@ -886,7 +891,7 @@ namespace AssetFoxCore.Controllers
                 {
                     excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new Exception("An invalid file was used.");
                 }
@@ -1020,7 +1025,7 @@ namespace AssetFoxCore.Controllers
                 {
                     excelPackage = new ExcelPackage(ContextAccessor.HttpContext.Request.Form.Files[0].OpenReadStream());
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new Exception("An invalid file was used.");
                 }
@@ -1126,6 +1131,126 @@ namespace AssetFoxCore.Controllers
         private List<TreatmentLibraryDTO> GetAllTreatmentLibraries()
         {
             return UnitOfWork.SelectableTreatmentRepo.GetAllTreatmentLibraries();
+        }
+
+        [HttpGet]
+        [Route("GetRuleOverrides/{libraryId}")]
+        [Authorize(Policy = Policy.ViewTreatmentFromLibrary)]
+        public async Task<IActionResult> GetRuleOverrides(Guid libraryId)
+        {
+            try
+            {
+                var result = new List<TreatmentRuleOverrideDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    result = UnitOfWork.TreatmentRuleOverrideRepo.GetRuleOverridesByLibraryId(libraryId);
+                });
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::GetRuleOverrides - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("UpsertRuleOverrides/{libraryId}")]
+        [Authorize(Policy = Policy.ModifyTreatmentFromLibrary)]
+        public async Task<IActionResult> UpsertRuleOverrides(Guid libraryId, [FromBody] List<TreatmentRuleOverrideDTO> overrides)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    var libraryAccess = UnitOfWork.TreatmentLibraryUserRepo.GetLibraryAccess(libraryId, UserId);
+                    _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
+                    UnitOfWork.TreatmentRuleOverrideRepo.UpsertRuleOverrides(libraryId, overrides);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertRuleOverrides - {e.Message}", e);
+                return Unauthorized(e.Message);
+            }
+            catch (InvalidOperationException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertRuleOverrides - {e.Message}", e);
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertRuleOverrides - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpDelete]
+        [Route("DeleteRuleOverride/{overrideId}")]
+        [Authorize(Policy = Policy.ModifyTreatmentFromLibrary)]
+        public async Task<IActionResult> DeleteRuleOverride(Guid overrideId)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    UnitOfWork.TreatmentRuleOverrideRepo.DeleteRuleOverride(overrideId);
+                });
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::DeleteRuleOverride - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("GetScenarioOverrideSettings/{simulationId}")]
+        [Authorize(Policy = Policy.ViewTreatmentFromScenario)]
+        public async Task<IActionResult> GetScenarioOverrideSettings(Guid simulationId)
+        {
+            try
+            {
+                var result = new List<ScenarioTreatmentRuleOverrideSettingDTO>();
+                await Task.Factory.StartNew(() =>
+                {
+                    result = UnitOfWork.TreatmentRuleOverrideRepo.GetOverrideSettings(simulationId);
+                });
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::GetScenarioOverrideSettings - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("UpsertScenarioOverrideSettings/{simulationId}")]
+        [Authorize(Policy = Policy.ModifyTreatmentFromScenario)]
+        public async Task<IActionResult> UpsertScenarioOverrideSettings(Guid simulationId, [FromBody] List<ScenarioTreatmentRuleOverrideSettingDTO> settings)
+        {
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    _claimHelper.CheckUserSimulationModifyAuthorization(simulationId, UserId);
+                    UnitOfWork.TreatmentRuleOverrideRepo.UpsertOverrideSettings(simulationId, settings);
+                });
+                return Ok();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertScenarioOverrideSettings - {e.Message}", e);
+                return Unauthorized(e.Message);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertScenarioOverrideSettings - {e.Message}", e);
+            }
+            return Ok();
         }
     }
 }

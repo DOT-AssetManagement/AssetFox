@@ -19,6 +19,7 @@ using DataAttribute = AssetFox.Core.Data.Attributes.Attribute;
 using AssetFox.Core.UnitTestsCore.Tests.Attributes.CalculatedAttributes;
 using AssetFox.Core.Data.Mappers;
 using AssetFox.Core.DataUnitTests.TestUtils;
+using AssetFox.Core.Common;
 
 namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
 {
@@ -122,7 +123,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
             ObjectAssertions.Equivalent(attributeBefore, attributeAfter);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public async Task AddInvalidAttribute_Fails()
         {
             Setup();
@@ -170,7 +171,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
             ObjectAssertions.Equivalent(attributeBefore, attributeAfter);
         }
 
-        [Fact]
+        [Fact(Skip = "Resurrect if we bring back aggregation.")]
         public async Task CreateTwoAttributes_OneValidOneNot_ThrowsWithoutCreatingEither()
         {
             Setup();

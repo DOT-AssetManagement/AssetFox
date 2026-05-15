@@ -8,14 +8,13 @@ using AssetFox.Core.DataUnitTests.TestUtils;
 using AssetFox.Core.DTOs;
 using AssetFoxCore.Services;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
-using AssetFox.iAM;
+using AssetFox.Core.Common;
 
 namespace AssetFoxCoreTests.Tests
 {
     public class AttributeConnectionBuilderTests
     {
         private Mock<Attribute> mockAttribute;
-        private Mock<SQLDataSourceDTO> mockSQLDataSourceDTO = new Mock<SQLDataSourceDTO>();
         private Mock<IUnitOfWork> mockUnitOfWork = new Mock<IUnitOfWork>();
 
         [Fact]
@@ -23,9 +22,10 @@ namespace AssetFoxCoreTests.Tests
         {
             // Arrange
             Init(ConnectionType.MSSQL);
-
+            var sQLDataSourceDTO = new SQLDataSourceDTO();
+            
             // Act
-            var result = AttributeConnectionBuilder.Build(mockAttribute.Object, mockSQLDataSourceDTO.Object, mockUnitOfWork.Object);           
+            var result = AttributeConnectionBuilder.Build(mockAttribute.Object, null, sQLDataSourceDTO, mockUnitOfWork.Object); // WJTodo -- fix the null param
 
             // Assert
             Assert.IsType<SqlAttributeConnection>(result);

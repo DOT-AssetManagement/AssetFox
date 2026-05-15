@@ -10,11 +10,11 @@ namespace AssetFox.Core.UnitTestsCore.TestUtils
 {
     public static class HubServiceMockExtensions
     {
-        public static List<string> GetThreeArgumentErrorMessages(this Mock<IHubService> hubServiceMock)
+        public static List<string> GetFourArgumentErrorMessages(this Mock<IHubService> hubServiceMock)
         {
             var invocations = hubServiceMock.Invocations
                 .Where(i => i.Method.Name == nameof(IHubService.SendRealTimeErrorMessage)
-                && i.Arguments.Count == 3)
+                && i.Arguments.Count == 4)
                 .ToList();
             var messages = new List<string>();
             foreach (var errorMessage in invocations)
@@ -25,14 +25,14 @@ namespace AssetFox.Core.UnitTestsCore.TestUtils
             return messages;
         }
 
-        public static string GetSingleThreeArgumentErrorMessage(this Mock<IHubService> mock)
+        public static string GetSingleFourArgumentErrorMessage(this Mock<IHubService> mock)
         {
-            var messages = mock.GetThreeArgumentErrorMessages();
+            var messages = mock.GetFourArgumentErrorMessages();
             var message = messages.Single();
             return message;
         }
 
-        public static List<string> ThreeArgumentUserMessages(this Mock<IHubService> mock)
+        public static List<string> FourArgumentUserMessages(this Mock<IHubService> mock)
         {
             var invocations = mock.Invocations.ToList();
             var realTimeMessageInvocations = invocations.Where(i => i.Method.Name == nameof(IHubService.SendRealTimeMessage)).ToList();
@@ -41,9 +41,9 @@ namespace AssetFox.Core.UnitTestsCore.TestUtils
             return threeArgumentInvocationFinalArguments;
         }
 
-        public static string SingleThreeArgumentUserMessage(this Mock<IHubService> mock)
+        public static string SingleFourArgumentUserMessage(this Mock<IHubService> mock)
         {
-            var messages = mock.ThreeArgumentUserMessages();
+            var messages = mock.FourArgumentUserMessages();
             var message = messages.Single();
             return message;
         }

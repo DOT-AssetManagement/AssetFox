@@ -47,7 +47,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Reporting
             // Assert
             Assert.Equal(ReportType.File, report.Type);
             Assert.Equal(goodReport, report.ReportTypeName);
-            Assert.Equal(0, report.Errors.Count());
+            Assert.Empty(report.Errors);
         }
 
         [Fact]

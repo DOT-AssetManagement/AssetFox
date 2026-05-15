@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using System.Linq;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
@@ -94,12 +95,23 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
             foreach (var treatment in dto.Treatments)
             {
                 var budgetJoins = new List<ScenarioSelectableTreatmentScenarioBudgetEntity>();
-                foreach (var treatmentBudget in treatment.Budgets)
+                var treatmentBudgets = treatment.Budgets != null && treatment.Budgets.Any()
+                    ? treatment.Budgets
+                    : (treatment.BudgetIds ?? new List<Guid>()).Select(id => new TreatmentBudgetDTO { Id = id }).ToList();
+                foreach (var treatmentBudget in treatmentBudgets)
                 {
-                    var budgetDto = dto.Budgets.FirstOrDefault(b => b.Name == treatmentBudget.Name);
+                    var budgetDto = dto.Budgets.FirstOrDefault(b => b.Id == treatmentBudget.Id)
+                        ?? (!string.IsNullOrWhiteSpace(treatmentBudget.Name)
+                            ? dto.Budgets.FirstOrDefault(b => b.Name == treatmentBudget.Name)
+                            : null);
+                    if (budgetDto == null)
+                    {
+                        throw new InvalidOperationException($"Unable to clone treatment '{treatment.Name}' because budget '{treatmentBudget.Name ?? treatmentBudget.Id.ToString()}' was not found in the cloned scenario budgets.");
+                    }
+
                     var budgetJoin = new ScenarioSelectableTreatmentScenarioBudgetEntity
                     {
-                        ScenarioSelectableTreatmentId = dto.Id,
+                        ScenarioSelectableTreatmentId = treatment.Id,
                         ScenarioBudgetId = budgetDto.Id,
 
                     };
@@ -110,6 +122,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 scenarioSelectableTreatmentEntity.ScenarioSelectableTreatmentScenarioBudgetJoins = budgetJoins;
                 scenarioSelectableTreatmentEntities.Add(scenarioSelectableTreatmentEntity);
             }           
+
+            var scenarioTreatmentRuleOverrideEntities = (dto.TreatmentRuleOverrides ?? new List<TreatmentRuleOverrideDTO>())
+                .Select(ruleOverride => ruleOverride.ToScenarioEntity(dto.Id, baseEntityProperties))
+                .ToList();
 
             var scenarioTargetConditionGoalEntities = new List<ScenarioTargetConditionGoalEntity>();
             foreach (var targetConditionGoal in dto.TargetConditionGoals)
@@ -213,6 +229,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 CashFlowRules = scenarioCashFlowRuleEntities,
                 CommittedProjects = committedProjectEntities,
                 SelectableTreatments = scenarioSelectableTreatmentEntities,
+                TreatmentRuleOverrides = scenarioTreatmentRuleOverrideEntities,
                 SimulationUserJoins = userJoins,
                 //SimulationAnalysisDetail = simulationAnalysisDetail,
                 //SimulationOutputs = simulationOutputs

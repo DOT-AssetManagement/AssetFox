@@ -50,7 +50,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
             // Assert
             var providedName = providedCommittedProject.Name.Single();
             Assert.Equal(4, testSimulation.CommittedProjects.Count);
-            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == providedName));
+            Assert.Single(testSimulation.CommittedProjects, _ => _.Name == providedName);
             Assert.Equal(3, testSimulation.CommittedProjects.Where(_ => _.Name == noTreatment.Name).Count());
         }
 
@@ -74,7 +74,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
                 TestEntitiesForCommittedProjects.FourYearScenarioNoTreatment());
 
             // Assert
-            Assert.Equal(1, testSimulation.CommittedProjects.Count);
+            Assert.Single(testSimulation.CommittedProjects);
         }
 
         [Fact]
@@ -98,8 +98,8 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
             var firstName = firstCommittedProject.Name.Single();
             var secondName = secondCommittedProject.Name.Single();
             Assert.Equal(4, testSimulation.CommittedProjects.Count);
-            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == firstName));
-            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == secondName));
+            Assert.Single(testSimulation.CommittedProjects, _ => _.Name == firstName);
+            Assert.Single(testSimulation.CommittedProjects, _ => _.Name == secondName);
             Assert.Equal(2, testSimulation.CommittedProjects.Where(_ => _.Name == noTreatment.Name).Count());
         }
 
@@ -128,7 +128,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
             // Assert
             var secondName = secondCommittedProject.Name.Single();
             Assert.Equal(5, testSimulation.CommittedProjects.Count);
-            Assert.Single(testSimulation.CommittedProjects.Where(_ => _.Name == secondName));
+            Assert.Single(testSimulation.CommittedProjects, _ => _.Name == secondName);
             Assert.Equal(3, testSimulation.CommittedProjects.Where(_ => _.Name == noTreatment.Name).Count());
         }
     }

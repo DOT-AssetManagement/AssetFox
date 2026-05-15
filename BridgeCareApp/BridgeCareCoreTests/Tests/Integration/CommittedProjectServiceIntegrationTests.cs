@@ -59,7 +59,7 @@ namespace AssetFoxCoreTests.Tests.Integration
                 maintainableAssets, attributes, assetKeyData);
             var treatmentId = Guid.NewGuid();
             var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(
-                TestHelper.UnitOfWork, scenarioId, treatmentId, "treatment");
+                TestHelper.UnitOfWork, scenarioId, treatmentId, treatmentName);
             var treatmentCost = ScenarioTreatmentCostTestSetup.CostForTreatmentInDb(
                 TestHelper.UnitOfWork, treatmentId, scenarioId, mergedCriteriaExpression: "ThrowingCriteria");
 
@@ -101,7 +101,7 @@ namespace AssetFoxCoreTests.Tests.Integration
                 maintainableAssets, attributes, assetKeyData);
             var treatmentId = Guid.NewGuid();
             var treatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(
-                TestHelper.UnitOfWork, scenarioId, treatmentId, "treatment");
+                TestHelper.UnitOfWork, scenarioId, treatmentId, treatmentName);
             var treatmentCost = ScenarioTreatmentCostTestSetup.CostForTreatmentInDb(
                 TestHelper.UnitOfWork, treatmentId, scenarioId, mergedCriteriaExpression: $"[{resultAttributeName}]='ok'", equation:"12345");
             var keyAttributes = new List<IamAttribute> { keyAttribute };

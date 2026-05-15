@@ -115,10 +115,7 @@
                                     variant="outlined"
                                     rows="3"
                                     readonly                                            
-                                    :model-value="
-                                        selectedTreatmentDetails.criterionLibrary
-                                            .mergedCriteriaExpression
-                                    "
+                                    :model-value="effectiveCriteriaExpression"
                                 >
                                 </v-textarea>         
                             </v-col>      
@@ -128,11 +125,7 @@
                     <v-card-text>
                         <v-textarea
                             class="ghd-card-width"
-                            :model-value="
-                                selectedTreatmentDetails
-                                    .criterionLibrary
-                                    .mergedCriteriaExpression
-                            "
+                            :model-value="effectiveCriteriaExpression"
                             full-width
                             no-resize
                             variant="outlined"
@@ -175,6 +168,7 @@ import {
     CriterionLibrary,
     emptyCriterionLibrary,
 } from '@/shared/models/iAM/criteria';
+import { TreatmentRuleOverride, TreatmentRuleOverrideCriterion } from '@/shared/models/iAM/treatment-rule-override';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditorDialog.vue';
 import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
@@ -187,11 +181,14 @@ import { useAdminDataStore } from '@/stores';
     const emit = defineEmits(['submit', 'onModifyTreatmentDetails'])
     const props = defineProps<{
         selectedTreatmentDetails: TreatmentDetails,
+        selectedTreatmentId: string,
+        selectedTreatmentName: string,
+        ruleOverrides: TreatmentRuleOverride[],
         rules: InputValidationRules,
         callFromScenario: boolean,
         callFromLibrary: boolean
     }>();
-    const { rules, callFromScenario, callFromLibrary, selectedTreatmentDetails } = toRefs(props);
+    const { rules, callFromScenario, callFromLibrary, selectedTreatmentDetails, selectedTreatmentId, selectedTreatmentName, ruleOverrides } = toRefs(props);
     const TreatmentIsUnSelectable = ref(false);
     const treatmentCriterionEditorDialogData = ref(clone(emptyGeneralCriterionEditorDialogData));
     let uuidNIL: string = getBlankGuid();
@@ -204,6 +201,14 @@ import { useAdminDataStore } from '@/stores';
     let assetTypeBinding = ref('');
 
     const mask = { mask: '##########' };
+    const effectiveCriteriaExpression = computed(() => {
+        const baseExpression = selectedTreatmentDetails.value.criterionLibrary?.mergedCriteriaExpression ?? '';
+        if (!callFromScenario.value) {
+            return baseExpression;
+        }
+
+        return combineOverrideCriteria(baseExpression, getActiveOverrideCriteriaForSelectedTreatment());
+    });
 
     created();
     function created() {
@@ -314,6 +319,72 @@ import { useAdminDataStore } from '@/stores';
                 selectedTreatmentDetails.value,
             ),
         );
+    }
+
+    function getActiveOverrideCriteriaForSelectedTreatment(): TreatmentRuleOverrideCriterion[] {
+        return (ruleOverrides.value || [])
+            .filter(ruleOverride => ruleOverride.isEnabled ?? ruleOverride.isEnabledByDefault)
+            .sort((left, right) => (left.name || '').localeCompare(right.name || ''))
+            .flatMap(ruleOverride => (ruleOverride.criteria || [])
+                .slice()
+                .sort((left, right) => (left.sortOrder ?? 0) - (right.sortOrder ?? 0))
+                .filter(criterion => !!criterion.criterionExpression?.trim() && criterionTargetsSelectedTreatment(criterion)));
+    }
+
+    function criterionTargetsSelectedTreatment(criterion: TreatmentRuleOverrideCriterion): boolean {
+        const selectedId = selectedTreatmentId.value?.toLowerCase();
+        const targetIds = [
+            ...(criterion.treatmentIds || []),
+            ...((criterion.treatments || []).map(treatment => treatment.id)),
+        ].map(id => id?.toLowerCase());
+
+        if (selectedId && targetIds.includes(selectedId)) {
+            return true;
+        }
+
+        return !!criterion.treatmentName
+            && !!selectedTreatmentName.value
+            && criterion.treatmentName.toLowerCase() === selectedTreatmentName.value.toLowerCase();
+    }
+
+    function combineOverrideCriteria(baseExpression: string, overrideCriteria: TreatmentRuleOverrideCriterion[]): string {
+        const criteria = overrideCriteria
+            .filter(overrideCriterion => !!overrideCriterion.criterionExpression?.trim())
+            .map(overrideCriterion => ({
+                logicalOperator: normalizeLogicalOperator(overrideCriterion.logicalOperator),
+                criterionExpression: parenthesizeExpression(overrideCriterion.criterionExpression),
+            }));
+        if (criteria.length === 0) {
+            return baseExpression?.trim() ?? '';
+        }
+
+        const andExpressions = [
+            baseExpression?.trim() ? parenthesizeExpression(baseExpression) : '',
+            ...criteria
+                .filter(overrideCriterion => overrideCriterion.logicalOperator === 'AND')
+                .map(overrideCriterion => overrideCriterion.criterionExpression),
+        ].filter(expression => !!expression);
+
+        const expressionGroups: string[] = [];
+        if (andExpressions.length > 0) {
+            const andGroupExpression = andExpressions.join(' AND ');
+            expressionGroups.push(andExpressions.length > 1 ? parenthesizeExpression(andGroupExpression) : andGroupExpression);
+        }
+
+        expressionGroups.push(...criteria
+            .filter(overrideCriterion => overrideCriterion.logicalOperator === 'OR')
+            .map(overrideCriterion => overrideCriterion.criterionExpression));
+
+        return expressionGroups.join(' OR ');
+    }
+
+    function parenthesizeExpression(expression: string): string {
+        const trimmedExpression = expression?.trim() ?? '';
+        return trimmedExpression ? `(${trimmedExpression})` : '';
+    }
+
+    function normalizeLogicalOperator(logicalOperator: string): 'AND' | 'OR' {
+        return logicalOperator?.toUpperCase() === 'OR' ? 'OR' : 'AND';
     }
 
 </script>

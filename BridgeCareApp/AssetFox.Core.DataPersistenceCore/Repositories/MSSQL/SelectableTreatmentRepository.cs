@@ -71,12 +71,13 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
             var simpleTreatments = _unitOfWork.Context.ScenarioSelectableTreatment.AsNoTracking()
                 .Where(_ => _.SimulationId == simulation.Id).ToList();
+            var activeOverrideCriteria = _unitOfWork.TreatmentRuleOverrideRepo.GetActiveOverrideCriteria(simulation.Id);
 
             //Sort treatment based on supersede dependencies.
             //This must be performed to hyrdate treatments in the correct order during Simulation load.
             var sortedTreatments = TopologicalSort(treatments);
 
-            sortedTreatments.ForEach(_ => _.CreateSelectableTreatment(simulation, simpleTreatments));
+            sortedTreatments.ForEach(_ => _.CreateSelectableTreatment(simulation, simpleTreatments, activeOverrideCriteria));
         }
 
         private static List<ScenarioSelectableTreatmentEntity> TopologicalSort(List<ScenarioSelectableTreatmentEntity> treatments)
@@ -171,6 +172,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         public TreatmentLibraryDTO GetSingleTreatmentLibaryNoChildren(Guid libraryId)
         {
             var entity = _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
+                .Include(_ => _.RuleOverrides)
+                    .ThenInclude(ro => ro.Criteria)
+                    .ThenInclude(c => c.TreatmentJoins)
+                    .ThenInclude(j => j.SelectableTreatment)
                 .SingleOrDefault(_ => _.Id == libraryId);
             var returnValue = entity == null
                 ? null : entity.ToDto();
@@ -179,12 +184,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public List<TreatmentLibraryDTO> GetAllTreatmentLibraries()
         {
-            if (!_unitOfWork.Context.SelectableTreatment.Any())
-            {
-                return new List<TreatmentLibraryDTO>();
-            }
-
-            return _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
+            var entities = _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
                 .AsSplitQuery()
                 .Include(_ => _.Treatments)
                 .ThenInclude(_ => _.TreatmentCosts)
@@ -208,9 +208,14 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .Include(_ => _.Treatments)
                 .ThenInclude(_ => _.CriterionLibrarySelectableTreatmentJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
+                .Include(_ => _.RuleOverrides)
+                    .ThenInclude(ro => ro.Criteria)
+                    .ThenInclude(c => c.TreatmentJoins)
+                    .ThenInclude(j => j.SelectableTreatment)
                 .OrderBy(_ => _.Name)
-                .Select(_ => _.ToDto(null))
                 .ToList();
+
+            return entities.Select(_ => _.ToDto(null)).ToList();
         }
 
         public DateTime GetLibraryModifiedDate(Guid treatmentLibraryId)
@@ -221,26 +226,31 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public List<TreatmentLibraryDTO> GetAllTreatmentLibrariesNoChildren()
         {
-            if (!_unitOfWork.Context.SelectableTreatment.Any())
-            {
-                return new List<TreatmentLibraryDTO>();
-            }
-
-            return _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
+            var entities = _unitOfWork.Context.TreatmentLibrary.AsNoTracking()
                 .Include(_ => _.Treatments)
+                .Include(_ => _.RuleOverrides)
+                    .ThenInclude(ro => ro.Criteria)
+                    .ThenInclude(c => c.TreatmentJoins)
+                    .ThenInclude(j => j.SelectableTreatment)
                 .OrderBy(_ => _.Name)
-                .Select(_ => _.ToDto(null))
                 .ToList();
+
+            return entities.Select(_ => _.ToDto(null)).ToList();
         }
 
         public List<TreatmentLibraryDTO> GetTreatmentLibrariesNoChildrenAccessibleToUser(Guid userId)
         {
-            return _unitOfWork.Context.TreatmentLibraryUser
+            var userLibraries = _unitOfWork.Context.TreatmentLibraryUser
                 .AsNoTracking()
                 .Include(u => u.TreatmentLibrary)
+                    .ThenInclude(lib => lib.RuleOverrides)
+                    .ThenInclude(ro => ro.Criteria)
+                    .ThenInclude(c => c.TreatmentJoins)
+                    .ThenInclude(j => j.SelectableTreatment)
                 .Where(u => u.UserId == userId)
-                .Select(u => u.TreatmentLibrary.ToDto(null))
                 .ToList();
+
+            return userLibraries.Select(u => u.TreatmentLibrary.ToDto(null)).ToList();
         }
 
         public void UpsertTreatmentLibrary(TreatmentLibraryDTO dto) =>
@@ -340,6 +350,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .Where(_ => _.TreatmentLibraryId == libraryId && entityIds.Contains(_.Id)).Select(_ => _.Id)
                 .ToList();
 
+            _unitOfWork.Context.DeleteAll<TreatmentRuleOverrideCriterionTreatmentEntity>(_ =>
+                _.SelectableTreatment.TreatmentLibraryId == libraryId && !entityIds.Contains(_.SelectableTreatmentId));
+
             _unitOfWork.Context.DeleteAll<SelectableTreatmentEntity>(_ =>
                 _.TreatmentLibraryId == libraryId && !entityIds.Contains(_.Id));
 
@@ -421,10 +434,15 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .ToDictionary(_ => _.Id, _ => _.SupersedeRules);
                 _unitOfWork.TreatmentSupersedeRuleRepo.UpsertOrDeleteTreatmentSupersedeRules(supersedeRulesPerTreatmentId, libraryId);
             }
+
+            _unitOfWork.TreatmentRuleOverrideRepo.DeleteCriteriaWithoutTreatmentsForLibrary(libraryId);
         }
 
         public void ReplaceTreatmentLibrary(Guid libraryId, List<TreatmentDTO> treatments)
         {
+            _unitOfWork.Context.DeleteAll<TreatmentRuleOverrideCriterionTreatmentEntity>(_ =>
+                _.SelectableTreatment.TreatmentLibraryId == libraryId);
+
             _unitOfWork.Context.DeleteAll<SelectableTreatmentEntity>(_ =>
                 _.TreatmentLibraryId == libraryId);
 
@@ -675,6 +693,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     _unitOfWork.TreatmentSupersedeRuleRepo.UpsertOrDeleteScenarioTreatmentSupersedeRules(supersedeRulesPerTreatmentId, simulationId);
                 }
 
+                _unitOfWork.TreatmentRuleOverrideRepo.DeleteCriteriaWithoutTreatmentsForScenario(simulationId);
+
                 // Update last modified date
                 var simulationEntity = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
                 _unitOfWork.Context.Upsert(simulationEntity, simulationId, _unitOfWork.UserEntity?.Id);
@@ -682,7 +702,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         }
 
         public void UpsertOrDeleteScenarioSelectableTreatment(List<TreatmentDTO> scenarioSelectableTreatments,
-            Guid simulationId)
+            Guid simulationId, bool replaceScenarioRuleOverrides = false)
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
@@ -698,6 +718,11 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .ToList();
             _unitOfWork.AsTransaction(() =>
             {
+                if (replaceScenarioRuleOverrides)
+                {
+                    _unitOfWork.TreatmentRuleOverrideRepo.DeleteScenarioRuleOverrides(simulationId);
+                }
+
                 _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentScenarioBudgetEntity>(_ =>
                     _.ScenarioSelectableTreatment.SimulationId == simulationId);
 
@@ -709,6 +734,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
                 _unitOfWork.Context.DeleteAll<ScenarioTreatmentPerformanceFactorEntity>(_ =>
                     _.ScenarioSelectableTreatment.SimulationId == simulationId);
+
+                _unitOfWork.Context.DeleteAll<ScenarioTreatmentRuleOverrideCriterionTreatmentEntity>(_ =>
+                    _.ScenarioSelectableTreatment.SimulationId == simulationId &&
+                    !entityIds.Contains(_.ScenarioSelectableTreatmentId));
 
                 _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentEntity>(_ =>
                     _.SimulationId == simulationId && !entityIds.Contains(_.Id));
@@ -810,6 +839,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     _unitOfWork.TreatmentSupersedeRuleRepo.UpsertOrDeleteScenarioTreatmentSupersedeRules(supersedeRulesPerTreatmentId, simulationId);
                 }
 
+                _unitOfWork.TreatmentRuleOverrideRepo.DeleteCriteriaWithoutTreatmentsForScenario(simulationId);
+
                 // Update last modified date
                 var simulationEntity = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
                 _unitOfWork.Context.Upsert(simulationEntity, simulationId, _unitOfWork.UserEntity?.Id);
@@ -826,6 +857,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var entityId = treatment.Id;
             _unitOfWork.AsTransaction(() =>
             {
+
+                _unitOfWork.Context.DeleteAll<TreatmentRuleOverrideCriterionTreatmentEntity>(_ =>
+                    _.SelectableTreatmentId == entityId);
 
                 _unitOfWork.Context.DeleteAll<SelectableTreatmentEntity>(_ =>
                     _.TreatmentLibraryId == libraryId && entityId == _.Id);
@@ -846,6 +880,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
                 _unitOfWork.Context.DeleteAll<TreatmentSupersedeRuleEntity>(_ =>
                     _.SelectableTreatment.TreatmentLibraryId == libraryId && _.SelectableTreatment.Id == treatment.Id);
+
+                _unitOfWork.TreatmentRuleOverrideRepo.DeleteCriteriaWithoutTreatmentsForLibrary(libraryId);
             });
         }
 
@@ -875,8 +911,10 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     {
                         // 2. Delete from the linking table using a SINGLE efficient raw SQL call.
                         string ruleIdsString = string.Join(",", ruleIdsToDelete.Select(id => $"'{id}'"));
+#pragma warning disable EF1002 // The warning about SQL injection is suppressed here because the IDs are guids, which makes this safe. For another potential work around, see commit 31ef16a2936dbc7dd71f7eb502996344eaa29874. But according to GPT, that one introduces a limit of 2100 guids, beyond which it won't work.
                         _unitOfWork.Context.Database.ExecuteSqlRaw(
                              $"DELETE FROM dbo.CriterionLibrary_ScenarioTreatmentSupersedeRule WHERE ScenarioTreatmentSupersedeRuleId IN ({ruleIdsString})");
+#pragma warning restore EF1002 // Risk of vulnerability to SQL injection.
 
                         // 3. Delete from the parent table.
                         _unitOfWork.Context.DeleteAll<ScenarioTreatmentSupersedeRuleEntity>(x => x.TreatmentId == entityId || x.PreventTreatmentId == entityId);
@@ -885,6 +923,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
                 _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentScenarioBudgetEntity>(_ =>
                     _.ScenarioSelectableTreatment.SimulationId == simulationId && _.ScenarioSelectableTreatment.Id == entityId);
+
+                _unitOfWork.Context.DeleteAll<ScenarioTreatmentRuleOverrideCriterionTreatmentEntity>(_ =>
+                    _.ScenarioSelectableTreatmentId == entityId);
 
                 _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentEntity>(_ =>
                     _.SimulationId == simulationId && _.Id == entityId);
@@ -908,6 +949,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     _.ScenarioConditionalTreatmentConsequence.ScenarioSelectableTreatment.SimulationId == simulationId
                     && _.ScenarioConditionalTreatmentConsequence.ScenarioSelectableTreatment.Id == entityId);
 
+                _unitOfWork.TreatmentRuleOverrideRepo.DeleteCriteriaWithoutTreatmentsForScenario(simulationId);
 
                 // Update last modified date.
                 var simulationEntity = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
@@ -1183,8 +1225,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
             var simpleTreatments = _unitOfWork.Context.ScenarioSelectableTreatment.AsNoTracking()
                 .Where(_ => _.SimulationId == simulation.Id).ToList();
+            var activeOverrideCriteria = _unitOfWork.TreatmentRuleOverrideRepo.GetActiveOverrideCriteria(simulation.Id);
 
-            treatments.ForEach(_ => _.CreateSelectableTreatment(simulation, simpleTreatments));
+            treatments.ForEach(_ => _.CreateSelectableTreatment(simulation, simpleTreatments, activeOverrideCriteria));
         }
 
         private List<LibraryUserDTO> GetAccessForUser(Guid treatmentLibraryId, Guid userId)

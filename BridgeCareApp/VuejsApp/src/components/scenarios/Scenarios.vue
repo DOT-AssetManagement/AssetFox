@@ -512,9 +512,6 @@
             @submit="onConfirmAnalysisRunAlertSubmit"
             />
 
-        <AlertWithButtons :dialogDataWithButtons="confirmAnalysisRunAlertData"
-            @submit="onConfirmAnalysisRunAlertSubmit" />
-
         <Alert :dialogData="ConfirmConvertJsonToRelationalData" @submit="onConfirmConvertJsonToRelationalAlertSubmit" />
 
         <ReportsDownloaderDialog :dialogData="reportsDownloaderDialogData" />
@@ -1588,10 +1585,17 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScena
         }
     }
 
+    function closePreCheckDialog() {
+        confirmAnalysisPreCheckAlertData.value = {
+            ...confirmAnalysisPreCheckAlertData.value,
+            showDialog: false,
+        };
+    }
+
     async function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
-        scenarioStore.updateSimulationRunSettingName(selectedScenario.name);
-        scenarioStore.updateSimulationRunSettingId(selectedScenario.id);
-        confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
+        store.dispatch('updateSimulationRunSettingName', selectedScenario.name);
+        store.dispatch('updateSimulationRunSettingId', selectedScenario.id);
+        closePreCheckDialog();
         selectedScenario = runAnalysisScenario;
 
         if (submit && selectedScenario.id !== getBlankGuid()) {

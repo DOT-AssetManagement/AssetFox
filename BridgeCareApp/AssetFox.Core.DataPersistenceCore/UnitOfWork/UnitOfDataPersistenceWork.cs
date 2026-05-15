@@ -1,5 +1,4 @@
 using System;
-using System.Data.SqlClient;
 using System.Linq;
 using AssetFox.Core.DataPersistenceCore.Repositories;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
@@ -27,7 +26,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
             Config = config ?? throw new ArgumentNullException(nameof(config));
             Context = context ?? throw new ArgumentNullException(nameof(context));
 
-            EncryptionKey = Config.GetChildren().Count() > 0 && Config != null ? Config.GetSection("EncryptionKey").Value : String.Empty;
+            EncryptionKey = Config.GetChildren().Any() && Config != null ? Config.GetSection("EncryptionKey").Value : String.Empty;
         }
                 
         public string EncryptionKey { get; }
@@ -41,7 +40,6 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
 
         private IAnalysisMethodRepository _analysisMethodRepo;
         private IAttributeDatumRepository _attributeDatumRepo;
-        private IAttributeMetaDataRepository _attributeMetaDataRepo;
         private IAttributeRepository _attributeRepo;
         private IAttributeValueHistoryRepository _attributeValueHistoryRepo;
         private IBenefitRepository _benefitRepo;
@@ -53,8 +51,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private ICommittedProjectRepository _committedProjectRepo;      
         private ICriterionLibraryRepository _criterionLibraryRepo;
         private IDeficientConditionGoalRepository _deficientConditionGoalRepo;
-        private IExcelRawDataRepository _excelWorksheetRepo;
-        private IDataSourceMappingRepository _dataSourceMappingRepo;
+        private IExcelRawDataRepository _excelWorksheetRepo;  // should we delete this? 
+        private IDataSourceMappingRepository _dataSourceMappingRepo; // should we delete this?
         private IInvestmentPlanRepository _investmentPlanRepo;
         private IMaintainableAssetRepository _maintainableAssetRepo;
         private INetworkRepository _networkRepo;
@@ -62,6 +60,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private ICalculatedAttributesRepository _calculatedAttributesRepo;
         private IRemainingLifeLimitRepository _remainingLifeLimitRepo;
         private ISelectableTreatmentRepository _selectableTreatmentRepo;
+        private ITreatmentRuleOverrideRepository _treatmentRuleOverrideRepo;
         private ISimulationAnalysisDetailRepository _simulationAnalysisDetailRepo;
         private ISimulationLogRepository _simulationLogRepo;
         private ISimulationOutputRepository _simulationOutputRepo;
@@ -77,6 +76,7 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         private IBenefitQuantifierRepository _benefitQuantifierRepo;
         private IUserCriteriaRepository _userCriteriaRepo;
         private IReportIndexRepository _reportIndexRepo;
+        private IReportSchemaRepository _reportSchemaRepo;
         private IAssetData _assetDataRepository;
         private IAnnouncementRepository _announcementRepo;
         private IDataSourceRepository _dataSourceRepo;
@@ -129,6 +129,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
 
         public ISelectableTreatmentRepository SelectableTreatmentRepo => _selectableTreatmentRepo ??= new SelectableTreatmentRepository(this);
 
+        public ITreatmentRuleOverrideRepository TreatmentRuleOverrideRepo => _treatmentRuleOverrideRepo ??= new TreatmentRuleOverrideRepository(this);
+
         public ISimulationAnalysisDetailRepository SimulationAnalysisDetailRepo => _simulationAnalysisDetailRepo ??= new SimulationAnalysisDetailRepository(this);
 
         public ISimulationLogRepository SimulationLogRepo => _simulationLogRepo ??= new SimulationLogRepository(this);
@@ -158,6 +160,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
         public IUserCriteriaRepository UserCriteriaRepo => _userCriteriaRepo ??= new UserCriteriaRepository(this);
 
         public IReportIndexRepository ReportIndexRepository => _reportIndexRepo ??= new ReportIndexRepository(this);
+
+        public IReportSchemaRepository ReportSchemaRepo => _reportSchemaRepo ??= new ReportSchemaRepository(this);
 
         public IAssetData AssetDataRepository => _assetDataRepository ??= new MaintainableAssetDataRepository(this);
 

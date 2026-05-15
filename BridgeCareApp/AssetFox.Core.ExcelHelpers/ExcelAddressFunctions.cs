@@ -18,10 +18,6 @@ namespace AssetFox.Core.ExcelHelpers
         /// <returns></returns>
         public static string ChangeAbsolute(string address, bool absoluteColumn, bool absoluteRow)
         {
-            if (absoluteRow || absoluteColumn)
-            {
-                int x = 666;
-            }
             var returnValue = new string(address.Where(x => x != '$').ToArray());
             if (absoluteRow)
             {

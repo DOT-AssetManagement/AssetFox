@@ -116,6 +116,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Attributes.CalculatedAttributes
             // TODO:  Ensure existing, non-modified attributes are preserved
             // Arrange
             Setup();
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
 
             Guid scenarioId = Guid.NewGuid();
 

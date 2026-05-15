@@ -50,12 +50,13 @@ namespace AssetFoxCore.Services
             _unitOfWork.SimulationOutputRepo.DeleteScenarioOutputsWithingDaterange(LowerBoundDate, UpperBoundDate, cancellationToken);
         }
 
-        public void OnFault(IServiceProvider serviceProvider, string errorMessage)
+        public void OnFault(IServiceProvider serviceProvider, Exception? e)
         {
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
+            var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{SimulationController.SimulationError}::DeleteSimulationOutput - {errorMessage}");
+            _hubService.SendRealTimeErrorMessage(UserId, $"{SimulationController.SimulationError}::DeleteSimulationOutput - {errorMessage}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)

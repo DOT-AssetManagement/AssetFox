@@ -47,12 +47,13 @@ namespace AssetFoxCore.Services
             _unitOfWork.NetworkRepo.DeleteNetwork(NetworkId, cancellationToken, _queueLogger);
         }
 
-        public void OnFault(IServiceProvider serviceProvider, string errorMessage)
+        public void OnFault(IServiceProvider serviceProvider, Exception? e)
         {
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
+            var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"Network Error::DeleteNetwork - {errorMessage}");
+            _hubService.SendRealTimeMessage(UserId, $"Network Error::DeleteNetwork - {errorMessage}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)

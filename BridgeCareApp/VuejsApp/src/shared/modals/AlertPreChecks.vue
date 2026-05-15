@@ -12,7 +12,7 @@
                 </v-card-title>
                 <div style='height: 100%; max-width:100%' class="ghd-dialog-box-padding-center">                    
                     <div style='max-height: 450px; border:1px solid black; overflow-y:auto;'>
-                        <div v-if=dialogDataPreChecks.ErrorHeading != ''>                            
+                        <div v-if="dialogDataPreChecks.ErrorHeading != ''">
                             <v-card-text class="px-4" style="margin-top: -10px;">
                                 <div style="font-weight: 500; margin-top: 0px; margin-bottom: 5px;">
                                     {{dialogDataPreChecks.ErrorHeading}}
@@ -24,7 +24,7 @@
                                 </ul>
                             </v-card-text>
                         </div>
-                        <div v-if=dialogDataPreChecks.WarningHeading != ''>                            
+                        <div v-if="dialogDataPreChecks.WarningHeading != ''">
                             <v-card-text class="px-4" style="margin-top: -10px;">
                                 <div style="font-weight: 500; margin-top: 0px; margin-bottom: 5px;">
                                     {{dialogDataPreChecks.WarningHeading}}
@@ -36,7 +36,7 @@
                                 </ul>
                             </v-card-text>
                         </div>
-                        <div v-if=dialogDataPreChecks.SuccessHeading != ''>                            
+                        <div v-if="dialogDataPreChecks.SuccessHeading != ''">
                             <v-card-text class="px-4" style="margin-top: -10px;">
                                 <div style="font-weight: 500; margin-top: 0px; margin-bottom: 5px;">
                                     {{dialogDataPreChecks.SuccessHeading}}

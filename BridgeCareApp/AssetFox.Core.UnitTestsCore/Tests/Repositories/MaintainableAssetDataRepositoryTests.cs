@@ -16,7 +16,6 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
     public class MaintainableAssetDataRepositoryTests
     {
         private TestDataForMaintainableAssetRepo _testData;
-        private TestDataForMaintainableAssetRepo _failedTestData;
         private UnitOfDataPersistenceWork _testRepo;
         private UnitOfDataPersistenceWork _testRawRepo;
         private UnitOfDataPersistenceWork _failedRepo;
@@ -127,7 +126,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
             var testSegment = repo.GetAssetAttributes(TestAttributeNames.BmsId, "13401256");
 
             // Assert
-            Assert.Single(testSegment.Where(_ => _.Name == TestAttributeNames.BrKey));            
+            Assert.Single(testSegment, _ => _.Name == TestAttributeNames.BrKey);
             Assert.Equal("13401256", testSegment.First(_ => _.Name == TestAttributeNames.BrKey).Value);
             Assert.Equal("15.4", testSegment.First(_ => _.Name == "Length").TextValue);
             Assert.Equal("First B", testSegment.First(_ => _.Name == "Name").TextValue);
@@ -157,7 +156,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.Repositories
             var testSegment = repo.GetAssetAttributes(TestAttributeNames.BrKey, "100");
 
             // Assert
-            Assert.Equal(0, testSegment.Count());
+            Assert.Empty(testSegment);
         }
 
         [Fact]

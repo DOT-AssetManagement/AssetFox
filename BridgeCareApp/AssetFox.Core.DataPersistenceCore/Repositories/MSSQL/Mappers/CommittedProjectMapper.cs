@@ -30,7 +30,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 ShadowForSameTreatment = domain.ShadowForSameTreatment,
                 Cost = domain.Cost,
                 Year = domain.Year,
-                treatmentCategory = domain.treatmentCategory,
+                treatmentCategory = domain.Category,
                 ProjectSource = domain.ProjectSource.ToString()
             };
 

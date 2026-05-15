@@ -285,21 +285,21 @@ const actions = {
 };
 
 const getters = {
-    getUserNameById: (state: any) => (id: string) => {
-        var userIndex = findIndex(
-            propEq('id', id),
-            state.users,
-        );
+    getUserNameById: (state: any) => (id?: string) => {
+        if (!id) {
+            return '';
+        }
 
-        return state.users[userIndex].username;
+        const user = state.users.find((user: User) => user.id === id);
+        return user?.username || '';
     },
-    getIdByUserName: (state: any) => (username: string) => {
-        var userIndex = findIndex(
-            propEq('username', username),
-            state.users,
-        );
+    getIdByUserName: (state: any) => (username?: string) => {
+        if (!username) {
+            return '';
+        }
 
-        return state.users[userIndex].id;
+        const user = state.users.find((user: User) => user.username === username);
+        return user?.id || '';
     },
 };
 

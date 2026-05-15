@@ -47,7 +47,7 @@ namespace AssetFoxCoreTests.Tests
             var result = await controller.UpsertOrDeleteBudgetLibraryUsers(libraryId, updatedUserDtos);
 
             ActionResultAssertions.Ok(result);
-            var hubMessage = hubService.GetSingleThreeArgumentErrorMessage();
+            var hubMessage = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains(ClaimHelper.LibraryAccessModificationUnauthorizedMessage, hubMessage);
         }
 
@@ -129,7 +129,7 @@ namespace AssetFoxCoreTests.Tests
             ActionResultAssertions.Ok(result);
             var invocations = budgetRepo.InvocationsWithName(nameof(IBudgetRepository.UpsertOrDeleteUsers));
             Assert.Empty(invocations);
-            var hubMessage = hubService.GetSingleThreeArgumentErrorMessage();
+            var hubMessage = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains(ClaimHelper.AddingOwnersIsNotAllowedMessage, hubMessage);
         }
 
@@ -216,7 +216,7 @@ namespace AssetFoxCoreTests.Tests
             ActionResultAssertions.Ok(result);
             var invocations = budgetRepo.InvocationsWithName(nameof(IBudgetRepository.UpsertOrDeleteUsers));
             Assert.Empty(invocations);
-            var hubMessage = hubService.GetSingleThreeArgumentErrorMessage();
+            var hubMessage = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains(ClaimHelper.RemovingOwnersIsNotAllowedMessage, hubMessage);
         }
     }

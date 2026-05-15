@@ -99,15 +99,16 @@ namespace AssetFoxCore.Services
             logger.Information(message);
         }
 
-        public void OnFault(IServiceProvider serviceProvider, string errorMessage)
+        public void OnFault(IServiceProvider serviceProvider, Exception e)
         {
             string cacheRebuildError = "Error building attribute value cache";
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
+            var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastError, $"{cacheRebuildError}::NetworkAggregateAccess - {errorMessage}");
+            _hubService.SendRealTimeErrorMessage(UserId, $"{cacheRebuildError}::NetworkAggregateAccess - {errorMessage}", e ?? new Exception(), false);
             var logger = serviceProvider.GetRequiredService<ILog>();
-            logger.Error(errorMessage);
+            logger.Error(e?.InnerException?.Message);
 
         }
         public void OnUpdate(IServiceProvider serviceProvider)

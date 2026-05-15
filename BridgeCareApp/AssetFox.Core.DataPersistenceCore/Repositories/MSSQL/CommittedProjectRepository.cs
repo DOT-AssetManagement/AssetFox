@@ -36,18 +36,20 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var selectableTreatmentRepository = _unitOfWork.SelectableTreatmentRepo;
             var selectableTreatments = simulation.Treatments;
 
-            var simulationEntity = _unitOfWork.Context.Simulation.FirstOrDefault(_ => _.Id == simulation.Id)
+            var simulationEntity = _unitOfWork.Context.Simulation.AsNoTracking().FirstOrDefault(_ => _.Id == simulation.Id)
                 ?? throw new SimulationDataValidationException("No simulation was found for the given scenario.", "Scenario");
 
             var noTreatmentEntity = selectableTreatmentRepository.GetDefaultTreatment(simulation.Id)
                 ?? throw new SimulationDataValidationException("Simulation has no default treatments.", "Treatment");
 
             var assets = _unitOfWork.Context.MaintainableAsset
+            .AsNoTracking()
             .Where(_ => _.NetworkId == simulation.Network.Id)
             .Include(_ => _.MaintainableAssetLocation)
             .ToList();
 
             var investmentPlans = _unitOfWork.Context.InvestmentPlan
+                .AsNoTracking()
                 .Where(_ => _.SimulationId == simulation.Id)
                 .OrderBy(_ => _.FirstYearOfAnalysisPeriod)
                 .ToList() ?? throw new SimulationDataValidationException($"No investment plan found for simulation {simulation.Id}.", "Investment");
@@ -55,6 +57,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             int investmentEndYear = investmentPlans.Max(_ => _.FirstYearOfAnalysisPeriod + _.NumberOfYearsInAnalysisPeriod - 1);
 
             var projects = _unitOfWork.Context.CommittedProject
+                .AsNoTracking()
                 .Include(_ => _.CommittedProjectLocation)
                 .Include(_ => _.ScenarioBudget)
                 .Where(_ => _.SimulationId == simulation.Id)
@@ -104,7 +107,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 _unitOfWork.Context.CommittedProjectSettings.Update(existingComittedProjectTemplate);
             }
             _unitOfWork.Context.SaveChanges();
-         }
+        }
 
 
         public double GetDefaultNoTreatmentCost(TreatmentDTO treatment, Guid assetId)
@@ -152,7 +155,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 return _unitOfWork.Context.CommittedProjectSettings.Where(_ => _.Key == "Committed Project Template").FirstOrDefault().Value;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return "";
             }
@@ -164,7 +167,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 return _unitOfWork.Context.CommittedProjectTemplates.Where(_ => _.Key == filename).FirstOrDefault().Value;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw;
             }

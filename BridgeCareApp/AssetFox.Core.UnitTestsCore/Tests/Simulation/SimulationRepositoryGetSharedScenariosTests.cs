@@ -28,7 +28,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId, simulationName, user1.Id, networkId);
 
             var sharedSimulations = TestHelper.UnitOfWork.SimulationRepo.GetSharedScenarios(false, false);
-            Assert.Empty(sharedSimulations.Where(s => s.Id == simulationId));
+            Assert.DoesNotContain(sharedSimulations, s => s.Id == simulationId);
         }
 
         [Fact]

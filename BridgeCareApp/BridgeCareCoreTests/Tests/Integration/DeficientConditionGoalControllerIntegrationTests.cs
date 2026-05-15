@@ -60,7 +60,7 @@ namespace AssetFoxCoreTests.Tests.Integration
 
             await controller.UpsertDeficientConditionGoalLibrary(upsertRequest);
 
-            var message = hubService.GetSingleThreeArgumentErrorMessage();
+            var message = hubService.GetSingleFourArgumentErrorMessage();
             Assert.Contains(ErrorMessageConstants.NoAttributeFoundHavingName, message);
             var libraryAfter = TestHelper.UnitOfWork.DeficientConditionGoalRepo
                 .GetDeficientConditionGoalLibrariesWithDeficientConditionGoals()
@@ -105,7 +105,7 @@ namespace AssetFoxCoreTests.Tests.Integration
             await controller.UpsertScenarioDeficientConditionGoals(simulationId, pagingSync);
 
             // Assert
-            var _ = hubServiceMock.GetSingleThreeArgumentErrorMessage();
+            var _ = hubServiceMock.GetSingleFourArgumentErrorMessage();
             var goalsAfter = TestHelper.UnitOfWork.DeficientConditionGoalRepo.GetScenarioDeficientConditionGoals(simulationId);
             ObjectAssertions.Equivalent(goalsBefore, goalsAfter);
             Assert.Equal(2, goalsAfter.Count);

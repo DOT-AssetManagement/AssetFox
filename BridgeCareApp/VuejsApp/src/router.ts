@@ -1,4 +1,4 @@
-﻿import EditAnalysisMethod from '@/components/scenarios/EditAnalysisMethod.vue';
+import EditAnalysisMethod from '@/components/scenarios/EditAnalysisMethod.vue';
 import UnderConstruction from '@/components/UnderConstruction.vue';
 import Logout from '@/components/Logout.vue';
 //import AccessDenied from '@/components/AccessDenied.vue';
@@ -72,8 +72,6 @@ const NoRole = () =>
     import(
         /*webpackChunkName: "noRole" */ '@/components/authentication/NoRole.vue'
     );
-const Inventory = () =>
-    import(/*webpackChunkName: "inventory" */ '@/components/Inventory.vue');
 const UserCriteriaEditor = () =>
     import(
         /*webpackChunkName: "userCriteria" */ '@/components/user-criteria/UserCriteria.vue'
@@ -101,6 +99,14 @@ const CommittedProjectsEditor = () =>
 const CalculatedAttributeEditor = () =>
     import(
         /*webpackChunkName: "CalculatedAttributeEditor" */ '@/components/calculated-attribute-editor/CalculatedAttributeEditor.vue'
+    );
+const ReportBuilder = () =>
+    import(
+        '@/components/reports/report-builder/ReportBuilder.vue'
+    );
+const ReportViewer = () =>
+    import(
+        '@/components/reports/report-viewer/ReportViewer.vue'
     );
 const EditRawData = () =>
     import(
@@ -139,18 +145,29 @@ const AccessDenied = () =>
         /*webpackChunkName: "AccessDenied" */ '@/components/AccessDenied.vue'
     );
 
-const onHandlingUnsavedChanges = (to: any, next: any): void => {
-    const unsavedChangesStore = useUnsavedChangesStore(pinia);
+const navigationConfirmGroup = 'navigation';
 
-    if (unsavedChangesStore.getHasUnsavedChanges) {
-        // @ts-ignore
-        const confirm = useConfirm(); 
-        confirm.require({
+const onHandlingUnsavedChanges = (to: any, next: any): void => {
+    // @ts-ignore
+    if (store.state.unsavedChangesFlagModule.hasUnsavedChanges) {
+        let hasSettled = false;
+        const settleNavigation = (shouldContinue: boolean) => {
+            if (hasSettled) {
+                return;
+            }
+
+            hasSettled = true;
+            shouldContinue ? next() : next(false);
+        };
+
+        ConfirmationEventBus.emit('confirm', {
+            group: navigationConfirmGroup,
             message: "You have unsaved changes. Are you sure you wish to continue?",
             acceptLabel: "Continue",
             rejectLabel: "Close",
-            accept: ()=>next(),
-            reject: ()=>next(false)
+            accept: () => settleNavigation(true),
+            reject: () => settleNavigation(false),
+            onHide: () => settleNavigation(false)
         });
     } else {
         next();
@@ -219,9 +236,9 @@ const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
-            path: '/Inventory/',
-            name: 'Inventory',
-            component: Inventory,
+            path: '/ReportBuilder/',
+            name: 'ReportBuilder',
+            component: ReportBuilder,
             beforeEnter: beforeEnterFunc,
         },
         {
@@ -307,6 +324,13 @@ const router = createRouter({
                     beforeEnter: beforeEachFunc,
                 },
             ],
+        },
+        {
+            path: '/ReportViewer/Scenario',
+            name: 'ReportViewer',
+            component: ReportViewer,
+            props: true,
+            beforeEnter: beforeEachFunc,
         },
         {
             path: '/EditLibrary/',

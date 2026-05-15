@@ -253,7 +253,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
         {
             var initialColumnForShade = column + 1;
             var selectedSection = section ?? initialSection;
-            var minCActionCallDecider = MinCValue.minOfCulvDeckSubSuper;
             var colnForStyle = column + 1;
 
             var bridgeTypeAlt = _reportHelper.CheckAndGetValue(initialSection.ValuePerTextAttribute, "BRIDGE_TYPE_ALT");
@@ -273,7 +272,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
 
-                minCActionCallDecider = MinCValue.minOfDeckSubSuper;
                 break;
 
             case "ND":
@@ -307,7 +305,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
 
                 ExcelHelper.HorizontalCenterAlign(worksheet.Cells[row, colnForStyle, row, column]);
 
-                minCActionCallDecider = MinCValue.valueEqualsCulv;
                 break;
             }            
 
@@ -1141,14 +1138,6 @@ namespace AssetFox.Core.Reporting.Services.BAMSSummaryReport.BridgeData
 
             var functionalClass = _reportHelper.CheckAndGetValue(valuePerTextAttribute, "FUNC_CLASS");
             if (!_parametersModel.FunctionalClass.Contains(functionalClass)) { _parametersModel.FunctionalClass.Add(functionalClass); }
-        }
-
-        private enum MinCValue
-        {
-            minOfCulvDeckSubSuper,
-            minOfDeckSubSuper,
-            valueEqualsCulv,
-            defaultValue
         }
 
         #endregion Private Methods
