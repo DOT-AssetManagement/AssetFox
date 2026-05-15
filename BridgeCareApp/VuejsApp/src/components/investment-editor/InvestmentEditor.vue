@@ -255,7 +255,7 @@
             <v-row style="padding-bottom: 40px;" v-show='hasSelectedLibrary || hasScenario' justify="center">
                 <v-spacer></v-spacer>
                     <CancelButton
-                        :disabled="!hasUnsavedChanges"
+                        :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                         @cancel="onDiscardChanges"
                         :show="hasScenario"
                     />
@@ -269,12 +269,12 @@
                         @createAsNewLibrary="onShowCreateBudgetLibraryDialog(true)"
                     />
                     <UpdateLibraryButton
-                        :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
+                        :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges"
                         @updateLibrary="onUpsertBudgetLibrary"
                         :show="!hasScenario"
                     />
                     <SaveButton 
-                        :disabled="disableCrudButtonsResult || !hasUnsavedChanges || lessThanZeroBudgetValues"
+                        :disabled="disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges || lessThanZeroBudgetValues"
                         @save="onUpsertInvestment()"
                         :show="hasScenario"
                     />
@@ -407,22 +407,21 @@ import { BudgetPriority } from '@/shared/models/iAM/budget-priority';
 import BudgetPriorityService from '@/services/budget-priority.service';
 import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
-import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, useUserStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
 let store = useStore();
 const alertStore = useAlertStore();
 const authenticationStore = useAuthenticationStore();
 const investmentStore = useInvestmentStore();
 const notificationStore = useNotificationStore();
+const unsavedChangesStore = useUnsavedChangesStore();
 const userStore = useUserStore();
 const confirm = useConfirm();
 const emit = defineEmits(['submit'])
 const $router = useRouter();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-const hasUnsavedChanges = computed<boolean>(() => (store.state.unsavedChangesFlagModule.hasUnsavedChanges));
 const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess); 
 
-function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
 async function getCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCriterionLibraries', payload);}
     
 let getModifiedDate = store.getters.getLibraryDateModified;
@@ -570,7 +569,7 @@ let getModifiedDate = store.getters.getLibraryDateModified;
     });
 
     onBeforeUnmount(() =>  {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
         $emitter.off(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
@@ -902,12 +901,12 @@ let getModifiedDate = store.getters.getLibraryDateModified;
             const investmentPlanHasUnsavedChanges: boolean = hasUnsavedChangesCore('', NewInvestmentPlan, NewStateInvestmentPlan);
 
 
-            setHasUnsavedChangesAction({ value: budgetsHaveUnsavedChanges || investmentPlanHasUnsavedChanges });
+            unsavedChangesStore.setHasUnsavedChanges(budgetsHaveUnsavedChanges || investmentPlanHasUnsavedChanges);
         } else if (hasSelectedLibrary.value) {
             const hasUnsavedChanges: boolean = hasUnsavedChangesCore('',
                 { ...clone(selectedBudgetLibrary.value), budgets: clone(currentPage.value) },
                 investmentStore.getSelectedBudgetLibrary);
-            setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+            unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
         }
     }
 
@@ -1328,7 +1327,7 @@ let getModifiedDate = store.getters.getLibraryDateModified;
         const investmentPlanUpsert: InvestmentPlan = clone(investmentPlan.value);
         let currentLibraryName = selectedBudgetLibrary.value.name;
 
-        if (selectedBudgetLibrary.value.id === uuidNIL || hasUnsavedChanges.value && newLibrarySelection ===false) {scenarioLibraryIsModified.value = true;}
+        if (selectedBudgetLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection ===false) {scenarioLibraryIsModified.value = true;}
         else { scenarioLibraryIsModified.value = false; }
 
         const sync: InvestmentPagingSyncModel = {
@@ -1643,11 +1642,11 @@ let getModifiedDate = store.getters.getLibraryDateModified;
             (hasScenario.value && hasSelectedLibrary.value) ||
             (hasScenario.value && hasUnsavedChangesCore('', CheckInvestmentPlan, CheckStateInvestmentPlan)) || 
             (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedBudgetLibrary.value, investmentStore.getSelectedBudgetLibrary))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed.value) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed.value) {
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",
                 acceptLabel: "Continue",

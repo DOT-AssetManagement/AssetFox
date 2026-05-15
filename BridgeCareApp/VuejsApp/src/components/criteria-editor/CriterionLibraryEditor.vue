@@ -142,7 +142,7 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { useAuthenticationStore, useCriterionLibraryStore, useUserStore } from '@/stores';
+import { useAuthenticationStore, useCriterionLibraryStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
     let dialogLibraryId = shallowRef<string>('');
     let dialogIsFromScenario = shallowRef<boolean>();
@@ -150,11 +150,8 @@ import { useAuthenticationStore, useCriterionLibraryStore, useUserStore } from '
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const criterionLibraryStore = useCriterionLibraryStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
     const userStore = useUserStore();
-
-    function setHasUnsavedChangesAction(payload?: any){
-        store.dispatch('setHasUnsavedChanges');
-    }
 
     let hasSelectedCriterionLibrary: boolean = false;
     let criterionLibrarySelectItems: SelectItem[] = [];
@@ -196,7 +193,7 @@ import { useAuthenticationStore, useCriterionLibraryStore, useUserStore } from '
     onBeforeUnmount(() => beforeDestroy());
     function beforeDestroy() {
         if (isLibraryContext) {
-            setHasUnsavedChangesAction({ value: false });
+            unsavedChangesStore.setHasUnsavedChanges(false);
         }
     }
 
@@ -286,13 +283,13 @@ import { useAuthenticationStore, useCriterionLibraryStore, useUserStore } from '
         }
 
         if (isLibraryContext) {
-            setHasUnsavedChangesAction({
-                value: hasUnsavedChangesCore(
+            unsavedChangesStore.setHasUnsavedChanges(
+                hasUnsavedChangesCore(
                     'criterion-library',
                     selectedCriterionLibrary,
                     criterionLibraryStore.selectedCriterionLibraryGetter,
                 ),
-            });
+            );
         } else {
            emit('submit', selectedCriterionLibrary);
         }

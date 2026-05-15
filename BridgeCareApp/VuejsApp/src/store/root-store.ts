@@ -13,7 +13,6 @@ import remainingLifeLimitModule from '@/store-modules/remaining-life-limit.modul
 import pollingModule from '@/store-modules/polling.module';
 import announcementModule from '@/store-modules/announcement.module';
 import cashFlowModule from '@/store-modules/cash-flow.module';
-import unsavedChangesFlagModule from '@/store-modules/unsaved-changes-flag.module';
 import criterionModule from '@/store-modules/criterion-library.module';
 import analysisMethodModule from '@/store-modules/analysis-method.module';
 import azureB2CModule from '@/store-modules/azureB2C.module';
@@ -43,7 +42,6 @@ export default createStore({
         pollingModule,
         announcementModule,
         cashFlowModule,
-        unsavedChangesFlagModule,
         criterionModule,
         analysisMethodModule,
         azureB2CModule,

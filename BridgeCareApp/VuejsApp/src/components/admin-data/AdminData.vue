@@ -141,7 +141,7 @@
                     <v-btn style="margin-top: -30px !important;" 
                         id="AdminData-save-btn"
                         class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button' variant = "outlined"
-                        @click="onSaveClick" :disabled='!hasUnsavedChanges || !disableCrudButtons()' >
+                        @click="onSaveClick" :disabled='!unsavedChangesStore.getHasUnsavedChanges || !disableCrudButtons()' >
                         Save
                     </v-btn>
                 </v-col>
@@ -170,15 +170,13 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { Console } from 'console';
 import { report } from 'process';
-import { useAdminDataStore, useAttributeStore, useNetworkStore } from '@/stores';
+import { useAdminDataStore, useAttributeStore, useNetworkStore, useUnsavedChangesStore } from '@/stores';
 
     let store = useStore();
     const adminDataStore = useAdminDataStore();
     const attributeStore = useAttributeStore();
     const networkStore = useNetworkStore();
-    let hasUnsavedChanges = computed<boolean>(()=>store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
-
-    function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
+    const unsavedChangesStore = useUnsavedChangesStore();
 
     const selectPrimaryNetworkItems= ref<SelectItem[]>([]);
     const selectRawDataNetworkItems=  ref<SelectItem[]> ([]);
@@ -245,7 +243,7 @@ import { useAdminDataStore, useAttributeStore, useNetworkStore } from '@/stores'
     }
     onBeforeUnmount(() => beforeDestroy());
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     }
 
     //watchers
@@ -508,7 +506,7 @@ import { useAdminDataStore, useAttributeStore, useNetworkStore } from '@/stores'
             hasUnsavedChangesCore('', selectedAssetTypes.value, adminDataStore.getAssetType) ||
             primaryNetwork.value != adminDataStore.getPrimaryNetwork || rawdataNetwork.value != adminDataStore.getRawdataNetwork ||
             constraintTypeRadioGroup.value != adminDataStore.getConstraintType
-        setHasUnsavedChangesAction({ value: hasChanged });
+        unsavedChangesStore.setHasUnsavedChanges(hasChanged);
     }
     function convertToDelimited(listToBeDelimited: string[], delimitValue: string){
         let delimitedList = '';

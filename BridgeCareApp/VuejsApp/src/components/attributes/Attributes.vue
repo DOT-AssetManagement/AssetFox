@@ -94,10 +94,10 @@
         <!-- The Buttons  -->
         <v-col cols="12" v-if="hasSelectedAttribute">        
             <v-row justify="center">
-                <v-btn id="Attributes-cancel-vbtn" :disabled='!hasUnsavedChanges' @click='onDiscardChanges' variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
+                <v-btn id="Attributes-cancel-vbtn" :disabled='!unsavedChangesStore.getHasUnsavedChanges' @click='onDiscardChanges' variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
                     Cancel
                 </v-btn>
-                <v-btn id="Attributes-save-vbtn" @click='saveAttribute' :disabled='disableCrudButtons() || !hasUnsavedChanges'  variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
+                <v-btn id="Attributes-save-vbtn" @click='saveAttribute' :disabled='disableCrudButtons() || !unsavedChangesStore.getHasUnsavedChanges'  variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
                     Save
                 </v-btn>               
             </v-row>
@@ -123,11 +123,12 @@ import { Console } from 'console';
 import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
-import { useAttributeStore, useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useUnsavedChangesStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
     let hasSelectedAttribute = ref<boolean>(false);
     let selectAttributeItemValue = ref<string | null>(null);
     let selectedAttribute = ref<Attribute>(clone(emptyAttribute));
@@ -140,12 +141,10 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         {text: 'NUMBER', value: 'NUMBER'}
     ]);
 
-    let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ;
     let selectAttributeItems = ref<SelectItem[]>([]);
     
     async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
-    function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
 
     created()
     function created() {
@@ -154,7 +153,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
     onBeforeUnmount(() => beforeDestroy)
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     }
 
         watch(attributeStore.attributesgetter, () =>  {
@@ -171,7 +170,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     
     watch(selectedAttribute, () =>  {
         const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedAttribute.value, attributeStore.getSelectedAttribute);
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });        
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);        
     })
 
     watch(attributeStore.getSelectedAttribute, () =>  {       

@@ -170,16 +170,15 @@ import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog
 import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
 import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
 import DataSourceMappingsService from '@/services/data-source.service';
-import { useDataSourceStore, useNotificationStore, useUserStore } from '@/stores';
+import { useDataSourceStore, useNotificationStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const dataSourceStore = useDataSourceStore();
     const notificationStore = useNotificationStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
     const userStore = useUserStore();
     const emit = defineEmits(['submit'])
-    let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let editDataSourceMappingsDialogData = ref<EditDataSourceMappingsDialogData>(clone(emptyEditDataSourceMappingsDialogData));
-    function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
     let dsTypeItems = ref<string[]>([]);
     let dsItems = ref<any>([]);    
         
@@ -343,12 +342,12 @@ import { useDataSourceStore, useNotificationStore, useUserStore } from '@/stores
 
     watch(currentDatasource, () =>  {
         const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', currentDatasource.value, unmodifiedDatasource.value);
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     })
 
     watch(unmodifiedDatasource, () => {
         const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', currentDatasource.value, unmodifiedDatasource.value);
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     })
 
     watch(currentExcelDateColumn, () =>  {

@@ -360,7 +360,7 @@
         >
             <CancelButton 
                 @cancel="onDiscardChanges"
-                :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
+                :disabled="disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges"
                 :show="hasScenario"
             />  
             <DeleteLibraryButton 
@@ -374,12 +374,12 @@
             />  
             <UpdateLibraryButton 
                 @updateLibrary="onUpsertPerformanceCurveLibrary"
-                :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
+                :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges'
                 :show="!hasScenario"
             />
             <SaveButton 
                 @save="onUpsertScenarioPerformanceCurves"
-                :disabled='disableCrudButtonsResult || !hasUnsavedChanges'
+                :disabled='disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges'
                 :show="hasScenario"
             />
         </v-row>
@@ -518,7 +518,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useUserStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
 let store = useStore();
@@ -528,13 +528,11 @@ const authenticationStore = useAuthenticationStore();
 const notificationStore = useNotificationStore();
 const performanceCurveStore = usePerformanceCurveStore();
 const scenarioStore = useScenarioStore();
+const unsavedChangesStore = useUnsavedChangesStore();
 const userStore = useUserStore();
 const confirm = useConfirm();
 
-let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
-
-function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
 
     let addedRows: ShallowRef<PerformanceCurve[]> = ref([]);
     let updatedRowsMap:Map<string, [PerformanceCurve, PerformanceCurve]> = new Map<string, [PerformanceCurve, PerformanceCurve]>();//0: original value | 1: updated value
@@ -681,7 +679,7 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
     }
     onBeforeUnmount(()=>beforeDestroy())
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
 
         $emitter.off(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
@@ -867,7 +865,7 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
             addedRows.value.length > 0 ||
             updatedRowsMap.size > 0 || (hasScenario.value && hasSelectedLibrary.value) ||
             (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedPerformanceCurveLibrary.value, performanceCurveStore.getSelectedPerformanceCurveLibrary))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function setAttributeSelectItems() {
@@ -1056,7 +1054,7 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
 
     function onUpsertScenarioPerformanceCurves() {
 
-        if (selectedPerformanceCurveLibrary.value.id === uuidNIL || hasUnsavedChanges.value && newLibrarySelection ===false) {scenarioLibraryIsModified = true;}
+        if (selectedPerformanceCurveLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection ===false) {scenarioLibraryIsModified = true;}
         else { scenarioLibraryIsModified = false; }
 
         PerformanceCurveService.UpsertScenarioPerformanceCurves({
@@ -1308,7 +1306,7 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
 
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",

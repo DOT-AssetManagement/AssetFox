@@ -241,7 +241,7 @@
             <v-row justify="center" style="padding-bottom: 40px;" v-show='hasSelectedLibrary || hasScenario'>
                 <CancelButton 
                     @cancel="onDiscardChanges"
-                    :disabled="!hasUnsavedChanges"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasSelectedLibrary || hasScenario"
                     v-if="authenticationStore.getHasAdminAccess && hasScenario"
                 />
@@ -256,12 +256,12 @@
                 />
                 <UpdateLibraryButton 
                     @updateLibrary="onUpsertCalculatedAttributeLibrary"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges"
+                    :disabled="disableCrudButton() || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="!hasScenario"
                 />
                 <SaveButton 
                     @save="onUpsertScenarioCalculatedAttribute"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges"
+                    :disabled="disableCrudButton() || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario && authenticationStore.getHasAdminAccess"
                 />
             </v-row>
@@ -375,19 +375,17 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAuthenticationStore, useCalculatedAttributeStore, useNotificationStore, useScenarioStore, useUserStore } from '@/stores';
+import { useAuthenticationStore, useCalculatedAttributeStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
 let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const calculatedAttributeStore = useCalculatedAttributeStore();
 const notificationStore = useNotificationStore();
 const scenarioStore = useScenarioStore();
+const unsavedChangesStore = useUnsavedChangesStore();
 const userStore = useUserStore();
 const confirm = useConfirm();
-const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 
-    async function upsertScenarioCalculatedAttributeAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioCalculatedAttribute', payload);}
-    function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
     let updatedCalcAttrMap:Map<string, [CalculatedAttribute, CalculatedAttribute]> = 
         new Map<string, [CalculatedAttribute, CalculatedAttribute]>();//0: original value | 1: updated value
     let addedCalcAttr: CalculatedAttribute[] = [];
@@ -909,7 +907,7 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
 
     function getOwnerUserName(): string {
         if (! hasCreatedLibrary) {
-        return userStore.getUserNameById(selectedCalculatedAttributeLibrary.value.owner);
+        return userStore.getUserNameById(selectedCalculatedAttributeLibrary.value.owner ?? "");
         }     
         return getUserName();
     }
@@ -928,7 +926,7 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
     }
 
     function onUpsertScenarioCalculatedAttribute() {
-        if ( selectedCalculatedAttributeLibrary.value.id ===  uuidNIL ||  hasUnsavedChanges.value &&  newLibrarySelection ===false) { 
+        if ( selectedCalculatedAttributeLibrary.value.id ===  uuidNIL ||  unsavedChangesStore.getHasUnsavedChanges &&  newLibrarySelection ===false) { 
             scenarioLibraryIsModified = true;
         } else {  
             scenarioLibraryIsModified = false; 
@@ -1484,7 +1482,7 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
              defaultEquations.value.size > 0 ||
             ( hasScenario.value &&  hasSelectedLibrary.value) ||
                 ( hasSelectedLibrary.value && hasUnsavedChangesCore('',  selectedCalculatedAttributeLibrary.value,  calculatedAttributeStore.getSelectedCalculatedAttributeLibrary))
-         setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+            unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function onSearchClick(){

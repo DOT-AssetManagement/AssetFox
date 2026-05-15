@@ -622,13 +622,14 @@ import router from '@/router';
 import { useRoute } from 'vue-router';
 import ReportsService from '@/services/reports.service';
 import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
-import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScenarioStore, useUserStore } from '@/stores';
+import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScenarioStore, useTreatmentStore, useUserStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const networkStore = useNetworkStore();
     const notificationStore = useNotificationStore();
     const scenarioStore = useScenarioStore();
+    const treatmentStore = useTreatmentStore();
     const userStore = useUserStore();
     const $router = useRouter();     
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
@@ -636,8 +637,6 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScena
     let authenticated:boolean = authenticationStore.authenticated;
     let hasAdminAccess: boolean = authenticationStore.hasAdminAccess ; 
     let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
-
-    async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
     let networks: Network[] = [];
     let scenarioGridHeaders: any = [
         {
@@ -1492,7 +1491,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScena
             }
             
             // Check which treatments have no budgets and add them to the warning list
-            emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenario.id });
+            emptyTreatmentBudgets = await treatmentStore.getScenarioSelectableTreatments(selectedScenario.id);
             emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
                 if (!treatment.budgets || treatment.budgets.length === 0) {
                     preCheckWarningMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`

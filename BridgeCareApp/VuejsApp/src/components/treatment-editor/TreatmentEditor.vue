@@ -274,12 +274,12 @@
                     />
                     <SaveButton 
                         @save="onUpsertScenarioTreatments"
-                        :disabled='disableCrudButtonsResult || !hasUnsavedChanges'
+                        :disabled='disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges'
                         :show="hasScenario"
                     />
                     <UpdateLibraryButton 
                         @updateLibrary="onUpsertTreatmentLibrary"
-                        :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
+                        :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges'
                         :show="!hasScenario"
                     />
                 </v-col>
@@ -432,7 +432,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useTreatmentStore, useUserStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useTreatmentStore, useUnsavedChangesStore, useUserStore } from '@/stores';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
@@ -445,13 +445,9 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     const performanceCurveStore = usePerformanceCurveStore();
     const scenarioStore = useScenarioStore();
     const treatmentStore = useTreatmentStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
     const userStore = useUserStore();
-    let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
-
-function setHasUnsavedChangesAction(payload?: any): void {
-  store.dispatch('setHasUnsavedChanges', payload);
-}
 
 
 
@@ -571,7 +567,7 @@ function setHasUnsavedChangesAction(payload?: any): void {
         } 
     onBeforeUnmount(() => beforeDestroy());
      function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+          unsavedChangesStore.setHasUnsavedChanges(false);
         $emitter.off(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
@@ -699,7 +695,7 @@ function setHasUnsavedChangesAction(payload?: any): void {
             text: treatment.name,
             value: treatment.id,
         }));       
-        setHasUnsavedChangesAction(false)
+        unsavedChangesStore.setHasUnsavedChanges(false)
         disableCrudButtons();
     }
 
@@ -1000,7 +996,7 @@ function setHasUnsavedChangesAction(payload?: any): void {
 
     function onUpsertScenarioTreatments() {
 
-        if (selectedTreatmentLibrary.value.id === uuidNIL || hasUnsavedChanges.value && newLibrarySelection ===false) {scenarioLibraryIsModified = true;}
+        if (selectedTreatmentLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection ===false) {scenarioLibraryIsModified = true;}
         else { scenarioLibraryIsModified = false; }
 
         TreatmentService.upsertScenarioSelectedTreatments({
@@ -1574,11 +1570,11 @@ function setHasUnsavedChangesAction(payload?: any): void {
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
             (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTreatmentLibrary.value, treatmentStore.getSelectedTreatmentLibrary))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
 
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",

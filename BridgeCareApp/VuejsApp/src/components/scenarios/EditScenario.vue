@@ -142,20 +142,18 @@ import { inject } from 'vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
-import { useAuthenticationStore, useNotificationStore, useScenarioStore } from '@/stores';
+import { useAuthenticationStore, useNotificationStore, useScenarioStore, useTreatmentStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
     const scenarioStore = useScenarioStore();
+    const treatmentStore = useTreatmentStore();
     const router = useRouter(); 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
     const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
     let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
-
-    async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
-    async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {await store.dispatch('getSimpleScenarioSelectableTreatments', payload);}
 
     let selectedScenarioId: string = getBlankGuid();
     let showImportExportCommittedProjectsDialog: boolean = false;
@@ -678,7 +676,7 @@ import { useAuthenticationStore, useNotificationStore, useScenarioStore } from '
 
             }
             // Check which treatments have no budgets and add them to the warning list
-            emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenarioId });
+            emptyTreatmentBudgets = await treatmentStore.getScenarioSelectableTreatments(selectedScenarioId);
             emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
                 if (!treatment.budgets || treatment.budgets.length === 0) {
                     preCheckWarningMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`

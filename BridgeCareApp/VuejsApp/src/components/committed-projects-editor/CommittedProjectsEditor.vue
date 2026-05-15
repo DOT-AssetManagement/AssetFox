@@ -264,11 +264,11 @@
             <v-row justify="center" style="padding-bottom: 80px;">
                 <CancelButton 
                     @cancel="onCancelClick"
-                    :disabled="!hasUnsavedChanges"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                 />
                 <SaveButton 
                     @save="OnSaveClick"
-                    :disabled="!hasUnsavedChanges || disableCrudButtons"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges || disableCrudButtons"
                 />
             </v-row>
         </v-col> 
@@ -347,7 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore, useScenarioStore, useTreatmentStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore, useScenarioStore, useTreatmentStore, useUnsavedChangesStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -432,9 +432,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     const attributeStore = useAttributeStore();
     const investmentStore = useInvestmentStore();
-    const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-
-    function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
+    const unsavedChangesStore = useUnsavedChangesStore();
     const scenarioStore = useScenarioStore();
     const alertStore = useAlertStore();
     const notificationStore = useNotificationStore();
@@ -597,7 +595,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     });
     onBeforeUnmount(() => beforeDestroy())
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
 
         $emitter.off(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
@@ -1613,7 +1611,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function checkHasUnsavedChanges(){
         const hasUnsavedChanges: boolean = committedProjectsAreChanged() || isNoTreatmentBeforeCache.value != isNoTreatmentBefore.value
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function committedProjectsAreChanged() : boolean{

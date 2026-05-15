@@ -196,7 +196,7 @@
                 />
                 <CancelButton 
                     @cancel="onDiscardChanges"
-                    :disabled="!hasUnsavedChanges"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <CreateAsNewLibraryButton 
@@ -205,12 +205,12 @@
                 />
                 <SaveButton 
                     @save="onUpsertScenarioCashFlowRules"
-                    :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <UpdateLibraryButton 
                     @updateLibrary="onUpsertCashFlowRuleLibrary"
-                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="!hasScenario"
                 />                                     
             </v-row>
@@ -316,7 +316,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { emit } from 'process';
-import { useAuthenticationStore, useCashFlowStore, useNotificationStore, useScenarioStore, useUserStore } from '@/stores';
+import { useAuthenticationStore, useCashFlowStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
 
 let store = useStore();
@@ -324,13 +324,10 @@ const authenticationStore = useAuthenticationStore();
 const cashFlowStore = useCashFlowStore();
 const notificationStore = useNotificationStore();
 const scenarioStore = useScenarioStore();
+const unsavedChangesStore = useUnsavedChangesStore();
 const userStore = useUserStore();
 const confirm = useConfirm();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-
-let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-
-function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
 
     let gridSearchTerm = '';
     let currentSearch = '';
@@ -477,7 +474,7 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
 
 
     onBeforeUnmount(() => {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     });
 
     watch(() => cashFlowStore.cashFlowRuleLibrariesGetter, () => {
@@ -767,7 +764,7 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
     }
 
     async function onUpsertScenarioCashFlowRules() {
-        if (selectedCashFlowRuleLibrary.value.id === uuidNIL || hasUnsavedChanges.value && libraryImported === false) {scenarioLibraryIsModified = true;}
+        if (selectedCashFlowRuleLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && libraryImported === false) {scenarioLibraryIsModified = true;}
         else { scenarioLibraryIsModified = false; }
 
         CashFlowService.upsertScenarioCashFlowRules({
@@ -964,11 +961,11 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
             (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedCashFlowRuleLibrary.value, cashFlowStore.getSelectedCashFlowRuleLibrary))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
 
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",

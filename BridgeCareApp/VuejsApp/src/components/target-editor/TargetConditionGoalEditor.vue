@@ -198,7 +198,7 @@
             <v-row v-show="hasSelectedLibrary || hasScenario" style="padding-bottom: 40px;" justify="center">
                 <CancelButton 
                     @cancel="onDiscardChanges"
-                    :disabled='!hasUnsavedChanges'
+                    :disabled='!unsavedChangesStore.getHasUnsavedChanges'
                     :show="hasScenario"
                 />
                 <DeleteLibraryButton 
@@ -212,12 +212,12 @@
                 />
                 <SaveButton 
                     @save="onUpsertScenarioTargetConditionGoals"
-                    :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <UpdateLibraryButton 
                     @updateLibrary="onUpsertTargetConditionGoalLibrary"
-                    :disabled="disableCrudButtons() || !hasUnsavedChanges || !hasLibraryEditPermission"
+                    :disabled="disableCrudButtons() || !unsavedChangesStore.getHasUnsavedChanges || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="!hasScenario"
                 />
             </v-row>
@@ -320,7 +320,7 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAuthenticationStore, useAttributeStore, useNotificationStore, useScenarioStore, useTargetConditionGoalStore, useUserStore } from '@/stores';
+import { useAuthenticationStore, useAttributeStore, useNotificationStore, useScenarioStore, useTargetConditionGoalStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
@@ -328,14 +328,12 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
     const notificationStore = useNotificationStore();
     const scenarioStore = useScenarioStore();
     const targetConditionGoalStore = useTargetConditionGoalStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
     const userStore = useUserStore();
     const $router = useRouter(); 
     const confirm = useConfirm();
 
-    const hasUnsavedChanges = computed<boolean>(() =>store.state.unsavedChangesFlagModule.hasUnsavedChanges); 
     const hasAdminAccess = computed<boolean>(() =>authenticationStore.hasAdminAccess);
-
-    function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
    
     const addedRows = ref<TargetConditionGoal[]>([]);
     const updatedRowsMap = ref<Map<string, [TargetConditionGoal, TargetConditionGoal]>>(new Map<string, [TargetConditionGoal, TargetConditionGoal]>());//0: original value | 1: updated value
@@ -430,7 +428,6 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
     let currentUrl: string = window.location.href;
     let hasCreatedLibrary: boolean = false;
     let disableCrudButtonsResult: boolean = false;
-    let hasLibraryEditPermission = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let parentLibraryId: string = "";
     const parentLibraryName = ref<string>("None");
     let scenarioLibraryIsModified: boolean = false;
@@ -467,7 +464,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
     });            
     onBeforeUnmount(()=> beforeDestroy());
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     }
 
     watch(() => targetConditionGoalStore.hasPermittedAccessGetter, () => {
@@ -625,7 +622,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
     }
 
     function checkLibraryEditPermission() {
-        setHasUnsavedChangesAction(hasAdminAccess.value || (targetConditionGoalStore.hasPermittedAccessGetter && checkUserIsLibraryOwner()))
+        unsavedChangesStore.setHasUnsavedChanges(hasAdminAccess.value || (targetConditionGoalStore.hasPermittedAccessGetter && checkUserIsLibraryOwner()))
     }
 
     function checkUserIsLibraryOwner() {
@@ -748,7 +745,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
     }
 
     function onUpsertScenarioTargetConditionGoals() {
-        if (selectedTargetConditionGoalLibrary.value.id === uuidNIL || hasUnsavedChanges.value && newLibrarySelection ===false) {scenarioLibraryIsModified = true;}
+        if (selectedTargetConditionGoalLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection ===false) {scenarioLibraryIsModified = true;}
         else { scenarioLibraryIsModified = false; }
 
         TargetConditionGoalService.upsertScenarioTargetConditionGoals({
@@ -892,11 +889,11 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
             updatedRowsMap.value.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
             (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTargetConditionGoalLibrary.value, targetConditionGoalStore.getSelectedTargetConditionGoalLibrary))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed.value) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed.value) {
             
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",

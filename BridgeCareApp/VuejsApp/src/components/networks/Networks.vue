@@ -130,7 +130,7 @@
         <!-- The Buttons  -->
         <v-col cols = "12"  v-show="hasSelectedNetwork">        
             <v-row justify="center" style="padding-top: 30px !important">
-                <v-btn id="Networks-Cancel-vbtn" :disabled='!hasUnsavedChanges' @click='onDiscardChanges'
+                <v-btn id="Networks-Cancel-vbtn" :disabled='!unsavedChangesStore.getHasUnsavedChanges' @click='onDiscardChanges'
                 variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
                     Cancel
                 </v-btn>  
@@ -193,17 +193,15 @@ import { useStore } from 'vuex';
 import mitt, { Emitter, EventType } from 'mitt';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { NIL } from 'uuid';
-import { useAttributeStore, useAuthenticationStore, useDataSourceStore, useNetworkStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useDataSourceStore, useNetworkStore, useUnsavedChangesStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const dataSourceStore = useDataSourceStore();
     const networkStore = useNetworkStore();
-    let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
+    const unsavedChangesStore = useUnsavedChangesStore();
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
-    
-    function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
     
     let rules = ref<InputValidationRules>(validationRules);
 
@@ -303,7 +301,7 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore, useNetwo
         selectedKeyAttributeItem.value = selectedNetwork.value.keyAttribute;
         spatialWeightingEquationValue.value.expression = selectedNetwork.value.defaultSpatialWeighting;
         const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedNetwork.value, networkStore.getSelectedNetwork);
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     })
 
     watch(selectedKeyAttributeItem, () => 

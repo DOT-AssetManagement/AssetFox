@@ -142,7 +142,7 @@ const AccessDenied = () =>
 const onHandlingUnsavedChanges = (to: any, next: any): void => {
     const unsavedChangesStore = useUnsavedChangesStore(pinia);
 
-    if (unsavedChangesStore.hasUnsavedChanges) {
+    if (unsavedChangesStore.getHasUnsavedChanges) {
         // @ts-ignore
         const confirm = useConfirm(); 
         confirm.require({

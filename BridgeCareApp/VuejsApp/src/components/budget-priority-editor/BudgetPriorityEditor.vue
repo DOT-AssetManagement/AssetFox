@@ -177,7 +177,7 @@
             <v-row style="padding-bottom: 40px;" justify="center" v-show='hasSelectedLibrary || hasScenario'>
                 <CancelButton 
                     @cancel="onDiscardChanges"
-                    :disabled='!hasUnsavedChanges'
+                    :disabled='!unsavedChangesStore.getHasUnsavedChanges'
                     :show="hasScenario"
                 />
                 <DeleteLibraryButton 
@@ -191,12 +191,12 @@
                 />
                 <SaveButton 
                     @save="onUpsertScenarioBudgetPriorities"
-                    :disabled='disableCrudButtonsResult || !hasUnsavedChanges || isbudgetPriorityGridRowsEmpty'
+                    :disabled='disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges || isbudgetPriorityGridRowsEmpty'
                     :show="hasScenario"
                 />
                 <UpdateLibraryButton 
                     @updateLibrary="onUpsertBudgetPriorityLibrary"
-                    :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
+                    :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges'
                     :show="!hasScenario"
                 />
             </v-row>
@@ -285,7 +285,7 @@
     import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
     import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
     import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore, useNotificationStore, useScenarioStore, useUserStore } from '@/stores';
+    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
@@ -293,12 +293,11 @@
     const investmentStore = useInvestmentStore();
     const notificationStore = useNotificationStore();
     const scenarioStore = useScenarioStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
     const userStore = useUserStore();
     const confirm = useConfirm();
     const $router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-    let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload) }
     
     let addedRows: ShallowRef<BudgetPriority[]> = shallowRef([]);
     let updatedRowsMap:Map<string, [BudgetPriority, BudgetPriority]> = new Map<string, [BudgetPriority, BudgetPriority]>();//0: original value | 1: updated value
@@ -385,7 +384,7 @@
     }
     onBeforeUnmount(() => onBeforeUnmountFunc())
     function onBeforeUnmountFunc() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     }
     watch(budgetPriorityStore.BudgetPriorityLibrariesGetter, onStateBudgetPriorityLibrariesChanged)
     function onStateBudgetPriorityLibrariesChanged() {
@@ -779,7 +778,7 @@
     }
 
     async function onUpsertScenarioBudgetPriorities() {
-        if (selectedBudgetPriorityLibrary.value.id === uuidNIL || hasUnsavedChanges.value && newLibrarySelection ===false) {scenarioLibraryIsModified.value = true;}
+        if (selectedBudgetPriorityLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection ===false) {scenarioLibraryIsModified.value = true;}
         else { scenarioLibraryIsModified.value = false; }
 
         let response = await BudgetPriorityService.upsertScenarioBudgetPriorities({
@@ -946,11 +945,11 @@
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
             (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedBudgetPriorityLibrary.value, budgetPriorityStore.SelectedBudgetPriorityLibraryGetter))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",
                 acceptLabel: "Continue",

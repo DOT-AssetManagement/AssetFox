@@ -198,7 +198,7 @@
             <v-row v-show="hasSelectedLibrary || hasScenario" style="padding-bottom: 40px;" align-content="center" justify="center">
                 <CancelButton 
                     @cancel="onDiscardChanges"
-                    :disabled="!hasUnsavedChanges"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <DeleteLibraryButton 
@@ -210,12 +210,12 @@
                 />
                 <SaveButton 
                     @save="onUpsertScenarioRemainingLifeLimits"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges"
+                    :disabled="disableCrudButton() || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <UpdateLibraryButton 
                     @updateLibrary="onUpsertRemainingLifeLimitLibrary"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges"
+                    :disabled="disableCrudButton() || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="!hasScenario"
                 />
             </v-row>
@@ -308,7 +308,7 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRemainingLifeLimitStore, useScenarioStore, useUserStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRemainingLifeLimitStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
@@ -316,15 +316,14 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
     const notificationStore = useNotificationStore();
     const remainingLifeLimitStore = useRemainingLifeLimitStore();
     const scenarioStore = useScenarioStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
     const userStore = useUserStore();
     const confirm = useConfirm();
     const $router = useRouter();
 
-    let hasUnsavedChanges = computed<boolean>(() =>store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() =>authenticationStore.hasAdminAccess) ;
 
     async function upsertRemainingLifeLimitLibraryAction(payload?: any): Promise<any>{await store.dispatch('upsertRemainingLifeLimitLibrary', payload)}
-    function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload)}
     
     let remainingLifeLimitLibraries: RemainingLifeLimitLibrary[] = [];
     let selectedRemainingLifeLimitLibrary: ShallowRef<RemainingLifeLimitLibrary> = shallowRef(clone(
@@ -448,7 +447,7 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
     });
 
     onBeforeUnmount(() => {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     });
 
     watch(selectedGridRows, ()=> {
@@ -754,7 +753,7 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
     }
 
     function onUpsertScenarioRemainingLifeLimits() {
-        if (selectedRemainingLifeLimitLibrary.value.id === uuidNIL || hasUnsavedChanges.value && newLibrarySelection.value ===false) {scenarioLibraryIsModified.value = true;}
+        if (selectedRemainingLifeLimitLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection.value ===false) {scenarioLibraryIsModified.value = true;}
         else { scenarioLibraryIsModified.value = false; }
 
         RemainingLifeLimitService.upsertScenarioRemainingLifeLimits({
@@ -875,11 +874,11 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
             (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedRemainingLifeLimitLibrary.value, remainingLifeLimitStore.getSelectedRemainingLifeLimitLibrary))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",
                 acceptLabel: "Continue",
