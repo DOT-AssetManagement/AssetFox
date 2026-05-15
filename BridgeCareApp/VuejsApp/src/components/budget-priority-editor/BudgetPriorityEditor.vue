@@ -285,20 +285,19 @@
     import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
     import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
     import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore, useNotificationStore } from '@/stores';
+    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore, useNotificationStore, useScenarioStore } from '@/stores';
 
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const budgetPriorityStore = useBudgetPriorityStore();
     const investmentStore = useInvestmentStore();
     const notificationStore = useNotificationStore();
+    const scenarioStore = useScenarioStore();
     const confirm = useConfirm();
     const $router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
      function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload) }
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>{await store.dispatch( 'getCurrentUserOrSharedScenario', payload)}
-    function selectScenarioAction(payload?: any): void { store.dispatch('selectScenario', payload)}
     
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
     
@@ -380,8 +379,8 @@
             }
             hasScenario.value = true;
             await investmentStore.getScenarioSimpleBudgetDetails(selectedScenarioId)
-            await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
-            selectScenarioAction({ scenarioId: selectedScenarioId });        
+            await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+            scenarioStore.selectScenario(selectedScenarioId);
             await initializePages();             
         }
     }

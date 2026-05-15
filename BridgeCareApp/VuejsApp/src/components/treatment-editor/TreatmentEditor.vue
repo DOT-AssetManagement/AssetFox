@@ -432,7 +432,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, usePerformanceCurveStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
@@ -443,6 +443,7 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     const investmentStore = useInvestmentStore();
     const notificationStore = useNotificationStore();
     const performanceCurveStore = usePerformanceCurveStore();
+    const scenarioStore = useScenarioStore();
     let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
     let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
@@ -524,14 +525,6 @@ async function deleteScenarioSelectableTreatmentAction(payload?: any): Promise<a
 
 async function getIsSharedLibraryAction(payload?: any): Promise<any> {
   await store.dispatch('getIsSharedTreatmentLibrary', payload);
-}
-
-async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {
-  await store.dispatch('getCurrentUserOrSharedScenario', payload);
-}
-
-function selectScenarioAction(payload?: any) {
-  store.dispatch('selectScenario', payload);
 }
 
 async function getAllScenarioTreatmentsAction(payload?: any) {
@@ -643,8 +636,8 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             
             treatmentTabs = [...treatmentTabs, 'Budgets'];
             await investmentStore.getScenarioSimpleBudgetDetails(selectedScenarioId)
-            await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
-            selectScenarioAction({ scenarioId: selectedScenarioId });
+            await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+            scenarioStore.selectScenario(selectedScenarioId);
 
             //await getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
               

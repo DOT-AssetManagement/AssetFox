@@ -375,19 +375,18 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAuthenticationStore, useCalculatedAttributeStore, useNotificationStore } from '@/stores';
+import { useAuthenticationStore, useCalculatedAttributeStore, useNotificationStore, useScenarioStore } from '@/stores';
 
 let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const calculatedAttributeStore = useCalculatedAttributeStore();
 const notificationStore = useNotificationStore();
+const scenarioStore = useScenarioStore();
 const confirm = useConfirm();
 const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 
     async function upsertScenarioCalculatedAttributeAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioCalculatedAttribute', payload);}
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
-    function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
 
     let updatedCalcAttrMap:Map<string, [CalculatedAttribute, CalculatedAttribute]> = 
@@ -519,8 +518,8 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
             }
             hasScenario.value = true;
             await calculatedAttributeStore.getScenarioCalculatedAttribute(selectedScenarioId)
-            await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})   
-            selectScenarioAction({ scenarioId: selectedScenarioId });        
+            await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+            scenarioStore.selectScenario(selectedScenarioId);
             
         
         }           

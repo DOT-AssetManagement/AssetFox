@@ -77,18 +77,17 @@ import {
     InputValidationRules,
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
-import { useNetworkStore } from '@/stores';
+import { useNetworkStore, useScenarioStore } from '@/stores';
 
     let store = useStore(); 
     const networkStore = useNetworkStore();
+    const scenarioStore = useScenarioStore();
     const props = defineProps<{dialogData: CloneSimulationDialogData}>();
     const emit = defineEmits(['submit']);
     const { dialogData } = toRefs(props);
 
     const stateUsers =  computed<User[]>(() => store.state.userModule.users);
-    let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
     let shared =  ref<boolean>(false);
-    async function cloneScenarioWithDestinationNetworkAction(payload?:any): Promise<any>{await store.dispatch('cloneScenarioWithDestinationNetwork',payload)}
     let rules: InputValidationRules = validationRules;
 
     let newScenario: CloneScenario = { ...emptyCloneScenario, id: getNewGuid() };
@@ -177,7 +176,7 @@ import { useNetworkStore } from '@/stores';
             scenarioNameErrors.value.push(specialCharError as string);
         }
 
-        if(stateScenarioNames.value.find(_ => _ == props.dialogData.scenario.name) != undefined)
+        if (scenarioStore.getScenarioNames.find(_ => _ == props.dialogData.scenario.name) != undefined)
         {
             scenarioNameErrors.value.push("There is already a scenario with that name")
         }

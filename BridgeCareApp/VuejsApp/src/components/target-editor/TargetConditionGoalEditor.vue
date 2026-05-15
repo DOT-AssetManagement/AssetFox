@@ -320,37 +320,21 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAuthenticationStore, useAttributeStore, useNotificationStore } from '@/stores';
+import { useAuthenticationStore, useAttributeStore, useNotificationStore, useScenarioStore, useTargetConditionGoalStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
+    const scenarioStore = useScenarioStore();
+    const targetConditionGoalStore = useTargetConditionGoalStore();
     const $router = useRouter(); 
     const confirm = useConfirm();
 
-    const stateTargetConditionGoalLibraries = computed<TargetConditionGoalLibrary[]>(() =>store.state.targetConditionGoalModule.targetConditionGoalLibraries);
-    const stateSelectedTargetConditionLibrary = computed<TargetConditionGoalLibrary>(() =>store.state.targetConditionGoalModule.selectedTargetConditionGoalLibrary) 
-    const stateScenarioTargetConditionGoals = computed<TargetConditionGoal[]>(() =>store.state.targetConditionGoalModule.scenarioTargetConditionGoals);
     const hasUnsavedChanges = computed<boolean>(() =>store.state.unsavedChangesFlagModule.hasUnsavedChanges); 
     const hasAdminAccess = computed<boolean>(() =>authenticationStore.hasAdminAccess);
-    const hasPermittedAccess = computed<boolean>(() =>store.state.targetConditionGoalModule.hasPermittedAccess);
-    const isSharedLibrary = computed<boolean>(() =>store.state.targetConditionGoalModule.isSharedLibrary);
 
-    async function getIsSharedLibraryAction(payload?: any): Promise<any> {await store.dispatch('getIsSharedTargetConditionGoalLibrary',payload);} 
-    async function getHasPermittedAccessAction(payload?: any): Promise<any> {await store.dispatch('getHasPermittedAccess',payload);}
-    async function getTargetConditionGoalLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getTargetConditionGoalLibraries',payload);} 
-    function selectTargetConditionGoalLibraryAction(payload?: any) { store.dispatch('selectTargetConditionGoalLibrary',payload);}
-    async function upsertTargetConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertTargetConditionGoalLibrary',payload);}
-    async function deleteTargetConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('deleteTargetConditionGoalLibrary',payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
-    async function getScenarioTargetConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('getScenarioTargetConditionGoals',payload);}
-    async function upsertScenarioTargetConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioTargetConditionGoals',payload);}
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario',payload);}
-    function selectScenarioAction(payload?: any) { store.dispatch('selectScenario',payload);}
-
-    function addedOrUpdatedTargetConditionGoalLibraryMutator(payload:any){store.commit('addedOrUpdatedTargetConditionGoalLibraryMutator',payload);} 
-    function selectedTargetConditionGoalLibraryMutator(payload:any){store.commit('selectedTargetConditionGoalLibraryMutator',payload);} 
    
     let getUserNameByIdGetter = store.getters.getUserNameById;
 
@@ -462,10 +446,10 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
 
     onMounted(async () => {
         librarySelectItemValue.value = null;
-        await getTargetConditionGoalLibrariesAction();
+        await targetConditionGoalStore.getTargetConditionGoalLibraries();
         await attributeStore.getAttributes();
         numericAttributeNames.value = getPropertyValues('name', attributeStore.getNumericAttributes);
-        await getHasPermittedAccessAction();
+        await targetConditionGoalStore.getHasPermittedAccess();
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.TargetConditionGoal) !== -1) { 
             //selectedScenarioId = to.query.scenarioId;
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string; 
@@ -477,8 +461,8 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
             }
 
             hasScenario.value = true;
-            await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
-            selectScenarioAction({ scenarioId: selectedScenarioId });     
+            await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+            scenarioStore.selectScenario(selectedScenarioId);
             await initializePages();                                   
         }
     });            
@@ -487,10 +471,10 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
         setHasUnsavedChangesAction({ value: false });
     }
 
-    watch(hasPermittedAccess, () => {
+    watch(() => targetConditionGoalStore.hasPermittedAccessGetter, () => {
     });
-    watch(stateTargetConditionGoalLibraries,()=> {
-        librarySelectItems.value = stateTargetConditionGoalLibraries.value.map(
+    watch(() => targetConditionGoalStore.targetConditionGoalLibrariesGetter,()=> {
+        librarySelectItems.value = targetConditionGoalStore.targetConditionGoalLibrariesGetter.map(
             (library: TargetConditionGoalLibrary) => ({
                 text: library.name,
                 value: library.id,
@@ -519,13 +503,13 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
 
     function onLibrarySelectItemValueChanged() {
         trueLibrarySelectItemValue.value = librarySelectItemValue.value;
-        selectTargetConditionGoalLibraryAction({
-            libraryId: librarySelectItemValue.value,
-        });
+        targetConditionGoalStore.selectTargetConditionGoalLibrary(
+            librarySelectItemValue.value !== null ? librarySelectItemValue.value : getBlankGuid(),
+        );
     }
 
-    watch(stateSelectedTargetConditionLibrary,()=> {
-        selectedTargetConditionGoalLibrary.value = clone(stateSelectedTargetConditionLibrary.value);
+    watch(() => targetConditionGoalStore.getSelectedTargetConditionGoalLibrary,()=> {
+        selectedTargetConditionGoalLibrary.value = clone(targetConditionGoalStore.getSelectedTargetConditionGoalLibrary);
     });
 
     watch(selectedTargetConditionGoalLibrary,()=> {
@@ -554,13 +538,6 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
         numericAttributeNames.value = getPropertyValues('name', attributeStore.getNumericAttributes);
     }
 
-    watch(stateScenarioTargetConditionGoals,()=> onStateScenarioTargetConditionGoalsChanged)
-    function onStateScenarioTargetConditionGoalsChanged() {
-        if (hasScenario.value) {
-            currentPage.value = clone(stateScenarioTargetConditionGoals.value);
-        }
-    }
-
     watch(currentPage,()=> {
 
         // Get parent name from library id
@@ -571,9 +548,9 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
         });
     });
     
-    watch(isSharedLibrary,()=> onStateSharedAccessChanged)
+    watch(() => targetConditionGoalStore.getIsSharedLibrary,()=> onStateSharedAccessChanged)
     function onStateSharedAccessChanged() {
-        isShared = isSharedLibrary.value;
+        isShared = targetConditionGoalStore.getIsSharedLibrary;
     }
     
     watch(pagination,()=> onPaginationChanged)
@@ -620,7 +597,9 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
                     rowCache.value = clone(currentPage.value)
                     totalItems.value = data.totalItems;
                     if (!isNil(selectedTargetConditionGoalLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedTargetConditionGoalLibrary.value).then(() => isShared = isSharedLibrary.value);
+                        targetConditionGoalStore.getIsSharedTargetConditionGoalLibrary(selectedTargetConditionGoalLibrary.value.id).then(() => {
+                            isShared = targetConditionGoalStore.getIsSharedLibrary;
+                        });
                         
                     }
                 }
@@ -647,7 +626,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
     }
 
     function checkLibraryEditPermission() {
-        setHasUnsavedChangesAction(hasAdminAccess.value || (hasPermittedAccess.value && checkUserIsLibraryOwner()))
+        setHasUnsavedChangesAction(hasAdminAccess.value || (targetConditionGoalStore.hasPermittedAccessGetter && checkUserIsLibraryOwner()))
     }
 
     function checkUserIsLibraryOwner() {
@@ -689,8 +668,8 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
                         clearChanges();
                     }
 
-                    addedOrUpdatedTargetConditionGoalLibraryMutator(library);
-                    selectedTargetConditionGoalLibraryMutator(library.id);
+                    targetConditionGoalStore.addedOrUpdatedTargetConditionGoalLibraryMutator(library);
+                    targetConditionGoalStore.selectedTargetConditionGoalLibraryMutator(library.id);
                     notificationStore.addSuccessNotification({message:'Added target condition goal library'})
                 }               
             })
@@ -762,8 +741,8 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
         TargetConditionGoalService.upsertTargetConditionGoalLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges();
-                addedOrUpdatedTargetConditionGoalLibraryMutator(selectedTargetConditionGoalLibrary.value);
-                selectedTargetConditionGoalLibraryMutator(selectedTargetConditionGoalLibrary.value.id);
+                targetConditionGoalStore.addedOrUpdatedTargetConditionGoalLibraryMutator(selectedTargetConditionGoalLibrary.value);
+                targetConditionGoalStore.selectedTargetConditionGoalLibraryMutator(selectedTargetConditionGoalLibrary.value.id);
                 notificationStore.addSuccessNotification({message: "Updated target condition goal library",});
             }
         });
@@ -839,9 +818,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
 
         if (submit) {
             librarySelectItemValue.value = null;
-            deleteTargetConditionGoalLibraryAction({
-                libraryId: selectedTargetConditionGoalLibrary.value.id,
-            });
+            targetConditionGoalStore.deleteTargetConditionGoalLibrary(selectedTargetConditionGoalLibrary.value.id);
         }
     }
 
@@ -915,7 +892,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
             addedRows.value.length > 0 ||
             updatedRowsMap.value.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTargetConditionGoalLibrary.value, stateSelectedTargetConditionLibrary.value))
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTargetConditionGoalLibrary.value, targetConditionGoalStore.getSelectedTargetConditionGoalLibrary))
         setHasUnsavedChangesAction({ value: hasUnsavedChanges });
     }
 
@@ -938,7 +915,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
 
     function setParentLibraryName(libraryId: string) {
         let foundLibrary: TargetConditionGoalLibrary = emptyTargetConditionGoalLibrary;
-        stateTargetConditionGoalLibraries.value.forEach(library => {
+        targetConditionGoalStore.targetConditionGoalLibrariesGetter.forEach(library => {
             if (library.id === libraryId ) {
                 foundLibrary = clone(library);
             }
@@ -1012,7 +989,9 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore } from 
                 });
 
                 if (!isNil(selectedTargetConditionGoalLibrary.value.id) ) {
-                            getIsSharedLibraryAction(selectedTargetConditionGoalLibrary.value).then(() => isShared = isSharedLibrary.value);
+                            targetConditionGoalStore.getIsSharedTargetConditionGoalLibrary(selectedTargetConditionGoalLibrary.value.id).then(() => {
+                                isShared = targetConditionGoalStore.getIsSharedLibrary;
+                            });
                 }
                 //update budget library sharing
                 TargetConditionGoalService.upsertOrDeleteTargetConditionGoalLibraryUsers(selectedTargetConditionGoalLibrary.value.id, libraryUserData).then((response: AxiosResponse) => {

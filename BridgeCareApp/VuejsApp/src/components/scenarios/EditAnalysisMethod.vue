@@ -243,11 +243,12 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
-import { useAttributeStore, useAuthenticationStore, useNotificationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useNotificationStore, useScenarioStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
+    const scenarioStore = useScenarioStore();
     const router = useRouter(); 
     // ToDo - verify if below is correct. Its used in onUpsertAnalysisMethod()
     const $refs = inject('$refs') as any
@@ -265,9 +266,6 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore } from 
     async function getSimulationAnalysisSettingAction(payload?: any): Promise<any>{await store.dispatch('getSimulationAnalysisSetting', payload)}
 
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload)} 
-
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>{await store.dispatch('getCurrentUserOrSharedScenario', payload)}
-    function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload)} 
 
     const selectedScenarioId = ref<string>(getBlankGuid());
     const analysisMethod = ref<AnalysisMethod>(clone(emptyAnalysisMethod));
@@ -358,11 +356,11 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     })
     .then(() => {
         // Get current user or shared scenario info
-        return getCurrentUserOrSharedScenarioAction({ simulationId: selectedScenarioId.value });
+        return scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId.value);
     })
     .then(() => {
         // Select scenario
-        selectScenarioAction({ scenarioId: selectedScenarioId.value });
+        scenarioStore.selectScenario(selectedScenarioId.value);
     })
     .catch(error => {
         console.error('Error in action chain:', error);

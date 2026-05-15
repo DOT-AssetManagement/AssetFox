@@ -316,21 +316,20 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { emit } from 'process';
-import { useAuthenticationStore, useCashFlowStore, useNotificationStore } from '@/stores';
+import { useAuthenticationStore, useCashFlowStore, useNotificationStore, useScenarioStore } from '@/stores';
 
 
 let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const cashFlowStore = useCashFlowStore();
 const notificationStore = useNotificationStore();
+const scenarioStore = useScenarioStore();
 const confirm = useConfirm();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
 let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
- function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
 
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
 
@@ -471,8 +470,8 @@ async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>
             }
 
             hasScenario.value = true;
-            await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})     
-            selectScenarioAction({ scenarioId: selectedScenarioId });        
+            await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+            scenarioStore.selectScenario(selectedScenarioId);
             await initializePages();                                   
         }
     }

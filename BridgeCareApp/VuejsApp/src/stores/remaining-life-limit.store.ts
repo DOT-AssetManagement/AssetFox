@@ -7,12 +7,15 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import {
     emptyRemainingLifeLimitLibrary,
+    RemainingLifeLimit,
     RemainingLifeLimitLibrary,
 } from '@/shared/models/iAM/remaining-life-limit';
+import { PaginSync } from '@/shared/models/iAM/paging';
 
 export interface RemainingLifeLimitStoreState {
     remainingLifeLimitLibraries: RemainingLifeLimitLibrary[];
     selectedRemainingLifeLimitLibrary: RemainingLifeLimitLibrary;
+    scenarioRemainingLifeLimits: RemainingLifeLimit[];
     hasPermittedAccess: boolean;
     isSharedLibrary: boolean;
 }
@@ -21,6 +24,7 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
     state: (): RemainingLifeLimitStoreState => ({
         remainingLifeLimitLibraries: [],
         selectedRemainingLifeLimitLibrary: clone(emptyRemainingLifeLimitLibrary),
+        scenarioRemainingLifeLimits: [],
         hasPermittedAccess: false,
         isSharedLibrary: false,
     }),
@@ -82,6 +86,38 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
                 }
             });
         },
+        async getScenarioRemainingLifeLimits(scenarioId: string) {
+            await RemainingLifeLimitService.getScenarioRemainingLifeLimit(
+                scenarioId,
+            ).then((response: AxiosResponse<RemainingLifeLimit[]>) => {
+                if (hasValue(response, 'data')) {
+                    this.scenarioRemainingLifeLimits = clone(response.data);
+                }
+            });
+        },
+        async upsertScenarioRemainingLifeLimits(
+            scenarioRemainingLifeLimits: PaginSync<RemainingLifeLimit>,
+            scenarioId: string,
+        ) {
+            const notificationStore = useNotificationStore();
+            await RemainingLifeLimitService.upsertScenarioRemainingLifeLimits(
+                scenarioRemainingLifeLimits,
+                scenarioId,
+            ).then((response: AxiosResponse) => {
+                if (
+                    hasValue(response, 'status') &&
+                    http2XX.test(response.status.toString())
+                ) {
+                    this.scenarioRemainingLifeLimits = clone([
+                        ...scenarioRemainingLifeLimits.addedRows,
+                        ...scenarioRemainingLifeLimits.updateRows,
+                    ]);
+                    notificationStore.addSuccessNotification({
+                        message: 'Modified remaining life minits',
+                    });
+                }
+            });
+        },
         async getIsSharedRemainingLifeLimitLibrary(id: string) {
             await RemainingLifeLimitService.getIsSharedRemainingLifeLimitLibrary(
                 id,
@@ -98,6 +134,7 @@ export const useRemainingLifeLimitStore = defineStore('remainingLifeLimit', {
     getters: {
         remainingLifeLimitLibrariesGetter: (state) => state.remainingLifeLimitLibraries,
         getSelectedRemainingLifeLimitLibrary: (state) => state.selectedRemainingLifeLimitLibrary,
+        scenarioRemainingLifeLimitsGetter: (state) => state.scenarioRemainingLifeLimits,
         getHasPermittedAccess: (state) => state.hasPermittedAccess,
         getIsSharedLibrary: (state) => state.isSharedLibrary
     }

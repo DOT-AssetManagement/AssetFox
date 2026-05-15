@@ -575,7 +575,7 @@ import {
     ReportsDownloaderDialogData,
 } from '@/shared/models/modals/reports-downloader-dialog-data';
 import CloneScenarioDialog from '@/components/scenarios/scenarios-dialogs/CloneScenarioDialog.vue'
-import { CloneScenarioDialogData, emptyCloneScenarioDialogData } from '@/shared/models/modals/clone-scenario-dialog-data'
+import { CloneSimulationDialogData, emptyCloneSimulationDialogData } from '@/shared/models/modals/clone-scenario-dialog-data'
 import CreateScenarioDialog from '@/components/scenarios/scenarios-dialogs/CreateScenarioDialog.vue';
 import FilterScenarioList from '@/components/scenarios/scenarios-dialogs/FilterScenarioList.vue';
 import ShareScenarioDialog from '@/components/scenarios/scenarios-dialogs/ShareScenarioDialog.vue';
@@ -622,60 +622,21 @@ import router from '@/router';
 import { useRoute } from 'vue-router';
 import ReportsService from '@/services/reports.service';
 import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
-import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@/stores';
+import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScenarioStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const networkStore = useNetworkStore();
     const notificationStore = useNotificationStore();
+    const scenarioStore = useScenarioStore();
     const $router = useRouter();     
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-    
-    const stateScenarios = computed<Scenario[]>(() => store.state.scenarioModule.scenarios); 
-
-    const stateSharedScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentSharedScenariosPage) ;
-    const stateUserScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentUserScenarioPage) ;
-
-    let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
-
-    let stateTotalSharedScenarios = computed<number>(() => store.state.scenarioModule.totalSharedScenarios) ;
-    let stateTotalUserScenarios = computed<number>(() => store.state.scenarioModule.totalUserScenarios) ;
-
-    const stateWorkQueuePage = computed<QueuedWork[]>(() => store.state.scenarioModule.currentWorkQueuePage) ;
-    let stateTotalQueuedSimulations = computed<number>(() => store.state.scenarioModule.totalQueuedSimulations) ;
-    const stateFastWorkQueuePage = computed<QueuedWork[]>(() => store.state.scenarioModule.currentFastWorkQueuePage);
-    let stateTotalFastQueuedItems = computed<number>(() => store.state.scenarioModule.totalFastQueuedItems);
-    let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
 
     let authenticated:boolean = authenticationStore.authenticated;
     let hasAdminAccess: boolean = authenticationStore.hasAdminAccess ; 
     let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
 
-    async function getSharedScenariosPageAction(payload?: any): Promise<any>{await store.dispatch('getSharedScenariosPage', payload)}
-    async function createScenarioAction(payload?: any): Promise<any>{await store.dispatch('createScenario', payload)}
-    async function cloneScenarioAction(payload?: any): Promise<any>{await store.dispatch('cloneScenario', payload)}
-    async function cloneScenarioWithDestinationNetworkAction(payload?:any): Promise<any>{await store.dispatch('cloneScenarioWithDestinationNetwork',payload)}
     async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
-    async function getAllScenarioNamesAction(payload?: any): Promise<any> {return await store.dispatch('getAllScenarioNames', payload)}
-
-    async function updateScenarioAction(payload?: any): Promise<any>{await store.dispatch('updateScenario', payload)}
-    async function deleteScenarioAction(payload?: any): Promise<any>{await store.dispatch('deleteScenario', payload)}
-    async function cancelWorkQueueItemAction(payload?: any): Promise<any>{await store.dispatch('cancelWorkQueueItem', payload)}
-    async function cancelFastQueueItemAction(payload?: any): Promise<any>{await store.dispatch('cancelFastQueueItem', payload)}
-    async function runSimulationAction(payload?: any): Promise<any>{await store.dispatch('runSimulation', payload)}
-
-    async function migrateLegacySimulationDataAction(payload?: any): Promise<any>{await store.dispatch('migrateLegacySimulationData', payload)}
-    async function updateSimulationAnalysisDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationAnalysisDetail', payload)}
-    async function updateSimulationReportDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationReportDetail', payload)}
-    async function updateNetworkRollupDetailAction(payload?: any): Promise<any>{await store.dispatch('updateNetworkRollupDetail', payload)}
-
-    function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload)} 
-    async function getUserScenariosPageAction(payload?: any): Promise<any>{await store.dispatch('getUserScenariosPage', payload)}
-
-    async function updateQueuedWorkStatusAction(payload?: any): Promise<any>{await store.dispatch('updateQueuedWorkStatus', payload)} 
-    async function getWorkQueuePageAction(payload?: any): Promise<any>{await store.dispatch('getWorkQueuePage', payload)} 
-    async function getFastWorkQueuePageAction(payload?: any): Promise<any>{await store.dispatch('getFastWorkQueuePage', payload)} 
-    async function updateFastQueuedWorkStatusAction(payload?: any): Promise<any>{await store.dispatch('updateFastQueuedWorkStatus', payload)} 
     async function getAllUserCriteriaFilterAction(payload?: any): Promise<any> {await store.dispatch('getAllUserCriteriaFilter',payload);}
     
     let networks: Network[] = [];
@@ -902,7 +863,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     
     let ConfirmConvertJsonToRelationalData = ref(clone(emptyAlertData));
     let confirmCloneScenarioAlertData  = ref(clone(emptyAlertData));
-    let cloneScenarioDialogData = ref(clone(emptyCloneScenarioDialogData));
+    let cloneScenarioDialogData = ref<CloneSimulationDialogData>(clone(emptyCloneSimulationDialogData));
     let confirmDeleteAlertData = ref(clone(emptyAlertData));
     let confirmCancelAlertData = ref(clone(emptyAlertData));
     let confirmDeleteReportsData = ref(clone(emptyAlertData));
@@ -944,18 +905,18 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         }
     }
  
-    watch(stateScenarios, onstateScenariosChanged) 
+    watch(() => scenarioStore.getScenarios, onstateScenariosChanged)
     function onstateScenariosChanged() {
-        scenarios = clone(stateScenarios.value);
+        scenarios = clone(scenarioStore.getScenarios);
     }
 
-    watch(stateSharedScenariosPage, onstateSharedScenariosPageChanged) 
+    watch(() => scenarioStore.getCurrentSharedScenariosPage, onstateSharedScenariosPageChanged)
     function onstateSharedScenariosPageChanged(){
 
             let stateUsers = computed<User[]>(()=>store.state.userModule.users);
 
             // Clone the stateSharedScenariosPage
-            const clonedPage = clone(stateSharedScenariosPage.value);
+            const clonedPage = clone(scenarioStore.getCurrentSharedScenariosPage);
 
             // Get the list of inactive users
             const inactiveUsers = stateUsers.value.filter(user => user.activeStatus === false);
@@ -975,9 +936,9 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         currentSharedScenariosPage.value = clonedPage
     }
 
-    watch(stateTotalSharedScenarios, onStateTotalSharedScenariosChanged) 
+    watch(() => scenarioStore.getTotalSharedScenarios, onStateTotalSharedScenariosChanged)
     function onStateTotalSharedScenariosChanged(){
-        totalSharedScenarios.value = stateTotalSharedScenarios.value;
+        totalSharedScenarios.value = scenarioStore.getTotalSharedScenarios;
     }
 
     watch(totalSharedScenarios, onTotalSharedScenariosChanged) 
@@ -985,13 +946,13 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         setTabTotals();
     }
 
-    watch(stateUserScenariosPage, onStateUserScenariosPageChanged) 
+    watch(() => scenarioStore.getCurrentUserScenarioPage, onStateUserScenariosPageChanged)
     function onStateUserScenariosPageChanged(){
 
         let stateUsers = computed<User[]>(()=>store.state.userModule.users);
 
         // Clone the stateUserScenariosPage
-        const clonedPage = clone(stateUserScenariosPage.value);
+        const clonedPage = clone(scenarioStore.getCurrentUserScenarioPage);
 
         // Get the list of inactive users
         const inactiveUsers = stateUsers.value.filter(user => user.activeStatus === false);
@@ -1011,36 +972,36 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     currentUserScenariosPage.value = clonedPage
     }
 
-    watch(stateTotalUserScenarios, onStateTotalUserScenariosChanged) 
+    watch(() => scenarioStore.getTotalUserScenarios, onStateTotalUserScenariosChanged)
     function onStateTotalUserScenariosChanged(){
-        totalUserScenarios.value = stateTotalUserScenarios.value;
+        totalUserScenarios.value = scenarioStore.getTotalUserScenarios;
     }
     watch(totalUserScenarios, onTotalUserScenariosChanged) 
     function onTotalUserScenariosChanged(){
         setTabTotals();
     }
     
-    watch(stateWorkQueuePage, () => {
-        currentWorkQueuePage.value = clone(stateWorkQueuePage.value);
+    watch(() => scenarioStore.getCurrentWorkQueuePage, () => {
+        currentWorkQueuePage.value = clone(scenarioStore.getCurrentWorkQueuePage);
     });
 
-    watch(stateTotalQueuedSimulations, onStateTotalQueuedSimulations) 
+    watch(() => scenarioStore.getTotalQueuedSimulations, onStateTotalQueuedSimulations)
     function onStateTotalQueuedSimulations(){
-        totalQueuedSimulations.value = stateTotalQueuedSimulations.value;
+        totalQueuedSimulations.value = scenarioStore.getTotalQueuedSimulations;
     }
     watch(totalQueuedSimulations, onTotalQueuedSimulationsChanged) 
     function onTotalQueuedSimulationsChanged(){
         setTabTotals();
     }
 
-    watch(stateFastWorkQueuePage, onStateFastWorkQueuePageChanged) 
+    watch(() => scenarioStore.getCurrentFastWorkQueuePage, onStateFastWorkQueuePageChanged)
     function onStateFastWorkQueuePageChanged(){
-        currentFastWorkQueuePage.value = clone(stateFastWorkQueuePage.value);
+        currentFastWorkQueuePage.value = clone(scenarioStore.getCurrentFastWorkQueuePage);
     }
 
-    watch(stateTotalFastQueuedItems, onStateTotalFastQueuedItemsChanged) 
+    watch(() => scenarioStore.getTotalFastQueuedItems, onStateTotalFastQueuedItemsChanged)
     function onStateTotalFastQueuedItemsChanged(){
-        totalFastQueuedItems.value = stateTotalFastQueuedItems.value;
+        totalFastQueuedItems.value = scenarioStore.getTotalFastQueuedItems;
     }
   
     watch(totalFastQueuedItems, onTotalFastQueuedItemsChanged) 
@@ -1068,7 +1029,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
             search: currentSearchMine.value
         };
         if(hasValue(networks) )
-            getUserScenariosPageAction(request); 
+            scenarioStore.getUserScenariosPage(request); 
     }
 
     function onSharedScenariosPagination(pageEvent?: { page: number, itemsPerPage: number, sortBy: string[] }) {
@@ -1091,7 +1052,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
             search: currentSearchShared
         };
         if(hasValue(networks) )
-            getSharedScenariosPageAction(request); 
+            scenarioStore.getSharedScenariosPage(request); 
     }
 
     // Refresh both lists and counts(gets called when clone, delete, create operations are performed)
@@ -1116,7 +1077,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         };
 
         if(hasValue(networks))
-            getUserScenariosPageAction(request).then(() => {
+            scenarioStore.getUserScenariosPage(request).then(() => {
                 onSharedScenariosPagination();
             });
     }
@@ -1148,7 +1109,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
             isDescending: sort != null && !isNil(sort[0]) ? sort[0].order === 'desc' : false,
             search: ""
         };
-        getWorkQueuePageAction(workQueueRequest);    
+        scenarioStore.getWorkQueuePage(workQueueRequest);    
     }
 
     function doFastQueuePagination() {
@@ -1170,7 +1131,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
             isDescending: sort != null && !isNil(sort[0]) ? sort[0].order === 'desc' : false,
             search: ""
         };
-        getFastWorkQueuePageAction(workQueueRequest);    
+        scenarioStore.getFastWorkQueuePage(workQueueRequest);    
     }
 
     onBeforeMount(async () => {
@@ -1216,8 +1177,8 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         );
 
         $emitter.on('SimulationRunSettingUpdated', () => {
-            availableScenarioIds.value.push(simulationRunSettingId.value);
-            checkIfReportExists(simulationRunSettingId);
+            availableScenarioIds.value.push(String(scenarioStore.getSimulationRunSettingId));
+            checkIfReportExists(scenarioStore.getSimulationRunSettingId);
         });
 
         availableActions = {
@@ -1411,24 +1372,24 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
             isDescending: false,
             search: ''
         };        
-        await getSharedScenariosPageAction(request)
-        await getUserScenariosPageAction(request)
-        await getWorkQueuePageAction(workQueueRequest)
+        await scenarioStore.getSharedScenariosPage(request)
+        await scenarioStore.getUserScenariosPage(request)
+        await scenarioStore.getWorkQueuePage(workQueueRequest)
         await getScenariosReportSettings();
-        await getFastWorkQueuePageAction(workQueueRequest)
-        await getAllScenarioNamesAction();
+        await scenarioStore.getFastWorkQueuePage(workQueueRequest)
+        await scenarioStore.getAllScenarioNames();
         initializing = false;
         initializingWorkQueue = false;
         initializingFastWorkQueue = false;
-        totalUserScenarios.value = stateTotalUserScenarios.value;
-        totalSharedScenarios.value = stateTotalSharedScenarios.value;
-        totalQueuedSimulations.value = stateTotalQueuedSimulations.value;
-        totalFastQueuedItems.value = stateTotalFastQueuedItems.value;
-        currentUserScenariosPage.value = clone(stateUserScenariosPage.value);
-        currentSharedScenariosPage.value = clone(stateSharedScenariosPage.value);
-        currentWorkQueuePage.value = clone(stateWorkQueuePage.value);
-        currentFastWorkQueuePage.value = clone(stateFastWorkQueuePage.value);
-        scenarioNames = clone(stateScenarioNames.value);
+        totalUserScenarios.value = scenarioStore.getTotalUserScenarios;
+        totalSharedScenarios.value = scenarioStore.getTotalSharedScenarios;
+        totalQueuedSimulations.value = scenarioStore.getTotalQueuedSimulations;
+        totalFastQueuedItems.value = scenarioStore.getTotalFastQueuedItems;
+        currentUserScenariosPage.value = clone(scenarioStore.getCurrentUserScenarioPage);
+        currentSharedScenariosPage.value = clone(scenarioStore.getCurrentSharedScenariosPage);
+        currentWorkQueuePage.value = clone(scenarioStore.getCurrentWorkQueuePage);
+        currentFastWorkQueuePage.value = clone(scenarioStore.getCurrentFastWorkQueuePage);
+        scenarioNames = clone(scenarioStore.getScenarioNames);
     }
 
     function formatDate(dateToFormat: Date) {
@@ -1457,16 +1418,17 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     // TODO: update to send no payload when API is modified to migrate ALL simulations
     function onStartDataMigration() {
         // the legacy scenario id is hardcoded to our test scenario "JML Run District 8"
-        migrateLegacySimulationDataAction({
-            simulationId: import.meta.env.VITE_APP_HARDCODED_SCENARIOID_FROM_LEGACY,
-        }).then(() => initializeScenarioPages());
+        scenarioStore.migrateLegacySimulationData(
+            Number((import.meta as any).env.VITE_APP_HARDCODED_SCENARIOID_FROM_LEGACY),
+            '',
+        ).then(() => initializeScenarioPages());
     }
 
     function onEditScenarioName(scenario: Scenario, name: string) {
         scenario.name = name;
         if (hasValue(scenario.name)) {
-            updateScenarioAction({ scenario: scenario }).then(() => {
-                getAllScenarioNamesAction().then(() => {
+            scenarioStore.updateScenario(scenario).then(() => {
+                scenarioStore.getAllScenarioNames().then(() => {
                     if(tab.value == tabItems[0].name)
                         onUserScenariosPagination();
                     else
@@ -1475,7 +1437,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
             });
         } else {
             scenarios = [];
-            setTimeout(() => (scenarios = clone(stateScenarios.value)));
+            setTimeout(() => (scenarios = clone(scenarioStore.getScenarios)));
         }
     }
 
@@ -1560,13 +1522,13 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
             secondRunAnalysisModal();
         }
         else if(submit == "continue") {
-            store.dispatch('updateSimulationRunSettingName', selectedScenario.name);
-            store.dispatch('updateSimulationRunSettingId', selectedScenario.id);
+            scenarioStore.updateSimulationRunSettingName(selectedScenario.name);
+            scenarioStore.updateSimulationRunSettingId(selectedScenario.id);
             if (submit && selectedScenario.id !== getBlankGuid()) {
-                runSimulationAction({
-                    networkId: selectedScenario.networkId,
-                    scenarioId: selectedScenario.id,
-                }).then(() => (selectedScenario = clone(emptyScenario)));
+                scenarioStore.runSimulation(
+                    selectedScenario.networkId,
+                    selectedScenario.id,
+                ).then(() => (selectedScenario = clone(emptyScenario)));
             }
             
             //Add a small delay to avoid adding two items to the queue at the same time
@@ -1637,16 +1599,16 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     }
 
     async function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
-        store.dispatch('updateSimulationRunSettingName', selectedScenario.name);
-        store.dispatch('updateSimulationRunSettingId', selectedScenario.id);
+        scenarioStore.updateSimulationRunSettingName(selectedScenario.name);
+        scenarioStore.updateSimulationRunSettingId(selectedScenario.id);
         confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
         selectedScenario = runAnalysisScenario;
 
         if (submit && selectedScenario.id !== getBlankGuid()) {
-            runSimulationAction({
-                networkId: selectedScenario.networkId,
-                scenarioId: selectedScenario.id,
-            }).then(() => (selectedScenario = clone(emptyScenario)));
+            scenarioStore.runSimulation(
+                selectedScenario.networkId,
+                selectedScenario.id,
+            ).then(() => (selectedScenario = clone(emptyScenario)));
         }
 
         //Add a small delay to avoid adding two items to the queue at the same time
@@ -1684,7 +1646,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     }
 
     function onNavigateToEditScenarioView(localScenario: Scenario) {
-        selectScenarioAction({ scenarioId: localScenario.id });
+        scenarioStore.selectScenario(localScenario.id);
 
         $router.push({
             path: '/EditScenario/',
@@ -1698,7 +1660,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     }
 
     function onNavigateToCommittedProjectView(localScenario: Scenario) {
-        selectScenarioAction({ scenarioId: localScenario.id });
+        scenarioStore.selectScenario(localScenario.id);
 
         $router.push({
             path: '/CommittedProjectsEditor/Scenario/',
@@ -1712,7 +1674,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     }
     
     function onNavigateToReportsView(localScenario: Scenario) {
-        selectScenarioAction({scenarioId: localScenario.id });
+        scenarioStore.selectScenario(localScenario.id);
         $router.push({
             path: '/ReportsAndOutputs/Scenario/',
             query: {
@@ -1763,9 +1725,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         shareScenarioDialogData.value = clone(emptyShareScenarioDialogData);
 
         if (!isNil(scenarioUsers) && scenario.id !== getBlankGuid()) {
-            updateScenarioAction({
-                scenario: { ...scenario, users: scenarioUsers },
-            });
+            scenarioStore.updateScenario({ ...scenario, users: scenarioUsers });
         }
     }
 
@@ -1785,7 +1745,11 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
 
         cloneScenarioDialogData.value = {
             showDialog: true,
-            scenario: selectedScenario
+            scenario: {
+                ...selectedScenario,
+                destinationNetworkId: selectedScenario.networkId,
+                scenarioId: selectedScenario.id,
+            }
         };
     }
 
@@ -1793,8 +1757,11 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         confirmCloneScenarioAlertData.value = clone(emptyAlertData);
 
         if (submit && selectedScenario.id !== getBlankGuid()) {
-            cloneScenarioAction({
+            scenarioStore.cloneScenario({
                 scenarioId: selectedScenario.id,
+                destinationNetworkId: selectedScenario.networkId,
+                networkId: selectedScenario.networkId,
+                scenarioName: selectedScenario.name,
             }).then(() => {
                 selectedScenario = clone(emptyScenario)               
                 if(tab.value == tabItems[0].name) {
@@ -1808,10 +1775,10 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     }
 
     function onCloneScenarioDialogSubmit(scenario: CloneScenario) {
-        cloneScenarioDialogData.value = clone(emptyCloneScenarioDialogData);
+        cloneScenarioDialogData.value = clone(emptyCloneSimulationDialogData);
 
         if (!isNil(scenario)) {
-            cloneScenarioWithDestinationNetworkAction(scenario).then(() => {
+            scenarioStore.cloneScenarioWithDestinationNetwork(scenario).then(() => {
                 selectedScenario = clone(emptyScenario)
                 onScenariosPagination();
             });
@@ -1856,10 +1823,10 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         confirmDeleteAlertData.value = clone(emptyAlertData);
 
         if (submit && selectedScenario.id !== getBlankGuid()) {
-            deleteScenarioAction({
-                scenarioId: selectedScenario.id,
-                scenarioName: selectedScenario.name,
-            }).then(() => {
+            scenarioStore.deleteScenario(
+                selectedScenario.id,
+                selectedScenario.name,
+            ).then(() => {
                 selectedScenario = clone(emptyScenario); 
             });
         }
@@ -1887,14 +1854,12 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         confirmCancelAlertData.value = clone(emptyAlertData);
 
         if (submit && selectedQueuedWork.id !== getBlankGuid() && selectedQueuedWork.id.trim() != '') {
-            cancelWorkQueueItemAction({
-                simulationId: selectedQueuedWork.id,
-            }).then(() => {
+            scenarioStore.cancelWorkQueueItem(selectedQueuedWork.id).then(() => {
                 selectedQueuedWork = clone(emptyQueuedWork);
             });
         }
         else if(submit && selectedFastQueuedWork.id !== getBlankGuid() && selectedFastQueuedWork.id.trim() != '') {
-            cancelFastQueueItemAction(selectedFastQueuedWork.id).then(() => {
+            scenarioStore.cancelFastQueueItem(selectedFastQueuedWork.id).then(() => {
                 selectedFastQueuedWork = clone(emptyQueuedWork);
             });
         }
@@ -1955,27 +1920,21 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     }
 
     function getScenarioAnalysisDetailUpdate(data: any) {
-        updateSimulationAnalysisDetailAction({
-            simulationAnalysisDetail: data.simulationAnalysisDetail,
-        });
+        scenarioStore.updateSimulationAnalysisDetail(data.simulationAnalysisDetail);
         const updatedQueueItem: queuedWorkStatusUpdate = {
             id: data.simulationAnalysisDetail.simulationId as string + WorkType[WorkType.SimulationAnalysis] ,
             status: data.simulationAnalysisDetail.status
         }
-        updateQueuedWorkStatusAction({
-            workQueueStatusUpdate: updatedQueueItem
-        })                            
+        scenarioStore.updateQueuedWorkStatus(updatedQueueItem)                            
     }
 
     function getWorkQueueUpdate(data: any) {
             var updatedQueueItem = data.queueItem as queuedWorkStatusUpdate
             if(isNil(updatedQueueItem))
                 return;
-            var queueItem = stateWorkQueuePage.value.find(_ => _.id === updatedQueueItem.id)
+            var queueItem = scenarioStore.getCurrentWorkQueuePage.find(_ => _.id === updatedQueueItem.id)
             if(!isNil(queueItem)){
-                updateQueuedWorkStatusAction({
-                    workQueueStatusUpdate: updatedQueueItem
-                })
+                scenarioStore.updateQueuedWorkStatus(updatedQueueItem)
             }                                
     }
 
@@ -1990,11 +1949,9 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
             var updatedQueueItem = data.queueItem as queuedWorkStatusUpdate
             if(isNil(updatedQueueItem))
                 return;
-            var queueItem = stateFastWorkQueuePage.value.find(_ => _.id === updatedQueueItem.id)
+            var queueItem = scenarioStore.getCurrentFastWorkQueuePage.find(_ => _.id === updatedQueueItem.id)
             if(!isNil(queueItem)){
-                updateFastQueuedWorkStatusAction({
-                    workQueueStatusUpdate: updatedQueueItem
-                })
+                scenarioStore.updateFastQueuedWorkStatus(updatedQueueItem)
             }                                
     }
 
@@ -2017,7 +1974,7 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         
         var workType = data.workType as WorkType
         if(workType === WorkType.DeleteSimulation ){
-            getAllScenarioNamesAction().then(() => onScenariosPagination())   
+            scenarioStore.getAllScenarioNames().then(() => onScenariosPagination())   
         }        
     }
 
@@ -2029,20 +1986,18 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
     }
 
     function getReportStatus(data: any) {
-        updateSimulationReportDetailAction({
-            simulationReportDetail: data.simulationReportDetail,
-        });
+        scenarioStore.updateSimulationReportDetail(data.simulationReportDetail);
     }
 
     function onCreateScenarioDialogSubmit(scenario: Scenario) {
         showCreateScenarioDialog.value = false;
 
         if (!isNil(scenario)) {
-            createScenarioAction({
-                scenario: scenario,
-                networkId: scenario.networkId,
-            }).then(() => {
-                getAllScenarioNamesAction().then(() => onScenariosPagination());              
+            scenarioStore.createScenario(
+                scenario,
+                scenario.networkId,
+            ).then(() => {
+                scenarioStore.getAllScenarioNames().then(() => onScenariosPagination());              
             });
         }
     }
@@ -2051,10 +2006,10 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@
         showMigrateLegacySimulationDialog = false;
 
         if (!isNil(legacySimulationId)) {
-            migrateLegacySimulationDataAction({
-                simulationId: legacySimulationId,
-                networkId: 'D7B54881-DD44-4F93-8250-3D4A630A4D3B',
-            }).then(() => initializeScenarioPages());
+            scenarioStore.migrateLegacySimulationData(
+                legacySimulationId,
+                'D7B54881-DD44-4F93-8250-3D4A630A4D3B',
+            ).then(() => initializeScenarioPages());
         }
     }
 

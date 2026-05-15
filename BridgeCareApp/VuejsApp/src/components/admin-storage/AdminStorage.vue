@@ -83,16 +83,17 @@ import ScenarioService from '@/services/scenario.service';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { Emitter, EventType } from 'mitt';
 import { Hub } from '@/connectionHub';
+import { useScenarioStore } from '@/stores';
 
     let store = useStore();
     const alertStore = useAlertStore();
+    const scenarioStore = useScenarioStore();
     let lowerBoundDate = ref('');
     let upperBoundDate = ref('');
     let isDeletionInProgress = false;
     let rules: InputValidationRules = validationRules;
     let confirmDeleteAlertData = ref(clone(emptyAlertData));
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-    async function deleteScenarioOutputAction(payload?: any): Promise<any> {await store.dispatch('deleteScenarioOutput',payload);}
 
     onMounted( () => {
             ScenarioService.GetQueuedWorkByWorkType(WorkType.DeleteSimulationOutput).then(response => {
@@ -118,7 +119,7 @@ import { Hub } from '@/connectionHub';
 
     function DeleteScenarioOutputs() {
         let dateParams: SimulationOutputDeletionParameters = {lowerBoundDate: new Date(lowerBoundDate.value), upperBoundDate: new Date(upperBoundDate.value)}
-        deleteScenarioOutputAction(dateParams).then(response => {
+        scenarioStore.deleteScenarioOutput(dateParams).then(response => {
             alertStore.setAlertMessage("Simulation output deletion is currently already in the queue")
         })
     }

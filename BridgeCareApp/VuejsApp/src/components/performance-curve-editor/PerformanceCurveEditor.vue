@@ -518,7 +518,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore, usePerformanceCurveStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
 let store = useStore();
@@ -527,6 +527,7 @@ const attributeStore = useAttributeStore();
 const authenticationStore = useAuthenticationStore();
 const notificationStore = useNotificationStore();
 const performanceCurveStore = usePerformanceCurveStore();
+const scenarioStore = useScenarioStore();
 const confirm = useConfirm();
 
 let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
@@ -534,8 +535,6 @@ let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess)
 let currentUserCriteriaFilter = ref<UserCriteriaFilter>(store.state.userModule.currentUserCriteriaFilter);
 
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
-function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload);}
 
 let getUserNameByIdGetter: any = store.getters.getUserNameById
 
@@ -668,8 +667,8 @@ let getUserNameByIdGetter: any = store.getters.getUserNameById
                 }
                 await initializePages()
                 hasScenario.value = true;
-                await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})   
-                selectScenarioAction({ scenarioId: selectedScenarioId });        
+                await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+                scenarioStore.selectScenario(selectedScenarioId);
             })
         }
     }

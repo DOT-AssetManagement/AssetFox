@@ -347,7 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore, useScenarioStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -440,8 +440,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
     function selectTreatmentLibraryAction(payload?: any){ store.dispatch('selectTreatmentLibrary', payload); }
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserOrSharedScenario', payload); }
-    function selectScenarioAction(payload?: any){  store.dispatch('selectScenario', payload); }
+    const scenarioStore = useScenarioStore();
     const alertStore = useAlertStore();
     const notificationStore = useNotificationStore();
     
@@ -580,8 +579,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         await investmentStore.getScenarioSimpleBudgetDetails(scenarioId);
         await attributeStore.getAttributes();
         
-        await getCurrentUserOrSharedScenarioAction({simulationId: scenarioId});
-        await selectScenarioAction({ scenarioId: scenarioId });
+        await scenarioStore.getCurrentUserOrSharedScenario(scenarioId);
+        scenarioStore.selectScenario(scenarioId);
         await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
             if(response.data){
                 alertStore.setAlertMessage("Committed project import has been added to the queue");

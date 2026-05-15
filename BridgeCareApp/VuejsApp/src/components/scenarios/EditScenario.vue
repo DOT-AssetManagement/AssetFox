@@ -142,26 +142,18 @@ import { inject } from 'vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
-import { useAuthenticationStore, useNotificationStore } from '@/stores';
+import { useAuthenticationStore, useNotificationStore, useScenarioStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
+    const scenarioStore = useScenarioStore();
     const router = useRouter(); 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
     const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
     let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
 
-    const stateSelectedScenario = computed<Scenario>(() => store.state.scenarioModule.selectedScenario) ;
-    const stateSharedScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentSharedScenariosPage) ;
-    const stateUserScenariosPage = computed<Scenario[]>(() =>store.state.scenarioModule.currentUserScenarioPage) ;
-    let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
-
-    function selectScenarioAction(payload?: any){ store.dispatch('selectScenario',payload)} 
-
-    async function runSimulationAction(payload?: any): Promise<any>{await store.dispatch('runSimulation', payload)}   
-    async function runNewSimulationAction(payload?: any): Promise<any>{await store.dispatch('runNewSimulation',payload)}
     async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {await store.dispatch('getSimpleScenarioSelectableTreatments', payload);}
 
@@ -371,41 +363,35 @@ import { useAuthenticationStore, useNotificationStore } from '@/stores';
             }
     }
 
-    watch(stateSelectedScenario, () => onStateSelectedScenarioChanged)
+    watch(() => scenarioStore.getSelectedScenario, () => onStateSelectedScenarioChanged())
     function onStateSelectedScenarioChanged() {
-        selectedScenario = clone(stateSelectedScenario.value);
+        selectedScenario = clone(scenarioStore.getSelectedScenario);
     }
 
-    watch(stateSharedScenariosPage, () => onStateSharedScenariosPageChanged)
+    watch(() => scenarioStore.getCurrentSharedScenariosPage, () => onStateSharedScenariosPageChanged())
     function onStateSharedScenariosPageChanged() {
         if (any(propEq('id', selectedScenario.id))) {
-            selectScenarioAction({
-                scenarioId: selectedScenario.id,
-            });
+            scenarioStore.selectScenario(selectedScenario.id);
         }
     }
 
-    watch(stateUserScenariosPage, () => onStateUserScenariosPagePageChanged)
+    watch(() => scenarioStore.getCurrentUserScenarioPage, () => onStateUserScenariosPagePageChanged())
     function onStateUserScenariosPagePageChanged() {
         if (any(propEq('id', selectedScenario.id))) {
-            selectScenarioAction({
-                scenarioId: selectedScenario.id,
-            });
+            scenarioStore.selectScenario(selectedScenario.id);
         }
     }
 
     onMounted(() => mounted);
     function mounted() {
         if (selectedScenarioId !== getBlankGuid()) {            
-            selectScenarioAction({
-                scenarioId: selectedScenarioId,
-            });
+            scenarioStore.selectScenario(selectedScenarioId);
         }
     }
 
     onBeforeUnmount(() => beforeDestroy); 
     function beforeDestroy() {
-        selectScenarioAction({ scenarioId: getBlankGuid() });
+        scenarioStore.selectScenario(getBlankGuid());
     }
 
     function onSubmitImportExportCommittedProjectsDialogResult(
@@ -625,7 +611,7 @@ import { useAuthenticationStore, useNotificationStore } from '@/stores';
         });
 
         $emitter.on('SimulationRunSettingUpdated', () => {
-            if(String(selectedScenarioId) === String(simulationRunSettingId.value))
+            if(String(selectedScenarioId) === String(scenarioStore.getSimulationRunSettingId))
             {
                 hasScenarioBeenRun.value = false;
 
@@ -715,13 +701,13 @@ import { useAuthenticationStore, useNotificationStore } from '@/stores';
             secondRunAnalysisModal();
         }
         else if(submit == "continue") {
-            store.dispatch('updateSimulationRunSettingName', simulationName);
-            store.dispatch('updateSimulationRunSettingId', selectedScenarioId);
+            scenarioStore.updateSimulationRunSettingName(simulationName);
+            scenarioStore.updateSimulationRunSettingId(selectedScenarioId);
             if (submit && selectedScenarioId !== getBlankGuid()) {
-                runSimulationAction({
-                    networkId: networkId,
-                    scenarioId: selectedScenarioId,
-                }).then(() => (selectedScenario = clone(emptyScenario)));
+                scenarioStore.runSimulation(
+                    networkId,
+                    selectedScenarioId,
+                ).then(() => (selectedScenario = clone(emptyScenario)));
             }
             router.push({ path: '/Scenarios/', query: { tab: 'Queue' } }).catch(() => {});
         }
@@ -790,18 +776,18 @@ import { useAuthenticationStore, useNotificationStore } from '@/stores';
     }
 
     function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
-        store.dispatch('updateSimulationRunSettingName', simulationName);
-        store.dispatch('updateSimulationRunSettingId', selectedScenarioId);
+        scenarioStore.updateSimulationRunSettingName(simulationName);
+        scenarioStore.updateSimulationRunSettingId(selectedScenarioId);
 
         confirmAnalysisPreCheckAlertData.value = clone(emptyAlertPreChecksData);
 
         selectedScenario = runAnalysisScenario;
 
         if (submit && selectedScenarioId !== getBlankGuid()) {
-            runSimulationAction({
-                networkId: networkId,
-                scenarioId: selectedScenarioId,
-            }).then(() => (selectedScenario = clone(emptyScenario)));
+            scenarioStore.runSimulation(
+                networkId,
+                selectedScenarioId,
+            ).then(() => (selectedScenario = clone(emptyScenario)));
             router.push({ path: '/Scenarios/', query: { tab: 'Queue' } }).catch(() => {});
         }
     }
@@ -816,10 +802,10 @@ import { useAuthenticationStore, useNotificationStore } from '@/stores';
         alertData.value = clone(emptyAlertData);
 
         if (runScenarioSimulation) {
-            runSimulationAction({
-                networkId: networkId,
-                scenarioId: selectedScenarioId,
-            });
+            scenarioStore.runSimulation(
+                networkId,
+                selectedScenarioId,
+            );
         }
     }
 

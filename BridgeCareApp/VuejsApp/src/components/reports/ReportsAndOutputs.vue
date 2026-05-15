@@ -181,7 +181,6 @@ import { useAdminDataStore, useAuthenticationStore, useNotificationStore } from 
     const notificationStore = useNotificationStore();
     const router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>> 
-    async function updateSimulationReportDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationReportDetail', payload)}  
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 
     let editShow = ref<boolean>(false);

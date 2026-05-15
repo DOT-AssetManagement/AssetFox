@@ -78,11 +78,11 @@ import {
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
 import { find, isNil, propEq } from 'ramda';
-import { useNetworkStore } from '@/stores';
+import { useNetworkStore, useScenarioStore } from '@/stores';
 
   let store = useStore(); 
     const networkStore = useNetworkStore();
-  let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
+        const scenarioStore = useScenarioStore();
 
   let rules: InputValidationRules = validationRules;
   const scenarioNameErrors = ref<string[]>([]);
@@ -169,7 +169,7 @@ import { useNetworkStore } from '@/stores';
             scenarioNameErrors.value.push(specialCharError as string);
         }
 
-        if(stateScenarioNames.value.find(_ => _ == newScenario.value.name) != undefined)
+        if (scenarioStore.getScenarioNames.find(_ => _ == newScenario.value.name) != undefined)
         {
             scenarioNameErrors.value.push("There is already a scenario with that name")
         }

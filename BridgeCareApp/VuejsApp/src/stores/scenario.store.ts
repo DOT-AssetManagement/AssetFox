@@ -6,6 +6,7 @@ import { CloneScenarioData, emptyScenario, QueuedWork, Scenario } from '@/shared
 import { SimulationAnalysisDetail } from '@/shared/models/iAM/simulation-analysis-detail';
 import { SimulationReportDetail } from '@/shared/models/iAM/simulation-report-detail';
 import { PagingPage, PagingRequest } from '@/shared/models/iAM/paging';
+import { queuedWorkStatusUpdate } from '@/shared/models/iAM/queuedWorkStatusUpdate';
 import { SimulationOutputDeletionParameters } from '@/shared/models/iAM/simulation-output-deletion-params';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
@@ -116,7 +117,7 @@ function simulationReportDetailMutator(state: ScenarioStoreState, simulationRepo
     }
 }
 
-function workQueStatusUpdateMutator(state: ScenarioStoreState, queuedWorkUpdated: QueuedWork) {
+function workQueStatusUpdateMutator(state: ScenarioStoreState, queuedWorkUpdated: queuedWorkStatusUpdate) {
     if (any(propEq('id', queuedWorkUpdated.id), state.currentWorkQueuePage)) {
         const updatedQueuedWork: QueuedWork = find(propEq('id', queuedWorkUpdated.id), state.currentWorkQueuePage) as QueuedWork;
         updatedQueuedWork.status = queuedWorkUpdated.status;
@@ -129,7 +130,7 @@ function workQueStatusUpdateMutator(state: ScenarioStoreState, queuedWorkUpdated
     }
 }
 
-function fastWorkQueStatusUpdateMutator(state: ScenarioStoreState, queuedWorkUpdated: QueuedWork) {
+function fastWorkQueStatusUpdateMutator(state: ScenarioStoreState, queuedWorkUpdated: queuedWorkStatusUpdate) {
     if (any(propEq('id', queuedWorkUpdated.id), state.currentFastWorkQueuePage)) {
         const updatedQueuedWork: QueuedWork = find(propEq('id', queuedWorkUpdated.id), state.currentFastWorkQueuePage) as QueuedWork;
         updatedQueuedWork.status = queuedWorkUpdated.status;
@@ -178,10 +179,10 @@ export const useScenarioStore = defineStore('scenario', {
         updateSimulationAnalysisDetail(simulationAnalysisDetail: SimulationAnalysisDetail) {
             simulationAnalysisDetailMutator(this, simulationAnalysisDetail);
         },
-        updateQueuedWorkStatus(workQueueStatusUpdate: QueuedWork) {
+        updateQueuedWorkStatus(workQueueStatusUpdate: queuedWorkStatusUpdate) {
             workQueStatusUpdateMutator(this, workQueueStatusUpdate);
         },
-        updateFastQueuedWorkStatus(workQueueStatusUpdate: QueuedWork) {
+        updateFastQueuedWorkStatus(workQueueStatusUpdate: queuedWorkStatusUpdate) {
             fastWorkQueStatusUpdateMutator(this, workQueueStatusUpdate);
         },
         updateSimulationReportDetail(simulationReportDetail: SimulationReportDetail) {
