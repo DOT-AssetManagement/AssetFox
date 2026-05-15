@@ -14,7 +14,7 @@
             </v-card-title>
             <v-card-text>
               <v-select
-                    :items="stateNetworks"
+                    :items="networkStore.networksGetter"
                     label="Select a network"
                     item-title="name"
                     v-model="networkMetaData"
@@ -77,18 +77,18 @@ import {
     InputValidationRules,
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
+import { useNetworkStore } from '@/stores';
 
     let store = useStore(); 
+    const networkStore = useNetworkStore();
     const props = defineProps<{dialogData: CloneSimulationDialogData}>();
     const emit = defineEmits(['submit']);
     const { dialogData } = toRefs(props);
 
     const stateUsers =  computed<User[]>(() => store.state.userModule.users);
-    const stateNetworks = computed<Network[]>(() => store.state.networkModule.networks);  
     let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
     let shared =  ref<boolean>(false);
     async function cloneScenarioWithDestinationNetworkAction(payload?:any): Promise<any>{await store.dispatch('cloneScenarioWithDestinationNetwork',payload)}
-    async function getCompatibleNetworksAction(payload?: any): Promise<any>{await store.dispatch('getCompatibleNetworks',payload)}
     let rules: InputValidationRules = validationRules;
 
     let newScenario: CloneScenario = { ...emptyCloneScenario, id: getNewGuid() };
@@ -103,10 +103,10 @@ import {
         onModifyScenarioUserAccess();
     });
 
-    watch(stateNetworks, ()=>  {
+    watch(() => networkStore.networksGetter, ()=>  {
         selectedNetworkId = props.dialogData.scenario.networkId;
         selectedNetworkName = props.dialogData.scenario.networkName;
-         networkMetaData.value =  stateNetworks.value.find(_ => _.id == props.dialogData.scenario.networkId) ||  networkMetaData.value;
+         networkMetaData.value =  networkStore.networksGetter.find(_ => _.id == props.dialogData.scenario.networkId) ||  networkMetaData.value;
          isNetworkSelected.value = true;
         hasCompatibleNetworks = true;
     });
@@ -161,7 +161,7 @@ import {
                     : [owner]
             };
 
-            getCompatibleNetworksAction({networkId: props.dialogData.scenario.networkId});
+            networkStore.getCompatibleNetworks(props.dialogData.scenario.networkId);
         }
     }
 

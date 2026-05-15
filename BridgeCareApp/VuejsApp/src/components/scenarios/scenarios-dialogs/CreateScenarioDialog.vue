@@ -15,7 +15,7 @@
             <v-card-text>
               <v-select
                     id="CreateScenarioDialog-selectANetwork-select"
-                    :items="stateNetworks"
+                    :items="networkStore.networksGetter"
                     label="Select a network"
                     item-title="name"
                     menu-icon=custom:GhdDownSvg
@@ -78,9 +78,10 @@ import {
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
 import { find, isNil, propEq } from 'ramda';
+import { useNetworkStore } from '@/stores';
 
   let store = useStore(); 
-  async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload);}
+    const networkStore = useNetworkStore();
   let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
 
   let rules: InputValidationRules = validationRules;
@@ -91,8 +92,6 @@ import { find, isNil, propEq } from 'ramda';
 
     const stateUsers = computed<User[]>(() => store.state.userModule.users);
     let shared = ref<boolean>(false);
-    let stateNetworks = computed<Network[]>(() => store.state.networkModule.networks) ;
-
     let newScenario = ref<Scenario>({ ...emptyScenario, id: getNewGuid() });
 
     let selectedNetworkId = ref(getBlankGuid());
@@ -186,8 +185,7 @@ import { find, isNil, propEq } from 'ramda';
     // Trigger validation on name change
     watch(() => newScenario.value.name, validateScenarioName);
 
-    function onSubmit(submit: boolean) {
-        stateNetworks = store.state.networkModule.networks;
+    function onSubmit(submit: boolean) {//check this
         if (submit) {
             newScenario.value.networkId = selectedNetworkId.value;
             newScenario.value.networkName = selectedNetworkName;

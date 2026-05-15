@@ -193,24 +193,16 @@ import { useStore } from 'vuex';
 import mitt, { Emitter, EventType } from 'mitt';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { NIL } from 'uuid';
-import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useDataSourceStore, useNetworkStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const dataSourceStore = useDataSourceStore();
-    let stateNetworks = computed<Network[]>(()=>store.state.networkModule.networks);
-    let stateSelectedNetwork = computed<Network>(()=>store.state.networkModule.selectedNetwork) ;
+    const networkStore = useNetworkStore();
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
     
-    async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
-    function selectNetworkAction(payload?: any) { store.dispatch('selectNetwork', payload);}
-    async function createNetworkAction(payload?: any): Promise<any> {await store.dispatch('createNetwork', payload);}
-    async function deleteNetworkAction(payload?: any): Promise<any> {await store.dispatch('deleteNetwork', payload);}
-    async function EditNetworkNameAction(networkId: string, newNetworkName: string): Promise<any> {const payload = {networkId: networkId, newNetworkName: newNetworkName}; 
-        await store.dispatch('editNetworkName', payload);}
-    async function aggregateNetworkAction(payload?: any): Promise<any> {await store.dispatch('aggregateNetworkData', payload);}
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
     
     let rules = ref<InputValidationRules>(validationRules);
@@ -248,7 +240,7 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
     created();
     function created() {
         attributeStore.getAttributes();
-        getNetworks();
+        networkStore.getNetworks();
         dataSourceStore.getDataSources();
     }
     onMounted(() => mounted); 
@@ -266,8 +258,8 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
         );
     }
     
-    watch(stateNetworks, () =>  {
-        selectNetworkItems.value = stateNetworks.value.map(_ => ({text: _.name, value: _.id}))
+    watch(() => networkStore.networksGetter, () =>  {
+        selectNetworkItems.value = networkStore.networksGetter.map(_ => ({text: _.name, value: _.id}))
     })
 
     watch(attributeStore.attributesgetter, () => { 
@@ -287,7 +279,7 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
     })
 
     watch(selectNetworkItemValue, () =>  {
-        selectNetworkAction(selectNetworkItemValue.value);
+        networkStore.selectNetwork(selectNetworkItemValue.value);
         if(selectNetworkItemValue.value !== '' && selectNetworkItemValue.value != getBlankGuid() || isNewNetwork.value)
             hasSelectedNetwork.value = true;
         else
@@ -297,9 +289,9 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
             isNewNetwork.value = false;
     })
     
-    watch(stateSelectedNetwork, () => {
+    watch(() => networkStore.getSelectedNetwork, () => {
         if (!isNewNetwork.value) {           
-            selectedNetwork.value = clone(stateSelectedNetwork.value);
+            selectedNetwork.value = clone(networkStore.getSelectedNetwork);
         }
     })
 
@@ -310,7 +302,7 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
         if(selectedNetwork.value.keyAttribute != NIL)
         selectedKeyAttributeItem.value = selectedNetwork.value.keyAttribute;
         spatialWeightingEquationValue.value.expression = selectedNetwork.value.defaultSpatialWeighting;
-        const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedNetwork.value, stateSelectedNetwork.value);
+        const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedNetwork.value, networkStore.getSelectedNetwork);
         setHasUnsavedChangesAction({ value: hasUnsavedChanges });
     })
 
@@ -355,16 +347,16 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
     }
 
     function aggregateNetworkData(){
-        aggregateNetworkAction({
-            dataSource: selectDataSourceId.value,
-            networkId: selectNetworkItemValue.value
-        });
+        networkStore.aggregateNetworkData(
+            selectDataSourceId.value,
+            selectNetworkItemValue.value,
+        );
 
         hasStartedAggregation.value = true;
     }
 
     function onDeleteClick(){
-        deleteNetworkAction(selectedNetwork.value.id).then(() => {
+        networkStore.deleteNetwork(selectedNetwork.value.id).then(() => {
             hasSelectedNetwork.value = false;
             selectNetworkItemValue.value = "";
             selectedNetwork.value = clone(emptyNetwork)
@@ -373,7 +365,7 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
 
     function onNetworkNameSubmit(newName: string | null) {
         if (newName) {
-                EditNetworkNameAction(selectedNetwork.value.id, newName).then(() => {
+                networkStore.editNetworkName(selectedNetwork.value.id, newName).then(() => {
                     selectNetworkItems.value.forEach(network => {
                     if(network.text == selectedNetwork.value.name)
                     {
@@ -385,7 +377,7 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
                 selectNetworkItemValue.value = "";
                 selectedNetwork.value = clone(emptyNetwork);
             });
-            selectNetworkItems.value = stateNetworks.value.map(_ => ({text: _.name, value: _.id}));       
+            selectNetworkItems.value = networkStore.networksGetter.map(_ => ({text: _.name, value: _.id}));       
         }
     }
 
@@ -407,14 +399,14 @@ import { useAttributeStore, useAuthenticationStore, useDataSourceStore } from '@
     function createNetwork(){
         isNewNetwork.value = false;
 
-        createNetworkAction({
-            network: selectedNetwork.value,
-            dataSourceId: selectDataSourceId.value,
-            parameters: {
+        networkStore.createNetwork(
+            selectedNetwork.value,
+            selectDataSourceId.value,
+            {
                 defaultEquation: spatialWeightingEquationValue.value.expression,
                 networkDefinitionAttribute: selectedKeyAttribute.value
-            }
-        })
+            } as any,
+        )
     }
 
     function getDataAggregationStatus(data: any) {

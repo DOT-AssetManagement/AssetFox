@@ -170,15 +170,14 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { Console } from 'console';
 import { report } from 'process';
-import { useAdminDataStore, useAttributeStore } from '@/stores';
+import { useAdminDataStore, useAttributeStore, useNetworkStore } from '@/stores';
 
     let store = useStore();
     const adminDataStore = useAdminDataStore();
     const attributeStore = useAttributeStore();
+    const networkStore = useNetworkStore();
     let hasUnsavedChanges = computed<boolean>(()=>store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
-    let stateNetworks = computed<Network[]>(()=>store.state.networkModule.networks);
 
-    async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks',payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
 
     const selectPrimaryNetworkItems= ref<SelectItem[]>([]);
@@ -230,7 +229,7 @@ import { useAdminDataStore, useAttributeStore } from '@/stores';
                  adminDataStore.getConstraintType();
                 onStateConstraintTypeChanged();
                 attributeStore.getAttributes();
-                getNetworks();
+                networkStore.getNetworks();
                 adminDataStore.getAvailableReports();
                  adminDataStore.getSimulationReports();
                 adminDataStore.getInventoryReports();
@@ -250,9 +249,9 @@ import { useAdminDataStore, useAttributeStore } from '@/stores';
     }
 
     //watchers
-    watch(stateNetworks, () => {
-        networks = clone(stateNetworks.value);
-        stateNetworks.value.forEach(_ => {
+    watch(() => networkStore.networksGetter, () => {
+        networks = clone(networkStore.networksGetter);
+        networkStore.networksGetter.forEach(_ => {
             selectPrimaryNetworkItems.value.push({text:_.name,value:_.name})
             selectRawDataNetworkItems.value.push({text:_.name,value:_.name})
         });

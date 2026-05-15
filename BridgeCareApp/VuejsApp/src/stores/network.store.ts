@@ -5,7 +5,6 @@ import prepend from 'ramda/es/prepend';
 import NetworkService from '@/services/network.service';
 import AggregationService from '@/services/aggregation.service';
 import { BenefitQuantifier, emptyNetwork, Network } from '@/shared/models/iAM/network';
-import { Attribute } from '@/shared/models/iAM/attribute';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useNotificationStore } from './notification.store';
@@ -76,7 +75,7 @@ export const useNetworkStore = defineStore('network', {
         async createNetwork(
             network: Network,
             dataSourceId: string,
-            parameters: Attribute,
+            parameters: any,
         ) {
             const notificationStore = useNotificationStore();
             return await NetworkService.createNetwork(

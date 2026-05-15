@@ -161,17 +161,14 @@ import { Hub } from '@/connectionHub';
 import Vue, { Ref, ref, shallowReactive, shallowRef, watch, onMounted, onBeforeUnmount, inject, computed } from 'vue'; 
 import { useStore } from 'vuex'; 
 import mitt, { Emitter, EventType } from 'mitt';
+import { useNetworkStore } from '@/stores';
 
     let store = useStore();     
+    const networkStore = useNetworkStore();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
     const props = defineProps<{dialogData: any}>();
     let showDialogComputed = computed(() => props.dialogData.showDialog);
-    const stateNetworks: Network[] = shallowReactive(store.state.networkModule.networks);
-
-    async function aggregateNetworkDataAction(payload?: any): Promise<any>{await store.dispatch('aggregateNetworkData')}
-    async function upsertBenefitQuantifierAction(payload?: any): Promise<any>{await store.dispatch('upsertBenefitQuantifier')} 
-
     let equationEditorDialogData: EquationEditorDialogData = clone(
         emptyEquationEditorDialogData,
     );
@@ -224,14 +221,14 @@ import mitt, { Emitter, EventType } from 'mitt';
     let networks: Network[] = [];
     let selectedNetworkId: string = '';
 
-    watch(stateNetworks, ()=> onStateNetworksChanged)
+    watch(() => networkStore.networksGetter, ()=> onStateNetworksChanged)
     function onStateNetworksChanged() {
-        networks = clone(stateNetworks);
+        networks = clone(networkStore.networksGetter);
     }
 
     onMounted(() => mounted)
     function mounted() {
-        networks = clone(stateNetworks);
+        networks = clone(networkStore.networksGetter);
 
         $emitter.on(
             Hub.BroadcastEventType.BroadcastAssignDataStatusEvent,
@@ -255,11 +252,9 @@ import mitt, { Emitter, EventType } from 'mitt';
             if(isNil(localNetworkObj)){
                 return `no network found with networkId ${selectedNetworkId}`;
             }
-            upsertBenefitQuantifierAction({
-                benefitQuantifier: {
-                    ...localNetworkObj.benefitQuantifier,
-                    equation: equation,
-                },
+            networkStore.upsertBenefitQuantifier({
+                ...localNetworkObj.benefitQuantifier,
+                equation: equation,
             });
         }
     }
@@ -280,9 +275,7 @@ import mitt, { Emitter, EventType } from 'mitt';
         confirmDataAggregationAlertData = clone(emptyAlertData);
 
         if (response) {
-            aggregateNetworkDataAction({
-                networkId: selectedNetworkId,
-            });
+            networkStore.aggregateNetworkData('', selectedNetworkId);
         }
     }
 

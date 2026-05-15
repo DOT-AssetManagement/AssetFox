@@ -227,17 +227,17 @@ import { getUrl } from "../utils/get-url";
 import { reactive } from 'vue';
 import QueryEditor from "../components/queryEditor/QueryEditorGroup.vue"
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
-import { useAttributeStore } from '@/stores';
+import { useAttributeStore, useNetworkStore } from '@/stores';
 
 let store = useStore();
 const attributeStore = useAttributeStore();
+const networkStore = useNetworkStore();
 const $router = useRouter();
 const emit = defineEmits(['submit','submitCriteriaEditorResult'])
 const props = defineProps<{
     criteriaEditorData: CriteriaEditorData
     }>()
 const { criteriaEditorData } = toRefs(props);
-const stateNetworks = computed<Network[]>(() => store.state.networkModule.networks);
 const currentUserCriteriaFilter = computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
 
 function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification',payload);}

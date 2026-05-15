@@ -100,7 +100,6 @@ import ImportExportCommittedProjectsDialog from '@/components/scenarios/scenario
 import { any, clone, isNil, propEq } from 'ramda';
 import { AxiosResponse } from 'axios';
 import CommittedProjectsService from '@/services/committed-projects.service';
-import { Network } from '@/shared/models/iAM/network';
 import FileDownload from 'js-file-download';
 import { NavigationTab } from '@/shared/models/iAM/navigation-tab';
 import { ImportExportCommittedProjectsDialogResult } from '@/shared/models/modals/import-export-committed-projects-dialog-result';
@@ -150,7 +149,6 @@ import { useAuthenticationStore } from '@/stores';
     const router = useRouter(); 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
-    const stateNetworks: Network[] = shallowReactive(store.state.networkModule.networks) ;
     const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
     let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
 

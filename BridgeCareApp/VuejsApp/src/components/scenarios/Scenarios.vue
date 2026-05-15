@@ -622,14 +622,14 @@ import router from '@/router';
 import { useRoute } from 'vue-router';
 import ReportsService from '@/services/reports.service';
 import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
-import { useAuthenticationStore } from '@/stores';
+import { useAuthenticationStore, useNetworkStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
+    const networkStore = useNetworkStore();
     const $router = useRouter();     
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     
-    const stateNetworks = computed<Network[]>(() => store.state.networkModule.networks) ;
     const stateScenarios = computed<Scenario[]>(() => store.state.scenarioModule.scenarios); 
 
     const stateSharedScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentSharedScenariosPage) ;
@@ -673,8 +673,6 @@ import { useAuthenticationStore } from '@/stores';
     async function updateNetworkRollupDetailAction(payload?: any): Promise<any>{await store.dispatch('updateNetworkRollupDetail', payload)}
 
     function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload)} 
-    async function upsertBenefitQuantifierAction(payload?: any): Promise<any>{await store.dispatch('upsertBenefitQuantifier', payload)} 
-    async function aggregateNetworkDataAction(payload?: any): Promise<any>{await store.dispatch('aggregateNetworkData')} 
     async function getUserScenariosPageAction(payload?: any): Promise<any>{await store.dispatch('getUserScenariosPage', payload)}
 
     async function updateQueuedWorkStatusAction(payload?: any): Promise<any>{await store.dispatch('updateQueuedWorkStatus', payload)} 
@@ -941,9 +939,9 @@ import { useAuthenticationStore } from '@/stores';
 
     let scenarioNames: string[] = [];
 
-    watch(stateNetworks, onstateNetworksChanged) 
+    watch(() => networkStore.networksGetter, onstateNetworksChanged) 
     function onstateNetworksChanged() {
-        networks = clone(stateNetworks.value);
+        networks = clone(networkStore.networksGetter);
         if (hasValue(networks)) {
             initializeScenarioPages()
         }
@@ -1180,7 +1178,7 @@ import { useAuthenticationStore } from '@/stores';
 
     onBeforeMount(async () => {
         const route = useRoute();
-        networks = clone(stateNetworks.value);
+        networks = clone(networkStore.networksGetter);
         if (hasValue(networks) ) {
             initializeScenarioPages();
         } 

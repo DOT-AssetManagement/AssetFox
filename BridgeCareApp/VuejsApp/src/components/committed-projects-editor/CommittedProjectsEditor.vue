@@ -347,7 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -364,6 +364,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     let store = useStore();
     const committedProjectStore = useCommittedProjectStore();
+    const networkStore = useNetworkStore();
     const $router = useRouter();    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     created();
@@ -432,13 +433,11 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     const attributeStore = useAttributeStore();
     const investmentStore = useInvestmentStore();
     const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    const networks = computed<Network[]>(() => store.state.networkModule.networks);
     const selectedStateTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     const stateSimpleScenarioSelectableTreatments = computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
 
     //async function getTreatmentLibrariesAction(payload?: any): Promise<any> { await store.dispatch('getTreatmentLibraries', payload); }
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
-    async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload); }
     function selectTreatmentLibraryAction(payload?: any){ store.dispatch('selectTreatmentLibrary', payload); }
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
     function addSuccessNotificationAction(payload?: any) {  store.dispatch('addSuccessNotification', payload); }
@@ -563,7 +562,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         });
         await getSimpleScenarioSelectableTreatmentsAction(scenarioId)
         hasScenario = true;
-        await getNetworksAction();
+        await networkStore.getNetworks();
         await InvestmentService.getScenarioBudgetYears(scenarioId).then(response => {  
             if(response.data) {
                 if (response.data.length === 0) {
@@ -644,8 +643,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         }
     });
 
-    watch(networks, (newNetworks) => {
-        network = newNetworks.find(o => o.id === networkId) || clone(emptyNetwork);
+    watch(() => networkStore.networksGetter, (newNetworks: Network[]) => {
+        network = newNetworks.find((currentNetwork: Network) => currentNetwork.id === networkId) || clone(emptyNetwork);
     });
 
 
