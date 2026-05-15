@@ -432,7 +432,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useTreatmentStore, useUserStore } from '@/stores';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
@@ -444,103 +444,15 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     const notificationStore = useNotificationStore();
     const performanceCurveStore = usePerformanceCurveStore();
     const scenarioStore = useScenarioStore();
-    let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
-    let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
+    const treatmentStore = useTreatmentStore();
+    const userStore = useUserStore();
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    let stateScenarioTreatmentLibrary= computed<TreatmentLibrary>(() => store.state.treatmentModule.scenarioTreatmentLibrary);
     let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
-    let hasPermittedAccess= computed<boolean>(() => store.state.treatmentModule.hasPermittedAccess);
-    let stateSimpleScenarioSelectableTreatments= computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
-    let stateSimpleSelectableTreatments= computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleSelectableTreatments);
-    let isSharedLibrary= computed<boolean>(() => store.state.treatmentModule.isSharedLibrary);
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
-
- async function getTreatmentLibrariesAction(payload?: any): Promise<any> {
-  await store.dispatch('getTreatmentLibraries', payload);
-}
-
-function selectTreatmentLibraryAction(payload?: any) {
-  store.dispatch('selectTreatmentLibrary', payload);
-}
-
-async function upsertTreatmentLibraryAction(payload?: any): Promise<any> {
-  await store.dispatch('upsertTreatmentLibrary', payload);
-}
-
-async function deleteTreatmentLibraryAction(payload?: any): Promise<any> {
-  await store.dispatch('deleteTreatmentLibrary', payload);
-}
-
-async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {
-  await store.dispatch('getSimpleScenarioSelectableTreatments', payload);
-}
-
-async function getSimpleSelectableTreatmentsAction(payload?: any): Promise<any> {
-  await store.dispatch('getSimpleSelectableTreatments', payload);
-}
-
-async function getTreatmentLibraryBySimulationIdAction(payload?: any): Promise<any> {
-  await store.dispatch('getTreatmentLibraryBySimulationId', payload);
-}
 
 function setHasUnsavedChangesAction(payload?: any): void {
   store.dispatch('setHasUnsavedChanges', payload);
 }
 
-async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {
-  await store.dispatch('getScenarioSelectableTreatments', payload);
-}
-
-async function upsertScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {
-  await store.dispatch('upsertScenarioSelectableTreatments', payload);
-}
-
-async function upsertOrDeleteTreatmentLibraryUsersAction(payload?: any): Promise<any> {
-  await store.dispatch('upsertOrDeleteTreatmentLibraryUsers', payload);
-}
-
-async function importScenarioTreatmentsFileAction(payload?: any): Promise<any> {
-  await store.dispatch('importScenarioTreatmentsFile', payload);
-}
-
-async function importLibraryTreatmentsFileAction(payload?: any): Promise<any> {
-  await store.dispatch('importLibraryTreatmentsFile', payload);
-}
-
-async function importScenarioTreatmentSupersedeRulesFileAction(payload?: any): Promise<any> {
-  await store.dispatch('importScenarioTreatmentSupersedeRulesFile', payload);
-}
-
-async function importLibraryTreatmentSupersedeRulesFileAction(payload?: any): Promise<any> {
-  await store.dispatch('importLibraryTreatmentSupersedeRulesFile', payload);
-}
-
-async function deleteTreatmentAction(payload?: any): Promise<any> {
-  await store.dispatch('deleteTreatment', payload);
-}
-
-async function deleteScenarioSelectableTreatmentAction(payload?: any): Promise<any> {
-  await store.dispatch('deleteScenarioSelectableTreatment', payload);
-}
-
-async function getIsSharedLibraryAction(payload?: any): Promise<any> {
-  await store.dispatch('getIsSharedTreatmentLibrary', payload);
-}
-
-async function getAllScenarioTreatmentsAction(payload?: any) {
-  await store.dispatch('getAllScenarioTreatments', payload);
-}
-
-async function getHasPermittedAccessAction(payload?: any): Promise<any>{await store.dispatch('getHasPermittedAccess', payload)}
-
-
- function addedOrUpdatedTreatmentLibraryMutator(payload?: any) {
-  store.commit('addedOrUpdatedTreatmentLibraryMutator', payload);
-}
-
- function selectedTreatmentLibraryMutator(payload?: any) {
-  store.commit('selectedTreatmentLibraryMutator', payload);
-}
 
 
     let selectedTreatmentLibrary = shallowRef(clone(emptyTreatmentLibrary));
@@ -614,11 +526,11 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
     beforeRouteEnter();
     async function beforeRouteEnter() {
         const activeStatus = await AuthenticationService.getActiveStatus();
-        await getHasPermittedAccessAction();
+        await treatmentStore.getHasPermittedAccess();
         if(activeStatus.data == true)
         {
             librarySelectItemValue.value = "";
-        await getTreatmentLibrariesAction();
+        await treatmentStore.getTreatmentLibraries();
         await performanceCurveStore.getDistinctScenarioPerformanceFactorAttributeNames();
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.Treatment) !== -1) {
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
@@ -630,8 +542,8 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                 $router.push('/Scenarios/');
             }
             hasScenario.value = true;
-            await getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId);
-            await getTreatmentLibraryBySimulationIdAction(selectedScenarioId);
+            await treatmentStore.getSimpleScenarioSelectableTreatments(selectedScenarioId);
+            await treatmentStore.getTreatmentLibraryBySimulationId(selectedScenarioId);
             await performanceCurveStore.getScenarioPerformanceCurves(selectedScenarioId);
             
             treatmentTabs = [...treatmentTabs, 'Budgets'];
@@ -673,9 +585,9 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
     }
 
     
-   watch(stateTreatmentLibraries, () => onStateTreatmentLibrariesChanged())
+   watch(() => treatmentStore.treatmentLibrariesGetter, () => onStateTreatmentLibrariesChanged())
    function onStateTreatmentLibrariesChanged() {
-        librarySelectItems.value = stateTreatmentLibraries.value.map(
+       librarySelectItems.value = treatmentStore.treatmentLibrariesGetter.map(
             (library: TreatmentLibrary) => ({
                 text: library.name,
                 value: library.id,
@@ -688,12 +600,12 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
 
     }
     
-    watch(stateScenarioTreatmentLibrary, () => onStateScenarioTreatmentLibraryChanged())
+    watch(() => treatmentStore.getScenarioTreatmentLibrary, () => onStateScenarioTreatmentLibraryChanged())
     function onStateScenarioTreatmentLibraryChanged() {
 
-        setParentLibraryName(stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : "None");
-        scenarioLibraryIsModified = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.isModified : false;
-        loadedParentId = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : uuidNIL;
+        setParentLibraryName(treatmentStore.getScenarioTreatmentLibrary ? treatmentStore.getScenarioTreatmentLibrary.id : "None");
+        scenarioLibraryIsModified = treatmentStore.getScenarioTreatmentLibrary ? treatmentStore.getScenarioTreatmentLibrary.isModified : false;
+        loadedParentId = treatmentStore.getScenarioTreatmentLibrary ? treatmentStore.getScenarioTreatmentLibrary.id : uuidNIL;
         loadedParentName = parentLibraryName.value;
     }
 
@@ -716,42 +628,40 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
 
     function onSelectItemValueChanged() {
         trueLibrarySelectItemValue = librarySelectItemValue.value;
-        selectTreatmentLibraryAction({
-            libraryId: librarySelectItemValue.value,
-        });
+        treatmentStore.selectTreatmentLibrary(librarySelectItemValue.value ? librarySelectItemValue.value : uuidNIL);
 
         if(!isNil(librarySelectItemValue.value) && !isEmpty(librarySelectItemValue.value)){
-            getSimpleSelectableTreatmentsAction(librarySelectItemValue.value);
+            treatmentStore.getSimpleSelectableTreatments(librarySelectItemValue.value);
         } else {
             simpleTreatments.value = [];
         }
     }  
 
-    watch(stateSimpleSelectableTreatments, () => onStateSimpleSelectableTreatments())
+    watch(() => treatmentStore.simpleSelectableTreatmentsGetter, () => onStateSimpleSelectableTreatments())
     function onStateSimpleSelectableTreatments() {
-        simpleTreatments.value = clone(stateSimpleSelectableTreatments.value);
+        simpleTreatments.value = clone(treatmentStore.simpleSelectableTreatmentsGetter);
     }
 
-    watch(stateSimpleScenarioSelectableTreatments, () => onStateSimpleScenarioSelectableTreatments())
+    watch(() => treatmentStore.simpleScenarioSelectableTreatmentsGetter, () => onStateSimpleScenarioSelectableTreatments())
     function onStateSimpleScenarioSelectableTreatments(){
-        simpleTreatments.value = clone(stateSimpleScenarioSelectableTreatments.value);
+        simpleTreatments.value = clone(treatmentStore.simpleScenarioSelectableTreatmentsGetter);
     }
 
-    watch(stateSelectedTreatmentLibrary, () => onStateSelectedTreatmentLibraryChanged())
+    watch(() => treatmentStore.getSelectedTreatmentLibrary, () => onStateSelectedTreatmentLibraryChanged())
     function onStateSelectedTreatmentLibraryChanged() {
         selectedTreatmentLibrary.value = clone(
-            stateSelectedTreatmentLibrary.value
+            treatmentStore.getSelectedTreatmentLibrary
         );
     }
 
-    watch(isSharedLibrary, () => onStateSharedAccessChanged())
+    watch(() => treatmentStore.getIsSharedLibrary, () => onStateSharedAccessChanged())
     function onStateSharedAccessChanged() {
-        isShared = isSharedLibrary.value;
+        isShared = treatmentStore.getIsSharedLibrary;
     }
 
     watch(selectedTreatmentLibrary, () =>  {
         hasSelectedLibrary.value = selectedTreatmentLibrary.value.id !== uuidNIL;
-        getIsSharedLibraryAction(selectedTreatmentLibrary.value).then(() => isShared = isSharedLibrary.value);
+        treatmentStore.getIsSharedTreatmentLibrary(selectedTreatmentLibrary.value.id).then(() => isShared = treatmentStore.getIsSharedLibrary);
         if (hasSelectedLibrary.value) {
             checkLibraryEditPermission();
             hasCreatedLibrary = false;
@@ -862,7 +772,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
      function getOwnerUserName(): string {
 
         if (!hasCreatedLibrary) {
-            let username:any = getUserNameByIdGetter(selectedTreatmentLibrary.value.owner)
+            let username:any = userStore.getUserNameById(selectedTreatmentLibrary.value.owner ?? "");
         return username ;
         }
         
@@ -883,11 +793,11 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
     }
 
    function checkLibraryEditPermission() {
-        hasLibraryEditPermission = hasAdminAccess.value || (hasPermittedAccess.value && checkUserIsLibraryOwner());
+       hasLibraryEditPermission = hasAdminAccess.value || (treatmentStore.hasPermittedAccessGetter && checkUserIsLibraryOwner());
     }
 
     async function checkUserIsLibraryOwner() {
-        return await getUserNameByIdGetter(selectedTreatmentLibrary.value.owner) == getUserName();
+        return userStore.getUserNameById(selectedTreatmentLibrary.value.owner ?? "") == getUserName();
     }
 
     function clearChanges(){
@@ -988,8 +898,8 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                     libraryUserData.push(libraryUser);
                 });
                 //update budget library sharing
-                upsertOrDeleteTreatmentLibraryUsersAction({libraryId: selectedTreatmentLibrary.value.id, proposedUsers: libraryUserData});
-                getIsSharedLibraryAction(selectedTreatmentLibrary.value).then(() => isShared = isSharedLibrary.value);
+                    treatmentStore.upsertOrDeleteTreatmentLibraryUsers(selectedTreatmentLibrary.value.id, libraryUserData);
+                    treatmentStore.getIsSharedTreatmentLibrary(selectedTreatmentLibrary.value.id).then(() => isShared = treatmentStore.getIsSharedLibrary);
                 onUpsertTreatmentLibrary();
         }
     }
@@ -1006,7 +916,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         if(hasScenario.value)
         {         
             const treatments : SimpleTreatment[] = reject(propEq('id', treatmentId.toString()), simpleTreatments.value);
-            deleteScenarioSelectableTreatmentAction({ scenarioSelectableTreatment: selectedTreatment.value, simulationId: selectedScenarioId, treatments}).then(() => {
+            treatmentStore.deleteScenarioSelectableTreatment(selectedTreatment.value, selectedScenarioId, treatments).then(() => {
                 addedRows = addedRows.filter(_ => _.id !== treatmentId.toString());
                 clearChanges();
             });
@@ -1017,7 +927,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         {
             if (any(propEq('id', treatmentId.toString()), simpleTreatments.value)) {
                 const treatments : SimpleTreatment[] = reject(propEq('id', treatmentId.toString()), simpleTreatments.value);            
-                deleteTreatmentAction({ treatments: treatments, treatment: selectedTreatment.value, libraryId: selectedTreatmentLibrary.value.id}).then(() => {
+                treatmentStore.deleteTreatment(treatments, selectedTreatment.value,selectedTreatmentLibrary.value.id).then(() => {
                     addedRows = addedRows.filter(_ => _.id !== treatmentId.toString());
                     clearChanges();
                 });
@@ -1062,10 +972,10 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                         clearChanges();
                     }
 
-                    addedOrUpdatedTreatmentLibraryMutator(library);
-                    getTreatmentLibrariesAction().then(() => {
+                    treatmentStore.addedOrUpdatedTreatmentLibraryMutator(library);
+                    treatmentStore.getTreatmentLibraries().then(() => {
                         // After refreshing, select the new library
-                        selectedTreatmentLibraryMutator(library.id);
+                        treatmentStore.selectedTreatmentLibraryMutator(library.id);
                     });
                     notificationStore.addSuccessNotification({message:'Added treatment library'})
                 }               
@@ -1079,7 +989,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             return;
         }
         let foundLibrary: TreatmentLibrary = emptyTreatmentLibrary;
-        stateTreatmentLibraries.value.forEach(library => {
+        treatmentStore.treatmentLibrariesGetter.forEach(library => {
             if (library.id === libraryId ) {
                 foundLibrary = clone(library);
             }
@@ -1104,7 +1014,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                 clearChanges();
                 if(hasSelectedLibrary.value){
                     librarySelectItemValue.value = "";
-                    getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId)
+                    treatmentStore.getSimpleScenarioSelectableTreatments(selectedScenarioId)
                 }
                 treatmentCache.push(selectedTreatment.value);
                 
@@ -1133,8 +1043,8 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         TreatmentService.upsertTreatmentLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges();              
-                addedOrUpdatedTreatmentLibraryMutator(selectedTreatmentLibrary.value);
-                selectedTreatmentLibraryMutator(selectedTreatmentLibrary.value.id);
+                treatmentStore.addedOrUpdatedTreatmentLibraryMutator(selectedTreatmentLibrary.value);
+                treatmentStore.selectedTreatmentLibraryMutator(selectedTreatmentLibrary.value.id);
             }
         });
     }
@@ -1311,7 +1221,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         setTimeout(() => {
             if (hasScenario.value) {       
                 clearChanges();        
-                simpleTreatments.value = clone(stateSimpleScenarioSelectableTreatments.value);
+                simpleTreatments.value = clone(treatmentStore.simpleScenarioSelectableTreatmentsGetter);
             }
         });
         parentLibraryName.value = loadedParentName;
@@ -1322,7 +1232,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         treatmentSelectItemValue.value = "";
         librarySelectItemValue.value = "";
         clearChanges();        
-        simpleTreatments.value = clone(stateSimpleScenarioSelectableTreatments.value);
+        simpleTreatments.value = clone(treatmentStore.simpleScenarioSelectableTreatmentsGetter);
     }
 
     function onShowConfirmDeleteAlert() {
@@ -1339,7 +1249,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
 
         if (submit) {
             librarySelectItemValue.value = "";
-            deleteTreatmentLibraryAction({ libraryId: selectedTreatmentLibrary.value.id, });            
+            treatmentStore.deleteTreatmentLibrary(selectedTreatmentLibrary.value.id);            
         }
     }
 
@@ -1410,15 +1320,9 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             };
 
             if (hasScenario.value) {
-                importScenarioTreatmentsFileAction({
-                    ...data,
-                    id: selectedScenarioId
-                })
+                treatmentStore.importScenarioTreatmentsFile(data.file, selectedScenarioId)
             } else {
-                importLibraryTreatmentsFileAction({
-                    ...data,
-                    id: selectedTreatmentLibrary.value.id
-                })
+                treatmentStore.importLibraryTreatmentsFile(data.file, selectedTreatmentLibrary.value.id)               
             }
         }
      }
@@ -1476,15 +1380,9 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             };
 
             if (hasScenario.value) {
-                importScenarioTreatmentSupersedeRulesFileAction({
-                    ...data,
-                    id: selectedScenarioId
-                })
+                treatmentStore.importScenarioTreatmentSupersedeRulesFile(data.file, selectedScenarioId)
             } else {
-                importLibraryTreatmentSupersedeRulesFileAction({
-                    ...data,
-                    id: selectedTreatmentLibrary.value.id
-                })
+                treatmentStore.importLibraryTreatmentSupersedeRulesFile(data.file, selectedTreatmentLibrary.value.id)
             }
         }
      }
@@ -1507,14 +1405,14 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
 
         if (isRelevantImport && message) {
             clearChanges();
-            getTreatmentLibrariesAction().then(async () => {
+            treatmentStore.getTreatmentLibraries().then(async () => {
                 if(hasScenario.value){
-                    await getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId);
+                    await treatmentStore.getSimpleScenarioSelectableTreatments(selectedScenarioId);
                     onDiscardChanges();
                     
                 } else {
                     
-                    await getSimpleSelectableTreatmentsAction(selectedTreatmentLibrary.value.id);
+                    await treatmentStore.getSimpleSelectableTreatments(selectedTreatmentLibrary.value.id);
                 }
 
                 if(importComp.workType == 11)
@@ -1675,7 +1573,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             addedRows.length > 0 ||
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTreatmentLibrary.value, stateSelectedTreatmentLibrary.value))
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTreatmentLibrary.value, treatmentStore.getSelectedTreatmentLibrary))
         setHasUnsavedChangesAction({ value: hasUnsavedChanges });
     }
 

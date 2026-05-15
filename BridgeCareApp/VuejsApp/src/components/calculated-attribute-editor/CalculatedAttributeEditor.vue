@@ -375,20 +375,19 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAuthenticationStore, useCalculatedAttributeStore, useNotificationStore, useScenarioStore } from '@/stores';
+import { useAuthenticationStore, useCalculatedAttributeStore, useNotificationStore, useScenarioStore, useUserStore } from '@/stores';
 
 let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const calculatedAttributeStore = useCalculatedAttributeStore();
 const notificationStore = useNotificationStore();
 const scenarioStore = useScenarioStore();
+const userStore = useUserStore();
 const confirm = useConfirm();
 const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 
     async function upsertScenarioCalculatedAttributeAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioCalculatedAttribute', payload);}
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
-
     let updatedCalcAttrMap:Map<string, [CalculatedAttribute, CalculatedAttribute]> = 
         new Map<string, [CalculatedAttribute, CalculatedAttribute]>();//0: original value | 1: updated value
     let addedCalcAttr: CalculatedAttribute[] = [];
@@ -910,7 +909,7 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
 
     function getOwnerUserName(): string {
         if (! hasCreatedLibrary) {
-        return  getUserNameByIdGetter( selectedCalculatedAttributeLibrary.value.owner);
+        return userStore.getUserNameById(selectedCalculatedAttributeLibrary.value.owner);
         }     
         return getUserName();
     }

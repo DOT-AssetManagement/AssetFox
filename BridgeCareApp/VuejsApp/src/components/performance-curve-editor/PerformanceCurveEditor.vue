@@ -518,7 +518,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useUserStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
 let store = useStore();
@@ -528,15 +528,13 @@ const authenticationStore = useAuthenticationStore();
 const notificationStore = useNotificationStore();
 const performanceCurveStore = usePerformanceCurveStore();
 const scenarioStore = useScenarioStore();
+const userStore = useUserStore();
 const confirm = useConfirm();
 
 let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
-let currentUserCriteriaFilter = ref<UserCriteriaFilter>(store.state.userModule.currentUserCriteriaFilter);
 
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-
-let getUserNameByIdGetter: any = store.getters.getUserNameById
 
     let addedRows: ShallowRef<PerformanceCurve[]> = ref([]);
     let updatedRowsMap:Map<string, [PerformanceCurve, PerformanceCurve]> = new Map<string, [PerformanceCurve, PerformanceCurve]>();//0: original value | 1: updated value
@@ -888,12 +886,14 @@ let getUserNameByIdGetter: any = store.getters.getUserNameById
     }
 
     function checkUserIsLibraryOwner() {
-        return getUserNameByIdGetter(selectedPerformanceCurveLibrary.value.owner) == getUserName();
+        const ownerId: string = selectedPerformanceCurveLibrary.value.owner ?? '';
+        return ownerId !== '' ? userStore.getUserNameById(ownerId) == getUserName() : false;
     }
 
     function getOwnerUserName(): string {
         if (!hasCreatedLibrary) {
-        return getUserNameByIdGetter(selectedPerformanceCurveLibrary.value.owner);
+        const ownerId: string = selectedPerformanceCurveLibrary.value.owner ?? '';
+        return ownerId !== '' ? userStore.getUserNameById(ownerId) : '';
         }
         return getUserName();
     }
@@ -1201,13 +1201,13 @@ let getUserNameByIdGetter: any = store.getters.getUserNameById
                     performanceCurveStore.importScenarioPerformanceCurvesFile(
                         data.file,
                         selectedScenarioId,
-                        currentUserCriteriaFilter.value,
+                        userStore.getCurrentUserCriteriaFilter,
                     )
                 } else {
                     performanceCurveStore.importLibraryPerformanceCurvesFile(
                         data.file,
                         selectedPerformanceCurveLibrary.value.id,
-                        currentUserCriteriaFilter.value,
+                        userStore.getCurrentUserCriteriaFilter,
                     )
                 }
 

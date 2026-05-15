@@ -74,12 +74,13 @@ import {BudgetPriorityLibraryUserGridRow, ShareBudgetPriorityLibraryDialogData }
 import BudgetPriorityService from '@/services/budget-priority.service';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
   let store = useStore();
-  const stateUsers  = computed<User[]>(()=>store.state.userModule.users);
+  const userStore = useUserStore();
   const props = defineProps<{
     dialogData: ShareBudgetPriorityLibraryDialogData
   }>();
@@ -106,7 +107,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
   function onSetGridData() {
     const currentUser: string = getUserName();
 
-    budgetPriorityLibraryUserGridRows.value = stateUsers.value
+    budgetPriorityLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

@@ -146,7 +146,6 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     
     async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-    async function getUserNameByIdGetter(payload?: any): Promise<any> {await store.dispatch('getUserNameById', payload);}
 
     created()
     function created() {

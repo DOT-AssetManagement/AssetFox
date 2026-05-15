@@ -285,7 +285,7 @@
     import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
     import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
     import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore, useNotificationStore, useScenarioStore } from '@/stores';
+    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore, useNotificationStore, useScenarioStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
@@ -293,13 +293,12 @@
     const investmentStore = useInvestmentStore();
     const notificationStore = useNotificationStore();
     const scenarioStore = useScenarioStore();
+    const userStore = useUserStore();
     const confirm = useConfirm();
     const $router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
      function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload) }
-    
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
     
     let addedRows: ShallowRef<BudgetPriority[]> = shallowRef([]);
     let updatedRowsMap:Map<string, [BudgetPriority, BudgetPriority]> = new Map<string, [BudgetPriority, BudgetPriority]>();//0: original value | 1: updated value
@@ -641,7 +640,7 @@
     function getOwnerUserName(): string {
 
         if (!hasCreatedLibrary) {
-        return getUserNameByIdGetter(selectedBudgetPriorityLibrary.value.owner);
+        return userStore.getUserNameById(selectedBudgetPriorityLibrary.value.owner ?? "");
         }
         
         return getUserName();
@@ -652,7 +651,7 @@
     }
 
     function checkUserIsLibraryOwner() {
-        return getUserNameByIdGetter(selectedBudgetPriorityLibrary.value.owner) == getUserName();
+        return userStore.getUserNameById(selectedBudgetPriorityLibrary.value.owner ?? "") == getUserName();
     }
 
     function onShowCreateBudgetPriorityLibraryDialog(createAsNewLibrary: boolean) {     

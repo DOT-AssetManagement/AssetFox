@@ -63,14 +63,15 @@ import {User} from '@/shared/models/iAM/user';
 import {getUserName} from '@/shared/utils/get-user-info';
 import {setItemPropertyValueInList} from '@/shared/utils/setter-utils';
 import {ScenarioUserGridRow, ShareScenarioDialogData} from '@/shared/models/modals/share-scenario-dialog-data';
+import { useUserStore } from '@/stores';
 import { useStore } from 'vuex'; 
 
   let store = useStore(); 
+  const userStore = useUserStore();
 
   const props = defineProps<{dialogData: ShareScenarioDialogData}>();
   const emit = defineEmits(['submit'])
   const { dialogData } = toRefs(props);
-  const stateUsers = computed<User[]>(() => store.state.userModule.users)
 
   let scenarioUserGridHeaders: any[] = [
     {title: 'Username', key: 'username', align: 'left', sortable: true, class: '', width: ''},
@@ -91,7 +92,7 @@ import { useStore } from 'vuex';
   function onSetGridData() {
     const currentUser: string = getUserName();
 
-     scenarioUserGridRows.value =  stateUsers.value
+      scenarioUserGridRows.value =  userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

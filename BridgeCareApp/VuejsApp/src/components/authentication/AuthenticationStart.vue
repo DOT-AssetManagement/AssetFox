@@ -28,16 +28,13 @@
 
 <script setup lang="ts">
     import Vue, { inject, onMounted } from 'vue';
-    import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
     import { SecurityTypes } from '@/shared/utils/security-types';
     import { hasValue } from '@/shared/utils/has-value-util';
     import { isAuthenticatedUser,
     } from '@/shared/utils/authentication-utils';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
     import { useAuthenticationStore, useAzureB2CStore, useConfigStore } from '@/stores';
 
-    let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const azureB2CStore = useAzureB2CStore();
     const configStore = useConfigStore();
@@ -45,7 +42,6 @@ import { useRouter } from 'vue-router';
     let hasRole: boolean = authenticationStore.hasRole ;
     let checkedForRole: boolean = authenticationStore.checkedForRole ;
     let securityType: string = authenticationStore.securityType ;
-    let currentUserCriteriaFilter: UserCriteriaFilter = (store.state.userModule.currentUserCriteriaFilter) ;
     const config = configStore.getConfig;
 
     let esecSecurityType: string = SecurityTypes.esec;

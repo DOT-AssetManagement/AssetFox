@@ -320,7 +320,7 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAuthenticationStore, useAttributeStore, useNotificationStore, useScenarioStore, useTargetConditionGoalStore } from '@/stores';
+import { useAuthenticationStore, useAttributeStore, useNotificationStore, useScenarioStore, useTargetConditionGoalStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
@@ -328,6 +328,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
     const notificationStore = useNotificationStore();
     const scenarioStore = useScenarioStore();
     const targetConditionGoalStore = useTargetConditionGoalStore();
+    const userStore = useUserStore();
     const $router = useRouter(); 
     const confirm = useConfirm();
 
@@ -336,8 +337,6 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
 
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
    
-    let getUserNameByIdGetter = store.getters.getUserNameById;
-
     const addedRows = ref<TargetConditionGoal[]>([]);
     const updatedRowsMap = ref<Map<string, [TargetConditionGoal, TargetConditionGoal]>>(new Map<string, [TargetConditionGoal, TargetConditionGoal]>());//0: original value | 1: updated value
     const deletionIds = ref<string[]>([]);
@@ -619,7 +618,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
     function getOwnerUserName(): string {
 
         if (!hasCreatedLibrary) {
-        return getUserNameByIdGetter(selectedTargetConditionGoalLibrary.value.owner);
+        return userStore.getUserNameById(selectedTargetConditionGoalLibrary.value.owner ?? '') || '';
         }
         
         return getUserName();
@@ -630,7 +629,7 @@ import { useAuthenticationStore, useAttributeStore, useNotificationStore, useSce
     }
 
     function checkUserIsLibraryOwner() {
-        return getUserNameByIdGetter(selectedTargetConditionGoalLibrary.value.owner) == getUserName();
+        return userStore.getUserNameById(selectedTargetConditionGoalLibrary.value.owner ?? '') == getUserName();
     }
 
     function onShowCreateTargetConditionGoalLibraryDialog(createAsNewLibrary: boolean) {

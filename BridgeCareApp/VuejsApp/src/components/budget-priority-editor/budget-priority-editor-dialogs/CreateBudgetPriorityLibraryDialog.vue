@@ -56,19 +56,19 @@ import {InputValidationRules, rules as validationRules} from '@/shared/utils/inp
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import { nextTick } from 'process';
 import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
   let store = useStore();
+  const userStore = useUserStore();
   const props = defineProps<{
     dialogData: CreateBudgetPriorityLibraryDialogData
   }>();
 const { dialogData } = toRefs(props);
 
   const emit = defineEmits(['submit'])
-  let getIdByUserNameGetter: any = store.getters.getIdByUserName;
-
   let newBudgetPriorityLibrary = ref<BudgetPriorityLibrary>({...emptyBudgetPriorityLibrary, id: getNewGuid()});
   let rules: InputValidationRules = validationRules;
   
@@ -83,7 +83,7 @@ const { dialogData } = toRefs(props);
           ...budgetPercentagePair, id: getNewGuid()
         }))
       })),
-      owner: getIdByUserNameGetter(currentUser),
+      owner: userStore.getIdByUserName(currentUser),
     };
   });
 

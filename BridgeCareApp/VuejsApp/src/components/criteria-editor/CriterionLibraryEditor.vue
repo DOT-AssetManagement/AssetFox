@@ -142,7 +142,7 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { useAuthenticationStore, useCriterionLibraryStore } from '@/stores';
+import { useAuthenticationStore, useCriterionLibraryStore, useUserStore } from '@/stores';
 
     let dialogLibraryId = shallowRef<string>('');
     let dialogIsFromScenario = shallowRef<boolean>();
@@ -150,15 +150,11 @@ import { useAuthenticationStore, useCriterionLibraryStore } from '@/stores';
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const criterionLibraryStore = useCriterionLibraryStore();
+    const userStore = useUserStore();
 
     function setHasUnsavedChangesAction(payload?: any){
         store.dispatch('setHasUnsavedChanges');
     }
-
-    async function getUserNameByIdGetter(payload?: any): Promise<any> {
-        await store.dispatch('getUserNameById');
-    }
-
 
     let hasSelectedCriterionLibrary: boolean = false;
     let criterionLibrarySelectItems: SelectItem[] = [];
@@ -326,13 +322,13 @@ import { useAuthenticationStore, useCriterionLibraryStore } from '@/stores';
     }
 
     async function checkUserIsLibraryOwner() {
-        return await getUserNameByIdGetter(selectedCriterionLibrary.owner) == getUserName();
+        return userStore.getUserNameById(selectedCriterionLibrary.owner ?? "") == getUserName();
     }
 
     async function getOwnerUserName(): Promise<string> {
 
         if (!hasCreatedLibrary) {
-        return await getUserNameByIdGetter(selectedCriterionLibrary.owner);
+        return userStore.getUserNameById(selectedCriterionLibrary.owner ?? "");
         }
         
         return getUserName();

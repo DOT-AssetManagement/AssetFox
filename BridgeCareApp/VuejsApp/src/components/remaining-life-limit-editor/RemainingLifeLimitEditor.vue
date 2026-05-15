@@ -308,7 +308,7 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRemainingLifeLimitStore, useScenarioStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRemainingLifeLimitStore, useScenarioStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
@@ -316,6 +316,7 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
     const notificationStore = useNotificationStore();
     const remainingLifeLimitStore = useRemainingLifeLimitStore();
     const scenarioStore = useScenarioStore();
+    const userStore = useUserStore();
     const confirm = useConfirm();
     const $router = useRouter();
 
@@ -325,8 +326,6 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
     async function upsertRemainingLifeLimitLibraryAction(payload?: any): Promise<any>{await store.dispatch('upsertRemainingLifeLimitLibrary', payload)}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload)}
     
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
-
     let remainingLifeLimitLibraries: RemainingLifeLimitLibrary[] = [];
     let selectedRemainingLifeLimitLibrary: ShallowRef<RemainingLifeLimitLibrary> = shallowRef(clone(
         emptyRemainingLifeLimitLibrary,
@@ -605,7 +604,7 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
     function getOwnerUserName(): string {
 
         if (!hasCreatedLibrary) {
-        return getUserNameByIdGetter(selectedRemainingLifeLimitLibrary.value.owner);
+        return userStore.getUserNameById(selectedRemainingLifeLimitLibrary.value.owner ?? '');
         }
         
         return getUserName();

@@ -72,13 +72,14 @@ import InvestmentService from '@/services/investment.service';
 import { http2XX } from '@/shared/utils/http-utils';
 import {ref, watch, toRefs, computed} from 'vue';
 import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 
 let store = useStore();
+const userStore = useUserStore();
 const props = defineProps<{dialogData: ShareBudgetLibraryDialogData}>()
 const { dialogData } = toRefs(props);
-const stateUsers = computed<User[]>(() => store.state.userModule.users);
   const emit = defineEmits(['submit']);
 
   let budgetLibraryUserGridHeaders: any[] = [
@@ -100,7 +101,7 @@ const stateUsers = computed<User[]>(() => store.state.userModule.users);
   function onSetGridData() {
     const currentUser: string = getUserName();
 
-    budgetLibraryUserGridRows.value = stateUsers.value
+    budgetLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

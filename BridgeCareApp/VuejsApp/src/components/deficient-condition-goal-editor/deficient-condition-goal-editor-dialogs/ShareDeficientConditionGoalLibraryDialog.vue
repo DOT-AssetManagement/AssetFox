@@ -73,19 +73,19 @@ import {DeficientConditionGoalLibraryUserGridRow, ShareDeficientConditionGoalLib
 import DeficientConditionGoalService from '@/services/deficient-condition-goal.service';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
 let store = useStore();
+const userStore = useUserStore();
 
 const props = defineProps<{
   dialogData: ShareDeficientConditionGoalLibraryDialogData
 }>()
 const { dialogData } = toRefs(props);
 const emit = defineEmits(['submit']);
-
-const stateUsers = computed(() => store.state.userModule.users as User[]);
 
   let deficientConditionGoalLibraryUserGridHeaders: any[] = [
     {title: 'Username', key: 'username', align: 'left', sortable: true, class: '', width: ''},
@@ -105,7 +105,7 @@ const stateUsers = computed(() => store.state.userModule.users as User[]);
 
   function onSetGridData() {
     const currentUser: string = getUserName();
-    deficientConditionGoalLibraryUserGridRows.value = stateUsers.value
+    deficientConditionGoalLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

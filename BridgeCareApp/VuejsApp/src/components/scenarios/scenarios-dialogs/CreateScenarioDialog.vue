@@ -78,11 +78,12 @@ import {
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
 import { find, isNil, propEq } from 'ramda';
-import { useNetworkStore, useScenarioStore } from '@/stores';
+import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
   let store = useStore(); 
     const networkStore = useNetworkStore();
-        const scenarioStore = useScenarioStore();
+                const scenarioStore = useScenarioStore();
+        const userStore = useUserStore();
 
   let rules: InputValidationRules = validationRules;
   const scenarioNameErrors = ref<string[]>([]);
@@ -90,7 +91,6 @@ import { useNetworkStore, useScenarioStore } from '@/stores';
   const emit = defineEmits(['submit'])
   let showDialogComputed = computed(() => props.showDialog);
 
-    const stateUsers = computed<User[]>(() => store.state.userModule.users);
     let shared = ref<boolean>(false);
     let newScenario = ref<Scenario>({ ...emptyScenario, id: getNewGuid() });
 
@@ -125,7 +125,7 @@ import { useNetworkStore, useScenarioStore } from '@/stores';
         if (props.showDialog) {
             const currentUser: User = find(
                 propEq('username', getUserName()),
-                stateUsers.value,
+                userStore.getUsers,
             ) as User;
             const owner: ScenarioUser = {
                 userId: currentUser.id,
@@ -140,7 +140,7 @@ import { useNetworkStore, useScenarioStore } from '@/stores';
                 users: shared.value
                     ? [
                           owner,
-                          ...stateUsers.value
+                          ...userStore.getUsers
                               .filter(
                                   (user: User) =>
                                       user.username !== currentUser.username,

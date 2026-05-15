@@ -78,6 +78,7 @@ import {RemainingLifeLimitLibraryUserGridRow, ShareRemainingLifeLimitLibraryDial
 import RemainingLifeLimitService from '@/services/remaining-life-limit.service';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
@@ -89,7 +90,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
 
   const emit = defineEmits(['submit']);
   let store = useStore();
-  const stateUsers  = computed<User[]>(()=>store.state.userModule.users);
+  const userStore = useUserStore();
 
   let remainingLifeLimitLibraryUserGridHeaders: any[] = [
     {title: 'Username', key: 'username', align: 'left', sortable: true, class: '', width: ''},
@@ -109,7 +110,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
 
   function onSetGridData() {
     const currentUser: string = getUserName();
-    remainingLifeLimitLibraryUserGridRows.value = stateUsers.value
+    remainingLifeLimitLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

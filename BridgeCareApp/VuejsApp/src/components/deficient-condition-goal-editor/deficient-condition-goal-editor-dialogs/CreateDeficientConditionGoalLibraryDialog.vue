@@ -1,3 +1,4 @@
+
 <template>
   <v-dialog max-width="450px" persistent v-model="dialogData.showDialog">
     <v-card>
@@ -49,6 +50,7 @@ import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
+import { useUserStore } from '@/stores';
 
   let store = useStore();
 
@@ -57,8 +59,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
   }>()
   const { dialogData } = toRefs(props);
   const emit = defineEmits(['submit'])
-
-  let getIdByUserNameGetter: any = store.getters.getIdByUserName;
+  const userStore = useUserStore();
 
   const newDeficientConditionGoalLibrary = ref<DeficientConditionGoalLibrary>({ ...emptyDeficientConditionGoalLibrary,id: getNewGuid() });
   let rules: InputValidationRules = validationRules;
@@ -74,7 +75,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
             id: getNewGuid()
           }))
           : [],
-        owner: getIdByUserNameGetter(currentUser),
+        owner: userStore.getIdByUserName(currentUser),
     };
   });
 

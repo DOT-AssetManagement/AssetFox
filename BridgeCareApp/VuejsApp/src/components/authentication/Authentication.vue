@@ -15,21 +15,20 @@
 </template>
 
 <script setup lang="ts">
-    import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
     import Vue, { computed, onMounted, ref } from 'vue';
     import { SecurityTypes } from '@/shared/utils/security-types';
     import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import AuthenticationService from '@/services/authentication.service';
-    import { useAuthenticationStore, useNotificationStore } from '@/stores';
+    import { useAuthenticationStore, useNotificationStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
+    const userStore = useUserStore();
     let authenticated = computed<boolean>(() => authenticationStore.authenticated);  
     let hasRole= computed<boolean>(() => authenticationStore.hasRole);
     let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
-    let currentUserCriteriaFilter= computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
     let securityType: string = authenticationStore.securityType;
 
     function setSuccessMessageAction(payload?: any) { store.dispatch('setSuccessMessage');}
@@ -37,8 +36,6 @@ import AuthenticationService from '@/services/authentication.service';
     async function getUserTokensAction(payload?: any): Promise<any> {await store.dispatch('getUserTokens', payload);}
     async function getUserInfoAction(payload?: any): Promise<any> {await store.dispatch('getUserInfo');}
     async function getAzureAccountDetailsAction(payload?: any): Promise<any> {await store.dispatch('getAzureAccountDetails');}
-    async function getUserCriteriaFilterAction(payload?: any): Promise<any> {await store.dispatch('getUserCriteriaFilter');}
-
     const $router = useRouter();
 
     onMounted(() => mounted());
@@ -63,8 +60,8 @@ import AuthenticationService from '@/services/authentication.service';
                         onAuthenticationFailure();
                     } else {
                         getUserInfoAction().then(() => {
-                            getUserCriteriaFilterAction().then(() => {
-                                if (!hasRole.value || (!currentUserCriteriaFilter.value.hasAccess && !hasAdminAccess.value)) {
+                            userStore.getUserCriteriaFilter().then(() => {
+                                if (!hasRole.value || (!userStore.getCurrentUserCriteriaFilter.hasAccess && !hasAdminAccess.value)) {
                                     onRoleFailure();
                                 } else {
                                     onAuthenticationSuccess();

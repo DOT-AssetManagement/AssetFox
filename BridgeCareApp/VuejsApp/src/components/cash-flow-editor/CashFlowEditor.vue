@@ -316,7 +316,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { emit } from 'process';
-import { useAuthenticationStore, useCashFlowStore, useNotificationStore, useScenarioStore } from '@/stores';
+import { useAuthenticationStore, useCashFlowStore, useNotificationStore, useScenarioStore, useUserStore } from '@/stores';
 
 
 let store = useStore();
@@ -324,14 +324,13 @@ const authenticationStore = useAuthenticationStore();
 const cashFlowStore = useCashFlowStore();
 const notificationStore = useNotificationStore();
 const scenarioStore = useScenarioStore();
+const userStore = useUserStore();
 const confirm = useConfirm();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
 let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
 
     let gridSearchTerm = '';
     let currentSearch = '';
@@ -702,13 +701,13 @@ function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsav
     }
 
     function checkUserIsLibraryOwner() {
-        return getUserNameByIdGetter(selectedCashFlowRuleLibrary.value.owner) == getUserName();
+        return userStore.getUserNameById(selectedCashFlowRuleLibrary.value.owner ?? "") == getUserName();
     }
 
     function getOwnerUserName(): string {
 
         if (!hasCreatedLibrary) {
-            return getUserNameByIdGetter(selectedCashFlowRuleLibrary.value.owner);
+            return userStore.getUserNameById(selectedCashFlowRuleLibrary.value.owner ?? "") || '';
         }
         return getUserName();
     }

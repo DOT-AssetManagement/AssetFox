@@ -77,16 +77,16 @@ import {
     InputValidationRules,
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
-import { useNetworkStore, useScenarioStore } from '@/stores';
+import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
     let store = useStore(); 
     const networkStore = useNetworkStore();
     const scenarioStore = useScenarioStore();
+    const userStore = useUserStore();
     const props = defineProps<{dialogData: CloneSimulationDialogData}>();
     const emit = defineEmits(['submit']);
     const { dialogData } = toRefs(props);
 
-    const stateUsers =  computed<User[]>(() => store.state.userModule.users);
     let shared =  ref<boolean>(false);
     let rules: InputValidationRules = validationRules;
 
@@ -129,7 +129,7 @@ import { useNetworkStore, useScenarioStore } from '@/stores';
         if (props.dialogData.showDialog) {
             const currentUser: User = find(
                 propEq('username', getUserName()),
-                 stateUsers.value,
+                userStore.getUsers,
             ) as User;
             const owner: ScenarioUser = {
                 userId: currentUser.id,
@@ -145,7 +145,7 @@ import { useNetworkStore, useScenarioStore } from '@/stores';
                 users: shared.value
                     ? [
                           owner,
-                          ... stateUsers.value
+                          ...userStore.getUsers
                               .filter(
                                   (user: User) =>
                                       user.username !== currentUser.username,

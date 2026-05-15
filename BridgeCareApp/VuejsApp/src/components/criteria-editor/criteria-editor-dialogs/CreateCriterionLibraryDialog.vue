@@ -53,18 +53,16 @@ import {CreateCriterionLibraryDialogData} from '@/shared/models/modals/create-cr
 import {CriterionLibrary, emptyCriterionLibrary} from '@/shared/models/iAM/criteria';
 import {getUserName} from '@/shared/utils/get-user-info';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
+import { useUserStore } from '@/stores';
 
 const props = defineProps<{dialogData: CreateCriterionLibraryDialogData}>()
 let showDialogComputed = computed(() => props.dialogData.showDialog);
 let newCriterionLibrary: CriterionLibrary = {...emptyCriterionLibrary, id: getNewGuid(), isSingleUse: false};
 let store = useStore();
+const userStore = useUserStore();
 const emit = defineEmits(['submit'])
 
 const dialogData = reactive(props.dialogData);
-
-async function getIdByUserNameGetter(payload?: any): Promise<any> {
-        await store.dispatch('getIdByUserName');
-}
 
   watch(dialogData, () => onDialogDataChanged)
   async function onDialogDataChanged() {
@@ -73,7 +71,7 @@ async function getIdByUserNameGetter(payload?: any): Promise<any> {
     newCriterionLibrary = {
       ...newCriterionLibrary,
       mergedCriteriaExpression: dialogData.mergedCriteriaExpression,
-      owner: await getIdByUserNameGetter(currentUser),
+      owner: userStore.getIdByUserName(currentUser),
     };
   }
 

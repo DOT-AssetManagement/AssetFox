@@ -170,18 +170,16 @@ import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog
 import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
 import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
 import DataSourceMappingsService from '@/services/data-source.service';
-import { useDataSourceStore, useNotificationStore } from '@/stores';
+import { useDataSourceStore, useNotificationStore, useUserStore } from '@/stores';
 
     let store = useStore();
     const dataSourceStore = useDataSourceStore();
     const notificationStore = useNotificationStore();
+    const userStore = useUserStore();
     const emit = defineEmits(['submit'])
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let editDataSourceMappingsDialogData = ref<EditDataSourceMappingsDialogData>(clone(emptyEditDataSourceMappingsDialogData));
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
-    let getIdByUserNameGetter: any = store.getters.getIdByUserName ;
-
     let dsTypeItems = ref<string[]>([]);
     let dsItems = ref<any>([]);    
         
@@ -376,7 +374,7 @@ import { useDataSourceStore, useNotificationStore } from '@/stores';
                 showSaveMessage.value = true;
                 if(isNewDataSource.value)
                 {
-                    currentDatasource.value.createdBy = getIdByUserNameGetter(getUserName());
+                    currentDatasource.value.createdBy = userStore.getIdByUserName(getUserName());
                     isNewDataSource.value = false;
                 }
                 selectedConnection.value = isOwner() ? currentDatasource.value.connectionString : '';
@@ -515,12 +513,12 @@ import { useDataSourceStore, useNotificationStore } from '@/stores';
     function getOwnerUserName(): string {
         if(currentDatasource.value.createdBy != NIL && currentDatasource.value.createdBy != undefined)
         {
-            return getUserNameByIdGetter(currentDatasource.value.createdBy);
+            return userStore.getUserNameById(currentDatasource.value.createdBy);
         }
         return "Unknown";
     }
     function isOwner() {
-        return currentDatasource.value.createdBy == getIdByUserNameGetter(getUserName());
+        return currentDatasource.value.createdBy == userStore.getIdByUserName(getUserName());
     }
     function disableCrudButtons(): boolean {
         if(currentDatasource.value.type == "SQL")

@@ -347,7 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore, useScenarioStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore, useScenarioStore, useTreatmentStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -365,6 +365,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     let store = useStore();
     const committedProjectStore = useCommittedProjectStore();
     const networkStore = useNetworkStore();
+    const treatmentStore = useTreatmentStore();
     const $router = useRouter();    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     created();
@@ -429,16 +430,10 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
     let AllCommittedProjectsValid: boolean = false;
 
-    const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
     const attributeStore = useAttributeStore();
     const investmentStore = useInvestmentStore();
     const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    const selectedStateTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
-    const stateSimpleScenarioSelectableTreatments = computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
 
-    //async function getTreatmentLibrariesAction(payload?: any): Promise<any> { await store.dispatch('getTreatmentLibraries', payload); }
-    async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
-    function selectTreatmentLibraryAction(payload?: any){ store.dispatch('selectTreatmentLibrary', payload); }
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
     const scenarioStore = useScenarioStore();
     const alertStore = useAlertStore();
@@ -558,7 +553,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             categorySelectItems.value.push({text: cat, value: i})     
             i++   
         });
-        await getSimpleScenarioSelectableTreatmentsAction(scenarioId)
+        await treatmentStore.getSimpleScenarioSelectableTreatments(scenarioId)
         hasScenario = true;
         await networkStore.getNetworks();
         await InvestmentService.getScenarioBudgetYears(scenarioId).then(response => {  
@@ -667,8 +662,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         );
     };
 
-    watch(stateSimpleScenarioSelectableTreatments, () => {
-        treatmentSelectItems.value = stateSimpleScenarioSelectableTreatments.value.map(
+    watch(() => treatmentStore.simpleScenarioSelectableTreatmentsGetter, () => {
+        treatmentSelectItems.value = treatmentStore.simpleScenarioSelectableTreatmentsGetter.map(
             (treatment: SimpleTreatment) => (treatment.name)
         );
     });
@@ -985,7 +980,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     function handleTreatmentChange(scp: SectionCommittedProjectTableData, treatmentName: string, row: SectionCommittedProject){
         row.treatment = treatmentName;
         updateCommittedProject(row, treatmentName, 'treatment')  
-        var treatment = clone(stateSimpleScenarioSelectableTreatments.value.find(_ => _.name === treatmentName))
+        var treatment = clone(treatmentStore.simpleScenarioSelectableTreatmentsGetter.find(_ => _.name === treatmentName))
         if(isNil(treatment))
             return;
         CommittedProjectsService.FillTreatmentValues({
@@ -1647,10 +1642,9 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     async function fetchTreatmentLibrary(simulationId: string) {
         try {
-            await TreatmentService.getTreatmentLibraryBySimulationId(simulationId).then(response => {
-                if (hasValue(response, 'data')) {
-                    const treatmentLibrary = response.data as TreatmentLibrary;
-                    store.commit('scenarioTreatmentLibraryMutator', treatmentLibrary);
+            await treatmentStore.getTreatmentLibraryBySimulationId(simulationId).then(() => {
+                const treatmentLibrary = treatmentStore.getScenarioTreatmentLibrary;
+                if (!isNil(treatmentLibrary) && treatmentLibrary.id !== getBlankGuid()) {
                     handleLibrarySelectChange(treatmentLibrary.id);
                 }
             });
@@ -1664,9 +1658,9 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     }
 
     async function handleLibrarySelectChange(libraryId: string) {
-        selectTreatmentLibraryAction(libraryId);
+        treatmentStore.selectTreatmentLibrary(libraryId);
         hasSelectedLibrary = true;
-        const library = stateTreatmentLibraries.value.find((o) => o.id === libraryId);
+        const library = treatmentStore.treatmentLibrariesGetter.find((o) => o.id === libraryId);
         librarySelectItemValue.value = libraryId;
 
         if (!isNil(library)) {

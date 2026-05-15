@@ -227,19 +227,19 @@ import { getUrl } from "../utils/get-url";
 import { reactive } from 'vue';
 import QueryEditor from "../components/queryEditor/QueryEditorGroup.vue"
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
-import { useAttributeStore, useNetworkStore, useNotificationStore } from '@/stores';
+import { useAttributeStore, useNetworkStore, useNotificationStore, useUserStore } from '@/stores';
 
 let store = useStore();
 const attributeStore = useAttributeStore();
 const networkStore = useNetworkStore();
 const notificationStore = useNotificationStore();
+const userStore = useUserStore();
 const $router = useRouter();
 const emit = defineEmits(['submit','submitCriteriaEditorResult'])
 const props = defineProps<{
     criteriaEditorData: CriteriaEditorData
     }>()
 const { criteriaEditorData } = toRefs(props);
-const currentUserCriteriaFilter = computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
 const tab = ref<any>(null);
     const queryBuilderRules = ref<CriteriaConfigRule[]>([]);
     
@@ -641,7 +641,7 @@ const tab = ref<any>(null);
         networkId = $router.currentRoute.value.query['networkId'] as string
         const validationParameter = {
                 expression: parsedCriteria.join(''),
-                currentUserCriteriaFilter: currentUserCriteriaFilter.value,
+                currentUserCriteriaFilter: userStore.getCurrentUserCriteriaFilter,
                 networkId:networkId
             } as ValidationParameter;
         ValidationService.getCriterionValidationResult(
@@ -697,7 +697,7 @@ const tab = ref<any>(null);
     {
         const validationParameter = {
                 expression: parsedCriteria.join(''),
-                currentUserCriteriaFilter: currentUserCriteriaFilter.value,
+                currentUserCriteriaFilter: userStore.getCurrentUserCriteriaFilter,
                 networkId:getBlankGuid()
             } as ValidationParameter;
         ValidationService.getCriterionValidationResultNoCount(

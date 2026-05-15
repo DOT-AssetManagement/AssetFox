@@ -622,13 +622,14 @@ import router from '@/router';
 import { useRoute } from 'vue-router';
 import ReportsService from '@/services/reports.service';
 import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
-import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScenarioStore } from '@/stores';
+import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScenarioStore, useUserStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const networkStore = useNetworkStore();
     const notificationStore = useNotificationStore();
     const scenarioStore = useScenarioStore();
+    const userStore = useUserStore();
     const $router = useRouter();     
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
@@ -637,8 +638,6 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScena
     let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
 
     async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
-    async function getAllUserCriteriaFilterAction(payload?: any): Promise<any> {await store.dispatch('getAllUserCriteriaFilter',payload);}
-    
     let networks: Network[] = [];
     let scenarioGridHeaders: any = [
         {
@@ -912,14 +911,11 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScena
 
     watch(() => scenarioStore.getCurrentSharedScenariosPage, onstateSharedScenariosPageChanged)
     function onstateSharedScenariosPageChanged(){
-
-            let stateUsers = computed<User[]>(()=>store.state.userModule.users);
-
             // Clone the stateSharedScenariosPage
             const clonedPage = clone(scenarioStore.getCurrentSharedScenariosPage);
 
             // Get the list of inactive users
-            const inactiveUsers = stateUsers.value.filter(user => user.activeStatus === false);
+            const inactiveUsers = userStore.getUsers.filter(user => user.activeStatus === false);
 
             // Create a set of inactive usernames for quick lookup
             const inactiveUsernamesSet = new Set(inactiveUsers.map(user => user.username));
@@ -948,14 +944,11 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScena
 
     watch(() => scenarioStore.getCurrentUserScenarioPage, onStateUserScenariosPageChanged)
     function onStateUserScenariosPageChanged(){
-
-        let stateUsers = computed<User[]>(()=>store.state.userModule.users);
-
         // Clone the stateUserScenariosPage
         const clonedPage = clone(scenarioStore.getCurrentUserScenarioPage);
 
         // Get the list of inactive users
-        const inactiveUsers = stateUsers.value.filter(user => user.activeStatus === false);
+        const inactiveUsers = userStore.getUsers.filter(user => user.activeStatus === false);
 
         // Create a set of inactive usernames for quick lookup
         const inactiveUsernamesSet = new Set(inactiveUsers.map(user => user.username));

@@ -407,13 +407,14 @@ import { BudgetPriority } from '@/shared/models/iAM/budget-priority';
 import BudgetPriorityService from '@/services/budget-priority.service';
 import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
-import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, useUserStore } from '@/stores';
 
 let store = useStore();
 const alertStore = useAlertStore();
 const authenticationStore = useAuthenticationStore();
 const investmentStore = useInvestmentStore();
 const notificationStore = useNotificationStore();
+const userStore = useUserStore();
 const confirm = useConfirm();
 const emit = defineEmits(['submit'])
 const $router = useRouter();
@@ -421,16 +422,10 @@ const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 const hasUnsavedChanges = computed<boolean>(() => (store.state.unsavedChangesFlagModule.hasUnsavedChanges));
 const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess); 
 
-let currentUserCriteriaFilter = ref<UserCriteriaFilter>(store.state.userModule.currentUserCriteriaFilter);
-const stateGetScenarioSelectedTreatments = computed<SimpleTreatment[]>(() => store.state.treatmentModule.getScenarioSelectedTreatments);
-let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
-let stateSimpleScenarioSelectableTreatments= computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
-
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
 async function getCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCriterionLibraries', payload);}
     
 let getModifiedDate = store.getters.getLibraryDateModified;
-let getUserNameByIdGetter = store.getters.getUserNameById;
 
     let modifiedDate = ref<string>();
 
@@ -1060,7 +1055,7 @@ let getUserNameByIdGetter = store.getters.getUserNameById;
     }
 
     function checkUserIsLibraryOwner() {
-        return getUserNameByIdGetter(selectedBudgetLibrary.value.owner) == getUserName();
+        return userStore.getUserNameById(selectedBudgetLibrary.value.owner ?? "") == getUserName();
     }
 
     function onAddBudgetYear() {
@@ -1285,13 +1280,13 @@ let getUserNameByIdGetter = store.getters.getUserNameById;
                 investmentStore.importScenarioInvestmentBudgetsFile({
                     ...data,
                     id: selectedScenarioId,
-                    currentUserCriteriaFilter: currentUserCriteriaFilter.value
+                    currentUserCriteriaFilter: userStore.getCurrentUserCriteriaFilter
                 })
             } else {
                 investmentStore.importLibraryInvestmentBudgetsFile({
                     ...data,
                     id: selectedBudgetLibrary.value.id,
-                    currentUserCriteriaFilter: currentUserCriteriaFilter.value
+                    currentUserCriteriaFilter: userStore.getCurrentUserCriteriaFilter
                 })
             }
 

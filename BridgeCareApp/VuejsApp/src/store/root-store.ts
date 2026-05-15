@@ -6,7 +6,6 @@ import networkModule from '../store-modules/network.module';
 import inventoryModule from '@/store-modules/inventory.module';
 import investmentModule from '@/store-modules/investment.module';
 import performanceCurveModule from '@/store-modules/performance-curve.module';
-import treatmentModule from '@/store-modules/treatment.module';
 import attributeModule from '@/store-modules/attribute.module';
 import deficientConditionGoalModule from '@/store-modules/deficient-condition-goal.module';
 import budgetPriorityModule from '@/store-modules/budget-priority.module';
@@ -14,7 +13,6 @@ import remainingLifeLimitModule from '@/store-modules/remaining-life-limit.modul
 import pollingModule from '@/store-modules/polling.module';
 import announcementModule from '@/store-modules/announcement.module';
 import cashFlowModule from '@/store-modules/cash-flow.module';
-import userModule from '@/store-modules/user.module';
 import unsavedChangesFlagModule from '@/store-modules/unsaved-changes-flag.module';
 import criterionModule from '@/store-modules/criterion-library.module';
 import analysisMethodModule from '@/store-modules/analysis-method.module';
@@ -39,14 +37,12 @@ export default createStore({
         investmentModule,
         performanceCurveModule,
         attributeModule,
-        treatmentModule,
         deficientConditionGoalModule,
         budgetPriorityModule,
         remainingLifeLimitModule,
         pollingModule,
         announcementModule,
         cashFlowModule,
-        userModule,
         unsavedChangesFlagModule,
         criterionModule,
         analysisMethodModule,

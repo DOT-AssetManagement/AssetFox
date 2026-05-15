@@ -73,13 +73,14 @@ import {CashFlowRuleLibraryUserGridRow, ShareCashFlowRuleLibraryDialogData } fro
 import CashFlowRuleService from '@/services/cash-flow.service';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue'; 
 
   let store = useStore();
+  const userStore = useUserStore();
   const props = defineProps<{dialogData: ShareCashFlowRuleLibraryDialogData}>()
   const { dialogData } = toRefs(props);
-  const stateUsers = computed<User[]>(() => store.state.userModule.users);
 
   const emit = defineEmits(['submit']);
 
@@ -102,7 +103,7 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
   function onSetGridData() {
     const currentUser: string = getUserName();
 
-    shareCashFlowRuleLibraryUserGridRows.value = stateUsers.value
+    shareCashFlowRuleLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,
