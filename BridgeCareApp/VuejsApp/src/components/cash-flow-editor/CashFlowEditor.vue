@@ -316,20 +316,19 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { emit } from 'process';
-import { useAuthenticationStore, useCashFlowStore } from '@/stores';
+import { useAuthenticationStore, useCashFlowStore, useNotificationStore } from '@/stores';
 
 
 let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const cashFlowStore = useCashFlowStore();
+const notificationStore = useNotificationStore();
 const confirm = useConfirm();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
 let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
 async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
  function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
 
@@ -464,7 +463,7 @@ async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.CashFlow) !== -1) {
             selectedScenarioId = $router.currentRoute.value.query.scenarioId;
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Unable to identify selected scenario.',
                 });
                 $router.push('/Scenarios/');
@@ -636,7 +635,7 @@ async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>
                     }                   
                     else
                         librarySelectItemValue.value = cashFlowRuleLibrary.id;
-                    addSuccessNotificationAction({message:'Added cash flow rule library'})
+                    notificationStore.addSuccessNotification({message:'Added cash flow rule library'})
                 }               
             });
         }
@@ -785,7 +784,7 @@ async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>
                 clearChanges();
                 librarySelectItemValue.value = "";
                 resetPage();
-                addSuccessNotificationAction({message: "Modified scenario's cash flow rules"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's cash flow rules"});
                 importLibraryDisabled = true;
                 libraryImported = false;
             }           
@@ -814,7 +813,7 @@ async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>
                 clearChanges();
                 cashFlowStore.cashFlowRuleLibraryMutator(selectedCashFlowRuleLibrary.value);
                 cashFlowStore.selectedCashFlowRuleLibraryMutator(selectedCashFlowRuleLibrary.value.id);
-                addSuccessNotificationAction({message: "Updated cash flow rule library",});
+                notificationStore.addSuccessNotification({message: "Updated cash flow rule library",});
             }
         });
     }

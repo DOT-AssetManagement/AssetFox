@@ -34,19 +34,16 @@ import { ImportExportPerformanceCurvesDialogResult } from '@/shared/models/modal
 import {clone} from 'ramda';
 import PerformanceCurvesFileSelector from '@/shared/components/FileSelector.vue';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import UploadButton from '@/shared/components/buttons/UploadButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
 const emit = defineEmits(['submit'])
-let store = useStore();
 const props = defineProps<{
     showDialog: boolean
     }>()
     let showDialogComputed = computed(() => props.showDialog);
-function addErrorNotificationAction(payload?: any) {store.dispatch('addErrorNotification');}
 
     let PerformanceCurvesFile: File | null = null;
     let overwriteBudgets: boolean = true;

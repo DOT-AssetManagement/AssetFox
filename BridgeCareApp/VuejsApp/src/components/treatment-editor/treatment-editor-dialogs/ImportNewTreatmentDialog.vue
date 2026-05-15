@@ -18,7 +18,6 @@
 
 <script setup lang='ts'>
 import { ref, toRefs, watch, computed } from 'vue';
-import { useStore } from 'vuex';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { ImportNewTreatmentDialogResult } from '@/shared/models/modals/import-new-treatment-dialog-result';
 import {clone} from 'ramda';
@@ -29,15 +28,10 @@ import XButton from '@/shared/components/buttons/XButton.vue';
 
     const props = defineProps<{showDialog: boolean}>()
     const { showDialog } = toRefs(props);
-    
-    async function addErrorNotificationAction(payload?: any): Promise<any> {
-        await store.dispatch('addErrorNotification');
-    }
 
     const TreatmentsFile = ref<File | null>(null);
     let overwriteBudgets: boolean = true;
     const closed = ref<boolean>(false);
-    let store = useStore();
     const emit = defineEmits(['submit'])
 
     watch(showDialog, () => {

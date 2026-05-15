@@ -622,11 +622,12 @@ import router from '@/router';
 import { useRoute } from 'vue-router';
 import ReportsService from '@/services/reports.service';
 import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
-import { useAuthenticationStore, useNetworkStore } from '@/stores';
+import { useAuthenticationStore, useNetworkStore, useNotificationStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const networkStore = useNetworkStore();
+    const notificationStore = useNotificationStore();
     const $router = useRouter();     
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     
@@ -650,10 +651,6 @@ import { useAuthenticationStore, useNetworkStore } from '@/stores';
     let hasAdminAccess: boolean = authenticationStore.hasAdminAccess ; 
     let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
 
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload)}
-    function addWarningNotificationAction(payload?: any){ store.dispatch('addWarningNotification', payload)}
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
-    function addInfoNotificationAction(payload?: any){ store.dispatch('addInfoNotification', payload)}
     async function getSharedScenariosPageAction(payload?: any): Promise<any>{await store.dispatch('getSharedScenariosPage', payload)}
     async function createScenarioAction(payload?: any): Promise<any>{await store.dispatch('createScenario', payload)}
     async function cloneScenarioAction(payload?: any): Promise<any>{await store.dispatch('cloneScenario', payload)}
@@ -1501,8 +1498,8 @@ import { useAuthenticationStore, useNetworkStore } from '@/stores';
             scenario.networkId,
             scenario.id,
             scenario.name,
-            addSuccessNotificationAction,
-            addErrorNotificationAction,
+            notificationStore.addSuccessNotification,
+            notificationStore.addErrorNotification,
         );
     }
 
@@ -1516,7 +1513,7 @@ import { useAuthenticationStore, useNetworkStore } from '@/stores';
             {
                 await ScenarioService.upsertValidateSimulation(selectedScenario.networkId, selectedScenario.id).then((response: AxiosResponse) => {
                     if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
-                        addSuccessNotificationAction({message: "Simulation pre-checks completed",});
+                        notificationStore.addSuccessNotification({message: "Simulation pre-checks completed",});
                         if(response.data.length > 0)
                         {
                             preCheckStatus = response.data[0].status; // per current working, only error messages goes in via API
@@ -1873,12 +1870,12 @@ import { useAuthenticationStore, useNetworkStore } from '@/stores';
             .then((response: AxiosResponse<any>) => {
                 if (hasValue(response, 'data')) {
                     if (!response.data.includes("No reports exist")) {
-                        addSuccessNotificationAction({
+                        notificationStore.addSuccessNotification({
                             message: 'All reports for ' + _scenario.name + ' have been deleted.',
                         });
                     }
                 } else {
-                    addErrorNotificationAction({
+                    notificationStore.addErrorNotification({
                         message: 'Failed to delete reports.',
                         longMessage: 'Failed to delete the associated reports. Please check if the scenario has generated reports.',
                     });
@@ -1941,12 +1938,12 @@ import { useAuthenticationStore, useNetworkStore } from '@/stores';
     function getDataMigrationStatus(data: any) {
         const status: any = data.status;
         if (status.indexOf('Error') !== -1) {
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: 'Data migration error.',
                 longMessage: data.status,
             });
         } else {
-            addInfoNotificationAction({
+            notificationStore.addInfoNotification({
                 message: 'Data migration info.',
                 longMessage: data.status,
             });
@@ -2090,7 +2087,7 @@ import { useAuthenticationStore, useNetworkStore } from '@/stores';
                             hasValue(response, 'status') &&
                             http2XX.test(response.status.toString())
                         ) {
-                            addSuccessNotificationAction({
+                            notificationStore.addSuccessNotification({
                                 message: 'Successful upload.',
                                 longMessage:
                                     'Successfully uploaded committed projects.',
@@ -2098,7 +2095,7 @@ import { useAuthenticationStore, useNetworkStore } from '@/stores';
                         }
                     });
                 } else {
-                    addErrorNotificationAction({
+                    notificationStore.addErrorNotification({
                         message: 'No file selected.',
                         longMessage:
                             'No file selected to upload the committed projects.',
@@ -2129,7 +2126,7 @@ import { useAuthenticationStore, useNetworkStore } from '@/stores';
                     hasValue(response) &&
                     http2XX.test(response.status.toString())
                 ) {
-                    addSuccessNotificationAction({
+                    notificationStore.addSuccessNotification({
                         message: 'Committed projects have been deleted.',
                     });
                 }

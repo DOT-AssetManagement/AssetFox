@@ -59,20 +59,16 @@ import { FileInfo } from '@/shared/models/iAM/file-info';
 import FileDownload from 'js-file-download';
 import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 import {hasValue} from '@/shared/utils/has-value-util';
+import { clone } from 'ramda';
 import { SelectItem } from '@/shared/models/vue/select-item';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
-import { clone } from 'ramda';
-import { useStore } from 'vuex'; 
-import { useAdminDataStore } from '@/stores';
+import { useAdminDataStore, useNotificationStore } from '@/stores';
 
-    let store = useStore(); 
+    const notificationStore = useNotificationStore();
     const adminDataStore = useAdminDataStore();
 
     const props = defineProps<{dialogData: ReportsDownloaderDialogData}>();
     let showDialogComputed = computed(() => props.dialogData.showModal);
-
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification')}
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification')}
 
     let reports: SelectItem[] = [];   
     let selectedReport: string = ''; 
@@ -107,11 +103,11 @@ import { useAdminDataStore } from '@/stores';
                         //reportIndexID = resultId;
                     }
 
-                    addSuccessNotificationAction({
+                    notificationStore.addSuccessNotification({
                         message: selectedReport +  ' report generation started for ' + props.dialogData.name + '.',
                     });
                 } else {
-                    addErrorNotificationAction({
+                    notificationStore.addErrorNotification({
                         message: 'Failed to generate apricot for ' + props.dialogData.name + '.',
                         longMessage:
                             'Failed to generate the report. Make sure the scenario has been run',
@@ -136,7 +132,7 @@ import { useAdminDataStore } from '@/stores';
             isDownloading = false;
         }).catch(() => {
             isDownloading = false;
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: 'Failed to download report.',
                 longMessage:
                     'Failed to download the summary report. Make sure the scenario has been run',
@@ -154,7 +150,7 @@ import { useAdminDataStore } from '@/stores';
             ).then((response: AxiosResponse<any>) => {
                 isDownloading = false;
                 if (hasValue(response, 'data')) {
-                    addSuccessNotificationAction({
+                    notificationStore.addSuccessNotification({
                         message: 'Report downloaded',
                     });
                     FileDownload(
@@ -162,7 +158,7 @@ import { useAdminDataStore } from '@/stores';
                         `Simulation Log ${props.dialogData.name}.txt`,
                     );
                 } else {
-                    addErrorNotificationAction({
+                    notificationStore.addErrorNotification({
                         message: 'Failed to download simulation log.',
                         longMessage:
                             'Failed to download simulation log. Please try generating and downloading the log again.',

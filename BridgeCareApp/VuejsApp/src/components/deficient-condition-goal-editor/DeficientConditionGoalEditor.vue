@@ -367,21 +367,20 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalStore, useNotificationStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const deficientConditionGoalStore = useDeficientConditionGoalStore();
+    const notificationStore = useNotificationStore();
     const confirm = useConfirm();
     const $router = useRouter();
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 
     async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
-    function addErrorNotificationAction(payload?: any) {store.dispatch('addErrorNotification', payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
-    function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
     function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
 
@@ -503,7 +502,7 @@ import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalSto
             selectedScenarioId.value = $router.currentRoute.value.query.scenarioId as string;
 
             if (selectedScenarioId.value === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 $router.push('/Scenarios/');
@@ -740,7 +739,7 @@ import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalSto
                     }
                     
                     deficientConditionGoalStore.addedOrUpdatedDeficientConditionGoalLibraryMutator(library);
-                    addSuccessNotificationAction({message:'Added deficient condition goal library'})
+                    notificationStore.addSuccessNotification({message:'Added deficient condition goal library'})
                 }               
             })
         }
@@ -806,7 +805,7 @@ import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalSto
                 clearChanges()
                 deficientConditionGoalStore.addedOrUpdatedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value);
                 deficientConditionGoalStore.selectedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value.id);
-                addSuccessNotificationAction({message: "Updated deficient condition goal library",});
+                notificationStore.addSuccessNotification({message: "Updated deficient condition goal library",});
             }
         });
     }
@@ -827,7 +826,7 @@ import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalSto
                 clearChanges();
                 librarySelectItemValue.value = null;
                 resetPage();
-                addSuccessNotificationAction({message: "Modified scenario's deficient condition goals"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's deficient condition goals"});
                 importLibraryDisabled.value = true;
                 libraryImported = false;
             }           

@@ -375,18 +375,17 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAuthenticationStore, useCalculatedAttributeStore } from '@/stores';
+import { useAuthenticationStore, useCalculatedAttributeStore, useNotificationStore } from '@/stores';
 
 let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const calculatedAttributeStore = useCalculatedAttributeStore();
+const notificationStore = useNotificationStore();
 const confirm = useConfirm();
 const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
 
     async function upsertScenarioCalculatedAttributeAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioCalculatedAttribute', payload);}
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-    function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
-    function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
     function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
@@ -513,7 +512,7 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
             
                 selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Unable to identify selected scenario.',
                 });
                 $router.push('/Scenarios/');
@@ -956,7 +955,7 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
                 resetPage();
                 calculatedAttributeStore.calculatedAttributeLibraryMutator(selectedCalculatedAttributeLibrary.value); 
                 calculatedAttributeStore.selectCalculatedAttributeLibrary(selectedCalculatedAttributeLibrary.value.id);
-                addSuccessNotificationAction({message: "Modified calculated attrbutes"});
+                notificationStore.addSuccessNotification({message: "Modified calculated attrbutes"});
                 librarySelectItemValue.value = ''
             }   
         }))
@@ -989,7 +988,7 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
                  resetPage();
                  calculatedAttributeStore.calculatedAttributeLibraryMutator( selectedCalculatedAttributeLibrary.value)
                  calculatedAttributeStore.selectedCalculatedAttributeLibraryMutator( selectedCalculatedAttributeLibrary.value.id);
-                 addSuccessNotificationAction({message: "Updated calculated attribute library",});
+                 notificationStore.addSuccessNotification({message: "Updated calculated attribute library",});
             }   
         }))
     }
@@ -1047,7 +1046,7 @@ const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlag
                      clearChanges()
                      resetPage();
                             calculatedAttributeStore.calculatedAttributeLibraryMutator(calculatedAttributeLibrary);
-                     addSuccessNotificationAction({message: "Updated calculated attribute library",});
+                    notificationStore.addSuccessNotification({message: "Updated calculated attribute library",});
                      if(!hasScenario.value)
                         librarySelectItemValue.value = calculatedAttributeLibrary.id;
                      hasCreatedLibrary = true;

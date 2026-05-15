@@ -432,7 +432,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAlertStore, useAuthenticationStore, useInvestmentStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore } from '@/stores';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
@@ -441,6 +441,7 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore } from '@/sto
     const alertStore = useAlertStore();
     const authenticationStore = useAuthenticationStore();
     const investmentStore = useInvestmentStore();
+    const notificationStore = useNotificationStore();
     let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
     let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
@@ -454,22 +455,6 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore } from '@/sto
     let isSharedLibrary= computed<boolean>(() => store.state.treatmentModule.isSharedLibrary);
     let stateScenarioPerformanceCurves= computed<PerformanceCurve[]>(() => store.state.performanceCurveModule.scenarioPerformanceCurves);
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
-
-
- function addSuccessNotificationAction(payload?: any): void {
-     store.dispatch('addSuccessNotification', payload);
-}
- function addWarningNotificationAction(payload?: any): void {
-     store.dispatch('addWarningNotification', payload);
-}
-
- function addErrorNotificationAction(payload?: any): void {
-   store.dispatch('addErrorNotification', payload);
-}
-
- function addInfoNotificationAction(payload?: any): void {
-   store.dispatch('addInfoNotification', payload);
-}
 
  async function getTreatmentLibrariesAction(payload?: any): Promise<any> {
   await store.dispatch('getTreatmentLibraries', payload);
@@ -656,7 +641,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
             loadedScenarioId = selectedScenarioId;
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 $router.push('/Scenarios/');
@@ -947,7 +932,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                 : await TreatmentService.getSelectedTreatmentById(treatmentId);
 
             if (!response.data) {
-                addErrorNotificationAction({ message: 'Could not find treatment to delete.' });
+                notificationStore.addErrorNotification({ message: 'Could not find treatment to delete.' });
                 return;
             }
 
@@ -987,7 +972,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
 
         catch(error) {
             console.error("Failed to get treatment details for deletion:", error);
-            addErrorNotificationAction({ message: 'An error occurred while preparing to delete the treatment.' });
+            notificationStore.addErrorNotification({ message: 'An error occurred while preparing to delete the treatment.' });
         }
     }
 
@@ -1099,7 +1084,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                         // After refreshing, select the new library
                         selectedTreatmentLibraryMutator(library.id);
                     });
-                    addSuccessNotificationAction({message:'Added treatment library'})
+                    notificationStore.addSuccessNotification({message:'Added treatment library'})
                 }               
             })
         }
@@ -1140,7 +1125,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
                 }
                 treatmentCache.push(selectedTreatment.value);
                 
-                addSuccessNotificationAction({message: "Modified scenario's treatments"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's treatments"});
                 $emitter.emit('TreatmentSettingsUpdated');                 
                 
                 checkHasUnsavedChanges();

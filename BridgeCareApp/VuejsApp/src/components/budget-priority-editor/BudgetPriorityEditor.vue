@@ -285,19 +285,18 @@
     import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
     import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
     import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore } from '@/stores';
+    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore, useNotificationStore } from '@/stores';
 
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const budgetPriorityStore = useBudgetPriorityStore();
     const investmentStore = useInvestmentStore();
+    const notificationStore = useNotificationStore();
     const confirm = useConfirm();
     const $router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload) }
      function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload) }
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload)}
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>{await store.dispatch( 'getCurrentUserOrSharedScenario', payload)}
     function selectScenarioAction(payload?: any): void { store.dispatch('selectScenario', payload)}
     
@@ -374,7 +373,7 @@
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
 
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 $router.push('/Scenarios/');
@@ -689,7 +688,7 @@
                 }
 
                 budgetPriorityStore.budgetPriorityLibraryMutator(budgetPriorityLibrary);            
-                addSuccessNotificationAction({message:'Added budget priority library'})
+                notificationStore.addSuccessNotification({message:'Added budget priority library'})
             })
         }
     }
@@ -796,7 +795,7 @@
             parentLibraryId = librarySelectItemValue.value ? librarySelectItemValue.value : "";
             clearChanges();
             librarySelectItemValue.value = null;
-            addSuccessNotificationAction({message: "Modified scenario's budget priorities"});
+            notificationStore.addSuccessNotification({message: "Modified scenario's budget priorities"});
             $emitter.emit('BudgetPriorityUpdated');              
             currentPage.value = sortByProperty("priorityLevel", currentPage.value);
             await onPaginationChanged();
@@ -825,7 +824,7 @@
                 clearChanges()               
                 budgetPriorityStore.budgetPriorityLibraryMutator(selectedBudgetPriorityLibrary.value);
                 budgetPriorityStore.selectedBudgetPriorityLibraryMutator(selectedBudgetPriorityLibrary.value.id);                
-                addSuccessNotificationAction({message: "Updated budget priority library",});
+                notificationStore.addSuccessNotification({message: "Updated budget priority library",});
             }
         });
     }

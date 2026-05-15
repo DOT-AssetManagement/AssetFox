@@ -114,8 +114,8 @@
                         :networkId="networkId"
                         :selectedScenarioId="selectedScenarioId"
                         :simulationName="simulationName"
-                        @success="handleSuccess"
-                        @error="handleError"
+                        @success="notificationStore.addSuccessNotification"
+                        @error="notificationStore.addErrorNotification"
                     />
                 </v-row>
             </v-col>
@@ -173,17 +173,15 @@ import SimulationLogButton from '@/shared/components/buttons/SimulationLogButton
 import { UserDefinedReportRequestModel, emptyUserDefinedReportRequestModel, PamsPbExportReportRequestModel, emptyPamsPbExportReportRequestModel } from '@/shared/models/iAM/reports';
 import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/UserDefinedReportInputDialog.vue';
 import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
-import { useAdminDataStore, useAuthenticationStore } from '@/stores';
+import { useAdminDataStore, useAuthenticationStore, useNotificationStore } from '@/stores';
 
     let store = useStore();
     const adminDataStore = useAdminDataStore();
     const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
     const router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>> 
-    function addErrorNotificationAction(payload?: any) {  store.dispatch('addErrorNotification',payload);} 
-    function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification',payload);} 
     async function updateSimulationReportDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationReportDetail', payload)}  
-    const notifications = computed<Notification[]>(() => store.state.notificationModule.notifications);
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 
     let editShow = ref<boolean>(false);
@@ -262,7 +260,7 @@ import { useAdminDataStore, useAuthenticationStore } from '@/stores';
         networkId.value = router.currentRoute.value.query.networkId as string;
         if (selectedScenarioId.value === getBlankGuid()) {
                 // set 'no selected scenario' error message, then redirect user to Scenarios UI
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 router.push('/Scenarios/');
@@ -286,7 +284,7 @@ import { useAdminDataStore, useAuthenticationStore } from '@/stores';
 
     });
 
-    watch(notifications, (newNotifications) => {
+    watch(() => notificationStore.getNotifications, (newNotifications: Notification[]) => {
         if (newNotifications.length > 0) {
             const latestNotification = newNotifications[0];
             
@@ -323,14 +321,6 @@ import { useAdminDataStore, useAuthenticationStore } from '@/stores';
 
     function showEditDialog(): void {
         editShow.value = !editShow.value;
-    }
-
-    function handleSuccess(payload: any) {
-        store.dispatch('addSuccessNotification', payload);
-    }
-
-    function handleError(payload: any) {
-        store.dispatch('addErrorNotification', payload);
     }
 
     function onShowCriterionEditorDialog(reportId: string) {
@@ -415,11 +405,11 @@ import { useAdminDataStore, useAuthenticationStore } from '@/stores';
                 const resultId: string = response.data as string;
                 //reportIndexID = resultId;
             }
-            addSuccessNotificationAction({
+            notificationStore.addSuccessNotification({
                 message: selectedReport.value.name +  ' report generation started for ' + simulationName.value + '.',
             });
         } else {
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: 'Failed to generate apricot for ' + simulationName.value + '.',
                 longMessage:
                     'Failed to generate the report or output. Make sure the scenario has been run',
@@ -434,7 +424,7 @@ import { useAdminDataStore, useAuthenticationStore } from '@/stores';
         ) as Report | undefined; // Type it correctly, find can return undefined
 
         if (!reportToDownload) {
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: 'Report not found.',
                 longMessage: 'The specified report could not be found in the current list.',
             });
@@ -460,14 +450,14 @@ import { useAdminDataStore, useAuthenticationStore } from '@/stores';
             // The download is triggered by the service.
             // You might want a generic "Download started" message here,
             // or let the browser's download indication be sufficient.
-            addSuccessNotificationAction({
+            notificationStore.addSuccessNotification({
                 message: `'${reportToDownload.name}' report download has started for ${simulationName.value}.`,
             });
 
         } 
         catch (error: any) {
             console.error('Error in onDownloadReport:', error);
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: `Failed to download '${reportToDownload.name}'.`,
                 longMessage: error.message || 'An unexpected error occurred. Please check server logs or try again.',
             });
@@ -511,13 +501,13 @@ import { useAdminDataStore, useAuthenticationStore } from '@/stores';
             selectedScenarioId.value, selectedReport.value.name
         ).then((response: AxiosResponse<any>) => {
             if (hasValue(response, 'data')) {
-                addSuccessNotificationAction({
+                notificationStore.addSuccessNotification({
                         message: selectedReport.value.name +  ' report has been deleted for ' + simulationName.value + '.',
                     });
                     selectedReport.value.isGenerated = false;
                     selectedReport.value.reportStatus = "Report Deleted";
             } else {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Failed to delete report.',
                     longMessage:
                         'Failed to download the report or output. Make sure the scenario has been run',

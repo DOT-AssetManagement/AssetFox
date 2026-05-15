@@ -308,11 +308,12 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAttributeStore, useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useNotificationStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
     const confirm = useConfirm();
     const $router = useRouter();
 
@@ -328,11 +329,9 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     async function upsertRemainingLifeLimitLibraryAction(payload?: any): Promise<any>{await store.dispatch('upsertRemainingLifeLimitLibrary', payload)}
     async function deleteRemainingLifeLimitLibraryAction(payload?: any): Promise<any>{await store.dispatch('deleteRemainingLifeLimitLibrary', payload)}
     function selectRemainingLifeLimitLibraryAction(payload?: any){store.dispatch('selectRemainingLifeLimitLibrary', payload)}
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload)}
     async function getScenarioRemainingLifeLimitsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioRemainingLifeLimits', payload)}
     async function upsertScenarioRemainingLifeLimitsAction(payload?: any): Promise<any>{await store.dispatch('upsertScenarioRemainingLifeLimits', payload)}
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload)}
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>{await store.dispatch('getCurrentUserOrSharedScenario', payload)}
     function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload)}
     
@@ -447,7 +446,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.RemainingLifeLimit) !== -1) {
             selectedScenarioId = $router.currentRoute.value.query.scenarioId;
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 $router.push('/Scenarios/');
@@ -685,7 +684,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
                     }
 
                     addedOrUpdatedRemainingLifeLimselectListItemsrefitLibraryMutator(library);
-                    addSuccessNotificationAction({message:'Added remaining life limit library'})
+                    notificationStore.addSuccessNotification({message:'Added remaining life limit library'})
                 }               
             })
         }
@@ -763,7 +762,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
                 clearChanges()
                 addedOrUpdatedRemainingLifeLimselectListItemsrefitLibraryMutator(selectedRemainingLifeLimitLibrary.value);
                 selectedRemainingLifeLimitLibraryMutator(selectedRemainingLifeLimitLibrary.value.id)
-                addSuccessNotificationAction({message: "Updated remaining life limit library",});               
+                notificationStore.addSuccessNotification({message: "Updated remaining life limit library",});               
             }
         });
     }
@@ -784,7 +783,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
                 clearChanges();
                 librarySelectItemValue.value = null;
                 resetPage();
-                addSuccessNotificationAction({message: "Modified scenario's remaining life limits"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's remaining life limits"});
             }           
         });
     } 

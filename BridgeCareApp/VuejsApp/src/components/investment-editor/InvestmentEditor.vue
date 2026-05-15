@@ -407,12 +407,13 @@ import { BudgetPriority } from '@/shared/models/iAM/budget-priority';
 import BudgetPriorityService from '@/services/budget-priority.service';
 import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
-import { useAlertStore, useAuthenticationStore, useInvestmentStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore } from '@/stores';
 
 let store = useStore();
 const alertStore = useAlertStore();
 const authenticationStore = useAuthenticationStore();
 const investmentStore = useInvestmentStore();
+const notificationStore = useNotificationStore();
 const confirm = useConfirm();
 const emit = defineEmits(['submit'])
 const $router = useRouter();
@@ -425,10 +426,8 @@ const stateGetScenarioSelectedTreatments = computed<SimpleTreatment[]>(() => sto
 let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
 let stateSimpleScenarioSelectableTreatments= computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
 
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
 async function getCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCriterionLibraries', payload);}
-function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload);}
     
 let getModifiedDate = store.getters.getLibraryDateModified;
 let getUserNameByIdGetter = store.getters.getUserNameById;
@@ -552,7 +551,7 @@ let getUserNameByIdGetter = store.getters.getUserNameById;
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
 
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 $router.push('/Scenarios/');
@@ -983,7 +982,7 @@ let getUserNameByIdGetter = store.getters.getUserNameById;
             InvestmentService.upsertOrDeleteBudgetLibraryUsers(selectedBudgetLibrary.value.id, libraryUserData).then((response: AxiosResponse) => {
                 if (hasValue(response, 'status') && http2XX.test(response.status.toString()))
                 {
-                    addSuccessNotificationAction({ message: 'Shared budget library' })
+                    notificationStore.addSuccessNotification({ message: 'Shared budget library' })
                     resetPage();
                 }
             })
@@ -1035,7 +1034,7 @@ let getUserNameByIdGetter = store.getters.getUserNameById;
                         investmentStore.budgetLibraryMutator(budgetLibrary);
                         if(!hasScenario.value)
                             librarySelectItemValue.value = budgetLibrary.id;
-                        addSuccessNotificationAction({ message: 'Added budget library' })
+                        notificationStore.addSuccessNotification({ message: 'Added budget library' })
                     }
                 })
         }
@@ -1360,7 +1359,7 @@ let getUserNameByIdGetter = store.getters.getUserNameById;
                 firstYearOfAnalysisPeriodShift.value = 0;
                 investmentStore.investmentPlanMutator(investmentPlanUpsert)
                 clearChanges();
-                addSuccessNotificationAction({message: "Modified investment"});
+                notificationStore.addSuccessNotification({message: "Modified investment"});
 
                 // Clear old budget priorities since they reference budgets from the previous investment library
                 const existingPriorities = await BudgetPriorityService.getScenarioBudgetPriorities(selectedScenarioId);
@@ -1455,7 +1454,7 @@ let getUserNameByIdGetter = store.getters.getUserNameById;
                 clearChanges()
                 investmentStore.budgetLibraryMutator(selectedBudgetLibrary.value);
                 investmentStore.selectedBudgetLibraryMutator(selectedBudgetLibrary.value.id);
-                addSuccessNotificationAction({message: "Updated budget library",});
+                notificationStore.addSuccessNotification({message: "Updated budget library",});
             }
         });
     }

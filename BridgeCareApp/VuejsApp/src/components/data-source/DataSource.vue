@@ -170,16 +170,15 @@ import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog
 import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
 import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
 import DataSourceMappingsService from '@/services/data-source.service';
-import { useDataSourceStore } from '@/stores';
+import { useDataSourceStore, useNotificationStore } from '@/stores';
 
     let store = useStore();
     const dataSourceStore = useDataSourceStore();
+    const notificationStore = useNotificationStore();
     const emit = defineEmits(['submit'])
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let editDataSourceMappingsDialogData = ref<EditDataSourceMappingsDialogData>(clone(emptyEditDataSourceMappingsDialogData));
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
-    function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);} 
-
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
     let getIdByUserNameGetter: any = store.getters.getIdByUserName ;
 
@@ -488,7 +487,7 @@ import { useDataSourceStore } from '@/stores';
             fileName.value = prop('name', selectedFile) as string;
 
             if (fileName.value.indexOf('xlsx') === -1) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Only .xlsx file types are allowed',
                 });
             }
@@ -553,7 +552,7 @@ import { useDataSourceStore } from '@/stores';
                     dataSourceStore.getDataSourceMappings(currentDatasource.value.id);
                 });
             } else {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'No file selected.',
                     longMessage:
                         'No file selected to upload the committed projects.',

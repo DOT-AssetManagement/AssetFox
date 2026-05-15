@@ -320,11 +320,12 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAuthenticationStore, useAttributeStore } from '@/stores';
+import { useAuthenticationStore, useAttributeStore, useNotificationStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
     const $router = useRouter(); 
     const confirm = useConfirm();
 
@@ -338,7 +339,6 @@ import { useAuthenticationStore, useAttributeStore } from '@/stores';
 
     async function getIsSharedLibraryAction(payload?: any): Promise<any> {await store.dispatch('getIsSharedTargetConditionGoalLibrary',payload);} 
     async function getHasPermittedAccessAction(payload?: any): Promise<any> {await store.dispatch('getHasPermittedAccess',payload);}
-    function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification',payload);}
     async function getTargetConditionGoalLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getTargetConditionGoalLibraries',payload);} 
     function selectTargetConditionGoalLibraryAction(payload?: any) { store.dispatch('selectTargetConditionGoalLibrary',payload);}
     async function upsertTargetConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertTargetConditionGoalLibrary',payload);}
@@ -346,7 +346,6 @@ import { useAuthenticationStore, useAttributeStore } from '@/stores';
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges',payload);}
     async function getScenarioTargetConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('getScenarioTargetConditionGoals',payload);}
     async function upsertScenarioTargetConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioTargetConditionGoals',payload);}
-    function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification',payload);}
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario',payload);}
     function selectScenarioAction(payload?: any) { store.dispatch('selectScenario',payload);}
 
@@ -471,7 +470,7 @@ import { useAuthenticationStore, useAttributeStore } from '@/stores';
             //selectedScenarioId = to.query.scenarioId;
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string; 
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 $router.push('/Scenarios/');
@@ -692,7 +691,7 @@ import { useAuthenticationStore, useAttributeStore } from '@/stores';
 
                     addedOrUpdatedTargetConditionGoalLibraryMutator(library);
                     selectedTargetConditionGoalLibraryMutator(library.id);
-                    addSuccessNotificationAction({message:'Added target condition goal library'})
+                    notificationStore.addSuccessNotification({message:'Added target condition goal library'})
                 }               
             })
         }
@@ -765,7 +764,7 @@ import { useAuthenticationStore, useAttributeStore } from '@/stores';
                 clearChanges();
                 addedOrUpdatedTargetConditionGoalLibraryMutator(selectedTargetConditionGoalLibrary.value);
                 selectedTargetConditionGoalLibraryMutator(selectedTargetConditionGoalLibrary.value.id);
-                addSuccessNotificationAction({message: "Updated target condition goal library",});
+                notificationStore.addSuccessNotification({message: "Updated target condition goal library",});
             }
         });
     }
@@ -786,7 +785,7 @@ import { useAuthenticationStore, useAttributeStore } from '@/stores';
                 clearChanges();
                 librarySelectItemValue.value = null;
                 resetPage();
-                addSuccessNotificationAction({message: "Modified scenario's target condition goals"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's target condition goals"});
             }           
         });
     }

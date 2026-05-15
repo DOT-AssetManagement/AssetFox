@@ -243,10 +243,11 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
-import { useAttributeStore, useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useNotificationStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
     const router = useRouter(); 
     // ToDo - verify if below is correct. Its used in onUpsertAnalysisMethod()
     const $refs = inject('$refs') as any
@@ -263,7 +264,6 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     async function upsertAnalysisMethodAction(payload?: any): Promise<any>{await store.dispatch('upsertAnalysisMethod', payload)} 
     async function getSimulationAnalysisSettingAction(payload?: any): Promise<any>{await store.dispatch('getSimulationAnalysisSetting', payload)}
 
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload)} 
 
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>{await store.dispatch('getCurrentUserOrSharedScenario', payload)}
@@ -344,7 +344,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
             networkName.value = router.currentRoute.value.query.networkName as string;
             if (selectedScenarioId.value === getBlankGuid()) {
                 // set 'no selected scenario' error message, then redirect user to Scenarios UI
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 router.push('/Scenarios/');

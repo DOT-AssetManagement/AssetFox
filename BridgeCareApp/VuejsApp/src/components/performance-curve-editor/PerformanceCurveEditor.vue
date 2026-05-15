@@ -518,13 +518,14 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
-import { useAlertStore, useAttributeStore, useAuthenticationStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
 let store = useStore();
 const alertStore = useAlertStore();
 const attributeStore = useAttributeStore();
 const authenticationStore = useAuthenticationStore();
+const notificationStore = useNotificationStore();
 const confirm = useConfirm();
 
 let statePerformanceCurveLibraries = computed<PerformanceCurveLibrary[]>(() => store.state.performanceCurveModule.performanceCurveLibraries);
@@ -542,13 +543,11 @@ async function getIsSharedLibraryAction(payload?: any): Promise<any> {await stor
 async function getPerformanceCurveLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getPerformanceCurveLibraries', payload);}
 function selectPerformanceCurveLibraryAction(payload?: any) { store.dispatch('selectPerformanceCurveLibrary', payload);}
 async function deletePerformanceCurveLibraryAction(payload?: any): Promise<any> {await store.dispatch('deletePerformanceCurveLibrary', payload);}
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
 async function updatePerformanceCurveCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('updatePerformanceCurvesCriterionLibraries', payload);}
 async function upsertOrDeletePerformanceCurveLibraryUsersAction(payload?: any): Promise<any> {await store.dispatch('upsertOrDeletePerformanceCurveLibraryUsers', payload);}
 async function importScenarioPerformanceCurvesFileAction(payload?: any): Promise<any> {await store.dispatch('importScenarioPerformanceCurvesFile', payload);}
 async function importLibraryPerformanceCurvesFileAction(payload?: any): Promise<any> {await store.dispatch('importLibraryPerformanceCurvesFile', payload);}
-function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
 async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
 function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload);}
 
@@ -673,7 +672,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
 
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Unable to identify selected scenario.',
                 });
                 $router.push('/Scenarios/');
@@ -955,7 +954,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                 }
 
                 performanceCurveLibraryMutator(performanceCurveLibrary);
-                addSuccessNotificationAction({message:'Added deterioration model library'})
+                notificationStore.addSuccessNotification({message:'Added deterioration model library'})
             })
         }
     }
@@ -1089,7 +1088,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                 clearChanges()
                 performancePagination.value.page = 1;
                 await onPaginationChanged();
-                addSuccessNotificationAction({message: "Modified scenario's deterioration models"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's deterioration models"});
                 librarySelectItemValue.value = null
                 $emitter.emit('DeteriorationModelSettingsUpdated');              
             }           
@@ -1114,7 +1113,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                 clearChanges()
                 performanceCurveLibraryMutator(selectedPerformanceCurveLibrary.value);
                 selectedPerformanceCurveLibraryMutator(selectedPerformanceCurveLibrary.value.id);
-                addSuccessNotificationAction({message: "Updated deterioration model library",});
+                notificationStore.addSuccessNotification({message: "Updated deterioration model library",});
             }
         });
     }

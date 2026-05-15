@@ -347,7 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -440,11 +440,10 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
     function selectTreatmentLibraryAction(payload?: any){ store.dispatch('selectTreatmentLibrary', payload); }
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
-    function addSuccessNotificationAction(payload?: any) {  store.dispatch('addSuccessNotification', payload); }
-    async function addErrorNotificationAction(payload?: any): Promise<any> { await store.dispatch('addErrorNotification', payload); } 
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserOrSharedScenario', payload); }
     function selectScenarioAction(payload?: any){  store.dispatch('selectScenario', payload); }
     const alertStore = useAlertStore();
+    const notificationStore = useNotificationStore();
     
     let selectedCpItems = ref<SectionCommittedProjectTableData[]>([]);
     let sectionCommittedProjects = ref<SectionCommittedProject[]>([]);
@@ -550,7 +549,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         networkId = $router.currentRoute.value.query.networkId as string;
         
         if (scenarioId === uuidNIL || networkId == uuidNIL) {
-            addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                message: 'Found no selected scenario for edit',
             });
             $router.push('/Scenarios/');
@@ -953,7 +952,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
                     deletionIds.value = [];
                     $emitter.emit('AllCommittedProjectsDeleted');
-                    addSuccessNotificationAction({ message: 'Deleted committed projects' });
+                    notificationStore.addSuccessNotification({ message: 'Deleted committed projects' });
                 }
                 performUpsert();
             });
@@ -966,7 +965,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function handleUpsertResponse(response: AxiosResponse) {
         if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
-            addSuccessNotificationAction({ message: 'Committed Projects Updated Successfully' });
+            notificationStore.addSuccessNotification({ message: 'Committed Projects Updated Successfully' });
             console.log(selectedCpItems.value);
             console.log(totalItems.value);
             if(totalItems.value !== 0)
@@ -1099,7 +1098,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                             alertStore.setAlertMessage("Committed project import has been added to the queue");                        
                     })
             } else {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'No file selected.',
                     longMessage:
                         'No file selected to upload the committed projects.',
@@ -1244,7 +1243,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
       const file = event.target.files[0];
       CommittedProjectsService.importCommittedProjectTemplate(file).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                    addSuccessNotificationAction({message:'Updated Default Template'})      
+                    notificationStore.addSuccessNotification({message:'Updated Default Template'})      
                 }
             });
    }
@@ -1658,7 +1657,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             });
             
         } catch (error) {
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: 'Error fetching treatment library.',
                 longMessage: 'There was an issue fetching the treatment library. Please try again.'
             });

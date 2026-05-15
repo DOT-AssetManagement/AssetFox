@@ -21,10 +21,11 @@
     import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import AuthenticationService from '@/services/authentication.service';
-    import { useAuthenticationStore } from '@/stores';
+    import { useAuthenticationStore, useNotificationStore } from '@/stores';
 
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
     let authenticated = computed<boolean>(() => authenticationStore.authenticated);  
     let hasRole= computed<boolean>(() => authenticationStore.hasRole);
     let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
@@ -37,7 +38,6 @@ import AuthenticationService from '@/services/authentication.service';
     async function getUserInfoAction(payload?: any): Promise<any> {await store.dispatch('getUserInfo');}
     async function getAzureAccountDetailsAction(payload?: any): Promise<any> {await store.dispatch('getAzureAccountDetails');}
     async function getUserCriteriaFilterAction(payload?: any): Promise<any> {await store.dispatch('getUserCriteriaFilter');}
-     function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload);}
 
     const $router = useRouter();
 
@@ -96,7 +96,7 @@ import AuthenticationService from '@/services/authentication.service';
     }
 
     function onAuthenticationFailure() {
-        addErrorNotificationAction({ message: 'Authentication failed.' });
+        notificationStore.addErrorNotification({ message: 'Authentication failed.' });
         $router.push('/AuthenticationFailure/');
     }
 

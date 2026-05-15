@@ -405,7 +405,6 @@ const props = defineProps<{
   isFromPerformanceCurveEditor: Boolean
     }>()
     let showDialogComputed = computed(() => props.dialogData.showDialog);
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification');}
 
   let equation: Equation = {...emptyEquation, id: getNewGuid()};
   const attributesList = ref<string[]>([]);  

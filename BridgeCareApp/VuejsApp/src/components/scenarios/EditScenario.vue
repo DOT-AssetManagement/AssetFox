@@ -142,10 +142,11 @@ import { inject } from 'vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
-import { useAuthenticationStore } from '@/stores';
+import { useAuthenticationStore, useNotificationStore } from '@/stores';
 
     let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
     const router = useRouter(); 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
@@ -156,9 +157,6 @@ import { useAuthenticationStore } from '@/stores';
     const stateSharedScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentSharedScenariosPage) ;
     const stateUserScenariosPage = computed<Scenario[]>(() =>store.state.scenarioModule.currentUserScenarioPage) ;
     let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
-
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification',payload)}
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification',payload)}
 
     function selectScenarioAction(payload?: any){ store.dispatch('selectScenario',payload)} 
 
@@ -327,7 +325,7 @@ import { useAuthenticationStore } from '@/stores';
             // check that selectedScenarioId is set
             if (selectedScenarioId === getBlankGuid()) {
                 // set 'no selected scenario' error message, then redirect user to Scenarios UI
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 router.push('/Scenarios/');
@@ -439,7 +437,7 @@ import { useAuthenticationStore } from '@/stores';
                             hasValue(response, 'status') &&
                             http2XX.test(response.status.toString())
                         ) {
-                            addSuccessNotificationAction({
+                            notificationStore.addSuccessNotification({
                                 message: 'Successful upload.',
                                 longMessage:
                                     'Successfully uploaded committed projects.',
@@ -447,7 +445,7 @@ import { useAuthenticationStore } from '@/stores';
                         }
                     });
                 } else {
-                    addErrorNotificationAction({
+                    notificationStore.addErrorNotification({
                         message: 'No file selected.',
                         longMessage:
                             'No file selected to upload the committed projects.',
@@ -478,7 +476,7 @@ import { useAuthenticationStore } from '@/stores';
                     hasValue(response) &&
                     http2XX.test(response.status.toString())
                 ) {
-                    addSuccessNotificationAction({
+                    notificationStore.addSuccessNotification({
                         message: 'Committed projects have been deleted.',
                     });
                 }
@@ -673,7 +671,7 @@ import { useAuthenticationStore } from '@/stores';
             {
                 await ScenarioService.upsertValidateSimulation(networkId, selectedScenarioId).then((response: AxiosResponse) => {
                     if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
-                        addSuccessNotificationAction({message: "Simulation pre-checks completed",});
+                        notificationStore.addSuccessNotification({message: "Simulation pre-checks completed",});
                         if(response.data.length > 0)
                         {
                             preCheckStatus = response.data[0].status; // per current working, only error messages goes in via API

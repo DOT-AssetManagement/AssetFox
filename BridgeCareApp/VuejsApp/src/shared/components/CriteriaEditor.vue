@@ -227,11 +227,12 @@ import { getUrl } from "../utils/get-url";
 import { reactive } from 'vue';
 import QueryEditor from "../components/queryEditor/QueryEditorGroup.vue"
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
-import { useAttributeStore, useNetworkStore } from '@/stores';
+import { useAttributeStore, useNetworkStore, useNotificationStore } from '@/stores';
 
 let store = useStore();
 const attributeStore = useAttributeStore();
 const networkStore = useNetworkStore();
+const notificationStore = useNotificationStore();
 const $router = useRouter();
 const emit = defineEmits(['submit','submitCriteriaEditorResult'])
 const props = defineProps<{
@@ -239,8 +240,6 @@ const props = defineProps<{
     }>()
 const { criteriaEditorData } = toRefs(props);
 const currentUserCriteriaFilter = computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
-
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification',payload);}
 const tab = ref<any>(null);
     const queryBuilderRules = ref<CriteriaConfigRule[]>([]);
     
@@ -264,7 +263,7 @@ const tab = ref<any>(null);
             criteriaEditorData.value.mergedCriteriaExpression != null
                 ? criteriaEditorData.value.mergedCriteriaExpression
                 : '',
-            addErrorNotificationAction,
+            notificationStore.addErrorNotification,
         ) as Criteria;
 
         setSubCriteriaClauses(mainCriteria);
@@ -289,7 +288,7 @@ const tab = ref<any>(null);
             criteriaEditorData.value.mergedCriteriaExpression != null
                 ? criteriaEditorData.value.mergedCriteriaExpression
                 : '',
-            addErrorNotificationAction,
+            notificationStore.addErrorNotification,
         ) as Criteria;
         const parsedSubCriteria:
             | string[]
@@ -504,7 +503,7 @@ const tab = ref<any>(null);
             //selectedSubCriteriaClause = parseCriteriaString(subCriteriaClause);
             let convertedCriteria = convertCriteriaExpressionToCriteriaObject(
                 subCriteriaClause,
-                addErrorNotificationAction,
+                notificationStore.addErrorNotification,
             );
             if(!isNil(convertedCriteria))
                 await loadCriteriaSelectAttributes(convertedCriteria)
@@ -590,7 +589,7 @@ const tab = ref<any>(null);
             //const parsedRawSubCriteria = parseCriteriaString(selectedRawSubCriteriaClause);
             const parsedRawSubCriteria = convertCriteriaExpressionToCriteriaObject(
                 selectedRawSubCriteriaClause.value,
-                addErrorNotificationAction,
+                notificationStore.addErrorNotification,
             );
             if (parsedRawSubCriteria && selectedRawSubCriteriaClause.value != '') {
                 await loadCriteriaSelectAttributes(parsedRawSubCriteria);
@@ -869,7 +868,7 @@ const tab = ref<any>(null);
         const parsedSelectedRawSubCriteriaClause = convertCriteriaObjectToCriteriaExpression(
             convertCriteriaExpressionToCriteriaObject(
                 selectedRawSubCriteriaClause.value,
-                addErrorNotificationAction,
+                notificationStore.addErrorNotification,
             ) as Criteria,
         );
 
@@ -907,7 +906,7 @@ const tab = ref<any>(null);
                         //const parsedSubCriteriaClause: Criteria = parseCriteriaString(subCriteriaClause) as Criteria;
                         const parsedSubCriteriaClause: Criteria = convertCriteriaExpressionToCriteriaObject(
                             subCriteriaClause,
-                            addErrorNotificationAction,
+                            notificationStore.addErrorNotification,
                         ) as Criteria;
                         if (
                             hasValue(parsedSubCriteriaClause) &&
