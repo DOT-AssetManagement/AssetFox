@@ -267,7 +267,8 @@
     import { useRouter } from 'vue-router';
     import CreatePriorityDialog from '@/components/budget-priority-editor/budget-priority-editor-dialogs/CreateBudgetPriorityDialog.vue'
     import CreatePriorityLibraryDialog  from '@/components/budget-priority-editor/budget-priority-editor-dialogs/CreateBudgetPriorityLibraryDialog.vue'
-    import ShareBudgetPriorityLibraryDialog  from '@/components/budget-priority-editor/budget-priority-editor-dialogs/ShareBudgetPriorityLibraryDialog.vue'    import { useConfirm } from 'primevue/useconfirm';
+    import ShareBudgetPriorityLibraryDialog  from '@/components/budget-priority-editor/budget-priority-editor-dialogs/ShareBudgetPriorityLibraryDialog.vue'    
+    import { useConfirm } from 'primevue/useconfirm';
     import ConfirmDialog from 'primevue/confirmdialog';
     import { getUrl } from '@/shared/utils/get-url';
     import { faL } from '@fortawesome/free-solid-svg-icons';

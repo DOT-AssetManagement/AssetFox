@@ -112,7 +112,7 @@
 import { ref } from 'vue';
 import { useAdminSiteSettingsStore } from '@/stores';
 
-const adminSiteSettingsStore = useAdminSiteSettingsStore();
+const adminSiteSettingsStore = useAdminSiteSettingsStore() ;
 let ImplementationID = ref('');
 let adminContactEmail = ref('');
 

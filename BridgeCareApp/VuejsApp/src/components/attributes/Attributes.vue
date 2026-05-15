@@ -169,7 +169,7 @@ import { useAttributeStore, useAuthenticationStore, useUnsavedChangesStore } fro
         unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);        
     })
 
-    watch(() =>attributeStore.getSelectedAttribute, () =>  {       
+    watch(() => attributeStore.getSelectedAttribute, () =>  {       
         selectedAttribute.value = clone(attributeStore.getSelectedAttribute);      
     })
 
@@ -199,10 +199,11 @@ import { useAttributeStore, useAuthenticationStore, useUnsavedChangesStore } fro
         }
 
         const createAttributeRequest = {
-            attribute: selectAttr
+            attribute: selectAttr,
+            SetForAllAttributes: false
         };
 
-        await attributeStore.upsertAttribute(createAttributeRequest.attribute);
+        await attributeStore.upsertAttribute(createAttributeRequest);
             
         if (!isNil(attributeStore.attributesgetter.find(_ => _.id === selectAttr.id))) {
             selectedAttribute.value.id = selectAttr.id;

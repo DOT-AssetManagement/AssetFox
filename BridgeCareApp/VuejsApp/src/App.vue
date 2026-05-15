@@ -878,8 +878,9 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         
     }
 
-    function onBugButtonClicked() {
-        let message = 'Please contact the administrator to report a bug.';        
+    async function onBugButtonClicked() {
+        let message = 'Please contact the administrator to report a bug.';  
+        await adminSiteSettingsStore.getAdminContactEmail();      
         if(adminSiteSettingsStore.adminContactEmail.trim() !== '')            
             message += ` Email: ${adminSiteSettingsStore.adminContactEmail}`;
         bugReportAlert.value = {
@@ -902,7 +903,7 @@ import { UserInfoLocal } from './shared/models/iAM/authentication';
         hasUnreadNewsItem = newsAccessDateComparison(latestNewsDate, currentUserLastNewsAccessDate);
     }
 
-    const toggleExpand = (active:boolean,index:number) => {notificationStore.notifications[index].active=!active};
+    const toggleExpand = (active:boolean,index:number) => { notificationStore.notifications[index].active=!active};
 </script>
 
 <style>

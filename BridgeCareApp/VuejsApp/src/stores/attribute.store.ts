@@ -14,6 +14,11 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useNotificationStore } from './notification.store';
 
+export interface CreateAttributeRequest{
+    attribute: Attribute;
+    SetForAllAttributes: boolean;
+}
+
 export interface AttributeStoreState {
     attributes: Attribute[];
     selectedAttribute: Attribute;
@@ -211,21 +216,21 @@ export const useAttributeStore = defineStore('attribute', {
                 },
             );
         },
-        async upsertAttribute(attribute: Attribute) {
+        async upsertAttribute(attributeRequest: CreateAttributeRequest) {
             const notificationStore = useNotificationStore();
-            await AttributeService.upsertAttribute(attribute).then(
+            await AttributeService.upsertAttribute(attributeRequest).then(
                 (response: AxiosResponse) => {
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
-                        const message = any(propEq('id', attribute.id), this.attributes)
+                        const message = any(propEq('id', attributeRequest.attribute.id), this.attributes)
                             ? 'Updated attribute'
                             : 'Added attribute';
 
                         this.attributes = upsertAttributeState(
                             this.attributes,
-                            attribute,
+                            attributeRequest.attribute,
                         );
                         this.stringAttributes = filterAttributesByType(
                             this.attributes,
@@ -237,7 +242,7 @@ export const useAttributeStore = defineStore('attribute', {
                         );
                         this.selectedAttribute = selectAttributeById(
                             this.attributes,
-                            attribute.id,
+                            attributeRequest.attribute.id,
                         );
                         notificationStore.addSuccessNotification({ message });
                     }
