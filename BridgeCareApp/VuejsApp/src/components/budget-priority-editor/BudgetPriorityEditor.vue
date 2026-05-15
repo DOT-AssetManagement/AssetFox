@@ -106,7 +106,7 @@
                                     <v-row>
                                         <v-menu >
                                             <template v-slot:activator="{ props }">
-                                                    <div style="display: flex; align-items: center;" v-if='stateScenarioSimpleBudgetDetails.length > 5'>
+                                                    <div style="display: flex; align-items: center;" v-if='investmentStore.scenarioSimpleBudgetDetailsGetter.length > 5'>
                                                         <v-btn class='assetFox-blue ghd-button-text' v-bind="props" flat icon>
                                                             <img class='img-general' :src="getUrl('assets/icons/eye-ghd-blue.svg')" title="View"/>
                                                         </v-btn>
@@ -285,18 +285,17 @@
     import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
     import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
     import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-    import { useAuthenticationStore, useBudgetPriorityStore } from '@/stores';
+    import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore } from '@/stores';
 
     let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const budgetPriorityStore = useBudgetPriorityStore();
+    const investmentStore = useInvestmentStore();
     const confirm = useConfirm();
     const $router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-    let stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() => store.state.investmentModule.scenarioSimpleBudgetDetails);
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload) }
-    async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioSimpleBudgetDetails', payload)} 
      function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload) }
     function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload)}
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>{await store.dispatch( 'getCurrentUserOrSharedScenario', payload)}
@@ -381,7 +380,7 @@
                 $router.push('/Scenarios/');
             }
             hasScenario.value = true;
-            await getScenarioSimpleBudgetDetailsAction({ scenarioId: selectedScenarioId })
+            await investmentStore.getScenarioSimpleBudgetDetails(selectedScenarioId)
             await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
             selectScenarioAction({ scenarioId: selectedScenarioId });        
             await initializePages();             
@@ -537,13 +536,13 @@
         checkHasUnsavedChanges();
     }
 
-    watch(stateScenarioSimpleBudgetDetails, () => {
+    watch(() => investmentStore.scenarioSimpleBudgetDetailsGetter, () => {
         setGridCriteriaColumnWidth();
         setGridHeaders();
     })
 
     function hasBudgetPercentagePairsThatMatchBudgets(budgetPriority: BudgetPriority) {
-        if (!hasValue(stateScenarioSimpleBudgetDetails.value)) {
+        if (!hasValue(investmentStore.scenarioSimpleBudgetDetailsGetter)) {
             return true;
         }
 
@@ -552,11 +551,11 @@
                 id: budgetPercentagePair.budgetId, name: budgetPercentagePair.budgetName,
             })) as SimpleBudgetDetail[];
 
-        return isEqual(sortNonObjectLists(simpleBudgetDetails), sortNonObjectLists(clone(stateScenarioSimpleBudgetDetails.value)));
+        return isEqual(sortNonObjectLists(simpleBudgetDetails), sortNonObjectLists(clone(investmentStore.scenarioSimpleBudgetDetailsGetter)));
     }
 
     function createNewBudgetPercentagePairsFromBudgets() {
-        return stateScenarioSimpleBudgetDetails.value.map((simpleBudgetDetail: SimpleBudgetDetail) => ({
+        return investmentStore.scenarioSimpleBudgetDetailsGetter.map((simpleBudgetDetail: SimpleBudgetDetail) => ({
             id: getNewGuid(),
             budgetId: simpleBudgetDetail.id,
             budgetName: simpleBudgetDetail.name,
@@ -572,7 +571,7 @@
         let criteriaColumnWidth = '75%';
 
         if (hasScenario.value) {
-            switch (stateScenarioSimpleBudgetDetails.value.length) {
+            switch (investmentStore.scenarioSimpleBudgetDetailsGetter.length) {
                 case 0:
                     criteriaColumnWidth = '75%';
                     break;
@@ -601,7 +600,7 @@
 
     function setGridHeaders() {
         if (hasScenario.value) {
-            const budgetNames: string[] = getPropertyValues('name', stateScenarioSimpleBudgetDetails.value) as string[];
+            const budgetNames: string[] = getPropertyValues('name', investmentStore.scenarioSimpleBudgetDetailsGetter) as string[];
             if (hasValue(budgetNames)) {
                 const budgetHeaders: any[] = budgetNames.map((budgetName: string) => ({
                     title: `${budgetName} %`,
@@ -699,7 +698,7 @@
         showCreateBudgetPriorityDialog.value = false;
 
         if (!isNil(newBudgetPriority)) {
-            if (hasScenario.value && hasValue(stateScenarioSimpleBudgetDetails)) {
+            if (hasScenario.value && hasValue(investmentStore.scenarioSimpleBudgetDetailsGetter)) {
                 newBudgetPriority.budgetPercentagePairs = createNewBudgetPercentagePairsFromBudgets();
             }
 

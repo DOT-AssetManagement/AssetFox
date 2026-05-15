@@ -367,38 +367,23 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
-import { useAttributeStore, useAuthenticationStore } from '@/stores';
+import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalStore } from '@/stores';
 
     let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
+    const deficientConditionGoalStore = useDeficientConditionGoalStore();
     const confirm = useConfirm();
     const $router = useRouter();
-    let stateDeficientConditionGoalLibraries = computed<DeficientConditionGoalLibrary[]>(() => store.state.deficientConditionGoalModule.deficientConditionGoalLibraries);
-    let stateSelectedDeficientConditionGoalLibrary = computed<DeficientConditionGoalLibrary>(() => store.state.deficientConditionGoalModule.selectedDeficientConditionGoalLibrary);
-    let stateScenarioDeficientConditionGoals = computed<DeficientConditionGoal[]>(() => store.state.deficientConditionGoalModule.scenarioDeficientConditionGoals);
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
-    let hasPermittedAccess = computed<boolean>(() => store.state.deficientConditionGoalModule.hasPermittedAccess);
-    let isSharedLibrary = computed<boolean>(() => store.state.deficientConditionGoalModule.isSharedLibrary);
 
     async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
-    async function getIsSharedLibraryAction(payload?: any): Promise<any> {await store.dispatch('getIsSharedDeficientConditionGoalLibrary', payload);}
-    async function getHasPermittedAccessAction(payload?: any): Promise<any> {await store.dispatch('getHasPermittedAccess', payload);}
     function addErrorNotificationAction(payload?: any) {store.dispatch('addErrorNotification', payload);}
-    async function getDeficientConditionGoalLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getDeficientConditionGoalLibraries', payload);}
-    async function selectDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('selectDeficientConditionGoalLibrary', payload);}
-    async function upsertDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertDeficientConditionGoalLibrary', payload);}
-    async function deleteDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('deleteDeficientConditionGoalLibrary', payload);}
     function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
-    async function getScenarioDeficientConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('getScenarioDeficientConditionGoals', payload);}
-    async function upsertScenarioDeficientConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioDeficientConditionGoals', payload);}
     function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
     function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
     async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
-    
-    function addedOrUpdatedDeficientConditionGoalLibraryMutator(payload: any){store.commit('addedOrUpdatedDeficientConditionGoalLibraryMutator', payload);}
-    function selectedDeficientConditionGoalLibraryMutator(payload: any){store.commit('selectedDeficientConditionGoalLibraryMutator', payload);}
 
     let getUserNameByIdGetter: any = store.getters.getUserNameById;
 
@@ -510,10 +495,10 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     }
     onMounted(async () => {
         librarySelectItemValue.value = null;
-        await getDeficientConditionGoalLibrariesAction()
+        await deficientConditionGoalStore.getDeficientConditionGoalLibraries()
         await attributeStore.getAttributes();
         numericAttributeNames = getPropertyValues('name', attributeStore.getNumericAttributes);
-        await getHasPermittedAccessAction()
+        await deficientConditionGoalStore.getHasPermittedAccess()
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.DeficientConditionGoal) !== -1) {
             selectedScenarioId.value = $router.currentRoute.value.query.scenarioId as string;
 
@@ -536,9 +521,9 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         setHasUnsavedChangesAction({ value: false });
     }
 
-    watch(stateDeficientConditionGoalLibraries, () => onStateDeficientConditionGoalLibrariesChanged())
+    watch(() => deficientConditionGoalStore.deficientConditionGoalLibrariesGetter, () => onStateDeficientConditionGoalLibrariesChanged())
     function onStateDeficientConditionGoalLibrariesChanged() {
-        librarySelectItems.value = stateDeficientConditionGoalLibraries.value.map(
+        librarySelectItems.value = deficientConditionGoalStore.deficientConditionGoalLibrariesGetter.map(
             (library: DeficientConditionGoalLibrary) => ({
                 text: library.name,
                 value: library.id,
@@ -571,9 +556,9 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     function onSelectItemValueChanged() {
         trueLibrarySelectItemValue = librarySelectItemValue.value
         if(!hasScenario.value || isNil(librarySelectItemValue.value))
-            selectDeficientConditionGoalLibraryAction({
-                libraryId: librarySelectItemValue.value,
-            });
+            deficientConditionGoalStore.selectDeficientConditionGoalLibrary(
+                librarySelectItemValue.value as string,
+            );
         else if(!isNil(librarySelectItemValue.value) && !scenarioHasCreatedNew)
         {
             importLibraryDisabled.value = false;
@@ -582,10 +567,10 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         scenarioHasCreatedNew = false;
     }
 
-    watch(stateSelectedDeficientConditionGoalLibrary, () => onStateSelectedDeficientConditionGoalLibraryChanged())
+    watch(() => deficientConditionGoalStore.getSelectedDeficientConditionGoalLibrary, () => onStateSelectedDeficientConditionGoalLibraryChanged())
     function onStateSelectedDeficientConditionGoalLibraryChanged() {
         selectedDeficientConditionGoalLibrary.value = clone(
-            stateSelectedDeficientConditionGoalLibrary.value,
+            deficientConditionGoalStore.getSelectedDeficientConditionGoalLibrary,
         );
     }
 
@@ -618,13 +603,6 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         numericAttributeNames = getPropertyValues('name', attributeStore.getNumericAttributes);
     }
 
-    watch(stateScenarioDeficientConditionGoals, () => onStateScenarioDeficientConditionGoalsChanged())
-    function onStateScenarioDeficientConditionGoalsChanged() {
-        if (hasScenario.value) {
-            currentPage.value = clone(stateScenarioDeficientConditionGoals.value);
-        }
-    }
-
     watch(currentPage, () => onCurrentPageChanged())
     function onCurrentPageChanged() {
         librarySelectItems.value.forEach(library => {
@@ -634,9 +612,9 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         });
     }
 
-    watch(isSharedLibrary, () => onStateSharedAccessChanged())
+    watch(() => deficientConditionGoalStore.getIsSharedLibrary, () => onStateSharedAccessChanged())
     function onStateSharedAccessChanged() {
-        isShared = isSharedLibrary.value;
+        isShared = deficientConditionGoalStore.getIsSharedLibrary;
     }
 
     watch(pagination, () => onPaginationChanged())
@@ -683,7 +661,8 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
                     rowCache = clone(currentPage.value)
                     totalItems = data.totalItems;
                     if (!isNil(selectedDeficientConditionGoalLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedDeficientConditionGoalLibrary.value).then(() => isShared = isSharedLibrary.value);
+                        deficientConditionGoalStore.getIsSharedDeficientConditionGoalLibrary(selectedDeficientConditionGoalLibrary.value.id)
+                            .then(() => isShared = deficientConditionGoalStore.getIsSharedLibrary);
                     }      
 
                 }
@@ -692,9 +671,9 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
     function importLibrary() {
         setParentLibraryName(librarySelectItemValue.value ? librarySelectItemValue.value : "");
-        selectDeficientConditionGoalLibraryAction({
-            libraryId: librarySelectItemValue.value,
-        });
+        deficientConditionGoalStore.selectDeficientConditionGoalLibrary(
+            librarySelectItemValue.value as string,
+        );
         importLibraryDisabled.value = true;
         scenarioLibraryIsModified.value = false;
         libraryImported = true;
@@ -713,7 +692,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
     }
 
     function checkLibraryEditPermission() {
-        hasLibraryEditPermission = hasAdminAccess.value || (hasPermittedAccess.value && checkUserIsLibraryOwner());
+        hasLibraryEditPermission = hasAdminAccess.value || (deficientConditionGoalStore.hasPermittedAccessGetter && checkUserIsLibraryOwner());
     }
 
     function checkUserIsLibraryOwner() {
@@ -760,7 +739,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
                         importLibraryDisabled.value = true;
                     }
                     
-                    addedOrUpdatedDeficientConditionGoalLibraryMutator(library);
+                    deficientConditionGoalStore.addedOrUpdatedDeficientConditionGoalLibraryMutator(library);
                     addSuccessNotificationAction({message:'Added deficient condition goal library'})
                 }               
             })
@@ -825,8 +804,8 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
         DeficientConditionGoalService.upsertDeficientConditionGoalLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges()
-                addedOrUpdatedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value);
-                selectedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value.id);
+                deficientConditionGoalStore.addedOrUpdatedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value);
+                deficientConditionGoalStore.selectedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value.id);
                 addSuccessNotificationAction({message: "Updated deficient condition goal library",});
             }
         });
@@ -907,9 +886,9 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
 
         if (submit) {
             librarySelectItemValue.value = null;
-            deleteDeficientConditionGoalLibraryAction({
-                libraryId: selectedDeficientConditionGoalLibrary.value.id,
-            });
+            deficientConditionGoalStore.deleteDeficientConditionGoalLibrary(
+                selectedDeficientConditionGoalLibrary.value.id,
+            );
         }
     }
 
@@ -983,7 +962,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
             addedRows.value.length > 0 ||
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedDeficientConditionGoalLibrary.value , stateSelectedDeficientConditionGoalLibrary.value))
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedDeficientConditionGoalLibrary.value , deficientConditionGoalStore.getSelectedDeficientConditionGoalLibrary))
         setHasUnsavedChangesAction({ value: hasUnsavedChanges });
     }
 
@@ -1037,7 +1016,8 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
                         libraryUserData.push(libraryUser);
                     });
                     if (!isNil(selectedDeficientConditionGoalLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedDeficientConditionGoalLibrary.value).then(() => isShared = isSharedLibrary.value);
+                        deficientConditionGoalStore.getIsSharedDeficientConditionGoalLibrary(selectedDeficientConditionGoalLibrary.value.id)
+                            .then(() => isShared = deficientConditionGoalStore.getIsSharedLibrary);
                     }
                     //update budget library sharing
                     DeficientConditionGoalService.upsertOrDeleteDeficientConditionGoalLibraryUsers(selectedDeficientConditionGoalLibrary.value.id, libraryUserData).then((response: AxiosResponse) => {
@@ -1055,7 +1035,7 @@ import { useAttributeStore, useAuthenticationStore } from '@/stores';
             return;
         }
         let foundLibrary: DeficientConditionGoalLibrary = emptyDeficientConditionGoalLibrary;
-        stateDeficientConditionGoalLibraries.value.forEach(library => {
+        deficientConditionGoalStore.deficientConditionGoalLibrariesGetter.forEach(library => {
             if (library.id === libraryId ) {
                 foundLibrary = clone(library);
             }

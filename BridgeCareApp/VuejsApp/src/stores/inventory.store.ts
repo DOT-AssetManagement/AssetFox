@@ -29,7 +29,7 @@ export const useInventoryStore = defineStore('inventory', {
                 this.inventoryItems = clone(mappedItems);
             }
         },
-        async getStaticInventoryHTML(reportType: string, filterData: InventoryParam) {
+        async getStaticInventoryHTML(reportType: string, filterData: any) {
             await InventoryService.getStaticInventoryHTML(
                 reportType,
                 filterData,

@@ -168,8 +168,7 @@ import { useAuthenticationStore } from '@/stores';
     async function runNewSimulationAction(payload?: any): Promise<any>{await store.dispatch('runNewSimulation',payload)}
     async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {await store.dispatch('getSimpleScenarioSelectableTreatments', payload);}
-    async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioSimpleBudgetDetails', payload)}
- 
+
     let selectedScenarioId: string = getBlankGuid();
     let showImportExportCommittedProjectsDialog: boolean = false;
     let networkId: string = getBlankGuid();

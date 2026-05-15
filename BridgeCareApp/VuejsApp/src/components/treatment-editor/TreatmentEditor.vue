@@ -432,7 +432,7 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { getUrl } from '@/shared/utils/get-url';
-import { useAlertStore, useAuthenticationStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore } from '@/stores';
     const emit = defineEmits(['submit'])    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
@@ -440,13 +440,13 @@ import { useAlertStore, useAuthenticationStore } from '@/stores';
     let store = useStore();
     const alertStore = useAlertStore();
     const authenticationStore = useAuthenticationStore();
+    const investmentStore = useInvestmentStore();
     let stateTreatmentLibraries = computed<TreatmentLibrary[]>(() => store.state.treatmentModule.treatmentLibraries);
     let stateSelectedTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
     //let allScenarioTreatments = computed<Treatment[]>(() => store.state.treatmentModule.allScenarioTreatments);    
     let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     let stateScenarioTreatmentLibrary= computed<TreatmentLibrary>(() => store.state.treatmentModule.scenarioTreatmentLibrary);
-    let stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() => store.state.investmentModule.scenarioSimpleBudgetDetails);
     let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
     let hasPermittedAccess= computed<boolean>(() => store.state.treatmentModule.hasPermittedAccess);
     let stateSimpleScenarioSelectableTreatments= computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
@@ -497,10 +497,6 @@ async function getSimpleSelectableTreatmentsAction(payload?: any): Promise<any> 
 
 async function getTreatmentLibraryBySimulationIdAction(payload?: any): Promise<any> {
   await store.dispatch('getTreatmentLibraryBySimulationId', payload);
-}
-
-async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any> {
-  await store.dispatch('getScenarioSimpleBudgetDetails', payload);
 }
 
 function setHasUnsavedChangesAction(payload?: any): void {
@@ -671,7 +667,7 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
             await getScenarioPerformanceCurvesAction(selectedScenarioId);
             
             treatmentTabs = [...treatmentTabs, 'Budgets'];
-            await getScenarioSimpleBudgetDetailsAction({ scenarioId: selectedScenarioId, })
+            await investmentStore.getScenarioSimpleBudgetDetails(selectedScenarioId)
             await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
             selectScenarioAction({ scenarioId: selectedScenarioId });
 
@@ -703,9 +699,9 @@ async function getHasPermittedAccessAction(payload?: any): Promise<any>{await st
         alertStore.setAlertMessage('');
     }  
 
-    watch(stateScenarioSimpleBudgetDetails,  () => onStateScenarioInvestmentLibraryChanged())
+    watch(() => investmentStore.scenarioSimpleBudgetDetailsGetter,  () => onStateScenarioInvestmentLibraryChanged())
     function onStateScenarioInvestmentLibraryChanged() {
-        budgets = clone(stateScenarioSimpleBudgetDetails.value);
+        budgets = clone(investmentStore.scenarioSimpleBudgetDetailsGetter);
     }
 
     

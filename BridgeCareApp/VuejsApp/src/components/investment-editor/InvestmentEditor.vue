@@ -407,55 +407,32 @@ import { BudgetPriority } from '@/shared/models/iAM/budget-priority';
 import BudgetPriorityService from '@/services/budget-priority.service';
 import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
-import { useAlertStore, useAuthenticationStore } from '@/stores';
+import { useAlertStore, useAuthenticationStore, useInvestmentStore } from '@/stores';
 
 let store = useStore();
 const alertStore = useAlertStore();
 const authenticationStore = useAuthenticationStore();
+const investmentStore = useInvestmentStore();
 const confirm = useConfirm();
 const emit = defineEmits(['submit'])
 const $router = useRouter();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-      
-const stateBudgetLibraries = computed<BudgetLibrary[]>(() => store.state.investmentModule.budgetLibraries) ;  
-
-const stateSelectedBudgetLibrary = computed<BudgetLibrary>(() => store.state.investmentModule.selectedBudgetLibrary);
-
-let stateInvestmentPlan = computed<InvestmentPlan>(() => store.state.investmentModule.investmentPlan);
-let stateScenarioBudgets = ref<Budget[]>(store.state.investmentModule.scenarioBudgets);
 const hasUnsavedChanges = computed<boolean>(() => (store.state.unsavedChangesFlagModule.hasUnsavedChanges));
 const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess); 
 
-let isSuccessfulImport = ref<boolean>(store.state.investmentModule.isSuccessfulImport);
 let currentUserCriteriaFilter = ref<UserCriteriaFilter>(store.state.userModule.currentUserCriteriaFilter);
-let hasPermittedAccess = computed<boolean>(() => store.state.investmentModule.hasPermittedAccess);
 const stateGetScenarioSelectedTreatments = computed<SimpleTreatment[]>(() => store.state.treatmentModule.getScenarioSelectedTreatments);
 let stateScenarioSelectableTreatment = computed<Treatment[]>(() => store.state.treatmentModule.scenarioSelectableTreatments);
 let stateSimpleScenarioSelectableTreatments= computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
 
-async function getHasPermittedAccessAction(payload?: any): Promise<any> {await store.dispatch('getHasPermittedAccess', payload);}
-async function getInvestmentAction(payload?: any): Promise<any> {await store.dispatch('getInvestment', payload);}
-async function getBudgetLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getBudgetLibraries', payload);}
-function selectBudgetLibraryAction(payload?: any) { store.dispatch('selectBudgetLibrary', payload);}
-async function upsertInvestmentAction(payload?: any): Promise<any> {await store.dispatch('upsertInvestment', payload);}
-async function upsertBudgetLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertBudgetLibrary', payload);}
-async function deleteBudgetLibraryAction(payload?: any): Promise<any> {await store.dispatch('deleteBudgetLibrary', payload);}
-async function upsertOrDeleteBudgetLibraryUsersAction(payload: any): Promise<any> {await store.dispatch('upsertOrDeleteBudgetLibraryUsers', payload);}
-async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioSimpleBudgetDetails', payload)} 
 function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
 function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-async function importScenarioInvestmentBudgetsFileAction(payload?: any): Promise<any> {await store.dispatch('importScenarioInvestmentBudgetsFile', payload);}
-async function importLibraryInvestmentBudgetsFileAction(payload?: any): Promise<any> {await store.dispatch('importLibraryInvestmentBudgetsFile', payload);}
 async function getCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCriterionLibraries', payload);}
 function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload);}
     
 let getModifiedDate = store.getters.getLibraryDateModified;
 let getUserNameByIdGetter = store.getters.getUserNameById;
 
-function budgetLibraryMutator(payload:any){store.commit('budgetLibraryMutator', payload);}
-function selectedBudgetLibraryMutator(payload:any){store.commit('selectedBudgetLibraryMutator', payload);}
-function investmentPlanMutator(payload:any){store.commit('investmentPlanMutator', payload);}
-function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImportMutator', payload);}
     let modifiedDate = ref<string>();
 
     let addedBudgets = ref<Budget[]>([]);
@@ -567,44 +544,10 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             return investmentPlan.value.numberOfYearsInAnalysisPeriod;
         }
     
-    // REPLACE with created() ?
-    //function beforeRouteEnter() {
-    // created();
-    // async function created() {
-    //     (() => {
-    //         (async () => { 
-    //             librarySelectItemValue.value = '';
-    //             await getHasPermittedAccessAction();
-    //             await getBudgetLibrariesAction()
-        
-    //             if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.Investment) !== -1) {
-    //                 selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
-
-    //                 if (selectedScenarioId === uuidNIL) {
-    //                     addErrorNotificationAction({
-    //                         message: 'Found no selected scenario for edit',
-    //                     });
-    //                     $router.push('/Scenarios/');
-    //                 }
-
-    //                 hasScenario.value = true;
-    //                 ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
-    //                     if(response.data){
-    //                         alertStore.setAlertMessage("An investment import has been added to the queue")
-    //                     }
-    //                 })
-    //                 await initializePages();
-    //             }
-    //             else
-    //                 initializing = false;               
-    //         })();                    
-    //     });
-    // }
-
     onMounted(async () => {
         librarySelectItemValue.value = '';
-        await getHasPermittedAccessAction();
-        await getBudgetLibrariesAction()
+        await investmentStore.getHasPermittedAccess();
+        await investmentStore.getBudgetLibraries()
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.Investment) !== -1) {
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
 
@@ -732,20 +675,10 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         checkHasUnsavedChanges();
     });
 
-    // watch(stateBudgetLibraries,()=> onStateBudgetLibrariesChanged)
-    // function onStateBudgetLibrariesChanged() {
-    //     librarySelectItems = stateBudgetLibraries.value
-    //         .map((library: BudgetLibrary) => ({
-    //             text: library.name,
-    //             value: library.id,
-    //         }));
-    //     librarySelectItemNames = librarySelectItems.map((library: SelectItem) => library.text)
-    // }
-
     let libraryItems =  ref<BudgetLibrary[]>([]);
     
-    watch(stateBudgetLibraries, ()=> {
-        libraryItems.value = clone(stateBudgetLibraries.value);
+    watch(() => investmentStore.budgetLibrariesGetter, ()=> {
+        libraryItems.value = clone(investmentStore.budgetLibrariesGetter);
         librarySelectItems.value=[];
         librarySelectItemNames.value =[];
 
@@ -786,11 +719,11 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
 
     function onSelectItemValueChanged() {      
         trueLibrarySelectItemValue = librarySelectItemValue.value
-        selectBudgetLibraryAction(librarySelectItemValue.value);
+        investmentStore.selectBudgetLibrary(librarySelectItemValue.value as string);
     }
 
-    watch(stateSelectedBudgetLibrary,() => {
-        selectedBudgetLibrary.value = clone(stateSelectedBudgetLibrary.value);
+    watch(() => investmentStore.getSelectedBudgetLibrary,() => {
+        selectedBudgetLibrary.value = clone(investmentStore.getSelectedBudgetLibrary);
     });
 
     watch(selectedBudgetLibrary, async()=> {     
@@ -816,7 +749,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
        }
     });
 
-    watch(stateInvestmentPlan,() => {
+    watch(() => investmentStore.getInvestmentPlan,() => {
         cloneStateInvestmentPlan();
         hasInvestmentPlanForScenario.value = true;
         checkHasUnsavedChanges();
@@ -844,7 +777,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         checkHasUnsavedChanges()
         if(hasScenario.value){
             const localFirstYear = +investmentPlan.value.firstYearOfAnalysisPeriod;
-            const stateFirstYear = +stateInvestmentPlan.value.firstYearOfAnalysisPeriod;
+            const stateFirstYear = +investmentStore.getInvestmentPlan.firstYearOfAnalysisPeriod;
             firstYearOfAnalysisPeriodShift.value = (localFirstYear - originalFirstYear) - (firstYear === 0 ? 0 : (firstYear - originalFirstYear));
         }
             
@@ -942,7 +875,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     }
 
     function cloneStateInvestmentPlan() {
-        let investmentPlan: InvestmentPlan = clone(stateInvestmentPlan.value);
+        let investmentPlan: InvestmentPlan = clone(investmentStore.getInvestmentPlan);
         investmentPlan = {
             ...investmentPlan,
             id: investmentPlan.id === uuidNIL ? getNewGuid() : investmentPlan.id,
@@ -955,7 +888,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
 
     function setHasUnsavedChangesFlag() {
         if (hasScenario.value) {
-            const budgetsHaveUnsavedChanges: boolean = hasUnsavedChangesCore('', currentPage.value, stateScenarioBudgets.value);
+            const budgetsHaveUnsavedChanges: boolean = hasUnsavedChangesCore('', currentPage.value, investmentStore.getScenarioBudgets);
 
 
             const clonedInvestmentPlan: InvestmentPlan = clone(investmentPlan.value);
@@ -965,7 +898,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                     ? parseFloat(clonedInvestmentPlan.minimumProjectCostLimit.toString().replace(/(\$*)(\,*)/g, ''))
                     : 0,
             };
-            const clonedStateInvestmentPlan: InvestmentPlan = clone(stateInvestmentPlan.value);
+            const clonedStateInvestmentPlan: InvestmentPlan = clone(investmentStore.getInvestmentPlan);
             const NewStateInvestmentPlan: InvestmentPlan = {
                 ...clonedStateInvestmentPlan,
                 minimumProjectCostLimit: hasValue(clonedStateInvestmentPlan.minimumProjectCostLimit)
@@ -979,7 +912,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         } else if (hasSelectedLibrary.value) {
             const hasUnsavedChanges: boolean = hasUnsavedChangesCore('',
                 { ...clone(selectedBudgetLibrary.value), budgets: clone(currentPage.value) },
-                stateSelectedBudgetLibrary.value);
+                investmentStore.getSelectedBudgetLibrary);
             setHasUnsavedChangesAction({ value: hasUnsavedChanges });
         }
     }
@@ -1046,8 +979,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 libraryUserData.push(libraryUser);
             });
 
-            upsertOrDeleteBudgetLibraryUsersAction((selectedBudgetLibrary.value.id, libraryUserData));
-
             //update budget library sharing
             InvestmentService.upsertOrDeleteBudgetLibraryUsers(selectedBudgetLibrary.value.id, libraryUserData).then((response: AxiosResponse) => {
                 if (hasValue(response, 'status') && http2XX.test(response.status.toString()))
@@ -1101,7 +1032,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                         clearChanges();
                     }
                         pagination.page = 1;
-                        budgetLibraryMutator(budgetLibrary); // mutation actions
+                        investmentStore.budgetLibraryMutator(budgetLibrary);
                         if(!hasScenario.value)
                             librarySelectItemValue.value = budgetLibrary.id;
                         addSuccessNotificationAction({ message: 'Added budget library' })
@@ -1126,7 +1057,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     }
 
     function checkLibraryEditPermission() {
-        hasLibraryEditPermission.value = hasAdminAccess.value || (hasPermittedAccess.value && checkUserIsLibraryOwner());
+        hasLibraryEditPermission.value = hasAdminAccess.value || (investmentStore.hasPermittedAccessGetter && checkUserIsLibraryOwner());
     }
 
     function checkUserIsLibraryOwner() {
@@ -1352,16 +1283,16 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 };
 
             if (hasScenario.value) {
-                importScenarioInvestmentBudgetsFileAction({
+                investmentStore.importScenarioInvestmentBudgetsFile({
                     ...data,
                     id: selectedScenarioId,
-                    currentUserCriteriaFilter: currentUserCriteriaFilter
+                    currentUserCriteriaFilter: currentUserCriteriaFilter.value
                 })
             } else {
-                importLibraryInvestmentBudgetsFileAction({
+                investmentStore.importLibraryInvestmentBudgetsFile({
                     ...data,
                     id: selectedBudgetLibrary.value.id,
-                    currentUserCriteriaFilter: currentUserCriteriaFilter
+                    currentUserCriteriaFilter: currentUserCriteriaFilter.value
                 })
             }
 
@@ -1427,7 +1358,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 parentLibraryId = librarySelectItemValue.value ? librarySelectItemValue.value: "";
                 firstYearOfAnalysisPeriodShift.value = 0;
-                investmentPlanMutator(investmentPlanUpsert)
+                investmentStore.investmentPlanMutator(investmentPlanUpsert)
                 clearChanges();
                 addSuccessNotificationAction({message: "Modified investment"});
 
@@ -1522,8 +1453,8 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         InvestmentService.upsertBudgetLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges()
-                budgetLibraryMutator(selectedBudgetLibrary.value);
-                selectedBudgetLibraryMutator(selectedBudgetLibrary.value.id);
+                investmentStore.budgetLibraryMutator(selectedBudgetLibrary.value);
+                investmentStore.selectedBudgetLibraryMutator(selectedBudgetLibrary.value.id);
                 addSuccessNotificationAction({message: "Updated budget library",});
             }
         });
@@ -1563,7 +1494,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
 
         if (submit) {
             librarySelectItemValue.value = null;
-            deleteBudgetLibraryAction(selectedBudgetLibrary.value.id);
+            investmentStore.deleteBudgetLibrary(selectedBudgetLibrary.value.id);
         }
     }
 
@@ -1679,7 +1610,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         addedBudgetAmounts.value.clear();
         deletionYears.value = [];
         if (hasScenario.value)
-            investmentPlan.value = clone(stateInvestmentPlan.value);
+            investmentPlan.value = clone(investmentStore.getInvestmentPlan);
     }
 
     function resetPage() {
@@ -1690,7 +1621,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     }
 
     function checkHasUnsavedChanges() {
-        const clonedStateInvestmentPlan: InvestmentPlan = clone(stateInvestmentPlan.value);
+        const clonedStateInvestmentPlan: InvestmentPlan = clone(investmentStore.getInvestmentPlan);
         const CheckStateInvestmentPlan: InvestmentPlan = {
             ...clonedStateInvestmentPlan,
             inflationRatePercentage: +clonedStateInvestmentPlan.inflationRatePercentage,
@@ -1717,7 +1648,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             updatedBudgetAmounts.value.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
             (hasScenario.value && hasUnsavedChangesCore('', CheckInvestmentPlan, CheckStateInvestmentPlan)) || 
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedBudgetLibrary.value, stateSelectedBudgetLibrary.value))
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedBudgetLibrary.value, investmentStore.getSelectedBudgetLibrary))
         setHasUnsavedChangesAction({ value: hasUnsavedChanges });
     }
 
@@ -1743,7 +1674,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             return;
         }
         let foundLibrary: BudgetLibrary = emptyBudgetLibrary;
-        stateBudgetLibraries.value.forEach(library => {
+        investmentStore.budgetLibrariesGetter.forEach(library => {
             if (library.id === libraryId ) {
                 foundLibrary = clone(library);
             }
@@ -1760,10 +1691,10 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             pagination.page = 1
             initializePages().then(async () => {
                 alertStore.setAlertMessage('');
-                isSuccessfulImportMutator(true);
-                await getBudgetLibrariesAction()
+                investmentStore.isSuccessfulImportMutator(true);
+                await investmentStore.getBudgetLibraries()
                 if(hasScenario.value){                
-                    investmentPlanMutator(investmentPlan.value);
+                    investmentStore.investmentPlanMutator(investmentPlan.value);
                     firstYearOfAnalysisPeriodShift.value = 0;
                 }
                 else{
@@ -1807,7 +1738,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                     budgetAmountCache.value = currentPage.value.flatMap(_ => _.budgetAmounts)
                     totalItems.value = data.totalItems;
                     investmentPlan.value = data.investmentPlan;
-                    investmentPlanMutator(investmentPlan.value)
+                    investmentStore.investmentPlanMutator(investmentPlan.value)
                     syncInvestmentPlanWithBudgets();
                     lastYear = data.lastYear;
                     firstYear = data.firstYear;

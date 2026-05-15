@@ -228,7 +228,7 @@
     import { useStore } from 'vuex';
     import { Attribute } from '@/shared/models/iAM/attribute';
     import { InvestmentPlan } from '@/shared/models/iAM/investment';
-    import { useAttributeStore } from '@/stores';
+    import { useAttributeStore, useInvestmentStore } from '@/stores';
     const props = defineProps({
         showDialog: Boolean
     })
@@ -248,10 +248,9 @@
     
     const showYearDialog = ref(false);
     const currentEditingYears = ref<number[]>([]);
-    async function getInvestmentAction(payload?: any): Promise<any> { await store.dispatch('getInvestment', payload); }
-    let stateInvestmentPlan = computed<InvestmentPlan>(() => store.state.investmentModule.investmentPlan);
+    const investmentStore = useInvestmentStore();
     const yearSelectItems = computed(() => {
-        const plan = stateInvestmentPlan.value;
+        const plan = investmentStore.getInvestmentPlan;
         if (plan?.numberOfYearsInAnalysisPeriod && plan?.firstYearOfAnalysisPeriod) {
             return Array.from(
                 { length: plan.numberOfYearsInAnalysisPeriod },
@@ -261,18 +260,11 @@
         return []; // Return an empty array if data is not available
     });
 
-    /*onMounted(async () => {       
-        selectedScenarioId.value = router.currentRoute.value.query.scenarioId as string; 
-        await getInvestmentAction(selectedScenarioId.value);        
-        yearSelectItems = Array.from(Array(stateInvestmentPlan.value?.numberOfYearsInAnalysisPeriod), (_, index) => 
-        index + stateInvestmentPlan.value?.firstYearOfAnalysisPeriod) ?? [];
-    });*/
-
     watch(showDialog, async (isNowVisible) => {
     if (isNowVisible) {
         selectedScenarioId.value = router.currentRoute.value.query.scenarioId as string;
         // Fetch the investment plan for the current scenario
-        await getInvestmentAction(selectedScenarioId.value);
+        await investmentStore.getInvestment(selectedScenarioId.value);
     }
 });
 

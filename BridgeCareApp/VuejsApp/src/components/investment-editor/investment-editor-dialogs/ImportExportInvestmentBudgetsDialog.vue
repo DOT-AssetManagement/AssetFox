@@ -34,7 +34,6 @@ import { ImportExportInvestmentBudgetsDialogResult } from '@/shared/models/modal
 import {clone} from 'ramda';
 import InvestmentBudgetsFileSelector from '@/shared/components/FileSelector.vue';
 import {inject, reactive, ref, toRefs, onMounted, onBeforeUnmount, watch, computed, Ref,shallowRef} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import UploadButton from '@/shared/components/buttons/UploadButton.vue';
@@ -42,7 +41,6 @@ import XButton from '@/shared/components/buttons/XButton.vue';
 import OkButton from '@/shared/components/buttons/OkButton.vue';
 import { useAuthenticationStore } from '@/stores';
 
-let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const emit = defineEmits(['submit', 'submitSuccessImport'])
 const props = defineProps<{
@@ -50,10 +48,6 @@ const props = defineProps<{
     }>()
 const { showDialog } = toRefs(props);
 
-async function addErrorNotificationAction(payload?: any): Promise<any> {await store.dispatch('getAvailableReports');}
-function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImportMutator', payload);}
-let isSuccessfulImport = computed<boolean>(() => store.state.investmentModule.isSuccessfulImport);
-const stateIsSuccessfuImport = computed<boolean>(() => store.state.investmentModule.isSuccessfulImport);
 const hasAdminAccess = computed<boolean>(()=> authenticationStore.hasAdminAccess); 
 
 let investmentBudgetsFile = ref<File | null>(null);

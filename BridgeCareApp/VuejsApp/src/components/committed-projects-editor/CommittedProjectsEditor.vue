@@ -347,7 +347,7 @@ import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { useAlertStore, useAttributeStore, useCommittedProjectStore } from '@/stores';
+import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
 import Dialog from 'primevue/dialog';
@@ -430,7 +430,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
     const attributeStore = useAttributeStore();
-    const stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() =>store.state.investmentModule.scenarioSimpleBudgetDetails);
+    const investmentStore = useInvestmentStore();
     const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     const networks = computed<Network[]>(() => store.state.networkModule.networks);
     const selectedStateTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
@@ -438,7 +438,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     //async function getTreatmentLibrariesAction(payload?: any): Promise<any> { await store.dispatch('getTreatmentLibraries', payload); }
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
-    async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any> { await store.dispatch('getScenarioSimpleBudgetDetails', payload); }
     async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload); }
     function selectTreatmentLibraryAction(payload?: any){ store.dispatch('selectTreatmentLibrary', payload); }
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
@@ -580,7 +579,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 isNoTreatmentBefore.value = response.data;
             }
         });
-        await getScenarioSimpleBudgetDetailsAction({scenarioId: scenarioId});
+        await investmentStore.getScenarioSimpleBudgetDetails(scenarioId);
         await attributeStore.getAttributes();
         
         await getCurrentUserOrSharedScenarioAction({simulationId: scenarioId});
@@ -677,8 +676,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         );
     });
 
-    watch(stateScenarioSimpleBudgetDetails, () => {
-        budgetSelectItems.value = stateScenarioSimpleBudgetDetails.value.map(
+    watch(() => investmentStore.scenarioSimpleBudgetDetailsGetter, () => {
+        budgetSelectItems.value = investmentStore.scenarioSimpleBudgetDetailsGetter.map(
             (budget: SimpleBudgetDetail) => ({
                 text: budget.name,
                 value: budget.name
@@ -1159,7 +1158,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function cpItemFactory(scp: SectionCommittedProject): SectionCommittedProjectTableData {
         const budget: SimpleBudgetDetail = find(
-            propEq('id', scp.scenarioBudgetId), stateScenarioSimpleBudgetDetails.value,
+            propEq('id', scp.scenarioBudgetId), investmentStore.scenarioSimpleBudgetDetailsGetter,
         ) as SimpleBudgetDetail;
         let cat = reverseCatMap.get(scp.category);
         let value = '';
@@ -1190,7 +1189,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function handleBudgetChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, budgetName: string){
         const budget: SimpleBudgetDetail = find(
-            propEq('name', budgetName), stateScenarioSimpleBudgetDetails.value,
+            propEq('name', budgetName), investmentStore.scenarioSimpleBudgetDetailsGetter,
         ) as SimpleBudgetDetail;
         if(!isNil(budget)){
             row.scenarioBudgetId = budget.id;
