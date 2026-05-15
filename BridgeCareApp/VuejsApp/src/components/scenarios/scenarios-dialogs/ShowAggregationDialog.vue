@@ -159,11 +159,9 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { any, clone, find, findIndex, isNil, propEq, update } from 'ramda';
 import { Hub } from '@/connectionHub';
 import Vue, { Ref, ref, shallowReactive, shallowRef, watch, onMounted, onBeforeUnmount, inject, computed } from 'vue'; 
-import { useStore } from 'vuex'; 
 import mitt, { Emitter, EventType } from 'mitt';
 import { useNetworkStore } from '@/stores';
 
-    let store = useStore();     
     const networkStore = useNetworkStore();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 

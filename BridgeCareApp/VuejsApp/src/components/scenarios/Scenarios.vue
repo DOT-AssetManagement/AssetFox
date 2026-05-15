@@ -610,7 +610,6 @@ import GhdQueueSvg from '@/shared/icons/GhdQueueSvg.vue';
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
 import { PagingRequest } from '@/shared/models/iAM/paging';
 import ScenarioService from '@/services/scenario.service';
-import { useStore } from 'vuex'; 
 import { useRouter } from 'vue-router'; 
 import mitt, { Emitter, EventType } from 'mitt';
 import $vuetify from '@/plugins/vuetify';
@@ -624,7 +623,6 @@ import ReportsService from '@/services/reports.service';
 import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
 import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScenarioStore, useTreatmentStore, useUserStore } from '@/stores';
 
-    let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const networkStore = useNetworkStore();
     const notificationStore = useNotificationStore();

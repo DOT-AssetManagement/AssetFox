@@ -24,7 +24,6 @@
 
 <script lang="ts" setup>
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { getUrl } from '@/shared/utils/get-url';
 

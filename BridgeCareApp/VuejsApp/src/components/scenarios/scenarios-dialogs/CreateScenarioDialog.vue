@@ -71,7 +71,6 @@ import {
 } from '@/shared/models/iAM/scenario';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
-import { useStore } from 'vuex'; 
 import { validate } from 'uuid';
 import {
     InputValidationRules,
@@ -80,7 +79,6 @@ import {
 import { find, isNil, propEq } from 'ramda';
 import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
-  let store = useStore(); 
     const networkStore = useNetworkStore();
                 const scenarioStore = useScenarioStore();
         const userStore = useUserStore();

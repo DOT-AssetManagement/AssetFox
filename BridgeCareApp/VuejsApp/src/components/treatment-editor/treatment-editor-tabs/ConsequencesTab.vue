@@ -128,7 +128,6 @@ import { ref, computed, shallowRef, watch, toRefs, onMounted } from 'vue';
 import editDialog from '@/shared/modals/Edit-Dialog.vue'
 import { any, clone, isNil } from 'ramda';
 import EquationEditorDialog from '../../../shared/modals/EquationEditorDialog.vue';
-import { useStore } from 'vuex';
 import { emptyConsequence, TreatmentConsequence } from '@/shared/models/iAM/treatment';
 import {
     emptyEquationEditorDialogData,
@@ -158,7 +157,6 @@ const props = defineProps<{
     }>(); 
     const { selectedTreatmentConsequences, rules, callFromScenario, callFromLibrary } = toRefs(props);
     const emit = defineEmits(['submit', 'onAddConsequence', 'onModifyConsequence', 'onRemoveConsequence'])
-    let store = useStore();
     const attributeStore = useAttributeStore();
     
 

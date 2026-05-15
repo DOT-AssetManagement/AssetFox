@@ -69,7 +69,6 @@
     import { prop } from 'ramda';
 import Vue, { computed } from 'vue';
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-    import { useStore } from 'vuex';
     import { useAlertStore } from '@/stores';
     import {SimulationOutputDeletionParameters} from '@/shared/models/iAM/simulation-output-deletion-params'
     import Alert from '@/shared/modals/Alert.vue';
@@ -85,7 +84,6 @@ import { Emitter, EventType } from 'mitt';
 import { Hub } from '@/connectionHub';
 import { useScenarioStore } from '@/stores';
 
-    let store = useStore();
     const alertStore = useAlertStore();
     const scenarioStore = useScenarioStore();
     let lowerBoundDate = ref('');

@@ -156,7 +156,6 @@ import {
     InputValidationRules,
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router'; 
 import Dialog from 'primevue/dialog';
 import DataTable from 'primevue/datatable';
@@ -175,7 +174,6 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
 import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
 import { useAdminDataStore, useAuthenticationStore, useNotificationStore } from '@/stores';
 
-    let store = useStore();
     const adminDataStore = useAdminDataStore();
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();

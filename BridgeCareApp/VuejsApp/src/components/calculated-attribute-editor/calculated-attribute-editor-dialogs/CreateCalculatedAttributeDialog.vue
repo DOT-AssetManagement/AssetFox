@@ -47,14 +47,12 @@ import {clone} from 'ramda';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import { CalculatedAttribute, emptyCalculatedAttribute } from '@/shared/models/iAM/calculated-attribute';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import { useAttributeStore } from '@/stores';
 
   let showDialog : boolean = false;
-  let store = useStore();
   const attributeStore = useAttributeStore();
   let attributeSelectItems: SelectItem[] = [];
   let newCalculatedAttribute: CalculatedAttribute = clone(emptyCalculatedAttribute);

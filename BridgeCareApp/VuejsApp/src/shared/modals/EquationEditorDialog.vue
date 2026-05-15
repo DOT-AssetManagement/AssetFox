@@ -392,12 +392,10 @@ import ValidationService from '@/services/validation.service';
 import {EquationValidationParameters, ValidationResult} from '@/shared/models/iAM/expression-validation';
 import { emptyUserCriteriaFilter } from '../models/iAM/user-criteria-filter';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import { useAttributeStore } from '@/stores';
 
-let store = useStore();
 const attributeStore = useAttributeStore();
 const emit = defineEmits(['submit'])
 const props = defineProps<{

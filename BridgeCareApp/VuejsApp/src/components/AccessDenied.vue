@@ -27,13 +27,11 @@
     import { hasValue } from '@/shared/utils/has-value-util';
     import { SecurityTypes } from '@/shared/utils/security-types';
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-    import { useStore } from 'vuex';
     import { useRouter } from 'vue-router';
     import { getUrl } from '@/shared/utils/get-url';
         import { useAuthenticationStore } from '@/stores';
 
     const $router = useRouter();
-    let store = useStore();
         const authenticationStore = useAuthenticationStore();
     onMounted(()=>mounted())
     function mounted() {

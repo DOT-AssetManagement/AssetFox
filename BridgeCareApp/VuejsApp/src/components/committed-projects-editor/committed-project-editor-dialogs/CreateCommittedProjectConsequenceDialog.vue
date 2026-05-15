@@ -58,12 +58,10 @@ import { Attribute } from '@/shared/models/iAM/attribute';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { getPropertyValues } from '@/shared/utils/getter-utils';
 import { createDecipheriv } from 'crypto';
-import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import { useAttributeStore } from '@/stores';
 
-  let store = useStore();
   const emit = defineEmits(['submit']);
   const props = defineProps({showDialog: Boolean});
   let showDialogComputed = computed(() => props.showDialog);

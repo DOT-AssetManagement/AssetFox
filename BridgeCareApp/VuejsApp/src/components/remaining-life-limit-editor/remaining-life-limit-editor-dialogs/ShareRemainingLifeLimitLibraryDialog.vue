@@ -77,7 +77,6 @@ import {setItemPropertyValueInList} from '@/shared/utils/setter-utils';
 import {RemainingLifeLimitLibraryUserGridRow, ShareRemainingLifeLimitLibraryDialogData } from '@/shared/models/modals/share-remaining-life-limit-data';
 import RemainingLifeLimitService from '@/services/remaining-life-limit.service';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
 import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
@@ -89,7 +88,6 @@ import XButton from '@/shared/components/buttons/XButton.vue';
   const { dialogData } = toRefs(props);
 
   const emit = defineEmits(['submit']);
-  let store = useStore();
   const userStore = useUserStore();
 
   let remainingLifeLimitLibraryUserGridHeaders: any[] = [

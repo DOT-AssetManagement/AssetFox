@@ -386,7 +386,6 @@ import ScenarioService from '@/services/scenario.service';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import {inject, reactive, ref, shallowReactive, onMounted, onBeforeUnmount, computed, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import mitt, { Emitter, EventType } from 'mitt';
 import { useConfirm } from 'primevue/useconfirm';
@@ -409,7 +408,6 @@ import TreatmentService from '@/services/treatment.service';
 import { SimpleTreatment, Treatment } from '@/shared/models/iAM/treatment';
 import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-let store = useStore();
 const alertStore = useAlertStore();
 const authenticationStore = useAuthenticationStore();
 const investmentStore = useInvestmentStore();
@@ -421,10 +419,6 @@ const emit = defineEmits(['submit'])
 const $router = useRouter();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess); 
-
-async function getCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCriterionLibraries', payload);}
-    
-let getModifiedDate = store.getters.getLibraryDateModified;
 
     let modifiedDate = ref<string>();
 

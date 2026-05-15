@@ -53,12 +53,10 @@ import {InputValidationRules, rules as validationRules} from '@/shared/utils/inp
 import {clone} from 'ramda';
 import {getBlankGuid, getNewGuid} from '@/shared/utils/uuid-utils';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
-let store = useStore();
 const userStore = useUserStore();
 const props = defineProps<{
   dialogData: CreatePerformanceCurveLibraryDialogData

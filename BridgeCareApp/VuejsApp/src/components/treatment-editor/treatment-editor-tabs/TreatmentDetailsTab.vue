@@ -159,7 +159,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { ref, onMounted, onBeforeUnmount, watch, toRefs } from 'vue';
-import { useStore } from 'vuex';
 import { clone, isNil } from 'ramda';
 import { InputValidationRules } from '@/shared/utils/input-validation-rules';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
@@ -183,7 +182,6 @@ import { getUrl } from '@/shared/utils/get-url';
 import EditSvg from '@/shared/icons/EditSvg.vue';
 import { useAdminDataStore } from '@/stores';
 
-    let store = useStore();
     const adminDataStore = useAdminDataStore();
 
     const emit = defineEmits(['submit', 'onModifyTreatmentDetails'])

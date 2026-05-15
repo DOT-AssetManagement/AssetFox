@@ -357,7 +357,6 @@ import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditor
 import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
 import { LibraryUser } from '@/shared/models/iAM/user';
 import {inject, ref, onMounted, onBeforeUnmount, watch} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -377,7 +376,6 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
 import { getUrl } from '@/shared/utils/get-url';
 import { useAuthenticationStore, useCalculatedAttributeStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const calculatedAttributeStore = useCalculatedAttributeStore();
 const notificationStore = useNotificationStore();
@@ -955,10 +953,6 @@ const confirm = useConfirm();
                 librarySelectItemValue.value = ''
             }   
         }))
-    }
-
-    function saveSelectedLibraryState(library: string) {
-        store.dispatch('setSelectedLibrary', library); 
     }
 
    function onUpsertCalculatedAttributeLibrary() {

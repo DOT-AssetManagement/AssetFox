@@ -56,7 +56,6 @@
 
 <script lang="ts" setup>
 import { ref, toRefs, watch, computed } from 'vue';
-import { useStore } from 'vuex';
 import {any, find, findIndex, propEq, update, filter} from 'ramda';
 import {TreatmentLibraryUser } from '@/shared/models/iAM/treatment';
 import {LibraryUser } from '@/shared/models/iAM/user';
@@ -72,7 +71,6 @@ import { useUserStore } from '@/stores';
     const props = defineProps<{dialogData: ShareTreatmentLibraryDialogData}>()
     const { dialogData } = toRefs(props);
     const emit = defineEmits(['submit'])
-    let store = useStore();
     const userStore = useUserStore();
 
   const treatmentLibraryUserGridHeaders: any[] = [

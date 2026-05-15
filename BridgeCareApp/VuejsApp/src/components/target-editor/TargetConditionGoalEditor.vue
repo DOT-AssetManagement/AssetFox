@@ -304,7 +304,6 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditorDialog.vue';
 import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
-import { useStore } from 'vuex'; 
 import { useRouter } from 'vue-router'; 
 import { useConfirm } from 'primevue/useconfirm';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -322,7 +321,6 @@ import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.v
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { useAuthenticationStore, useAttributeStore, useNotificationStore, useScenarioStore, useTargetConditionGoalStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-    let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();

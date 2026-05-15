@@ -297,7 +297,6 @@ import CashFlowService from '@/services/cash-flow.service';
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import { LibraryUser } from '@/shared/models/iAM/user';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { getUrl } from '@/shared/utils/get-url';
@@ -319,7 +318,6 @@ import { emit } from 'process';
 import { useAuthenticationStore, useCashFlowStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
 
-let store = useStore();
 const authenticationStore = useAuthenticationStore();
 const cashFlowStore = useCashFlowStore();
 const notificationStore = useNotificationStore();

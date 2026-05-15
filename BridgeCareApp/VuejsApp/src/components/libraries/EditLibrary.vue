@@ -64,10 +64,8 @@ import RemainingLifeLimitSvg from '@/shared/icons/RemainingLifeLimitSvg.vue';
 import TargetConditionGoalSvg from '@/shared/icons/TargetConditionGoalSvg.vue';
 import TreatmentSvg from '@/shared/icons/TreatmentSvg.vue';
 import CalculatedAttributeSvg from '@/shared/icons/CalculatedAttributeSvg.vue';
-import { useStore } from 'vuex'; 
 import { useAuthenticationStore } from '@/stores';
 
-    let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
 
     const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 

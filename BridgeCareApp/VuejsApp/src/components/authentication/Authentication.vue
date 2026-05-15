@@ -17,13 +17,12 @@
 <script setup lang="ts">
     import Vue, { computed, onMounted, ref } from 'vue';
     import { SecurityTypes } from '@/shared/utils/security-types';
-    import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import AuthenticationService from '@/services/authentication.service';
-    import { useAuthenticationStore, useNotificationStore, useUserStore } from '@/stores';
+    import { useAuthenticationStore, useAzureB2CStore, useNotificationStore, useUserStore } from '@/stores';
 
-    let store = useStore();
     const authenticationStore = useAuthenticationStore();
+    const azureB2CStore = useAzureB2CStore();
     const notificationStore = useNotificationStore();
     const userStore = useUserStore();
     let authenticated = computed<boolean>(() => authenticationStore.authenticated);  
@@ -31,11 +30,6 @@ import AuthenticationService from '@/services/authentication.service';
     let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
     let securityType: string = authenticationStore.securityType;
 
-    function setSuccessMessageAction(payload?: any) { store.dispatch('setSuccessMessage');}
-    function setErrorMessageAction(payload?: any){ store.dispatch('setErrorMessage');}
-    async function getUserTokensAction(payload?: any): Promise<any> {await store.dispatch('getUserTokens', payload);}
-    async function getUserInfoAction(payload?: any): Promise<any> {await store.dispatch('getUserInfo');}
-    async function getAzureAccountDetailsAction(payload?: any): Promise<any> {await store.dispatch('getAzureAccountDetails');}
     const $router = useRouter();
 
     onMounted(() => mounted());
@@ -52,14 +46,14 @@ import AuthenticationService from '@/services/authentication.service';
                 return;
             }
 
-            getUserTokensAction({ code: code }).then(async () => {
+            authenticationStore.getUserTokens(code).then(async () => {
                 const activeStatus = await AuthenticationService.getActiveStatus();
                 if(activeStatus.data == true)
                 {
                         if (!authenticated.value) {
                         onAuthenticationFailure();
                     } else {
-                        getUserInfoAction().then(() => {
+                        authenticationStore.getUserInfo().then(() => {
                             userStore.getUserCriteriaFilter().then(() => {
                                 if (!hasRole.value || (!userStore.getCurrentUserCriteriaFilter.hasAccess && !hasAdminAccess.value)) {
                                     onRoleFailure();
@@ -79,7 +73,7 @@ import AuthenticationService from '@/services/authentication.service';
 
         //Is this deprecated???
         if (securityType === SecurityTypes.b2c) {
-            getAzureAccountDetailsAction();
+            azureB2CStore.getAzureAccountDetails();
             if (!authenticated.value) {
                 onAuthenticationFailure();
             } else {

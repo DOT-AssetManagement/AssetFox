@@ -72,14 +72,12 @@ import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { find, isNil, propEq, clone } from 'ramda';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
 import {CloneScenarioDialogData,CloneSimulationDialogData} from '@/shared/models/modals/clone-scenario-dialog-data';
-import { useStore } from 'vuex'; 
 import {
     InputValidationRules,
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
 import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
-    let store = useStore(); 
     const networkStore = useNetworkStore();
     const scenarioStore = useScenarioStore();
     const userStore = useUserStore();

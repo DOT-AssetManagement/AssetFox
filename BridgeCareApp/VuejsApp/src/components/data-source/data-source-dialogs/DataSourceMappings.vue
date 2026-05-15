@@ -73,7 +73,6 @@
 <script setup lang="ts">
 import Vue, { computed, ref, toRefs, watch } from 'vue';
 import { DataSourceMappingData } from '../../../shared/models/iAM/data-source';
-import { useStore } from 'vuex';
 import { EditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
@@ -84,7 +83,6 @@ import { FileInfo } from '@/shared/models/iAM/file-info';
 import FileDownload from 'js-file-download';
 import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 
-  let store = useStore();
   let gridHeaders: any[] = [
         { title: 'Attribute', key: 'attribute', sortable: false, align: 'center', class: '', width: '50%' },        
         { title: 'Column', key: 'dataField', sortable: false, align: 'center', class: '', width: '50%' }

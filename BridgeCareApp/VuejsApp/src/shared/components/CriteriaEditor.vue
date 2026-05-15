@@ -221,7 +221,6 @@ import {
 import { UserCriteriaFilter } from '../models/iAM/user-criteria-filter';
 import { getBlankGuid, getNewGuid } from '../utils/uuid-utils';
 import { ref, onMounted, computed, toRefs, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { getUrl } from "../utils/get-url";
 import { reactive } from 'vue';
@@ -229,7 +228,6 @@ import QueryEditor from "../components/queryEditor/QueryEditorGroup.vue"
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import { useAttributeStore, useNetworkStore, useNotificationStore, useUserStore } from '@/stores';
 
-let store = useStore();
 const attributeStore = useAttributeStore();
 const networkStore = useNetworkStore();
 const notificationStore = useNotificationStore();

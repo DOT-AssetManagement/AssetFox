@@ -72,12 +72,10 @@ import {setItemPropertyValueInList} from '@/shared/utils/setter-utils';
 import {CashFlowRuleLibraryUserGridRow, ShareCashFlowRuleLibraryDialogData } from '@/shared/models/modals/share-cash-flow-rule-data';
 import CashFlowRuleService from '@/services/cash-flow.service';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
 import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue'; 
 
-  let store = useStore();
   const userStore = useUserStore();
   const props = defineProps<{dialogData: ShareCashFlowRuleLibraryDialogData}>()
   const { dialogData } = toRefs(props);

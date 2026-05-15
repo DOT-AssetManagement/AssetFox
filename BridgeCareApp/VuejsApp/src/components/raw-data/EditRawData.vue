@@ -45,13 +45,11 @@ import { getBlankGuid } from '@/shared/utils/uuid-utils';
 import AttributesSvg from '@/shared/icons/AttributesSvg.vue';
 import DataSourceSvg from '@/shared/icons/DataSourceSvg.vue';
 import NetworksSvg from '@/shared/icons/NetworksSvg.vue';
-import { useStore } from 'vuex';
 import {useRouter} from 'vue-router'
 import router from '@/router';
 import { useAuthenticationStore } from '@/stores';
 
 
-    let store = useStore();
     const authenticationStore = useAuthenticationStore();
     let hasAdminAccess: boolean = authenticationStore.hasAdminAccess;
 

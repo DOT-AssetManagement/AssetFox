@@ -315,11 +315,9 @@ import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { emptyUserCriteriaFilter, UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
 
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores';
 
-let store = useStore();
 const userStore = useUserStore();
 const instance = getCurrentInstance();
 let edit = ref<boolean>(false)

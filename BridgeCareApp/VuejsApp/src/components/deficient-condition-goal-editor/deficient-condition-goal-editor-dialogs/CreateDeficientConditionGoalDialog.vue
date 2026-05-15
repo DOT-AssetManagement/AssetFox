@@ -65,13 +65,11 @@ import {getPropertyValues} from '@/shared/utils/getter-utils';
 import {hasValue} from '@/shared/utils/has-value-util';
 import {InputValidationRules, rules as validationRules} from '@/shared/utils/input-validation-rules';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
-import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 import { useAttributeStore } from '@/stores';
 
-  let store = useStore();
   const attributeStore = useAttributeStore();
   const props = defineProps<{
     currentNumberOfDeficientConditionGoals: number,

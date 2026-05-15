@@ -72,13 +72,11 @@ import {DataTableHeader} from '@/shared/models/vue/data-table-header';
 import {DeficientConditionGoalLibraryUserGridRow, ShareDeficientConditionGoalLibraryDialogData } from '@/shared/models/modals/share-deficient-condition-goal-data';
 import DeficientConditionGoalService from '@/services/deficient-condition-goal.service';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
 import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
-let store = useStore();
 const userStore = useUserStore();
 
 const props = defineProps<{

@@ -37,11 +37,9 @@ import {getNewGuid} from '@/shared/utils/uuid-utils';
 import { Datasource, emptyDatasource, DSSQL } from '../../../shared/models/iAM/data-source';
 import { CreateDataSourceDialogData} from '@/shared/models/modals/data-source-dialog-data'
 import { getUserName } from '@/shared/utils/get-user-info';
-import { useStore } from 'vuex';
 import { clone } from 'ramda';
 import { useUserStore } from '@/stores';
 
-  let store = useStore();
   const userStore = useUserStore();
 
   const props = defineProps<{

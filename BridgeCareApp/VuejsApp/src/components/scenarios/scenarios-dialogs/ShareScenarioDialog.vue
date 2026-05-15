@@ -64,9 +64,7 @@ import {getUserName} from '@/shared/utils/get-user-info';
 import {setItemPropertyValueInList} from '@/shared/utils/setter-utils';
 import {ScenarioUserGridRow, ShareScenarioDialogData} from '@/shared/models/modals/share-scenario-dialog-data';
 import { useUserStore } from '@/stores';
-import { useStore } from 'vuex'; 
 
-  let store = useStore(); 
   const userStore = useUserStore();
 
   const props = defineProps<{dialogData: ShareScenarioDialogData}>();

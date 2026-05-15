@@ -346,7 +346,6 @@ import { max } from 'moment';
 import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
-import { storeKey, useStore } from 'vuex';
 import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore, useScenarioStore, useTreatmentStore, useUnsavedChangesStore } from '@/stores';
 import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
@@ -362,7 +361,6 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import TreatmentSelectionPopup from './committed-project-editor-dialogs/TreatmentSelectionPopup.vue';
 
-    let store = useStore();
     const committedProjectStore = useCommittedProjectStore();
     const networkStore = useNetworkStore();
     const treatmentStore = useTreatmentStore();

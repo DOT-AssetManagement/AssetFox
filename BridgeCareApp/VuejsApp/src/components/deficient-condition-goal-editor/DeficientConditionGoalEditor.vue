@@ -351,7 +351,6 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { LibraryUser } from '@/shared/models/iAM/user';
 import { emptyShareDeficientConditionGoalLibraryDialogData, ShareDeficientConditionGoalLibraryDialogData } from '@/shared/models/modals/share-deficient-condition-goal-data';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -369,7 +368,6 @@ import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.v
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-    let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const deficientConditionGoalStore = useDeficientConditionGoalStore();
@@ -380,8 +378,6 @@ import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalSto
     const confirm = useConfirm();
     const $router = useRouter();
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
-
-    async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
 
     const selectedScenarioId = ref<string>(getBlankGuid());
     let librarySelectItems  = ref<SelectItem[]>([]);

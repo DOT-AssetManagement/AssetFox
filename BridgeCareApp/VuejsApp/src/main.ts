@@ -12,7 +12,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import App from './App.vue';
 import router from './router';
 import { useRoute, useRouter } from 'vue-router';
-import store from './store/root-store';
 import { useAuthenticationStore, useConfigStore } from './stores';
 import './assets/css/main.css';
 import VueScreen from 'vue-screen';
@@ -60,7 +59,6 @@ configStore.loadConfig().then(() => {
 
     app.use(router);
     app.use(pinia);
-    app.use(store);
     app.use(vuetify);
     app.use(PrimeVue);
     //app.use(VueWorker);

@@ -103,14 +103,12 @@ import {
 import { CriteriaConfigRule, CriteriaRule } from '@/shared/models/iAM/criteria';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import { clone, findIndex, isNil, propEq, update } from 'ramda';
-import { useStore } from 'vuex';
 import { AttributeSelectValues } from '@/shared/models/iAM/attribute';
 import { hasValue } from '@/shared/utils/has-value-util';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import { Equation } from '@/shared/models/iAM/equation';
 import { useAttributeStore } from '@/stores';
 
-    let store = useStore();
     const attributeStore = useAttributeStore();
     const emit = defineEmits(['update:criteriaRule', 'delete'])
     let selectedOperator = ref<string | null>('=');

@@ -189,13 +189,11 @@ import { AddNetworkDialogData, emptyAddNetworkDialogData } from '@/shared/models
 import { Hub } from '@/connectionHub';
 import { NetworkRollupDetail } from '@/shared/models/iAM/network-rollup-detail';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
-import { useStore } from 'vuex';
 import mitt, { Emitter, EventType } from 'mitt';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { NIL } from 'uuid';
 import { useAttributeStore, useAuthenticationStore, useDataSourceStore, useNetworkStore, useUnsavedChangesStore } from '@/stores';
 
-    let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const dataSourceStore = useDataSourceStore();

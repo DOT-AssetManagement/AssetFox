@@ -71,7 +71,6 @@ import {hasValue} from '@/shared/utils/has-value-util';
 import {InputValidationRules, rules as validationRules,} from '@/shared/utils/input-validation-rules';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import {isEqual} from '@/shared/utils/has-unsaved-changes-helper';
-import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import { useAttributeStore } from '@/stores';
@@ -83,7 +82,6 @@ import { useAttributeStore } from '@/stores';
         
   const { showDialog, currentNumberOfTargetConditionGoals } = toRefs(props);
 
-  let store = useStore();
   const attributeStore = useAttributeStore();
   const emit = defineEmits(['submit'])
 

@@ -53,13 +53,11 @@ import {InputValidationRules, rules as validationRules} from '@/shared/utils/inp
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { ref, computed, toRefs, watch } from 'vue';
-import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 import { useUserStore } from '@/stores';
 
-let store = useStore();
 
 const props = defineProps<{
           dialogData:CreateBudgetLibraryDialogData,

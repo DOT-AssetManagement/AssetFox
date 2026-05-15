@@ -48,7 +48,6 @@ import {
 } from '@/shared/models/iAM/treatment';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
-import { useStore } from 'vuex';
 import { useUserStore } from '@/stores';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
@@ -57,7 +56,6 @@ import XButton from '@/shared/components/buttons/XButton.vue';
     const props = defineProps<{dialogData: CreateTreatmentLibraryDialogData}>()
     const { dialogData } = toRefs(props);
     const emit = defineEmits(['submit'])
-    let store = useStore();
     const userStore = useUserStore();
 
     const newTreatmentLibrary = ref<TreatmentLibrary>({...emptyTreatmentLibrary, id: getNewGuid(),});

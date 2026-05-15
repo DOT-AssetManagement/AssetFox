@@ -332,7 +332,6 @@
 <script setup lang='ts'>
 import { ShallowRef, computed, inject, shallowRef, watch } from 'vue';
 import { ref, onMounted, onBeforeUnmount, Ref} from 'vue';
-import { useStore } from 'vuex';
 import CreateTreatmentLibraryDialog from '@/components/treatment-editor/treatment-editor-dialogs/CreateTreatmentLibraryDialog.vue';
 import { SelectItem } from '@/shared/models/vue/select-item';
 import ConfirmDeleteAlert from '@/shared/modals/Alert.vue';
@@ -437,7 +436,6 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
     const confirm = useConfirm();
-    let store = useStore();
     const alertStore = useAlertStore();
     const authenticationStore = useAuthenticationStore();
     const investmentStore = useInvestmentStore();

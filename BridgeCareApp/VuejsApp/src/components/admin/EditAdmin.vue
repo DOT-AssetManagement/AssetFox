@@ -40,7 +40,6 @@
 <script lang="ts" setup>
 import Vue from 'vue';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import router from '@/router';
 import { any, clone, isNil, propEq } from 'ramda';
 import { NavigationTab } from '@/shared/models/iAM/navigation-tab';
@@ -54,7 +53,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {faHdd} from '@fortawesome/free-regular-svg-icons'
 import { useAuthenticationStore } from '@/stores';
 
-    let store = useStore();
     const authenticationStore = useAuthenticationStore();
     let hasAdminAccess = ref<boolean>(authenticationStore.hasAdminAccess);
     let networkId: string = getBlankGuid();

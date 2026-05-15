@@ -81,6 +81,11 @@ export const useTreatmentStore = defineStore('treatment', {
                 },
             );
         },
+        simpleScenarioSelectableTreatmentsMutator(
+            treatments: SimpleTreatment[],
+        ) {
+            this.simpleScenarioSelectableTreatments = clone(treatments);
+        },
         async getSimpleSelectableTreatments(libraryId: string) {
             await TreatmentService.getSimpleTreatmentsByLibraryId(libraryId).then(
                 (response: AxiosResponse<SimpleTreatment[]>) => {

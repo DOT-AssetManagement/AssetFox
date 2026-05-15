@@ -125,7 +125,6 @@ import CalculatedAttributeSvg from '@/shared/icons/CalculatedAttributeSvg.vue';
 import CommittedProjectSvg from '@/shared/icons/CommittedProjectSvg.vue';
 import { SectionCommittedProject } from '@/shared/models/iAM/committed-projects';
 import ReportsSvg from '@/shared/icons/ReportsSvg.vue';
-import { useStore } from 'vuex'; 
 import { useRouter } from 'vue-router'; 
 import ScenarioService from '@/services/scenario.service';
 import InvestmentService from '@/services/investment.service';
@@ -142,11 +141,12 @@ import { inject } from 'vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
-import { useAuthenticationStore, useNotificationStore, useScenarioStore, useTreatmentStore } from '@/stores';
+import { useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
+import { useTreatmentStore } from '@/stores/treatment.store';
 
-    let store = useStore(); 
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
+    const performanceCurveStore = usePerformanceCurveStore();
     const scenarioStore = useScenarioStore();
     const treatmentStore = useTreatmentStore();
     const router = useRouter(); 
@@ -902,7 +902,7 @@ import { useAuthenticationStore, useNotificationStore, useScenarioStore, useTrea
             search: ""
         };
 
-        store.dispatch('getIsDeteriorationModelApiRunning', true);
+        performanceCurveStore.getIsDeteriorationModelApiRunning(true);
         await PerformanceCurveService.getPerformanceCurvePage(selectedScenarioId, request).then(response => {
             if (response.data) 
             {
@@ -936,7 +936,7 @@ import { useAuthenticationStore, useNotificationStore, useScenarioStore, useTrea
             {
                 isTreatmentSet.value = response.data.length == 0;
 
-                store.commit('simpleScenarioSelectableTreatmentsMutator', response.data);
+                treatmentStore.simpleScenarioSelectableTreatmentsMutator(response.data);
 
                 navigationTabs.value.forEach((tab) => {
                     if (tab.tabName === 'Treatment') {

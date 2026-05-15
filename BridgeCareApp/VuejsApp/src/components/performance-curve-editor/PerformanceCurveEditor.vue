@@ -499,7 +499,6 @@ import ScenarioService from '@/services/scenario.service';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref, shallowRef, ShallowRef} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import mitt, { Emitter, EventType } from 'mitt';
 import { useConfirm } from 'primevue/useconfirm';
@@ -521,7 +520,6 @@ import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
-let store = useStore();
 const alertStore = useAlertStore();
 const attributeStore = useAttributeStore();
 const authenticationStore = useAuthenticationStore();
@@ -1369,7 +1367,7 @@ let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess)
             search: ''
         };
         if((!hasSelectedLibrary.value || hasScenario.value) && selectedScenarioId !== uuidNIL){
-            store.dispatch('getIsDeteriorationModelApiRunning', true);
+            performanceCurveStore.getIsDeteriorationModelApiRunning(true);
             let response = await PerformanceCurveService.getPerformanceCurvePage(selectedScenarioId, request);
             isRunning = false
             if(response.data) {

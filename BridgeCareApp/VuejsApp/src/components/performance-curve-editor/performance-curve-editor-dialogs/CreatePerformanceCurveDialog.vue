@@ -68,12 +68,10 @@ import {InputValidationRules, rules as validationRules} from '@/shared/utils/inp
 import {clone} from 'ramda';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { on } from 'events';
 import { useAttributeStore } from '@/stores';
 
-let store = useStore();
 const attributeStore = useAttributeStore();
 const emit = defineEmits(['submit'])
 const props = defineProps<{

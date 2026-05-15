@@ -72,14 +72,12 @@ import {DataTableHeader} from '@/shared/models/vue/data-table-header';
 import {CalculatedAttributeLibraryUserGridRow, ShareCalculatedAttributeLibraryDialogData, emptyShareCalculatedAttributeLibraryDialogData } from '@/shared/models/modals/share-calculated-attribute-data';
 import CalculatedAttributeService from '@/services/calculated-attribute.service';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
 import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
 const emit = defineEmits(['submit'])
-let store = useStore();
 const userStore = useUserStore();
 const props = defineProps<{
     dialogData: ShareCalculatedAttributeLibraryDialogData

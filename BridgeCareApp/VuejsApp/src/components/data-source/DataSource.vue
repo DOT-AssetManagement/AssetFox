@@ -163,7 +163,6 @@ import { NIL } from 'uuid';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { ImportDataSourceDialogResult } from '@/shared/models/modals/import-datasource-dialog-result';
 import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog.vue';
@@ -172,7 +171,6 @@ import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData
 import DataSourceMappingsService from '@/services/data-source.service';
 import { useDataSourceStore, useNotificationStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-    let store = useStore();
     const dataSourceStore = useDataSourceStore();
     const notificationStore = useNotificationStore();
     const unsavedChangesStore = useUnsavedChangesStore();

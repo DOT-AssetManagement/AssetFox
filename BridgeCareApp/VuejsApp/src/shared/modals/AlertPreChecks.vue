@@ -83,7 +83,6 @@
     import Vue, { computed } from 'vue';
     import {AlertPreChecksData, PreChecksValidationLog, emptyPreChecksValidationLog } from '../models/modals/alert-data';
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-    import { useStore } from 'vuex';
     import { useRouter } from 'vue-router';
     import ScenarioService from '@/services/scenario.service';
     import FileDownload from 'js-file-download';

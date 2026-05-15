@@ -264,7 +264,6 @@
     import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
     import { sortByProperty } from '../../shared/utils/sorter-utils';
     import {LibraryUser} from '@/shared/models/iAM/user'
-    import { useStore } from 'vuex';
     import { useRouter } from 'vue-router';
     import CreatePriorityDialog from '@/components/budget-priority-editor/budget-priority-editor-dialogs/CreateBudgetPriorityDialog.vue'
     import CreatePriorityLibraryDialog  from '@/components/budget-priority-editor/budget-priority-editor-dialogs/CreateBudgetPriorityLibraryDialog.vue'
@@ -287,7 +286,6 @@
     import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
     import { useAuthenticationStore, useBudgetPriorityStore, useInvestmentStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-    let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const budgetPriorityStore = useBudgetPriorityStore();
     const investmentStore = useInvestmentStore();

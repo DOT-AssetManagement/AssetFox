@@ -166,13 +166,11 @@ import { Network } from '@/shared/models/iAM/network';
 import { Attribute } from '@/shared/models/iAM/attribute';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
 import { InputValidationRules, rules } from '@/shared/utils/input-validation-rules';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { Console } from 'console';
 import { report } from 'process';
 import { useAdminDataStore, useAttributeStore, useNetworkStore, useUnsavedChangesStore } from '@/stores';
 
-    let store = useStore();
     const adminDataStore = useAdminDataStore();
     const attributeStore = useAttributeStore();
     const networkStore = useNetworkStore();

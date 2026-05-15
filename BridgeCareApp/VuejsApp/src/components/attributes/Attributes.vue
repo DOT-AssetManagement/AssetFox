@@ -120,12 +120,10 @@ import { AxiosResponse } from 'axios';
 import { any, clone, find, isNil, propEq } from 'ramda';
 import Vue, { computed, onBeforeMount, onBeforeUnmount, Ref, ref, shallowRef, ShallowRef, watch } from 'vue';
 import { Console } from 'console';
-import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import { useAttributeStore, useAuthenticationStore, useUnsavedChangesStore } from '@/stores';
 
-    let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const unsavedChangesStore = useUnsavedChangesStore();
@@ -144,8 +142,6 @@ import { useAttributeStore, useAuthenticationStore, useUnsavedChangesStore } fro
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ;
     let selectAttributeItems = ref<SelectItem[]>([]);
     
-    async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
-
     created()
     function created() {
         attributeStore.getAttributes();

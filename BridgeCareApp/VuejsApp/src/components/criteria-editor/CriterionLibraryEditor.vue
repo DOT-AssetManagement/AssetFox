@@ -140,14 +140,12 @@ import ConfirmDeleteAlert from '@/shared/modals/Alert.vue';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { getUserName } from '@/shared/utils/get-user-info';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useAuthenticationStore, useCriterionLibraryStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
     let dialogLibraryId = shallowRef<string>('');
     let dialogIsFromScenario = shallowRef<boolean>();
     let dialogIsFromLibrary: boolean;
-    let store = useStore();
     const authenticationStore = useAuthenticationStore();
     const criterionLibraryStore = useCriterionLibraryStore();
     const unsavedChangesStore = useUnsavedChangesStore();

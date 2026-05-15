@@ -21,7 +21,6 @@
 <script setup lang="ts">
 import Vue, { computed } from 'vue';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
 const emit = defineEmits(['submit'])

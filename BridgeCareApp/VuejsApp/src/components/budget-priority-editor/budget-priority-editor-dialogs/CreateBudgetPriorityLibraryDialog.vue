@@ -55,13 +55,11 @@ import {getUserName} from '@/shared/utils/get-user-info';
 import {InputValidationRules, rules as validationRules} from '@/shared/utils/input-validation-rules';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import { nextTick } from 'process';
-import { useStore } from 'vuex';
 import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
-  let store = useStore();
   const userStore = useUserStore();
   const props = defineProps<{
     dialogData: CreateBudgetPriorityLibraryDialogData

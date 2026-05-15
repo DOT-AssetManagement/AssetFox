@@ -225,7 +225,6 @@
     import XButton from '@/shared/components/buttons/XButton.vue';
     import AttributeSelectionPopup from '@/components/reports/reports-dialogs/AttributeSelectionPopup.vue';
     import YearSelectionPopup from '@/components/reports/reports-dialogs/YearSelectionPopup.vue';
-    import { useStore } from 'vuex';
     import { Attribute } from '@/shared/models/iAM/attribute';
     import { InvestmentPlan } from '@/shared/models/iAM/investment';
     import { useAttributeStore, useInvestmentStore } from '@/stores';
@@ -236,7 +235,6 @@
     const emit = defineEmits(['submit']);
     const selectedScenarioId = ref('');
 
-    let store = useStore();
     const attributeStore = useAttributeStore();
     import { useRouter } from 'vue-router'; 
     const router = useRouter();    

@@ -290,7 +290,6 @@ import { emptyShareRemainingLifeLimitLibraryDialogData, ShareRemainingLifeLimitL
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import { LibraryUser } from '@/shared/models/iAM/user';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -310,7 +309,6 @@ import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.v
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRemainingLifeLimitStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-    let store = useStore();
     const attributeStore = useAttributeStore();
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
@@ -323,8 +321,6 @@ import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRem
 
     let hasAdminAccess = computed<boolean>(() =>authenticationStore.hasAdminAccess) ;
 
-    async function upsertRemainingLifeLimitLibraryAction(payload?: any): Promise<any>{await store.dispatch('upsertRemainingLifeLimitLibrary', payload)}
-    
     let remainingLifeLimitLibraries: RemainingLifeLimitLibrary[] = [];
     let selectedRemainingLifeLimitLibrary: ShallowRef<RemainingLifeLimitLibrary> = shallowRef(clone(
         emptyRemainingLifeLimitLibrary,
