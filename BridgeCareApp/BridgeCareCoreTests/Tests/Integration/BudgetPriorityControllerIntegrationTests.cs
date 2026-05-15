@@ -63,7 +63,7 @@ namespace AssetFoxCoreTests.Tests.Integration
 
             await controller.UpsertBudgetPriorityLibrary(upsertRequest);
 
-            var _ = hubServiceMock.GetSingleThreeArgumentErrorMessage();
+            var _ = hubServiceMock.GetSingleFourArgumentErrorMessage();
             var librariesAfter = TestHelper.UnitOfWork.BudgetPriorityRepo.GetBudgetPriorityLibraries();
             var libraryAfter = librariesAfter.Single(
                 lib => lib.Id == libraryId);

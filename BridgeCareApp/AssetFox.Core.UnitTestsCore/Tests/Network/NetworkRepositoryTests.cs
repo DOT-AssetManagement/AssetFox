@@ -150,15 +150,10 @@ namespace AssetFox.Core.UnitTestsCore.Tests
         {
             AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
             NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+            TestHelper.UnitOfWork.ClearAttributeIdNameCache();
             var networkId = NetworkTestSetup.NetworkId;
 
             var keyAttribute = TestHelper.UnitOfWork.NetworkRepo.GetNetworkKeyAttribute(networkId);
-
-            if (keyAttribute!="BRKEY_")
-            {
-                DebugHelper.Noop();
-                var foo = TestHelper.UnitOfWork.NetworkRepo.GetNetworkKeyAttribute(networkId);
-            }
 
             Assert.Equal("BRKEY_", keyAttribute);
         }

@@ -106,7 +106,7 @@ namespace AssetFoxCoreTests.Tests
             // Act & Assert
             var result = await controller.UpsertSqlDataSource(newValue);
             ActionResultAssertions.Ok(result);
-            var messages = hubServiceMock.GetThreeArgumentErrorMessages();
+            var messages = hubServiceMock.GetFourArgumentErrorMessages();
             var message = messages.Single();
             Assert.Contains(errorMessage, message);
         }
@@ -173,7 +173,7 @@ namespace AssetFoxCoreTests.Tests
 
             // Act & Assert
             await controller.DeleteDataSource(_badSource);
-            var messages = hubService.GetThreeArgumentErrorMessages();
+            var messages = hubService.GetFourArgumentErrorMessages();
             var message = messages.Single();
             Assert.Contains("Row not found in table.", message);
         }

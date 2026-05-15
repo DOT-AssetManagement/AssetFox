@@ -60,7 +60,7 @@ namespace AssetFoxCoreTests.Tests.Integration
 
             await controller.CreateAttributes(allAttributes);
 
-            var _ = hubService.GetSingleThreeArgumentErrorMessage();
+            var _ = hubService.GetSingleFourArgumentErrorMessage();
             var attributeNames = new List<string> { attributeName1 };
             var attributeAfter = TestHelper.UnitOfWork.AttributeRepo.GetSingleById(attributeId1);
             Assert.Equal(0, attributeAfter.Minimum);
