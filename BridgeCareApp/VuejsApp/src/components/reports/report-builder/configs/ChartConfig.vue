@@ -202,7 +202,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { clone } from 'ramda';
-import { useStore } from 'vuex';
+import { useAttributeStore } from '@/stores';
 import {
     ChartAggregation,
     ChartConfig,
@@ -226,7 +226,7 @@ const emit = defineEmits<{
     (e: 'update:config', val: ChartConfig): void;
 }>();
 
-const store = useStore();
+const attributeStore = useAttributeStore();
 const activeTab = ref('data');
 const localConfig = ref<ChartConfig>(clone(props.config));
 const valueInput = ref<any>(null);
@@ -242,7 +242,7 @@ const chartKind = computed<ChartKind>(() =>
 );
 
 const attributeOptions = computed<FieldOption[]>(() => {
-    const attrs = store.state.attributeModule?.attributes ?? [];
+    const attrs = attributeStore.attributesgetter ?? [];
     return attrs.map((a: any) => ({
         id: `attribute:${a.name}`,
         source: 'attribute',

@@ -196,10 +196,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { useStore } from 'vuex';
 import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 import { PagingPage } from '@/shared/models/iAM/paging';
 import { ReportSchemaPagingRequest } from '@/services/report-schema.service';
+import { useReportSchemaStore } from '@/stores';
 
 const props = withDefaults(defineProps<{
     selectedId?: string;
@@ -240,7 +240,7 @@ const emit = defineEmits<{
     (e: 'delete', schema: ReportSchemaDTO): void;
 }>();
 
-const store = useStore();
+const reportSchemaStore = useReportSchemaStore();
 
 const scope = ref(props.initialScope);
 const search = ref('');
@@ -281,7 +281,7 @@ const pageSizeOptions = [
 ];
 
 const templatePage = computed<PagingPage<ReportSchemaDTO>>(
-    () => store.state.reportSchemaModule.reportSchemaPage,
+    () => reportSchemaStore.reportSchemaPage,
 );
 const templates = computed<ReportSchemaDTO[]>(() => templatePage.value?.items || []);
 const totalTemplates = computed<number>(() => templatePage.value?.totalItems || 0);
@@ -334,7 +334,7 @@ async function fetchTemplates() {
     };
 
     try {
-        await store.dispatch('getReportSchemaPage', { request });
+        await reportSchemaStore.getReportSchemaPage(request);
     } finally {
         loading.value = false;
     }
