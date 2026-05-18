@@ -475,8 +475,6 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     const userStore = useUserStore();
     let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
 
-
-
     let selectedTreatmentLibrary = shallowRef(clone(emptyTreatmentLibrary));
     let treatments = shallowRef<Treatment[]>([]);
     let selectedScenarioId: string = getBlankGuid();
@@ -568,10 +566,10 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
                 $router.push('/Scenarios/');
             }
             hasScenario.value = true;
-            await getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId);
-            await getTreatmentLibraryBySimulationIdAction(selectedScenarioId);
-            ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
-            await getScenarioPerformanceCurvesAction(selectedScenarioId);
+            await treatmentStore.getSimpleScenarioSelectableTreatments(selectedScenarioId);
+            await treatmentStore.getTreatmentLibraryBySimulationId(selectedScenarioId);
+            ruleOverrides.value = treatmentStore.getScenarioTreatmentLibrary?.ruleOverrides || [];
+            await performanceCurveStore.getScenarioPerformanceCurves(selectedScenarioId);
             
             treatmentTabs = [...treatmentTabs, 'Budgets'];
             await investmentStore.getScenarioSimpleBudgetDetails(selectedScenarioId)
@@ -629,12 +627,12 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     
     watch(() => treatmentStore.getScenarioTreatmentLibrary, () => onStateScenarioTreatmentLibraryChanged())
     function onStateScenarioTreatmentLibraryChanged() {
-        setParentLibraryName(stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : "None");
-        scenarioLibraryIsModified = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.isModified : false;
-        loadedParentId = stateScenarioTreatmentLibrary.value ? stateScenarioTreatmentLibrary.value.id : uuidNIL;
+        setParentLibraryName(treatmentStore.getScenarioTreatmentLibrary ? treatmentStore.getScenarioTreatmentLibrary.id : "None");
+        scenarioLibraryIsModified = treatmentStore.getScenarioTreatmentLibrary ? treatmentStore.getScenarioTreatmentLibrary.isModified : false;
+        loadedParentId = treatmentStore.getScenarioTreatmentLibrary ? treatmentStore.getScenarioTreatmentLibrary.id : uuidNIL;
         loadedParentName = parentLibraryName.value;
 
-        ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
+        ruleOverrides.value = treatmentStore.getScenarioTreatmentLibrary?.ruleOverrides || [];
     }
 
     watch(librarySelectItemValue, () => onLibrarySelectItemValueChangedCheckUnsaved())
@@ -680,8 +678,8 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
         selectedTreatmentLibrary.value = clone(
             treatmentStore.getSelectedTreatmentLibrary
         );
-        if (stateSelectedTreatmentLibrary.value?.id && stateSelectedTreatmentLibrary.value.id !== uuidNIL) {
-            ruleOverrides.value = stateSelectedTreatmentLibrary.value.ruleOverrides || [];
+        if ( treatmentStore.getSelectedTreatmentLibrary?.id && treatmentStore.getSelectedTreatmentLibrary.id !== uuidNIL) {
+            ruleOverrides.value = treatmentStore.getSelectedTreatmentLibrary.ruleOverrides || [];
         }
     }
 
@@ -1053,14 +1051,14 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
                 clearChanges();
                 if(hasSelectedLibrary.value){
                     librarySelectItemValue.value = "";
-                    getSimpleScenarioSelectableTreatmentsAction(selectedScenarioId)
+                    treatmentStore.getSimpleScenarioSelectableTreatments(selectedScenarioId);
                 }
                 treatmentCache.push(selectedTreatment.value);
 
-                addSuccessNotificationAction({message: "Modified scenario's treatments"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's treatments"});
                 $emitter.emit('TreatmentSettingsUpdated');
 
-                await getTreatmentLibraryBySimulationIdAction(selectedScenarioId);
+                await treatmentStore.getTreatmentLibraryBySimulationId(selectedScenarioId);
                 ruleOverrideTogglesKey.value += 1;
                 checkHasUnsavedChanges();
             }
@@ -1095,8 +1093,8 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
                     }
                 }
                 clearChanges();
-                addedOrUpdatedTreatmentLibraryMutator(selectedTreatmentLibrary.value);
-                selectedTreatmentLibraryMutator(selectedTreatmentLibrary.value.id);
+                treatmentStore.addedOrUpdatedTreatmentLibraryMutator(selectedTreatmentLibrary.value);
+                treatmentStore.selectedTreatmentLibraryMutator(selectedTreatmentLibrary.value.id);
             }
         });
     }
@@ -1307,8 +1305,8 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
         setTimeout(() => {
             if (hasScenario.value) {
                 clearChanges();
-                simpleTreatments.value = clone(stateSimpleScenarioSelectableTreatments.value);
-                ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
+                simpleTreatments.value = clone( treatmentStore.simpleScenarioSelectableTreatmentsGetter);
+                ruleOverrides.value = treatmentStore.getScenarioTreatmentLibrary?.ruleOverrides || [];
                 ruleOverrideTogglesKey.value += 1;
                 checkHasUnsavedChanges();
             }
@@ -1321,8 +1319,8 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
         treatmentSelectItemValue.value = "";
         librarySelectItemValue.value = "";
         clearChanges();
-        simpleTreatments.value = clone(stateSimpleScenarioSelectableTreatments.value);
-        ruleOverrides.value = stateScenarioTreatmentLibrary.value?.ruleOverrides || [];
+        simpleTreatments.value = clone(treatmentStore.simpleScenarioSelectableTreatmentsGetter);
+        ruleOverrides.value = treatmentStore.getScenarioTreatmentLibrary?.ruleOverrides || [];
         ruleOverrideTogglesKey.value += 1;
         checkHasUnsavedChanges();
     }
@@ -1666,8 +1664,8 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
             updatedRowsMap.size > 0 ||
             hasPendingScenarioOverrideSettings ||
             (hasScenario.value && hasSelectedLibrary.value) ||
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTreatmentLibrary.value, stateSelectedTreatmentLibrary.value))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedTreatmentLibrary.value, treatmentStore.getSelectedTreatmentLibrary))
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {

@@ -55,11 +55,11 @@ import XButton from '@/shared/components/buttons/XButton.vue';
     const props = defineProps<{dialogData: CreateTreatmentLibraryDialogData}>()
     const { dialogData } = toRefs(props);
     const emit = defineEmits(['submit'])
-    let store = useStore();
-    const getIdByUserNameGetter: (username: string) => string = store.getters.getIdByUserName;
+
+    const userStore = useUserStore();
 
     function getOwnerId(username: string): string {
-        return getIdByUserNameGetter(username) || store.state.userModule?.currentUser?.id || getBlankGuid();
+        return userStore.getIdByUserName(username) || userStore.currentUser?.id || getBlankGuid();
     }
 
     const newTreatmentLibrary = ref<TreatmentLibrary>({...emptyTreatmentLibrary, id: getNewGuid(),});

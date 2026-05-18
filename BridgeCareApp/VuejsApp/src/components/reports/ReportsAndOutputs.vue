@@ -210,11 +210,12 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
 import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
 import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vue';
-import { useAdminDataStore, useAuthenticationStore, useNotificationStore } from '@/stores';
+import { useAdminDataStore, useAuthenticationStore, useNotificationStore, useReportSchemaStore } from '@/stores';
 
     const adminDataStore = useAdminDataStore();
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
+    const reportSchemaStore = useReportSchemaStore();
     const router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>> 
     let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
@@ -397,10 +398,7 @@ import { useAdminDataStore, useAuthenticationStore, useNotificationStore } from 
         exportStatus.value = 'Starting Excel export...';
 
         try {
-            const response = await store.dispatch('requestUniversalReportExport', {
-                schemaId: targetSchema.id,
-                simulationId: selectedScenarioId.value,
-            });
+            const response = await reportSchemaStore.requestUniversalReportExport(targetSchema.id, selectedScenarioId.value);
 
             exportReportName.value = response?.reportName || 'UniversalReport';
             exportReportId.value = response?.reportId || '';
@@ -435,9 +433,9 @@ import { useAdminDataStore, useAuthenticationStore, useNotificationStore } from 
                 reportName: exportReportName.value,
                 simulationName: simulationName.value,
             });
-            addSuccessNotificationAction({ message: 'Excel export downloaded.' });
+            notificationStore.addSuccessNotification({ message: 'Excel export downloaded.' })
         } catch (e) {
-            addErrorNotificationAction({ message: 'Excel export finished, but download failed.' });
+            notificationStore.addErrorNotification({ message: 'Excel export finished, but download failed.' });
         } finally {
             exportStatus.value = '';
             exportReportId.value = '';

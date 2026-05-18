@@ -377,8 +377,9 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
 
     // watch(benefit, onAnalysisChanged)
     watch(analysisMethod, onAnalysisChanged)
-        await getSimulationAnalysisSettingAction({ scenarioId: selectedScenarioId.value });
-        hasUnsavedChanges.value = !equals(analysisMethod.value, stateAnalysisMethod.value) || !stateSimulationAnalysisSetting.value;
+    async function onAnalysisChanged() {   
+        await analysisMethodStore.getSimulationAnalysisSetting(selectedScenarioId.value );
+        hasUnsavedChanges.value = !equals(analysisMethod.value, analysisMethodStore.analysisMethodGetter ) || !analysisMethodStore.simulationAnalysisSettingGetter;
         unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges.value);
 
          setBenefitAttributeIfEmpty();

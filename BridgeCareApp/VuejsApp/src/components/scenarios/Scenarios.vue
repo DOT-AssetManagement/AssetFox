@@ -629,7 +629,6 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScena
     const $router = useRouter();     
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
-    let authenticated:boolean = authenticationStore.authenticated;
     let hasAdminAccess: boolean = authenticationStore.hasAdminAccess ; 
     let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
     let networks: Network[] = [];
@@ -1593,8 +1592,8 @@ import { useAuthenticationStore, useNetworkStore, useNotificationStore, useScena
     }
 
     async function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
-        store.dispatch('updateSimulationRunSettingName', selectedScenario.name);
-        store.dispatch('updateSimulationRunSettingId', selectedScenario.id);
+        scenarioStore.updateSimulationRunSettingName(selectedScenario.name);
+        scenarioStore.updateSimulationRunSettingId(selectedScenario.id);
         closePreCheckDialog();
         selectedScenario = runAnalysisScenario;
 

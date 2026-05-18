@@ -771,8 +771,8 @@ import { useTreatmentStore } from '@/stores/treatment.store';
     }
 
     function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
-        store.dispatch('updateSimulationRunSettingName', simulationName);
-        store.dispatch('updateSimulationRunSettingId', selectedScenarioId);
+        scenarioStore.updateSimulationRunSettingName(simulationName)
+        scenarioStore.updateSimulationRunSettingId(selectedScenarioId);
 
         closePreCheckDialog();
 
