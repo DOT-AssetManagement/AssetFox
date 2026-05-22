@@ -438,7 +438,7 @@ namespace AssetFoxCore.Controllers
 
             try
             {
-                await Task.Run(() => UnitOfWork.SimulationRepo.DeleteSimulationReports(simulationId));
+                await Task.Run(() => UnitOfWork.SimulationRepo.DeleteSimulationReports(simulationId, true));
             }
             catch (Exception e)
             {

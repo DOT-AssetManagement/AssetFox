@@ -39,7 +39,7 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
             _unitOfWork.SimulationRepo.DeleteSimulation(SimulationId, cancellationToken, _queueLogger);
             try
             {
-                _unitOfWork.SimulationRepo.DeleteSimulationReports(SimulationId);
+                _unitOfWork.SimulationRepo.DeleteSimulationReports(SimulationId, false);
             }
             catch
             {
