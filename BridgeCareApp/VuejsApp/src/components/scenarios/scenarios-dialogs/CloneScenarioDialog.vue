@@ -133,6 +133,8 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
         ([showDialog]) => {
             if (showDialog) {
                 initializeNetworkSelection(true);
+                onModifyScenarioUserAccess();
+                validateScenarioName();
             }
         },
     );
@@ -217,7 +219,7 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
     const hasValidationErrors = computed(() => scenarioNameErrors.value.length > 0);
     const isSaveButtonDisabled = computed(() => 
-        newScenario.name === '' || !isNetworkSelected.value || hasValidationErrors.value
+        dialogData.value.scenario.name === '' || !isNetworkSelected.value || hasValidationErrors.value
     );
     watch(() => dialogData.value.scenario.name, validateScenarioName);
 
@@ -233,7 +235,7 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
         }
 
         newScenario = { ...emptyCloneScenario, id: getNewGuid() };
-        shared = ref(false);
+        shared.value = false;
         hasCompatibleNetworks = false;
     }
 
