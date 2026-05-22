@@ -24,7 +24,7 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
         public string WorkDescription => "Delete Simulation";
 
         public WorkQueueMetadata Metadata =>
-            new WorkQueueMetadata() { WorkType = WorkType.DeleteSimulation, DomainType = DomainType.Simulation, DomainId = SimulationId};
+            new WorkQueueMetadata() { WorkType = WorkType.DeleteSimulation, DomainType = DomainType.Simulation, DomainId = SimulationId };
 
         public string WorkName => scenarioName;
 
@@ -36,8 +36,15 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
             var _queueLogger = new GeneralWorkQueueLogger(_hubService, UserId, updateStatusOnHandle, WorkId);
 
-           _unitOfWork.SimulationRepo.DeleteSimulation(SimulationId, cancellationToken, _queueLogger);
-           _unitOfWork.SimulationRepo.DeleteSimulationReports(SimulationId);
+            _unitOfWork.SimulationRepo.DeleteSimulation(SimulationId, cancellationToken, _queueLogger);
+            try
+            {
+                _unitOfWork.SimulationRepo.DeleteSimulationReports(SimulationId);
+            }
+            catch
+            {
+                // ignore the exception
+            }
         }
 
         public void OnFault(IServiceProvider serviceProvider, Exception? e)
