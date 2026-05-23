@@ -149,9 +149,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("The specified budget library was not found.");
             }
 
-            var dtos = _unitOfWork.Context.BudgetAmount
+            var dtos = _unitOfWork.Context.BudgetAmount.AsNoTracking()
                 .Include(_ => _.Budget)
-                .OrderBy(_ => _.Budget.BudgetOrder)
+                .OrderBy(_ => _.Budget)
                 .Where(_ => _.Budget.BudgetLibrary.Id == libraryId)
                 .Select(budgetAmount => new BudgetAmountDTO
                 {
@@ -177,7 +177,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     Year = budgetAmount.Year,
                     Value = budgetAmount.Value,
                     BudgetName = budgetAmount.ScenarioBudget.Name,
-                }).AsNoTracking().ToList();
+                }).AsNoTracking().ToList() ?? [];
         }
     }
 }

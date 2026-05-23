@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using AssetFox.Core.Common.Logging;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Abstract;
@@ -72,6 +71,9 @@ namespace AssetFoxCore.Services
             ExcelHelper.SetCustomFormat(
                 worksheet.Cells[2, 2, worksheet.Dimension.End.Row, worksheet.Dimension.End.Column],
                 ExcelHelperCellFormat.Accounting);
+
+            //autofit columns
+            worksheet.Cells.AutoFitColumns();
         }
 
         private FileInfoDTO CreateInvestmentBudgetsSampleFile()
@@ -117,6 +119,9 @@ namespace AssetFoxCore.Services
                 currentRow++;
             });
 
+            //autofit columns
+            criteriaWorksheet.Cells.AutoFitColumns();
+
             return new FileInfoDTO
             {
                 FileName = fileName,
@@ -144,8 +149,7 @@ namespace AssetFoxCore.Services
 
                 var budgetWorksheet = excelPackage.Workbook.Worksheets.Add("Budget");
 
-                var budgetNames = budgetAmounts.Select(_ => _.BudgetName).Distinct().OrderBy(budgetName => budgetName)
-                    .ToList();
+                var budgetNames = budgetAmounts.Select(_ => _.BudgetName).Distinct().ToList();                    
 
                 AddHeaderCells(budgetWorksheet, budgetNames);
 
@@ -153,8 +157,7 @@ namespace AssetFoxCore.Services
                     .OrderBy(budgetAmount => budgetAmount.Year)
                     .GroupBy(budgetAmount => budgetAmount.Year, dto => dto)
                     .ToDictionary(group => group.Key, dtos => dtos
-                        .OrderBy(budgetAmount => budgetAmount.BudgetName)
-                        .Select(budgetAmount => budgetAmount.Value).ToList());
+                    .Select(budgetAmount => budgetAmount.Value).ToList());
 
                 AddDataCells(budgetWorksheet, budgetAmountsPerYear);
 
@@ -172,6 +175,8 @@ namespace AssetFoxCore.Services
                         criteriaWorksheet.Cells[currentRow, 2].Value = criteriaPerBudgetName.Value;
                         currentRow++;
                     });
+                    //autofit columns
+                    criteriaWorksheet.Cells.AutoFitColumns();
                 }
 
                 return new FileInfoDTO
@@ -227,6 +232,8 @@ namespace AssetFoxCore.Services
                         criteriaWorksheet.Cells[currentRow, 2].Value = criteriaPerBudgetName.Value;
                         currentRow++;
                     });
+                    //autofit columns
+                    criteriaWorksheet.Cells.AutoFitColumns();
                 }
 
                 return new FileInfoDTO
