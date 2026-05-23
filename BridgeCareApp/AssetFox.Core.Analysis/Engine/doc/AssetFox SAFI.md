@@ -119,7 +119,8 @@ consideration proceeds to the next project option.
 The scenario may be configured to allow the consideration loop(s) to terminate
 early if the constraints imposed by the scenario's goal conditions have been
 satisfied by the effects of the set of projects accepted so far in the current
-time step.
+time step. Under this kind of configuration, all budget constraints are
+disabled.
 
 ## 2. Unique SAFI Terms & Corresponding SAF Concepts
 
