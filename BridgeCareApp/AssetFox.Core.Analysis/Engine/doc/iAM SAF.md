@@ -208,7 +208,7 @@ information about "goals" for the attribute value, to guide project selection.
 - _Attribute Value Function_: **required**
   - This function's associated attribute is the one whose definition contains
     this deterioration model.
-- _Direction of Deterioration_: **negative or positive**
+- _Direction of Deterioration_: **"decreasing" or "increasing"**
   - This is required for interpretation of goal condition limits.
 - _Target Condition Goals_: **zero or more**
 - _Deficient Condition Goals_: **zero or more**
