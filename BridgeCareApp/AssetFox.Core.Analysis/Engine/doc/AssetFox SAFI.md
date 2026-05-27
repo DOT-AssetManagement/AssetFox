@@ -1,7 +1,9 @@
 # AssetFox SAFI <!-- omit in toc -->
 
 AssetFox is an asset management web application that contains an SAFI (i.e. an
-implementation of the iAM SAF).
+implementation of the iAM SAF). AssetFox's SAFI inherits much (but not all) of
+its phase 2 and phase 3 behavior from the SAFI embedded in the original RoadCare
+desktop application.
 
 - [1. Overview of SAF Implementation](#1-overview-of-saf-implementation)
   - [1.1. EOV Methods](#11-eov-methods)

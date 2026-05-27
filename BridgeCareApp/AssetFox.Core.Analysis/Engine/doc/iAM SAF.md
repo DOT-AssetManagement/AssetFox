@@ -9,6 +9,10 @@ An _SAF implementation_ (SAFI) is an artifact that uses the SAF procedure and
 data, respectively customized and extended according to all special requirements
 of the SAFI.
 
+> The iAM SAF is unchanged from (and identical to) the framework that has
+> governed the simulation algorithms in all versions of the RoadCare desktop
+> application since its inception.
+
 - [1. Overview of Procedure](#1-overview-of-procedure)
 - [2. Terms \& Definitions](#2-terms--definitions)
   - [2.1. Asset Snapshot](#21-asset-snapshot)
