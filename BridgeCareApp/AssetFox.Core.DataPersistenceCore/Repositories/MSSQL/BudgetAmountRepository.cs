@@ -151,7 +151,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
             var dtos = _unitOfWork.Context.BudgetAmount.AsNoTracking()
                 .Include(_ => _.Budget)
-                .OrderBy(_ => _.Budget)
+                .OrderBy(_ => _.Budget.BudgetOrder)
                 .Where(_ => _.Budget.BudgetLibrary.Id == libraryId)
                 .Select(budgetAmount => new BudgetAmountDTO
                 {
@@ -170,8 +170,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             }
 
             return _unitOfWork.Context.ScenarioBudgetAmount.AsNoTracking()
-                .Where(_ => _.ScenarioBudget.SimulationId == simulationId)
                 .Include(sb => sb.ScenarioBudget)
+                .OrderBy(sb => sb.ScenarioBudget.BudgetOrder)
+                .Where(_ => _.ScenarioBudget.SimulationId == simulationId)
                 .Select(budgetAmount => new BudgetAmountDTO
                 {
                     Year = budgetAmount.Year,

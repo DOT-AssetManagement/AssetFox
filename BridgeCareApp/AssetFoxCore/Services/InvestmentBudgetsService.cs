@@ -299,11 +299,13 @@ namespace AssetFoxCore.Services
             var existingBudgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
 
             var existingBudgetNames = existingBudgets.Select(existingBudget => existingBudget.Name).ToList();
+            var budgetOrder = 1;
             var newBudgets = worksheetBudgetNames.Where(budgetName => !existingBudgetNames.Contains(budgetName))
                 .Select(budgetName => new BudgetDTO
                 {
                     Id = Guid.NewGuid(),
-                    Name = budgetName
+                    Name = budgetName,
+                    BudgetOrder = budgetOrder++
                 }).ToList();
 
             var budgetAmountsPerBudgetYearTuple = new Dictionary<(string, int), BudgetAmountDTOWithBudgetId>();
@@ -548,6 +550,7 @@ namespace AssetFoxCore.Services
             var existingBudgets = _unitOfWork.BudgetRepo.GetLibraryBudgets(budgetLibraryId);
 
             var existingBudgetNames = existingBudgets.Select(existingBudget => existingBudget.Name).ToList();
+            var budgetOrder = 1;
             var newBudgets = worksheetBudgetNames.Where(budgetName => !existingBudgetNames.Contains(budgetName))
                 .Select(budgetName => new BudgetDTOWithLibraryId
                 {
@@ -555,7 +558,8 @@ namespace AssetFoxCore.Services
                     Budget = new BudgetDTO
                     {
                         Id = Guid.NewGuid(),
-                        Name = budgetName
+                        Name = budgetName,
+                        BudgetOrder = budgetOrder++
                     },
                 }).ToList();
 
