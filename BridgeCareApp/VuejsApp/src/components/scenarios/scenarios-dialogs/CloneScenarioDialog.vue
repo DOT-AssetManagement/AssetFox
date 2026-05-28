@@ -67,7 +67,7 @@ import {
     emptyCloneScenario,
 } from '@/shared/models/iAM/scenario';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
-import { find, isNil, propEq } from 'ramda';
+import { clone, find, isNil, propEq } from 'ramda';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
 import { CloneSimulationDialogData } from '@/shared/models/modals/clone-scenario-dialog-data';
 import {
@@ -97,7 +97,7 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
     function initializeNetworkSelection(force: boolean = false) {
         const sourceNetworkId: string = props.dialogData.scenario.networkId;
         const sourceNetworkName: string = props.dialogData.scenario.networkName;
-        const sourceNetwork = networkStore.networksGetter.find((network: Network) => network.id === sourceNetworkId);
+        const sourceNetwork = clone(networkStore.networksGetter.find((network: Network) => network.id === sourceNetworkId));
 
         const hasCurrentSelection =
             !isNil(selectedNetworkId) &&
