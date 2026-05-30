@@ -94,7 +94,6 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 simulation,
                 UserId);
 
-
             if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
             {
                 return;

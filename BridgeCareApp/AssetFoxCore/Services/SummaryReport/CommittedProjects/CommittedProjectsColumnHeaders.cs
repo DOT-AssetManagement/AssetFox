@@ -5,9 +5,9 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
 {
     public class CommittedProjectsColumnHeaders
     {
-        public const string BRKey = "BRKEY_";
-        public const string BMSID = "BMSID";
-        public const string CRS = "CRS";
+        public const string BRKey = "BRKEY_"; //TODO import do not refresh after done
+        public const string BMSID = "BMSID"; //TODO import do not refresh after done
+        public const string CRS = "PAVESEG"; //"CRS";  //TODO use key settings where it is been used! Falis for Import //TODO import do not refresh after done
         public const string Treatment = "TREATMENT";
         public const string Year = "YEAR";
         public const string Budget = "BUDGET";

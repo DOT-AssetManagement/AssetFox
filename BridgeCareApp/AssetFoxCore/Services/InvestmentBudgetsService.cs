@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using AssetFox.Core.Analysis;
 using AssetFox.Core.Common.Logging;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
@@ -346,15 +347,17 @@ namespace AssetFoxCore.Services
                     {
                         continue;
                     }
+
                     var budgetYearTuple = (budgetName, year);
-                    if (!budgetAmountsPerBudgetYearTuple.ContainsKey(budgetYearTuple))
+                    var isDecimal = decimal.TryParse(budgetWorksheet.Cells[row, col].Value?.ToString(), out decimal budgetAmount);
+                    if (!budgetAmountsPerBudgetYearTuple.TryGetValue(budgetYearTuple, out var value))
                     {
                         var budgetId = existingBudgets.Any(_ => _.Name == budgetYearTuple.budgetName)
                             ? existingBudgets
                                 .Single(_ => _.Name == budgetYearTuple.budgetName).Id
                             : newBudgets
-                                .Single(_ => _.Name == budgetYearTuple.budgetName).Id;
-
+                                .Single(_ => _.Name == budgetYearTuple.budgetName).Id;                        
+                        
                         newBudgetAmounts.Add(new BudgetAmountDTOWithBudgetId
                         {
                             BudgetId = budgetId,
@@ -362,13 +365,13 @@ namespace AssetFoxCore.Services
                             {
                                 Id = Guid.NewGuid(),
                                 Year = budgetYearTuple.year,
-                                Value = budgetWorksheet.GetValue<decimal>(row, col)
+                                Value = budgetAmount
                             }
                         });
                     }
                     else
                     {
-                        budgetAmountsPerBudgetYearTuple[budgetYearTuple].BudgetAmount.Value = budgetWorksheet.GetValue<decimal>(row, col);
+                        value.BudgetAmount.Value = budgetAmount;
                     }
                 }
             }
@@ -594,6 +597,7 @@ namespace AssetFoxCore.Services
                         continue;
                     }
                     var budgetYearTuple = (budgetName, year);
+                    var isDecimal = decimal.TryParse(budgetWorksheet.Cells[row, col].Value?.ToString(), out decimal budgetAmount);
                     if (!budgetAmountsPerBudgetYearTuple.ContainsKey(budgetYearTuple))
                     {
                         var budgetId = existingBudgets.Any(_ => _.Name == budgetYearTuple.budgetName)
@@ -609,13 +613,13 @@ namespace AssetFoxCore.Services
                             {
                                 Id = Guid.NewGuid(),
                                 Year = budgetYearTuple.year,
-                                Value = budgetWorksheet.GetValue<decimal>(row, col),
+                                Value = budgetAmount,
                             }
                         });
                     }
                     else
                     {
-                        budgetAmountsPerBudgetYearTuple[budgetYearTuple].BudgetAmount.Value = budgetWorksheet.GetValue<decimal>(row, col);
+                        budgetAmountsPerBudgetYearTuple[budgetYearTuple].BudgetAmount.Value = budgetAmount;
                     }
                 }
             }

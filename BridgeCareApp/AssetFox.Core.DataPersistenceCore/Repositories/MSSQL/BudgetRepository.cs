@@ -8,7 +8,6 @@ using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEnti
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
-using AssetFox.Core.Analysis;
 using AssetFox.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;

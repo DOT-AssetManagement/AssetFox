@@ -630,6 +630,11 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 Hub.BroadcastEventType.BroadcastImportCompletionEvent,
                 importCompleted,
         );
+
+        $emitter.on(
+                Hub.BroadcastEventType.BroadcastImportFailureEvent,
+                importFailed,
+        );
     });
 
     onBeforeUnmount(() =>  {
@@ -798,6 +803,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         if (hasSelectedLibrary.value) {
             checkLibraryEditPermission();
             hasCreatedLibrary = false;
+            alert('1');
             ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedBudgetLibrary.value.id, workType: WorkType.ImportLibraryInvestment}).then(response => {
                 if(response.data){
                     setAlertMessageAction("An investment import has been added to the queue")
@@ -1339,8 +1345,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             });
     }
     function onSubmitImportExportInvestmentBudgetsDialogResult(result: ImportExportInvestmentBudgetsDialogResult) {
-        showImportExportInvestmentBudgetsDialog.value = false;
-
+        showImportExportInvestmentBudgetsDialog.value = false;        
         if (hasValue(result)) {
             if (result.isExport) {
 
@@ -1747,7 +1752,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             initializePages().then(async () => {
                 setAlertMessageAction('');
                 isSuccessfulImportMutator(true);
-                await getBudgetLibrariesAction()
+                await getBudgetLibrariesAction();
                 if(hasScenario.value){                
                     investmentPlanMutator(investmentPlan.value);
                     firstYearOfAnalysisPeriodShift.value = 0;
@@ -1760,6 +1765,21 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
             })
             $emitter.emit('InvestmentSettingsUpdated');                
         }        
+    }
+
+    function importFailed(){        
+        clearChanges(); 
+        pagination.page = 1;
+        initializePages().then(async () => {
+            setAlertMessageAction('');
+            isSuccessfulImportMutator(false);        
+            if(hasScenario.value){                
+                investmentPlanMutator(investmentPlan.value);
+                firstYearOfAnalysisPeriodShift.value = 0;
+            }
+            else{
+            }
+        });
     }
 
     async function initializePages(){
