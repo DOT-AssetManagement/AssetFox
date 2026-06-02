@@ -802,8 +802,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         hasSelectedLibrary.value = selectedBudgetLibrary.value.id !== uuidNIL;
         if (hasSelectedLibrary.value) {
             checkLibraryEditPermission();
-            hasCreatedLibrary = false;
-            alert('1');
+            hasCreatedLibrary = false;            
             ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedBudgetLibrary.value.id, workType: WorkType.ImportLibraryInvestment}).then(response => {
                 if(response.data){
                     setAlertMessageAction("An investment import has been added to the queue")

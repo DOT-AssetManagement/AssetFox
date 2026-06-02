@@ -376,7 +376,10 @@ namespace AssetFoxCore.Services
                 }
             }
             if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
                 return new ScenarioBudgetImportResultDTO();
+            }
+
             queueLog.UpdateWorkQueueStatus("Adding New Budgets");
             _unitOfWork.BudgetRepo.AddScenarioBudgets(simulationId, newBudgets);
 
@@ -387,7 +390,8 @@ namespace AssetFoxCore.Services
 
             var budgetsWithInvalidCriteria = new List<string>();
             var criteriaBudgetNamesNotPresentInBudgetTab = new List<string>();
-            if (criteriaPerBudgetName.Values.Any())
+            var warningSb = new StringBuilder();
+            if (criteriaPerBudgetName.Values.Count != 0)
             {
                 if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                     return new ScenarioBudgetImportResultDTO();
@@ -450,19 +454,15 @@ namespace AssetFoxCore.Services
                 {
                     var sb = new StringBuilder();
                     if (criteriaBudgetNamesNotPresentInBudgetTab.Count > 0)
-                    {
-                        sb.Append($" The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
+                    {                        
+                        warningSb.Append($"The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
                     }
-                    HubService.SendRealTimeMessage("", HubConstant.BroadcastError, sb.ToString());
-                    throw new InvalidOperationException(exceptionMessage);
                 }
                 _unitOfWork.CriterionLibraryRepo.AddLibraries(criteria);
                 _unitOfWork.CriterionLibraryRepo.AddLibraryScenarioBudgetJoins(criteriaJoins);
             }
-
-            var warningSb = new StringBuilder();
-            
-            if (budgetsWithInvalidCriteria.Any())
+                                    
+            if (budgetsWithInvalidCriteria.Count != 0)
             {
                 warningSb.Append($"The following budgets had invalid criteria: {string.Join(", ", budgetsWithInvalidCriteria)}. ");
             }
@@ -537,9 +537,12 @@ namespace AssetFoxCore.Services
             if (overwriteBudgets)
             {
                 if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                {
                     return new BudgetImportResultDTO();
+                }
+
                 queueLog.UpdateWorkQueueStatus("Deleting Old Budgets");
-                if (criteriaPerBudgetName.Values.Any())
+                if (criteriaPerBudgetName.Values.Count != 0)
                 {
                     var budgetNames = criteriaPerBudgetName.Keys.ToList();
                     _unitOfWork.CriterionLibraryRepo.DeleteAllSingleUseCriterionLibrariesWithBudgetNamesForBudgetLibrary(budgetLibraryId, budgetNames); // We have two calls to this. See https://ara-cu.visualstudio.com/Infrastructure%20Asset%20Management/_workitems/edit/21486.
@@ -634,7 +637,8 @@ namespace AssetFoxCore.Services
 
             var budgetsWithInvalidCriteria = new List<string>();
             var criteriaBudgetNamesNotPresentInBudgetTab = new List<string>();
-            if (criteriaPerBudgetName.Values.Any())
+            var warningSb = new StringBuilder();
+            if (criteriaPerBudgetName.Values.Count != 0)
             {
                 queueLog.UpdateWorkQueueStatus("Updating Criteria");
                 var allBudgets = new List<BudgetDTO>();
@@ -695,18 +699,15 @@ namespace AssetFoxCore.Services
                 {
                     var sb = new StringBuilder();
                     if (criteriaBudgetNamesNotPresentInBudgetTab.Count > 0)
-                    {
-                        sb.Append($" The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
+                    {                        
+                        warningSb.Append($"The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
                     }
-                    HubService.SendRealTimeMessage("", HubConstant.BroadcastError, sb.ToString());
-                    throw new InvalidOperationException(exceptionMessage);
                 }
                 _unitOfWork.CriterionLibraryRepo.AddLibraries(criteria);
                 _unitOfWork.CriterionLibraryRepo.AddLibraryBudgetJoins(criteriaJoins);
             }
-
-            var warningSb = new StringBuilder();
-            if (budgetsWithInvalidCriteria.Any())
+                        
+            if (budgetsWithInvalidCriteria.Count != 0)
             {
                 warningSb.Append($"The following budgets had invalid criteria: {string.Join(", ", budgetsWithInvalidCriteria)}");
             }
