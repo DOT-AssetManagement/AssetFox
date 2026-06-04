@@ -251,7 +251,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 Treatment = treatment,
                 Year = projectYear,
                 ProjectSource = SafeGetProjectSource(rowValues, columnIndices, CommittedProjectsColumnHeaders.ProjectSource, row),
-                ProjectId = SafeGetProjectSourceId(rowValues, columnIndices, CommittedProjectsColumnHeaders.ProjectSourceId),
+                ProjectId = SafeGetProjectSourceId(rowValues, columnIndices, CommittedProjectsColumnHeaders.ProjectId),
                 Cost = SafeGetProjectCost(rowValues, columnIndices, CommittedProjectsColumnHeaders.Cost, row),
                 Category = SafeGetTreatmentCategory(rowValues, columnIndices, CommittedProjectsColumnHeaders.Category, row)
             };
@@ -725,9 +725,9 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 }
             }
 
-            if (missingColumns.Contains(CommittedProjectsColumnHeaders.ProjectSourceId))
+            if (missingColumns.Contains(CommittedProjectsColumnHeaders.ProjectId))
             {
-                missingColumns.Remove(CommittedProjectsColumnHeaders.ProjectSourceId);
+                missingColumns.Remove(CommittedProjectsColumnHeaders.ProjectId);
             }
 
             // Broadcast missing columns if any
