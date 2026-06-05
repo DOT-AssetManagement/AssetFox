@@ -7,7 +7,7 @@ using AssetFox.Core.DTOs;
 using OfficeOpenXml;
 using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
 
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     public class CommittedProjectsExporter
     {

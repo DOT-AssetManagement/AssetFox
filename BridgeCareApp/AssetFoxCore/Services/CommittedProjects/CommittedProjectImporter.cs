@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     /// <summary>
     /// Handles the import of committed projects from an Excel worksheet.

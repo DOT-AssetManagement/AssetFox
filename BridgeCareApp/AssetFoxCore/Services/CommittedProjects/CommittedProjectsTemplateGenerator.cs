@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using AssetFox.Core.DTOs;
 using OfficeOpenXml;
 
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     public class CommittedProjectsTemplateGenerator
     {

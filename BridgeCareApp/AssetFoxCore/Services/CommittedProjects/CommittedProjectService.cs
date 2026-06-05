@@ -14,7 +14,7 @@ using AssetFoxCore.Interfaces;
 using MoreLinq;
 using OfficeOpenXml;
 
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     public class CommittedProjectService : ICommittedProjectService
     {

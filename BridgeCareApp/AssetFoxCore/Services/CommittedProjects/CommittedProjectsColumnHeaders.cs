@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     public class CommittedProjectsColumnHeaders
     {
