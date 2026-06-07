@@ -96,7 +96,7 @@ namespace AssetFoxCore.Services.CommittedProjects
             if (maintainableAssetIdsPerLocationId == null || maintainableAssetIdsPerLocationId.Count == 0)
             {
                 HandleValidationError(_hubService, userId, $"No maintainable assets were found for Network Id: {simulation.NetworkId}");
-                return new List<SectionCommittedProjectDTO>();
+                return [];
             }
 
             int startRow = 2; // Assuming headers are in row 1
@@ -201,8 +201,7 @@ namespace AssetFoxCore.Services.CommittedProjects
                             excelAddresses.Add(cells);
                         }
                         ExcelHelper.ApplyColor(cells, Color.Red);
-                    }
-                    
+                    }                    
                 }
             }
 
@@ -324,7 +323,7 @@ namespace AssetFoxCore.Services.CommittedProjects
         {
             if (!_validationErrorMessages.TryGetValue(errorType, out var errorList))
             {
-                errorList = new List<string>();
+                errorList = [];
                 _validationErrorMessages[errorType] = errorList;
             }
             errorList.Add(message);
@@ -579,7 +578,7 @@ namespace AssetFoxCore.Services.CommittedProjects
             if (columnIndex == -1)
             {
                 result.Add("Default Treatment");
-                return result.ToArray();
+                return getResultArray();
             }
 
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
@@ -590,7 +589,7 @@ namespace AssetFoxCore.Services.CommittedProjects
                 {
                     AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment is null or empty.");
                     result.Add("Default Treatment");
-                    return result.ToArray();
+                    return getResultArray();
                 }
 
                 if (treatment.Contains("Bundle"))
@@ -613,7 +612,7 @@ namespace AssetFoxCore.Services.CommittedProjects
                         }
                     }
 
-                    return result.ToArray();
+                    return getResultArray();
                 }
 
                 // Check if treatment exists in the provided treatments list 
@@ -624,19 +623,21 @@ namespace AssetFoxCore.Services.CommittedProjects
                 if (matchingSingleTreatment != null)
                 {
                     result.Add(matchingSingleTreatment);
-                    return result.ToArray(); 
+                    return getResultArray();
                 }
 
                 AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment '{treatment}' not found in the valid treatments list.");
                 result.Add("Default Treatment");
-                return result.ToArray();
+                return getResultArray();
             }
             else
             {
                 AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment is missing.");
                 result.Add("Default Treatment");
-                return result.ToArray();
+                return getResultArray();
             }
+
+            string[] getResultArray() => result.ToArray();
         }
 
 
@@ -725,13 +726,10 @@ namespace AssetFoxCore.Services.CommittedProjects
                 }
             }
 
-            if (missingColumns.Contains(CommittedProjectsColumnHeaders.ProjectId))
-            {
-                missingColumns.Remove(CommittedProjectsColumnHeaders.ProjectId);
-            }
+            missingColumns.Remove(CommittedProjectsColumnHeaders.ProjectId);
 
             // Broadcast missing columns if any
-            if (missingColumns.Any())
+            if (missingColumns.Count != 0)
             {
                 var errors = new StringBuilder();
                 errors.Append($"Missing columns: {string.Join(", ", missingColumns)}. These will use default values.");
@@ -744,21 +742,6 @@ namespace AssetFoxCore.Services.CommittedProjects
         private static bool IsRowBlank(Dictionary<int, object> rowValues)
         {
             return rowValues.All(kvp => kvp.Value == null || string.IsNullOrWhiteSpace(kvp.Value.ToString()));
-        }
-
-
-        private static string GetErrorTitle(ErrorType errorType, int count)
-        {
-            return errorType switch
-            {
-                ErrorType.MissingValue => $"Missing Values Detected ({count} total):",
-                ErrorType.InvalidValue => $"Invalid Values Detected ({count} total):",
-                ErrorType.DuplicateEntry => $"Duplicate Entries Detected ({count} total):",
-                ErrorType.AssetNotFound => $"Assets Not Found ({count} total):",
-                ErrorType.ParsingError => $"Parsing Errors ({count} total):",
-                ErrorType.GeneralError => $"General Errors ({count} total):",
-                _ => $"Errors ({count} total):",
-            };
         }
     }
 }
