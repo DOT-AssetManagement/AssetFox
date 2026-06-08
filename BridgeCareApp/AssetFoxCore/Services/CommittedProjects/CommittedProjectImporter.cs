@@ -229,15 +229,21 @@ namespace AssetFoxCore.Services.CommittedProjects
             var treatment = SafeGetTreatment(rowValues, columnIndices, treatments, CommittedProjectsColumnHeaders.Treatment, row);
 
             var key = (locationIdentifier: locationId, projectYear);
+            var columnIndex = columnIndices[_networkKeyField];
+
             // Check for duplicates
             if (!_processedKeys.TryAdd(key, true))
             {
                 // Duplicate found
                 AddValidationError(ErrorType.DuplicateEntry,
-                    $"Duplicate Project Removed: Row {row}, Asset {locationId}, Year {projectYear}'");
+                    $"Row {row}, Column {columnIndex}: Duplicate Project Removed Asset {locationId}, Year {projectYear}'");
+                // Add next column cell to highlight asset id and year both as they contribute to duplicate key
+                AddValidationError(ErrorType.DuplicateEntry,
+                    $"Row {row}, Column {columnIndex + 1}: Duplicate Project Removed Asset {locationId}, Year {projectYear}'");
+                
                 return null; // Skip further processing
             }
-            var columnIndex = columnIndices[_networkKeyField];
+            
             var assetId = ValidateLocationIdHasAssets(maintainableAssetIdsPerLocationId, locationId, row, columnIndex);
             var locationInformation = BuildLocationInformation(locationColumnNames, rowValues, assetId, row);        
 
