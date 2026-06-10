@@ -50,10 +50,10 @@
                     <v-btn
                         :class="{
                             'blue-run-icon ghd-button-text': !isBudgetPrioritySet,
-                            'ghd-white-bg ghd-lt-gray ghd-button-text ghd-button-border': !isCommittedProjectsBudgetsUnset
+                            'ghd-white-bg ghd-lt-gray ghd-button-text ghd-button-border': isCommittedProjectsBudgetsUnset
                         }"
                         @click="onShowRunSimulationAlert"
-                        :disabled="isBudgetPrioritySet || !isCommittedProjectsBudgetsUnset"
+                        :disabled="isBudgetPrioritySet || isCommittedProjectsBudgetsUnset"
                         block
                         variant = "outlined">
                         Run Scenario
@@ -100,7 +100,7 @@ import ImportExportCommittedProjectsDialog from '@/components/scenarios/scenario
 import { any, clone, isNil, propEq } from 'ramda';
 import { AxiosResponse } from 'axios';
 import CommittedProjectsService from '@/services/committed-projects.service';
-import { Network } from '@/shared/models/iAM/network';
+import { Network, emptyNetwork } from '@/shared/models/iAM/network';
 import FileDownload from 'js-file-download';
 import { NavigationTab } from '@/shared/models/iAM/navigation-tab';
 import { ImportExportCommittedProjectsDialogResult } from '@/shared/models/modals/import-export-committed-projects-dialog-result';
@@ -200,6 +200,7 @@ import CashFlowService from '@/services/cash-flow.service';
     let hasScenarioBeenRun = ref(false);
     let isCommittedProjectsBudgetsUnset = ref(true);
     let selectedScenarioName: string = "";
+    let AllCommittedProjectsValid: boolean = false;
 
     let navigationTabs = ref<NavigationTab[]>([
     {
@@ -442,7 +443,7 @@ import CashFlowService from '@/services/cash-flow.service';
                         if (
                             hasValue(response, 'status') &&
                             http2XX.test(response.status.toString())
-                        ) {
+                        ) { alert('1');
                             addSuccessNotificationAction({
                                 message: 'Successful upload.',
                                 longMessage:
@@ -591,7 +592,7 @@ import CashFlowService from '@/services/cash-flow.service';
 
         $emitter.on('CommittedProjectsUpdated', () => {
             isCashFlowSet.value = false;
-            isCommittedProjectsBudgetsUnset.value = true;
+            isCommittedProjectsBudgetsUnset.value = false;
             // Update the icon of the Committed Projects tab
             navigationTabs.value.forEach((tab) => {
                     if (tab.tabName === 'Committed Projects') {
@@ -601,6 +602,7 @@ import CashFlowService from '@/services/cash-flow.service';
         });
 
         $emitter.on('AllCommittedProjectsDeleted', () => {
+            isCommittedProjectsBudgetsUnset.value = false;
             // Update the icon of the Committed Projects tab
             navigationTabs.value.forEach((tab) => {
                     if (tab.tabName === 'Committed Projects') {
@@ -1058,10 +1060,10 @@ import CashFlowService from '@/services/cash-flow.service';
             search: ""
         };
 
-        await CommittedProjectsService.getCommittedProjectsPage(selectedScenarioId, request).then(response => {
+        await CommittedProjectsService.getCommittedProjectsPage(selectedScenarioId, request).then(response => {            
             if(response.data)
-            {
-                isCommittedProjectsSet.value = response.data.items.length == 0;
+            {   
+                isCommittedProjectsSet.value = response.data.items.length > 0;
 
                 if (response?.data?.items) {
                     response.data.items.forEach((item: { scenarioBudgetId: any; }) => {
@@ -1069,31 +1071,36 @@ import CashFlowService from '@/services/cash-flow.service';
                             hasUnsetBudgets = true;
                         }
                     });
+                }                
+            }
+        });
+            
+        var network = stateNetworks.find(o => o.id === networkId) || clone(emptyNetwork);            
+        await CommittedProjectsService.validateAllCommittedProjects(selectedScenarioId, network).then(responseValidation => {
+            if(responseValidation.data) {
+                AllCommittedProjectsValid = responseValidation.data;
+            }
+        });        
+        
+        navigationTabs.value.forEach((tab) => {
+            if (tab.tabName === 'Committed Projects') {
+                if(isCommittedProjectsSet.value === false)
+                {
+                    tab.validationIcon = "fas fa-exclamation-circle";
+                    isCommittedProjectsBudgetsUnset.value = false;
                 }
-
-                navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Committed Projects') {
-                        if(isCommittedProjectsSet.value === true)
-                        {
-                            tab.validationIcon = "fas fa-exclamation-circle";
-                            isCommittedProjectsBudgetsUnset.value = true;
-                        }
-                        else if(hasUnsetBudgets == true)
-                        {
-                            tab.validationIcon = "fas fa-times-circle";
-                            isCommittedProjectsBudgetsUnset.value = false;
-                        }
-                        else
-                        {
-                            tab.validationIcon = "fas fa-check-circle";
-                            isCommittedProjectsBudgetsUnset.value = true;
-
-                        }
-                    }
-                });
-            }   
-
-        })
+                else if(hasUnsetBudgets == true || AllCommittedProjectsValid == false)
+                {
+                    tab.validationIcon = "fas fa-times-circle";
+                    isCommittedProjectsBudgetsUnset.value = true;
+                }
+                else
+                {
+                    tab.validationIcon = "fas fa-check-circle";
+                    isCommittedProjectsBudgetsUnset.value = false;
+                }
+            }
+        });        
     }
 
     function getTooltipText(validationIcon: string, tabName: string) 

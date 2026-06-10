@@ -1117,7 +1117,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 CommittedProjectsService.importCommittedProjects(
                     result.file,
                     scenarioId,
-                    ).then((response: any) =>{
+                    ).then((response: any) =>{                        
                         if(!isNil(response))
                             setAlertMessageAction("Committed project import has been added to the queue");                        
                     })
@@ -1141,19 +1141,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         };
     }
 
-/*     function handleAddCommittedProjectTemplateUpload(event: { target: { files: any[]; }; }){
-             const file = event.target.files[0];
-             CommittedProjectsService.addCommittedProjectTemplate(file).then((response: AxiosResponse) => {
-                if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                    addSuccessNotificationAction({message:'Uploaded Template'})      
-                }
-            });
-    }
-
-    function onAddSelectedTemplate(){
-        document.getElementById("addCommittedProjectTemplate")?.click();
-    }
- */    
     function onDownloadSelectedTemplate(){
         CommittedProjectsService.getSelectedCommittedProjectTemplate(templateItemSelected.value)
             .then((response: AxiosResponse) => {
@@ -1673,8 +1660,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             onPaginationChanged().then(() => {
                 setAlertMessageAction('');
                 if (totalItems.value > 0) {
-                    dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any invalid cells.';
-                    validateAllCommittedProjects();
+                    dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any invalid cells.';                    
+                    validateAllCommittedProjects();                    
                 } else {
                     dialogMessage.value = 'No committed projects were imported and saved. See error export sheet for any invalid cells.';
                 }
@@ -1682,41 +1669,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             })
         } 
     }
-
-    async function fetchTreatmentLibrary(simulationId: string) {
-        try {
-            await TreatmentService.getTreatmentLibraryBySimulationId(simulationId).then(response => {
-                if (hasValue(response, 'data')) {
-                    const treatmentLibrary = response.data as TreatmentLibrary;
-                    store.commit('scenarioTreatmentLibraryMutator', treatmentLibrary);
-                    handleLibrarySelectChange(treatmentLibrary.id);
-                }
-            });
-            
-        } catch (error) {
-            addErrorNotificationAction({
-                message: 'Error fetching treatment library.',
-                longMessage: 'There was an issue fetching the treatment library. Please try again.'
-            });
-        }
-    }
-
-    async function handleLibrarySelectChange(libraryId: string) {
-        selectTreatmentLibraryAction(libraryId);
-        hasSelectedLibrary = true;
-        const library = stateTreatmentLibraries.value.find((o) => o.id === libraryId);
-        librarySelectItemValue.value = libraryId;
-
-        if (!isNil(library)) {
-            await TreatmentService.getSimpleTreatmentsByLibraryId(libraryId).then(response => {
-                if (hasValue(response, 'data')) {
-                    let treatments = response.data as SimpleTreatment[]
-                    selectedLibraryTreatments.value = clone(treatments);
-                    onSelectedLibraryTreatmentsChanged();
-                }
-            })         
-        } 
-    }   
 
     async function initializePages(){
         const request: PagingRequest<SectionCommittedProject>= {
