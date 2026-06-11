@@ -313,7 +313,6 @@
 import { useRouter } from 'vue-router';
 import editDialog from '@/shared/modals/Edit-Dialog.vue'
 import { watch, ref, shallowReactive, onMounted, onBeforeUnmount, shallowRef, computed, inject } from 'vue'
-import { DataTableHeader } from '@/shared/models/vue/data-table-header';
 import { CommittedProjectFillTreatmentReturnValues, emptySectionCommittedProject, SectionCommittedProject, SectionCommittedProjectTableData } from '@/shared/models/iAM/committed-projects';
 import { getBlankGuid, getNewGuid } from '../../shared/utils/uuid-utils';
 import { emptyTreatmentLibrary, SimpleTreatment, Treatment, treatmentCategoryMap, treatmentCategoryReverseMap, TreatmentLibrary } from '@/shared/models/iAM/treatment';
@@ -335,23 +334,16 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
 import {InputValidationRules, rules} from '@/shared/utils/input-validation-rules';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
 import ScenarioService from '@/services/scenario.service';
-import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
 import Alert from '@/shared/modals/Alert.vue';
 import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
 import { emptyPagination, Pagination } from '@/shared/models/vue/pagination';
 import { PagingPage, PagingRequest } from '@/shared/models/iAM/paging';
 import InvestmentService from '@/services/investment.service';
-// import { formatAsCurrency } from '@/shared/utils/currency-formatter';
-import { max } from 'moment';
 import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import { storeKey, useStore } from 'vuex';
-import { createDecipheriv } from 'crypto';
 import mitt, { Emitter, EventType } from 'mitt';
-import Dialog from 'primevue/dialog';
-import Column from 'primevue/column';
-import TreatmentService from '@/services/treatment.service';
 import { getUrl } from '@/shared/utils/get-url';
 import  currencyTextbox  from '@/shared/components/CurrencyTextbox.vue';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -365,23 +357,18 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     const $router = useRouter();    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     created();
-
+    
     let hasScenario: boolean = false;
-    let librarySelectItemValue = ref<string>("");
     const templateSelectItems = ref<string[]>([]);
-    const templateItemSelected = ref<string>("");
-    let hasSelectedLibrary: boolean = false;
     let attributeSelectItems: SelectItem[] = [];
     const treatmentSelectItems = ref< string[] >([]);
     const projectSourceOptions = ref< string [] >([]);
     const budgetSelectItems = ref< SelectItem[] >([]);
     const categorySelectItems = ref<SelectItem[]>([]);
-    let importedProjectTreatmentName = ref<string>("");
     let importedProjectTreatmentBoolean = ref(false);
-    const missingTreatments = ref< string[] >([]);
-    const missingTreatmentsValue = ref< string[] >([]);
-    const invalidProjectSources = ref<number[]>([]);
-    //const invalidProjectSourceId = ref<string[]>([]);
+    const missingTreatments = ref<string[]>([]);
+    const missingTreatmentsValue = ref<string[]>([]);
+    const invalidProjectSources = ref<string[]>([]);
     const invalidCosts = ref<number[]>([]);
     const invalidYears = ref<number[]>([]);
     const invalidTreatments = ref<string[]>([]);
@@ -391,8 +378,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     let networkId: string = getBlankGuid();
     let inputRules: InputValidationRules = rules;
     let network: Network = clone(emptyNetwork);
-    let isAdminTemplateUploaded: Boolean;
-
     const showTreatmentDialog = ref(false);
     const currentEditingProjectId = ref<string | null>(null);
     const currentEditingTreatments = ref<string[]>([]);
@@ -408,7 +393,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     const showUploadCompleteDialog = ref(false);
     const dialogMessage = ref('');
-
     const uuidNIL: string = getBlankGuid();
     let addedRows = ref<SectionCommittedProject[]>([]);
     let updatedRowsMap:Map<string, [SectionCommittedProject, SectionCommittedProject]> = new Map<string, [SectionCommittedProject, SectionCommittedProject]>();//0: original value | 1: updated value
@@ -419,29 +403,22 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     let totalItems = ref(0);
     const currentPage = ref<SectionCommittedProjectTableData[]>([]);
     let isRunning: boolean = true;
-
     const selectedLibraryTreatments = ref<SimpleTreatment[]>([]);
     let isKeyAttributeValidMap: Map<string, boolean> = new Map<string, boolean>();
-
     let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
     let AllCommittedProjectsValid: boolean = false;
-
     const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
-    const stateTreatmentLibraries = computed<TreatmentLibrary[]>(() =>store.state.treatmentModule.treatmentLibraries);
     const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
     const stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() =>store.state.investmentModule.scenarioSimpleBudgetDetails);
     const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
     const networks = computed<Network[]>(() => store.state.networkModule.networks);
-    const selectedStateTreatmentLibrary = computed<TreatmentLibrary>(() => store.state.treatmentModule.selectedTreatmentLibrary);
     const stateSimpleScenarioSelectableTreatments = computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
 
-    //async function getTreatmentLibrariesAction(payload?: any): Promise<any> { await store.dispatch('getTreatmentLibraries', payload); }
     async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
     async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any> { await store.dispatch('getScenarioSimpleBudgetDetails', payload); }
     async function getAttributesAction(payload?: any): Promise<any> { await store.dispatch('getAttributes', payload); }
     async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload); }
     async function deleteSimulationCommittedProjectsAction(payload?: any): Promise<any> { await store.dispatch('deleteSimulationCommittedProjects', payload); }
-    function selectTreatmentLibraryAction(payload?: any){ store.dispatch('selectTreatmentLibrary', payload); }
     function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
     function addSuccessNotificationAction(payload?: any) {  store.dispatch('addSuccessNotification', payload); }
     async function addErrorNotificationAction(payload?: any): Promise<any> { await store.dispatch('addErrorNotification', payload); } 
@@ -454,17 +431,13 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     const showImportExportCommittedProjectsDialog = ref< boolean > (false);
     let selectedCommittedProject = ref<string>('');
     const alertDataForDeletingCommittedProjects = ref<AlertData>({ ...emptyAlertData });
-    let reverseCatMap = clone(treatmentCategoryReverseMap);
-    
+    let reverseCatMap = clone(treatmentCategoryReverseMap);    
     let keyattr: string = '';
-
     let lastYear: number = 0;
     let firstYear: number = 0;
-
     let investmentYears = ref<number[]>([]);
     let isNoTreatmentBefore = ref<boolean>(true);
     let isNoTreatmentBeforeCache = ref<boolean>(true);
-
     const yearMask = { mask: '####' };
     
     const cpGridHeaders = ref<any[]>([
@@ -548,6 +521,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             importCompleted,
         );
     }
+
     onMounted(async() => {
         scenarioId = $router.currentRoute.value.query.scenarioId as string;
         networkId = $router.currentRoute.value.query.networkId as string;
@@ -585,7 +559,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         await getAttributesAction();
         
         await getCurrentUserOrSharedScenarioAction({simulationId: scenarioId});
-        await selectScenarioAction({ scenarioId: scenarioId });
+        selectScenarioAction({ scenarioId: scenarioId });
         await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
             if(response.data){
                 setAlertMessageAction("Committed project import has been added to the queue");
@@ -593,7 +567,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         });
         await initializePages();
         if (scenarioId !== undefined) {  
-            await fetchProjectSources();
+            fetchProjectSources();
         }
 
         await CommittedProjectsService.getUploadedCommittedProjectTemplates().then(response => {
@@ -605,6 +579,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         
         await validateAllCommittedProjects();        
     });
+
     onBeforeUnmount(() => beforeDestroy())
     function beforeDestroy() {
         setHasUnsavedChangesAction({ value: false });
@@ -619,11 +594,11 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     async function validateAllCommittedProjects()
     {
         await CommittedProjectsService.validateAllCommittedProjects(scenarioId, network).then(response => {
-            if(response.data) {
+            if(typeof response.data === 'boolean') {
                 AllCommittedProjectsValid = response.data;
             }
         });
-
+        
         if(currentPage.value.length > 0) {
             if(!AllCommittedProjectsValid) {
                 $emitter.emit('CommittedProjectsWithErrors');
@@ -830,20 +805,12 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function validateImportedData(items: SectionCommittedProject[]) {        
         items.forEach(item => {
-            /*if (!validTreatmentName(item.treatment)) {
-                missingTreatments.value.push(importedProjectTreatmentName.value);
-            }*/
-
             if (!validProjectSource(item.projectSource)) {
                 invalidProjectSources.value.push(item.projectSource);
-            }
-
-            // if (!validProjectSourceId(item.projectId)) {
-            //     invalidProjectSourceId.value = invalidProjectSourceId.value.map((id) => id.trim());
-            // }
+            }            
 
             if (!validBudgetId(item.scenarioBudgetId)) {
-                invalidBudgets.value.push(item.scenarioBudgetId);
+                invalidBudgets.value.push(item.scenarioBudgetId ?? getBlankGuid());
             }
 
             if (!validCost(item.cost)) {
@@ -881,7 +848,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     //Events
     function onCancelClick() {
-
         clearChanges()
         selectedCommittedProject.value = '';
         selectedCpItems.value = [];
@@ -918,27 +884,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 }
             });
     }
-
-    // async function OnGetTemplateClick(){
-    //    await CommittedProjectsService.getUploadedCommittedProjectTemplate()
-    //         .then((response: AxiosResponse) => {
-    //                 if(response.data.toString() != ""){
-    //                     FileDownload(convertBase64ToArrayBuffer(response.data), 'Committed Project Template', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    //                     isAdminTemplateUploaded = true;
-    //                 }
-    //                 else{
-    //                      CommittedProjectsService.getCommittedProjectTemplate(networkId)
-    //                         .then((response: AxiosResponse) => {
-    //                     if (hasValue(response, 'data')) {
-    //                       const fileInfo: FileInfo = response.data as FileInfo;  
-    //                       FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
-    //                     }
-    //             });
-    //                 }
-    //         });
-    //     }
-
-    
 
     function OnAddCommittedProjectClick(){
         const newRow: SectionCommittedProject = clone(emptySectionCommittedProject)
@@ -1004,35 +949,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 resetPage();
             }
         }
-    }
-
-    //Deprecated? TODO: REVIEW AND REMOVE
-    function handleTreatmentChange(scp: SectionCommittedProjectTableData, treatmentName: string, row: SectionCommittedProject){
-        row.treatment = treatmentName;
-        updateCommittedProject(row, treatmentName, 'treatment')  
-        var treatment = clone(stateSimpleScenarioSelectableTreatments.value.find(_ => _.name === treatmentName))
-        if(isNil(treatment))
-            return;
-        CommittedProjectsService.FillTreatmentValues({
-            committedProjectId: row.id,
-            treatmentId: treatment.id,
-            KeyAttributeValue: row.locationKeys[keyattr],
-            networkId: networkId
-        })
-        .then((response: AxiosResponse) => {
-            if (hasValue(response, 'data')) {
-                var values = response.data as CommittedProjectFillTreatmentReturnValues;
-                row.cost = values.treatmentCost;
-                row.category = values.treatmentCategory;
-                scp.cost = row.cost;
-                let cat = reverseCatMap.get(row.category);
-                if (!isNil(cat))
-                    scp.category = row.category;
-                updateCommittedProject(row, row.cost, 'cost')  
-                onPaginationChanged();
-            }
-        });
-    }
+    }    
 
     function updateNoTreatment(){
         if(isNoTreatmentBefore.value)
@@ -1080,9 +997,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             }
 
             switch (property) {
-                /*case 'treatment':
-                    handleTreatmentChange(scp, value, row);
-                    break;*/
                 case 'keyAttr':
                     handleKeyAttrChange(row, scp, value);
                     break;
@@ -1131,26 +1045,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         }
     }
 
-    function onDeleteCommittedProjects() {
-        alertDataForDeletingCommittedProjects.value = {
-            showDialog: true,
-            heading: 'Are you sure?',
-            message:
-                "You are about to delete all of this scenario's committed projects.",
-            choice: true,
-        };
-    }
-
-    function onDownloadSelectedTemplate(){
-        CommittedProjectsService.getSelectedCommittedProjectTemplate(templateItemSelected.value)
-            .then((response: AxiosResponse) => {
-                if (hasValue(response, 'data')) {
-                    FileDownload(convertBase64ToArrayBuffer(response.data), templateItemSelected.value, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-                    isAdminTemplateUploaded = true;
-                }
-            });
-    }
-
     function onDeleteCommittedProjectsSubmit(doDelete: boolean) {
         alertDataForDeletingCommittedProjects.value = { ...emptyAlertData };
 
@@ -1170,13 +1064,11 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         return hasValidationErrors.value;
     });
 
-
     function setCpItems() {
         currentPage.value = sectionCommittedProjects.value.map(cpItemFactory);
         checkExistenceOfAssets();
         validateCommittedProjects();
     }
-
 
     function cpItemFactory(scp: SectionCommittedProject): SectionCommittedProjectTableData {
         const budget: SimpleBudgetDetail = find(
@@ -1196,8 +1088,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             treatmentId: '', //possible deprecated
             id: scp.id,
             errors: [],
-            projectSourceErrors: [],
-            //projectSourceIdErrors: [],
+            projectSourceErrors: [],            
             treatmentErrors: [],
             costErrors: [],
             budgetErrors: [],
@@ -1228,12 +1119,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         row.locationKeys[keyattr] = keyAttr;
         updateCommittedProject(row, keyAttr, 'keyAttr');
         onPaginationChanged();
-    }
-
-    function handleFactorChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, factor: number) {
-        updateCommittedProject(row, factor, 'performanceFactor');
-        onPaginationChanged();
-    }
+    }    
 
     function handleCostChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, value: string) {
         const parsedValue = parseFloat(value); 
@@ -1257,11 +1143,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         row.projectId = projectId;
         updateCommittedProject(row, projectId, 'projectId');
         onPaginationChanged();
-    }
-
-    function onUploadCommittedProjectTemplate(){
-      document.getElementById("committedProjectTemplateUpload")?.click();
-   }
+    }    
 
    function handleCommittedProjectTemplateUpload(event: { target: { files: any[]; }; }){
       const file = event.target.files[0];
@@ -1270,18 +1152,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     addSuccessNotificationAction({message:'Updated Default Template'})      
                 }
             });
-   }
-
-   function checkAssetExistence(scp: SectionCommittedProjectTableData, keyAttr: string){
-        CommittedProjectsService.validateAssetExistence(network, keyAttr).then((response: AxiosResponse) => {
-            if (hasValue(response, 'data')) {
-                if(!response.data)
-                    scp.errors = [keyattr + ' does not exist'];
-                else
-                    scp.errors = [];
-            }
-        });
-    }
+   }   
 
     function fetchProjectSources() {
         CommittedProjectsService.getProjectSources().then((response: AxiosResponse) => {
@@ -1297,7 +1168,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     const hasValidationErrors = computed(() => {
         return missingTreatments.value.length > 0 ||
             invalidProjectSources.value.length > 0 ||
-            //invalidProjectSourceId.value.length > 0 ||
             invalidCosts.value.length > 0 ||
             invalidYears.value.length > 0 ||
             invalidTreatments.value.length > 0 ||
@@ -1307,7 +1177,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     (scp.treatmentErrors && scp.treatmentErrors.length > 0) ||
                     (scp.costErrors && scp.costErrors.length > 0) ||
                     (scp.projectSourceErrors && scp.projectSourceErrors.length > 0) ||
-                    //(scp.projectSourceIdErrors && scp.projectSourceIdErrors.length > 0) ||
                     (scp.errors && scp.errors.length > 0) ||                    
                     (scp.budgetErrors && scp.budgetErrors.length > 0);
             });
@@ -1357,18 +1226,10 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         const isInInvalidYears = invalidYears.value.includes(year);
         return isInInvalidYears ? { border: '1px solid red', padding: '3px' } : {};
     };
-
-    // const getProjectSourceIdStyle = (projectSourceId: string) => {
-    //     const trimmedProjectSourceId = projectSourceId.trim();
-    //     const isInInvalidProjectSourceId =
-    //         invalidProjectSourceId.value.includes(trimmedProjectSourceId) ||
-    //         trimmedProjectSourceId === 'None';
-    //     return isInInvalidProjectSourceId ? { border: '1px solid red', padding: '3px' } : {};
-    // };
-
+    
     const getProjectSourceStyle = (projectSource: string) => {
         let source = getProjectSourceKeyFromValueMap(projectSourceMap, projectSource);
-        const isInInvalidProjectSources = typeof source === 'number' && invalidProjectSources.value.includes(source);
+        const isInInvalidProjectSources = typeof source === 'number' && invalidProjectSources.value.includes(projectSource);
         return isInInvalidProjectSources ? { border: '1px solid red', padding: '3px' } : {};
     };
     function getProjectSourceKeyFromValueMap(map: Map<number, string>, value: string) {
@@ -1393,29 +1254,18 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     const getCostStyle = (cost: number) => {
         const isInvalidCost = cost === null || cost === undefined || cost <= 0;
         return isInvalidCost ? { border: '1px solid red', padding: '3px' } : {};
-    };
-
-    //deprecated
-    function validTreatmentName(treatment: string) {
-        return treatmentSelectItems.value.some(
-            (item: string) => item.trim().toLowerCase() === treatment.trim().toLowerCase()
-        );
-    }
+    };    
 
     function validProjectSource(source: string) {
         return source !== 'None'
     }
 
-    // function validProjectSourceId(sourceId: string) {
-    //     return sourceId !== 'None'.trim();
-    // }
-
     function validCost(cost: number) {
         return cost > 0 && cost !== 0 && cost !== null && cost !== undefined;
     }
 
-    function validBudgetId(budgetId: string) {
-        return budgetId !== getBlankGuid() || budgetId !== "Empty budget";
+    function validBudgetId(budgetId: string | null) {
+        return budgetId !== getBlankGuid() || budgetId !== "Empty budget" || budgetId != null;
     }
 
     function validateCommittedProjects() {
@@ -1436,7 +1286,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 treatmentErrors: treatmentValidationErrors,
                 costErrors: checkCost(scp.cost),
                 projectSourceErrors: checkProjectSource(scp.projectSource),
-                //projectSourceIdErrors: checkProjectSourceId(scp.projectId),
                 budgetErrors: checkBudgetId(scp.scenarioBudgetId)
             };
 
@@ -1444,7 +1293,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             scp.treatmentErrors = errors.treatmentErrors;
             scp.costErrors = errors.costErrors;
             scp.projectSourceErrors = errors.projectSourceErrors;
-            //scp.projectSourceIdErrors = errors.projectSourceIdErrors;
             scp.budgetErrors = errors.budgetErrors;
         });
     }
@@ -1471,16 +1319,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         }
 
         return errors;
-    }
-
-    //deprecated
-    function checkTreatment(treatment: string) {
-        const errors = [];
-        if (!validTreatmentName(treatment)) {
-            errors.push('Select a valid treatment');
-        }
-        return errors;
-    }
+    }    
 
     function checkCost(cost: number) {
         const errors = [];
@@ -1500,15 +1339,6 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         }
         return errors;
     }
-
-    // function checkProjectSourceId(sourceId: string) {
-    //     const errors = [];
-    //     const trimmedSourceId = sourceId.trim();
-    //     if (!validProjectSourceId(trimmedSourceId)) {
-    //         errors.push('Enter a valid project Id')
-    //     }
-    //     return errors;
-    // }
 
     function checkBudgetId(budgetId: string) {
         const errors = [];
@@ -1660,13 +1490,16 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             onPaginationChanged().then(() => {
                 setAlertMessageAction('');
                 if (totalItems.value > 0) {
-                    dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any invalid cells.';                    
-                    validateAllCommittedProjects();                    
+                    dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any invalid cells.';
                 } else {
                     dialogMessage.value = 'No committed projects were imported and saved. See error export sheet for any invalid cells.';
                 }
                     showUploadCompleteDialog.value = true;
-            })
+            });            
+            if (totalItems.value > 0)
+            {
+                await validateAllCommittedProjects();
+            }
         } 
     }
 
