@@ -5,8 +5,8 @@ using AssetFox.Core.WorkQueue;
 using AssetFoxCore.Interfaces;
 using AssetFoxCore.Models;
 using AssetFoxCore.Services;
+using AssetFoxCore.Services.CommittedProjects;
 using AssetFoxCore.Services.General_Work_Queue;
-using AssetFoxCore.Services.SummaryReport.CommittedProjects;
 using AssetFoxCore.Services.Treatment;
 using Microsoft.Extensions.DependencyInjection;
 

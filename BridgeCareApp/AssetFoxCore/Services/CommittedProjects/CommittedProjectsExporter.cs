@@ -7,31 +7,27 @@ using AssetFox.Core.DTOs;
 using OfficeOpenXml;
 using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
 
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     public class CommittedProjectsExporter
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _networkKeyField;
         private readonly Dictionary<string, List<KeySegmentDatum>> _keyProperties;
-        private readonly List<string> _keyFields;
-        private readonly IList<string> _primaryKeyFieldNames;
+        private readonly List<string> _keyFields;        
 
         public CommittedProjectsExporter(
             IUnitOfWork unitOfWork,
-            SimulationDTO simulation,
             string networkKeyField,
-            List<string> keyFields,
             Dictionary<string, List<KeySegmentDatum>> keyProperties,
             List<string> primaryKeyFieldNames)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _networkKeyField = networkKeyField;
-            _primaryKeyFieldNames = primaryKeyFieldNames;
-
+            
             // Filter key properties
             _keyProperties = keyProperties
-                .Where(kvp => _primaryKeyFieldNames.Contains(kvp.Key) || kvp.Key == _networkKeyField)
+                .Where(kvp => primaryKeyFieldNames.Contains(kvp.Key) || kvp.Key == _networkKeyField)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             _keyFields = _keyProperties.Keys.Where(key => key != "ID").ToList();
@@ -95,7 +91,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 CommittedProjectsColumnHeaders.Budget => GetBudgetName(project),
                 CommittedProjectsColumnHeaders.Cost => project.Cost,
                 CommittedProjectsColumnHeaders.ProjectSource => project.ProjectSource,
-                CommittedProjectsColumnHeaders.ProjectSourceId => project.ProjectId,
+                CommittedProjectsColumnHeaders.ProjectId => project.ProjectId,
                 CommittedProjectsColumnHeaders.Category => project.Category.ToString(),
                 _ => null
             };
@@ -120,7 +116,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
         private void AddDataCells(ExcelWorksheet worksheet, List<BaseCommittedProjectDTO> projects, List<ColumnDefinition> columns)
         {
             int row = 2;
-            foreach (var project in projects.OrderBy(p => p.LocationKeys[_networkKeyField]).ThenByDescending(p => p.Year))
+            foreach (var project in projects)
             {
                 for (int col = 0; col < columns.Count; col++)
                 {
@@ -149,6 +145,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
             {
                 AddDataCells(worksheet, projects, columns);
             }
+            worksheet.Cells.AutoFitColumns();
 
             return new FileInfoDTO
             {

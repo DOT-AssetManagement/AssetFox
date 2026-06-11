@@ -66,7 +66,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
         }
 
         public static BudgetEntity ToLibraryEntity(this BudgetDTO dto, Guid libraryId) =>
-            new BudgetEntity { Id = dto.Id, BudgetLibraryId = libraryId, Name = dto.Name };
+            new BudgetEntity { Id = dto.Id, BudgetLibraryId = libraryId, Name = dto.Name, BudgetOrder = dto.BudgetOrder };
 
         public static BudgetLibraryEntity ToEntity(this BudgetLibraryDTO dto) =>
             new BudgetLibraryEntity { Id = dto.Id, Name = dto.Name, Description = dto.Description, IsShared = dto.IsShared };

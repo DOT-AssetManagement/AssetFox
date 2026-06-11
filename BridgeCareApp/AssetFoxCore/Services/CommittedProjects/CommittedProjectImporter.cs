@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     /// <summary>
     /// Handles the import of committed projects from an Excel worksheet.
@@ -28,9 +28,9 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
         private List<string> _keyFields;
 
         // Thread-safe collections for error tracking and project management
-        private Dictionary<ErrorType, List<string>> _validationErrorMessages = new();
-        private Dictionary<(string locationIdentifier, int projectYear, string treatment), SectionCommittedProjectDTO> _projectsPerKey = new();
-        private Dictionary<(string locationIdentifier, int projectYear), bool> _processedKeys = new();
+        private Dictionary<ErrorType, List<string>> _validationErrorMessages = [];
+        private Dictionary<(string locationIdentifier, int projectYear, string treatment), SectionCommittedProjectDTO> _projectsPerKey = [];
+        private Dictionary<(string locationIdentifier, int projectYear), bool> _processedKeys = [];
 
         // Configurable batch sizes for notifications
         private const int MAX_ERROR_BATCH_SIZE = 5;
@@ -63,14 +63,14 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
             string userId)
         {
             // Reset collections for each import
-            _validationErrorMessages = new Dictionary<ErrorType, List<string>>();
-            _projectsPerKey = new Dictionary<(string, int, string), SectionCommittedProjectDTO>();
-            _processedKeys = new Dictionary<(string locationIdentifier, int projectYear), bool>();
+            _validationErrorMessages = [];
+            _projectsPerKey = [];
+            _processedKeys = [];
 
             var headers = GetHeadersFromWorksheet(worksheet);
             if (!ValidateWorkSheet(worksheet, _hubService, _networkKeyField, headers, userId))
             {
-                return new List<SectionCommittedProjectDTO>();
+                return [];
             }
 
             //Get Budgets
@@ -84,7 +84,10 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
             var treatments = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentNames(simulation.Id);
 
             // Validate columns once
-            var columnIndices = ValidateAndGetColumnIndices(headers, CompleteNetworkHeaders[_networkKeyField]);
+            var columnHeaders = new List<string>();
+            columnHeaders.AddRange(_keyFields);
+            columnHeaders.AddRange(CommittedProjectsColumnHeaders.NoKeyHeaders);
+            var columnIndices = ValidateAndGetColumnIndices(headers, columnHeaders);
 
             var locationColumnNames = GetLocationColumnNamesAndKeyColumn(worksheet, headers, out var keyColumn);           
             var projectsPerKey = new Dictionary<(string locationIdentifier, int projectYear, string treatment), SectionCommittedProjectDTO>();
@@ -93,7 +96,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
             if (maintainableAssetIdsPerLocationId == null || maintainableAssetIdsPerLocationId.Count == 0)
             {
                 HandleValidationError(_hubService, userId, $"No maintainable assets were found for Network Id: {simulation.NetworkId}");
-                return new List<SectionCommittedProjectDTO>();
+                return [];
             }
 
             int startRow = 2; // Assuming headers are in row 1
@@ -198,8 +201,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                             excelAddresses.Add(cells);
                         }
                         ExcelHelper.ApplyColor(cells, Color.Red);
-                    }
-                    
+                    }                    
                 }
             }
 
@@ -227,15 +229,21 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
             var treatment = SafeGetTreatment(rowValues, columnIndices, treatments, CommittedProjectsColumnHeaders.Treatment, row);
 
             var key = (locationIdentifier: locationId, projectYear);
+            var columnIndex = columnIndices[_networkKeyField];
+
             // Check for duplicates
             if (!_processedKeys.TryAdd(key, true))
             {
                 // Duplicate found
                 AddValidationError(ErrorType.DuplicateEntry,
-                    $"Duplicate Project Removed: Row {row}, Asset {locationId}, Year {projectYear}'");
+                    $"Row {row}, Column {columnIndex}: Duplicate Project Removed Asset {locationId}, Year {projectYear}'");
+                // Add next column cell to highlight asset id and year both as they contribute to duplicate key
+                AddValidationError(ErrorType.DuplicateEntry,
+                    $"Row {row}, Column {columnIndex + 1}: Duplicate Project Removed Asset {locationId}, Year {projectYear}'");
+                
                 return null; // Skip further processing
             }
-            var columnIndex = columnIndices[_networkKeyField];
+            
             var assetId = ValidateLocationIdHasAssets(maintainableAssetIdsPerLocationId, locationId, row, columnIndex);
             var locationInformation = BuildLocationInformation(locationColumnNames, rowValues, assetId, row);        
 
@@ -248,13 +256,13 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 Treatment = treatment,
                 Year = projectYear,
                 ProjectSource = SafeGetProjectSource(rowValues, columnIndices, CommittedProjectsColumnHeaders.ProjectSource, row),
-                ProjectId = SafeGetProjectSourceId(rowValues, columnIndices, CommittedProjectsColumnHeaders.ProjectSourceId),
+                ProjectId = SafeGetProjectSourceId(rowValues, columnIndices, CommittedProjectsColumnHeaders.ProjectId),
                 Cost = SafeGetProjectCost(rowValues, columnIndices, CommittedProjectsColumnHeaders.Cost, row),
                 Category = SafeGetTreatmentCategory(rowValues, columnIndices, CommittedProjectsColumnHeaders.Category, row)
             };
         }
 
-        private static bool ValidateWorkSheet(
+        private bool ValidateWorkSheet(
             ExcelWorksheet worksheet,
             IHubService _hubService,
             string _networkKeyField,
@@ -276,8 +284,8 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 isValid = false;
             }
             else
-            {
-                if (!KeyHeadersMapping.TryGetValue(_networkKeyField, out var keyHeaders))
+            {                
+                if (!_keyFields.Contains(_networkKeyField))
                 {
                     HandleValidationError(_hubService, userId, $"Invalid network key field: {_networkKeyField}");
                     isValid = false;
@@ -285,8 +293,8 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 else
                 {
                     // Validate key headers
-                    var missingKeyHeaders = keyHeaders.Where(col => !headers.Contains(col, StringComparer.OrdinalIgnoreCase)).ToList();
-                    if (missingKeyHeaders.Any())
+                    var missingKeyHeaders = _keyFields.Where(col => !headers.Contains(col, StringComparer.OrdinalIgnoreCase)).ToList();
+                    if (missingKeyHeaders.Count != 0)
                     {
                         var missingKeyHeaderNames = string.Join(", ", missingKeyHeaders);
                         HandleValidationError(_hubService, userId, $"Invalid spreadsheet: Missing required key columns: {missingKeyHeaderNames}");
@@ -296,24 +304,12 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
             }
 
             return isValid;
-        }
-
-        private static readonly Dictionary<string, List<string>> KeyHeadersMapping = new(StringComparer.OrdinalIgnoreCase)
-        {
-            { CommittedProjectsColumnHeaders.BRKey, CommittedProjectsColumnHeaders.BridgeKeyHeaders },
-            { CommittedProjectsColumnHeaders.CRS, CommittedProjectsColumnHeaders.RoadKeyHeaders }
-        };
+        }                
 
         private static void HandleValidationError(IHubService _hubService, string userId, string message)
         {
             _hubService.SendRealTimeMessage(userId, HubConstant.BroadcastWarning, message);
         }
-
-        private static readonly Dictionary<string, List<string>> CompleteNetworkHeaders = new(StringComparer.OrdinalIgnoreCase)
-        {
-            { CommittedProjectsColumnHeaders.BRKey, CommittedProjectsColumnHeaders.BridgeHeaders },
-            { CommittedProjectsColumnHeaders.CRS, CommittedProjectsColumnHeaders.RoadHeaders }
-        };
 
         private Guid ValidateLocationIdHasAssets(
             Dictionary<string, Guid> maintainableAssetIdsPerLocationId,
@@ -333,7 +329,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
         {
             if (!_validationErrorMessages.TryGetValue(errorType, out var errorList))
             {
-                errorList = new List<string>();
+                errorList = [];
                 _validationErrorMessages[errorType] = errorList;
             }
             errorList.Add(message);
@@ -588,7 +584,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
             if (columnIndex == -1)
             {
                 result.Add("Default Treatment");
-                return result.ToArray();
+                return getResultArray();
             }
 
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
@@ -599,7 +595,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 {
                     AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment is null or empty.");
                     result.Add("Default Treatment");
-                    return result.ToArray();
+                    return getResultArray();
                 }
 
                 if (treatment.Contains("Bundle"))
@@ -622,7 +618,7 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                         }
                     }
 
-                    return result.ToArray();
+                    return getResultArray();
                 }
 
                 // Check if treatment exists in the provided treatments list 
@@ -633,19 +629,21 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 if (matchingSingleTreatment != null)
                 {
                     result.Add(matchingSingleTreatment);
-                    return result.ToArray(); 
+                    return getResultArray();
                 }
 
                 AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment '{treatment}' not found in the valid treatments list.");
                 result.Add("Default Treatment");
-                return result.ToArray();
+                return getResultArray();
             }
             else
             {
                 AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment is missing.");
                 result.Add("Default Treatment");
-                return result.ToArray();
+                return getResultArray();
             }
+
+            string[] getResultArray() => result.ToArray();
         }
 
 
@@ -734,13 +732,10 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 }
             }
 
-            if (missingColumns.Contains(CommittedProjectsColumnHeaders.ProjectSourceId))
-            {
-                missingColumns.Remove(CommittedProjectsColumnHeaders.ProjectSourceId);
-            }
+            missingColumns.Remove(CommittedProjectsColumnHeaders.ProjectId);
 
             // Broadcast missing columns if any
-            if (missingColumns.Any())
+            if (missingColumns.Count != 0)
             {
                 var errors = new StringBuilder();
                 errors.Append($"Missing columns: {string.Join(", ", missingColumns)}. These will use default values.");
@@ -753,21 +748,6 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
         private static bool IsRowBlank(Dictionary<int, object> rowValues)
         {
             return rowValues.All(kvp => kvp.Value == null || string.IsNullOrWhiteSpace(kvp.Value.ToString()));
-        }
-
-
-        private static string GetErrorTitle(ErrorType errorType, int count)
-        {
-            return errorType switch
-            {
-                ErrorType.MissingValue => $"Missing Values Detected ({count} total):",
-                ErrorType.InvalidValue => $"Invalid Values Detected ({count} total):",
-                ErrorType.DuplicateEntry => $"Duplicate Entries Detected ({count} total):",
-                ErrorType.AssetNotFound => $"Assets Not Found ({count} total):",
-                ErrorType.ParsingError => $"Parsing Errors ({count} total):",
-                ErrorType.GeneralError => $"General Errors ({count} total):",
-                _ => $"Errors ({count} total):",
-            };
         }
     }
 }

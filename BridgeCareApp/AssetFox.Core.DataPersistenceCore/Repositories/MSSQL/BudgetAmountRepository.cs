@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.LibraryEntities.Budget;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEntities.Budget;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
-using AssetFox.Core.Analysis;
 using AssetFox.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
@@ -149,7 +147,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 throw new RowNotInTableException("The specified budget library was not found.");
             }
 
-            var dtos = _unitOfWork.Context.BudgetAmount
+            var dtos = _unitOfWork.Context.BudgetAmount.AsNoTracking()
                 .Include(_ => _.Budget)
                 .OrderBy(_ => _.Budget.BudgetOrder)
                 .Where(_ => _.Budget.BudgetLibrary.Id == libraryId)
@@ -170,14 +168,15 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             }
 
             return _unitOfWork.Context.ScenarioBudgetAmount.AsNoTracking()
-                .Where(_ => _.ScenarioBudget.SimulationId == simulationId)
                 .Include(sb => sb.ScenarioBudget)
+                .OrderBy(sb => sb.ScenarioBudget.BudgetOrder)
+                .Where(_ => _.ScenarioBudget.SimulationId == simulationId)
                 .Select(budgetAmount => new BudgetAmountDTO
                 {
                     Year = budgetAmount.Year,
                     Value = budgetAmount.Value,
                     BudgetName = budgetAmount.ScenarioBudget.Name,
-                }).AsNoTracking().ToList();
+                }).AsNoTracking().ToList() ?? [];
         }
     }
 }
