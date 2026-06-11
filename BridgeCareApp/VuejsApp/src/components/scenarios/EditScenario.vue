@@ -80,30 +80,16 @@
             @submit="onConfirmAnalysisRunAlertSubmit"
         />
 
-        <Alert
-            :dialogData="alertDataForDeletingCommittedProjects"
-            @submit="onDeleteCommittedProjectsSubmit"
-        />
-
-        <CommittedProjectsFileUploaderDialog
-            :showDialog="showImportExportCommittedProjectsDialog"
-            @submit="onSubmitImportExportCommittedProjectsDialogResult"
-            @delete="onDeleteCommittedProjects"
-        />
-
 </template>
 
 <script lang="ts" setup>
 import Vue, { ref, shallowReactive, computed, watch, onMounted, onBeforeUnmount, onBeforeMount } from 'vue'; 
 import { emptyScenario, Scenario, QueuedWork} from '@/shared/models/iAM/scenario';
-import ImportExportCommittedProjectsDialog from '@/components/scenarios/scenarios-dialogs/ImportExportCommittedProjectsDialog.vue';
 import { any, clone, isNil, propEq } from 'ramda';
 import { AxiosResponse } from 'axios';
 import CommittedProjectsService from '@/services/committed-projects.service';
 import { Network, emptyNetwork } from '@/shared/models/iAM/network';
-import FileDownload from 'js-file-download';
 import { NavigationTab } from '@/shared/models/iAM/navigation-tab';
-import { ImportExportCommittedProjectsDialogResult } from '@/shared/models/modals/import-export-committed-projects-dialog-result';
 import { AlertData, AlertDataWithButtons, AlertPreChecksData, emptyAlertData, emptyAlertDataWithButtons, emptyAlertPreChecksData } from '@/shared/models/modals/alert-data';
 import AlertPreChecks from '@/shared/modals/AlertPreChecks.vue';
 import AlertWithButtons from '@/shared/modals/AlertWithButtons.vue';
@@ -111,8 +97,6 @@ import Alert from '@/shared/modals/Alert.vue';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
-import { FileInfo } from '@/shared/models/iAM/file-info';
-import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 import AnalysisMethodSvg from '@/shared/icons/AnalysisMethodSvg.vue';
 import BudgetPrioritySvg from '@/shared/icons/BudgetPrioritySvg.vue';
 import CashFlowSvg from '@/shared/icons/CashFlowSvg.vue';
@@ -171,8 +155,7 @@ import CashFlowService from '@/services/cash-flow.service';
     async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioSimpleBudgetDetails', payload)}
     async function getSimulationRunSettingAction(payload?: any): Promise<any> { await store.dispatch('getSimulationRunSetting', payload);}
  
-    let selectedScenarioId: string = getBlankGuid();
-    let showImportExportCommittedProjectsDialog: boolean = false;
+    let selectedScenarioId: string = getBlankGuid();    
     let networkId: string = getBlankGuid();
     let simulationName: string;
     let networkName: string = '';
@@ -304,8 +287,7 @@ import CashFlowService from '@/services/cash-flow.service';
     ]);
 
     const alertData = ref<AlertData>(clone(emptyAlertData));
-    const alertDataForDeletingCommittedProjects = ref<AlertData>({ ...emptyAlertData });
-
+    
     onMounted(() => {
         ScenarioSettingsUpdated()
         .then(() => getAnalysisMethod())
@@ -413,82 +395,6 @@ import CashFlowService from '@/services/cash-flow.service';
     onBeforeUnmount(() => beforeDestroy); 
     function beforeDestroy() {
         selectScenarioAction({ scenarioId: getBlankGuid() });
-    }
-
-    function onSubmitImportExportCommittedProjectsDialogResult(
-        result: ImportExportCommittedProjectsDialogResult,
-    ) {
-        showImportExportCommittedProjectsDialog = false;
-
-        if (hasValue(result)) {
-            if (result.isExport) {
-                CommittedProjectsService.exportCommittedProjects(
-                    selectedScenarioId,
-                ).then((response: AxiosResponse) => {
-                    if (hasValue(response, 'data')) {
-                        const fileInfo: FileInfo = response.data as FileInfo;
-                        FileDownload(
-                            convertBase64ToArrayBuffer(fileInfo.fileData),
-                            fileInfo.fileName,
-                            fileInfo.mimeType,
-                        );
-                    }
-                });
-            } else {
-                if (hasValue(result.file)) {
-                    CommittedProjectsService.importCommittedProjects(
-                        result.file,
-                        selectedScenarioId,
-                    ).then((response: AxiosResponse) => {
-                        if (
-                            hasValue(response, 'status') &&
-                            http2XX.test(response.status.toString())
-                        ) { alert('1');
-                            addSuccessNotificationAction({
-                                message: 'Successful upload.',
-                                longMessage:
-                                    'Successfully uploaded committed projects.',
-                            });
-                        }
-                    });
-                } else {
-                    addErrorNotificationAction({
-                        message: 'No file selected.',
-                        longMessage:
-                            'No file selected to upload the committed projects.',
-                    });
-                }
-            }
-        }
-    }
-
-    function onDeleteCommittedProjects() {
-        alertDataForDeletingCommittedProjects.value = {
-            showDialog: true,
-            heading: 'Are you sure?',
-            message:
-                "You are about to delete all of this scenario's committed projects.",
-            choice: true,
-        };
-    }
-
-    function onDeleteCommittedProjectsSubmit(doDelete: boolean) {
-        alertDataForDeletingCommittedProjects.value = { ...emptyAlertData };
-
-        if (doDelete) {
-            CommittedProjectsService.deleteSimulationCommittedProjects(
-                selectedScenarioId,
-            ).then((response: AxiosResponse) => {
-                if (
-                    hasValue(response) &&
-                    http2XX.test(response.status.toString())
-                ) {
-                    addSuccessNotificationAction({
-                        message: 'Committed projects have been deleted.',
-                    });
-                }
-            });
-        }
     }
 
     function visibleNavigationTabs() {
