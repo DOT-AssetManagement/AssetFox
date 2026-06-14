@@ -127,6 +127,7 @@ import { inject } from 'vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
+import { faL } from '@fortawesome/free-solid-svg-icons';
 
     let store = useStore(); 
     const router = useRouter(); 
@@ -174,7 +175,7 @@ import CashFlowService from '@/services/cash-flow.service';
     let confirmAnalysisRunAlertData= ref(clone(emptyAlertDataWithButtons));
     let confirmAnalysisPreCheckAlertData= ref(clone(emptyAlertPreChecksData));
     let isAnalysisMethodSet = ref(false);
-    let isInvestmentSet = ref(false);
+    let isInvestmentUnset = ref(true);
     let isDeteriorationModelSet = ref(false);
     let isTreatmentSet = ref(false);
     let isBudgetPrioritySet = ref(false);
@@ -184,6 +185,7 @@ import CashFlowService from '@/services/cash-flow.service';
     let isCommittedProjectsBudgetsUnset = ref(true);
     let selectedScenarioName: string = "";
     let AllCommittedProjectsValid: boolean = false;
+    let isInvestmentValid = ref(false);
 
     let navigationTabs = ref<NavigationTab[]>([
     {
@@ -210,7 +212,7 @@ import CashFlowService from '@/services/cash-flow.service';
         navigation: {
             path: '/PerformanceCurveEditor/Scenario/',
         },
-        disabled: isInvestmentSet.value,
+        disabled: isInvestmentUnset.value,
     },
     {
         tabName: 'Treatment',
@@ -420,7 +422,7 @@ import CashFlowService from '@/services/cash-flow.service';
         });
 
         $emitter.on('InvestmentSettingsUpdated', () => {
-            // Update the disabled property of the Deterioration Model tab
+            // Update the disabled property of the Deterioration Model tab            
             navigationTabs.value.forEach((tab) => {
                 if (tab.tabName === 'Deterioration Model') {
                     tab.disabled = false;
@@ -428,6 +430,21 @@ import CashFlowService from '@/services/cash-flow.service';
                 else if(tab.tabName === 'Investment')
                 {
                     tab.validationIcon = 'fas fa-check-circle';
+                    isInvestmentValid.value = true;
+                }
+            })
+        });
+        
+        $emitter.on('InvestmentSettingsWithErrors', () => {
+            // Update the disabled property of the Deterioration Model tab            
+            navigationTabs.value.forEach((tab) => {
+                if (tab.tabName === 'Deterioration Model') {
+                    tab.disabled = false;
+                }
+                else if(tab.tabName === 'Investment')
+                {
+                    tab.validationIcon = 'fas fa-times-circle';
+                    isInvestmentValid.value = false;
                 }
             })
         });
@@ -784,32 +801,40 @@ import CashFlowService from '@/services/cash-flow.service';
             isDescending: false,
             search: ''
         };
-
+        
         await InvestmentService.getScenarioInvestmentPage(selectedScenarioId, request)
-        .then((response: { data: any; }) => {
-            if (response.data) {
-                isInvestmentSet.value = response.data.firstYear == 0;
+            .then((response: { data: any; }) => {
+                if (response.data) {                    
+                    isInvestmentUnset.value = response.data.firstYear == 0;
+                }
+            });
 
-                navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Investment') {
-                        if(isInvestmentSet.value === true)
-                        {
-                            tab.validationIcon = "fas fa-times-circle";
-                        }
-                        else
-                        tab.validationIcon = "fas fa-check-circle";
-                    }
-                });
-                
-                // Update the disabled property
-                navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Deterioration Model') {
-                        tab.disabled = isInvestmentSet.value;
-                    }
-                });
+        await InvestmentService.ValidateScenarioInvestment(selectedScenarioId)
+            .then(response => {                
+                if (typeof response.data === 'boolean') {
+                    isInvestmentValid.value = response.data;
+                }
+            });
+
+        navigationTabs.value.forEach((tab) => {                    
+            if (tab.tabName === 'Investment') {
+                if(isInvestmentUnset.value === false && isInvestmentValid.value === true)
+                {
+                   tab.validationIcon = "fas fa-check-circle";
+                }
+                else
+                {
+                    tab.validationIcon = "fas fa-times-circle";
+                }
             }
         });
-
+                
+        // Update the disabled property
+        navigationTabs.value.forEach((tab) => {
+            if (tab.tabName === 'Deterioration Model') {
+                tab.disabled = isInvestmentUnset.value;
+            }
+        });
     }
 
     async function getDeteriorationModel()

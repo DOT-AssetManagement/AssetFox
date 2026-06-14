@@ -305,8 +305,7 @@
         <EditBudgetsDialog :dialogData='editBudgetsDialogData' @submit='onSubmitEditBudgetsDialogResult' />
 
         <ImportExportInvestmentBudgetsDialog :showDialog='showImportExportInvestmentBudgetsDialog'
-                                             @submit='onSubmitImportExportInvestmentBudgetsDialogResult' 
-                                             @submit-success-import="onSuccessImportSubmit"/>
+                                             @submit='onSubmitImportExportInvestmentBudgetsDialogResult' />
     </v-row>
     <UploadDialog 
         v-model="showSuccessPopup"
@@ -531,7 +530,7 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     let updatedTreatmentsWithBudgets: PaginSync<Treatment>;
     let hasInvestmentJustBeenSaved = false;
 
-    let editValue = ref<number | null>(0);
+    let editValue = ref<number>(0);
 
     let showSuccessPopup = ref(false);
 
@@ -566,40 +565,6 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
     function yearsInAnalysisPeriod() {
             return investmentPlan.value.numberOfYearsInAnalysisPeriod;
         }
-    
-    // REPLACE with created() ?
-    //function beforeRouteEnter() {
-    // created();
-    // async function created() {
-    //     (() => {
-    //         (async () => { 
-    //             librarySelectItemValue.value = '';
-    //             await getHasPermittedAccessAction();
-    //             await getBudgetLibrariesAction()
-        
-    //             if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.Investment) !== -1) {
-    //                 selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
-
-    //                 if (selectedScenarioId === uuidNIL) {
-    //                     addErrorNotificationAction({
-    //                         message: 'Found no selected scenario for edit',
-    //                     });
-    //                     $router.push('/Scenarios/');
-    //                 }
-
-    //                 hasScenario.value = true;
-    //                 ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioInvestment}).then(response => {
-    //                     if(response.data){
-    //                         setAlertMessageAction("An investment import has been added to the queue")
-    //                     }
-    //                 })
-    //                 await initializePages();
-    //             }
-    //             else
-    //                 initializing = false;               
-    //         })();                    
-    //     });
-    // }
 
     onMounted(async () => {
         librarySelectItemValue.value = '';
@@ -620,8 +585,19 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 if(response.data){
                     setAlertMessageAction("An investment import has been added to the queue")
                 }
-            })
-                await initializePages();
+            });
+            await initializePages().then(async ()=>{
+                await InvestmentService.ValidateScenarioInvestment(selectedScenarioId).then((response: AxiosResponse) => {                    
+                    if(hasValue(response, 'data') && response.data === true)
+                    {
+                        $emitter.emit('InvestmentSettingsUpdated');
+                    }
+                    else
+                    {
+                        $emitter.emit('InvestmentSettingsWithErrors');
+                    }
+                });
+            });            
         }
         else
             initializing = false;        
@@ -634,15 +610,18 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
         $emitter.on(
                 Hub.BroadcastEventType.BroadcastImportFailureEvent,
                 importFailed,
-        );
+        );        
     });
 
-    onBeforeUnmount(() =>  {
+    onBeforeUnmount(() =>  {        
         setHasUnsavedChangesAction({ value: false });
         $emitter.off(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
         );
+        
+        $emitter.off('InvestmentSettingsUpdated');
+        $emitter.off('InvestmentSettingsWithErrors');
     });
         
     // Watchers
@@ -1759,11 +1738,24 @@ function isSuccessfulImportMutator(payload:any){store.commit('isSuccessfulImport
                 else{
 
                 }
+                
                 dialogMessage.value = "Successfully uploaded investments."
                 showSuccessPopup.value = true;
-            })
-            $emitter.emit('InvestmentSettingsUpdated');                
-        }        
+
+                if(hasScenario.value) {
+                    await InvestmentService.ValidateScenarioInvestment(selectedScenarioId).then((response: AxiosResponse) => {                        
+                        if(hasValue(response, 'data') && response.data === true)
+                        {                            
+                            $emitter.emit('InvestmentSettingsUpdated');
+                        }
+                        else
+                        {                            
+                            $emitter.emit('InvestmentSettingsWithErrors');
+                        }
+                    });
+                }
+            });
+        }
     }
 
     function importFailed(){        

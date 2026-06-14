@@ -4,13 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using AssetFox.Core.Analysis;
 using AssetFox.Core.Common.Logging;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Abstract;
 using AssetFox.Core.ExcelHelpers;
-using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFoxCore.Interfaces;
 using AssetFoxCore.Interfaces.DefaultData;
@@ -719,6 +717,44 @@ namespace AssetFoxCore.Services
                     ? warningSb.ToString()
                     : null
             };
+        }
+
+        public bool ValidateScenarioInvestment(Guid simulationId)
+        {
+            bool isValid = true;
+
+            var investmentPlan = _unitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulationId);
+            var emptyDto = new InvestmentPlanDTO();
+            if(investmentPlan.Id == emptyDto.Id) // emptyDto.Id has empty guid
+            {
+                return false;
+            }
+            if(investmentPlan.MinimumProjectCostLimit <= 0)
+            {
+                return false;
+            }
+            if (!(investmentPlan.InflationRatePercentage >= 0 && investmentPlan.InflationRatePercentage <= 100))
+            {
+                return false;
+            }
+
+            var budgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
+            if(budgets.Count == 0)
+            {
+                return false;
+            }
+            foreach (var budget in budgets)
+            {
+                foreach (var budgetAmount in budget.BudgetAmounts)
+                {
+                    if (budgetAmount.Year <= 0 || budgetAmount.Value <= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return isValid;
         }
     }
 }
