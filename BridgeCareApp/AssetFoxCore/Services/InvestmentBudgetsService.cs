@@ -745,6 +745,10 @@ namespace AssetFoxCore.Services
             }
             foreach (var budget in budgets)
             {
+                if (budget.BudgetAmounts.Count == 0)
+                {
+                    return false;
+                }
                 foreach (var budgetAmount in budget.BudgetAmounts)
                 {
                     if (budgetAmount.Year <= 0 || budgetAmount.Value <= 0)

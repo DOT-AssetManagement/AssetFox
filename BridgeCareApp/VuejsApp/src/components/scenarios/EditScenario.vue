@@ -817,7 +817,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             });
 
         navigationTabs.value.forEach((tab) => {                    
-            if (tab.tabName === 'Investment') {
+            if (tab.tabName === 'Investment') {                
                 if(isInvestmentUnset.value === false && isInvestmentValid.value === true)
                 {
                    tab.validationIcon = "fas fa-check-circle";
@@ -1039,12 +1039,12 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
         // Map each name and message to a record
         const tabNameMessages: Record<string, string> = {
             'Analysis Method': 'Analysis Method must be saved before continuing',
-            'Investment': 'Investment must be saved before continuing',
+            'Investment': 'Investment must be saved before continuing/Investment have invalid data',
             'Deterioration Model': 'Deterioration Model must be saved before continuing',
             'Treatment': 'Treatment must be saved before continuing',
             'Budget Priority': 'Budget Priority must be saved before continuing',
-            'Cash Flow': 'Warning: Cash flow has not been set',
-            'Committed Projects': 'Warning: Committed Projects have not been set'
+            'Cash Flow': 'Cash flow has not been set',
+            'Committed Projects': 'Committed Projects have not been set/Committed Projects have invalid data'
         };
 
         // Set the validation for each item
