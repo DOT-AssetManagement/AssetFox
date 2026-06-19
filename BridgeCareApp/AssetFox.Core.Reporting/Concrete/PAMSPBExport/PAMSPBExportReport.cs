@@ -163,8 +163,7 @@ namespace AssetFox.Core.Reporting
             var networkMaintainableAssets = _unitOfWork.MaintainableAssetRepo.GetAllInNetworkWithLocations(networkId);
             var networkMaintainableAssetIds = networkMaintainableAssets.Select(x => x.Id);
             var attributeDtos = _unitOfWork.AttributeRepo.GetAttributes();
-            var requiredAttributeIds = GetRequiredAttributeIds(attributeDtos);
-            var aggregatedResultDtos = _unitOfWork.AggregatedResultRepo.GetAllInNetwork(networkId);
+            var requiredAttributeIds = GetRequiredAttributeIds(attributeDtos);            
             var simulationDto = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
             var analysisMethodDto = _unitOfWork.AnalysisMethodRepo.GetAnalysisMethod(simulationId);
             var scenarioSelectableTreatmentsDtos = _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentsForReport(simulationId);
@@ -181,6 +180,7 @@ namespace AssetFox.Core.Reporting
                 reportDetailDto.Status = $"Creating PAMS MAS TAB";
                 UpsertSimulationReportDetail(reportDetailDto);
                 _hubService.SendRealTimeMessage(_unitOfWork.CurrentUser?.Username, HubConstant.BroadcastReportGenerationStatus, reportDetailDto, simulationId);
+                var aggregatedResultDtos = _unitOfWork.AggregatedResultRepo.GetAllInNetwork(networkId);
                 var masWorksheet = excelPackage.Workbook.Worksheets.Add(PAMSPBExportReportConstants.MASTab);
                 _masTab.Fill(masWorksheet, networkId, networkMaintainableAssets, aggregatedResultDtos, attributeDtos);
             }

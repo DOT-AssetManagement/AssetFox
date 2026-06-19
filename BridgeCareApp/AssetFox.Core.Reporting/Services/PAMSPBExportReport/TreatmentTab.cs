@@ -77,8 +77,8 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.FromSection;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.ToSection;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Year;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.MinYear;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.MaxYear;
+            treatmentsWorksheet.Cells[row, column++].Value = string.Empty;
+            treatmentsWorksheet.Cells[row, column++].Value = string.Empty;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Interstate;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Appliedtreatment;
             SetDecimalFormat(treatmentsWorksheet.Cells[row, column]);
@@ -117,8 +117,6 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
                 NetworkId = networkId,
                 MaintainableAssetId = assetId,
                 Year = year.Year,
-                MinYear = year.Year,
-                MaxYear = year.Year,
                 Appliedtreatment = appliedTreatment,
             };
 
@@ -144,7 +142,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             treatmentDataModel.Cnty = CheckGetTextValue(initialSummaryValuePerTextAttribute, "CNTY");
             treatmentDataModel.Route = CheckGetTextValue(initialSummaryValuePerTextAttribute, "SR");
             treatmentDataModel.CRS = CheckGetTextValue(initialSummaryValuePerTextAttribute, "CRS");
-            treatmentDataModel.Direction = direction; //CheckGetTextValue(valuePerTextAttribute, "DIRECTION");
+            treatmentDataModel.Direction = direction;
             treatmentDataModel.RiskScore = CheckGetNumericValue(initialAssetSummary.ValuePerNumericAttribute, "RISKSCORE");
             treatmentDataModel.Interstate = CheckGetTextValue(initialSummaryValuePerTextAttribute, "INTERSTATE");
 
@@ -226,30 +224,38 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             worksheet.Cells[headerRow, column++].Value = "SimulationID";
             worksheet.Cells[headerRow, column++].Value = "NetworkID";
             worksheet.Cells[headerRow, column++].Value = "AssetId";
+            worksheet.Cells[headerRow, column++].Value = "Asset";
             worksheet.Cells[headerRow, column++].Value = "District";
             worksheet.Cells[headerRow, column++].Value = "Cnty";
             worksheet.Cells[headerRow, column++].Value = "Route";
-            worksheet.Cells[headerRow, column++].Value = "CRS";
-            worksheet.Cells[headerRow, column++].Value = "Asset";
             worksheet.Cells[headerRow, column++].Value = "Direction";
-            worksheet.Cells[headerRow, column++].Value = "FromSection";
-            worksheet.Cells[headerRow, column++].Value = "ToSection";
             worksheet.Cells[headerRow, column++].Value = "Year";
             worksheet.Cells[headerRow, column++].Value = "MinYear";
             worksheet.Cells[headerRow, column++].Value = "MaxYear";
-            worksheet.Cells[headerRow, column++].Value = "Interstate";
             worksheet.Cells[headerRow, column++].Value = "Treatment";
             worksheet.Cells[headerRow, column++].Value = "Cost";
             worksheet.Cells[headerRow, column++].Value = "Benefit";
+            worksheet.Cells[headerRow, column++].Value = "Category";
+            worksheet.Cells[headerRow, column++].Value = "Budget";
+            // TODO below 3 columns 
+            // BPN
+            // FunctionalClass
+            // NHS
+
+            worksheet.Cells[headerRow, column++].Value = "CRS";
+            worksheet.Cells[headerRow, column++].Value = "FromSection";
+            worksheet.Cells[headerRow, column++].Value = "ToSection";
+
             worksheet.Cells[headerRow, column++].Value = "Risk";
             worksheet.Cells[headerRow, column++].Value = "RemainingLife";
             worksheet.Cells[headerRow, column++].Value = "PriorityOrder";
             worksheet.Cells[headerRow, column++].Value = "TreatmentFundingIgnoresSpendingLimit";
             worksheet.Cells[headerRow, column++].Value = "TreatmentStatus";
             worksheet.Cells[headerRow, column++].Value = "TreatmentCause";
-            worksheet.Cells[headerRow, column++].Value = "Budget";
-            worksheet.Cells[headerRow, column++].Value = "Category";
             worksheet.Cells[headerRow, column++].Value = "Project Id";
+            worksheet.Cells[headerRow, column++].Value = "Interstate";
+            // TODO correct order of all above updated header colns
+
 
             treatmentAttributes = GetTreatmentAttributes();
             foreach(var treatmentAttribute in treatmentAttributes)
@@ -260,15 +266,13 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             return new CurrentCell { Row = ++headerRow, Column = worksheet.Dimension.Columns + 1 };
         }
 
-        private static List<string> GetTreatmentAttributes() => new()
-        {
-            "BMISCCK1","BLRUTDP2","CLJCPRU3","BRAVLWT3","SURFACEID","LAST_STRUCTURAL_OVERLAY","BEDGDTR1","CBPATCCT","CLNGCRK3",
-            "BRAVLWT2","CNSLABCT","BMISCCK3","CFLTJNT2","CTRNCRK3","CTRNJNT3","BTRNSFT3","BTRNSCT2","BPATCHSF","CTRNJNT1",
-            "CBPATCSF","YEAR_LAST_OVERLAY","ROUGHNESS","CLNGJNT1","CLNGJNT2","AGE","BLTEDGE3","CLJCPRU2","BTRNSCT3","BRRUTDP1",
-            "CLNGCRK1","CBRKSLB3","BLTEDGE2","CBRKSLB2","CRJCPRU2","CFLTJNT3","BPATCHCT","BMISCCK2","CPCCPACT","CTRNCRK1",
-            "CTRNJNT2","CJOINTCT","YR_BUILT","BLRUTDP1","CRJCPRU3","BRRUTDP3","BTRNSCT1","CLJCPRU1","BLTEDGE1","CTRNCRK2",
-            "BEDGDTR3","BRRUTDP2","BFATICR1","CPCCPASF","CLNGCRK2","BEDGDTR2","BTRNSFT1","BFATICR2","BFATICR3","BLRUTDP3",
-            "CBRKSLB1","CLNGJNT3","BTRNSFT2","CRJCPRU1","OPI"
-        };
+        private static List<string> GetTreatmentAttributes() =>
+        [
+            "SURFACEID","LAST_STRUCTURAL_OVERLAY","YEAR_LAST_OVERLAY","ROUGHNESS","AGE","YR_BUILT","OPI","CNSLABCT","CJOINTCT","CPCCPACT","CPCCPASF",
+            "BPATCHCT","BPATCHSF","CBPATCCT","CBPATCSF","BMISCCK1","BMISCCK2","BMISCCK3","BLRUTDP1","BLRUTDP2","BLRUTDP3","BRRUTDP1","BRRUTDP2","BRRUTDP3",
+            "BEDGDTR1","BEDGDTR2","BEDGDTR3","BLTEDGE1","BLTEDGE2","BLTEDGE3","BFATICR1","BFATICR2","BFATICR3","BTRNSFT1","BTRNSFT2","BTRNSFT3","BTRNSCT1",
+            "BTRNSCT2","BTRNSCT3","BRAVLWT2","BRAVLWT3","CLNGCRK1","CLNGCRK2","CLNGCRK3","CTRNCRK1","CTRNCRK2","CTRNCRK3","CLJCPRU1","CLJCPRU2","CLJCPRU3",
+            "CRJCPRU1","CRJCPRU2","CRJCPRU3","CLNGJNT1","CLNGJNT2","CLNGJNT3","CTRNJNT1","CTRNJNT2","CTRNJNT3","CFLTJNT2","CFLTJNT3","CBRKSLB1","CBRKSLB2","CBRKSLB3"
+        ];
     }
 }
