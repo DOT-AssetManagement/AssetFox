@@ -133,7 +133,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
     const router = useRouter(); 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
-    const stateNetworks: Network[] = shallowReactive(store.state.networkModule.networks) ;
+    const stateNetworks = computed<Network[]>(() => store.state.networkModule.networks) ;
     const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ; 
     let hasSimulationAccess:boolean = (store.state.authenticationModule.hasSimulationAccess) ; 
 
@@ -1006,7 +1006,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             }
         });
             
-        var network = stateNetworks.find(o => o.id === networkId) || clone(emptyNetwork);            
+        var network = stateNetworks.value.find(o => o.id === networkId) || clone(emptyNetwork);            
         await CommittedProjectsService.validateAllCommittedProjects(selectedScenarioId, network).then(responseValidation => {
             if(responseValidation.data) {
                 AllCommittedProjectsValid = responseValidation.data;
