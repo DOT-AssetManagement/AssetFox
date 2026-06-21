@@ -104,7 +104,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             masDataModel.District = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "DISTRICT");
             masDataModel.Cnty = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "CNTY");
             masDataModel.Route = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "SR");
-            masDataModel.Direction = direction; // GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "DIRECTION");            
+            masDataModel.Direction = direction;
             masDataModel.Interstate = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "INTERSTATE");
             masDataModel.Lanes = GetNumericValue(aggregatedResultDTOsForAsset, attributeDTOs, "LANES");
             masDataModel.surfaceName = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "SURFACE_NAME");
@@ -113,13 +113,13 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             return masDataModel;
         }
 
-        private double GetNumericValue(List<AggregatedResultDTO> aggregatedResultDTOsForAsset, List<AttributeDTO> attributeDTOs, string attribute)
+        private static double GetNumericValue(List<AggregatedResultDTO> aggregatedResultDTOsForAsset, List<AttributeDTO> attributeDTOs, string attribute)
         {
             var aggregatedResultDTOForAsset = aggregatedResultDTOsForAsset.FirstOrDefault(_ => _.Attribute.Name == attribute);             
             return aggregatedResultDTOForAsset != null ? (double)aggregatedResultDTOForAsset.NumericValue : Convert.ToDouble(attributeDTOs.FirstOrDefault(_ => _.Name == attribute).DefaultValue);
         }
 
-        private string GetTextValue(List<AggregatedResultDTO> aggregatedResultDTOsForAsset, List<AttributeDTO> attributeDTOs, string attribute)
+        private static string GetTextValue(List<AggregatedResultDTO> aggregatedResultDTOsForAsset, List<AttributeDTO> attributeDTOs, string attribute)
         {
             var aggregatedResultDTOForAsset = aggregatedResultDTOsForAsset.FirstOrDefault(_ => _.Attribute.Name == attribute);            
             return aggregatedResultDTOForAsset != null ? aggregatedResultDTOForAsset.TextValue : attributeDTOs.FirstOrDefault(_ => _.Name == attribute).DefaultValue;
@@ -131,22 +131,34 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             int column = 1;
 
             worksheet.Cells.Style.WrapText = false;
+            
             worksheet.Cells[headerRow, column++].Value = "NetworkID";
             worksheet.Cells[headerRow, column++].Value = "AssetId";
+            worksheet.Cells[headerRow, column++].Value = "AssetName";
             worksheet.Cells[headerRow, column++].Value = "District";
             worksheet.Cells[headerRow, column++].Value = "Cnty";
             worksheet.Cells[headerRow, column++].Value = "Route";            
-            worksheet.Cells[headerRow, column++].Value = "Asset";
             worksheet.Cells[headerRow, column++].Value = "Direction";
+            //New..
+            worksheet.Cells[headerRow, column++].Value = "BPN";
+            worksheet.Cells[headerRow, column++].Value = "FunctionalClass";
+            worksheet.Cells[headerRow, column++].Value = "NHS";
+
+            worksheet.Cells[headerRow, column++].Value = "CRS";
+            //..New
             worksheet.Cells[headerRow, column++].Value = "FromSection";
             worksheet.Cells[headerRow, column++].Value = "ToSection";
-            worksheet.Cells[headerRow, column++].Value = "Area";
+
+            worksheet.Cells[headerRow, column++].Value = "Risk";            
             worksheet.Cells[headerRow, column++].Value = "Interstate";
+                        
             worksheet.Cells[headerRow, column++].Value = "Lanes";
             worksheet.Cells[headerRow, column++].Value = "Width";
-            worksheet.Cells[headerRow, column++].Value = "Length";            
+            worksheet.Cells[headerRow, column++].Value = "Length";
+            worksheet.Cells[headerRow, column++].Value = "Area";
             worksheet.Cells[headerRow, column++].Value = "SurfaceName";
-            worksheet.Cells[headerRow, column++].Value = "Risk";
+
+            // TODO follow this order and update and add new along
 
             return new CurrentCell { Row = ++headerRow, Column = column };
         }

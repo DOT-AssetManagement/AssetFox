@@ -68,23 +68,29 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.SimulationId;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.NetworkId;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.MaintainableAssetId;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.AssetName;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.District;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Cnty;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Route;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.CRS;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.AssetName;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Direction;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.FromSection;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.ToSection;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Year;
             treatmentsWorksheet.Cells[row, column++].Value = string.Empty;
             treatmentsWorksheet.Cells[row, column++].Value = string.Empty;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Interstate;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Appliedtreatment;
             SetDecimalFormat(treatmentsWorksheet.Cells[row, column]);
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Cost;
             SetDecimalFormat(treatmentsWorksheet.Cells[row, column]);
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Benefit;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Category;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Budget;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Bpn;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.FunctionalClass;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.NhsInd;
+
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.CRS;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.FromSection;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.ToSection;
+            
             SetDecimalFormat(treatmentsWorksheet.Cells[row, column]);
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.RiskScore;
             SetDecimalFormat(treatmentsWorksheet.Cells[row, column]);
@@ -92,10 +98,9 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.PriorityLevel;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.TreatmentFundingIgnoresSpendingLimit;
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.TreatmentStatus;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.TreatmentCause;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Budget;
-            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Category;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.TreatmentCause;            
             treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.ProjectId;
+            treatmentsWorksheet.Cells[row, column++].Value = treatmentDataModel.Interstate;
 
             foreach (var treatmentAttributeValue in treatmentDataModel.TreatmentAttributeValues)
             {
@@ -138,13 +143,17 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
 
             var valuePerTextAttribute = section.ValuePerTextAttribute;
             var initialSummaryValuePerTextAttribute = initialAssetSummary.ValuePerTextAttribute;
+            var initialSummaryValuePerNumericAttribute = initialAssetSummary.ValuePerNumericAttribute;
             treatmentDataModel.District = CheckGetTextValue(initialSummaryValuePerTextAttribute, "DISTRICT");
             treatmentDataModel.Cnty = CheckGetTextValue(initialSummaryValuePerTextAttribute, "CNTY");
             treatmentDataModel.Route = CheckGetTextValue(initialSummaryValuePerTextAttribute, "SR");
             treatmentDataModel.CRS = CheckGetTextValue(initialSummaryValuePerTextAttribute, "CRS");
             treatmentDataModel.Direction = direction;
-            treatmentDataModel.RiskScore = CheckGetNumericValue(initialAssetSummary.ValuePerNumericAttribute, "RISKSCORE");
-            treatmentDataModel.Interstate = CheckGetTextValue(initialSummaryValuePerTextAttribute, "INTERSTATE");
+            treatmentDataModel.RiskScore = CheckGetNumericValue(initialSummaryValuePerNumericAttribute, "RISKSCORE");
+            treatmentDataModel.Interstate = CheckGetTextValue(initialSummaryValuePerTextAttribute, "INTERSTATE");                        
+            treatmentDataModel.Bpn = CheckGetTextValue(initialSummaryValuePerTextAttribute, "BUSIPLAN");
+            treatmentDataModel.FunctionalClass = CheckGetNumericValue(initialSummaryValuePerNumericAttribute, "F_CLASS");
+            treatmentDataModel.NhsInd = CheckGetTextValue(initialSummaryValuePerTextAttribute, "NHS_IND");                        
 
             var treatmentOption = section.TreatmentOptions.FirstOrDefault(_ => _.TreatmentName == appliedTreatment);            
             treatmentDataModel.Benefit = treatmentOption != null ? treatmentOption.Benefit : 0;
@@ -202,7 +211,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             {
                 var treatmentAttributeValue = section.ValuePerNumericAttribute.ContainsKey(treatmentAttribute)
                     ? CheckGetNumericValue(section.ValuePerNumericAttribute, treatmentAttribute)
-                    : CheckGetNumericValue(initialAssetSummary.ValuePerNumericAttribute, treatmentAttribute);
+                    : CheckGetNumericValue(initialSummaryValuePerNumericAttribute, treatmentAttribute);
                 treatmentAttributeValues.Add(treatmentAttributeValue);
             }
             treatmentDataModel.TreatmentAttributeValues = treatmentAttributeValues;
@@ -221,10 +230,11 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             int column = 1;
 
             worksheet.Cells.Style.WrapText = false;
+
             worksheet.Cells[headerRow, column++].Value = "SimulationID";
             worksheet.Cells[headerRow, column++].Value = "NetworkID";
             worksheet.Cells[headerRow, column++].Value = "AssetId";
-            worksheet.Cells[headerRow, column++].Value = "Asset";
+            worksheet.Cells[headerRow, column++].Value = "AssetName";
             worksheet.Cells[headerRow, column++].Value = "District";
             worksheet.Cells[headerRow, column++].Value = "Cnty";
             worksheet.Cells[headerRow, column++].Value = "Route";
@@ -237,11 +247,10 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             worksheet.Cells[headerRow, column++].Value = "Benefit";
             worksheet.Cells[headerRow, column++].Value = "Category";
             worksheet.Cells[headerRow, column++].Value = "Budget";
-            // TODO below 3 columns 
-            // BPN
-            // FunctionalClass
-            // NHS
-
+            worksheet.Cells[headerRow, column++].Value = "BPN";
+            worksheet.Cells[headerRow, column++].Value = "FunctionalClass";
+            worksheet.Cells[headerRow, column++].Value = "NHS";
+            
             worksheet.Cells[headerRow, column++].Value = "CRS";
             worksheet.Cells[headerRow, column++].Value = "FromSection";
             worksheet.Cells[headerRow, column++].Value = "ToSection";
@@ -254,9 +263,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             worksheet.Cells[headerRow, column++].Value = "TreatmentCause";
             worksheet.Cells[headerRow, column++].Value = "Project Id";
             worksheet.Cells[headerRow, column++].Value = "Interstate";
-            // TODO correct order of all above updated header colns
-
-
+            
             treatmentAttributes = GetTreatmentAttributes();
             foreach(var treatmentAttribute in treatmentAttributes)
             {
