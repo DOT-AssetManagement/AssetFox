@@ -46,24 +46,31 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
                         
             masWorksheet.Cells[row, column++].Value = masDataModel.NetworkId;
             masWorksheet.Cells[row, column++].Value = masDataModel.MaintainableAssetId;
+            masWorksheet.Cells[row, column++].Value = masDataModel.AssetName;
             masWorksheet.Cells[row, column++].Value = masDataModel.District;
             masWorksheet.Cells[row, column++].Value = masDataModel.Cnty;
-            masWorksheet.Cells[row, column++].Value = masDataModel.Route;            
-            masWorksheet.Cells[row, column++].Value = masDataModel.AssetName;
+            masWorksheet.Cells[row, column++].Value = masDataModel.Route;
             masWorksheet.Cells[row, column++].Value = masDataModel.Direction;
+            masWorksheet.Cells[row, column++].Value = masDataModel.Bpn;
+            masWorksheet.Cells[row, column++].Value = masDataModel.FunctionalClass;
+            masWorksheet.Cells[row, column++].Value = masDataModel.NhsInd;
+
+            masWorksheet.Cells[row, column++].Value = masDataModel.AssetName; // CRS
             masWorksheet.Cells[row, column++].Value = masDataModel.FromSection;
             masWorksheet.Cells[row, column++].Value = masDataModel.ToSection;
+
             SetDecimalFormat(masWorksheet.Cells[row, column]);
-            masWorksheet.Cells[row, column++].Value = masDataModel.Area;            
+            masWorksheet.Cells[row, column++].Value = masDataModel.RiskScore;
             masWorksheet.Cells[row, column++].Value = masDataModel.Interstate;
+                                                
             masWorksheet.Cells[row, column++].Value = masDataModel.Lanes;
             SetDecimalFormat(masWorksheet.Cells[row, column]);
             masWorksheet.Cells[row, column++].Value = masDataModel.Width;
             SetDecimalFormat(masWorksheet.Cells[row, column]);
-            masWorksheet.Cells[row, column++].Value = masDataModel.Length;            
-            masWorksheet.Cells[row, column++].Value = masDataModel.surfaceName;
+            masWorksheet.Cells[row, column++].Value = masDataModel.Length;
             SetDecimalFormat(masWorksheet.Cells[row, column]);
-            masWorksheet.Cells[row, column++].Value = masDataModel.RiskScore;
+            masWorksheet.Cells[row, column++].Value = masDataModel.Area;
+            masWorksheet.Cells[row, column++].Value = masDataModel.surfaceName;
 
             return new CurrentCell { Row = ++row, Column = column - 1 };
         }
@@ -87,7 +94,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             var direction = string.Empty;
             if (!string.IsNullOrEmpty(locationIdentifier))
             {
-                var parts = locationIdentifier.Split(new char[] { '_' });
+                var parts = locationIdentifier.Split(['_']);
                 direction = parts[2];
                 var fromTo = parts.Last()?.Split('-');
                 fromSection = fromTo?.First();
@@ -109,6 +116,9 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             masDataModel.Lanes = GetNumericValue(aggregatedResultDTOsForAsset, attributeDTOs, "LANES");
             masDataModel.surfaceName = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "SURFACE_NAME");
             masDataModel.RiskScore = GetNumericValue(aggregatedResultDTOsForAsset, attributeDTOs, "RISKSCORE");
+            masDataModel.Bpn = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "BUSIPLAN");
+            masDataModel.FunctionalClass = GetNumericValue(aggregatedResultDTOsForAsset, attributeDTOs, "F_CLASS");
+            masDataModel.NhsInd = GetTextValue(aggregatedResultDTOsForAsset, attributeDTOs, "NHS_IND");
 
             return masDataModel;
         }
@@ -139,13 +149,11 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             worksheet.Cells[headerRow, column++].Value = "Cnty";
             worksheet.Cells[headerRow, column++].Value = "Route";            
             worksheet.Cells[headerRow, column++].Value = "Direction";
-            //New..
             worksheet.Cells[headerRow, column++].Value = "BPN";
             worksheet.Cells[headerRow, column++].Value = "FunctionalClass";
             worksheet.Cells[headerRow, column++].Value = "NHS";
 
-            worksheet.Cells[headerRow, column++].Value = "CRS";
-            //..New
+            worksheet.Cells[headerRow, column++].Value = "CRS";            
             worksheet.Cells[headerRow, column++].Value = "FromSection";
             worksheet.Cells[headerRow, column++].Value = "ToSection";
 
@@ -156,9 +164,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             worksheet.Cells[headerRow, column++].Value = "Width";
             worksheet.Cells[headerRow, column++].Value = "Length";
             worksheet.Cells[headerRow, column++].Value = "Area";
-            worksheet.Cells[headerRow, column++].Value = "SurfaceName";
-
-            // TODO follow this order and update and add new along
+            worksheet.Cells[headerRow, column++].Value = "SurfaceName";            
 
             return new CurrentCell { Row = ++headerRow, Column = column };
         }

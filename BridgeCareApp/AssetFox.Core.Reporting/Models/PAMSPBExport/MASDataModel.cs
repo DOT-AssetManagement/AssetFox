@@ -38,6 +38,12 @@ namespace AssetFox.Core.Reporting.Models.PAMSPBExport
 
         public string surfaceName { get; set; } 
 
-        public double RiskScore { get; set; } 
+        public double RiskScore { get; set; }
+
+        public string Bpn { get; set; }
+
+        public double FunctionalClass { get; set; }
+
+        public string NhsInd { get; set; }
     }
 }
