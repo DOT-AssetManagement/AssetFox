@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AssetFox.Core.Common.Logging;
@@ -152,7 +151,7 @@ namespace AssetFox.Core.Reporting
         }
 
         private string GenerateBAMSPBExportReport(Guid networkId, Guid simulationId, IWorkQueueLog workQueueLog, CancellationToken? cancellationToken = null)
-        {            
+        {
             if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
             {
                 throw new Exception("Report was cancelled");
@@ -230,14 +229,6 @@ namespace AssetFox.Core.Reporting
         {
             Status = "BAMS PB Export output report completed with errors";
             IsComplete = true;
-        }
-
-        private void checkCancelled(CancellationToken? cancellationToken, Guid simulationId)
-        {
-            if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
-            {
-                throw new Exception("Report was cancelled");
-            }
         }
     }
 }

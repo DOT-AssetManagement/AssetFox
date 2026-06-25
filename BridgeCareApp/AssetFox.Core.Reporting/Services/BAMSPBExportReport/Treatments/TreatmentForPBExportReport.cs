@@ -50,42 +50,44 @@ namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport.Treatments
 
         #region Private Methods
 
-        private List<string> GetStaticDataHeaders()
-        {
-            return new List<string>
-            {
+        private static List<string> GetStaticDataHeaders() =>
+            [
                 "SimulationId",
                 "NetworkId",
-                "AssetId",                
+                "AssetId",
+                "AssetName",
                 "District",
-                "Cnty",
+                "County",
                 "Route",
-                "Asset",
                 "Direction",
-                "Segment",
                 "Year",
                 "MinYear",
                 "MaxYear",
                 "Treatment",
                 "Cost",
                 "Benefit",
+                "Category",
+                "Budget",
+                "BPN",
+                "FunctionalClass",
+                "NHS",
+
+                "Segment",
+                "Offset",
+
                 "Risk",
                 "RemainingLife",
                 "PriorityOrder",
                 "TreatmentFundingIgnoresSpendingLimit",
                 "TreatmentStatus",
                 "TreatmentCause",
-                "Budget",
-                "Category",
                 "Project Id",
+                "Interstate",
 
-                "Offset",
-                "Interstate", 
-                                
-                "BRKEY",                
-                "OWNER_CODE",                
+                "BRKEY",
+                "OWNER_CODE",
                 "YEARANY",
-                "YEARSAME",                
+                "YEARSAME",
                 "AGE",
                 "LATX_CNT",
                 "WS_SEEDED",
@@ -96,11 +98,10 @@ namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport.Treatments
                 "CULV_SEEDED",
                 "DECK_SEEDED",
                 "SUP_SEEDED",
-                "SUB_SEEDED"  
-            };
-        }
+                "SUB_SEEDED"
+            ];
 
-        private CurrentCell AddDataHeadersCells(ExcelWorksheet worksheet, List<string> dataHeaders)
+        private static CurrentCell AddDataHeadersCells(ExcelWorksheet worksheet, List<string> dataHeaders)
         {
             //section header
             int dataHeaderRow = 1; 
@@ -124,7 +125,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport.Treatments
             var columnNo = currentCell.Column;
             var initialAssetSummaries = reportOutputData.InitialAssetSummaries;
 
-            if (reportOutputData?.Years?.Any() == true)
+            if (reportOutputData?.Years?.Count > 0)
             {
                 Dictionary<double, List<TreatmentConsiderationDetail>> keyCashFlowFundingDetails = new();
                 foreach (var yearObject in reportOutputData.Years)
@@ -136,7 +137,7 @@ namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport.Treatments
                                                             && !string.IsNullOrWhiteSpace(w.AppliedTreatment))
                                                         .ToList();
 
-                    if (filteredAssetDetails?.Any() == true)
+                    if (filteredAssetDetails?.Count > 0)
                     {
                         foreach (var assetDetailObject in filteredAssetDetails)
                         {
@@ -149,7 +150,8 @@ namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport.Treatments
 
                             // Build keyCashFlowFundingDetails                    
                             _reportHelper.BuildKeyCashFlowFundingDetails(yearObject, assetDetailObject, brKey, keyCashFlowFundingDetails);
-                            var initialSuumaryValuePerNumericAttribute = initialAssetSummary.ValuePerNumericAttribute;
+                            var initialSummaryValuePerNumericAttribute = initialAssetSummary.ValuePerNumericAttribute;
+                            var initialSummaryValuePerTextAttribute = initialAssetSummary.ValuePerTextAttribute;
 
                             //get budget usages
                             // If CF then use obj from keyCashFlowFundingDetails otherwise from assetDetailObject
@@ -247,43 +249,40 @@ namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport.Treatments
                                         }
                                     }
                                 }
-                            }
+                            }                            
 
                             worksheet.Cells[rowNo, columnNo++].Value = simulationDto.Id.ToString(); //SimulationId
+
                             worksheet.Cells[rowNo, columnNo++].Value = networkId.ToString(); //NetworkId
+
                             worksheet.Cells[rowNo, columnNo++].Value = assetDetailObject.AssetId.ToString(); //Asset Id
-                                                       
-                            worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "DISTRICT"); //District
+
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "BRKEY_"); //AssetName
+
+                            worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(initialSummaryValuePerTextAttribute, "DISTRICT"); //District
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
                             var cnty = "";
                             if (!string.IsNullOrEmpty(bmsID) && !string.IsNullOrWhiteSpace(bmsID)) {
-                                if (bmsID.Length > 2) { cnty = bmsID.Substring(0, 2);  }
+                                if (bmsID.Length > 2) { cnty = bmsID[..2]; }
                             }                                                        
                             worksheet.Cells[rowNo, columnNo++].Value = cnty; //Cnty
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "ROUTENUM"); //Route
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "ROUTENUM"); //Route
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
-
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "BRKEY_"); //AssetName
 
                             //TODO: Get value for direction column
                             worksheet.Cells[rowNo, columnNo++].Value = "0"; //Direction
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "SEGMENT"); //Segment
-                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
-
                             worksheet.Cells[rowNo, columnNo++].Value = yearObject.Year.ToString(); //Year
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            //TODO: Get value for the column
-                            worksheet.Cells[rowNo, columnNo++].Value = yearObject.Year.ToString(); //MinYear
+                            worksheet.Cells[rowNo, columnNo++].Value = string.Empty; //MinYear
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            //TODO: Get value for the column
-                            worksheet.Cells[rowNo, columnNo++].Value = yearObject.Year.ToString(); //MaxYear
+                            worksheet.Cells[rowNo, columnNo++].Value = string.Empty; //MaxYear
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
                             worksheet.Cells[rowNo, columnNo++].Value = appliedTreatment; //Treatment
@@ -295,7 +294,30 @@ namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport.Treatments
                             worksheet.Cells[rowNo, columnNo++].Value = treatmentOptionDetail?.Benefit ?? 0; //Benefit
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "RISK_SCORE"); //Risk
+                            worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.Category.ToString() ?? ""; //CATEGORY
+
+                            worksheet.Cells[rowNo, columnNo++].Value = budgetName; //BUDGET
+
+                            worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(initialSummaryValuePerTextAttribute, "BUS_PLAN_NETWORK"); // "BPN"
+
+                            worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(initialSummaryValuePerTextAttribute, "FUNC_CLASS"); // FunctionalClass                            
+
+                            worksheet.Cells[rowNo, columnNo++].Value = int.TryParse(_reportHelper.CheckAndGetValue(initialSummaryValuePerTextAttribute, "NHS_IND"), out var numericValue) && numericValue > 0 ? "Y" : "N"; //NHS
+                            
+
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "SEGMENT"); //Segment
+                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
+
+                            var offset = "";
+                            if (!string.IsNullOrEmpty(bmsID) && !string.IsNullOrWhiteSpace(bmsID))
+                            {
+                                if (bmsID.Length > 4) { offset = bmsID.Substring(bmsID.Length - 4); }
+                            }
+                            worksheet.Cells[rowNo, columnNo++].Value = offset; //Offset
+                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
+
+
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "RISK_SCORE"); //Risk
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
                             ExcelHelper.SetCustomFormat(worksheet.Cells[rowNo, columnNo - 1], ExcelHelperCellFormat.Number);
 
@@ -314,71 +336,59 @@ namespace AssetFox.Core.Reporting.Services.BAMSPBExportReport.Treatments
                             worksheet.Cells[rowNo, columnNo++].Value = assetDetailObject.TreatmentCause.ToString(); //TreatmentCause
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = budgetName; //BUDGET
-
-                            worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.Category.ToString() ?? ""; //CATEGORY
-
                             // Project Id
                             var committedProject = committedProjectList.FirstOrDefault(_ => _.Treatment.All(_ => assetDetailObject.AppliedTreatment.Contains(_))
                                 && _.Year == yearObject.Year
                                 && _.LocationKeys[primaryKey] == brKey.ToString());
-                            worksheet.Cells[rowNo, columnNo++].Value = committedProject?.ProjectId?.ToString() ?? string.Empty;
+                            worksheet.Cells[rowNo, columnNo++].Value = committedProject?.ProjectId?.ToString() ?? string.Empty;                            
 
-                            var offset = "";
-                            if (!string.IsNullOrEmpty(bmsID) && !string.IsNullOrWhiteSpace(bmsID)) {
-                                if(bmsID.Length > 4) { offset = bmsID.Substring(bmsID.Length - 4); }
-                            }
-                            worksheet.Cells[rowNo, columnNo++].Value = offset; //Offset
-                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
-
-                            worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "INTERSTATE"); //Interstate
-                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);                            
-                                                        
-
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "BRKEY_"); //BRKey
+                            worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(initialSummaryValuePerTextAttribute, "INTERSTATE"); //Interstate
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);                            
 
-                            worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(initialAssetSummary.ValuePerTextAttribute, "OWNER_CODE"); //Owner Code
+
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "BRKEY_"); //BRKey
+                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);                            
+
+                            worksheet.Cells[rowNo, columnNo++].Value = _reportHelper.CheckAndGetValue(initialSummaryValuePerTextAttribute, "OWNER_CODE"); //Owner Code
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);                                                       
 
                             worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.ShadowForAnyTreatment ?? 0; //YEARANY
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
                             worksheet.Cells[rowNo, columnNo++].Value = treatmentDto?.ShadowForSameTreatment ?? 0; //YEARSAME
-                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
-                            
+                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);                            
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "AGE"); //AGE
-                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
-
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "LATX_CNT"); //LATX_CNT
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "AGE"); //AGE
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "WS_SEEDED"); //WS_SEEDED
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "LATX_CNT"); //LATX_CNT
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "CULV_DURATION_N"); //CULV_DURATION_N
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "WS_SEEDED"); //WS_SEEDED
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "DECK_DURATION_N"); //DECK_DURATION_N
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "CULV_DURATION_N"); //CULV_DURATION_N
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "SUP_DURATION_N"); //SUP_DURATION_N
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "DECK_DURATION_N"); //DECK_DURATION_N
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "SUB_DURATION_N"); //SUB_DURATION_N
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "SUP_DURATION_N"); //SUP_DURATION_N
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "CULV_SEEDED"); //CULV_SEEDED
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "SUB_DURATION_N"); //SUB_DURATION_N
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "DECK_SEEDED"); //DECK_SEEDED
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "CULV_SEEDED"); //CULV_SEEDED
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "SUP_SEEDED"); //SUP_SEEDED
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "DECK_SEEDED"); //DECK_SEEDED
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
-                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSuumaryValuePerNumericAttribute, "SUB_SEEDED"); //SUB_SEEDED
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "SUP_SEEDED"); //SUP_SEEDED
+                            ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
+
+                            worksheet.Cells[rowNo, columnNo++].Value = CheckAndGetValue(assetDetailObject.ValuePerNumericAttribute, initialSummaryValuePerNumericAttribute, "SUB_SEEDED"); //SUB_SEEDED
                             ExcelHelper.HorizontalRightAlign(worksheet.Cells[rowNo, columnNo - 1]);
 
                             if (rowNo % 2 == 0) { ExcelHelper.ApplyColor(worksheet.Cells[rowNo, 1, rowNo, columnNo-1], Color.LightGray); }

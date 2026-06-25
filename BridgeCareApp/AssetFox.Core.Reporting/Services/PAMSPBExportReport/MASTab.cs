@@ -146,7 +146,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSPBExport
             worksheet.Cells[headerRow, column++].Value = "AssetId";
             worksheet.Cells[headerRow, column++].Value = "AssetName";
             worksheet.Cells[headerRow, column++].Value = "District";
-            worksheet.Cells[headerRow, column++].Value = "Cnty";
+            worksheet.Cells[headerRow, column++].Value = "County";
             worksheet.Cells[headerRow, column++].Value = "Route";            
             worksheet.Cells[headerRow, column++].Value = "Direction";
             worksheet.Cells[headerRow, column++].Value = "BPN";
