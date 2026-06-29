@@ -2,25 +2,27 @@
 using System.Collections.Generic;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
+using AssetFox.Core.TestHelpers;
 
 namespace AssetFox.Core.UnitTestsCore.Tests.TreatmentOverrideRuleRepository;
 
-public static class TreatmentOverrideRuleTestSetup
+public static class TreatmentRuleOverrideTestSetup
 {
-    public static TreatmentRuleOverrideDTO ModelForLibraryEntityInDb(IUnitOfWork unitOfWork, Guid libraryId, Guid overrideId)
+    public static TreatmentRuleOverrideDTO ModelForLibraryEntityInDb(IUnitOfWork unitOfWork, Guid libraryId, Guid overrideId, string name = null)
     {
-        var ruleOverride = CreateOverrideRule(overrideId);
+        name ??= RandomStrings.WithPrefix("RuleOverride_");
+        var ruleOverride = CreateOverrideRule(overrideId, name);
         var ruleOverrides = new List<TreatmentRuleOverrideDTO> { ruleOverride };
         unitOfWork.TreatmentRuleOverrideRepo.UpsertRuleOverrides(libraryId, ruleOverrides);
         return ruleOverride;
     }
 
-    private static TreatmentRuleOverrideDTO CreateOverrideRule(Guid overrideId)
+    private static TreatmentRuleOverrideDTO CreateOverrideRule(Guid overrideId, string name)
     {
         var ruleOverride = new TreatmentRuleOverrideDTO
         {
             Id = overrideId,
-            Name = "Test Override",
+            Name = name,
             Description = "Test Override Description",
             SourceTreatmentRuleOverrideId = null,
             IsEnabledByDefault = true,
