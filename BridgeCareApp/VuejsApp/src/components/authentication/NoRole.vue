@@ -12,7 +12,7 @@
                             <h3>Service Not Available</h3>
                         </v-card-title>
                         <v-card-text style="justify-content: center; text-align: center">
-                            <p>You do not have access to the iAM PAMS App.</p>
+                            <p>You do not have access to AssetFox.</p>
                             <p>You can request access at:</p>
                             <a :href="'mailto:' + adminContactEmail">{{ adminContactEmail }}</a>
                         </v-card-text>

@@ -1,5 +1,5 @@
 import store from '@/store/root-store';
-import { SecurityTypes } from '@/shared/utils/security-types';
+import { SecurityTypes, isAzureSecurityType } from '@/shared/utils/security-types';
 import { clearRefreshIntervalID } from '@/shared/utils/refresh-interval-id';
 import router from '@/router';
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
@@ -93,7 +93,7 @@ export const isAuthenticatedUser = () => {
     if (store.state.authenticationModule.securityType === SecurityTypes.esec) {
         return isAuthenticatedEsecUser();
     }
-    if (store.state.authenticationModule.securityType === SecurityTypes.b2c) {
+    if (isAzureSecurityType(store.state.authenticationModule.securityType)) {
         return isAuthenticatedAzureUser();
     }
 

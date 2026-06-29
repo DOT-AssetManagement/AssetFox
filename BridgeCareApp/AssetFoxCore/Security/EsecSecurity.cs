@@ -15,7 +15,6 @@ using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
 
 namespace AssetFoxCore.Security
 {
@@ -125,8 +124,8 @@ namespace AssetFoxCore.Security
                 };
             }
 
-            if (_securityType == SecurityTypes.B2C)
-            {                
+            if (_securityType == SecurityTypes.B2C || _securityType == SecurityTypes.Entra)
+            {
                 var HasAdminAccess = _roleClaimsMapper.HasAdminAccess(claimsPrincipal);
                 var HasSimulationAccess = _roleClaimsMapper.HasSimulationAccess(claimsPrincipal);
 

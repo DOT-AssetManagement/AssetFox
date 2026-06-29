@@ -49,11 +49,31 @@ namespace AssetFoxCore.Security
                 principal.AddIdentity(identity);
             }
 
-            if (_config.GetSection("SecurityType").Value == SecurityConstants.SecurityTypes.B2C)
+            var securityType = _config.GetSection("SecurityType").Value;
+            if (securityType == SecurityConstants.SecurityTypes.B2C
+                || securityType == SecurityConstants.SecurityTypes.Entra)
             {
-                var nameidentifierClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
-                var nameidentifier = principal.Claims.FirstOrDefault(t => t.Type == nameidentifierClaimType);
-                var cacheKey = nameidentifier?.Value;
+                string cacheKey;
+                if (securityType == SecurityConstants.SecurityTypes.Entra)
+                {
+                    // Entra External ID: use the directory object identifier (oid) as the
+                    // Graph lookup / cache key. The "sub"/nameidentifier claim is a pairwise
+                    // pseudonymous id that is unique per application and is NOT accepted by
+                    // Microsoft Graph's /users/{id} endpoint; only the oid (a directory GUID)
+                    // is. The claim is "oid" when inbound claim mapping is disabled and the
+                    // long schema URI when it is enabled, so accept either form.
+                    var objectIdClaim = principal.Claims.FirstOrDefault(t =>
+                        t.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier"
+                        || t.Type == "oid");
+                    cacheKey = objectIdClaim?.Value;
+                }
+                else
+                {
+                    // Azure AD B2C: the nameidentifier claim is the Graph lookup / cache key.
+                    var nameidentifierClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
+                    var nameidentifier = principal.Claims.FirstOrDefault(t => t.Type == nameidentifierClaimType);
+                    cacheKey = nameidentifier?.Value;
+                }
                 lock (cache)
                 {
                     try
@@ -72,8 +92,8 @@ namespace AssetFoxCore.Security
                                 groupNames.Add(SecurityConstants.Role.Default);
                             }
 
-                            var internalRolesFromMapper = _roleClaimsMapper.GetInternalRoles(SecurityConstants.SecurityTypes.B2C, groupNames);
-                            var claimsFromMapper = _roleClaimsMapper.GetClaims(SecurityConstants.SecurityTypes.B2C, internalRolesFromMapper);
+                            var internalRolesFromMapper = _roleClaimsMapper.GetInternalRoles(securityType, groupNames);
+                            var claimsFromMapper = _roleClaimsMapper.GetClaims(securityType, internalRolesFromMapper);
                             var identity = _roleClaimsMapper.AddClaimsToUserIdentity(principal, internalRolesFromMapper, claimsFromMapper);
 
                             if (!cache.ContainsKey(cacheKey))
@@ -93,12 +113,20 @@ namespace AssetFoxCore.Security
                     catch (Exception e)
                     {
                         // Ignore: control gets here few times due to any concurrent calls. Solution to avoid any exception can be looked at later.
-                        _log.Error("ClaimsTransformation Error: " + e.StackTrace);
+                        // Log the full exception (message + inner exceptions), not just the stack trace —
+                        // a faulted Graph call wraps the real cause (e.g. 403 consent, 404 unknown oid)
+                        // which is otherwise invisible.
+                        _log.Error("ClaimsTransformation Error: " + e);
                     }
                 }
-                if (cacheKey != null)
+                // Only add the cached identity if it was actually populated above. A failed
+                // Graph lookup is swallowed in the catch block, leaving no cache entry;
+                // indexing the dictionary blindly here would surface that as an opaque
+                // KeyNotFoundException (HTTP 500) instead of the user simply having no
+                // mapped roles.
+                if (cacheKey != null && cache.TryGetValue(cacheKey, out var userCache))
                 {
-                    principal.AddIdentity(cache[cacheKey].Identity);
+                    principal.AddIdentity(userCache.Identity);
                 }
             }
             return principal;

@@ -184,7 +184,7 @@
                 <v-toolbar-title class="white--text" v-if="!authenticated" style="justify-content: end; display: flex;max-width: 150px">
                     <v-btn
                         style="background-color: #002E6C;"
-                        v-if="securityType === b2cSecurityType"
+                        v-if="securityType === b2cSecurityType || securityType === entraSecurityType"
                         @click="onAzureLogin"
                         class="mx-2"
                         icon
@@ -217,7 +217,7 @@
                     <v-btn
                         style="background-color: #002E6C;"
                         id="App-b2cLogout-vbtn"
-                        v-if="securityType === b2cSecurityType || securityType === localDebugSecurityType"
+                        v-if="securityType === b2cSecurityType || securityType === entraSecurityType || securityType === localDebugSecurityType"
                         @click="onAzureLogout"
                         class="mx-2"
                         icon
@@ -406,6 +406,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
     ];
     let esecSecurityType: string = SecurityTypes.esec;
     let b2cSecurityType: string = SecurityTypes.b2c;
+    let entraSecurityType: string = SecurityTypes.entra;
     let localDebugSecurityType: string = SecurityTypes.localDebug;
     
     let showNewsDialog= ref(false);

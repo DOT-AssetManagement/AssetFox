@@ -16,7 +16,7 @@
                                @click="onRedirect" class="v-btn theme--light assetFox-blue-bg text-white">
                             Go to login page
                         </v-btn>
-                        <v-card-text v-if="securityType === b2cSecurityType">
+                        <v-card-text v-if="securityType === b2cSecurityType || securityType === entraSecurityType">
                             Please click 'Login' if the login pop-up does not show within ~5 seconds.
                         </v-card-text>
                     </v-card>
@@ -29,7 +29,7 @@
 <script setup lang="ts">
     import Vue, { inject, onMounted } from 'vue';
     import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
-    import { SecurityTypes } from '@/shared/utils/security-types';
+    import { SecurityTypes, isAzureSecurityType } from '@/shared/utils/security-types';
     import { hasValue } from '@/shared/utils/has-value-util';
     import { isAuthenticatedUser,
     } from '@/shared/utils/authentication-utils';
@@ -48,6 +48,7 @@ import { useRouter } from 'vue-router';
 
     let esecSecurityType: string = SecurityTypes.esec;
     let b2cSecurityType: string = SecurityTypes.b2c;
+    let entraSecurityType: string = SecurityTypes.entra;
 
     const $router = useRouter();
 
@@ -69,7 +70,7 @@ import { useRouter } from 'vue-router';
         } else {
             if (securityType === SecurityTypes.esec) {
                 onRedirect();
-            } else if (securityType === SecurityTypes.b2c) {
+            } else if (isAzureSecurityType(securityType)) {
                 azureB2CLoginAction();
             }
         }

@@ -17,7 +17,7 @@
 <script setup lang="ts">
     import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
     import Vue, { computed, onMounted, ref } from 'vue';
-    import { SecurityTypes } from '@/shared/utils/security-types';
+    import { SecurityTypes, isAzureSecurityType } from '@/shared/utils/security-types';
     import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import AuthenticationService from '@/services/authentication.service';
@@ -79,7 +79,7 @@ import AuthenticationService from '@/services/authentication.service';
         }
 
         //Is this deprecated???
-        if (securityType === SecurityTypes.b2c) {
+        if (isAzureSecurityType(securityType)) {
             getAzureAccountDetailsAction();
             if (!authenticated.value) {
                 onAuthenticationFailure();

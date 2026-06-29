@@ -37,7 +37,8 @@ namespace AssetFoxCore.Security
                 });
             }
 
-            if (securityType == SecurityConstants.SecurityTypes.B2C)
+            if (securityType == SecurityConstants.SecurityTypes.B2C
+                || securityType == SecurityConstants.SecurityTypes.Entra)
             {
                 context.Succeed(requirement);
             }

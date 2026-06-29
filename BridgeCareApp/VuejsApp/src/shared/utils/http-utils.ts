@@ -3,7 +3,7 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { prop } from 'ramda';
 import { UserInfoLocal, UserTokens } from '@/shared/models/iAM/authentication';
 import authenticationModule from '@/store-modules/authentication.module';
-import { SecurityTypes } from '@/shared/utils/security-types';
+import { SecurityTypes, isAzureSecurityType } from '@/shared/utils/security-types';
 import store from '@/store/root-store';
 import { json } from 'stream/consumers';
 export const http2XX = /(2(0|2)[0-8])/;
@@ -62,8 +62,7 @@ export const setAuthHeader = (headers: any) => {
 
     if (
         headers &&
-        authenticationModule.state.securityType ===
-            authenticationModule.state.azureSecurityType &&
+        isAzureSecurityType(authenticationModule.state.securityType) &&
         localStorage.getItem('access_token')
     ) {
         const accessToken: string = localStorage.getItem(

@@ -31,9 +31,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Reports\**" />
+    <Compile Remove="Services\SummaryReport\Models\**" />
     <Content Remove="Reports\**" />
+    <Content Remove="Services\SummaryReport\Models\**" />
     <EmbeddedResource Remove="Reports\**" />
+    <EmbeddedResource Remove="Services\SummaryReport\Models\**" />
     <None Remove="Reports\**" />
+    <None Remove="Services\SummaryReport\Models\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,8 +58,8 @@
     <PackageReference Include="HotChocolate.AspNetCore" Version="13.9.16" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="13.9.16" />
     <PackageReference Include="HotChocolate.Data" Version="13.9.16" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureADB2C.UI" Version="6.0.36" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.16" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.14.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.16" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="4.14.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="4.14.0" />

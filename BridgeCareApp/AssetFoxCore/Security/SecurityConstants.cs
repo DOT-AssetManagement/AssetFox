@@ -6,6 +6,7 @@ namespace AssetFoxCore.Security
         {
             public const string Esec = "ESEC";
             public const string B2C = "B2C";
+            public const string Entra = "Entra";
             public const string LocalDebug = "LocalDebug";
         }
 
