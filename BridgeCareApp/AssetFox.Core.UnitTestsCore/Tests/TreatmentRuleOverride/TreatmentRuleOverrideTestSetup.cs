@@ -17,6 +17,17 @@ public static class TreatmentRuleOverrideTestSetup
         return ruleOverride;
     }
 
+    public static TreatmentRuleOverrideDTO ModelForLibraryEntityInDbWithCriterion(IUnitOfWork unitOfWork, Guid libraryId, Guid overrideId, Guid treatmentId, string criterionExpression, string name = null)
+    {
+        name ??= RandomStrings.WithPrefix("RuleOverride_");
+        var ruleOverride = CreateOverrideRule(overrideId, name);
+        var criterion = CriterionDto(treatmentId, criterionExpression);
+        ruleOverride.Criteria = new List<TreatmentRuleOverrideCriterionDTO> { criterion };
+        var ruleOverrides = new List<TreatmentRuleOverrideDTO> { ruleOverride };
+        unitOfWork.TreatmentRuleOverrideRepo.UpsertRuleOverrides(libraryId, ruleOverrides);
+        return ruleOverride;
+    }
+
     private static TreatmentRuleOverrideDTO CreateOverrideRule(Guid overrideId, string name)
     {
         var ruleOverride = new TreatmentRuleOverrideDTO
@@ -29,5 +40,20 @@ public static class TreatmentRuleOverrideTestSetup
             IsEnabled = true,
         };
         return ruleOverride;
+    }
+
+    private static TreatmentRuleOverrideCriterionDTO CriterionDto(
+        Guid treatmentId,
+        string criterionExpression)
+    {
+        var criterion = new TreatmentRuleOverrideCriterionDTO
+        {
+            CriterionExpression = criterionExpression,
+            Id = Guid.NewGuid(),
+            TreatmentIds = new List<Guid> { treatmentId },
+            LogicalOperator = "and",
+            SortOrder = 0,
+        };
+        return criterion;
     }
 }

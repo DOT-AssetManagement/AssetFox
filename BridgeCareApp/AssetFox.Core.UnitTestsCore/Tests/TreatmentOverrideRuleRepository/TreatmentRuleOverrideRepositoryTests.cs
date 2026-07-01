@@ -206,7 +206,7 @@ public class TreatmentRuleOverrideRepositoryTests
         var scenarioTreatmentId = Guid.NewGuid();
         var scenarioTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId, sourceTreatmentId: libraryTreatmentId);
 
-        var ruleOverride = TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId, ruleOverrideId);
+        var ruleOverride = TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDbWithCriterion(TestHelper.UnitOfWork, treatmentLibraryId, ruleOverrideId, libraryTreatmentId, "Expression");
         var repo = TestHelper.UnitOfWork.TreatmentRuleOverrideRepo;
         var setting = ScenarioTreatmentRuleOverrideSettingDtos.New(ruleOverrideId, ruleOverride.Name, false);
         var settings = new List<ScenarioTreatmentRuleOverrideSettingDTO> { setting };
