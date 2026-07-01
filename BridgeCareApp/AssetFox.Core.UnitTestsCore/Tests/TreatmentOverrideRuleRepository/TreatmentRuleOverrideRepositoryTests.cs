@@ -205,19 +205,13 @@ public class TreatmentRuleOverrideRepositoryTests
         var libraryTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, treatmentLibraryId, libraryTreatmentId);
         var scenarioTreatmentId = Guid.NewGuid();
         var scenarioTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId, sourceTreatmentId: libraryTreatmentId);
-
         var ruleOverride = TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDbWithCriterion(TestHelper.UnitOfWork, treatmentLibraryId, ruleOverrideId, libraryTreatmentId, "Expression");
         var repo = TestHelper.UnitOfWork.TreatmentRuleOverrideRepo;
         var setting = ScenarioTreatmentRuleOverrideSettingDtos.New(ruleOverrideId, ruleOverride.Name, false);
         var settings = new List<ScenarioTreatmentRuleOverrideSettingDTO> { setting };
         var scenarioTreatments = new List<TreatmentDTO> { scenarioTreatment };
         repo.ReplaceScenarioRuleOverridesFromLibrary(simulationId, treatmentLibraryId, scenarioTreatments);
-        var settingsBeforeDelete = repo.GetOverrideSettings(simulationId);
-        var settingBeforeDelete = settingsBeforeDelete.Single();
+
         TestHelper.UnitOfWork.SelectableTreatmentRepo.DeleteScenarioSelectableTreatment(scenarioTreatment, simulationId);
-
-        TestHelper.UnitOfWork.AsTransaction(() =>
-        repo.DeleteCriteriaWithoutTreatmentsForScenario(simulationId));
-
     }
 }

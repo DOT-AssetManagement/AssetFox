@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
@@ -51,7 +51,7 @@ public static class TreatmentRuleOverrideTestSetup
             CriterionExpression = criterionExpression,
             Id = Guid.NewGuid(),
             TreatmentIds = new List<Guid> { treatmentId },
-            LogicalOperator = "and",
+            LogicalOperator = "AND",
             SortOrder = 0,
         };
         return criterion;
