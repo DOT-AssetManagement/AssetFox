@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using AssetFox.Core.DTOs;
 
-namespace AssetFox.Core.UnitTestsCore.Tests.TreatmentOverrideRuleRepository;
+namespace AssetFox.Core.UnitTestsCore.Tests.TreatmentRuleOverride;
 
 public static class ScenarioTreatmentRuleOverrideSettingDtos
 {

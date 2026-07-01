@@ -4,7 +4,7 @@ using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.TestHelpers;
 
-namespace AssetFox.Core.UnitTestsCore.Tests.TreatmentOverrideRuleRepository;
+namespace AssetFox.Core.UnitTestsCore.Tests.TreatmentRuleOverride;
 
 public static class TreatmentRuleOverrideTestSetup
 {

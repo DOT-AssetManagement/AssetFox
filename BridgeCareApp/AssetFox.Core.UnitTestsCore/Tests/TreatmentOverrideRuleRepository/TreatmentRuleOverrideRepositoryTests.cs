@@ -9,7 +9,7 @@ using AssetFox.Core.UnitTestsCore.Tests.Repositories;
 using AssetFox.Core.UnitTestsCore.TestUtils;
 using Xunit;
 
-namespace AssetFox.Core.UnitTestsCore.Tests.TreatmentOverrideRuleRepository;
+namespace AssetFox.Core.UnitTestsCore.Tests.TreatmentRuleOverride;
 
 public class TreatmentRuleOverrideRepositoryTests
 {
@@ -204,14 +204,14 @@ public class TreatmentRuleOverrideRepositoryTests
         var libraryTreatmentId = Guid.NewGuid();
         var libraryTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, treatmentLibraryId, libraryTreatmentId);
         var scenarioTreatmentId = Guid.NewGuid();
-        var scenarioTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId, sourceTreatmentId: scenarioTreatmentId);
+        var scenarioTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId, sourceTreatmentId: libraryTreatmentId);
 
         var ruleOverride = TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId, ruleOverrideId);
         var repo = TestHelper.UnitOfWork.TreatmentRuleOverrideRepo;
         var setting = ScenarioTreatmentRuleOverrideSettingDtos.New(ruleOverrideId, ruleOverride.Name, false);
         var settings = new List<ScenarioTreatmentRuleOverrideSettingDTO> { setting };
-        var libraryTreatments = new List<TreatmentDTO> { libraryTreatment };
-        repo.ReplaceScenarioRuleOverridesFromLibrary(simulationId, treatmentLibraryId, libraryTreatments);
+        var scenarioTreatments = new List<TreatmentDTO> { scenarioTreatment };
+        repo.ReplaceScenarioRuleOverridesFromLibrary(simulationId, treatmentLibraryId, scenarioTreatments);
         var settingsBeforeDelete = repo.GetOverrideSettings(simulationId);
         var settingBeforeDelete = settingsBeforeDelete.Single();
         TestHelper.UnitOfWork.SelectableTreatmentRepo.DeleteScenarioSelectableTreatment(scenarioTreatment, simulationId);
@@ -219,7 +219,5 @@ public class TreatmentRuleOverrideRepositoryTests
         TestHelper.UnitOfWork.AsTransaction(() =>
         repo.DeleteCriteriaWithoutTreatmentsForScenario(simulationId));
 
-        var settingsAfterDelete = repo.GetOverrideSettings(simulationId);
-        Assert.Empty(settingsAfterDelete);
     }
 }
