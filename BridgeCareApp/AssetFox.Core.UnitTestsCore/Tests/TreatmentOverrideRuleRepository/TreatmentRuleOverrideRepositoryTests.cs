@@ -211,7 +211,12 @@ public class TreatmentRuleOverrideRepositoryTests
         var settings = new List<ScenarioTreatmentRuleOverrideSettingDTO> { setting };
         var scenarioTreatments = new List<TreatmentDTO> { scenarioTreatment };
         repo.ReplaceScenarioRuleOverridesFromLibrary(simulationId, treatmentLibraryId, scenarioTreatments);
+        var treatmentsBeforeDelete = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+        Assert.Single(treatmentsBeforeDelete);
 
         TestHelper.UnitOfWork.SelectableTreatmentRepo.DeleteScenarioSelectableTreatment(scenarioTreatment, simulationId);
+
+        var treatmentsAfterDelete = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+        Assert.Empty(treatmentsAfterDelete);
     }
 }
