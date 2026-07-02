@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -86,7 +86,7 @@ public class TreatmentRuleOverrideRepositoryTests
         var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
         var libraryTreatmentId = Guid.NewGuid();
         var libraryTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, treatmentLibraryId, libraryTreatmentId);
-        var scenarioTreatmentId = Guid.NewGuid();   
+        var scenarioTreatmentId = Guid.NewGuid();
         var scenarioTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId, sourceTreatmentId: scenarioTreatmentId);
 
         var ruleOverride = TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId, ruleOverrideId);
@@ -182,9 +182,9 @@ public class TreatmentRuleOverrideRepositoryTests
         var settingsBeforeDelete = repo.GetOverrideSettings(simulationId);
         var settingBeforeDelete = settingsBeforeDelete.Single();
 
-        TestHelper.UnitOfWork.AsTransaction(() => 
+        TestHelper.UnitOfWork.AsTransaction(() =>
         repo.DeleteCriteriaWithoutTreatmentsForScenario(simulationId));
-        
+
         var settingsAfterDelete = repo.GetOverrideSettings(simulationId);
         var settingAfterDelete = settingsAfterDelete.Single();
         ObjectAssertions.Equivalent(settingBeforeDelete, settingAfterDelete);
