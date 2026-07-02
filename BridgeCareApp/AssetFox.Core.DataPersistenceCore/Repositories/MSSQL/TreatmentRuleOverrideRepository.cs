@@ -269,6 +269,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public void DeleteCriteriaWithoutTreatmentsForLibrary(Guid libraryId)
         {
+
+            _unitOfWork.Context.SaveChanges();
+            _unitOfWork.Context.ChangeTracker.Clear();
             var criteriaWithoutTreatments = _unitOfWork.Context.TreatmentRuleOverrideCriterion
                 .Where(c => c.TreatmentRuleOverride.TreatmentLibraryId == libraryId && !c.TreatmentJoins.Any())
                 .ToList();
