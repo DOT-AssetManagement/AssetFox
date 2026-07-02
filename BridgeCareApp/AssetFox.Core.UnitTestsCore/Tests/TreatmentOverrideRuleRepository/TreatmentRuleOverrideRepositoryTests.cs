@@ -159,40 +159,7 @@ public class TreatmentRuleOverrideRepositoryTests
     }
 
     [Fact]
-    public void DeleteCriteriaWithoutTreatmentsForScenario_CriterionHasTreatment_DoesNotDelete()
-    {
-        AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
-        NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
-        var simulationId = Guid.NewGuid();
-        SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
-        var ruleOverrideId = Guid.NewGuid();
-        var treatmentLibraryId = Guid.NewGuid();
-        var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId);
-        var libraryTreatmentId = Guid.NewGuid();
-        var libraryTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, treatmentLibraryId, libraryTreatmentId);
-        var scenarioTreatmentId = Guid.NewGuid();
-        var scenarioTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(TestHelper.UnitOfWork, simulationId, sourceTreatmentId: scenarioTreatmentId);
-
-        var ruleOverride = TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDb(TestHelper.UnitOfWork, treatmentLibraryId, ruleOverrideId);
-        var repo = TestHelper.UnitOfWork.TreatmentRuleOverrideRepo;
-        var setting = ScenarioTreatmentRuleOverrideSettingDtos.New(ruleOverrideId, ruleOverride.Name, false);
-        var settings = new List<ScenarioTreatmentRuleOverrideSettingDTO> { setting };
-        var libraryTreatments = new List<TreatmentDTO> { libraryTreatment };
-        repo.ReplaceScenarioRuleOverridesFromLibrary(simulationId, treatmentLibraryId, libraryTreatments);
-        var settingsBeforeDelete = repo.GetOverrideSettings(simulationId);
-        var settingBeforeDelete = settingsBeforeDelete.Single();
-
-        TestHelper.UnitOfWork.AsTransaction(() =>
-        repo.DeleteCriteriaWithoutTreatmentsForScenario(simulationId));
-
-        var settingsAfterDelete = repo.GetOverrideSettings(simulationId);
-        var settingAfterDelete = settingsAfterDelete.Single();
-        ObjectAssertions.Equivalent(settingBeforeDelete, settingAfterDelete);
-    }
-
-
-    [Fact]
-    public void DeleteCriteriaWithoutTreatmentsForScenario_CriterionLacksTreatment_Deletes()
+    public void DeleteCriteriaWithoutTreatmentsForScenario_CalledViaDeleteScenarioSelectableTreatment_Deletes()
     {
         AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
         NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
@@ -217,6 +184,27 @@ public class TreatmentRuleOverrideRepositoryTests
         TestHelper.UnitOfWork.SelectableTreatmentRepo.DeleteScenarioSelectableTreatment(scenarioTreatment, simulationId);
 
         var treatmentsAfterDelete = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatments(simulationId);
+        Assert.Empty(treatmentsAfterDelete);
+    }
+
+    [Fact]
+    public void DeleteCriteriaWithoutTreatmentsForLibrary_CalledViaDeleteTreatment_Deletes()
+    {
+        AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+        NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+        var libraryId = Guid.NewGuid();
+        var treatmentLibrary = TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryId);
+        var ruleOverrideId = Guid.NewGuid();
+        var libraryTreatmentId = Guid.NewGuid();
+        var libraryTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, libraryId, libraryTreatmentId);
+        var ruleOverride = TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDbWithCriterion(TestHelper.UnitOfWork, libraryId, ruleOverrideId, libraryTreatmentId, "Expression");
+        var repo = TestHelper.UnitOfWork.TreatmentRuleOverrideRepo;
+        var treatmentsBeforeDelete = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSelectableTreatments(libraryId);
+        Assert.Single(treatmentsBeforeDelete);
+
+        TestHelper.UnitOfWork.SelectableTreatmentRepo.DeleteTreatment(libraryTreatment, libraryId);
+
+        var treatmentsAfterDelete = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSelectableTreatments(libraryId);
         Assert.Empty(treatmentsAfterDelete);
     }
 }
