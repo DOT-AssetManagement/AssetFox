@@ -29,6 +29,7 @@ namespace AssetFox.Core.Hubs
         public const string BroadcastFastWorkQueueUpdate = "BroadcastFastWorkQueueUpdate";
         public const string BroadcastDataMigration = "BroadcastDataMigration";
         public const string BroadcastImportCompletion = "BroadcastImportCompletion";
+        public const string BroadcastImportFailure = "BroadcastImportFailure";
         public const string BroadcastSimulationDeletionCompletion = "BroadcastSimulationDeletionCompletion";
         public const string BroadcastSimulationOutputDeletionCompletion = "BroadcastSimulationOutputDeletionCompletion";
         public const string BroadcastSimulationOutputDeletion = "BroadcastSimulationOutputDeletion";

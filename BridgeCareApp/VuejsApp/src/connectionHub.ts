@@ -108,6 +108,11 @@ export default {
             });
         });
 
+        connection.on(Hub.BroadcastType.BroadcastImportFailure, () => {
+            emitter.emit(Hub.BroadcastEventType.BroadcastImportFailureEvent, {                
+            });
+        });
+
         connection.on(Hub.BroadcastType.BroadcastSimulationDeletionCompletion, (workType: WorkType) => {
             emitter.emit(Hub.BroadcastEventType.BroadcastSimulationDeletionCompletionEvent, {
                 workType
@@ -194,7 +199,8 @@ export const Hub = {
         BroadcastWorkQueueStatusUpdate: 'BroadcastWorkQueueStatusUpdate',
         BroadcastFastWorkQueueUpdate: 'BroadcastFastWorkQueueUpdate',
         BroadcastFastWorkQueueStatusUpdate: 'BroadcastFastWorkQueueStatusUpdate',
-        BroadcastImportCompletion: 'BroadcastImportCompletion',   
+        BroadcastImportCompletion: 'BroadcastImportCompletion', 
+        BroadcastImportFailure: 'BroadcastImportFailure',  
         BroadcastSimulationDeletionCompletion: 'BroadcastSimulationDeletionCompletion',
         BroadcastSimulationOutputDeletionCompletion: 'BroadcastSimulationOutputDeletionCompletion'     
     },
@@ -217,6 +223,7 @@ export const Hub = {
         BroadcastFastWorkQueueUpdateEvent: 'BroadcastFastWorkQueueUpdateEvent',
         BroadcastFastWorkQueueStatusUpdateEvent: 'BroadcastFastWorkQueueStatusUpdateEvent',        
         BroadcastImportCompletionEvent: 'BroadcastImportCompletionEvent',
+        BroadcastImportFailureEvent: 'BroadcastImportFailureEvent',
         BroadcastSimulationDeletionCompletionEvent: 'BroadcastSimulationDeletionCompletionEvent',
         BroadcastSimulationOutputDeletionCompletionEvent: 'BroadcastSimulationOutputDeletionCompletionEvent'
     },

@@ -7,16 +7,14 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using AssetFox.CalculateEvaluate;
 using AssetFox.Core.Common.Logging;
-using AssetFox.Core.DataPersistenceCore.Repositories.Generics;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFoxCore.Interfaces;
-using Microsoft.Graph.Models;
 using MoreLinq;
 using OfficeOpenXml;
 
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     public class CommittedProjectService : ICommittedProjectService
     {
@@ -36,16 +34,13 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
         public FileInfoDTO ExportCommittedProjectsFile(Guid simulationId)
         {
             var simulation = _unitOfWork.SimulationRepo.GetSimulation(simulationId);
-            var keyProperties = _unitOfWork.AssetDataRepository.KeyProperties;
-            var keyFields = keyProperties.Keys.Where(_ => _ != "ID").ToList();
+            var keyProperties = _unitOfWork.AssetDataRepository.KeyProperties;            
             var networkKeyField = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(simulation.NetworkId);
             var primaryKeyFieldNames = _unitOfWork.AdminSettingsRepo.GetKeyFields();
 
             var exporter = new CommittedProjectsExporter(
                 _unitOfWork,
-                simulation,
                 networkKeyField,
-                keyFields,
                 keyProperties,
                 primaryKeyFieldNames.ToList());
 
@@ -56,7 +51,9 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
         public FileInfoDTO CreateCommittedProjectTemplate(Guid networkId)
         {
             _networkKeyField = _unitOfWork.NetworkRepo.GetNetworkKeyAttribute(networkId);
-            var generator = new CommittedProjectsTemplateGenerator(_networkKeyField);
+            var keyProperties = _unitOfWork.AssetDataRepository.KeyProperties;
+            var keyFields = keyProperties.Keys.Where(_ => _ != "ID").ToList();
+            var generator = new CommittedProjectsTemplateGenerator(_networkKeyField, keyFields);
             var template = generator.CreateCommittedProjectTemplate();
             return template;
         }
@@ -93,7 +90,6 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 excelPackage.Workbook.Worksheets[0],
                 simulation,
                 UserId);
-
 
             if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
             {

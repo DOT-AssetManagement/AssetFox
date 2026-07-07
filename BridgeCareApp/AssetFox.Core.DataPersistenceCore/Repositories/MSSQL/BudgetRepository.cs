@@ -8,7 +8,6 @@ using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities.ScenarioEnti
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Extensions;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
-using AssetFox.Core.Analysis;
 using AssetFox.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
 using MoreLinq;
@@ -626,6 +625,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         public Dictionary<string, string> GetCriteriaPerBudgetNameForSimulation(Guid simulationId)
         {
             var criteriaPerBudgetName = _unitOfWork.Context.ScenarioBudget.AsNoTracking().AsSplitQuery()
+                .OrderBy(_=>_.BudgetOrder)
                 .Include(_ => _.CriterionLibraryScenarioBudgetJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
                 .Where(_ => _.SimulationId == simulationId)
@@ -637,6 +637,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         public Dictionary<string, string> GetCriteriaPerBudgetNameForBudgetLibrary(Guid budgetLibraryId)
         {
             var criteriaPerBudgetName = _unitOfWork.Context.Budget.AsNoTracking().AsSplitQuery()
+                .OrderBy(_ => _.BudgetOrder)
                 .Include(_ => _.CriterionLibraryBudgetJoin)
                 .ThenInclude(_ => _.CriterionLibrary)
                 .Where(_ => _.BudgetLibraryId == budgetLibraryId)

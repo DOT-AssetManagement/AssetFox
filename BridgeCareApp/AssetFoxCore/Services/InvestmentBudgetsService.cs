@@ -5,12 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using AssetFox.Core.Common.Logging;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Entities;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Abstract;
 using AssetFox.Core.ExcelHelpers;
-using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFoxCore.Interfaces;
 using AssetFoxCore.Interfaces.DefaultData;
@@ -72,6 +70,9 @@ namespace AssetFoxCore.Services
             ExcelHelper.SetCustomFormat(
                 worksheet.Cells[2, 2, worksheet.Dimension.End.Row, worksheet.Dimension.End.Column],
                 ExcelHelperCellFormat.Accounting);
+
+            //autofit columns
+            worksheet.Cells.AutoFitColumns();
         }
 
         private FileInfoDTO CreateInvestmentBudgetsSampleFile()
@@ -117,6 +118,9 @@ namespace AssetFoxCore.Services
                 currentRow++;
             });
 
+            //autofit columns
+            criteriaWorksheet.Cells.AutoFitColumns();
+
             return new FileInfoDTO
             {
                 FileName = fileName,
@@ -144,8 +148,7 @@ namespace AssetFoxCore.Services
 
                 var budgetWorksheet = excelPackage.Workbook.Worksheets.Add("Budget");
 
-                var budgetNames = budgetAmounts.Select(_ => _.BudgetName).Distinct().OrderBy(budgetName => budgetName)
-                    .ToList();
+                var budgetNames = budgetAmounts.Select(_ => _.BudgetName).Distinct().ToList();                    
 
                 AddHeaderCells(budgetWorksheet, budgetNames);
 
@@ -153,8 +156,7 @@ namespace AssetFoxCore.Services
                     .OrderBy(budgetAmount => budgetAmount.Year)
                     .GroupBy(budgetAmount => budgetAmount.Year, dto => dto)
                     .ToDictionary(group => group.Key, dtos => dtos
-                        .OrderBy(budgetAmount => budgetAmount.BudgetName)
-                        .Select(budgetAmount => budgetAmount.Value).ToList());
+                    .Select(budgetAmount => budgetAmount.Value).ToList());
 
                 AddDataCells(budgetWorksheet, budgetAmountsPerYear);
 
@@ -172,6 +174,8 @@ namespace AssetFoxCore.Services
                         criteriaWorksheet.Cells[currentRow, 2].Value = criteriaPerBudgetName.Value;
                         currentRow++;
                     });
+                    //autofit columns
+                    criteriaWorksheet.Cells.AutoFitColumns();
                 }
 
                 return new FileInfoDTO
@@ -227,6 +231,8 @@ namespace AssetFoxCore.Services
                         criteriaWorksheet.Cells[currentRow, 2].Value = criteriaPerBudgetName.Value;
                         currentRow++;
                     });
+                    //autofit columns
+                    criteriaWorksheet.Cells.AutoFitColumns();
                 }
 
                 return new FileInfoDTO
@@ -292,11 +298,13 @@ namespace AssetFoxCore.Services
             var existingBudgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
 
             var existingBudgetNames = existingBudgets.Select(existingBudget => existingBudget.Name).ToList();
+            var budgetOrder = 1;
             var newBudgets = worksheetBudgetNames.Where(budgetName => !existingBudgetNames.Contains(budgetName))
                 .Select(budgetName => new BudgetDTO
                 {
                     Id = Guid.NewGuid(),
-                    Name = budgetName
+                    Name = budgetName,
+                    BudgetOrder = budgetOrder++
                 }).ToList();
 
             var budgetAmountsPerBudgetYearTuple = new Dictionary<(string, int), BudgetAmountDTOWithBudgetId>();
@@ -337,15 +345,17 @@ namespace AssetFoxCore.Services
                     {
                         continue;
                     }
+
                     var budgetYearTuple = (budgetName, year);
-                    if (!budgetAmountsPerBudgetYearTuple.ContainsKey(budgetYearTuple))
+                    var isDecimal = decimal.TryParse(budgetWorksheet.Cells[row, col].Value?.ToString(), out decimal budgetAmount);
+                    if (!budgetAmountsPerBudgetYearTuple.TryGetValue(budgetYearTuple, out var value))
                     {
                         var budgetId = existingBudgets.Any(_ => _.Name == budgetYearTuple.budgetName)
                             ? existingBudgets
                                 .Single(_ => _.Name == budgetYearTuple.budgetName).Id
                             : newBudgets
-                                .Single(_ => _.Name == budgetYearTuple.budgetName).Id;
-
+                                .Single(_ => _.Name == budgetYearTuple.budgetName).Id;                        
+                        
                         newBudgetAmounts.Add(new BudgetAmountDTOWithBudgetId
                         {
                             BudgetId = budgetId,
@@ -353,18 +363,21 @@ namespace AssetFoxCore.Services
                             {
                                 Id = Guid.NewGuid(),
                                 Year = budgetYearTuple.year,
-                                Value = budgetWorksheet.GetValue<decimal>(row, col)
+                                Value = budgetAmount
                             }
                         });
                     }
                     else
                     {
-                        budgetAmountsPerBudgetYearTuple[budgetYearTuple].BudgetAmount.Value = budgetWorksheet.GetValue<decimal>(row, col);
+                        value.BudgetAmount.Value = budgetAmount;
                     }
                 }
             }
             if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
                 return new ScenarioBudgetImportResultDTO();
+            }
+
             queueLog.UpdateWorkQueueStatus("Adding New Budgets");
             _unitOfWork.BudgetRepo.AddScenarioBudgets(simulationId, newBudgets);
 
@@ -375,7 +388,8 @@ namespace AssetFoxCore.Services
 
             var budgetsWithInvalidCriteria = new List<string>();
             var criteriaBudgetNamesNotPresentInBudgetTab = new List<string>();
-            if (criteriaPerBudgetName.Values.Any())
+            var warningSb = new StringBuilder();
+            if (criteriaPerBudgetName.Values.Count != 0)
             {
                 if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                     return new ScenarioBudgetImportResultDTO();
@@ -438,19 +452,15 @@ namespace AssetFoxCore.Services
                 {
                     var sb = new StringBuilder();
                     if (criteriaBudgetNamesNotPresentInBudgetTab.Count > 0)
-                    {
-                        sb.Append($" The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
+                    {                        
+                        warningSb.Append($"The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
                     }
-                    HubService.SendRealTimeMessage("", HubConstant.BroadcastError, sb.ToString());
-                    throw new InvalidOperationException(exceptionMessage);
                 }
                 _unitOfWork.CriterionLibraryRepo.AddLibraries(criteria);
                 _unitOfWork.CriterionLibraryRepo.AddLibraryScenarioBudgetJoins(criteriaJoins);
             }
-
-            var warningSb = new StringBuilder();
-            
-            if (budgetsWithInvalidCriteria.Any())
+                                    
+            if (budgetsWithInvalidCriteria.Count != 0)
             {
                 warningSb.Append($"The following budgets had invalid criteria: {string.Join(", ", budgetsWithInvalidCriteria)}. ");
             }
@@ -525,9 +535,12 @@ namespace AssetFoxCore.Services
             if (overwriteBudgets)
             {
                 if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                {
                     return new BudgetImportResultDTO();
+                }
+
                 queueLog.UpdateWorkQueueStatus("Deleting Old Budgets");
-                if (criteriaPerBudgetName.Values.Any())
+                if (criteriaPerBudgetName.Values.Count != 0)
                 {
                     var budgetNames = criteriaPerBudgetName.Keys.ToList();
                     _unitOfWork.CriterionLibraryRepo.DeleteAllSingleUseCriterionLibrariesWithBudgetNamesForBudgetLibrary(budgetLibraryId, budgetNames); // We have two calls to this. See https://ara-cu.visualstudio.com/Infrastructure%20Asset%20Management/_workitems/edit/21486.
@@ -541,6 +554,7 @@ namespace AssetFoxCore.Services
             var existingBudgets = _unitOfWork.BudgetRepo.GetLibraryBudgets(budgetLibraryId);
 
             var existingBudgetNames = existingBudgets.Select(existingBudget => existingBudget.Name).ToList();
+            var budgetOrder = 1;
             var newBudgets = worksheetBudgetNames.Where(budgetName => !existingBudgetNames.Contains(budgetName))
                 .Select(budgetName => new BudgetDTOWithLibraryId
                 {
@@ -548,7 +562,8 @@ namespace AssetFoxCore.Services
                     Budget = new BudgetDTO
                     {
                         Id = Guid.NewGuid(),
-                        Name = budgetName
+                        Name = budgetName,
+                        BudgetOrder = budgetOrder++
                     },
                 }).ToList();
 
@@ -583,6 +598,7 @@ namespace AssetFoxCore.Services
                         continue;
                     }
                     var budgetYearTuple = (budgetName, year);
+                    var isDecimal = decimal.TryParse(budgetWorksheet.Cells[row, col].Value?.ToString(), out decimal budgetAmount);
                     if (!budgetAmountsPerBudgetYearTuple.ContainsKey(budgetYearTuple))
                     {
                         var budgetId = existingBudgets.Any(_ => _.Name == budgetYearTuple.budgetName)
@@ -598,13 +614,13 @@ namespace AssetFoxCore.Services
                             {
                                 Id = Guid.NewGuid(),
                                 Year = budgetYearTuple.year,
-                                Value = budgetWorksheet.GetValue<decimal>(row, col),
+                                Value = budgetAmount,
                             }
                         });
                     }
                     else
                     {
-                        budgetAmountsPerBudgetYearTuple[budgetYearTuple].BudgetAmount.Value = budgetWorksheet.GetValue<decimal>(row, col);
+                        budgetAmountsPerBudgetYearTuple[budgetYearTuple].BudgetAmount.Value = budgetAmount;
                     }
                 }
             }
@@ -619,7 +635,8 @@ namespace AssetFoxCore.Services
 
             var budgetsWithInvalidCriteria = new List<string>();
             var criteriaBudgetNamesNotPresentInBudgetTab = new List<string>();
-            if (criteriaPerBudgetName.Values.Any())
+            var warningSb = new StringBuilder();
+            if (criteriaPerBudgetName.Values.Count != 0)
             {
                 queueLog.UpdateWorkQueueStatus("Updating Criteria");
                 var allBudgets = new List<BudgetDTO>();
@@ -680,18 +697,15 @@ namespace AssetFoxCore.Services
                 {
                     var sb = new StringBuilder();
                     if (criteriaBudgetNamesNotPresentInBudgetTab.Count > 0)
-                    {
-                        sb.Append($" The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
+                    {                        
+                        warningSb.Append($"The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
                     }
-                    HubService.SendRealTimeMessage("", HubConstant.BroadcastError, sb.ToString());
-                    throw new InvalidOperationException(exceptionMessage);
                 }
                 _unitOfWork.CriterionLibraryRepo.AddLibraries(criteria);
                 _unitOfWork.CriterionLibraryRepo.AddLibraryBudgetJoins(criteriaJoins);
             }
-
-            var warningSb = new StringBuilder();
-            if (budgetsWithInvalidCriteria.Any())
+                        
+            if (budgetsWithInvalidCriteria.Count != 0)
             {
                 warningSb.Append($"The following budgets had invalid criteria: {string.Join(", ", budgetsWithInvalidCriteria)}");
             }
@@ -703,6 +717,48 @@ namespace AssetFoxCore.Services
                     ? warningSb.ToString()
                     : null
             };
+        }
+
+        public bool ValidateScenarioInvestment(Guid simulationId)
+        {
+            bool isValid = true;
+
+            var investmentPlan = _unitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulationId);
+            var emptyDto = new InvestmentPlanDTO();
+            if(investmentPlan.Id == emptyDto.Id) // emptyDto.Id has empty guid
+            {
+                return false;
+            }
+            if(investmentPlan.MinimumProjectCostLimit <= 0)
+            {
+                return false;
+            }
+            if (!(investmentPlan.InflationRatePercentage >= 0 && investmentPlan.InflationRatePercentage <= 100))
+            {
+                return false;
+            }
+
+            var budgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
+            if(budgets.Count == 0)
+            {
+                return false;
+            }
+            foreach (var budget in budgets)
+            {
+                if (budget.BudgetAmounts.Count == 0)
+                {
+                    return false;
+                }
+                foreach (var budgetAmount in budget.BudgetAmounts)
+                {
+                    if (budgetAmount.Year <= 0 || budgetAmount.Value <= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return isValid;
         }
     }
 }

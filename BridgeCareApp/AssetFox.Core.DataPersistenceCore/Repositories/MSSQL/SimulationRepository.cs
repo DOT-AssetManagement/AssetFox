@@ -369,24 +369,25 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             var simulationName = this.GetSimulationNameOrId(simulationId);
 
             // Get path
-            var reportPath = Path.Combine(Environment.CurrentDirectory, "Reports", simulationId.ToString());
-            if (string.IsNullOrEmpty(reportPath) || string.IsNullOrWhiteSpace(reportPath))         
+            var reportPath = Path.Combine(Environment.CurrentDirectory, "Reports", simulationId.ToString());            
+            if (string.IsNullOrEmpty(reportPath) || string.IsNullOrWhiteSpace(reportPath))
+            {
                 throw new Exception($"The report for {simulationName} did not include any results");
-            
-            // Throw an error if the path does not exist
-            if (!Directory.Exists(reportPath))            
-                throw new Exception($"The report path {reportPath} does not exist");           
+            }
 
-            // Delete the directory and all its contents
-            Directory.Delete(reportPath, true);
+            if (Directory.Exists(reportPath))
+            {
+                // Delete the directory and all its contents
+                Directory.Delete(reportPath, true);
+            }
 
             // Update all reports in the database to "Report Deleted" for the given simulationId
-                _unitOfWork.Context.Database.ExecuteSqlRaw(
-                "UPDATE SimulationReportDetail SET Status = {0} WHERE SimulationId = {1}",
-                "Report Deleted", simulationId);
+            _ = _unitOfWork.Context.Database.ExecuteSqlRaw(
+            "UPDATE SimulationReportDetail SET Status = {0} WHERE SimulationId = {1}",
+            "Report Deleted", simulationId);
 
             // Save the changes
-                _unitOfWork.Context.SaveChanges();            
+            _ = _unitOfWork.Context.SaveChanges();
         }
 
         public void DeleteSimulationsByNetworkId(Guid networkId)

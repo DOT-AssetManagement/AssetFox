@@ -22,6 +22,7 @@ namespace AssetFoxCore.Services
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
+
         public PagingPageModel<SectionCommittedProjectDTO> GetCommittedProjectPage(List<SectionCommittedProjectDTO> committedProjects, PagingRequestModel<SectionCommittedProjectDTO> request)
         {
             var skip = 0;
@@ -30,11 +31,10 @@ namespace AssetFoxCore.Services
             var budgetdict = new Dictionary<Guid, string>();
             var totalItems = 0;
 
-            request.search = request.search == null ? "" : request.search;
-            request.sortColumn = request.sortColumn == null ? "" : request.sortColumn;
+            request.search = request.search ?? "";
+            request.sortColumn = request.sortColumn ?? "";
             
-            committedProjects = SyncDataset(committedProjects, request.SyncModel);
-            committedProjects = committedProjects.OrderBy(_ => _.Id).ToList();
+            committedProjects = SyncDataset(committedProjects, request.SyncModel);            
             totalItems = committedProjects.Count;
 
             if (request.search.Trim() != "" || request.sortColumn.Trim() != "")
@@ -49,9 +49,14 @@ namespace AssetFoxCore.Services
             }
 
             if (request.search.Trim() != "")
+            {
                 committedProjects = SearchRows(committedProjects, request.search, budgetdict);
+            }
+
             if (request.sortColumn.Trim() != "")
+            {
                 committedProjects = OrderByColumn(committedProjects, request.sortColumn, request.isDescending, budgetdict);
+            }
 
             if (request.RowsPerPage > 0)
             {

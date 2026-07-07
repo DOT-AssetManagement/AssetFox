@@ -50,10 +50,10 @@
                     <v-btn
                         :class="{
                             'blue-run-icon ghd-button-text': !isBudgetPrioritySet,
-                            'ghd-white-bg ghd-lt-gray ghd-button-text ghd-button-border': !isCommittedProjectsBudgetsUnset
+                            'ghd-white-bg ghd-lt-gray ghd-button-text ghd-button-border': isCommittedProjectsBudgetsUnset
                         }"
                         @click="onShowRunSimulationAlert"
-                        :disabled="isBudgetPrioritySet || !isCommittedProjectsBudgetsUnset"
+                        :disabled="isBudgetPrioritySet || isCommittedProjectsBudgetsUnset"
                         block
                         variant = "outlined">
                         Run Scenario
@@ -80,29 +80,16 @@
             @submit="onConfirmAnalysisRunAlertSubmit"
         />
 
-        <Alert
-            :dialogData="alertDataForDeletingCommittedProjects"
-            @submit="onDeleteCommittedProjectsSubmit"
-        />
-
-        <CommittedProjectsFileUploaderDialog
-            :showDialog="showImportExportCommittedProjectsDialog"
-            @submit="onSubmitImportExportCommittedProjectsDialogResult"
-            @delete="onDeleteCommittedProjects"
-        />
-
 </template>
 
 <script lang="ts" setup>
 import Vue, { ref, shallowReactive, computed, watch, onMounted, onBeforeUnmount, onBeforeMount } from 'vue'; 
 import { emptyScenario, Scenario, QueuedWork} from '@/shared/models/iAM/scenario';
-import ImportExportCommittedProjectsDialog from '@/components/scenarios/scenarios-dialogs/ImportExportCommittedProjectsDialog.vue';
 import { any, clone, isNil, propEq } from 'ramda';
 import { AxiosResponse } from 'axios';
 import CommittedProjectsService from '@/services/committed-projects.service';
-import FileDownload from 'js-file-download';
+import { Network, emptyNetwork } from '@/shared/models/iAM/network';
 import { NavigationTab } from '@/shared/models/iAM/navigation-tab';
-import { ImportExportCommittedProjectsDialogResult } from '@/shared/models/modals/import-export-committed-projects-dialog-result';
 import { AlertData, AlertDataWithButtons, AlertPreChecksData, emptyAlertData, emptyAlertDataWithButtons, emptyAlertPreChecksData } from '@/shared/models/modals/alert-data';
 import AlertPreChecks from '@/shared/modals/AlertPreChecks.vue';
 import AlertWithButtons from '@/shared/modals/AlertWithButtons.vue';
@@ -110,8 +97,6 @@ import Alert from '@/shared/modals/Alert.vue';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
-import { FileInfo } from '@/shared/models/iAM/file-info';
-import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 import AnalysisMethodSvg from '@/shared/icons/AnalysisMethodSvg.vue';
 import BudgetPrioritySvg from '@/shared/icons/BudgetPrioritySvg.vue';
 import CashFlowSvg from '@/shared/icons/CashFlowSvg.vue';
@@ -143,6 +128,7 @@ import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
 import { useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
 import { useTreatmentStore } from '@/stores/treatment.store';
+import { faL } from '@fortawesome/free-solid-svg-icons';
 
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
@@ -157,6 +143,7 @@ import { useTreatmentStore } from '@/stores/treatment.store';
 
     let selectedScenarioId: string = getBlankGuid();
     let showImportExportCommittedProjectsDialog: boolean = false;
+    let selectedScenarioId: string = getBlankGuid();    
     let networkId: string = getBlankGuid();
     let simulationName: string;
     let networkName: string = '';
@@ -175,7 +162,7 @@ import { useTreatmentStore } from '@/stores/treatment.store';
     let confirmAnalysisRunAlertData= ref(clone(emptyAlertDataWithButtons));
     let confirmAnalysisPreCheckAlertData= ref(clone(emptyAlertPreChecksData));
     let isAnalysisMethodSet = ref(false);
-    let isInvestmentSet = ref(false);
+    let isInvestmentUnset = ref(true);
     let isDeteriorationModelSet = ref(false);
     let isTreatmentSet = ref(false);
     let isBudgetPrioritySet = ref(false);
@@ -184,6 +171,8 @@ import { useTreatmentStore } from '@/stores/treatment.store';
     let hasScenarioBeenRun = ref(false);
     let isCommittedProjectsBudgetsUnset = ref(true);
     let selectedScenarioName: string = "";
+    let AllCommittedProjectsValid: boolean = false;
+    let isInvestmentValid = ref(false);
 
     let navigationTabs = ref<NavigationTab[]>([
     {
@@ -210,7 +199,7 @@ import { useTreatmentStore } from '@/stores/treatment.store';
         navigation: {
             path: '/PerformanceCurveEditor/Scenario/',
         },
-        disabled: isInvestmentSet.value,
+        disabled: isInvestmentUnset.value,
     },
     {
         tabName: 'Treatment',
@@ -287,8 +276,7 @@ import { useTreatmentStore } from '@/stores/treatment.store';
     ]);
 
     const alertData = ref<AlertData>(clone(emptyAlertData));
-    const alertDataForDeletingCommittedProjects = ref<AlertData>({ ...emptyAlertData });
-
+    
     onMounted(() => {
         ScenarioSettingsUpdated()
         .then(() => getAnalysisMethod())
@@ -392,82 +380,6 @@ import { useTreatmentStore } from '@/stores/treatment.store';
         scenarioStore.selectScenario(getBlankGuid());
     }
 
-    function onSubmitImportExportCommittedProjectsDialogResult(
-        result: ImportExportCommittedProjectsDialogResult,
-    ) {
-        showImportExportCommittedProjectsDialog = false;
-
-        if (hasValue(result)) {
-            if (result.isExport) {
-                CommittedProjectsService.exportCommittedProjects(
-                    selectedScenarioId,
-                ).then((response: AxiosResponse) => {
-                    if (hasValue(response, 'data')) {
-                        const fileInfo: FileInfo = response.data as FileInfo;
-                        FileDownload(
-                            convertBase64ToArrayBuffer(fileInfo.fileData),
-                            fileInfo.fileName,
-                            fileInfo.mimeType,
-                        );
-                    }
-                });
-            } else {
-                if (hasValue(result.file)) {
-                    CommittedProjectsService.importCommittedProjects(
-                        result.file,
-                        selectedScenarioId,
-                    ).then((response: AxiosResponse) => {
-                        if (
-                            hasValue(response, 'status') &&
-                            http2XX.test(response.status.toString())
-                        ) {
-                            notificationStore.addSuccessNotification({
-                                message: 'Successful upload.',
-                                longMessage:
-                                    'Successfully uploaded committed projects.',
-                            });
-                        }
-                    });
-                } else {
-                    notificationStore.addErrorNotification({
-                        message: 'No file selected.',
-                        longMessage:
-                            'No file selected to upload the committed projects.',
-                    });
-                }
-            }
-        }
-    }
-
-    function onDeleteCommittedProjects() {
-        alertDataForDeletingCommittedProjects.value = {
-            showDialog: true,
-            heading: 'Are you sure?',
-            message:
-                "You are about to delete all of this scenario's committed projects.",
-            choice: true,
-        };
-    }
-
-    function onDeleteCommittedProjectsSubmit(doDelete: boolean) {
-        alertDataForDeletingCommittedProjects.value = { ...emptyAlertData };
-
-        if (doDelete) {
-            CommittedProjectsService.deleteSimulationCommittedProjects(
-                selectedScenarioId,
-            ).then((response: AxiosResponse) => {
-                if (
-                    hasValue(response) &&
-                    http2XX.test(response.status.toString())
-                ) {
-                    notificationStore.addSuccessNotification({
-                        message: 'Committed projects have been deleted.',
-                    });
-                }
-            });
-        }
-    }
-
     function visibleNavigationTabs() {
         return navigationTabs.value.filter(
             navigationTab =>
@@ -491,7 +403,7 @@ import { useTreatmentStore } from '@/stores/treatment.store';
         });
 
         $emitter.on('InvestmentSettingsUpdated', () => {
-            // Update the disabled property of the Deterioration Model tab
+            // Update the disabled property of the Deterioration Model tab            
             navigationTabs.value.forEach((tab) => {
                 if (tab.tabName === 'Deterioration Model') {
                     tab.disabled = false;
@@ -499,6 +411,21 @@ import { useTreatmentStore } from '@/stores/treatment.store';
                 else if(tab.tabName === 'Investment')
                 {
                     tab.validationIcon = 'fas fa-check-circle';
+                    isInvestmentValid.value = true;
+                }
+            })
+        });
+        
+        $emitter.on('InvestmentSettingsWithErrors', () => {
+            // Update the disabled property of the Deterioration Model tab            
+            navigationTabs.value.forEach((tab) => {
+                if (tab.tabName === 'Deterioration Model') {
+                    tab.disabled = false;
+                }
+                else if(tab.tabName === 'Investment')
+                {
+                    tab.validationIcon = 'fas fa-times-circle';
+                    isInvestmentValid.value = false;
                 }
             })
         });
@@ -569,7 +496,7 @@ import { useTreatmentStore } from '@/stores/treatment.store';
 
         $emitter.on('CommittedProjectsUpdated', () => {
             isCashFlowSet.value = false;
-            isCommittedProjectsBudgetsUnset.value = true;
+            isCommittedProjectsBudgetsUnset.value = false;
             // Update the icon of the Committed Projects tab
             navigationTabs.value.forEach((tab) => {
                     if (tab.tabName === 'Committed Projects') {
@@ -579,6 +506,7 @@ import { useTreatmentStore } from '@/stores/treatment.store';
         });
 
         $emitter.on('AllCommittedProjectsDeleted', () => {
+            isCommittedProjectsBudgetsUnset.value = false;
             // Update the icon of the Committed Projects tab
             navigationTabs.value.forEach((tab) => {
                     if (tab.tabName === 'Committed Projects') {
@@ -854,32 +782,40 @@ import { useTreatmentStore } from '@/stores/treatment.store';
             isDescending: false,
             search: ''
         };
-
+        
         await InvestmentService.getScenarioInvestmentPage(selectedScenarioId, request)
-        .then((response: { data: any; }) => {
-            if (response.data) {
-                isInvestmentSet.value = response.data.firstYear == 0;
+            .then((response: { data: any; }) => {
+                if (response.data) {                    
+                    isInvestmentUnset.value = response.data.firstYear == 0;
+                }
+            });
 
-                navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Investment') {
-                        if(isInvestmentSet.value === true)
-                        {
-                            tab.validationIcon = "fas fa-times-circle";
-                        }
-                        else
-                        tab.validationIcon = "fas fa-check-circle";
-                    }
-                });
-                
-                // Update the disabled property
-                navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Deterioration Model') {
-                        tab.disabled = isInvestmentSet.value;
-                    }
-                });
+        await InvestmentService.ValidateScenarioInvestment(selectedScenarioId)
+            .then(response => {                
+                if (typeof response.data === 'boolean') {
+                    isInvestmentValid.value = response.data;
+                }
+            });
+
+        navigationTabs.value.forEach((tab) => {                    
+            if (tab.tabName === 'Investment') {                
+                if(isInvestmentUnset.value === false && isInvestmentValid.value === true)
+                {
+                   tab.validationIcon = "fas fa-check-circle";
+                }
+                else
+                {
+                    tab.validationIcon = "fas fa-times-circle";
+                }
             }
         });
-
+                
+        // Update the disabled property
+        navigationTabs.value.forEach((tab) => {
+            if (tab.tabName === 'Deterioration Model') {
+                tab.disabled = isInvestmentUnset.value;
+            }
+        });
     }
 
     async function getDeteriorationModel()
@@ -1036,10 +972,10 @@ import { useTreatmentStore } from '@/stores/treatment.store';
             search: ""
         };
 
-        await CommittedProjectsService.getCommittedProjectsPage(selectedScenarioId, request).then(response => {
+        await CommittedProjectsService.getCommittedProjectsPage(selectedScenarioId, request).then(response => {            
             if(response.data)
-            {
-                isCommittedProjectsSet.value = response.data.items.length == 0;
+            {   
+                isCommittedProjectsSet.value = response.data.items.length > 0;
 
                 if (response?.data?.items) {
                     response.data.items.forEach((item: { scenarioBudgetId: any; }) => {
@@ -1047,31 +983,36 @@ import { useTreatmentStore } from '@/stores/treatment.store';
                             hasUnsetBudgets = true;
                         }
                     });
+                }                
+            }
+        });
+            
+        var network = stateNetworks.find(o => o.id === networkId) || clone(emptyNetwork);            
+        await CommittedProjectsService.validateAllCommittedProjects(selectedScenarioId, network).then(responseValidation => {
+            if(responseValidation.data) {
+                AllCommittedProjectsValid = responseValidation.data;
+            }
+        });        
+        
+        navigationTabs.value.forEach((tab) => {
+            if (tab.tabName === 'Committed Projects') {
+                if(isCommittedProjectsSet.value === false)
+                {
+                    tab.validationIcon = "fas fa-exclamation-circle";
+                    isCommittedProjectsBudgetsUnset.value = false;
                 }
-
-                navigationTabs.value.forEach((tab) => {
-                    if (tab.tabName === 'Committed Projects') {
-                        if(isCommittedProjectsSet.value === true)
-                        {
-                            tab.validationIcon = "fas fa-exclamation-circle";
-                            isCommittedProjectsBudgetsUnset.value = true;
-                        }
-                        else if(hasUnsetBudgets == true)
-                        {
-                            tab.validationIcon = "fas fa-times-circle";
-                            isCommittedProjectsBudgetsUnset.value = false;
-                        }
-                        else
-                        {
-                            tab.validationIcon = "fas fa-check-circle";
-                            isCommittedProjectsBudgetsUnset.value = true;
-
-                        }
-                    }
-                });
-            }   
-
-        })
+                else if(hasUnsetBudgets == true || AllCommittedProjectsValid == false)
+                {
+                    tab.validationIcon = "fas fa-times-circle";
+                    isCommittedProjectsBudgetsUnset.value = true;
+                }
+                else
+                {
+                    tab.validationIcon = "fas fa-check-circle";
+                    isCommittedProjectsBudgetsUnset.value = false;
+                }
+            }
+        });        
     }
 
     function getTooltipText(validationIcon: string, tabName: string) 
@@ -1079,12 +1020,12 @@ import { useTreatmentStore } from '@/stores/treatment.store';
         // Map each name and message to a record
         const tabNameMessages: Record<string, string> = {
             'Analysis Method': 'Analysis Method must be saved before continuing',
-            'Investment': 'Investment must be saved before continuing',
+            'Investment': 'Investment must be saved before continuing/Investment have invalid data',
             'Deterioration Model': 'Deterioration Model must be saved before continuing',
             'Treatment': 'Treatment must be saved before continuing',
             'Budget Priority': 'Budget Priority must be saved before continuing',
-            'Cash Flow': 'Warning: Cash flow has not been set',
-            'Committed Projects': 'Warning: Committed Projects have not been set'
+            'Cash Flow': 'Cash flow has not been set',
+            'Committed Projects': 'Committed Projects have not been set/Committed Projects have invalid data'
         };
 
         // Set the validation for each item

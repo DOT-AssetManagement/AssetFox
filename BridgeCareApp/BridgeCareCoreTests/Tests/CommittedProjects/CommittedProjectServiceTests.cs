@@ -1,8 +1,5 @@
-using Xunit;
 using Moq;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
-using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
-using AssetFoxCore.Services;
 using AssetFox.Core.UnitTestsCore.TestUtils;
 using AssetFox.Core.DataPersistenceCore.Repositories;
 using AssetFox.Core.DTOs.Abstract;
@@ -11,7 +8,7 @@ using OfficeOpenXml;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Enums;
 using AssetFox.Core.UnitTestsCore.Tests;
-using AssetFoxCore.Services.SummaryReport.CommittedProjects;
+using AssetFoxCore.Services.CommittedProjects;
 
 namespace AssetFoxCoreTests.Tests
 {
