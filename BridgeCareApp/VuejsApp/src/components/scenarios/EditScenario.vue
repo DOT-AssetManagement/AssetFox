@@ -143,7 +143,6 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
 
     let selectedScenarioId: string = getBlankGuid();
     let showImportExportCommittedProjectsDialog: boolean = false;
-    let selectedScenarioId: string = getBlankGuid();    
     let networkId: string = getBlankGuid();
     let simulationName: string;
     let networkName: string = '';
