@@ -59,7 +59,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { clone } from 'ramda';
-import { ConditionTrackingConfig, ColumnDef } from '@/shared/models/iAM/report-schema';
+import { ConditionTrackingConfig, ColumnDef, ReportAttributeOption } from '@/shared/models/iAM/report-schema';
 import AttributeColumnPicker from '../shared/AttributeColumnPicker.vue';
 import ColumnChipList from '../shared/ColumnChipList.vue';
 
@@ -72,16 +72,21 @@ const showCondPicker = ref(false);
 
 watch(() => props.config, (val) => { localConfig.value = clone(val); }, { deep: true });
 
-function onAttrPickerSave(names: string[]) {
+function onAttrPickerSave(attributes: ReportAttributeOption[]) {
     const existing = new Map(localConfig.value.attributeColumns.map(c => [c.attributeName, c]));
-    localConfig.value.attributeColumns = names.map(name =>
-        existing.get(name) || { attributeName: name, displayHeader: name, format: 'text', width: 12 } as ColumnDef
+    localConfig.value.attributeColumns = attributes.map(attribute =>
+        existing.get(attribute.name) || {
+            attributeName: attribute.name,
+            displayHeader: attribute.name,
+            format: attribute.type === 'NUMBER' ? 'number' : 'text',
+            width: 12,
+        } as ColumnDef
     );
     emitUpdate();
 }
 
-function onCondPickerSave(names: string[]) {
-    localConfig.value.conditionAttributes = names;
+function onCondPickerSave(attributes: ReportAttributeOption[]) {
+    localConfig.value.conditionAttributes = attributes.map(attribute => attribute.name);
     emitUpdate();
 }
 

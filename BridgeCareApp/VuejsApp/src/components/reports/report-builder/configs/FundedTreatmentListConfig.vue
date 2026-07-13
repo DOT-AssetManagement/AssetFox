@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { clone } from 'ramda';
-import { FundedTreatmentListConfig, ColumnDef } from '@/shared/models/iAM/report-schema';
+import { FundedTreatmentListConfig, ColumnDef, ReportAttributeOption } from '@/shared/models/iAM/report-schema';
 import AttributeColumnPicker from '../shared/AttributeColumnPicker.vue';
 import SimulationFieldPicker from '../shared/SimulationFieldPicker.vue';
 import ColumnChipList from '../shared/ColumnChipList.vue';
@@ -42,10 +42,15 @@ const showAttrPicker = ref(false);
 
 watch(() => props.config, (val) => { localConfig.value = clone(val); }, { deep: true });
 
-function onAttrPickerSave(names: string[]) {
+function onAttrPickerSave(attributes: ReportAttributeOption[]) {
     const existing = new Map(localConfig.value.columns.map(c => [c.attributeName, c]));
-    localConfig.value.columns = names.map(name =>
-        existing.get(name) || { attributeName: name, displayHeader: name, format: 'text', width: 12 } as ColumnDef
+    localConfig.value.columns = attributes.map(attribute =>
+        existing.get(attribute.name) || {
+            attributeName: attribute.name,
+            displayHeader: attribute.name,
+            format: attribute.type === 'NUMBER' ? 'number' : 'text',
+            width: 12,
+        } as ColumnDef
     );
     emitUpdate();
 }

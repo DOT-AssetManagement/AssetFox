@@ -14,6 +14,10 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
     private const int TitleRow = 1;
     private const int HeaderRow = 2;
     private const int DataStartRow = 3;
+    private const int TimelineYearHeaderRow = 2;
+    private const int TimelineFieldHeaderRow = 3;
+    private const int TimelineDataStartRow = 4;
+    private const string TimelineStaticColumnPrefix = "staticAttribute_";
     private const double MaxColumnWidth = 45;
     private const double MinColumnWidth = 10;
     private const string CompactCurrencyFormat = "[>=1000000000]$0.0,,,\"B\";[>=1000000]$0.0,,\"M\";$#,##0.00";
@@ -51,9 +55,15 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
         progressReporter ??= NullExportProgressReporter.Instance;
 
         var components = schema.AllComponents
-            .Where(component => component.Visible)
+            .Where(component => component.Visible
+                && !string.Equals(component.Type, "textBlock", StringComparison.OrdinalIgnoreCase))
             .OrderBy(component => component.Order)
             .ToList();
+
+        if (components.Count == 0)
+        {
+            throw new InvalidOperationException("The report template has no components selected for Excel export.");
+        }
 
         using var package = new ExcelPackage();
         var worksheetNamer = new WorksheetNamer();
@@ -72,9 +82,16 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
                 cancellationToken);
 
             var worksheetName = worksheetNamer.Name(title, i);
-            if (string.Equals(component.Type, "textBlock", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(component.Type, "treatmentTimeline", StringComparison.OrdinalIgnoreCase))
             {
-                WriteTextBlock(package, worksheetName, component);
+                await WriteTreatmentTimelineWorksheetAsync(
+                    package,
+                    worksheetName,
+                    title,
+                    component,
+                    simulationId,
+                    runId,
+                    cancellationToken);
                 continue;
             }
 
@@ -141,6 +158,243 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
 
         await File.WriteAllBytesAsync(filePath, package.GetAsByteArray(), cancellationToken);
         return filePath;
+    }
+
+    private async Task WriteTreatmentTimelineWorksheetAsync(
+        ExcelPackage package,
+        string worksheetName,
+        string title,
+        ReportComponent component,
+        Guid simulationId,
+        int runId,
+        CancellationToken cancellationToken)
+    {
+        var request = new ViewerDataRequest
+        {
+            SimulationId = simulationId,
+            Page = 1,
+            PageSize = int.MaxValue,
+            SortBy = null,
+            SortDirection = "asc",
+            ColumnFilters = new Dictionary<string, string>()
+        };
+        var exportComponent = CreateTreatmentTimelineExportComponent(component);
+        var result = await _queryEngine.StreamAllAsync(exportComponent, request, runId, cancellationToken);
+
+        var yearIndex = ColumnIndex(result.Columns, "year");
+        if (yearIndex < 0 || result.Columns.Count == 0)
+        {
+            throw new InvalidOperationException($"Treatment Timeline component '{title}' did not return key/year columns.");
+        }
+
+        var keyIndex = 0;
+        var staticColumnIndexes = result.Columns
+            .Select((column, index) => (column, index))
+            .Where(item => item.column.Key?.StartsWith(TimelineStaticColumnPrefix, StringComparison.OrdinalIgnoreCase) == true)
+            .Select(item => item.index)
+            .ToList();
+        var perYearColumnIndexes = result.Columns
+            .Select((column, index) => (column, index))
+            .Where(item => item.index != keyIndex
+                && item.index != yearIndex
+                && item.column.Key?.StartsWith(TimelineStaticColumnPrefix, StringComparison.OrdinalIgnoreCase) != true)
+            .Select(item => item.index)
+            .ToList();
+
+        var years = new SortedSet<int>();
+        var assets = new List<TimelinePivotAsset>();
+        var assetsByKey = new Dictionary<string, TimelinePivotAsset>(StringComparer.OrdinalIgnoreCase);
+        await foreach (var row in result.Rows.WithCancellation(cancellationToken))
+        {
+            if (keyIndex >= row.Count || yearIndex >= row.Count || !TryGetYear(row[yearIndex], out var year))
+            {
+                continue;
+            }
+
+            years.Add(year);
+            var assetValue = row[keyIndex];
+            var assetKey = assetValue?.ToString() ?? string.Empty;
+            if (!assetsByKey.TryGetValue(assetKey, out var asset))
+            {
+                asset = new TimelinePivotAsset(
+                    assetValue,
+                    staticColumnIndexes.Select(index => index < row.Count ? row[index] : null).ToList());
+                assetsByKey[assetKey] = asset;
+                assets.Add(asset);
+            }
+
+            asset.ValuesByYear[year] = perYearColumnIndexes
+                .Select(index => index < row.Count ? row[index] : null)
+                .ToList();
+        }
+
+        var fixedColumnCount = 1 + staticColumnIndexes.Count;
+        var columnCount = fixedColumnCount + (years.Count * perYearColumnIndexes.Count);
+        if (columnCount > ExcelPackage.MaxColumns)
+        {
+            throw new InvalidOperationException(
+                $"Treatment Timeline component '{title}' requires {columnCount} Excel columns, exceeding the {ExcelPackage.MaxColumns} column limit.");
+        }
+
+        var worksheet = package.Workbook.Worksheets.Add(worksheetName);
+        WriteWorksheetTitle(worksheet, title, Math.Max(1, columnCount));
+
+        WriteTimelineFixedHeader(worksheet, 1, result.Columns[keyIndex].Header ?? result.Columns[keyIndex].Key ?? string.Empty);
+        for (var staticIndex = 0; staticIndex < staticColumnIndexes.Count; staticIndex++)
+        {
+            var column = result.Columns[staticColumnIndexes[staticIndex]];
+            WriteTimelineFixedHeader(worksheet, staticIndex + 2, column.Header ?? column.Key ?? string.Empty);
+            ApplyColumnNumberFormat(worksheet, staticIndex + 2, column.Format);
+        }
+
+        var excelColumn = fixedColumnCount + 1;
+        if (perYearColumnIndexes.Count > 0)
+        {
+            foreach (var year in years)
+            {
+                var yearStartColumn = excelColumn;
+                foreach (var perYearColumnIndex in perYearColumnIndexes)
+                {
+                    var column = result.Columns[perYearColumnIndex];
+                    worksheet.Cells[TimelineFieldHeaderRow, excelColumn].Value = column.Header ?? column.Key;
+                    ApplyColumnNumberFormat(worksheet, excelColumn, column.Format);
+                    excelColumn++;
+                }
+
+                var yearEndColumn = excelColumn - 1;
+                var yearRange = worksheet.Cells[TimelineYearHeaderRow, yearStartColumn, TimelineYearHeaderRow, yearEndColumn];
+                yearRange.Merge = yearEndColumn > yearStartColumn;
+                yearRange.Value = year;
+            }
+        }
+
+        var rowIndex = TimelineDataStartRow;
+        foreach (var asset in assets)
+        {
+            worksheet.Cells[rowIndex, 1].Value = asset.Key;
+            for (var staticIndex = 0; staticIndex < asset.StaticValues.Count; staticIndex++)
+            {
+                worksheet.Cells[rowIndex, staticIndex + 2].Value = asset.StaticValues[staticIndex];
+            }
+
+            excelColumn = fixedColumnCount + 1;
+            foreach (var year in years)
+            {
+                asset.ValuesByYear.TryGetValue(year, out var values);
+                for (var fieldIndex = 0; fieldIndex < perYearColumnIndexes.Count; fieldIndex++)
+                {
+                    worksheet.Cells[rowIndex, excelColumn].Value = values != null && fieldIndex < values.Count
+                        ? values[fieldIndex]
+                        : null;
+                    excelColumn++;
+                }
+            }
+
+            rowIndex++;
+        }
+
+        ApplyTreatmentTimelineStyle(worksheet, Math.Max(1, columnCount), fixedColumnCount, rowIndex - 1);
+    }
+
+    private static ReportComponent CreateTreatmentTimelineExportComponent(ReportComponent component)
+    {
+        var config = component.Config == null
+            ? new Dictionary<string, object>()
+            : new Dictionary<string, object>(component.Config);
+
+        // The viewer-only option must not remove years from the pivoted Excel timeline.
+        config["showNoTreatment"] = true;
+        return new ReportComponent
+        {
+            Id = component.Id,
+            Type = component.Type,
+            Title = component.Title,
+            Order = component.Order,
+            Visible = component.Visible,
+            CriteriaExpression = component.CriteriaExpression,
+            PageSize = component.PageSize,
+            StripedRows = component.StripedRows,
+            GridX = component.GridX,
+            GridY = component.GridY,
+            GridW = component.GridW,
+            GridH = component.GridH,
+            Config = config
+        };
+    }
+
+    private static void WriteTimelineFixedHeader(ExcelWorksheet worksheet, int column, string header)
+    {
+        var range = worksheet.Cells[TimelineYearHeaderRow, column, TimelineFieldHeaderRow, column];
+        range.Merge = true;
+        range.Value = header;
+    }
+
+    private static void ApplyColumnNumberFormat(ExcelWorksheet worksheet, int column, string? format)
+    {
+        var numberFormat = ExcelColumnFormatMap.Resolve(format);
+        if (!string.IsNullOrEmpty(numberFormat))
+        {
+            worksheet.Column(column).Style.Numberformat.Format = numberFormat;
+        }
+    }
+
+    private static bool TryGetYear(object? value, out int year)
+    {
+        if (value is int intYear)
+        {
+            year = intYear;
+            return true;
+        }
+
+        return int.TryParse(value?.ToString(), out year);
+    }
+
+    private static void ApplyTreatmentTimelineStyle(
+        ExcelWorksheet worksheet,
+        int columnCount,
+        int fixedColumnCount,
+        int lastDataRow)
+    {
+        var headerRange = worksheet.Cells[TimelineYearHeaderRow, 1, TimelineFieldHeaderRow, columnCount];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+        headerRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+        headerRange.Style.WrapText = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(HeaderFillColor);
+        ApplyBorder(headerRange);
+
+        worksheet.View.FreezePanes(TimelineDataStartRow, fixedColumnCount + 1);
+        worksheet.Row(TimelineYearHeaderRow).Height = 24;
+        worksheet.Row(TimelineFieldHeaderRow).Height = 30;
+
+        if (lastDataRow >= TimelineDataStartRow)
+        {
+            var dataRange = worksheet.Cells[TimelineDataStartRow, 1, lastDataRow, columnCount];
+            dataRange.Style.VerticalAlignment = ExcelVerticalAlignment.Bottom;
+            ApplyBorder(dataRange);
+            for (var row = TimelineDataStartRow + 1; row <= lastDataRow; row += 2)
+            {
+                var rowRange = worksheet.Cells[row, 1, row, columnCount];
+                rowRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                rowRange.Style.Fill.BackgroundColor.SetColor(AlternatingRowFillColor);
+            }
+        }
+
+        var lastRow = Math.Max(TimelineFieldHeaderRow, lastDataRow);
+        worksheet.Cells[TitleRow, 1, lastRow, columnCount].AutoFitColumns();
+        for (var column = 1; column <= columnCount; column++)
+        {
+            if (worksheet.Column(column).Width > MaxColumnWidth)
+            {
+                worksheet.Column(column).Width = MaxColumnWidth;
+            }
+
+            if (worksheet.Column(column).Width < MinColumnWidth)
+            {
+                worksheet.Column(column).Width = MinColumnWidth;
+            }
+        }
     }
 
     private async Task WriteChartWorksheetAsync(
@@ -286,40 +540,6 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
         }
 
         worksheet.Cells[1, 1, lastDataRow, lastDataColumn].AutoFitColumns();
-    }
-
-    private static void WriteTextBlock(ExcelPackage package, string worksheetName, ReportComponent component)
-    {
-        var worksheet = package.Workbook.Worksheets.Add(worksheetName);
-        var config = component.Config ?? new Dictionary<string, object>();
-
-        worksheet.Cells[1, 1].Value = GetConfigString(config, "content");
-        worksheet.Cells[1, 1, 1, 6].Merge = true;
-        worksheet.Cells[1, 1, 1, 6].Style.WrapText = true;
-        worksheet.Cells[1, 1, 1, 6].Style.Fill.PatternType = ExcelFillStyle.Solid;
-        worksheet.Cells[1, 1, 1, 6].Style.Fill.BackgroundColor.SetColor(TitleFillColor);
-        ApplyBorder(worksheet.Cells[1, 1, 1, 6]);
-        worksheet.Column(1).Width = 80;
-        worksheet.Row(1).Height = 45;
-
-        switch (GetConfigString(config, "style").ToLowerInvariant())
-        {
-            case "heading":
-                worksheet.Cells[1, 1].Style.Font.Bold = true;
-                worksheet.Cells[1, 1].Style.Font.Size = 18;
-                break;
-            case "subheading":
-                worksheet.Cells[1, 1].Style.Font.Bold = true;
-                worksheet.Cells[1, 1].Style.Font.Size = 14;
-                break;
-            case "note":
-                worksheet.Cells[1, 1].Style.Font.Italic = true;
-                worksheet.Cells[1, 1].Style.Font.Size = 10;
-                break;
-            default:
-                worksheet.Cells[1, 1].Style.Font.Size = 11;
-                break;
-        }
     }
 
     private static void WriteWorksheetTitle(ExcelWorksheet worksheet, string title, int columnCount)
@@ -646,11 +866,17 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
         }
     }
 
-    private static string GetConfigString(Dictionary<string, object> config, string key)
+    private sealed class TimelinePivotAsset
     {
-        return config.TryGetValue(key, out var value)
-            ? value?.ToString() ?? string.Empty
-            : string.Empty;
+        public TimelinePivotAsset(object? key, List<object?> staticValues)
+        {
+            Key = key;
+            StaticValues = staticValues;
+        }
+
+        public object? Key { get; }
+        public List<object?> StaticValues { get; }
+        public Dictionary<int, List<object?>> ValuesByYear { get; } = new();
     }
 
     private sealed record ChartExportRow(string Category, string Series, double Value);

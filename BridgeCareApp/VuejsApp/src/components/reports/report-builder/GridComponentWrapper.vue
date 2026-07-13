@@ -105,7 +105,7 @@ const previewText = computed(() => {
     switch (type) {
         case 'assetDetail': {
             const c = config as AssetDetailConfig;
-            const colCount = (c.attributeColumns?.length || 0) + (c.simulationColumns?.length || 0);
+            const colCount = c.attributeColumns?.length || 0;
             const scope = c.timeScope === 'initial' ? 'Initial State' : c.timeScope === 'year' ? `Year ${c.selectedYear || '?'}` : 'All Years';
             return `${colCount} column${colCount !== 1 ? 's' : ''} · ${scope}${c.showTotals ? ' · Totals' : ''}`;
         }

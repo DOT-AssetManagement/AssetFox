@@ -27,13 +27,6 @@ namespace AssetFox.Core.UniversalReporting.Components
             "cost", "budget"
         };
 
-        // Fields already hardcoded in the GetAssetYearlyData CTE (to prevent duplicate columns)
-        protected static readonly HashSet<string> HardcodedYearlyFields = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "year", "appliedTreatment", "treatmentCause", "treatmentStatus",
-            "cost", "budget"
-        };
-
         // Fields already hardcoded in the GetFundedTreatmentListData CTE
         protected static readonly HashSet<string> HardcodedFundedTreatmentFields = new(StringComparer.OrdinalIgnoreCase)
         {

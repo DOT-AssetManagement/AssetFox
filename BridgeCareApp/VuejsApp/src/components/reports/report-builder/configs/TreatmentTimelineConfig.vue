@@ -26,57 +26,61 @@
         <v-divider class="my-3" />
 
         <div class="text-caption text-uppercase mb-2" style="letter-spacing: 0.08em; color: #666;">Per-Year Data Fields</div>
-        <p class="text-caption text-grey mb-1">What to show for each simulation year.</p>
-        <div v-for="(field, index) in localConfig.yearDataFields" :key="index" class="d-flex align-center mb-2 ga-2">
-            <v-select
-                v-model="field.type"
-                :items="yearFieldTypeOptions"
+        <p class="text-caption text-grey mb-2">Fields shown after the static attributes for every simulation year.</p>
+        <div class="d-flex flex-wrap ga-2 mb-2">
+            <v-btn
+                size="small"
                 variant="outlined"
-                density="compact"
-                hide-details
-                style="max-width: 130px;"
-                @update:model-value="emitUpdate"
-            />
-            <v-text-field
-                v-if="field.type === 'attribute'"
-                v-model="field.attributeName"
-                placeholder="Attribute name"
+                class="text-none"
+                :disabled="hasYearFieldType('treatment')"
+                @click="addBuiltInYearField('treatment')"
+            >
+                <i class="fas fa-plus mr-2" style="font-size: 10px;" />
+                Treatment
+            </v-btn>
+            <v-btn
+                size="small"
                 variant="outlined"
-                density="compact"
-                hide-details
-                style="max-width: 160px;"
-                @update:model-value="emitUpdate"
-            />
-            <v-text-field
-                v-model="field.displayHeader"
-                placeholder="Header"
-                variant="outlined"
-                density="compact"
-                hide-details
-                style="max-width: 120px;"
-                @update:model-value="emitUpdate"
-            />
-            <v-btn icon size="x-small" variant="text" @click="removeYearField(index)">
-                <i class="fas fa-times" style="font-size: 10px; color: #999;" />
+                class="text-none"
+                :disabled="hasYearFieldType('cost')"
+                @click="addBuiltInYearField('cost')"
+            >
+                <i class="fas fa-plus mr-2" style="font-size: 10px;" />
+                Cost
+            </v-btn>
+            <v-btn size="small" variant="outlined" class="text-none" @click="showYearAttrPicker = true">
+                <i class="fas fa-plus mr-2" style="font-size: 10px;" />
+                Attributes
             </v-btn>
         </div>
-        <v-btn size="small" variant="text" class="text-none" @click="addYearField">
-            <i class="fas fa-plus mr-2" style="font-size: 10px;" />
-            Add Year Field
-        </v-btn>
+        <ColumnChipList
+            :columns="localConfig.yearDataFields"
+            chip-color="#2E7D32"
+            @update:columns="onYearFieldsUpdate"
+        />
 
         <AttributeColumnPicker
             v-model="showAttrPicker"
             :existing-attribute-names="localConfig.attributeColumns.map(c => c.attributeName)"
             @save="onAttrPickerSave"
         />
+        <AttributeColumnPicker
+            v-model="showYearAttrPicker"
+            :existing-attribute-names="yearAttributeNames"
+            @save="onYearAttrPickerSave"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { clone } from 'ramda';
-import { TreatmentTimelineConfig, ColumnDef, YearField, emptyYearField } from '@/shared/models/iAM/report-schema';
+import {
+    TreatmentTimelineConfig,
+    ColumnDef,
+    ReportAttributeOption,
+    YearField,
+} from '@/shared/models/iAM/report-schema';
 import AttributeColumnPicker from '../shared/AttributeColumnPicker.vue';
 import ColumnChipList from '../shared/ColumnChipList.vue';
 
@@ -85,30 +89,65 @@ const emit = defineEmits<{ (e: 'update:config', val: TreatmentTimelineConfig): v
 
 const localConfig = ref<TreatmentTimelineConfig>(clone(props.config));
 const showAttrPicker = ref(false);
-
-const yearFieldTypeOptions = [
-    { title: 'Treatment', value: 'treatment' },
-    { title: 'Cost', value: 'cost' },
-    { title: 'Attribute', value: 'attribute' },
-];
+const showYearAttrPicker = ref(false);
 
 watch(() => props.config, (val) => { localConfig.value = clone(val); }, { deep: true });
 
-function onAttrPickerSave(names: string[]) {
+const yearAttributeNames = computed(() => localConfig.value.yearDataFields
+    .filter(field => field.type === 'attribute' && !!field.attributeName)
+    .map(field => field.attributeName as string));
+
+function onAttrPickerSave(attributes: ReportAttributeOption[]) {
     const existing = new Map(localConfig.value.attributeColumns.map(c => [c.attributeName, c]));
-    localConfig.value.attributeColumns = names.map(name =>
-        existing.get(name) || { attributeName: name, displayHeader: name, format: 'text', width: 12 } as ColumnDef
+    localConfig.value.attributeColumns = attributes.map(attribute =>
+        existing.get(attribute.name) || {
+            attributeName: attribute.name,
+            displayHeader: attribute.name,
+            format: attribute.type === 'NUMBER' ? 'number' : 'text',
+            width: 12,
+        } as ColumnDef
     );
     emitUpdate();
 }
 
-function addYearField() {
-    localConfig.value.yearDataFields.push(clone(emptyYearField));
+function onYearAttrPickerSave(attributes: ReportAttributeOption[]) {
+    const selectedNames = new Set(attributes.map(attribute => attribute.name));
+    const retainedFields = localConfig.value.yearDataFields.filter(field =>
+        field.type !== 'attribute' || (!!field.attributeName && selectedNames.has(field.attributeName))
+    );
+    const retainedNames = new Set(retainedFields
+        .filter(field => field.type === 'attribute')
+        .map(field => field.attributeName));
+
+    for (const attribute of attributes) {
+        if (!retainedNames.has(attribute.name)) {
+            retainedFields.push({
+                type: 'attribute',
+                attributeName: attribute.name,
+                displayHeader: attribute.name,
+                format: attribute.type === 'NUMBER' ? 'number' : 'text',
+            });
+        }
+    }
+
+    localConfig.value.yearDataFields = retainedFields;
     emitUpdate();
 }
 
-function removeYearField(index: number) {
-    localConfig.value.yearDataFields.splice(index, 1);
+function hasYearFieldType(type: 'treatment' | 'cost') {
+    return localConfig.value.yearDataFields.some(field => field.type === type);
+}
+
+function addBuiltInYearField(type: 'treatment' | 'cost') {
+    if (hasYearFieldType(type)) return;
+    localConfig.value.yearDataFields.push(type === 'treatment'
+        ? { type: 'treatment', displayHeader: 'Treatment', format: 'text' }
+        : { type: 'cost', displayHeader: 'Cost', format: 'currency' });
+    emitUpdate();
+}
+
+function onYearFieldsUpdate(fields: YearField[]) {
+    localConfig.value.yearDataFields = fields;
     emitUpdate();
 }
 

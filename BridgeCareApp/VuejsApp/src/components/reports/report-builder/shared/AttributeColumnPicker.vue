@@ -92,11 +92,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useAttributeStore } from '@/stores';
-
-interface AttributeItem {
-    name: string;
-    type: string;
-}
+import { ReportAttributeOption } from '@/shared/models/iAM/report-schema';
 
 const props = defineProps<{
     modelValue: boolean;
@@ -105,7 +101,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'update:modelValue', val: boolean): void;
-    (e: 'save', names: string[]): void;
+    (e: 'save', attributes: ReportAttributeOption[]): void;
 }>();
 
 const attributeStore = useAttributeStore();
@@ -118,7 +114,7 @@ const showDialog = computed({
     set: (val) => emit('update:modelValue', val),
 });
 
-const allAttributes = computed<AttributeItem[]>(() => {
+const allAttributes = computed<ReportAttributeOption[]>(() => {
     const attrs = attributeStore.attributesgetter ?? [];
     return attrs.map((a: any) => ({ name: a.name, type: a.type }));
 });
@@ -154,7 +150,11 @@ function toggleAttribute(name: string) {
 }
 
 function onSave() {
-    emit('save', Array.from(selectedNames.value));
+    const attributesByName = new Map(allAttributes.value.map(attribute => [attribute.name, attribute]));
+    const selectedAttributes = Array.from(selectedNames.value)
+        .map(name => attributesByName.get(name))
+        .filter((attribute): attribute is ReportAttributeOption => !!attribute);
+    emit('save', selectedAttributes);
     showDialog.value = false;
 }
 

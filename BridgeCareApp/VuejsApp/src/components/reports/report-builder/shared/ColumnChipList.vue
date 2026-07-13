@@ -2,7 +2,7 @@
     <div>
         <draggable
             :list="localColumns"
-            item-key="attributeName"
+            :item-key="columnKey"
             handle=".chip-drag-handle"
             :animation="200"
             ghost-class="chip-ghost"
@@ -73,6 +73,10 @@ watch(() => props.columns, (val) => {
 
 function onOrderChange() {
     emitUpdate();
+}
+
+function columnKey(column: any) {
+    return column.attributeName || column.field || column.type;
 }
 
 function removeColumn(index: number) {

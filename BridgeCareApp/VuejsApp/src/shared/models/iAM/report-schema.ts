@@ -108,7 +108,6 @@ export interface AssetDetailConfig {
     timeScope: 'initial' | 'year' | 'allYears';
     selectedYear?: number;
     attributeColumns: ColumnDef[];
-    simulationColumns: SimulationColumnDef[];
     sorting: SortingConfig;
     showTotals: boolean;
 }
@@ -225,6 +224,11 @@ export interface ColumnDef {
     width?: number;
 }
 
+export interface ReportAttributeOption {
+    name: string;
+    type: string;
+}
+
 export interface SimulationColumnDef {
     field: SimulationField;
     displayHeader: string;
@@ -298,7 +302,6 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
             return {
                 timeScope: 'initial',
                 attributeColumns: [],
-                simulationColumns: [],
                 sorting: { ...emptySortingConfig },
                 showTotals: false,
             } as AssetDetailConfig;
