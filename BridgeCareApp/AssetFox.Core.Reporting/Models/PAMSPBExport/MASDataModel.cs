@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AssetFox.Core.Reporting.Models.PAMSPBExport
 {
@@ -38,6 +34,12 @@ namespace AssetFox.Core.Reporting.Models.PAMSPBExport
 
         public string surfaceName { get; set; } 
 
-        public double RiskScore { get; set; } 
+        public double RiskScore { get; set; }
+
+        public string Bpn { get; set; }
+
+        public double FunctionalClass { get; set; }
+
+        public string NhsInd { get; set; }
     }
 }

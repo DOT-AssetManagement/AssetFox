@@ -83,12 +83,12 @@
 </template>
 
 <script lang="ts" setup>
-import Vue, { ref, shallowReactive, computed, watch, onMounted, onBeforeUnmount, onBeforeMount } from 'vue'; 
+import Vue, { ref, computed, watch, onMounted, onBeforeUnmount, onBeforeMount } from 'vue';
 import { emptyScenario, Scenario, QueuedWork} from '@/shared/models/iAM/scenario';
 import { any, clone, isNil, propEq } from 'ramda';
 import { AxiosResponse } from 'axios';
 import CommittedProjectsService from '@/services/committed-projects.service';
-import { Network, emptyNetwork } from '@/shared/models/iAM/network';
+import { emptyNetwork } from '@/shared/models/iAM/network';
 import { NavigationTab } from '@/shared/models/iAM/navigation-tab';
 import { AlertData, AlertDataWithButtons, AlertPreChecksData, emptyAlertData, emptyAlertDataWithButtons, emptyAlertPreChecksData } from '@/shared/models/modals/alert-data';
 import AlertPreChecks from '@/shared/modals/AlertPreChecks.vue';
@@ -126,20 +126,21 @@ import { inject } from 'vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
-import { useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
+import { useAuthenticationStore, useNetworkStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
 import { useTreatmentStore } from '@/stores/treatment.store';
 import { faL } from '@fortawesome/free-solid-svg-icons';
 
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
+    const networkStore = useNetworkStore();
     const performanceCurveStore = usePerformanceCurveStore();
     const scenarioStore = useScenarioStore();
     const treatmentStore = useTreatmentStore();
     const router = useRouter(); 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
-    const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
-    let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
+    const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ;
+    let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ;
 
     let selectedScenarioId: string = getBlankGuid();
     let showImportExportCommittedProjectsDialog: boolean = false;
@@ -986,7 +987,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             }
         });
             
-        var network = stateNetworks.find(o => o.id === networkId) || clone(emptyNetwork);            
+        const network = networkStore.networksGetter.find(o => o.id === networkId) || clone(emptyNetwork);
         await CommittedProjectsService.validateAllCommittedProjects(selectedScenarioId, network).then(responseValidation => {
             if(responseValidation.data) {
                 AllCommittedProjectsValid = responseValidation.data;

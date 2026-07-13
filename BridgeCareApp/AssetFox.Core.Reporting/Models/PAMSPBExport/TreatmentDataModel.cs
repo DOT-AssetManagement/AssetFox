@@ -60,5 +60,11 @@ namespace AssetFox.Core.Reporting.Models.PAMSPBExport
         public string ProjectId { get; set; }
 
         public List<double> TreatmentAttributeValues { get; set; } = new List<double>();
+
+        public string Bpn { get; set; }
+
+        public double FunctionalClass { get; set; }
+
+        public string NhsInd { get; set; }
     }
 }
