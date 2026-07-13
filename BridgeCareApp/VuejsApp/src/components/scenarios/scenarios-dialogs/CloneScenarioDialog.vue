@@ -91,7 +91,6 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
     let isNetworkSelected = ref(false);
     let networkMetaData = ref<Network>({...emptyNetwork})
     let selectedNetworkName: string;
-    let hasCompatibleNetworks: boolean = false;
     const scenarioNameErrors = ref<string[]>([]);
 
     function initializeNetworkSelection(force: boolean = false) {
@@ -141,7 +140,6 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
     watch(() => networkStore.networksGetter, ()=>  {
         initializeNetworkSelection();
-        hasCompatibleNetworks = true;
     });
 
     watch(shared, ()=> {
@@ -236,7 +234,6 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
         newScenario = { ...emptyCloneScenario, id: getNewGuid() };
         shared.value = false;
-        hasCompatibleNetworks = false;
     }
 
 </script>
