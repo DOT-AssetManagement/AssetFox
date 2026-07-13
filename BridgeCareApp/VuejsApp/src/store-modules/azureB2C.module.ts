@@ -9,6 +9,7 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import store from '@/store/root-store';
 import router from '@/router';
 import AuthenticationService from '@/services/authentication.service';
+import { useAuthenticationStore } from '@/stores';
 
 const state = {
     authenticatedFromAzure: false,
@@ -24,6 +25,8 @@ const mutations = {
 
 const actions = {
     async azureB2CLogin({ dispatch }: any) {
+        const authenticationStore = useAuthenticationStore();
+
         await state.app
             .loginPopup()
             .then((authResponse: msal.AuthResponse) => {
@@ -33,16 +36,12 @@ const actions = {
                 ) {
                     dispatch('getAzureB2CAccessToken', authResponse).then(() =>
                         dispatch('getAzureAccountDetails').then(async () => {
-                            if (
-                                // @ts-ignore
-                                store.state.authenticationModule.authenticated
-                            ) {
+                            if (authenticationStore.authenticated) {
                                 router.push('/Scenarios/');
                             }
                             else
                             {
-                                // @ts-ignore
-                                let isAccessDenied = store.state.authenticationModule.accessDenied;
+                                let isAccessDenied = authenticationStore.accessDenied;
                                 if(isAccessDenied == false)
                                 {
                                     router.push('/AccessDenied/');

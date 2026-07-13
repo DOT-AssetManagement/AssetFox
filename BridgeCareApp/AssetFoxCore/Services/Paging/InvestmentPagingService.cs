@@ -64,7 +64,7 @@ namespace AssetFoxCore.Services.Paging
             var items = new List<BudgetDTO>();
             var lastYear = 0;
 
-            var budgets = _unitOfWork.BudgetRepo.GetBudgetLibrary(libraryId).Budgets;
+            var budgets = _unitOfWork.BudgetRepo.GetBudgetLibrary(libraryId).Budgets.OrderBy(_ => _.BudgetOrder).ToList();
             FixNullAmounts(budgets);
 
             budgets = SyncedDataset(budgets, request.SyncModel);

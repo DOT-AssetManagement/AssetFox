@@ -152,7 +152,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { ref, onMounted, onBeforeUnmount, watch, toRefs } from 'vue';
-import { useStore } from 'vuex';
 import { clone, isNil } from 'ramda';
 import { InputValidationRules } from '@/shared/utils/input-validation-rules';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
@@ -175,10 +174,9 @@ import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditor
 import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
 import { getUrl } from '@/shared/utils/get-url';
 import EditSvg from '@/shared/icons/EditSvg.vue';
+import { useAdminDataStore } from '@/stores';
 
-    let store = useStore();
-    let stateAssetType = computed<string[]>(()=>store.state.adminDataModule.assetType);
-    async function getAssetTypeAction(payload?: any): Promise<any> {await store.dispatch('getAssetType',payload);}
+    const adminDataStore = useAdminDataStore();
 
     const emit = defineEmits(['submit', 'onModifyTreatmentDetails'])
     const props = defineProps<{
@@ -214,7 +212,7 @@ import EditSvg from '@/shared/icons/EditSvg.vue';
 
     created();
     function created() {
-        getAssetTypeAction();
+        adminDataStore.getAssetType();
     }
 
     watch(assetTypeBinding, () => {
@@ -229,7 +227,7 @@ import EditSvg from '@/shared/icons/EditSvg.vue';
 
         assetTypeMap.clear();
         // Populate assetTypeMap and assetTypeReverseMap
-        stateAssetType.value.forEach((assetType, index) => {
+        adminDataStore.assetTypeGetter.forEach((assetType, index) => {
             // Assign numerical indices to each asset type
             assetTypeMap.set(assetType, assetType);
             assetTypeReverseMap.set(assetType, assetType);

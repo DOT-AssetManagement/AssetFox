@@ -28,23 +28,21 @@
 
 <script setup lang="ts">
     import Vue, { inject, onMounted } from 'vue';
-    import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
     import { SecurityTypes } from '@/shared/utils/security-types';
     import { hasValue } from '@/shared/utils/has-value-util';
     import { isAuthenticatedUser,
     } from '@/shared/utils/authentication-utils';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+    import { useAuthenticationStore, useAzureB2CStore, useConfigStore } from '@/stores';
 
-    let store = useStore();
-    let authenticated: boolean = (store.state.authenticationModule.authenticated);
-    let hasRole: boolean = (store.state.authenticationModule.hasRole) ;
-    let checkedForRole: boolean = (store.state.authenticationModule.checkedForRole) ;
-    let securityType: string = (store.state.authenticationModule.securityType) ;
-    let currentUserCriteriaFilter: UserCriteriaFilter = (store.state.userModule.currentUserCriteriaFilter) ;
-    const config = (store.state.configModule.config);
-
-    async function azureB2CLoginAction(payload?: any): Promise<any> { await store.dispatch('azureB2CLogin');} 
+    const authenticationStore = useAuthenticationStore();
+    const azureB2CStore = useAzureB2CStore();
+    const configStore = useConfigStore();
+    let authenticated: boolean = authenticationStore.authenticated;
+    let hasRole: boolean = authenticationStore.hasRole ;
+    let checkedForRole: boolean = authenticationStore.checkedForRole ;
+    let securityType: string = authenticationStore.securityType ;
+    const config = configStore.getConfig;
 
     let esecSecurityType: string = SecurityTypes.esec;
     let b2cSecurityType: string = SecurityTypes.b2c;
@@ -70,12 +68,16 @@ import { useRouter } from 'vue-router';
             if (securityType === SecurityTypes.esec) {
                 onRedirect();
             } else if (securityType === SecurityTypes.b2c) {
-                azureB2CLoginAction();
+                azureB2CStore.azureB2CLogin();
             }
         }
     }
 
     function onRedirect() { 
+        if (!config) {
+            return;
+        }
+
         let href: string = `${config.authorizationEndpoint}?response_type=code&scope=openid&scope=${config.esecScope}`;
         href += `&client_id=${config.clientId}`;
         href += `&redirect_uri=${config.redirectUri}`;

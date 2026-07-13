@@ -31,7 +31,6 @@
 <script lang="ts" setup>
 import Vue, { computed } from 'vue';
 import { inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import {emptyTreatment, Treatment} from '@/shared/models/iAM/treatment';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import XButton from '@/shared/components/buttons/XButton.vue';

@@ -1,5 +1,7 @@
 import { hasValue } from '@/shared/utils/has-value-util';
-import store from '@/store/root-store';
+import pinia from '@/stores';
+import { useAuthenticationStore } from '@/stores/authentication.store';
+import { useNotificationStore } from '@/stores/notification.store';
 import { onHandleLogout } from '@/shared/utils/authentication-utils';
 
 let refreshIntervalID: any | null = null;
@@ -18,13 +20,15 @@ export const setRefreshIntervalID = () => {
 };
 
 const checkBrowserTokens = () => {
-    store.dispatch('checkBrowserTokens').catch((err: any) => {
+    const authenticationStore = useAuthenticationStore(pinia);
+    const notificationStore = useNotificationStore(pinia);
+
+    authenticationStore.checkBrowserTokens().catch((err: any) => {
         alert(checkBrowserTokens + " " + err);
-        store
-            .dispatch('addErrorNotification', {
-                message: 'Browser token error',
-                longMessage: err.errorMessage,
-            })
-            .then(() => onHandleLogout());
+        notificationStore.addErrorNotification({
+            message: 'Browser token error',
+            longMessage: err.errorMessage,
+        });
+        onHandleLogout();
     });
 };

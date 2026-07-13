@@ -142,4 +142,11 @@ export default class InvestmentService {
             `${API.Investment}/GetHasPermittedAccess`,
         );
     }
+
+    static ValidateScenarioInvestment(scenarioId: string)
+    {
+        return coreAxiosInstance.get(
+            `${API.Investment}/ValidateScenarioInvestment/${scenarioId}`,
+        );
+    }
 }

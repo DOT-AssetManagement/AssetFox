@@ -25,7 +25,7 @@
                         Cancel
                     </v-btn>
                     <v-btn
-                        :disabled="(!dialogData.isCallFromScenario && !dialogData.isCriterionForLibrary) || !stateSelectedCriterionIsValid
+                        :disabled="(!dialogData.isCallFromScenario && !dialogData.isCriterionForLibrary) || !criterionLibraryStore.getSelectedCriterionIsValid
                         "
                         class="ghd-blue-bg ghd-white ghd-button-text"
                         variant = "flat"
@@ -59,24 +59,15 @@ import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper
 import Alert from '@/shared/modals/Alert.vue';
 import { AlertData, emptyAlertData } from '@/shared/models/modals/alert-data';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { useCriterionLibraryStore } from '@/stores';
 
-let store = useStore();
+const criterionLibraryStore = useCriterionLibraryStore();
 const emit = defineEmits(['submit'])
 const props = defineProps<{
     dialogData: CriterionLibraryEditorDialogData
     }>()
     let showDialogComputed = computed(() => props.dialogData.showDialog);
-    let stateCriterionLibraries = computed<CriterionLibrary[]>(() => store.state.criterionModule.criterionLibraries);
-    let stateSelectedCriterionLibrary = computed<CriterionLibrary>(() => store.state.criterionModule.selectedCriterionLibrary);
-    let stateSelectedCriterionIsValid = computed<boolean>(() => store.state.criterionModule.selectedCriterionIsValid);
-    let stateScenarioRelatedCriteria = computed<CriterionLibrary>(() => store.state.criterionModule.scenarioRelatedCriteria);
-    async function getCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCriterionLibraries', payload);}
-    async function setSelectedCriterionIsValidAction(payload?: any): Promise<any> {await store.dispatch('setSelectedCriterionIsValid', payload);}
-    async function selectScenarioRelatedCriterionAction(payload?: any): Promise<any> {await store.dispatch('selectScenarioRelatedCriterion', payload);}
-    async function selectCriterionLibraryAction(payload?: any): Promise<any> {await store.dispatch('selectCriterionLibrary', payload);}
-    async function upsertCriterionLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertCriterionLibrary', payload);}
     let criterionLibraryEditorSelectedCriterionLibrary: CriterionLibrary = clone(
         emptyCriterionLibrary,
     );
@@ -94,23 +85,19 @@ const props = defineProps<{
         ) as HTMLCollection;
 
         if (props.dialogData.showDialog) {
-            if (!hasValue(stateCriterionLibraries)) {
-                getCriterionLibrariesAction().then(() => {
+            if (!hasValue(criterionLibraryStore.criterionLibrariesGetter)) {
+                criterionLibraryStore.getCriterionLibraries().then(() => {
                     if (props.dialogData.isCallFromScenario || props.dialogData.isCriterionForLibrary) {
-                        selectScenarioRelatedCriterionAction({
-                            libraryId: props.dialogData.libraryId,
-                        });
+                        criterionLibraryStore.selectScenarioRelatedCriterion(props.dialogData.libraryId);
                     }
                 });
             } else {
                 if (props.dialogData.isCallFromScenario || props.dialogData.isCriterionForLibrary) {
-                    selectScenarioRelatedCriterionAction({
-                        libraryId: props.dialogData.libraryId,
-                    });
+                    criterionLibraryStore.selectScenarioRelatedCriterion(props.dialogData.libraryId);
                 }
             }
 
-            setSelectedCriterionIsValidAction({ isValid: false });
+            criterionLibraryStore.setSelectedCriterionIsValid(false);
 
             if (hasValue(htmlTag)) {
                 htmlTag[0].setAttribute('style', 'overflow:hidden;');
@@ -123,9 +110,7 @@ const props = defineProps<{
             if (hasValue(htmlTag)) {
                 htmlTag[0].setAttribute('style', 'overflow:auto;');
             }
-            selectScenarioRelatedCriterionAction({
-                libraryId: uuidNIL,
-            });
+            criterionLibraryStore.selectScenarioRelatedCriterion(uuidNIL);
         }
     }
 
@@ -134,7 +119,7 @@ const props = defineProps<{
         hasUnsavedChanges = hasUnsavedChangesCore(
             'criterion-library',
             criterionLibraryEditorSelectedCriterionLibrary,
-            stateSelectedCriterionLibrary.value,
+            criterionLibraryStore.selectedCriterionLibraryGetter,
         );
     }
 
@@ -170,13 +155,13 @@ const props = defineProps<{
 
     function onSubmit(submit: boolean) {
         if (submit) {
-            if (!isNil(stateScenarioRelatedCriteria.value)) {
-                upsertCriterionLibraryAction({
-                    library: stateScenarioRelatedCriteria.value,
-                })
+            if (!isNil(criterionLibraryStore.getScenarioRelatedCriteria)) {
+                criterionLibraryStore.upsertCriterionLibrary(
+                    criterionLibraryStore.getScenarioRelatedCriteria,
+                )
                 .then((id: string) => {
-                    stateScenarioRelatedCriteria.value.id = id;
-                    emit('submit', stateScenarioRelatedCriteria.value);
+                    criterionLibraryStore.getScenarioRelatedCriteria.id = id;
+                    emit('submit', criterionLibraryStore.getScenarioRelatedCriteria);
                 });
             }
         } else {

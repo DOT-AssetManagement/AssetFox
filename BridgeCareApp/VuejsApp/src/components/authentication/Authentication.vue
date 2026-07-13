@@ -15,27 +15,20 @@
 </template>
 
 <script setup lang="ts">
-    import { UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
     import Vue, { computed, onMounted, ref } from 'vue';
     import { SecurityTypes } from '@/shared/utils/security-types';
-    import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import AuthenticationService from '@/services/authentication.service';
+    import { useAuthenticationStore, useAzureB2CStore, useNotificationStore, useUserStore } from '@/stores';
 
-    let store = useStore();
-    let authenticated = computed<boolean>(() => store.state.authenticationModule.authenticated);  
-    let hasRole= computed<boolean>(() => store.state.authenticationModule.hasRole);
-    let hasAdminAccess= computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
-    let currentUserCriteriaFilter= computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
-    let securityType: string = store.state.authenticationModule.securityType;
-
-    function setSuccessMessageAction(payload?: any) { store.dispatch('setSuccessMessage');}
-    function setErrorMessageAction(payload?: any){ store.dispatch('setErrorMessage');}
-    async function getUserTokensAction(payload?: any): Promise<any> {await store.dispatch('getUserTokens', payload);}
-    async function getUserInfoAction(payload?: any): Promise<any> {await store.dispatch('getUserInfo');}
-    async function getAzureAccountDetailsAction(payload?: any): Promise<any> {await store.dispatch('getAzureAccountDetails');}
-    async function getUserCriteriaFilterAction(payload?: any): Promise<any> {await store.dispatch('getUserCriteriaFilter');}
-     function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload);}
+    const authenticationStore = useAuthenticationStore();
+    const azureB2CStore = useAzureB2CStore();
+    const notificationStore = useNotificationStore();
+    const userStore = useUserStore();
+    let authenticated = computed<boolean>(() => authenticationStore.authenticated);  
+    let hasRole= computed<boolean>(() => authenticationStore.hasRole);
+    let hasAdminAccess= computed<boolean>(() => authenticationStore.hasAdminAccess);
+    let securityType: string = authenticationStore.securityType;
 
     const $router = useRouter();
 
@@ -53,16 +46,16 @@ import AuthenticationService from '@/services/authentication.service';
                 return;
             }
 
-            getUserTokensAction({ code: code }).then(async () => {
+            authenticationStore.getUserTokens(code).then(async () => {
                 const activeStatus = await AuthenticationService.getActiveStatus();
                 if(activeStatus.data == true)
                 {
                         if (!authenticated.value) {
                         onAuthenticationFailure();
                     } else {
-                        getUserInfoAction().then(() => {
-                            getUserCriteriaFilterAction().then(() => {
-                                if (!hasRole.value || (!currentUserCriteriaFilter.value.hasAccess && !hasAdminAccess.value)) {
+                        authenticationStore.getUserInfo().then(() => {
+                            userStore.getUserCriteriaFilter().then(() => {
+                                if (!hasRole.value || (!userStore.getCurrentUserCriteriaFilter.hasAccess && !hasAdminAccess.value)) {
                                     onRoleFailure();
                                 } else {
                                     onAuthenticationSuccess();
@@ -80,7 +73,7 @@ import AuthenticationService from '@/services/authentication.service';
 
         //Is this deprecated???
         if (securityType === SecurityTypes.b2c) {
-            getAzureAccountDetailsAction();
+            azureB2CStore.getAzureAccountDetails();
             if (!authenticated.value) {
                 onAuthenticationFailure();
             } else {
@@ -94,7 +87,7 @@ import AuthenticationService from '@/services/authentication.service';
     }
 
     function onAuthenticationFailure() {
-        addErrorNotificationAction({ message: 'Authentication failed.' });
+        notificationStore.addErrorNotification({ message: 'Authentication failed.' });
         $router.push('/AuthenticationFailure/');
     }
 

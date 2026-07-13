@@ -47,43 +47,44 @@ import {clone} from 'ramda';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import { CalculatedAttribute, emptyCalculatedAttribute } from '@/shared/models/iAM/calculated-attribute';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
+import { useAttributeStore } from '@/stores';
 
   let showDialog : boolean = false;
-  let store = useStore();
-  let stateNumericAttributes = ref<Attribute[]>(store.state.attributeModule.numericAttributes);
+  const attributeStore = useAttributeStore();
   let attributeSelectItems: SelectItem[] = [];
-  let newCalculatedAttribute: CalculatedAttribute[] = [];
+  let newCalculatedAttribute: CalculatedAttribute = clone(emptyCalculatedAttribute);
   let rules: InputValidationRules = validationRules;
   const emit = defineEmits(['submit'])
   const props = defineProps<{
     showDialog: boolean
   }>()
   let showDialogComputed = computed(() => props.showDialog);
-  watch(stateNumericAttributes,() => onStateNumericAttributesChanged)
+
+  watch(() => attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
+
   function onStateNumericAttributesChanged() {
-    if (hasValue(stateNumericAttributes)) {
+    if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributeSelectItems();
     }
   }
 
   onMounted(() => mounted());
     function mounted() {
-      if (hasValue(stateNumericAttributes)) {
+      if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributeSelectItems();
       }
     }
 
-
     function setAttributeSelectItems() {
-    attributeSelectItems = stateNumericAttributes.value.map((attribute: Attribute) => ({
+    attributeSelectItems = attributeStore.getNumericAttributes.map((attribute: Attribute) => ({
       text: attribute.name,
       value: attribute.name
     }));
   }
+  
   function onSubmit(submit: boolean) {
     if (submit) {
       emit('submit', newCalculatedAttribute);
@@ -91,7 +92,7 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
       emit('submit', null);
     }
 
-    newCalculatedAttribute = [] as CalculatedAttribute[];
+    newCalculatedAttribute = clone(emptyCalculatedAttribute);
   }
 
 </script>

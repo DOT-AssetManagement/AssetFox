@@ -360,7 +360,7 @@
         >
             <CancelButton 
                 @cancel="onDiscardChanges"
-                :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
+                :disabled="disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges"
                 :show="hasScenario"
             />  
             <DeleteLibraryButton 
@@ -374,12 +374,12 @@
             />  
             <UpdateLibraryButton 
                 @updateLibrary="onUpsertPerformanceCurveLibrary"
-                :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges'
+                :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges'
                 :show="!hasScenario"
             />
             <SaveButton 
                 @save="onUpsertScenarioPerformanceCurves"
-                :disabled='disableCrudButtonsResult || !hasUnsavedChanges'
+                :disabled='disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges'
                 :show="hasScenario"
             />
         </v-row>
@@ -499,7 +499,6 @@ import ScenarioService from '@/services/scenario.service';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref, shallowRef, ShallowRef} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import mitt, { Emitter, EventType } from 'mitt';
 import { useConfirm } from 'primevue/useconfirm';
@@ -518,41 +517,20 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
+import { useAlertStore, useAttributeStore, useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
 const emit = defineEmits(['submit'])
-let store = useStore();
+const alertStore = useAlertStore();
+const attributeStore = useAttributeStore();
+const authenticationStore = useAuthenticationStore();
+const notificationStore = useNotificationStore();
+const performanceCurveStore = usePerformanceCurveStore();
+const scenarioStore = useScenarioStore();
+const unsavedChangesStore = useUnsavedChangesStore();
+const userStore = useUserStore();
 const confirm = useConfirm();
 
-let statePerformanceCurveLibraries = computed<PerformanceCurveLibrary[]>(() => store.state.performanceCurveModule.performanceCurveLibraries);
-let stateSelectedPerformanceCurveLibrary = computed<PerformanceCurveLibrary>(() => store.state.performanceCurveModule.selectedPerformanceCurveLibrary);
-let stateScenarioPerformanceCurves = computed<PerformanceCurveLibrary[]>(() => store.state.performanceCurveModule.scenarioPerformanceCurves);
-let stateNumericAttributes = computed<Attribute[]>(() => store.state.attributeModule.numericAttributes);
-let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
-let currentUserCriteriaFilter = ref<UserCriteriaFilter>(store.state.userModule.currentUserCriteriaFilter);
-let hasPermittedAccess = computed<boolean>(() => store.state.performanceCurveModule.hasPermittedAccess);
-let isSharedLibrary = computed<boolean>(() => store.state.performanceCurveModule.isSharedLibrary);
-let isDeteriorationRunning = computed(() => store.state.performanceCurveModule.getIsDeteriorationModelApiRunning);
-
-async function getHasPermittedAccessAction(payload?: any): Promise<any> {await store.dispatch('getHasPermittedAccess', payload);}
-async function getIsSharedLibraryAction(payload?: any): Promise<any> {await store.dispatch('getIsSharedPerformanceCurveLibrary', payload);}
-async function getPerformanceCurveLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getPerformanceCurveLibraries', payload);}
-function selectPerformanceCurveLibraryAction(payload?: any) { store.dispatch('selectPerformanceCurveLibrary', payload);}
-async function deletePerformanceCurveLibraryAction(payload?: any): Promise<any> {await store.dispatch('deletePerformanceCurveLibrary', payload);}
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
-function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-async function updatePerformanceCurveCriterionLibrariesAction(payload?: any): Promise<any> {await store.dispatch('updatePerformanceCurvesCriterionLibraries', payload);}
-async function upsertOrDeletePerformanceCurveLibraryUsersAction(payload?: any): Promise<any> {await store.dispatch('upsertOrDeletePerformanceCurveLibraryUsers', payload);}
-async function importScenarioPerformanceCurvesFileAction(payload?: any): Promise<any> {await store.dispatch('importScenarioPerformanceCurvesFile', payload);}
-async function importLibraryPerformanceCurvesFileAction(payload?: any): Promise<any> {await store.dispatch('importLibraryPerformanceCurvesFile', payload);}
-function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
-async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
-function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload);}
-function setAlertMessageAction(payload?: any) { store.dispatch('setAlertMessage', payload);}
-
-let getUserNameByIdGetter: any = store.getters.getUserNameById
-function performanceCurveLibraryMutator(payload:any){store.commit('performanceCurveLibraryMutator', payload);}
-function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selectedPerformanceCurveLibraryMutator', payload);}
+let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 
     let addedRows: ShallowRef<PerformanceCurve[]> = ref([]);
     let updatedRowsMap:Map<string, [PerformanceCurve, PerformanceCurve]> = new Map<string, [PerformanceCurve, PerformanceCurve]>();//0: original value | 1: updated value
@@ -665,13 +643,13 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
     created();
     async function created() {
         librarySelectItemValue.value= null;           
-        await getPerformanceCurveLibrariesAction()
-        await getHasPermittedAccessAction()
+        await performanceCurveStore.getPerformanceCurveLibraries()
+        await performanceCurveStore.getHasPermittedAccess()
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.PerformanceCurve) !== -1) {
             selectedScenarioId = $router.currentRoute.value.query.scenarioId as string;
 
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Unable to identify selected scenario.',
                 });
                 $router.push('/Scenarios/');
@@ -679,12 +657,12 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             hasScenario.value = true;
             await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedScenarioId, workType: WorkType.ImportScenarioPerformanceCurve}).then(async response => {
                 if(response.data){
-                    setAlertMessageAction("A performance curve import has been added to the queue")
+                    alertStore.setAlertMessage("A performance curve import has been added to the queue")
                 }
                 await initializePages()
                 hasScenario.value = true;
-                await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})   
-                selectScenarioAction({ scenarioId: selectedScenarioId });        
+                await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+                scenarioStore.selectScenario(selectedScenarioId);
             })
         }
     }
@@ -699,14 +677,14 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
     }
     onBeforeUnmount(()=>beforeDestroy())
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
 
         $emitter.off(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
         );
 
-        setAlertMessageAction('');
+        alertStore.setAlertMessage('');
     }
 
     async function onPaginationChanged() {
@@ -758,7 +736,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                     totalItems.value = data.totalItems;
                     isRunning = false;
                     if (!isNil(selectedPerformanceCurveLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedPerformanceCurveLibrary.value).then(()=>isShared = isSharedLibrary.value);
+                        performanceCurveStore.getIsSharedPerformanceCurveLibrary(selectedPerformanceCurveLibrary.value.id).then(() => isShared = performanceCurveStore.getIsSharedLibrary);
                     }
                 }
             });  
@@ -777,9 +755,9 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
         modifiedStatus = " (Modified)";
     }    
 
-    watch(statePerformanceCurveLibraries,()=>onStatePerformanceCurveLibrariesChanged())
+    watch(() => performanceCurveStore.performanceCurveLibrariesGetter,()=>onStatePerformanceCurveLibrariesChanged())
     function onStatePerformanceCurveLibrariesChanged() {
-        librarySelectItems.value = statePerformanceCurveLibraries.value.map(
+        librarySelectItems.value = performanceCurveStore.performanceCurveLibrariesGetter.map(
             (library: PerformanceCurveLibrary) => ({
                 text: library.name,
                 value: library.id,
@@ -806,13 +784,13 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
     }
     function onSelectItemValueChanged() {
         trueLibrarySelectItemValue = librarySelectItemValue.value
-        selectPerformanceCurveLibraryAction(librarySelectItemValue.value);
+        performanceCurveStore.selectPerformanceCurveLibrary(librarySelectItemValue.value ?? '');
     }
 
-    watch(stateSelectedPerformanceCurveLibrary,()=> onStateSelectedPerformanceCurveLibraryChanged())
+    watch(() => performanceCurveStore.getSelectedPerformanceCurveLibrary,()=> onStateSelectedPerformanceCurveLibraryChanged())
     function onStateSelectedPerformanceCurveLibraryChanged() {
         selectedPerformanceCurveLibrary.value = clone(
-            stateSelectedPerformanceCurveLibrary.value,
+            performanceCurveStore.getSelectedPerformanceCurveLibrary,
         );
     }
 
@@ -826,10 +804,10 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             hasCreatedLibrary = false;
             ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: selectedPerformanceCurveLibrary.value.id, workType: WorkType.ImportLibraryPerformanceCurve}).then(response => {
                 if(response.data){
-                    setAlertMessageAction("A performance curve import has been added to the queue")
+                    alertStore.setAlertMessage("A performance curve import has been added to the queue")
                 }
                 else
-                    setAlertMessageAction("");
+                    alertStore.setAlertMessage("");
             })
         }
 
@@ -840,12 +818,12 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
         onPaginationChanged();
     }
 
-    watch(stateNumericAttributes,()=>onStateNumericAttributesChanged())
+    watch(() => attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
     function onStateNumericAttributesChanged() {
         setAttributeSelectItems();
     }
 
-    watch(stateScenarioPerformanceCurves,()=> onStateScenarioPerformanceCurvesChanged())
+    watch(() => performanceCurveStore.scenarioPerformanceCurvesGetter,()=> onStateScenarioPerformanceCurvesChanged())
     function onStateScenarioPerformanceCurvesChanged() {
         if (
             hasScenario.value
@@ -875,22 +853,22 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             }
         });
     }
-    watch(isSharedLibrary,()=>onStateSharedAccessChanged())
+    watch(() => performanceCurveStore.getIsSharedLibrary,()=>onStateSharedAccessChanged())
     function onStateSharedAccessChanged() {
-        isShared = isSharedLibrary.value;
+        isShared = performanceCurveStore.getIsSharedLibrary;
     }
     function checkHasUnsavedChanges(){
         const hasUnsavedChanges: boolean = 
             deletionIds.value.length > 0 || 
             addedRows.value.length > 0 ||
             updatedRowsMap.size > 0 || (hasScenario.value && hasSelectedLibrary.value) ||
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedPerformanceCurveLibrary.value, stateSelectedPerformanceCurveLibrary.value))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedPerformanceCurveLibrary.value, performanceCurveStore.getSelectedPerformanceCurveLibrary))
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function setAttributeSelectItems() {
-        if (hasValue(stateNumericAttributes)) {
-            attributeSelectItems = stateNumericAttributes.value.map(
+        if (hasValue(attributeStore.getNumericAttributes)) {
+            attributeSelectItems = attributeStore.getNumericAttributes.map(
                 (attribute: Attribute) => ({
                     text: attribute.name,
                     value: attribute.name,
@@ -900,16 +878,18 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
     }
 
     function checkLibraryEditPermission() {
-        hasLibraryEditPermission = hasAdminAccess.value || (hasPermittedAccess && checkUserIsLibraryOwner());
+        hasLibraryEditPermission = hasAdminAccess.value || (performanceCurveStore.hasPermittedAccessGetter && checkUserIsLibraryOwner());
     }
 
     function checkUserIsLibraryOwner() {
-        return getUserNameByIdGetter(selectedPerformanceCurveLibrary.value.owner) == getUserName();
+        const ownerId: string = selectedPerformanceCurveLibrary.value.owner ?? '';
+        return ownerId !== '' ? userStore.getUserNameById(ownerId) == getUserName() : false;
     }
 
     function getOwnerUserName(): string {
         if (!hasCreatedLibrary) {
-        return getUserNameByIdGetter(selectedPerformanceCurveLibrary.value.owner);
+        const ownerId: string = selectedPerformanceCurveLibrary.value.owner ?? '';
+        return ownerId !== '' ? userStore.getUserNameById(ownerId) : '';
         }
         return getUserName();
     }
@@ -952,8 +932,8 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                     clearChanges();
                 }
 
-                performanceCurveLibraryMutator(performanceCurveLibrary);
-                addSuccessNotificationAction({message:'Added deterioration model library'})
+                performanceCurveStore.performanceCurveLibraryMutator(performanceCurveLibrary);
+                notificationStore.addSuccessNotification({message:'Added deterioration model library'})
             })
         }
     }
@@ -990,7 +970,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
         ) as PerformanceCurve;
         var selectedAttr = find(
             propEq('name', selectedPerformanceCurve.attribute),
-            stateNumericAttributes.value,
+            attributeStore.getNumericAttributes,
         ) as Attribute;
 
         if (!isNil(selectedPerformanceCurve) && !isNil(selectedAttr)) {
@@ -1072,7 +1052,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
 
     function onUpsertScenarioPerformanceCurves() {
 
-        if (selectedPerformanceCurveLibrary.value.id === uuidNIL || hasUnsavedChanges.value && newLibrarySelection ===false) {scenarioLibraryIsModified = true;}
+        if (selectedPerformanceCurveLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection ===false) {scenarioLibraryIsModified = true;}
         else { scenarioLibraryIsModified = false; }
 
         PerformanceCurveService.UpsertScenarioPerformanceCurves({
@@ -1087,7 +1067,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                 clearChanges()
                 performancePagination.value.page = 1;
                 await onPaginationChanged();
-                addSuccessNotificationAction({message: "Modified scenario's deterioration models"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's deterioration models"});
                 librarySelectItemValue.value = null
                 $emitter.emit('DeteriorationModelSettingsUpdated');              
             }           
@@ -1110,9 +1090,9 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
         PerformanceCurveService.UpsertPerformanceCurveLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges()
-                performanceCurveLibraryMutator(selectedPerformanceCurveLibrary.value);
-                selectedPerformanceCurveLibraryMutator(selectedPerformanceCurveLibrary.value.id);
-                addSuccessNotificationAction({message: "Updated deterioration model library",});
+                performanceCurveStore.performanceCurveLibraryMutator(selectedPerformanceCurveLibrary.value);
+                performanceCurveStore.selectedPerformanceCurveLibraryMutator(selectedPerformanceCurveLibrary.value.id);
+                notificationStore.addSuccessNotification({message: "Updated deterioration model library",});
             }
         });
     }
@@ -1145,7 +1125,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
 
         if (submit) {
             librarySelectItemValue.value = null;
-            deletePerformanceCurveLibraryAction(
+            performanceCurveStore.deletePerformanceCurveLibrary(
                 selectedPerformanceCurveLibrary.value.id,
             );
         }
@@ -1214,17 +1194,17 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                 };
 
                 if (hasScenario.value) {
-                    importScenarioPerformanceCurvesFileAction({
-                        ...data,
-                        id: selectedScenarioId,
-                        currentUserCriteriaFilter: currentUserCriteriaFilter
-                    })
+                    performanceCurveStore.importScenarioPerformanceCurvesFile(
+                        data.file,
+                        selectedScenarioId,
+                        userStore.getCurrentUserCriteriaFilter,
+                    )
                 } else {
-                    importLibraryPerformanceCurvesFileAction({
-                        ...data,
-                        id: selectedPerformanceCurveLibrary.value.id,
-                        currentUserCriteriaFilter: currentUserCriteriaFilter
-                    })
+                    performanceCurveStore.importLibraryPerformanceCurvesFile(
+                        data.file,
+                        selectedPerformanceCurveLibrary.value.id,
+                        userStore.getCurrentUserCriteriaFilter,
+                    )
                 }
 
             }
@@ -1264,7 +1244,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
                 libraryUserData.push(libraryUser);
             });
             if (!isNil(selectedPerformanceCurveLibrary.value.id) ) {
-                getIsSharedLibraryAction(selectedPerformanceCurveLibrary.value).then(()=> isShared = isSharedLibrary.value);
+                performanceCurveStore.getIsSharedPerformanceCurveLibrary(selectedPerformanceCurveLibrary.value.id).then(() => isShared = performanceCurveStore.getIsSharedLibrary);
             }
             //update performance curve library sharing
             PerformanceCurveService.upsertOrDeletePerformanceCurveLibraryUsers(selectedPerformanceCurveLibrary.value.id, libraryUserData).then((response: AxiosResponse) => {
@@ -1324,7 +1304,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
 
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",
@@ -1346,7 +1326,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             return;
         }
         let foundLibrary: PerformanceCurveLibrary = emptyPerformanceCurveLibrary;
-        statePerformanceCurveLibraries.value.forEach(library => {
+        performanceCurveStore.performanceCurveLibrariesGetter.forEach(library => {
             if (library.id === libraryId ) {
                 foundLibrary = clone(library);
             }
@@ -1362,7 +1342,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             clearChanges();
             performancePagination.value.page = 1
             onPaginationChanged().then(() => {
-                setAlertMessageAction('');
+                alertStore.setAlertMessage('');
             })
             dialogMessage.value = "Successfully uploaded performance curves.";
             showSuccessPopup.value = true;
@@ -1387,7 +1367,7 @@ function selectedPerformanceCurveLibraryMutator(payload:any){store.commit('selec
             search: ''
         };
         if((!hasSelectedLibrary.value || hasScenario.value) && selectedScenarioId !== uuidNIL){
-            store.dispatch('getIsDeteriorationModelApiRunning', true);
+            performanceCurveStore.getIsDeteriorationModelApiRunning(true);
             let response = await PerformanceCurveService.getPerformanceCurvePage(selectedScenarioId, request);
             isRunning = false
             if(response.data) {

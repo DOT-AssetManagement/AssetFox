@@ -23,7 +23,6 @@ import { ref, toRefs, watch } from 'vue';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { ImportSupersedeDialogResult } from '@/shared/models/modals/import-supersede-dialog-result';
 import {clone} from 'ramda';
-import { useStore } from 'vuex';
 import FileSelector from '@/shared/components/FileSelector.vue';
 import UploadButton from '@/shared/components/buttons/UploadButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
@@ -31,13 +30,8 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
     const props = defineProps<{showDialog: boolean}>()
     const { showDialog } = toRefs(props);
 
-    function addErrorNotificationAction(payload?: any) {
-      store.dispatch('addErrorNotification', payload);
-    }
-
     const SupersedeRulesFile = ref<File | null>(null);
     const closed = ref<boolean>(false);
-    let store = useStore();
     const emit = defineEmits(['submit'])
 
     watch(showDialog, () => {

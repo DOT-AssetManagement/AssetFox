@@ -14,7 +14,7 @@ using AssetFox.Core.UnitTestsCore.Tests.Repositories;
 using AssetFox.Core.UnitTestsCore.Tests.TreatmentCost;
 using AssetFox.Core.UnitTestsCore.TestUtils;
 using AssetFoxCore.Interfaces;
-using AssetFoxCore.Services.SummaryReport.CommittedProjects;
+using AssetFoxCore.Services.CommittedProjects;
 using AssetFoxCoreTests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;

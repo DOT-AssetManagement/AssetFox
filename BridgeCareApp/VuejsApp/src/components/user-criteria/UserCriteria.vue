@@ -315,10 +315,10 @@ import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { emptyUserCriteriaFilter, UserCriteriaFilter } from '@/shared/models/iAM/user-criteria-filter';
 
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores';
 
-let store = useStore();
+const userStore = useUserStore();
 const instance = getCurrentInstance();
 let edit = ref<boolean>(false)
 const emit = defineEmits(['submit'])
@@ -353,16 +353,6 @@ const inactiveFilteredUsersCriteriaFilter = computed(() => {
     return Object.values(item).some(val => String(val).toLowerCase().includes(lowerInactiveCaseSearch));
   });
 });
-  
-  let stateUsers = computed<User[]>(()=>store.state.userModule.users);
-  let stateUsersCriteriaFilter = computed<UserCriteriaFilter[]>(()=>store.state.userModule.usersCriteriaFilter);
-
-  async function getAllUserCriteriaAction(payload?: any): Promise<any> {await store.dispatch('getAllUsers',payload);}
-  async function deactivateUserAction(payload?: any): Promise<any> {await store.dispatch('deactivateUser',payload);}
-  async function reactivateUserAction(payload?: any): Promise<any> {await store.dispatch('reactivateUser',payload);}
-  async function getAllUserCriteriaFilterAction(payload?: any): Promise<any> {await store.dispatch('getAllUserCriteriaFilter',payload);}
-  async function updateUserCriteriaFilterAction(payload?: any): Promise<any> {await store.dispatch('updateUserCriteriaFilter',payload);}
-  async function revokeUserCriteriaFilterAction(payload?: any): Promise<any> {await store.dispatch('revokeUserCriteriaFilter',payload);}
   
   let beforeDeactivateAlertData=ref<AlertData> (emptyAlertData);
   let beforeReactivateAlertData=ref<AlertData> (emptyAlertData);
@@ -401,12 +391,12 @@ const inactiveFilteredUsersCriteriaFilter = computed(() => {
   assignedUsersCriteriaFilter.value = [];
   inactiveUsersCriteriaFilter.value = [];
 
-  getAllUserCriteriaAction().then(() => {
+  userStore.getAllUsers().then(() => {
     loading = false;
   });
 
-  watch(stateUsersCriteriaFilter, () => {
-    stateUsersCriteriaFilter.value.forEach((userCriteriafilter: UserCriteriaFilter)=>{
+  watch(() => userStore.getUsersCriteriaFilter, () => {
+    userStore.getUsersCriteriaFilter.forEach((userCriteriafilter: UserCriteriaFilter)=>{
       let tempUserCriteria = userCriteriafilter;
       if(tempUserCriteria.hasCriteria)
       {
@@ -451,12 +441,12 @@ watch(inactiveSearch, () => {
 });
 
 
-watch(stateUsers,()=>onUserCriteriaChanged())
+watch(() => userStore.getUsers,()=>onUserCriteriaChanged())
   function onUserCriteriaChanged() {
     // Filter and Assign unassgined users, assigned users, and inactive users
-    unassignedUsers = stateUsers.value.filter((user: User) => !user.hasInventoryAccess && user.activeStatus);
-    assignedUsers = stateUsers.value.filter((user: User) => user.hasInventoryAccess && user.activeStatus);
-    inactiveUsers = stateUsers.value.filter((user: User) => !user.activeStatus);
+    unassignedUsers = userStore.getUsers.filter((user: User) => !user.hasInventoryAccess && user.activeStatus);
+    assignedUsers = userStore.getUsers.filter((user: User) => user.hasInventoryAccess && user.activeStatus);
+    inactiveUsers = userStore.getUsers.filter((user: User) => !user.activeStatus);
 
     unassignedUsersCriteriaFilter.value = [{ ...emptyUserCriteriaFilter }];
     unassignedUsers.forEach((value) => {
@@ -477,43 +467,43 @@ watch(stateUsers,()=>onUserCriteriaChanged())
   }
 
   // First watch: stateUsers
-  watch(stateUsers, () => {
+  watch(() => userStore.getUsers, () => {
     onUserCriteriaChanged();
     // Ensure the second watch runs only after the first watch completes
     nextTick(() => {
       // Second watch: stateUsersCriteriaFilter
-      watch(stateUsersCriteriaFilter, () => {
+      watch(() => userStore.getUsersCriteriaFilter, () => {
         onUserCriteriaFilterChanged();
       }, { immediate: true });
     });
   });
 
-  watch(stateUsersCriteriaFilter, () => onUserCriteriaFilterChanged());
+  watch(() => userStore.getUsersCriteriaFilter, () => onUserCriteriaFilterChanged());
     function onUserCriteriaFilterChanged() {
     // Create a set of inactive usernames
     const inactiveUsernamesSet = new Set(inactiveUsers.map(user => user.username));
 
     // Filter and assign active users
-    assignedUsersCriteriaFilter.value = stateUsersCriteriaFilter.value.filter(userCriteria => {
+    assignedUsersCriteriaFilter.value = userStore.getUsersCriteriaFilter.filter(userCriteria => {
       return !inactiveUsernamesSet.has(userCriteria.userName);
     });
 
     // Filter and assign inactive users
-    inactiveUsersCriteriaFilter.value = stateUsersCriteriaFilter.value.filter(userCriteria => {
+    inactiveUsersCriteriaFilter.value = userStore.getUsersCriteriaFilter.filter(userCriteria => {
       return inactiveUsernamesSet.has(userCriteria.userName);
     });
   }
 
   onMounted(()=>mounted())
   function mounted() {
-    getAllUserCriteriaFilterAction();
+    userStore.getAllUserCriteriaFilter();
   }
 
   function onEditCriteria(userFilter: UserCriteriaFilter) {
     selectedUser = userFilter;
     tempDescription.value = userFilter.description;
     tempName.value = userFilter.name;
-    var currentUser = stateUsers.value.filter((user: User) => user.id == userFilter.userId)[0];
+    var currentUser = userStore.getUsers.filter((user: User) => user.id == userFilter.userId)[0];
 
     criteriaFilterEditorDialogData.value = {
       showDialog: true,
@@ -554,10 +544,10 @@ watch(stateUsers,()=>onUserCriteriaChanged())
       if (userCriteriaFilter.criteriaId == '') {
         userCriteriaFilter.criteriaId = getNewGuid();
       }
-      updateUserCriteriaFilterAction({ userCriteriaFilter: userCriteriaFilter });
+      userStore.updateUserCriteriaFilter(userCriteriaFilter);
       
     }
-    getAllUserCriteriaAction().then(() => {
+    userStore.getAllUsers().then(() => {
     loading = false;
   });
     selectedUser = { ...emptyUserCriteriaFilter };
@@ -569,7 +559,7 @@ watch(stateUsers,()=>onUserCriteriaChanged())
       ...userCriteriaFilter,
       name: userCriteriaFilter.name
     }
-    updateUserCriteriaFilterAction({ userCriteriaFilter: updatedUserCriteriaFilter })
+    userStore.updateUserCriteriaFilter(updatedUserCriteriaFilter)
   }
 
   function cancelNameEdit() {
@@ -582,7 +572,7 @@ watch(stateUsers,()=>onUserCriteriaChanged())
       ...userCriteriaFilter,
       description: userCriteriaFilter.description,
     };
-    updateUserCriteriaFilterAction({ userCriteriaFilter: updatedUserCriteriaFilter });
+    userStore.updateUserCriteriaFilter(updatedUserCriteriaFilter);
   }
 
   function cancelDescriptionEdit() {
@@ -598,7 +588,7 @@ watch(stateUsers,()=>onUserCriteriaChanged())
       descriptionValue: targetUser.description,
       nameValue:targetUser.name
     };
-    revokeUserCriteriaFilterAction({ userCriteriaId: userCriteriaFilter.criteriaId });
+    userStore.revokeUserCriteriaFilter(userCriteriaFilter.criteriaId);
   }
 
   function onGiveUnrestrictedAccess(targetUser: UserCriteriaFilter) {
@@ -613,7 +603,7 @@ watch(stateUsers,()=>onUserCriteriaChanged())
     if (userFilterCriteria.criteriaId == '') {
       userFilterCriteria.criteriaId = getNewGuid();
     }
-    updateUserCriteriaFilterAction({ userCriteriaFilter: userFilterCriteria });
+    userStore.updateUserCriteriaFilter(userFilterCriteria);
   }
 
   function onDeactivateUser(user: UserCriteriaFilter) {
@@ -633,7 +623,7 @@ watch(stateUsers,()=>onUserCriteriaChanged())
   if (doDelete && !itemsAreEqual(selectedUser, emptyUserCriteriaFilter)) {
     // Set tempDeactivateUser equal to the current value of inactiveUsersCriteriaFilter
     tempDeactivateUser.value = inactiveUsersCriteriaFilter.value;
-    await deactivateUserAction({ userId: selectedUser.userId });
+    await userStore.deactivateUser(selectedUser.userId);
 
     const inactiveUsernamesSet = new Set(inactiveUsers.map(user => user.username));
       // Filter and assign active users
@@ -678,7 +668,7 @@ async function onSubmitReactivateUserResponse(doReactivate: boolean) {
   if (doReactivate && !itemsAreEqual(selectedUser, emptyUserCriteriaFilter)) {
     // Set tempReactivateUser equal to the current value of assignedUsersCriteriaFilter
     tempReactivateUser.value = assignedUsersCriteriaFilter.value;
-    await reactivateUserAction({ userId: selectedUser.userId })
+    await userStore.reactivateUser(selectedUser.userId)
       .then(() => {
 
         inactiveUsersCriteriaFilter.value = tempReactivateUserFilter.value;

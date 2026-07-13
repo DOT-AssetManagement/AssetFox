@@ -74,16 +74,14 @@ import {setItemPropertyValueInList} from '@/shared/utils/setter-utils';
 import {TargetConditionGoalLibraryUserGridRow, ShareTargetConditionGoalLibraryDialogData } from '@/shared/models/modals/share-target-condition-goals-data';
 import TargetConditionGoalService from '@/services/target-condition-goal.service';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 
-  let store = useStore();
+  const userStore = useUserStore();
   const emit = defineEmits(['submit'])
   const props = defineProps<{dialogData: ShareTargetConditionGoalLibraryDialogData}>()
   const { dialogData } = toRefs(props);
-
-  const stateUsers = computed<User[]>(() => store.state.userModule.users);
 
   let targetConditionGoalLibraryUserGridHeaders: any[] = [
     {title: 'Username', key: 'username', align: 'start', sortable: true},
@@ -105,7 +103,7 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
   function onSetGridData() {
     const currentUser: string = getUserName();
 
-    targetConditionGoalLibraryUserGridRows.value = stateUsers.value
+    targetConditionGoalLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

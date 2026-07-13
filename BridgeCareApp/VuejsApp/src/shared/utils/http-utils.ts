@@ -2,9 +2,8 @@ import { AxiosError, AxiosResponse } from 'axios';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { prop } from 'ramda';
 import { UserInfoLocal, UserTokens } from '@/shared/models/iAM/authentication';
-import authenticationModule from '@/store-modules/authentication.module';
+import pinia, { useAuthenticationStore, useConfigStore } from '@/stores';
 import { SecurityTypes } from '@/shared/utils/security-types';
-import store from '@/store/root-store';
 import { json } from 'stream/consumers';
 export const http2XX = /(2(0|2)[0-8])/;
 
@@ -49,9 +48,12 @@ export const setContentTypeCharset = (headers: any) => {
 };
 
 export const setAuthHeader = (headers: any) => {
+    const authenticationStore = useAuthenticationStore(pinia);
+    const configStore = useConfigStore(pinia);
+
     if (
         headers &&
-        authenticationModule.state.securityType === SecurityTypes.esec &&
+        authenticationStore.securityType === SecurityTypes.esec &&
         localStorage.getItem('UserTokens')
     ) {
         const userTokens: UserTokens = JSON.parse(
@@ -62,8 +64,8 @@ export const setAuthHeader = (headers: any) => {
 
     if (
         headers &&
-        authenticationModule.state.securityType ===
-            authenticationModule.state.azureSecurityType &&
+        authenticationStore.securityType ===
+            authenticationStore.azureSecurityType &&
         localStorage.getItem('access_token')
     ) {
         const accessToken: string = localStorage.getItem(
@@ -74,10 +76,14 @@ export const setAuthHeader = (headers: any) => {
 
     if (
         headers &&
-        authenticationModule.state.securityType ===
-            authenticationModule.state.localDebugSecurityType 
+        authenticationStore.securityType ===
+            authenticationStore.localDebugSecurityType 
     ) {
-        const config = store.getters.getConfig;
+        const config = configStore.getConfig;
+        if (!config) {
+            return headers;
+        }
+
         var userInfo = config.localDegugInfo as UserInfoLocal
         headers['Authorization'] = `${JSON.stringify(userInfo)}`;
     }

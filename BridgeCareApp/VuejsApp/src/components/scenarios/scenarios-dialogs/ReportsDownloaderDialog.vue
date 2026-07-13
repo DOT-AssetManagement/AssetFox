@@ -59,21 +59,16 @@ import { FileInfo } from '@/shared/models/iAM/file-info';
 import FileDownload from 'js-file-download';
 import { convertBase64ToArrayBuffer } from '@/shared/utils/file-utils';
 import {hasValue} from '@/shared/utils/has-value-util';
+import { clone } from 'ramda';
 import { SelectItem } from '@/shared/models/vue/select-item';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
-import { clone } from 'ramda';
-import { useStore } from 'vuex'; 
+import { useAdminDataStore, useNotificationStore } from '@/stores';
 
-    let store = useStore(); 
+    const notificationStore = useNotificationStore();
+    const adminDataStore = useAdminDataStore();
 
     const props = defineProps<{dialogData: ReportsDownloaderDialogData}>();
     let showDialogComputed = computed(() => props.dialogData.showModal);
-
-    let stateSimulationReportNames: string[] = (store.state.adminDataModule.simulationReportNames)
-
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification')}
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification')}
-    async function getSimulationReportsAction(payload?: any): Promise<any>{await store.dispatch('getSimulationReports')}
 
     let reports: SelectItem[] = [];   
     let selectedReport: string = ''; 
@@ -82,9 +77,8 @@ import { useStore } from 'vuex';
 
     onMounted(()=> mounted)
     function mounted() {
-        getSimulationReportsAction().then(() => {
-            //const reports: string[] = clone(stateSimulationReportNames)
-            let reports: string[] = clone(stateSimulationReportNames)
+        adminDataStore.getSimulationReports().then(() => {
+            let reports: string[] = clone(adminDataStore.getSimulationReportNames)
             // ToDo - Had to Comment the below and change above from const to variable
             // reports = reports.map(rep => {
             //     return {text: rep, value: rep}
@@ -109,11 +103,11 @@ import { useStore } from 'vuex';
                         //reportIndexID = resultId;
                     }
 
-                    addSuccessNotificationAction({
+                    notificationStore.addSuccessNotification({
                         message: selectedReport +  ' report generation started for ' + props.dialogData.name + '.',
                     });
                 } else {
-                    addErrorNotificationAction({
+                    notificationStore.addErrorNotification({
                         message: 'Failed to generate apricot for ' + props.dialogData.name + '.',
                         longMessage:
                             'Failed to generate the report. Make sure the scenario has been run',
@@ -125,23 +119,24 @@ import { useStore } from 'vuex';
         }
     }
 
-    async function onDownloadReport() {        
+    async function onDownloadReport() {  //seemed to be broken check out later BCT      
         isDownloading = true;
         props.dialogData.showModal = false;        
         await ReportsService.downloadReport(
-            props.dialogData.scenarioId, selectedReport
-        ).then((response: AxiosResponse<any>) => {
-            isDownloading = false;
-            if (hasValue(response, 'data')) {
-                const fileInfo: FileInfo = response.data as FileInfo;
-                FileDownload(convertBase64ToArrayBuffer(fileInfo.fileData), fileInfo.fileName, fileInfo.mimeType);
-            } else {
-                addErrorNotificationAction({
-                    message: 'Failed to download report.',
-                    longMessage:
-                        'Failed to download the summary report. Make sure the scenario has been run',
-                });
+            {
+                scenarioId: props.dialogData.scenarioId,
+                reportName: selectedReport,
+                simulationName: props.dialogData.name,
             }
+        ).then(() => {
+            isDownloading = false;
+        }).catch(() => {
+            isDownloading = false;
+            notificationStore.addErrorNotification({
+                message: 'Failed to download report.',
+                longMessage:
+                    'Failed to download the summary report. Make sure the scenario has been run',
+            });
         });
     }
 
@@ -155,7 +150,7 @@ import { useStore } from 'vuex';
             ).then((response: AxiosResponse<any>) => {
                 isDownloading = false;
                 if (hasValue(response, 'data')) {
-                    addSuccessNotificationAction({
+                    notificationStore.addSuccessNotification({
                         message: 'Report downloaded',
                     });
                     FileDownload(
@@ -163,7 +158,7 @@ import { useStore } from 'vuex';
                         `Simulation Log ${props.dialogData.name}.txt`,
                     );
                 } else {
-                    addErrorNotificationAction({
+                    notificationStore.addErrorNotification({
                         message: 'Failed to download simulation log.',
                         longMessage:
                             'Failed to download simulation log. Please try generating and downloading the log again.',

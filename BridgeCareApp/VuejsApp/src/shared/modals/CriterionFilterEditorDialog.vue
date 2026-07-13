@@ -51,17 +51,14 @@ import {
 } from '@/shared/models/iAM/criteria';
 import { UserCriteriaFilter } from '../models/iAM/user-criteria-filter';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
-let store = useStore();
 const emit = defineEmits(['submitCriteriaEditorDialogResult'])
 const props = defineProps<{
   dialogData: CriterionFilterEditorDialogData
     }>()
     const { dialogData } = toRefs(props);
 let showDialogComputed = computed(() => props.dialogData.showDialog);
-async function getAvailableReportsAction(payload?: any): Promise<any> {await store.dispatch('getAvailableReports');}
 
   let uuidNIL: string = getBlankGuid();
   let hasUnsavedChanges: boolean = false;

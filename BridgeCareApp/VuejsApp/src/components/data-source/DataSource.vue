@@ -163,39 +163,20 @@ import { NIL } from 'uuid';
 import { hasUnsavedChangesCore } from '@/shared/utils/has-unsaved-changes-helper';
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { ImportDataSourceDialogResult } from '@/shared/models/modals/import-datasource-dialog-result';
 import ImportDataSourceDialog from './data-source-dialogs/DataSourceImportDialog.vue';
 import DataSourceMappingsDialog  from './data-source-dialogs/DataSourceMappings.vue';
 import { EditDataSourceMappingsDialogData, emptyEditDataSourceMappingsDialogData } from '@/shared/models/modals/edit-datasourcemappings-dialog-data';
 import DataSourceMappingsService from '@/services/data-source.service';
+import { useDataSourceStore, useNotificationStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-    let store = useStore();
+    const dataSourceStore = useDataSourceStore();
+    const notificationStore = useNotificationStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
+    const userStore = useUserStore();
     const emit = defineEmits(['submit'])
-    let dataSources = computed<Datasource[]>(() => store.state.datasourceModule.dataSources) ;
-    let dataSourceTypes = computed<string[]>(() => store.state.datasourceModule.dataSourceTypes) ;    
-    let excelColumns = computed<RawDataColumns>(() => store.state.datasourceModule.excelColumns) ;
-    let sqlCommandResponse = computed<SqlCommandResponse>(() => store.state.datasourceModule.sqlCommandResponse) ;
-    let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
     let editDataSourceMappingsDialogData = ref<EditDataSourceMappingsDialogData>(clone(emptyEditDataSourceMappingsDialogData));
-    let dataSourceMappings = computed<DataSourceMappingData[]>(() => store.state.datasourceModule.dataSourceMappings);
-
-    async function getDataSourcesAction(payload?: any): Promise<any> {await store.dispatch('getDataSources', payload);}
-    async function getDataSourceTypesAction(payload?: any): Promise<any> {await store.dispatch('getDataSourceTypes', payload);}
-    async function upsertSqlDataSourceAction(payload?: any): Promise<any> {await store.dispatch('upsertSqlDataSource', payload);}
-    async function upsertExcelDataSourceAction(payload?: any): Promise<any> {await store.dispatch('upsertExcelDataSource', payload);}
-    async function deleteDataSourceAction(payload?: any): Promise<any> {await store.dispatch('deleteDataSource', payload);}
-    async function importExcelSpreadsheetFileAction(payload?: any): Promise<any> {await store.dispatch('importExcelSpreadsheetFile', payload);}
-    async function getExcelSpreadsheetColumnHeadersAction(payload?: any): Promise<any> {await store.dispatch('getExcelSpreadsheetColumnHeaders', payload);}
-    async function checkSqlCommandAction(payload?: any): Promise<any> {await store.dispatch('checkSqlCommand', payload);}
-    async function getDataSourceMappingsAction(payload?: any): Promise<any> {await store.dispatch('getDataSourceMappings', payload);}
-    function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
-    function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);} 
-
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
-    let getIdByUserNameGetter: any = store.getters.getIdByUserName ;
-
     let dsTypeItems = ref<string[]>([]);
     let dsItems = ref<any>([]);    
         
@@ -240,16 +221,16 @@ import DataSourceMappingsService from '@/services/data-source.service';
 
         fileSelect = document.getElementById('file-select') as HTMLInputElement;   
 
-        getDataSourcesAction();
-        getDataSourceTypesAction();
+        dataSourceStore.getDataSources();
+        dataSourceStore.getDataSourceTypes();
         showExcel.value = true;
         showSqlMessage.value = false;
     }
 
-    watch(excelColumns, () => {
+    watch(() => dataSourceStore.getExcelColumns, () => {
         dataSourceExcelColumns.value = {
-            locationColumn: excelColumns.value ? excelColumns.value.columnHeaders ? excelColumns.value.columnHeaders.length > 0 ? excelColumns.value.columnHeaders : [] : [] : [],
-            dateColumn: excelColumns.value ? excelColumns.value.columnHeaders ? excelColumns.value.columnHeaders.length > 0 ? excelColumns.value.columnHeaders : [] : [] : []
+            locationColumn: dataSourceStore.getExcelColumns ? dataSourceStore.getExcelColumns.columnHeaders ? dataSourceStore.getExcelColumns.columnHeaders.length > 0 ? dataSourceStore.getExcelColumns.columnHeaders : [] : [] : [],
+            dateColumn: dataSourceStore.getExcelColumns ? dataSourceStore.getExcelColumns.columnHeaders ? dataSourceStore.getExcelColumns.columnHeaders.length > 0 ? dataSourceStore.getExcelColumns.columnHeaders : [] : [] : []
         };
         if (dataSourceExcelColumns.value.locationColumn.length > 0) {
             locColumns.value = dataSourceExcelColumns.value.locationColumn;
@@ -261,15 +242,15 @@ import DataSourceMappingsService from '@/services/data-source.service';
         }
     })
 
-    watch(dataSources, () =>  {
+    watch(() => dataSourceStore.dataSourcesGetter, () =>  {
         dsItems.value = [];
-        dataSources.value.forEach(_ => {
+        dataSourceStore.dataSourcesGetter.forEach(_ => {
         dsItems.value.push({text:_.name,value:_.name})
         });
      })
 
-    watch(dataSourceTypes, () =>  {
-        dsTypeItems.value = clone(dataSourceTypes.value);
+    watch(() => dataSourceStore.dataSourceTypesGetter, () =>  {
+        dsTypeItems.value = clone(dataSourceStore.dataSourceTypesGetter);
     })
 
     watch(dataSourceTypeItem, () =>  {
@@ -289,8 +270,8 @@ import DataSourceMappingsService from '@/services/data-source.service';
             currentDatasource.value.type = "Excel";
                         
             if(!isNewDataSource.value) {
-                getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
-                getDataSourceMappingsAction(currentDatasource.value.id);
+                dataSourceStore.getExcelSpreadsheetColumnHeaders(currentDatasource.value.id);
+                dataSourceStore.getDataSourceMappings(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
             }
@@ -308,7 +289,7 @@ import DataSourceMappingsService from '@/services/data-source.service';
         }
 
         // get the current data source object
-        currentDatasource.value = clone(dataSources.value.length>0 ? dataSources.value.find(f => f.name === sourceTypeItem.value)! : clone(emptyDatasource));
+        currentDatasource.value = clone(dataSourceStore.dataSourcesGetter.length>0 ? dataSourceStore.dataSourcesGetter.find(f => f.name === sourceTypeItem.value)! : clone(emptyDatasource));
         currentDatasource.value ? currentDatasource.value = clone(currentDatasource.value) : currentDatasource.value = clone(emptyDatasource);
 
         currentRefDatasource.value = currentDatasource.value;
@@ -331,8 +312,8 @@ import DataSourceMappingsService from '@/services/data-source.service';
         connectionStringPlaceHolderMessage.value = currentDatasource.value.connectionString != ''? "Replacement connection string" : 'New connection string';
         showSqlMessage.value = false; showSaveMessage.value = false;
         if(!isNewDataSource.value) {
-                getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
-                getDataSourceMappingsAction(currentDatasource.value.id);
+            dataSourceStore.getExcelSpreadsheetColumnHeaders(currentDatasource.value.id);
+            dataSourceStore.getDataSourceMappings(currentDatasource.value.id);
                 currentExcelDateColumn.value = currentDatasource.value.dateColumn;
                 currentExcelLocationColumn.value = currentDatasource.value.locationColumn;
             }
@@ -345,8 +326,8 @@ import DataSourceMappingsService from '@/services/data-source.service';
         }
     })
 
-    watch(sqlCommandResponse, () =>  {
-        sqlCommandResponse.value ? sqlResponse.value = sqlCommandResponse.value.validationMessage : '';
+    watch(() => dataSourceStore.getSqlCommandResponse, () =>  {
+        dataSourceStore.getSqlCommandResponse ? sqlResponse.value = dataSourceStore.getSqlCommandResponse.validationMessage : '';
     })
 
     watch(file, () =>  {
@@ -359,12 +340,12 @@ import DataSourceMappingsService from '@/services/data-source.service';
 
     watch(currentDatasource, () =>  {
         const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', currentDatasource.value, unmodifiedDatasource.value);
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     })
 
     watch(unmodifiedDatasource, () => {
         const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', currentDatasource.value, unmodifiedDatasource.value);
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     })
 
     watch(currentExcelDateColumn, () =>  {
@@ -385,17 +366,17 @@ import DataSourceMappingsService from '@/services/data-source.service';
                     secure: currentDatasource.value.secure,
                     createdBy: currentDatasource.value.createdBy
             };
-            upsertSqlDataSourceAction(sqldat).then(() => {
+            dataSourceStore.upsertSqlDataSource(sqldat).then(() => {
                 showSqlMessage.value = false;
                 showSaveMessage.value = true;
                 if(isNewDataSource.value)
                 {
-                    currentDatasource.value.createdBy = getIdByUserNameGetter(getUserName());
+                    currentDatasource.value.createdBy = userStore.getIdByUserName(getUserName());
                     isNewDataSource.value = false;
                 }
                 selectedConnection.value = isOwner() ? currentDatasource.value.connectionString : '';
                 connectionStringPlaceHolderMessage.value = currentDatasource.value.connectionString!='' ? 'Replacement connection string' : 'New connection string';
-                getDataSourcesAction();
+                dataSourceStore.getDataSources();
                 unmodifiedDatasource.value = clone(currentDatasource.value);
             });
         } else {            
@@ -409,11 +390,11 @@ import DataSourceMappingsService from '@/services/data-source.service';
             secure: currentDatasource.value.secure,
             createdBy: currentDatasource.value.createdBy
             }
-            upsertExcelDataSourceAction(exldat).then(() => {
+            dataSourceStore.upsertExcelDataSource(exldat).then(() => {
                 if (!isNewDataSource.value) {
                     showSaveMessage.value = true;
                 }
-                getDataSourcesAction().then(() => {
+                dataSourceStore.getDataSources().then(() => {
                     isNewDataSource.value = false;
                 });
                 unmodifiedDatasource.value = clone(currentDatasource.value);
@@ -423,7 +404,7 @@ import DataSourceMappingsService from '@/services/data-source.service';
 
     function onDeleteClick(){
         currentDatasource.value = currentRefDatasource.value;
-        deleteDataSourceAction(currentDatasource.value.id).then(() => {
+        dataSourceStore.deleteDataSource(currentDatasource.value.id).then(() => {
             resetDataSource();
         })
     }
@@ -435,8 +416,8 @@ import DataSourceMappingsService from '@/services/data-source.service';
         editDataSourceMappingsDialogData.value.showDialog = true;
         editDataSourceMappingsDialogData.value = {
             showDialog: true,
-            dataSourceMappings: dataSourceMappings.value,
-            columnSelectItems: excelColumns.value.columnHeaders,
+            dataSourceMappings: dataSourceStore.dataSourceMappingsGetter,
+            columnSelectItems: dataSourceStore.getExcelColumns.columnHeaders,
             dataSourceId: currentDatasource.value.id
         }
     }
@@ -449,7 +430,7 @@ import DataSourceMappingsService from '@/services/data-source.service';
 
         // add to the state
         if (datasource != null || datasource != undefined) {
-        dataSources.value.push(datasource);
+        dataSourceStore.dataSourcesGetter.push(datasource);
         currentDatasource.value = datasource;
         isNewDataSource.value = true;
         sourceTypeItem.value = datasource.name;
@@ -462,7 +443,7 @@ import DataSourceMappingsService from '@/services/data-source.service';
     }
     function allowSave(): boolean {
         let result: boolean = false;
-        if (dataSources.value == undefined) return false;
+        if (dataSourceStore.dataSourcesGetter == undefined) return false;
         if (dataSourceTypeItem.value===DSEXCEL) {
             if (currentExcelDateColumn.value !== '' || currentExcelLocationColumn.value !== '') {
                 return true;
@@ -501,7 +482,7 @@ import DataSourceMappingsService from '@/services/data-source.service';
             fileName.value = prop('name', selectedFile) as string;
 
             if (fileName.value.indexOf('xlsx') === -1) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Only .xlsx file types are allowed',
                 });
             }
@@ -519,9 +500,9 @@ import DataSourceMappingsService from '@/services/data-source.service';
 
             let testConnection: TestStringData = {testString: connStr};
 
-            checkSqlCommandAction(testConnection).then(() => {
-                sqlValid.value = sqlCommandResponse.value.isValid;
-                sqlResponse.value = sqlCommandResponse.value.validationMessage;
+            dataSourceStore.checkSqlCommand(testConnection).then(() => {
+                sqlValid.value = dataSourceStore.getSqlCommandResponse.isValid;
+                sqlResponse.value = dataSourceStore.getSqlCommandResponse.validationMessage;
                 showSqlMessage.value = true;
             });
         }
@@ -529,12 +510,12 @@ import DataSourceMappingsService from '@/services/data-source.service';
     function getOwnerUserName(): string {
         if(currentDatasource.value.createdBy != NIL && currentDatasource.value.createdBy != undefined)
         {
-            return getUserNameByIdGetter(currentDatasource.value.createdBy);
+            return userStore.getUserNameById(currentDatasource.value.createdBy);
         }
         return "Unknown";
     }
     function isOwner() {
-        return currentDatasource.value.createdBy == getIdByUserNameGetter(getUserName());
+        return currentDatasource.value.createdBy == userStore.getIdByUserName(getUserName());
     }
     function disableCrudButtons(): boolean {
         if(currentDatasource.value.type == "SQL")
@@ -558,15 +539,15 @@ import DataSourceMappingsService from '@/services/data-source.service';
         // Load
         if (hasValue(result)) {
             if ( hasValue(result.file)) {
-                importExcelSpreadsheetFileAction({
-                file: result.file,
-                id: currentDatasource.value.id
-                }).then((response: any) => {
-                    getExcelSpreadsheetColumnHeadersAction(currentDatasource.value.id);
-                    getDataSourceMappingsAction(currentDatasource.value.id);
+                dataSourceStore.importExcelSpreadsheetFile(
+                    result.file,
+                    currentDatasource.value.id,
+                ).then((response: any) => {
+                    dataSourceStore.getExcelSpreadsheetColumnHeaders(currentDatasource.value.id);
+                    dataSourceStore.getDataSourceMappings(currentDatasource.value.id);
                 });
             } else {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'No file selected.',
                     longMessage:
                         'No file selected to upload the committed projects.',

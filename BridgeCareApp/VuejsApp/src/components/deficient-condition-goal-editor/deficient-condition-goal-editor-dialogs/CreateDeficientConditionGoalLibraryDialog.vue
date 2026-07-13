@@ -1,3 +1,4 @@
+
 <template>
   <v-dialog max-width="450px" persistent v-model="dialogData.showDialog">
     <v-card>
@@ -45,20 +46,18 @@ import {getUserName} from '@/shared/utils/get-user-info';
 import {InputValidationRules, rules as validationRules} from '@/shared/utils/input-validation-rules';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import {hasValue} from '@/shared/utils/has-value-util';
-import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
+import { useUserStore } from '@/stores';
 
-  let store = useStore();
 
   const props = defineProps<{
     dialogData: CreateDeficientConditionGoalLibraryDialogData
   }>()
   const { dialogData } = toRefs(props);
   const emit = defineEmits(['submit'])
-
-  let getIdByUserNameGetter: any = store.getters.getIdByUserName;
+  const userStore = useUserStore();
 
   const newDeficientConditionGoalLibrary = ref<DeficientConditionGoalLibrary>({ ...emptyDeficientConditionGoalLibrary,id: getNewGuid() });
   let rules: InputValidationRules = validationRules;
@@ -74,7 +73,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
             id: getNewGuid()
           }))
           : [],
-        owner: getIdByUserNameGetter(currentUser),
+        owner: userStore.getIdByUserName(currentUser),
     };
   });
 

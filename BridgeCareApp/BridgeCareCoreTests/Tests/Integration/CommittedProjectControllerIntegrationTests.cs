@@ -4,7 +4,6 @@ using AssetFox.Core.DataUnitTests.Tests;
 using AssetFox.Core.DataUnitTests.TestUtils;
 using AssetFox.Core.DTOs;
 using AssetFox.Core.TestHelpers;
-using AssetFox.Core.UnitTestsCore;
 using AssetFox.Core.UnitTestsCore.Tests;
 using AssetFox.Core.UnitTestsCore.Tests.Repositories;
 using AssetFox.Core.UnitTestsCore.Tests.TreatmentCost;
@@ -12,12 +11,10 @@ using AssetFox.Core.UnitTestsCore.TestUtils;
 using AssetFoxCore.Controllers;
 using AssetFoxCore.Models;
 using AssetFoxCore.Services;
-using AssetFoxCore.Services.SummaryReport.CommittedProjects;
+using AssetFoxCore.Services.CommittedProjects;
 using AssetFoxCoreTests.Helpers;
 using AssetFoxCoreTests.Tests.General_Work_Queue;
-using Microsoft.AspNetCore.Http;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
-using Xunit;
 using IamAttribute = AssetFox.Core.Data.Attributes.Attribute;
 
 namespace AssetFoxCoreTests.Tests.Integration

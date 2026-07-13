@@ -234,7 +234,6 @@ import {emptyAlertData} from '@/shared/models/modals/alert-data';
 import Alert from '@/shared/modals/Alert.vue';
 import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditorDialog.vue';
 import { emptyGeneralCriterionEditorDialogData, GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
-import { useStore } from 'vuex'; 
 import { useRouter } from 'vue-router'; 
 import { getUrl } from '@/shared/utils/get-url';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -242,31 +241,21 @@ import EditSvg from '@/shared/icons/EditSvg.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import mitt, { Emitter, EventType } from 'mitt';
-import AnalysisMethodService from '@/services/analysis-method.service';
-
-    let store = useStore(); 
+import { useAnalysisMethodStore, useAttributeStore, useAuthenticationStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore } from '@/stores';
+    const authenticationStore = useAuthenticationStore();
+    const analysisMethodStore = useAnalysisMethodStore();
+    const notificationStore = useNotificationStore();
+    const scenarioStore = useScenarioStore();
     const router = useRouter(); 
     // ToDo - verify if below is correct. Its used in onUpsertAnalysisMethod()
     const $refs = inject('$refs') as any
 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
-    const stateAnalysisMethod = computed<AnalysisMethod>(() => store.state.analysisMethodModule.analysisMethod) ;
-    const stateNumericAttributes = computed<Attribute[]>( ()=> store.state.attributeModule.numericAttributes) ;
-    const stateAttributes = computed<Attribute[]>( ()=> store.state.attributeModule.attributes) ;
-    const stateSimulationAnalysisSetting = computed<boolean>( ()=> store.state.analysisMethodModule.simulationAnalysisSetting);
+    const attributeStore = useAttributeStore();
 
-    const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ; 
-
-    async function getAnalysisMethodAction(payload?: any): Promise<any>{await store.dispatch('getAnalysisMethod', payload)} 
-    async function upsertAnalysisMethodAction(payload?: any): Promise<any>{await store.dispatch('upsertAnalysisMethod', payload)} 
-    async function getSimulationAnalysisSettingAction(payload?: any): Promise<any>{await store.dispatch('getSimulationAnalysisSetting', payload)}
-
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
-    function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload)} 
-
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>{await store.dispatch('getCurrentUserOrSharedScenario', payload)}
-    function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload)} 
+    const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
+    const unsavedChangesStore = useUnsavedChangesStore();
 
     const selectedScenarioId = ref<string>(getBlankGuid());
     const analysisMethod = ref<AnalysisMethod>(clone(emptyAnalysisMethod));
@@ -343,72 +332,69 @@ import AnalysisMethodService from '@/services/analysis-method.service';
             networkName.value = router.currentRoute.value.query.networkName as string;
             if (selectedScenarioId.value === getBlankGuid()) {
                 // set 'no selected scenario' error message, then redirect user to Scenarios UI
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 router.push('/Scenarios/');
             }
 
 // Get the selected scenario's analysis method data
-getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
+analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
     .then(() => {
         // Get simulation analysis setting
-        return getSimulationAnalysisSettingAction({ scenarioId: selectedScenarioId.value });
+        return analysisMethodStore.getSimulationAnalysisSetting(selectedScenarioId.value);
     })
     .then(() => {
         // Get current user or shared scenario info
-        return getCurrentUserOrSharedScenarioAction({ simulationId: selectedScenarioId.value });
+        return scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId.value);
     })
     .then(() => {
         // Select scenario
-        selectScenarioAction({ scenarioId: selectedScenarioId.value });
+        scenarioStore.selectScenario(selectedScenarioId.value);
     })
     .catch(error => {
         console.error('Error in action chain:', error);
     });
 
-        if (hasValue(stateNumericAttributes.value)) {
+        if (hasValue(attributeStore.getNumericAttributes)) {
             setBenefitAndWeightingAttributes();
             setSuperAssetAttributes();
         }
     });
 
     onBeforeUnmount(() => {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     });
 
-    watch(stateAnalysisMethod, () => {
+    watch(() =>analysisMethodStore.analysisMethodGetter, () => {
         analysisMethod.value = {
-            ...stateAnalysisMethod.value,
+            ...analysisMethodStore.analysisMethodGetter,
             benefit: {
-                ...stateAnalysisMethod.value.benefit,
+                ...analysisMethodStore.analysisMethodGetter.benefit,
             },
         };
     });
 
     // watch(benefit, onAnalysisChanged)
     watch(analysisMethod, onAnalysisChanged)
-     async function onAnalysisChanged() {             
-        await getSimulationAnalysisSettingAction({ scenarioId: selectedScenarioId.value });
-        hasUnsavedChanges.value = !equals(analysisMethod.value, stateAnalysisMethod.value) || !stateSimulationAnalysisSetting.value;
-        setHasUnsavedChangesAction({
-            value:
-                hasUnsavedChanges.value
-        });
+    async function onAnalysisChanged() {   
+        await analysisMethodStore.getSimulationAnalysisSetting(selectedScenarioId.value );
+        hasUnsavedChanges.value = !equals(analysisMethod.value, analysisMethodStore.analysisMethodGetter ) || !analysisMethodStore.simulationAnalysisSettingGetter;
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges.value);
 
          setBenefitAttributeIfEmpty();
          updateAssetCountString();
     }
 
-    watch(stateSimulationAnalysisSetting, (newVal) => {
-        if(newVal === false)        
+    watch(() => analysisMethodStore.simulationAnalysisSettingGetter, (newVal) => {
+        if(newVal === false)
         {
             hasUnsavedChanges.value = true;
         }
     });
 
-    watch(stateNumericAttributes, () => {
-        if (hasValue(stateNumericAttributes.value)) {
+    watch(() =>attributeStore.getNumericAttributes, () => {
+        if (hasValue(attributeStore.getNumericAttributes)) {
             setBenefitAndWeightingAttributes();
             setSuperAssetAttributes();
             setBenefitAttributeIfEmpty();
@@ -469,7 +455,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     }
 
     function setBenefitAndWeightingAttributes() {
-        const numericAttributeSelectItems: SelectItem[] = stateNumericAttributes.value.map(
+        const numericAttributeSelectItems: SelectItem[] = attributeStore.getNumericAttributes.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,
@@ -483,7 +469,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
     }
 
     function setSuperAssetAttributes() {
-        const superAssetAttributeSelectItems: SelectItem[] = stateAttributes.value.map(
+        const superAssetAttributeSelectItems: SelectItem[] = attributeStore.attributesgetter.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,
@@ -542,7 +528,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         {
             if(analysisMethod.value.benefit.id === getBlankGuid())
             analysisMethod.value.benefit.id = getNewGuid();
-            const responseData = await store.dispatch('upsertAnalysisMethod', { analysisMethod: analysisMethod.value, scenarioId: selectedScenarioId.value});
+            const responseData = await analysisMethodStore.upsertAnalysisMethod(analysisMethod.value, selectedScenarioId.value);
             
             if(responseData === "Analysis Method successfully updated")
             {
@@ -566,7 +552,7 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         if (submit) {
             if(analysisMethod.value.benefit.id === getBlankGuid())
             analysisMethod.value.benefit.id = getNewGuid();
-            const responseData = await store.dispatch('upsertAnalysisMethod', { analysisMethod: analysisMethod.value, scenarioId: selectedScenarioId.value});
+            const responseData = await analysisMethodStore.upsertAnalysisMethod(analysisMethod.value, selectedScenarioId.value);
             
             if(responseData === "Analysis Method successfully updated")
             {
@@ -575,9 +561,8 @@ getAnalysisMethodAction({ scenarioId: selectedScenarioId.value })
         } 
     }
 
-
     function onDiscardChanges() {
-        analysisMethod.value = clone(stateAnalysisMethod.value);
+        analysisMethod.value = clone(analysisMethodStore.analysisMethodGetter);
     }
 
 

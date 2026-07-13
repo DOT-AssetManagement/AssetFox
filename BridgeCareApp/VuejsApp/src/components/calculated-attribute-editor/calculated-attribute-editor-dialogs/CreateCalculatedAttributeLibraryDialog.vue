@@ -58,7 +58,6 @@ import {
     emptyCalculatedAttributeLibrary,
 } from '@/shared/models/iAM/calculated-attribute';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref, toRefs} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';

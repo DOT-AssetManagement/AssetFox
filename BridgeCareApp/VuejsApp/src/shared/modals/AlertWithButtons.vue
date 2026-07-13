@@ -40,7 +40,6 @@
 import { toRefs, computed } from 'vue';
 import {AlertDataWithButtons} from '../models/modals/alert-data';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{

@@ -60,7 +60,8 @@ const actions = {
                 payload.longMessage || 'No further information provided.',
         };
         commit('addNotificationMutator', notification);
-    },addErrorNotificationWithStackTrace({ commit }: any, payload: any) {
+    },
+    addErrorNotificationWithStackTrace({ commit }: any, payload: any) {
         let notification: Notification = {
             id: state.totalNotifications + 1,
             icon: 'fas fa-exclamation-circle',

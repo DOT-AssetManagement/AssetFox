@@ -94,14 +94,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { ReportSchemaDTO, ReportSchemaDefinition, ReportPage } from '@/shared/models/iAM/report-schema';
 import { ViewerMetadata } from '@/shared/models/iAM/viewer';
 import PageViewer from './PageViewer.vue';
+import { useNotificationStore, useReportSchemaStore, useViewerStore } from '@/stores';
 
-const store = useStore();
 const router = useRouter();
+const notificationStore = useNotificationStore();
+const reportSchemaStore = useReportSchemaStore();
+const viewerStore = useViewerStore();
 
 // Route query params
 const schemaId = ref('');
@@ -116,8 +118,8 @@ const schemaDefinition = ref<ReportSchemaDefinition | null>(null);
 const activePageIndex = ref(0);
 
 // Store state
-const metadata = computed<ViewerMetadata>(() => store.state.viewerModule.viewerMetadata);
-const isLoadingMetadata = computed<boolean>(() => store.state.viewerModule.isLoadingMetadata);
+const metadata = computed<ViewerMetadata>(() => viewerStore.viewerMetadata);
+const isLoadingMetadata = computed<boolean>(() => viewerStore.isLoadingMetadata);
 
 // Pages from schema
 const pages = computed<ReportPage[]>(() => {
@@ -149,28 +151,28 @@ onMounted(async () => {
     schemaName.value = (router.currentRoute.value.query.schemaName as string) || 'Report';
 
     if (!schemaId.value || !simulationId.value) {
-        store.dispatch('addErrorNotification', 'Missing schema or simulation ID.');
+        notificationStore.addErrorNotification({ message: 'Missing schema or simulation ID.' });
         goBack();
         return;
     }
 
     // Load metadata
-    await store.dispatch('loadViewerMetadata', { simulationId: simulationId.value });
+    await viewerStore.loadViewerMetadata(simulationId.value);
 
     // Load schema
-    await store.dispatch('getReportSchema', { id: schemaId.value });
-    const selectedSchema: ReportSchemaDTO = store.state.reportSchemaModule.selectedReportSchema;
+    await reportSchemaStore.getReportSchema(schemaId.value);
+    const selectedSchema: ReportSchemaDTO = reportSchemaStore.selectedReportSchema;
     if (selectedSchema && selectedSchema.schemaJson) {
         try {
             schemaDefinition.value = JSON.parse(selectedSchema.schemaJson) as ReportSchemaDefinition;
         } catch (e) {
-            store.dispatch('addErrorNotification', 'Failed to parse report template.');
+            notificationStore.addErrorNotification({ message: 'Failed to parse report template.' });
         }
     }
 });
 
 onBeforeUnmount(() => {
-    store.dispatch('clearViewerState');
+    viewerStore.clearViewerState();
 });
 </script>
 

@@ -94,10 +94,10 @@
         <!-- The Buttons  -->
         <v-col cols="12" v-if="hasSelectedAttribute">        
             <v-row justify="center">
-                <v-btn id="Attributes-cancel-vbtn" :disabled='!hasUnsavedChanges' @click='onDiscardChanges' variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
+                <v-btn id="Attributes-cancel-vbtn" :disabled='!unsavedChangesStore.getHasUnsavedChanges' @click='onDiscardChanges' variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
                     Cancel
                 </v-btn>
-                <v-btn id="Attributes-save-vbtn" @click='saveAttribute' :disabled='disableCrudButtons() || !hasUnsavedChanges'  variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
+                <v-btn id="Attributes-save-vbtn" @click='saveAttribute' :disabled='disableCrudButtons() || !unsavedChangesStore.getHasUnsavedChanges'  variant = "outlined" class='ghd-blue ghd-button-text ghd-outline-button-padding ghd-button vertical-center'>
                     Save
                 </v-btn>               
             </v-row>
@@ -120,11 +120,13 @@ import { AxiosResponse } from 'axios';
 import { any, clone, find, isNil, propEq } from 'ramda';
 import Vue, { computed, onBeforeMount, onBeforeUnmount, Ref, ref, shallowRef, ShallowRef, watch } from 'vue';
 import { Console } from 'console';
-import { useStore } from 'vuex';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { setItemPropertyValue } from '@/shared/utils/setter-utils';
+import { useAttributeStore, useAuthenticationStore, useUnsavedChangesStore } from '@/stores';
 
-    let store = useStore();
+    const attributeStore = useAttributeStore();
+    const authenticationStore = useAuthenticationStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
     let hasSelectedAttribute = ref<boolean>(false);
     let selectAttributeItemValue = ref<string | null>(null);
     let selectedAttribute = ref<Attribute>(clone(emptyAttribute));
@@ -137,50 +139,38 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
         {text: 'NUMBER', value: 'NUMBER'}
     ]);
 
-    let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes) ;
-    let stateSelectedAttribute = computed<Attribute>(() => store.state.attributeModule.selectedAttribute) ;
-    let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges) ;
-    let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ;
+    let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ;
     let selectAttributeItems = ref<SelectItem[]>([]);
     
-    async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
-    async function getAttributes(payload?: any): Promise<any> {await store.dispatch('getAttributes', payload);}
-    async function getExcelSpreadsheetColumnHeadersAction(payload?: any): Promise<any> {await store.dispatch('getExcelSpreadsheetColumnHeaders', payload);}
-    function selectAttributeAction(payload?: any) { store.dispatch('selectAttribute', payload);}
-    async function upsertAttributeAction(payload?: any): Promise<any> {await store.dispatch('upsertAttribute', payload);}
-    function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-    async function getUserNameByIdGetter(payload?: any): Promise<any> {await store.dispatch('getUserNameById', payload);}
-    function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
-
     created()
     function created() {
-        getAttributes();
+        attributeStore.getAttributes();
     }
 
     onBeforeUnmount(() => beforeDestroy)
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     }
 
-    watch(stateAttributes, () =>  {
-            let temp = clone(stateAttributes.value)
-            temp.forEach(_ => {
-                selectAttributeItems.value.push({text: _.name, value: _.id})
-            })
+    watch(() => attributeStore.attributesgetter, () =>  {
+        let temp = clone(attributeStore.attributesgetter)
+        temp.forEach(_ => {
+            selectAttributeItems.value.push({text: _.name, value: _.id})
+        })
     })
 
     watch(selectAttributeItemValue, () =>  {
-        selectAttributeAction(selectAttributeItemValue.value);
+        attributeStore.selectAttribute(selectAttributeItemValue.value ?? '');
         hasSelectedAttribute.value = true;
     })
     
     watch(selectedAttribute, () =>  {
-        const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedAttribute.value, stateSelectedAttribute.value);
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });        
+        const hasUnsavedChanges: boolean = hasUnsavedChangesCore('', selectedAttribute.value, attributeStore.getSelectedAttribute);
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);        
     })
 
-    watch(stateSelectedAttribute, () =>  {       
-        selectedAttribute.value = clone(stateSelectedAttribute.value);      
+    watch(() => attributeStore.getSelectedAttribute, () =>  {       
+        selectedAttribute.value = clone(attributeStore.getSelectedAttribute);      
     })
 
     function onSetSelectedAttributeProperty(property: string, value: any){
@@ -197,7 +187,7 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
     }
 
     function onDiscardChanges() {
-        selectedAttribute.value = clone(stateSelectedAttribute.value);
+        selectedAttribute.value = clone(attributeStore.getSelectedAttribute);
     }
 
     async function saveAttribute() {
@@ -209,12 +199,13 @@ import { setItemPropertyValue } from '@/shared/utils/setter-utils';
         }
 
         const createAttributeRequest = {
-            attribute: selectAttr
+            attribute: selectAttr,
+            SetForAllAttributes: false
         };
 
-        await upsertAttributeAction(createAttributeRequest);
+        await attributeStore.upsertAttribute(createAttributeRequest);
             
-        if (!isNil(stateAttributes.value.find(_ => _.id === selectAttr.id))) {
+        if (!isNil(attributeStore.attributesgetter.find(_ => _.id === selectAttr.id))) {
             selectedAttribute.value.id = selectAttr.id;
             if (isInsert) selectAttributeItemValue.value = selectedAttribute.value.id;
         }

@@ -23,6 +23,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories
 
         void DeleteScenarioRuleOverrides(Guid simulationId);
 
+        // Should we remove this from the interface? It returns entities.
         List<ScenarioTreatmentRuleOverrideCriterionEntity> GetActiveOverrideCriteria(Guid simulationId);
 
         void DeleteCriteriaWithoutTreatmentsForLibrary(Guid libraryId);

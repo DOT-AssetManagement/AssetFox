@@ -140,64 +140,16 @@ import ConfirmDeleteAlert from '@/shared/modals/Alert.vue';
 import { getBlankGuid } from '@/shared/utils/uuid-utils';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { getUserName } from '@/shared/utils/get-user-info';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { useAuthenticationStore, useCriterionLibraryStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
     let dialogLibraryId = shallowRef<string>('');
     let dialogIsFromScenario = shallowRef<boolean>();
     let dialogIsFromLibrary: boolean;
-    let store = useStore();
-
-    let stateCriterionLibraries = ref<CriterionLibrary[]>(store.state.criterionModule.criterionLibraries)
-    let stateSelectedCriterionLibrary = ref<CriterionLibrary>(store.state.criterionModule.selectedCriterionLibrary)
-    let scenarioRelatedCriteria = ref<CriterionLibrary>(store.state.criterionModule.scenarioRelatedCriteria)
-    let hasAdminAccess = ref<boolean>(store.state.authenticationModule.hasAdminAccess)
-    let hasPermittedAccess = ref<boolean>(store.state.criterionModule.hasPermittedAccess)
-
-    async function getHasPermittedAccessAction(payload?: any): Promise<any> {
-        await store.dispatch('getHasPermittedAccess');
-    }
-
-    async function getCriterionLibrariesAction(payload?: any): Promise<any> {
-        await store.dispatch('getCriterionLibraries');
-    }
-
-    async function upsertCriterionLibraryAction(payload?: any): Promise<any> {
-        await store.dispatch('upsertCriterionLibrary');
-    }
-
-     function selectCriterionLibraryAction(payload?: any) {
-        store.dispatch('selectCriterionLibrary');
-    }
-
-    async function deleteCriterionLibraryAction(payload?: any): Promise<any> {
-        await store.dispatch('deleteCriterionLibrary');
-    }
-
-     function setSelectedCriterionIsValidAction(payload?: any) {
-        store.dispatch('setSelectedCriterionIsValid');
-    }
-
-    function setHasUnsavedChangesAction(payload?: any){
-        store.dispatch('setHasUnsavedChanges');
-    }
-
-    async function selectScenarioRelatedCriterionAction(payload?: any): Promise<any> {
-        await store.dispatch('selectScenarioRelatedCriterion');
-    }
-
-    async function upsertSelectedScenarioRelatedCriterionAction(payload?: any): Promise<any> {
-        await store.dispatch('upsertSelectedScenarioRelatedCriterion');
-    }
-
-    async function getSelectedCriterionLibraryAction(payload?: any): Promise<any> {
-        await store.dispatch('getSelectedCriterionLibrary');
-    }
-
-    async function getUserNameByIdGetter(payload?: any): Promise<any> {
-        await store.dispatch('getUserNameById');
-    }
-
+    const authenticationStore = useAuthenticationStore();
+    const criterionLibraryStore = useCriterionLibraryStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
+    const userStore = useUserStore();
 
     let hasSelectedCriterionLibrary: boolean = false;
     let criterionLibrarySelectItems: SelectItem[] = [];
@@ -226,10 +178,10 @@ import { useRouter } from 'vue-router';
    created();
    function created() {
          ((vm: any) => {
-            vm.getHasPermittedAccessAction();
+            criterionLibraryStore.getHasPermittedAccess();
             if ($router.currentRoute.value.path.indexOf('CriterionLibraryEditor/Library') !== -1) {
                 vm.librarySelectItemValue = null;
-                vm.getCriterionLibrariesAction();
+                criterionLibraryStore.getCriterionLibraries();
             } else {
                 vm.isLibraryContext = false;
             }
@@ -239,23 +191,21 @@ import { useRouter } from 'vue-router';
     onBeforeUnmount(() => beforeDestroy());
     function beforeDestroy() {
         if (isLibraryContext) {
-            setHasUnsavedChangesAction({ value: false });
+            unsavedChangesStore.setHasUnsavedChanges(false);
         }
     }
 
 
-    watch(stateCriterionLibraries, () => onStateCriterionLibrariesChanged)
+    watch(() => criterionLibraryStore.criterionLibrariesGetter, () => onStateCriterionLibrariesChanged())
     function onStateCriterionLibrariesChanged() {
-        criterionLibrarySelectItems = stateCriterionLibraries.value
+        criterionLibrarySelectItems = criterionLibraryStore.criterionLibrariesGetter
             .filter((lib: CriterionLibrary) => lib.isSingleUse == false)
             .map((library: CriterionLibrary) => ({
                 text: library.name,
                 value: library.id,
             }));
         if (!isLibraryContext && hasValue(librarySelectItemValue)) {
-            getSelectedCriterionLibraryAction({
-                libraryId: librarySelectItemValue,
-            });
+            criterionLibraryStore.getSelectedCriterionLibrary(librarySelectItemValue as any);
         }
     }
 
@@ -271,26 +221,24 @@ import { useRouter } from 'vue-router';
 
     watch(librarySelectItemValue, () => onLibrarySelectItemValueChanged) 
     function onLibrarySelectItemValueChanged(){
-            getSelectedCriterionLibraryAction({
-                libraryId: librarySelectItemValue.value
-            });
+        criterionLibraryStore.getSelectedCriterionLibrary(librarySelectItemValue.value);
     }
 
-    watch(stateSelectedCriterionLibrary, () => onStateSelectedCriterionLibraryChanged)
+    watch(() => criterionLibraryStore.selectedCriterionLibraryGetter, () => onStateSelectedCriterionLibraryChanged())
     function onStateSelectedCriterionLibraryChanged(){
         canUpdateOrCreate.value = false;
         selectedCriterionLibrary = clone(
-            stateSelectedCriterionLibrary.value
+            criterionLibraryStore.selectedCriterionLibraryGetter
         );
     }
 
-    watch(scenarioRelatedCriteria, onScenarioRelatedCriteria)
+    watch(() => criterionLibraryStore.getScenarioRelatedCriteria, onScenarioRelatedCriteria)
     function onScenarioRelatedCriteria() {
         criteriaForScenario = dialogLibraryId;
         callFromScenario = dialogIsFromScenario;
         callFromLibraryToEditCriterion = dialogIsFromLibrary;
         selectedScenarioRelatedCriteria = clone(
-            scenarioRelatedCriteria.value
+            criterionLibraryStore.getScenarioRelatedCriteria
         );
         criteriaEditorData = {
             ...criteriaEditorData,
@@ -333,13 +281,13 @@ import { useRouter } from 'vue-router';
         }
 
         if (isLibraryContext) {
-            setHasUnsavedChangesAction({
-                value: hasUnsavedChangesCore(
+            unsavedChangesStore.setHasUnsavedChanges(
+                hasUnsavedChangesCore(
                     'criterion-library',
                     selectedCriterionLibrary,
-                    stateSelectedCriterionLibrary,
+                    criterionLibraryStore.selectedCriterionLibraryGetter,
                 ),
-            });
+            );
         } else {
            emit('submit', selectedCriterionLibrary);
         }
@@ -347,8 +295,8 @@ import { useRouter } from 'vue-router';
 
    onMounted(() => mounted());
    function mounted() {
-        if (hasValue(stateCriterionLibraries)) {
-            criterionLibrarySelectItems = stateCriterionLibraries.value
+        if (hasValue(criterionLibraryStore.criterionLibrariesGetter)) {
+            criterionLibrarySelectItems = criterionLibraryStore.criterionLibrariesGetter
             .filter((lib: CriterionLibrary) => lib.isSingleUse == false)
             .map((library: CriterionLibrary) => ({
                 text: library.name,
@@ -359,25 +307,23 @@ import { useRouter } from 'vue-router';
                 (!isLibraryContext || !dialogIsFromLibrary) &&
                 hasValue(librarySelectItemValue)
             ) {
-                getSelectedCriterionLibraryAction({
-                    libraryId: librarySelectItemValue
-            });
+                criterionLibraryStore.getSelectedCriterionLibrary(librarySelectItemValue as any);
             }
         }
     }
 
     function checkLibraryEditPermission() {
-        hasLibraryEditPermission = hasAdminAccess || (hasPermittedAccess && checkUserIsLibraryOwner());
+        hasLibraryEditPermission.value = authenticationStore.getHasAdminAccess || ((criterionLibraryStore.hasPermittedAccessGetter && checkUserIsLibraryOwner()) as any);
     }
 
     async function checkUserIsLibraryOwner() {
-        return await getUserNameByIdGetter(selectedCriterionLibrary.owner) == getUserName();
+        return userStore.getUserNameById(selectedCriterionLibrary.owner ?? "") == getUserName();
     }
 
     async function getOwnerUserName(): Promise<string> {
 
         if (!hasCreatedLibrary) {
-        return await getUserNameByIdGetter(selectedCriterionLibrary.owner);
+        return userStore.getUserNameById(selectedCriterionLibrary.owner ?? "");
         }
         
         return getUserName();
@@ -407,14 +353,14 @@ import { useRouter } from 'vue-router';
                     mergedCriteriaExpression: result.criteria!,
                     isSingleUse: true,
                 };
-                upsertSelectedScenarioRelatedCriterionAction({
-                    library: selectedScenarioRelatedCriteria,
-                });
+                criterionLibraryStore.upsertSelectedScenarioRelatedCriterion(
+                    selectedScenarioRelatedCriteria,
+                );
             }
 
-            setSelectedCriterionIsValidAction({ isValid: true });
+            criterionLibraryStore.setSelectedCriterionIsValid(true);
         } else {
-            setSelectedCriterionIsValidAction({ isValid: false });
+            criterionLibraryStore.setSelectedCriterionIsValid(false);
         }
     }
 
@@ -426,9 +372,8 @@ import { useRouter } from 'vue-router';
             if(isNil(dialogIsFromLibrary) || dialogIsFromLibrary){
                 criterionLibrary.isSingleUse = false;
             }
-            upsertCriterionLibraryAction({
-                library: criterionLibrary,
-            }).then(() => (librarySelectItemValue.value = criterionLibrary.id));
+            criterionLibraryStore.upsertCriterionLibrary(criterionLibrary)
+                .then(() => (librarySelectItemValue.value = criterionLibrary.id));
 
             hasCreatedLibrary.value = true;
         }
@@ -447,9 +392,8 @@ import { useRouter } from 'vue-router';
         confirmDeleteAlertData = clone(emptyAlertData);
 
         if (submit) {
-            deleteCriterionLibraryAction({
-                libraryId: selectedCriterionLibrary.id,
-            }).then(() => (librarySelectItemValue.value = ''));
+            criterionLibraryStore.deleteCriterionLibrary(selectedCriterionLibrary.id)
+                .then(() => (librarySelectItemValue.value = ''));
         }
     }
 
