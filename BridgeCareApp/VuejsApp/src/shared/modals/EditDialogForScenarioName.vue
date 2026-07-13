@@ -60,16 +60,14 @@
 import { clone } from 'ramda';
 import { computed, reactive, ref, watch } from 'vue';
 import { InputValidationRules, rules as validationRules } from '@/shared/utils/input-validation-rules';
-import { useStore } from 'vuex';
+import { useScenarioStore } from '@/stores';
 import { Scenario } from '../models/iAM/scenario';
 
 let rules: InputValidationRules = validationRules;
 const emit = defineEmits(['save', 'open', 'update:returnValue']);
 let dialog = ref(false);
 const scenarioNameErrors = ref<string[]>([]);
-let store = useStore(); 
-
-let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
+const scenarioStore = useScenarioStore();
 const props = defineProps<{
   selectedScenario: Scenario
 }>(); 
@@ -90,7 +88,7 @@ const hasValidationErrors = computed(() => {
   if (specialCharError !== true) {
     scenarioNameErrors.value.push(specialCharError as string);
   }
-  if(stateScenarioNames.value.find(_ => _ == scenarioName.value) != undefined)
+  if (scenarioStore.getScenarioNames.find(_ => _ == scenarioName.value) != undefined)
   {
     scenarioNameErrors.value.push("There is already a scenario with that name")
   }

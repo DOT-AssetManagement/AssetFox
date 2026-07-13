@@ -42,14 +42,11 @@ import { ImportExportCommittedProjectsDialogResult } from '@/shared/models/modal
 import CommittedProjectsFileSelector from '@/shared/components/FileSelector.vue';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { clone } from 'ramda';
-import { useStore } from 'vuex'; 
 import { getUrl } from '@/shared/utils/get-url';
 
-    let store = useStore(); 
     const props = defineProps<{showDialog: boolean}>();
     const emit = defineEmits(['submit','delete']);
     const { showDialog } = toRefs(props);
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
 
     const committedProjectsFile = ref<File | null>(null);
     const closed = ref< boolean >(false);

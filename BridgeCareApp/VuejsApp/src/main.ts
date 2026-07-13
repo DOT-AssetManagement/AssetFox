@@ -5,13 +5,14 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSignOutAlt, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
 import Vue, { createApp, h, defineComponent, watch, reactive } from 'vue';
 import vuetify from '@/plugins/vuetify';
+import pinia from '@/stores';
 import 'vuetify/dist/vuetify.min.css';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import App from './App.vue';
 import router from './router';
 import { useRoute, useRouter } from 'vue-router';
-import store from './store/root-store';
+import { useAuthenticationStore, useConfigStore } from './stores';
 import './assets/css/main.css';
 import VueScreen from 'vue-screen';
 // @ts-ignore
@@ -42,23 +43,28 @@ import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css';
 import "primeflex/primeflex.css";
 
-store.dispatch('loadConfig').then(() => {
-    const config = store.getters.getConfig;
-    store.dispatch('setSecurityType', config.securityType);
+const configStore = useConfigStore(pinia);
+const authenticationStore = useAuthenticationStore(pinia);
+
+configStore.loadConfig().then(() => {
+    const config = configStore.config;
+    if (!config) {
+        throw new Error('Config was not loaded before application bootstrap');
+    }
+
+    authenticationStore.setSecurityType(config.securityType);
 
     const app = createApp(App);
 
 
     app.use(router);
-    app.use(store);
+    app.use(pinia);
     app.use(vuetify);
     app.use(PrimeVue);
     //app.use(VueWorker);
     app.use(KendoChartInstaller);
 
     //app.use(VueCurrencyInput);
-    //authenticationModule.state.securityType = config.securityType as string;
-
     app.use(connectionHub, null);
 
     // app.use(VueScreen, {

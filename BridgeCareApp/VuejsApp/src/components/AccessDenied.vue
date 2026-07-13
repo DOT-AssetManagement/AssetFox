@@ -27,16 +27,15 @@
     import { hasValue } from '@/shared/utils/has-value-util';
     import { SecurityTypes } from '@/shared/utils/security-types';
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-    import { useStore } from 'vuex';
     import { useRouter } from 'vue-router';
     import { getUrl } from '@/shared/utils/get-url';
+        import { useAuthenticationStore } from '@/stores';
 
     const $router = useRouter();
-    let store = useStore();
-    let securityType = ref<string>(store.state.authenticationModule.securityType);
+        const authenticationStore = useAuthenticationStore();
     onMounted(()=>mounted())
     function mounted() {
-            if (securityType === SecurityTypes.esec) {
+            if (authenticationStore.securityType === SecurityTypes.esec) {
                 /*
                  * The /iAM/ pages of the penndot deployments fail to set the cookie until they have been refreshed.
                  */

@@ -225,9 +225,9 @@
     import XButton from '@/shared/components/buttons/XButton.vue';
     import AttributeSelectionPopup from '@/components/reports/reports-dialogs/AttributeSelectionPopup.vue';
     import YearSelectionPopup from '@/components/reports/reports-dialogs/YearSelectionPopup.vue';
-    import { useStore } from 'vuex';
     import { Attribute } from '@/shared/models/iAM/attribute';
     import { InvestmentPlan } from '@/shared/models/iAM/investment';
+    import { useAttributeStore, useInvestmentStore } from '@/stores';
     const props = defineProps({
         showDialog: Boolean
     })
@@ -235,22 +235,20 @@
     const emit = defineEmits(['submit']);
     const selectedScenarioId = ref('');
 
-    let store = useStore();
+    const attributeStore = useAttributeStore();
     import { useRouter } from 'vue-router'; 
     const router = useRouter();    
     let newUserDefinedReportRequestModel = ref<UserDefinedReportRequestModel>({...emptyUserDefinedReportRequestModel});    
         
     const showAttributeDialog = ref(false);
     const currentEditingAttributes = ref<string[]>([]);
-    let stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
-    let attributeSelectItems = computed(() => stateAttributes.value.map(attr => attr.name));
+    let attributeSelectItems = computed(() => attributeStore.attributesgetter.map(attr => attr.name));
     
     const showYearDialog = ref(false);
     const currentEditingYears = ref<number[]>([]);
-    async function getInvestmentAction(payload?: any): Promise<any> { await store.dispatch('getInvestment', payload); }
-    let stateInvestmentPlan = computed<InvestmentPlan>(() => store.state.investmentModule.investmentPlan);
+    const investmentStore = useInvestmentStore();
     const yearSelectItems = computed(() => {
-        const plan = stateInvestmentPlan.value;
+        const plan = investmentStore.getInvestmentPlan;
         if (plan?.numberOfYearsInAnalysisPeriod && plan?.firstYearOfAnalysisPeriod) {
             return Array.from(
                 { length: plan.numberOfYearsInAnalysisPeriod },
@@ -260,18 +258,11 @@
         return []; // Return an empty array if data is not available
     });
 
-    /*onMounted(async () => {       
-        selectedScenarioId.value = router.currentRoute.value.query.scenarioId as string; 
-        await getInvestmentAction(selectedScenarioId.value);        
-        yearSelectItems = Array.from(Array(stateInvestmentPlan.value?.numberOfYearsInAnalysisPeriod), (_, index) => 
-        index + stateInvestmentPlan.value?.firstYearOfAnalysisPeriod) ?? [];
-    });*/
-
     watch(showDialog, async (isNowVisible) => {
     if (isNowVisible) {
         selectedScenarioId.value = router.currentRoute.value.query.scenarioId as string;
         // Fetch the investment plan for the current scenario
-        await getInvestmentAction(selectedScenarioId.value);
+        await investmentStore.getInvestment(selectedScenarioId.value);
     }
 });
 

@@ -1,28 +1,32 @@
-import store from '@/store/root-store';
 import { SecurityTypes } from '@/shared/utils/security-types';
 import { clearRefreshIntervalID } from '@/shared/utils/refresh-interval-id';
-import router from '@/router';
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import AuthenticationService from '@/services/authentication.service';
-import { useRouter } from 'vue-router';
 import { hasValue } from './has-value-util';
 import { UserInfoLocal } from '../models/iAM/authentication';
-
-const $router = useRouter();
+import pinia, {
+    useAuthenticationStore,
+    useAzureB2CStore,
+    useConfigStore,
+    useNotificationStore,
+    useUserStore,
+} from '@/stores';
 
 const isAuthenticatedEsecUser = () => {
-    return store
-        .dispatch('checkBrowserTokens')
+    const notificationStore = useNotificationStore(pinia);
+    const authenticationStore = useAuthenticationStore(pinia);
+    const userStore = useUserStore(pinia);
+    return authenticationStore
+        .checkBrowserTokens()
         .then(async () => {
             // Check user active status via API
             const activeStatus = await AuthenticationService.getActiveStatus();
             
             if (activeStatus.data == true) {
                 // User is active, proceed with fetching user info and other data
-                return store.dispatch('getUserInfo').then(() =>
-                    store.dispatch('getUserCriteriaFilter').then(() => {
-                        // @ts-ignore
-                        if (store.state.authenticationModule.authenticated) {
+                return authenticationStore.getUserInfo().then(() =>
+                    userStore.getUserCriteriaFilter().then(() => {
+                        if (authenticationStore.authenticated) {
                             return true;
                         } else {
                             throw new Error('Failed to authenticate');
@@ -35,28 +39,27 @@ const isAuthenticatedEsecUser = () => {
             }
         })
         .catch((error) => {
-            store
-                .dispatch('addErrorNotification', {
-                    message: 'Authentication Error.',
-                    longMessage: error,
-                })
-                .then(() => {
-                    return false;
-                });
+            notificationStore.addErrorNotification({
+                message: 'Authentication Error.',
+                longMessage: error,
+            });
+
+            return false;
         });
 };
 
 const isAuthenticatedAzureUser = () => {
-    return store
-        .dispatch('getAzureB2CAccessToken')
+    const notificationStore = useNotificationStore(pinia);
+    const authenticationStore = useAuthenticationStore(pinia);
+    const azureB2CStore = useAzureB2CStore(pinia);
+    return azureB2CStore
+        .getAzureB2CAccessToken()
         .then(() =>
-            store.dispatch('getAzureAccountDetails').then(() => {
-                // @ts-ignore
-                if (store.state.authenticationModule.authenticated) {
+            azureB2CStore.getAzureAccountDetails().then(() => {
+                if (authenticationStore.authenticated) {
                     return true;
                 } else {
-                    // @ts-ignore
-                let isAccessDenied = store.state.authenticationModule.accessDenied;
+                let isAccessDenied = authenticationStore.accessDenied;
                 if(isAccessDenied == true)
                 {
                     throw new Error('Failed to authenticate');
@@ -65,35 +68,36 @@ const isAuthenticatedAzureUser = () => {
             }),
         )
         .catch((error: any) => {
-            store
-                .dispatch('addErrorNotification', {
-                    message: 'Authenticaton Error.',
-                    longMessage: error,
-                })
-                .then(() => {
-                    return false;
-                });
+            notificationStore.addErrorNotification({
+                message: 'Authenticaton Error.',
+                longMessage: error,
+            });
+
+            return false;
         });
 };
 
 const isAuthenticatedLocalDebugUserUser = () => {
+    const configStore = useConfigStore(pinia);
+    const authenticationStore = useAuthenticationStore(pinia);
     if(hasValue(localStorage.getItem('LoggedInUser'))){
-        var config = store.getters.getConfig
+        var config = configStore.config;
+        if (!config) {
+            return Promise.resolve(false);
+        }
+
         var payload = config.localDegugInfo as UserInfoLocal
-        return store.dispatch('localDebugLogin', payload).then(() => {return true}) 
+        return Promise.resolve(authenticationStore.localDebugLogin(payload)).then(() => true)
     }
-    return new Promise<boolean>(() => 
-        {
-            return false
-        }) 
+    return Promise.resolve(false);
 };
 
 export const isAuthenticatedUser = () => {
-    // @ts-ignore
-    if (store.state.authenticationModule.securityType === SecurityTypes.esec) {
+    const authenticationStore = useAuthenticationStore(pinia);
+    if (authenticationStore.securityType === SecurityTypes.esec) {
         return isAuthenticatedEsecUser();
     }
-    if (store.state.authenticationModule.securityType === SecurityTypes.b2c) {
+    if (authenticationStore.securityType === SecurityTypes.b2c) {
         return isAuthenticatedAzureUser();
     }
 
@@ -101,7 +105,8 @@ export const isAuthenticatedUser = () => {
 };
 
 const onLogout = () => {
-    store.dispatch('logOut').then(() => {
+    const authenticationStore = useAuthenticationStore(pinia);
+    authenticationStore.logOut().then(() => {
         clearRefreshIntervalID(); 
         localStorage.clear();
         sessionStorage.clear();      
@@ -109,13 +114,14 @@ const onLogout = () => {
 };
 
 const onAzureLogout = () => {
-    store.dispatch('azureB2CLogout').then(() => onLogout());
+    const azureB2CStore = useAzureB2CStore(pinia);
+    azureB2CStore.azureB2CLogout().then(() => onLogout());
 };
 
 export const onHandleLogout = () => {
+    const authenticationStore = useAuthenticationStore(pinia);
     if (
-        // @ts-ignore
-        store.state.authenticationModule.securityType === SecurityTypes.esec
+        authenticationStore.securityType === SecurityTypes.esec
     ) {
         onLogout();
     } else {

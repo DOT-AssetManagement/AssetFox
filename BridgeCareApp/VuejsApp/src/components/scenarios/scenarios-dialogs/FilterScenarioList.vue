@@ -68,14 +68,9 @@ import {
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { find, isNil, propEq } from 'ramda';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
-import { useStore } from 'vuex'; 
-
-  let store = useStore(); 
-
   const props = defineProps<{showDialog: boolean}>();
   const emit = defineEmits(['submit'])
   let showDialogComputed = computed(() => props.showDialog);
-    let stateUsers = ref<User[]>(store.state.userModule.users);
     let shared = ref<boolean>(false);
 
     let filters: string[] = [

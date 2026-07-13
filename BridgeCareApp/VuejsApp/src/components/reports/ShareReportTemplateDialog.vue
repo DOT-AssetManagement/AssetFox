@@ -135,9 +135,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useStore } from 'vuex';
 import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 import { LibraryUser, User } from '@/shared/models/iAM/user';
+import { useReportSchemaStore, useUserStore } from '@/stores';
 
 const props = defineProps<{
     modelValue: boolean;
@@ -149,7 +149,8 @@ const emit = defineEmits<{
     (e: 'saved', schema: ReportSchemaDTO): void;
 }>();
 
-const store = useStore();
+const reportSchemaStore = useReportSchemaStore();
+const userStore = useUserStore();
 
 const readAccess = 0;
 const modifyAccess = 1;
@@ -182,7 +183,7 @@ const accessOptions = [
     { title: 'Can edit', value: modifyAccess },
 ];
 
-const allUsers = computed<User[]>(() => store.state.userModule.users || []);
+const allUsers = computed<User[]>(() => userStore.getUsers || []);
 const availableUsers = computed<User[]>(() => {
     const selectedIds = new Set(rows.value.map((row) => row.userId));
     return allUsers.value
@@ -209,10 +210,10 @@ async function loadSharing() {
     selectedUserId.value = null;
 
     if (allUsers.value.length === 0) {
-        await store.dispatch('getAllUsers');
+        await userStore.getAllUsers();
     }
 
-    const users = await store.dispatch('getReportSchemaUsers', { id: props.schema.id }) as LibraryUser[];
+    const users = await reportSchemaStore.getReportSchemaUsers(props.schema.id) as LibraryUser[];
     rows.value = normalizeRows(users || props.schema.users || []);
 }
 
@@ -272,11 +273,11 @@ async function save() {
 
     saving.value = true;
     try {
-        const saved = await store.dispatch('updateReportSchemaSharing', {
-            id: props.schema.id,
-            isSharedWithAll: shareWithAll.value,
-            users: normalizeRows(rows.value),
-        }) as ReportSchemaDTO | null;
+        const saved = await reportSchemaStore.updateReportSchemaSharing(
+            props.schema.id,
+            shareWithAll.value,
+            normalizeRows(rows.value),
+        ) as ReportSchemaDTO | null;
 
         if (saved) {
             emit('saved', saved);

@@ -110,7 +110,6 @@ import CalculatedAttributeSvg from '@/shared/icons/CalculatedAttributeSvg.vue';
 import CommittedProjectSvg from '@/shared/icons/CommittedProjectSvg.vue';
 import { SectionCommittedProject } from '@/shared/models/iAM/committed-projects';
 import ReportsSvg from '@/shared/icons/ReportsSvg.vue';
-import { useStore } from 'vuex'; 
 import { useRouter } from 'vue-router'; 
 import ScenarioService from '@/services/scenario.service';
 import InvestmentService from '@/services/investment.service';
@@ -127,36 +126,23 @@ import { inject } from 'vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import AnalysisMethodService from '@/services/analysis-method.service';
 import CashFlowService from '@/services/cash-flow.service';
+import { useAuthenticationStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
+import { useTreatmentStore } from '@/stores/treatment.store';
 import { faL } from '@fortawesome/free-solid-svg-icons';
 
-    let store = useStore(); 
+    const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
+    const performanceCurveStore = usePerformanceCurveStore();
+    const scenarioStore = useScenarioStore();
+    const treatmentStore = useTreatmentStore();
     const router = useRouter(); 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
 
-    const stateNetworks: Network[] = shallowReactive(store.state.networkModule.networks) ;
-    const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess) ; 
-    let hasSimulationAccess:boolean = (store.state.authenticationModule.hasSimulationAccess) ; 
+    const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess) ; 
+    let hasSimulationAccess:boolean = authenticationStore.hasSimulationAccess ; 
 
-    const stateSelectedScenario = computed<Scenario>(() => store.state.scenarioModule.selectedScenario) ;
-    const stateSharedScenariosPage = computed<Scenario[]>(() => store.state.scenarioModule.currentSharedScenariosPage) ;
-    const stateUserScenariosPage = computed<Scenario[]>(() =>store.state.scenarioModule.currentUserScenarioPage) ;
-    let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
-
-    let userId = ref<string>(store.state.authenticationModule.userId);
-
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification',payload)}
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification',payload)}
-
-    function selectScenarioAction(payload?: any){ store.dispatch('selectScenario',payload)} 
-
-    async function runSimulationAction(payload?: any): Promise<any>{await store.dispatch('runSimulation', payload)}   
-    async function runNewSimulationAction(payload?: any): Promise<any>{await store.dispatch('runNewSimulation',payload)}
-    async function getScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {return await store.dispatch('getScenarioSelectableTreatments', payload)}
-    async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> {await store.dispatch('getSimpleScenarioSelectableTreatments', payload);}
-    async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioSimpleBudgetDetails', payload)}
-    async function getSimulationRunSettingAction(payload?: any): Promise<any> { await store.dispatch('getSimulationRunSetting', payload);}
- 
-    let selectedScenarioId: string = getBlankGuid();    
+    let selectedScenarioId: string = getBlankGuid();
+    let showImportExportCommittedProjectsDialog: boolean = false;
     let networkId: string = getBlankGuid();
     let simulationName: string;
     let networkName: string = '';
@@ -316,7 +302,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             // check that selectedScenarioId is set
             if (selectedScenarioId === getBlankGuid()) {
                 // set 'no selected scenario' error message, then redirect user to Scenarios UI
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 router.push('/Scenarios/');
@@ -362,41 +348,35 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             }
     }
 
-    watch(stateSelectedScenario, () => onStateSelectedScenarioChanged)
+    watch(() => scenarioStore.getSelectedScenario, () => onStateSelectedScenarioChanged())
     function onStateSelectedScenarioChanged() {
-        selectedScenario = clone(stateSelectedScenario.value);
+        selectedScenario = clone(scenarioStore.getSelectedScenario);
     }
 
-    watch(stateSharedScenariosPage, () => onStateSharedScenariosPageChanged)
+    watch(() => scenarioStore.getCurrentSharedScenariosPage, () => onStateSharedScenariosPageChanged())
     function onStateSharedScenariosPageChanged() {
         if (any(propEq('id', selectedScenario.id))) {
-            selectScenarioAction({
-                scenarioId: selectedScenario.id,
-            });
+            scenarioStore.selectScenario(selectedScenario.id);
         }
     }
 
-    watch(stateUserScenariosPage, () => onStateUserScenariosPagePageChanged)
+    watch(() => scenarioStore.getCurrentUserScenarioPage, () => onStateUserScenariosPagePageChanged())
     function onStateUserScenariosPagePageChanged() {
         if (any(propEq('id', selectedScenario.id))) {
-            selectScenarioAction({
-                scenarioId: selectedScenario.id,
-            });
+            scenarioStore.selectScenario(selectedScenario.id);
         }
     }
 
     onMounted(() => mounted);
     function mounted() {
         if (selectedScenarioId !== getBlankGuid()) {            
-            selectScenarioAction({
-                scenarioId: selectedScenarioId,
-            });
+            scenarioStore.selectScenario(selectedScenarioId);
         }
     }
 
     onBeforeUnmount(() => beforeDestroy); 
     function beforeDestroy() {
-        selectScenarioAction({ scenarioId: getBlankGuid() });
+        scenarioStore.selectScenario(getBlankGuid());
     }
 
     function visibleNavigationTabs() {
@@ -546,7 +526,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
         });
 
         $emitter.on('SimulationRunSettingUpdated', () => {
-            if(String(selectedScenarioId) === String(simulationRunSettingId.value))
+            if(String(selectedScenarioId) === String(scenarioStore.getSimulationRunSettingId))
             {
                 hasScenarioBeenRun.value = false;
 
@@ -592,7 +572,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             {
                 await ScenarioService.upsertValidateSimulation(networkId, selectedScenarioId).then((response: AxiosResponse) => {
                     if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
-                        addSuccessNotificationAction({message: "Simulation pre-checks completed",});
+                        notificationStore.addSuccessNotification({message: "Simulation pre-checks completed",});
                         if(response.data.length > 0)
                         {
                             preCheckStatus = response.data[0].status; // per current working, only error messages goes in via API
@@ -613,7 +593,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
 
             }
             // Check which treatments have no budgets and add them to the warning list
-            emptyTreatmentBudgets = await getScenarioSelectableTreatmentsAction({ scenarioId: selectedScenarioId });
+            emptyTreatmentBudgets = await treatmentStore.getScenarioSelectableTreatments(selectedScenarioId);
             emptyTreatmentBudgets.forEach((treatment: { budgets: string | any[]; name: any; assetType: string; category: number; shadowForAnyTreatment: number; shadowForSameTreatment: number}) => {
                 if (!treatment.budgets || treatment.budgets.length === 0) {
                     preCheckWarningMessages += `Treatment ${treatment.name} has no budgets (in Treatment).`
@@ -636,13 +616,13 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             secondRunAnalysisModal();
         }
         else if(submit == "continue") {
-            store.dispatch('updateSimulationRunSettingName', simulationName);
-            store.dispatch('updateSimulationRunSettingId', selectedScenarioId);
+            scenarioStore.updateSimulationRunSettingName(simulationName);
+            scenarioStore.updateSimulationRunSettingId(selectedScenarioId);
             if (submit && selectedScenarioId !== getBlankGuid()) {
-                runSimulationAction({
-                    networkId: networkId,
-                    scenarioId: selectedScenarioId,
-                }).then(() => (selectedScenario = clone(emptyScenario)));
+                scenarioStore.runSimulation(
+                    networkId,
+                    selectedScenarioId,
+                ).then(() => (selectedScenario = clone(emptyScenario)));
             }
             router.push({ path: '/Scenarios/', query: { tab: 'Queue' } }).catch(() => {});
         }
@@ -718,18 +698,18 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
     }
 
     function onConfirmAnalysisPreCheckAlertSubmit(submit: boolean) {
-        store.dispatch('updateSimulationRunSettingName', simulationName);
-        store.dispatch('updateSimulationRunSettingId', selectedScenarioId);
+        scenarioStore.updateSimulationRunSettingName(simulationName)
+        scenarioStore.updateSimulationRunSettingId(selectedScenarioId);
 
         closePreCheckDialog();
 
         selectedScenario = runAnalysisScenario;
 
         if (submit && selectedScenarioId !== getBlankGuid()) {
-            runSimulationAction({
-                networkId: networkId,
-                scenarioId: selectedScenarioId,
-            }).then(() => (selectedScenario = clone(emptyScenario)));
+            scenarioStore.runSimulation(
+                networkId,
+                selectedScenarioId,
+            ).then(() => (selectedScenario = clone(emptyScenario)));
             router.push({ path: '/Scenarios/', query: { tab: 'Queue' } }).catch(() => {});
         }
     }
@@ -744,10 +724,10 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
         alertData.value = clone(emptyAlertData);
 
         if (runScenarioSimulation) {
-            runSimulationAction({
-                networkId: networkId,
-                scenarioId: selectedScenarioId,
-            });
+            scenarioStore.runSimulation(
+                networkId,
+                selectedScenarioId,
+            );
         }
     }
 
@@ -854,7 +834,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             search: ""
         };
 
-        store.dispatch('getIsDeteriorationModelApiRunning', true);
+        performanceCurveStore.getIsDeteriorationModelApiRunning(true);
         await PerformanceCurveService.getPerformanceCurvePage(selectedScenarioId, request).then(response => {
             if (response.data) 
             {
@@ -888,7 +868,7 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
             {
                 isTreatmentSet.value = response.data.length == 0;
 
-                store.commit('simpleScenarioSelectableTreatmentsMutator', response.data);
+                treatmentStore.simpleScenarioSelectableTreatmentsMutator(response.data);
 
                 navigationTabs.value.forEach((tab) => {
                     if (tab.tabName === 'Treatment') {

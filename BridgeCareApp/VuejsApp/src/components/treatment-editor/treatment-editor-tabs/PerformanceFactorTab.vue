@@ -7,9 +7,9 @@
                               sort-asc-icon="custom:GhdTableSortAscSvg"
                               sort-desc-icon="custom:GhdTableSortDescSvg"
                               hide-actions>
-                    <template slot='items' slot-scope='props' v-slot:item="props">
+                    <template v-slot:item="props">
                         <tr>
-                            <td v-for='header in factorGridHeaders'>
+                            <td v-for='header in factorGridHeaders' :key='header.key'>
                                 <editDialog
                                     v-if="header.key !== 'equation' && header.key !== 'criterionLibrary' && header.key !== ''"
                                     v-model:return-value='props.item[header.key]'
@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang='ts'>
-import { watch, toRefs, computed, onMounted, ref, shallowRef } from 'vue';
+import { watch, toRefs, onMounted, ref, shallowRef } from 'vue';
 import { TreatmentAttributeFactor, TreatmentPerformanceFactor, Treatment } from '@/shared/models/iAM/treatment';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { SelectItem } from '@/shared/models/vue/select-item';
@@ -58,7 +58,7 @@ import {
     PerformanceCurve,
 } from '@/shared/models/iAM/performance';
 import { clone } from 'ramda';
-import { useStore } from 'vuex';
+import { useAttributeStore, usePerformanceCurveStore } from '@/stores';
 
     const props = defineProps<{
         selectedTreatmentPerformanceFactors: TreatmentPerformanceFactor[],
@@ -70,11 +70,8 @@ import { useStore } from 'vuex';
     }>(); 
     const { selectedTreatmentPerformanceFactors, selectedTreatment, scenarioId, rules, callFromScenario, callFromLibrary } = toRefs(props);
     const emit = defineEmits(['submit', 'onAddConsequence', 'onModifyConsequence', 'onRemoveConsequence','onModifyPerformanceFactor']);
-    let store = useStore();
-
-    const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
-    const stateScenarioPerformanceCurves = computed<PerformanceCurve[]>(() => store.state.performanceCurveModule.scenarioPerformanceCurves)
-    const stateDistinctPerformanceFactorAttributes = computed<string[]>(() => store.state.performanceCurveModule.distinctPerformanceFactorAttributes)
+    const attributeStore = useAttributeStore();
+    const performanceCurveStore = usePerformanceCurveStore();
 
     const factorGridHeaders: any[] = [
         { title: 'Attribute', key: 'attribute', align: 'left', sortable: false, class: '', width: '175px' },
@@ -91,7 +88,7 @@ import { useStore } from 'vuex';
         onTreatmentChange();
     });
 
-    watch(stateAttributes, () =>  {
+    watch(() => attributeStore.attributesgetter, () =>  {
         setAttributeSelectItems();
     });
 
@@ -118,13 +115,13 @@ import { useStore } from 'vuex';
         }
     }
 
-    watch(stateScenarioPerformanceCurves, () => {
+    watch(() => performanceCurveStore.scenarioPerformanceCurvesGetter, () => {
         buildDataFromCurves();
     });
 
     function setAttributeSelectItems() {
-        if (hasValue(stateAttributes.value)) {
-            attributeSelectItems.value = stateAttributes.value.map((attribute: Attribute) => ({
+        if (hasValue(attributeStore.attributesgetter)) {
+            attributeSelectItems.value = attributeStore.attributesgetter.map((attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name,
             }));
@@ -139,8 +136,8 @@ import { useStore } from 'vuex';
     function buildDataFromCurves() {
         let testStateAttributes:Attribute[] = [];
         if(callFromLibrary.value){
-            stateDistinctPerformanceFactorAttributes.value.forEach(attr => {
-                stateAttributes.value.forEach(state => {
+            performanceCurveStore.getDistinctPerformanceFactorAttributes.forEach(attr => {
+                attributeStore.attributesgetter.forEach((state: Attribute) => {
                     if (state.name === attr) {
                         if (testStateAttributes.findIndex((o) => { return o.name === attr }) === -1){
                             testStateAttributes.push(state);
@@ -150,8 +147,8 @@ import { useStore } from 'vuex';
             });
         }
         else{
-            stateScenarioPerformanceCurves.value.forEach(curve => {
-                stateAttributes.value.forEach(state => {
+            performanceCurveStore.scenarioPerformanceCurvesGetter.forEach(curve => {
+                attributeStore.attributesgetter.forEach((state: Attribute) => {
                     if (state.name === curve.attribute) {
                         if (testStateAttributes.findIndex((o) => { return o.name === curve.attribute }) === -1){
                             testStateAttributes.push(state);

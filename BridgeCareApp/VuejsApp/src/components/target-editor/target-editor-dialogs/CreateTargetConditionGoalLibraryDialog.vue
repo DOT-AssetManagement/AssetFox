@@ -59,15 +59,14 @@ import {getUserName} from '@/shared/utils/get-user-info';
 import {InputValidationRules, rules as validationRules,} from '@/shared/utils/input-validation-rules';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
 import {hasValue} from '@/shared/utils/has-value-util';
-import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 
-  let store = useStore();
+  const userStore = useUserStore();
   const emit = defineEmits(['submit'])
   const props = defineProps<{dialogData: CreateTargetConditionGoalLibraryDialogData}>()
   const { dialogData } = toRefs(props);
-  let getIdByUserNameGetter = store.getters.getIdByUserName;
 
   const newTargetConditionGoalLibrary = ref<TargetConditionGoalLibrary>({...emptyTargetConditionGoalLibrary, id: getNewGuid()});
   const rules = ref<InputValidationRules>(validationRules);
@@ -83,7 +82,7 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
             id: getNewGuid()
           }))
           : [],
-        owner: getIdByUserNameGetter(currentUser),
+        owner: userStore.getIdByUserName(currentUser),
     };
   })
 

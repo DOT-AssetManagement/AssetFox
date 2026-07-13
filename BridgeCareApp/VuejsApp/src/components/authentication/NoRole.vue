@@ -14,7 +14,7 @@
                         <v-card-text style="justify-content: center; text-align: center">
                             <p>You do not have access to the iAM PAMS App.</p>
                             <p>You can request access at:</p>
-                            <a :href="'mailto:' + adminContactEmail">{{ adminContactEmail }}</a>
+                            <a :href="'mailto:' + adminSiteSettingsStore.adminContactEmailGetter ">{{ adminSiteSettingsStore.adminContactEmailGetter }}</a>
                         </v-card-text>
                     </v-card>
                 </v-row>
@@ -27,13 +27,12 @@
 <script setup lang="ts">
 import { getUrl } from '@/shared/utils/get-url';
 import { computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { useAdminSiteSettingsStore } from '@/stores';
 
-const store = useStore();
-const adminContactEmail = computed(() => store.state.adminSiteSettingsModule.adminContactEmail);
+const adminSiteSettingsStore = useAdminSiteSettingsStore();
 
 onMounted(() => {
-    store.dispatch('getAdminContactEmail');
+    adminSiteSettingsStore.getAdminContactEmail();
 });
 
 </script>

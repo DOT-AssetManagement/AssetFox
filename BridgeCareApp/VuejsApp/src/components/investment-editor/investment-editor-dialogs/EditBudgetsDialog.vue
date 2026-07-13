@@ -132,7 +132,6 @@ import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { emptyCriterionLibrary } from '@/shared/models/iAM/criteria';
 
 import { ref, onMounted, onBeforeUnmount, toRefs, watch } from 'vue';
-import { useStore } from 'vuex';
 import { getUrl } from '@/shared/utils/get-url';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 import EditSvg from '@/shared/icons/EditSvg.vue';
@@ -140,14 +139,11 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
-let store = useStore();
 const emit = defineEmits(['submit'])
 const props = defineProps<{
     dialogData: EditBudgetsDialogData
 }>()
 const { dialogData } = toRefs(props);
-
-function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload);}
 
 let editBudgetsDialogGridHeaders: any[] = [
         { title: 'Order', key: 'order', sortable: false, align: 'center', class: '', width: '5%' },

@@ -21,7 +21,6 @@ import { ref, toRefs, watch } from 'vue';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { ImportExportTreatmentsDialogResult } from '@/shared/models/modals/import-export-treatments-dialog-result';
 import {clone} from 'ramda';
-import { useStore } from 'vuex';
 import TreatmentsFileSelector from '@/shared/components/FileSelector.vue';
 import UploadButton from '@/shared/components/buttons/UploadButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
@@ -30,14 +29,9 @@ import XButton from '@/shared/components/buttons/XButton.vue';
     const props = defineProps<{showDialog: boolean}>()
     const { showDialog } = toRefs(props);
 
-    function addErrorNotificationAction(payload?: any) {
-        store.dispatch('addErrorNotification', payload);
-    }
-
     const TreatmentsFile = ref<File | null>(null);
     let overwriteBudgets: boolean = true;
     const closed = ref<boolean>(false);
-    let store = useStore();
     const emit = defineEmits(['submit'])
 
     watch(showDialog, () => {

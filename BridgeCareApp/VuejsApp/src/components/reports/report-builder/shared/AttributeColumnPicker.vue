@@ -91,7 +91,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useStore } from 'vuex';
+import { useAttributeStore } from '@/stores';
 
 interface AttributeItem {
     name: string;
@@ -108,7 +108,7 @@ const emit = defineEmits<{
     (e: 'save', names: string[]): void;
 }>();
 
-const store = useStore();
+const attributeStore = useAttributeStore();
 const searchTerm = ref('');
 const typeFilter = ref<'all' | 'NUMBER' | 'STRING'>('all');
 const selectedNames = ref<Set<string>>(new Set());
@@ -119,7 +119,7 @@ const showDialog = computed({
 });
 
 const allAttributes = computed<AttributeItem[]>(() => {
-    const attrs = store.state.attributeModule?.attributes ?? [];
+    const attrs = attributeStore.attributesgetter ?? [];
     return attrs.map((a: any) => ({ name: a.name, type: a.type }));
 });
 

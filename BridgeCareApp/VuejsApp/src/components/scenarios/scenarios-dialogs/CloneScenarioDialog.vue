@@ -14,7 +14,7 @@
             </v-card-title>
             <v-card-text>
               <v-select
-                    :items="stateNetworks"
+                    :items="networkStore.networksGetter"
                     label="Select a network"
                     item-title="name"
                     v-model="networkMetaData"
@@ -72,23 +72,20 @@ import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { find, isNil, propEq, clone } from 'ramda';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
 import {CloneScenarioDialogData,CloneSimulationDialogData} from '@/shared/models/modals/clone-scenario-dialog-data';
-import { useStore } from 'vuex'; 
 import {
     InputValidationRules,
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
+import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
-    let store = useStore(); 
+    const networkStore = useNetworkStore();
+    const scenarioStore = useScenarioStore();
+    const userStore = useUserStore();
     const props = defineProps<{dialogData: CloneSimulationDialogData}>();
     const emit = defineEmits(['submit']);
     const { dialogData } = toRefs(props);
 
-    const stateUsers =  computed<User[]>(() => store.state.userModule.users);
-    const stateNetworks = computed<Network[]>(() => store.state.networkModule.networks);  
-    let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
     let shared =  ref<boolean>(false);
-    async function cloneScenarioWithDestinationNetworkAction(payload?:any): Promise<any>{await store.dispatch('cloneScenarioWithDestinationNetwork',payload)}
-    async function getCompatibleNetworksAction(payload?: any): Promise<any>{await store.dispatch('getCompatibleNetworks',payload)}
     let rules: InputValidationRules = validationRules;
 
     let newScenario: CloneScenario = { ...emptyCloneScenario, id: getNewGuid() };
@@ -103,10 +100,10 @@ import {
         onModifyScenarioUserAccess();
     });
 
-    watch(stateNetworks, ()=>  {
+    watch(() => networkStore.networksGetter, ()=>  {
         selectedNetworkId = props.dialogData.scenario.networkId;
         selectedNetworkName = props.dialogData.scenario.networkName;
-         networkMetaData.value =  stateNetworks.value.find(_ => _.id == props.dialogData.scenario.networkId) ||  networkMetaData.value;
+         networkMetaData.value =  networkStore.networksGetter.find(_ => _.id == props.dialogData.scenario.networkId) ||  networkMetaData.value;
          isNetworkSelected.value = true;
         hasCompatibleNetworks = true;
     });
@@ -130,7 +127,7 @@ import {
         if (props.dialogData.showDialog) {
             const currentUser: User = find(
                 propEq('username', getUserName()),
-                 stateUsers.value,
+                userStore.getUsers,
             ) as User;
             const owner: ScenarioUser = {
                 userId: currentUser.id,
@@ -146,7 +143,7 @@ import {
                 users: shared.value
                     ? [
                           owner,
-                          ... stateUsers.value
+                          ...userStore.getUsers
                               .filter(
                                   (user: User) =>
                                       user.username !== currentUser.username,
@@ -161,7 +158,7 @@ import {
                     : [owner]
             };
 
-            getCompatibleNetworksAction({networkId: props.dialogData.scenario.networkId});
+            networkStore.getCompatibleNetworks(props.dialogData.scenario.networkId);
         }
     }
 
@@ -177,7 +174,7 @@ import {
             scenarioNameErrors.value.push(specialCharError as string);
         }
 
-        if(stateScenarioNames.value.find(_ => _ == props.dialogData.scenario.name) != undefined)
+        if (scenarioStore.getScenarioNames.find(_ => _ == props.dialogData.scenario.name) != undefined)
         {
             scenarioNameErrors.value.push("There is already a scenario with that name")
         }

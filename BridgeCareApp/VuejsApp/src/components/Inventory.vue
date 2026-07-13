@@ -2,7 +2,7 @@
     <div style="width: 300px; margin: 0 auto;">
         <v-autocomplete
             v-model="inventoryReportName" 
-            :items="stateInventoryReportNames"
+            :items="adminDataStore.getInventoryReportNames"
             :label="`Select an Inventory Report`"
             variant="outlined"
             density="compact"
@@ -37,7 +37,7 @@
             <v-divider></v-divider>
         </v-row>
     </v-layout>
-    <div style="margin: auto; margin-bottom: 25px; display: flex; align-items: center; justify-content: center" v-html="staticHTMLForInventory"></div>
+    <div style="margin: auto; margin-bottom: 25px; display: flex; align-items: center; justify-content: center" v-html="inventoryStore.getStaticHTMLForInventory"></div>
 </template>
 
 <script lang="ts" setup>
@@ -46,28 +46,13 @@
     import {clone, empty, find, forEach, propEq} from 'ramda';
     import InventoryService from '@/services/inventory.service'
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref, computed} from 'vue';
-    import { useStore } from 'vuex';
     import { useRouter } from 'vue-router';
     import { coreAxiosInstance } from '@/shared/utils/axios-instance';
+    import { useAdminDataStore, useInventoryStore } from '@/stores';
 
-    let store = useStore();
+    const adminDataStore = useAdminDataStore();
+    const inventoryStore = useInventoryStore();
     const emit = defineEmits(['submit'])
-    const inventoryItems = computed<InventoryItem[]>(()=>store.state.inventoryModule.inventoryItems);
-    const staticHTMLForInventory = computed<any>(()=>store.state.inventoryModule.staticHTMLForInventory);
-    const querySet = computed<InventoryParam[]>(()=>store.state.inventoryModule.querySet);
-    const stateKeyFields = computed<string[]>(()=>store.state.adminDataModule.keyFields);
-    const stateRawDataKeyFields = computed<string[]>(()=>store.state.adminDataModule.rawDataKeyFields);
-    const stateInventoryReportNames = computed<string[]>(()=>store.state.adminDataModule.inventoryReportNames);
-    const stateConstraintType = computed<string>(()=>store.state.adminDataModule.constraintType);
-    
-    async function getInventoryAction(payload?: any): Promise<any> {await store.dispatch('getInventory',payload);}
-    async function getStaticInventoryHTMLAction(payload?: any): Promise<any> {await store.dispatch('getStaticInventoryHTML',payload);}
-    async function getInventoryReportsAction(payload?: any): Promise<any> {await store.dispatch('getInventoryReports',payload);}
-    async function getKeyFieldsAction(payload?: any): Promise<any> {await store.dispatch('getKeyFields', payload);}
-    async function getConstraintTypeAction(payload?: any): Promise<any> {await store.dispatch('getConstraintType',payload);}
-    async function getQueryAction(payload?: any): Promise<any> {await store.dispatch('getQuery',payload);}
-    async function getRawDataKeyFieldsAction(payload?: any): Promise<any> {await store.dispatch('getRawDataKeyFields',payload);}
-    async function getKeyPropertiesAction(payload?: any): Promise<any> {await store.dispatch('getKeyFields',payload);}
         
     
     const keyAttributeValues = ref<string[][]>([]);
@@ -99,16 +84,14 @@
 
     const beforeRouteLeave = () => {
     // Reset staticHTMLForInventory when leaving the route
-    store.state.inventoryModule.staticHTMLForInventory = null; // Set to null or an initial value
+    inventoryStore.staticHTMLForInventory = null; // Set to null or an initial value
     }
 
-
-    const InventoryStateKeys = computed<InventoryItem[]>(()=> store.state.inventoryModule.inventoryItems)
 
         /**
          * Calls the setInventorySelectLists function to set both inventory type select lists
          */
-        watch(inventoryItems,async ()=>{
+        watch(() => inventoryStore.getInventoryItems,async ()=>{
             keyAttributeValues.value = await setupSelectLists();
         });
 
@@ -126,8 +109,8 @@
             onSelectInventoryItem(index);
         }, { deep: true });
 
-        watch(InventoryStateKeys, ()=>{
-            InventoryStateKeys.value.forEach(element => {
+        watch(() => inventoryStore.getInventoryItems, ()=>{
+            inventoryStore.getInventoryItems.forEach(element => {
                 keyAttributeValues.value.push(element.keyProperties)
             });
 
@@ -144,13 +127,13 @@
             }
         })
 
-        watch(staticHTMLForInventory,()=>{
+          watch(() => inventoryStore.getStaticHTMLForInventory,()=>{
            // sanitizedHTML = $sanitize(staticHTMLForInventory.value);
         })
 
-        watch(stateInventoryReportNames,()=>{
-            if(stateInventoryReportNames.value.length > 0)
-                inventoryReportName.value = stateInventoryReportNames.value[0]
+        watch(() => adminDataStore.getInventoryReportNames,()=>{
+            if(adminDataStore.getInventoryReportNames.length > 0)
+                inventoryReportName.value = adminDataStore.getInventoryReportNames[0]
             
             lastThreeLetters = inventoryReportName.value.slice(-3);
             reportType = lastThreeLetters[1];
@@ -163,38 +146,29 @@
             }
         })
         
-/*          watch(stateKeyFields,()=>{
-            if(reportType === 'P') {
-                inventoryDetails.value = clone(stateKeyFields.value);
-                inventoryDetails.value.forEach(_ => selectedKeys.push(""));
-
-                getInventoryAction(inventoryDetails.value);
-            }
-        });
- */ 
-        watch(stateRawDataKeyFields,()=>{
-                inventoryDetails.value = clone(stateRawDataKeyFields.value);
+        watch(() => adminDataStore.rawDataKeyFieldsGetter,()=>{
+            inventoryDetails.value = clone(adminDataStore.rawDataKeyFieldsGetter);
 
                 inventoryDetails.value.forEach(_ => selectedKeys.push(""));
-                if(!stateInventoryReportNames.value.some(_ => _.includes("(R)")))
+            if(!adminDataStore.getInventoryReportNames.some(_ => _.includes("(R)")))
                 {
-                    getInventoryAction(inventoryDetails.value);
+                        inventoryStore.getInventory(inventoryDetails.value);
                 }
                 else
                 {
-                    getInventoryAction([inventoryDetails.value[0]]);
+                        inventoryStore.getInventory([inventoryDetails.value[0]]);
                 }
         });
 
-        watch(stateConstraintType,()=>{
-            constraintDetails = stateConstraintType.value;
+        watch(() => adminDataStore.constraintTypeGetter,()=>{
+            constraintDetails = adminDataStore.constraintTypeGetter;
         });
 
-        watch(querySet,()=>{
+        watch(() => inventoryStore.getQuerySet,()=>{
             reactiveData.value = [[],[]];
                 for(let i = 0; i < inventoryDetails.value.length; i++) 
                 {
-                    queryValue = querySet.value[i].values;
+                    queryValue = inventoryStore.getQuerySet[i].values;
                     queryValue.sort((a: string | number, b: string | number) => 
                     {
                         if (typeof a === "number" && typeof b === "number") {
@@ -213,11 +187,11 @@
          */
         onMounted(() => {
             (async () => { 
-                await getConstraintTypeAction();
-                await getInventoryReportsAction();
-                await getKeyFieldsAction(); 
-                await getRawDataKeyFieldsAction();
-                await getConstraintTypeAction();
+                await adminDataStore.getConstraintType();
+                await adminDataStore.getInventoryReports();
+                await adminDataStore.getKeyFields(); 
+                await adminDataStore.getRawDataKeyFields();
+                await adminDataStore.getConstraintType();//why is this being called twice? BCT
             })();
         })
 
@@ -234,7 +208,7 @@
         async function setupSelectLists() {
             querySelectedData = [];
             const data: any = {
-                inventoryItems: inventoryItems,
+                inventoryItems: inventoryStore.getInventoryItems,
                 inventoryDetails: inventoryDetails.value
             };
             let toReturn: string[][] = [];
@@ -260,14 +234,14 @@
                 selectedKeys[index] = '';
             })
             selectedInventoryIndex.value = [];
-            store.state.inventoryModule.staticHTMLForInventory = null;
+            inventoryStore.staticHTMLForInventory = null;
             selectedKeys[0] = "";
             keyAttributeValues.value = await setupSelectLists();
 
         }
 
         function onSelectInventoryItem(index: number){
-            constraintDetails = stateConstraintType.value;
+            constraintDetails = adminDataStore.constraintTypeGetter;
             if(constraintDetails == 'OR')
             {
                 HandleSelectedItems(index);
@@ -308,7 +282,7 @@
                         data.keyProperties[i] = key;
                         continue;
                     }
-                    let inventoryItem = inventoryItems.value.filter(function(item: { keyProperties: string | any[]; }){if(item.keyProperties.indexOf(key) !== -1) return item;})[0]; 
+                    let inventoryItem = inventoryStore.getInventoryItems.filter(function(item: { keyProperties: string | any[]; }){if(item.keyProperties.indexOf(key) !== -1) return item;})[0]; 
                     let otherKeyValue = inventoryItem.keyProperties[i]; 
                     selectedKeys[i] = otherKeyValue;
                     data.keyProperties[i] = otherKeyValue;
@@ -329,7 +303,7 @@
 
                 if(selectedKeys.length === inventoryDetails.value.length)
                 {
-                    getStaticInventoryHTMLAction({reportType: inventoryReportName.value, filterData: data.keyProperties}); 
+                    inventoryStore.getStaticInventoryHTML(inventoryReportName.value, data.keyProperties as any); 
                 }
         }
 
@@ -350,7 +324,7 @@
                         }
                     }
                     //Send to back end to recieve dropdown lists for the other key fields                     
-                    getQueryAction({querySet: querySelectedData});           
+                    inventoryStore.getQuery(querySelectedData as any);          
             }
         }
 

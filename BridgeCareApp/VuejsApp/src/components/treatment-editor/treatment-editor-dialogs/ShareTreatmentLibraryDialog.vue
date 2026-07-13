@@ -56,7 +56,6 @@
 
 <script lang="ts" setup>
 import { ref, toRefs, watch, computed } from 'vue';
-import { useStore } from 'vuex';
 import {any, find, findIndex, propEq, update, filter} from 'ramda';
 import {TreatmentLibraryUser } from '@/shared/models/iAM/treatment';
 import {LibraryUser } from '@/shared/models/iAM/user';
@@ -67,12 +66,12 @@ import {setItemPropertyValueInList} from '@/shared/utils/setter-utils';
 import {TreatmentLibraryUserGridRow, ShareTreatmentLibraryDialogData } from '@/shared/models/modals/share-treatment-library-dialog-data';
 import TreatmentService from '@/services/treatment.service';
 import { http2XX } from '@/shared/utils/http-utils';
+import { useUserStore } from '@/stores';
 
     const props = defineProps<{dialogData: ShareTreatmentLibraryDialogData}>()
     const { dialogData } = toRefs(props);
     const emit = defineEmits(['submit'])
-    let store = useStore();
-    const stateUsers = computed<User[]>(() => store.state.userModule.users);
+    const userStore = useUserStore();
 
   const treatmentLibraryUserGridHeaders: any[] = [
     {title: 'Username', key: 'username', align: 'left', sortable: true, class: '', width: ''},
@@ -93,7 +92,7 @@ import { http2XX } from '@/shared/utils/http-utils';
   function onSetGridData() {
     const currentUser: string = getUserName();
 
-    treatmentLibraryUserGridRows.value = stateUsers.value
+    treatmentLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

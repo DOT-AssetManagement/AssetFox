@@ -15,7 +15,7 @@
             <v-card-text>
               <v-select
                     id="CreateScenarioDialog-selectANetwork-select"
-                    :items="stateNetworks"
+                    :items="networkStore.networksGetter"
                     label="Select a network"
                     item-title="name"
                     menu-icon=custom:GhdDownSvg
@@ -71,17 +71,17 @@ import {
 } from '@/shared/models/iAM/scenario';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
-import { useStore } from 'vuex'; 
 import { validate } from 'uuid';
 import {
     InputValidationRules,
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
 import { find, isNil, propEq } from 'ramda';
+import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
-  let store = useStore(); 
-  async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload);}
-  let stateScenarioNames = computed<string[]>(() => store.state.scenarioModule.scenarioNames)
+    const networkStore = useNetworkStore();
+                const scenarioStore = useScenarioStore();
+        const userStore = useUserStore();
 
   let rules: InputValidationRules = validationRules;
   const scenarioNameErrors = ref<string[]>([]);
@@ -89,10 +89,7 @@ import { find, isNil, propEq } from 'ramda';
   const emit = defineEmits(['submit'])
   let showDialogComputed = computed(() => props.showDialog);
 
-    const stateUsers = computed<User[]>(() => store.state.userModule.users);
     let shared = ref<boolean>(false);
-    let stateNetworks = computed<Network[]>(() => store.state.networkModule.networks) ;
-
     let newScenario = ref<Scenario>({ ...emptyScenario, id: getNewGuid() });
 
     let selectedNetworkId = ref(getBlankGuid());
@@ -126,7 +123,7 @@ import { find, isNil, propEq } from 'ramda';
         if (props.showDialog) {
             const currentUser: User = find(
                 propEq('username', getUserName()),
-                stateUsers.value,
+                userStore.getUsers,
             ) as User;
             const owner: ScenarioUser = {
                 userId: currentUser.id,
@@ -141,7 +138,7 @@ import { find, isNil, propEq } from 'ramda';
                 users: shared.value
                     ? [
                           owner,
-                          ...stateUsers.value
+                          ...userStore.getUsers
                               .filter(
                                   (user: User) =>
                                       user.username !== currentUser.username,
@@ -170,7 +167,7 @@ import { find, isNil, propEq } from 'ramda';
             scenarioNameErrors.value.push(specialCharError as string);
         }
 
-        if(stateScenarioNames.value.find(_ => _ == newScenario.value.name) != undefined)
+        if (scenarioStore.getScenarioNames.find(_ => _ == newScenario.value.name) != undefined)
         {
             scenarioNameErrors.value.push("There is already a scenario with that name")
         }
@@ -186,8 +183,7 @@ import { find, isNil, propEq } from 'ramda';
     // Trigger validation on name change
     watch(() => newScenario.value.name, validateScenarioName);
 
-    function onSubmit(submit: boolean) {
-        stateNetworks = store.state.networkModule.networks;
+    function onSubmit(submit: boolean) {//check this
         if (submit) {
             newScenario.value.networkId = selectedNetworkId.value;
             newScenario.value.networkName = selectedNetworkName;

@@ -49,9 +49,7 @@ import {
 import { isNil } from 'ramda';
 import CriteriaEditor from '../components/CriteriaEditor.vue';
 import { toRefs, ref, watch} from 'vue';
-import { useStore } from 'vuex';
 
-let store = useStore();
 const emit = defineEmits(['submit'])
 const props = defineProps<{
     dialogData: GeneralCriterionEditorDialogData

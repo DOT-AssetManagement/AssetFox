@@ -37,11 +37,10 @@ import {getNewGuid} from '@/shared/utils/uuid-utils';
 import { Datasource, emptyDatasource, DSSQL } from '../../../shared/models/iAM/data-source';
 import { CreateDataSourceDialogData} from '@/shared/models/modals/data-source-dialog-data'
 import { getUserName } from '@/shared/utils/get-user-info';
-import { useStore } from 'vuex';
 import { clone } from 'ramda';
+import { useUserStore } from '@/stores';
 
-  let store = useStore();
-  let getIdByUserNameGetter = store.getters.getIdByUserName ;
+  const userStore = useUserStore();
 
   const props = defineProps<{
     dialogData: CreateDataSourceDialogData
@@ -60,7 +59,7 @@ import { clone } from 'ramda';
   watch(showDialogComputed, () => {  
     newDataSource.value = {
         id: getNewGuid(),
-        createdBy: getIdByUserNameGetter(getUserName()),
+      createdBy: userStore.getIdByUserName(getUserName()),
         name: datasourceName.value,
         type: DSSQL,
         connectionString: '',

@@ -48,19 +48,17 @@ import {getPropertyValues} from '@/shared/utils/getter-utils';
 import {clone, prop} from 'ramda';
 import {DataTableHeader} from '@/shared/models/vue/data-table-header';
 import { formatBytes } from '@/shared/utils/math-utils';
-import { useStore } from 'vuex';
+import { useNotificationStore } from '@/stores';
 import { getUrl } from '../utils/get-url';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
 
-let store = useStore();
+const notificationStore = useNotificationStore();
 const emit = defineEmits(['submit','treatment'])
 const props = defineProps<{
     closed: boolean,
     useTreatment: boolean
     }>()
 const { useTreatment, closed } = toRefs(props);
-
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
 
     const fileSelect = ref<HTMLInputElement>({} as HTMLInputElement);
     let tableHeaders: any[] = [
@@ -106,7 +104,7 @@ function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNot
             const fileName: string = prop('name', fileList[0]) as string;
 
             if (fileName.indexOf('xlsx') === -1) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Only .xlsx file types are allowed',
                 });
             }

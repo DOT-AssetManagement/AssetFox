@@ -84,7 +84,7 @@
     <div style='display: flex; align-items: center; justify-content: center;'>
             <v-btn @click='seeOlderAnnouncements()' class='assetFox-blue-bg text-white' round
                    style='margin-top: 0; margin-bottom: 10px'
-                   v-if='announcementListOffset < announcements.length - (hasAdminAccess ? 9 : 10)'>
+                   v-if='announcementListOffset < announcementStore.announcementsGetter.length - (hasAdminAccess ? 9 : 10)'>
                 See Older Announcements
             </v-btn>
         </div>
@@ -97,29 +97,28 @@ import { Announcement, emptyAnnouncement } from '@/shared/models/iAM/announcemen
 import moment from 'moment';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { toRefs, computed, watch, ref } from 'vue';
-import { useStore } from 'vuex';
 import Dialog from 'primevue/dialog';
 import { getNewGuid } from '@/shared/utils/uuid-utils';
+import { useAnnouncementStore, useAuthenticationStore } from '@/stores';
 
 const emit = defineEmits(['close'])
-let store = useStore();
+const announcementStore = useAnnouncementStore();
+const authenticationStore = useAuthenticationStore();
 let props = defineProps<{
     showDialog: boolean
 }>()
 const { showDialog } = toRefs(props);
-const announcements = computed<Announcement[]>(() => store.state.announcementModule.announcements);
-const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
-async function upsertAnnouncementAction(payload?: any): Promise<any> {await store.dispatch('upsertAnnouncement', payload);}
-async function deleteAnnouncementAction(payload?: any): Promise<any> {await store.dispatch('deleteAnnouncement', payload);}
+
+const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 const announcementListOffset = ref<number>(0);
 const newAnnouncementTitle = ref<string>("");
 const newAnnouncementContent = ref<string>("");
 const selectedAnnouncementForEdit = ref<Announcement | undefined>(undefined);
 
-    watch(announcements, () => {
+    watch(() => announcementStore.announcementsGetter, () => {
     });
     function getVisibleAnnouncements() {
-        return announcements.value.slice(announcementListOffset.value, announcementListOffset.value + (hasAdminAccess.value ? 9 : 10));
+        return announcementStore.announcementsGetter.slice(announcementListOffset.value, announcementListOffset.value + (hasAdminAccess.value ? 9 : 10));
     }
 
     function formatDate(announcementDate: Date) {
@@ -131,7 +130,7 @@ const selectedAnnouncementForEdit = ref<Announcement | undefined>(undefined);
     }
 
     function onDeleteAnnouncement(announcementId: string) {
-        deleteAnnouncementAction({ deletedAnnouncementId: announcementId });
+        announcementStore.deleteAnnouncement(announcementId);
     }
 
     function onSendAnnouncement() {
@@ -143,13 +142,11 @@ const selectedAnnouncementForEdit = ref<Announcement | undefined>(undefined);
     }
 
     function onCreateAnnouncement() {
-        upsertAnnouncementAction({
-            announcement: {
-                id: getNewGuid(),
-                title: newAnnouncementTitle.value,
-                content: newAnnouncementContent.value,
-                createdDate: new Date(),
-            },
+        announcementStore.upsertAnnouncement({
+            id: getNewGuid(),
+            title: newAnnouncementTitle.value,
+            content: newAnnouncementContent.value,
+            createdDate: new Date(),
         });
         newAnnouncementContent.value = newAnnouncementTitle.value = '';
             }
@@ -159,12 +156,12 @@ const selectedAnnouncementForEdit = ref<Announcement | undefined>(undefined);
             return;
         }
 
-        upsertAnnouncementAction({
-            announcement: {
-                ...selectedAnnouncementForEdit.value,
-                title: newAnnouncementTitle.value,
-                content: newAnnouncementContent.value,
-            },
+        const selectedAnnouncement: Announcement = selectedAnnouncementForEdit.value as Announcement;
+
+        announcementStore.upsertAnnouncement({
+            ...selectedAnnouncement,
+            title: newAnnouncementTitle.value,
+            content: newAnnouncementContent.value,
         });
 
         newAnnouncementContent.value = newAnnouncementTitle.value = '';
@@ -202,7 +199,7 @@ const selectedAnnouncementForEdit = ref<Announcement | undefined>(undefined);
 
     function seeOlderAnnouncements() {
         const increment = hasAdminAccess ? 9 : 10;
-        if (announcementListOffset.value < announcements.value.length - increment) {
+        if (announcementListOffset.value < announcementStore.announcementsGetter.length - increment) {
             announcementListOffset.value += increment;
         } else {
             announcementListOffset.value = announcementListOffset.value - increment;
