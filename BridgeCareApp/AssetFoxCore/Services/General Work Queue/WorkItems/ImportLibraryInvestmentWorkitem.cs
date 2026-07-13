@@ -9,9 +9,7 @@ using System.Threading;
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using AssetFox.Core.DTOs;
-using AssetFox.Core.Hubs.Services;
 using AssetFox.Core.Hubs;
-using GreenDonut;
 using AssetFox.Core.DTOs.Enums;
 using AssetFoxCore.Controllers;
 
@@ -52,7 +50,8 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
 
-            _hubService.SendRealTimeErrorMessage(UserId, $"{InvestmentController.InvestmentError}::ImportLibraryInvestmentBudgetsExcelFile - Something was wrong with the provided file", e ?? new Exception(), false);
+            _hubService.SendRealTimeErrorMessage(UserId, $"{InvestmentController.InvestmentError}::ImportLibraryInvestmentBudgetsExcelFile - Something was wrong with the provided file: {e.Message}", e ?? new Exception(), false);
+            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastImportFailure, null);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)

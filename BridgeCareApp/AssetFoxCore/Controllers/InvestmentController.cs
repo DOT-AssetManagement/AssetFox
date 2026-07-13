@@ -33,8 +33,7 @@ namespace AssetFoxCore.Controllers
     [ApiController]
     public class InvestmentController : AssetFoxCoreBaseController
     {
-        public const string InvestmentError = "Investment Error";
-        public const string DeteriorationModelError = "Deterioration Model Error";
+        public const string InvestmentError = "Investment Error";        
         public const string RequestedToModifyNonexistentLibraryErrorMessage = "The request says to modify a library, but the library does not exist.";
         public const string RequestedToCreateExistingLibraryErrorMessage = "The request says to create a new library, but the library already exists.";
 
@@ -76,7 +75,7 @@ namespace AssetFoxCore.Controllers
             }
             catch (Exception e)
             {
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{DeteriorationModelError}::GetScenarioInvestmentPage - {e.Message}", e);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::GetScenarioInvestmentPage - {e.Message}", e);
             }
             return Ok();
         }
@@ -93,7 +92,7 @@ namespace AssetFoxCore.Controllers
             }
             catch (Exception e)
             {
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{DeteriorationModelError}::GetLibraryInvestmentPage - {e.Message}", e);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::GetLibraryInvestmentPage - {e.Message}", e);
             }
             return Ok();
         }
@@ -702,6 +701,23 @@ namespace AssetFoxCore.Controllers
             catch (Exception e)
             {
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::GetScenarioBudgetYears - {e.Message}", e);
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("ValidateScenarioInvestment/{simulationId}")]
+        [Authorize]
+        public async Task<IActionResult> ValidateScenarioInvestment(Guid simulationId)
+        {
+            try
+            {
+                var result = await Task.Factory.StartNew(() => _investmentBudgetsService.ValidateScenarioInvestment(simulationId));
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::GetScenarioInvestmentPage - {e.Message}", e);
             }
             return Ok();
         }

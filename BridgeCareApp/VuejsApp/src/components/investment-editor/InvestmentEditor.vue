@@ -305,8 +305,7 @@
         <EditBudgetsDialog :dialogData='editBudgetsDialogData' @submit='onSubmitEditBudgetsDialogResult' />
 
         <ImportExportInvestmentBudgetsDialog :showDialog='showImportExportInvestmentBudgetsDialog'
-                                             @submit='onSubmitImportExportInvestmentBudgetsDialogResult' 
-                                             @submit-success-import="onSuccessImportSubmit"/>
+                                             @submit='onSubmitImportExportInvestmentBudgetsDialogResult' />
     </v-row>
     <UploadDialog 
         v-model="showSuccessPopup"
@@ -495,7 +494,7 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
     let updatedTreatmentsWithBudgets: PaginSync<Treatment>;
     let hasInvestmentJustBeenSaved = false;
 
-    let editValue = ref<number | null>(0);
+    let editValue = ref<number>(0);
 
     let showSuccessPopup = ref(false);
 
@@ -530,7 +529,7 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
     function yearsInAnalysisPeriod() {
             return investmentPlan.value.numberOfYearsInAnalysisPeriod;
         }
-    
+
     onMounted(async () => {
         librarySelectItemValue.value = '';
         await investmentStore.getHasPermittedAccess();
@@ -550,8 +549,19 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
                 if(response.data){
                     alertStore.setAlertMessage("An investment import has been added to the queue")
                 }
-            })
-                await initializePages();
+            });
+            await initializePages().then(async ()=>{
+                await InvestmentService.ValidateScenarioInvestment(selectedScenarioId).then((response: AxiosResponse) => {                    
+                    if(hasValue(response, 'data') && response.data === true)
+                    {
+                        $emitter.emit('InvestmentSettingsUpdated');
+                    }
+                    else
+                    {
+                        $emitter.emit('InvestmentSettingsWithErrors');
+                    }
+                });
+            });            
         }
         else
             initializing = false;        
@@ -560,6 +570,11 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
                 Hub.BroadcastEventType.BroadcastImportCompletionEvent,
                 importCompleted,
         );
+
+        $emitter.on(
+                Hub.BroadcastEventType.BroadcastImportFailureEvent,
+                importFailed,
+        );        
     });
 
     onBeforeUnmount(() =>  {
@@ -568,6 +583,9 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
         );
+        
+        $emitter.off('InvestmentSettingsUpdated');
+        $emitter.off('InvestmentSettingsWithErrors');
     });
         
     // Watchers
@@ -717,7 +735,7 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
         hasSelectedLibrary.value = selectedBudgetLibrary.value.id !== uuidNIL;
         if (hasSelectedLibrary.value) {
             checkLibraryEditPermission();
-            hasCreatedLibrary = false;
+            hasCreatedLibrary = false;            
             ScenarioService.getFastQueuedWorkByDomainIdAndWorkType({domainId: selectedBudgetLibrary.value.id, workType: WorkType.ImportLibraryInvestment}).then(response => {
                 if(response.data){
                     alertStore.setAlertMessage("An investment import has been added to the queue")
@@ -1257,8 +1275,7 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
             });
     }
     function onSubmitImportExportInvestmentBudgetsDialogResult(result: ImportExportInvestmentBudgetsDialogResult) {
-        showImportExportInvestmentBudgetsDialog.value = false;
-
+        showImportExportInvestmentBudgetsDialog.value = false;        
         if (hasValue(result)) {
             if (result.isExport) {
 
@@ -1673,11 +1690,39 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
                 else{
 
                 }
+                
                 dialogMessage.value = "Successfully uploaded investments."
                 showSuccessPopup.value = true;
-            })
-            $emitter.emit('InvestmentSettingsUpdated');                
-        }        
+
+                if(hasScenario.value) {
+                    await InvestmentService.ValidateScenarioInvestment(selectedScenarioId).then((response: AxiosResponse) => {                        
+                        if(hasValue(response, 'data') && response.data === true)
+                        {                            
+                            $emitter.emit('InvestmentSettingsUpdated');
+                        }
+                        else
+                        {                            
+                            $emitter.emit('InvestmentSettingsWithErrors');
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function importFailed(){        
+        clearChanges(); 
+        pagination.page = 1;
+        initializePages().then(async () => {
+            setAlertMessageAction('');
+            isSuccessfulImportMutator(false);        
+            if(hasScenario.value){                
+                investmentPlanMutator(investmentPlan.value);
+                firstYearOfAnalysisPeriodShift.value = 0;
+            }
+            else{
+            }
+        });
     }
 
     async function initializePages(){

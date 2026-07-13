@@ -251,15 +251,17 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             
             var networkKeyAttribute = GetNetworkKeyAttribute(simulationId);
             var allProjectsInScenario = _unitOfWork.Context.CommittedProject.AsNoTracking()
-                .Where(_ => _.SimulationId == simulationId)
+                .Where(_ => _.SimulationId == simulationId)                
                 .Include(_ => _.ScenarioBudget)
                 .Include(_ => _.CommittedProjectLocation)
                 .Include(_=>_.Simulation.Network);
 
-            return allProjectsInScenario
-                .Where(_ => _.CommittedProjectLocation.Discriminator == DataPersistenceConstants.SectionLocation)
-                .Select(_ => (SectionCommittedProjectDTO)_.ToDTO(networkKeyAttribute))
+            var allProjectsInScenarioDtos = allProjectsInScenario
+                .Where(_ => _.CommittedProjectLocation.Discriminator == DataPersistenceConstants.SectionLocation)                
+                .Select(_ => (SectionCommittedProjectDTO)_.ToDTO(networkKeyAttribute))                
                 .ToList();
+
+            return allProjectsInScenarioDtos.OrderBy(p => p.LocationKeys[networkKeyAttribute]).ThenByDescending(p => p.Year).ToList();
         }               
 
         public List<BaseCommittedProjectDTO> GetCommittedProjectsForExport(Guid simulationId)
@@ -270,13 +272,15 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             }
 
             var networkKeyAttribute = GetNetworkKeyAttribute(simulationId);
-            return _unitOfWork.Context.CommittedProject
+            var allProjectsInScenarioDtos = _unitOfWork.Context.CommittedProject
                 .Where(_ => _.SimulationId == simulationId)
                 .Include(_ => _.ScenarioBudget)
                 .Include(_ => _.CommittedProjectLocation)
                 .Include(_ => _.Simulation.Network)
                 .Select(_ => _.ToDTO(networkKeyAttribute))
                 .ToList();
+
+            return allProjectsInScenarioDtos.OrderBy(p => p.LocationKeys[networkKeyAttribute]).ThenByDescending(p => p.Year).ToList();
         }
 
         public void SaveCommittedProjectChanges(UpsertAndDeleteModel<SectionCommittedProjectDTO> changes, Guid simulationId)

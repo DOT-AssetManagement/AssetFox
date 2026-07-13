@@ -1,30 +1,29 @@
 using System;
 using System.Collections.Generic;
-using OfficeOpenXml;
 using AssetFox.Core.DTOs;
+using OfficeOpenXml;
 
-
-namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
+namespace AssetFoxCore.Services.CommittedProjects
 {
     public class CommittedProjectsTemplateGenerator
     {
         private readonly string _networkKeyField;
+        private List<string> _keyFields;
 
-        public CommittedProjectsTemplateGenerator(string networkKeyField)
+        public CommittedProjectsTemplateGenerator(string networkKeyField, System.Collections.Generic.List<string> keyFields)
         {
-            _networkKeyField = networkKeyField;
+            _networkKeyField = networkKeyField ?? throw new ArgumentNullException(nameof(networkKeyField));
+            _keyFields = keyFields ?? throw new ArgumentNullException(nameof(keyFields));
         }
 
 
         public FileInfoDTO CreateCommittedProjectTemplate()
         {
             var fileName = $"CommittedProjectsTemplate.xlsx";
-
             using var excelPackage = new ExcelPackage();
-
-            var worksheet = excelPackage.Workbook.Worksheets.Add("Committed Projects");
-
+            var worksheet = excelPackage.Workbook.Worksheets.Add("Committed Projects");            
             AddHeaderCells(worksheet);
+            worksheet.Cells.AutoFitColumns();
 
             return new FileInfoDTO
             {
@@ -33,21 +32,19 @@ namespace AssetFoxCore.Services.SummaryReport.CommittedProjects
                 MimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             };
         }
-
+        
         private void AddHeaderCells(ExcelWorksheet worksheet)
         {
-            var column = 1;
-            var headersToUse = _networkKeyField.Equals(CommittedProjectsColumnHeaders.CRS, StringComparison.OrdinalIgnoreCase)
-                ? CommittedProjectsColumnHeaders.RoadHeaders
-                : _networkKeyField.Equals(CommittedProjectsColumnHeaders.BRKey, StringComparison.OrdinalIgnoreCase)
-                    ? CommittedProjectsColumnHeaders.BridgeHeaders
-                    : throw new Exception($"Unknown network key field: {_networkKeyField}");            
+            var column = 1;            
+            var columnHeaders = new List<string>();
+            columnHeaders.AddRange(_keyFields);
+            columnHeaders.AddRange(CommittedProjectsColumnHeaders.NoKeyHeaders);
 
             // Add the headers to the worksheet
-            foreach (var header in headersToUse)
+            foreach (var header in columnHeaders)
             {
                 worksheet.Cells[1, column++].Value = header;
             }
         }
-    }    
+    }
 }
