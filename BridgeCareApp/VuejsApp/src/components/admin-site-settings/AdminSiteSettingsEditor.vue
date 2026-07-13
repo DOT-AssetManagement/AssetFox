@@ -49,6 +49,35 @@
         <v-row column>
           <v-subheader
             class="ghd-control-label ghd-md-gray Montserrat-font-family"
+            >Agency Logo
+          </v-subheader>
+        </v-row>
+      </v-col>
+      <v-col cols="12">
+        <v-row column style="padding-left: 330px; margin-top: -35px;">
+          <input
+            id="agencyImageUpload"
+            type="file"
+            ref="agencyFileInput"
+            :accept="agencyLogoAccept"
+            @change="handleAgencyLogoUpload"
+            hidden
+          />
+          <v-btn
+            class="ghd-blue ghd-button-text ghd-outline-button-padding ghd-button"
+            style="margin-right: 40%"
+            @click="onUploadAgencyLogo"
+            variant="outlined"
+            >Upload</v-btn
+          >
+        </v-row>
+      </v-col>
+    </v-row>
+    <v-row align-center class="vl-style">
+      <v-col cols="12">
+        <v-row column>
+          <v-subheader
+            class="ghd-control-label ghd-md-gray Montserrat-font-family"
             >Implementation Logo
           </v-subheader>
         </v-row>
@@ -59,7 +88,7 @@
             id="implementationImageUpload"
             type="file"
             ref="implementationFileInput"
-            accept="image/*"
+            :accept="implementationLogoAccept"
             @change="handleImplementationLogoUpload"
             hidden
           />
@@ -109,12 +138,26 @@
 </v-row>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { useAdminSiteSettingsStore } from '@/stores';
+import { computed, ref } from 'vue';
+import { useAdminSiteSettingsStore, useConfigStore } from '@/stores';
 
 const adminSiteSettingsStore = useAdminSiteSettingsStore() ;
+const configStore = useConfigStore();
+const agencyFileInput = ref<HTMLInputElement | null>(null);
+const implementationFileInput = ref<HTMLInputElement | null>(null);
 let ImplementationID = ref('');
 let adminContactEmail = ref('');
+
+const agencyLogoAccept = computed(() => getConfiguredExtension(configStore.config?.logos?.agencyFilename));
+const implementationLogoAccept = computed(() => getConfiguredExtension(configStore.config?.logos?.implementationFilename));
+
+function getConfiguredExtension(filename?: string): string {
+  if (!filename || !filename.includes('.')) {
+    return 'image/*';
+  }
+
+  return `.${filename.split('.').pop()}`;
+}
 
 function onSaveAdminContactEmail() {
   adminSiteSettingsStore.setAdminContactEmail(adminContactEmail.value);
@@ -125,13 +168,39 @@ function onSaveImplementationName() {
 }
 
 function onUploadImplementationLogo() {
-  document.getElementById("implementationImageUpload")?.click();
+  implementationFileInput.value?.click();
 }
 
-function handleImplementationLogoUpload(payload: any){
-  const file = payload.target.files[0];
-  adminSiteSettingsStore.importProductLogo(file);  
+async function handleImplementationLogoUpload(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  try {
+    await adminSiteSettingsStore.importProductLogo(file);
+  } finally {
+    input.value = '';
+  }
+}
+
+function onUploadAgencyLogo() {
+  agencyFileInput.value?.click();
+}
+
+async function handleAgencyLogoUpload(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  try {
+    await adminSiteSettingsStore.importAgencyLogo(file);
+  } finally {
+    input.value = '';
+  }
 }
 
 </script>
-  

@@ -6,6 +6,8 @@ import { useNotificationStore } from './notification.store';
 
 export interface AdminSiteSettingsStoreState {
     productLogo: string;
+    implementationLogoVersion: number;
+    agencyLogoVersion: number;
     implementationName: string;
     adminContactEmail: string;
     isSuccessfulImport: boolean;
@@ -42,6 +44,8 @@ function convertFileToBase64(file: File): Promise<string> {
 export const useAdminSiteSettingsStore = defineStore('adminSiteSettings', {
     state: (): AdminSiteSettingsStoreState => ({
         productLogo: '',
+        implementationLogoVersion: 0,
+        agencyLogoVersion: 0,
         implementationName: '',
         adminContactEmail: '',
         isSuccessfulImport: false,
@@ -90,13 +94,26 @@ export const useAdminSiteSettingsStore = defineStore('adminSiteSettings', {
         async importProductLogo(payload: File) {
             const notificationStore = useNotificationStore();
             await AdminSiteSettingsService.importProductLogo(payload).then(
-                async (response: AxiosResponse) => {
+                (response: AxiosResponse) => {
                     if (response.status >= 200 && response.status < 300) {
-                        const base64 = await convertFileToBase64(payload);
-                        this.productLogo = base64;
+                        this.implementationLogoVersion = Date.now();
                         this.isSuccessfulImport = true;
                         notificationStore.addSuccessNotification({
-                            message: 'Product logo imported',
+                            message: 'Implementation logo uploaded',
+                        });
+                    }
+                },
+            );
+        },
+        async importAgencyLogo(payload: File) {
+            const notificationStore = useNotificationStore();
+            await AdminSiteSettingsService.importAgencyLogo(payload).then(
+                (response: AxiosResponse) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        this.agencyLogoVersion = Date.now();
+                        this.isSuccessfulImport = true;
+                        notificationStore.addSuccessNotification({
+                            message: 'Agency logo uploaded',
                         });
                     }
                 },
