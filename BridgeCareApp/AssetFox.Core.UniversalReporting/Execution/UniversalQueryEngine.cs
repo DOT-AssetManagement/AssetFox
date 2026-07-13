@@ -30,15 +30,16 @@ public class UniversalQueryEngine : IUniversalQueryEngine
     }
 
     public async Task<PagedViewerResult> ExecutePagedAsync(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         CancellationToken cancellationToken)
     {
+        var component = executionContext.Component;
         var dataSource = _registry.For(component.Type);
         var requiresTransforms = _transformPipeline.RequiresMaterialization(component);
         var buildRequest = requiresTransforms ? CreateAllRowsRequest(request) : request;
-        var query = dataSource.Build(component, buildRequest, runId, BuildAttributeLookup());
+        var query = dataSource.Build(executionContext, buildRequest, runId, BuildAttributeLookup());
 
         if (query.CustomExecutor == null && !requiresTransforms)
         {
@@ -66,13 +67,14 @@ public class UniversalQueryEngine : IUniversalQueryEngine
     }
 
     public Task<ComponentResult> StreamAllAsync(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         CancellationToken cancellationToken)
     {
+        var component = executionContext.Component;
         var dataSource = _registry.For(component.Type);
-        var query = dataSource.Build(component, request, runId, BuildAttributeLookup());
+        var query = dataSource.Build(executionContext, request, runId, BuildAttributeLookup());
         var rows = query.CustomExecutor?.Invoke(cancellationToken)
             ?? _streamingExecutor.RunAsync(query, cancellationToken);
 

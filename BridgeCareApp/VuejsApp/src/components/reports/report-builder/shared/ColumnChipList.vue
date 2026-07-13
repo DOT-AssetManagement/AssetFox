@@ -76,7 +76,7 @@ function onOrderChange() {
 }
 
 function columnKey(column: any) {
-    return column.attributeName || column.field || column.type;
+    return `${column.source || column.type || 'field'}:${column.fieldId || column.attributeName || column.field || column.type}`;
 }
 
 function removeColumn(index: number) {

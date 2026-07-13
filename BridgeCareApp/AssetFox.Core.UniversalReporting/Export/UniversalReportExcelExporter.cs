@@ -89,6 +89,7 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
                     worksheetName,
                     title,
                     component,
+                    schema.CalculatedFields,
                     simulationId,
                     runId,
                     cancellationToken);
@@ -102,6 +103,7 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
                     worksheetName,
                     title,
                     component,
+                    schema.CalculatedFields,
                     simulationId,
                     runId,
                     cancellationToken);
@@ -118,7 +120,8 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
                 ColumnFilters = new Dictionary<string, string>()
             };
 
-            var result = await _queryEngine.StreamAllAsync(component, request, runId, cancellationToken);
+            var executionContext = ReportExecutionContext.Create(component, schema.CalculatedFields);
+            var result = await _queryEngine.StreamAllAsync(executionContext, request, runId, cancellationToken);
             var worksheet = package.Workbook.Worksheets.Add(worksheetName);
             var columnCount = Math.Max(1, result.Columns.Count);
 
@@ -165,6 +168,7 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
         string worksheetName,
         string title,
         ReportComponent component,
+        IReadOnlyList<ReportCalculatedField> calculatedFields,
         Guid simulationId,
         int runId,
         CancellationToken cancellationToken)
@@ -179,7 +183,8 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
             ColumnFilters = new Dictionary<string, string>()
         };
         var exportComponent = CreateTreatmentTimelineExportComponent(component);
-        var result = await _queryEngine.StreamAllAsync(exportComponent, request, runId, cancellationToken);
+        var executionContext = ReportExecutionContext.Create(exportComponent, calculatedFields);
+        var result = await _queryEngine.StreamAllAsync(executionContext, request, runId, cancellationToken);
 
         var yearIndex = ColumnIndex(result.Columns, "year");
         if (yearIndex < 0 || result.Columns.Count == 0)
@@ -402,6 +407,7 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
         string worksheetName,
         string title,
         ReportComponent component,
+        IReadOnlyList<ReportCalculatedField> calculatedFields,
         Guid simulationId,
         int runId,
         CancellationToken cancellationToken)
@@ -416,7 +422,8 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
             ColumnFilters = new Dictionary<string, string>()
         };
 
-        var result = await _queryEngine.StreamAllAsync(component, request, runId, cancellationToken);
+        var executionContext = ReportExecutionContext.Create(component, calculatedFields);
+        var result = await _queryEngine.StreamAllAsync(executionContext, request, runId, cancellationToken);
         var rows = new List<List<object>>();
         await foreach (var row in result.Rows.WithCancellation(cancellationToken))
         {

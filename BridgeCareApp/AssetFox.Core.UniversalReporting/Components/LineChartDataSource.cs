@@ -20,9 +20,9 @@ public sealed class LineChartDataSource : ChartDataSourceBase, IComponentDataSou
     public string ComponentType => "lineChart";
 
     public ComponentQuery Build(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         AttributeLookup attributes) =>
-        BuildChartQuery(component, request, runId, "line");
+        BuildChartQuery(executionContext, request, runId, "line");
 }

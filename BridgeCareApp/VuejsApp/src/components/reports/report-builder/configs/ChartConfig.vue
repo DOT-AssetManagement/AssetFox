@@ -209,6 +209,7 @@ import {
     ChartFieldBinding,
     ChartKind,
     ComponentType,
+    ReportCalculatedField,
 } from '@/shared/models/iAM/report-schema';
 import { validateChartConfig } from '@/shared/utils/report-chart-validation';
 
@@ -220,6 +221,7 @@ interface FieldOption extends ChartFieldBinding {
 const props = defineProps<{
     config: ChartConfig;
     componentType: ComponentType;
+    calculatedFields: ReportCalculatedField[];
 }>();
 
 const emit = defineEmits<{
@@ -254,6 +256,16 @@ const attributeOptions = computed<FieldOption[]>(() => {
     }));
 });
 
+const calculatedFieldOptions = computed<FieldOption[]>(() => props.calculatedFields.map(field => ({
+    id: `calculatedField:${field.id}`,
+    source: 'calculatedField',
+    field: field.id,
+    label: field.name,
+    role: 'dimension',
+    format: field.resultType === 'number' ? 'number' : 'text',
+    dataType: field.resultType === 'number' ? 'NUMBER' : 'STRING',
+})));
+
 const builtInCategoryOptions: FieldOption[] = [
     { id: 'simulationYear:year', source: 'simulationYear', field: 'year', label: 'Year', role: 'dimension', format: 'year', dataType: 'NUMBER' },
     { id: 'assetDetail:appliedTreatment', source: 'assetDetail', field: 'appliedTreatment', label: 'Applied Treatment', role: 'dimension', format: 'text', dataType: 'STRING' },
@@ -264,6 +276,7 @@ const builtInCategoryOptions: FieldOption[] = [
 const categoryOptions = computed<FieldOption[]>(() => [
     ...builtInCategoryOptions,
     ...attributeOptions.value,
+    ...calculatedFieldOptions.value,
 ]);
 
 const seriesOptions = computed<FieldOption[]>(() => categoryOptions.value.map(option => ({
@@ -279,6 +292,14 @@ const valueOptions = computed<FieldOption[]>(() => [
         .map(option => ({
             ...option,
             id: `attribute:${option.field}:measure`,
+            role: 'measure' as const,
+            aggregate: 'avg' as ChartAggregation,
+        })),
+    ...calculatedFieldOptions.value
+        .filter(option => option.dataType === 'NUMBER')
+        .map(option => ({
+            ...option,
+            id: `calculatedField:${option.field}:measure`,
             role: 'measure' as const,
             aggregate: 'avg' as ChartAggregation,
         })),
@@ -357,6 +378,9 @@ const modeOptions = computed(() => {
 function bindingId(binding?: ChartFieldBinding): string {
     if (!binding?.source || !binding?.field) return '';
     if (binding.role === 'measure' && binding.source === 'attribute') {
+        return `${binding.source}:${binding.field}:measure`;
+    }
+    if (binding.role === 'measure' && binding.source === 'calculatedField') {
         return `${binding.source}:${binding.field}:measure`;
     }
     return `${binding.source}:${binding.field}`;

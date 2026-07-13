@@ -46,6 +46,16 @@
                         size="small"
                         variant="outlined"
                         class="text-none"
+                        @click="showCalculatedFields = true"
+                    >
+                        <i class="fas fa-calculator mr-2" style="font-size: 10px;" />
+                        Calculated fields
+                        <v-chip v-if="calculatedFields.length" size="x-small" class="ml-2">{{ calculatedFields.length }}</v-chip>
+                    </v-btn>
+                    <v-btn
+                        size="small"
+                        variant="outlined"
+                        class="text-none"
                         :disabled="!currentSchema?.canShare"
                         @click="openShareDialog()"
                     >
@@ -195,6 +205,7 @@
             <div class="report-builder__properties">
                 <ComponentProperties
                     :component="selectedComponent"
+                    :calculated-fields="calculatedFields"
                     @update:component="onComponentUpdate"
                 />
             </div>
@@ -229,6 +240,13 @@
             v-model="showShareDialog"
             :schema="shareDialogSchema"
             @saved="onSharingSaved"
+        />
+
+        <CalculatedFieldManager
+            v-model="showCalculatedFields"
+            :fields="calculatedFields"
+            :used-field-ids="usedCalculatedFieldIds"
+            @update:fields="onCalculatedFieldsUpdate"
         />
 
         <!-- Delete component confirmation dialog -->
@@ -297,6 +315,7 @@ import {
     ReportSchemaDTO,
     ReportSchemaDefinition,
     ReportComponent,
+    ReportCalculatedField,
     ReportPage,
     emptyReportSchemaDTO,
     componentTypeInfo,
@@ -308,6 +327,7 @@ import PageEditor from './PageEditor.vue';
 import ComponentProperties from './ComponentProperties.vue';
 import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vue';
 import ShareReportTemplateDialog from '@/components/reports/ShareReportTemplateDialog.vue';
+import CalculatedFieldManager from './calculated-fields/CalculatedFieldManager.vue';
 import { useAuthenticationStore, useNotificationStore, useReportSchemaStore } from '@/stores';
 
 const authenticationStore = useAuthenticationStore();
@@ -318,6 +338,7 @@ const reportSchemaStore = useReportSchemaStore();
 const schemaName = ref('');
 const schemaDescription = ref('');
 const pages = ref<ReportPage[]>([createDefaultPage()]);
+const calculatedFields = ref<ReportCalculatedField[]>([]);
 const currentSchemaId = ref('');
 const currentSchema = ref<ReportSchemaDTO | null>(null);
 const isSystemDefault = ref(false);
@@ -340,6 +361,7 @@ const showShareDialog = ref(false);
 const shareDialogSchema = ref<ReportSchemaDTO | null>(null);
 const showDeleteTemplateConfirm = ref(false);
 const deletingTemplate = ref(false);
+const showCalculatedFields = ref(false);
 
 // Computed
 const activePage = computed<ReportPage | null>(() =>
@@ -366,9 +388,39 @@ const deleteTemplateMessage = computed<string>(() => {
     return `This will permanently delete "${name}" and remove it from shared template lists.`;
 });
 
+const usedCalculatedFieldIds = computed<string[]>(() => {
+    const ids = new Set<string>();
+    const pattern = /calculatedField:([0-9a-f-]{36})/gi;
+    for (const page of pages.value) {
+        for (const component of page.components) {
+            const json = JSON.stringify(component.config || {});
+            for (const match of json.matchAll(pattern)) ids.add(match[1]);
+            const collectFieldIds = (value: unknown) => {
+                if (!value || typeof value !== 'object') return;
+                if (Array.isArray(value)) {
+                    value.forEach(collectFieldIds);
+                    return;
+                }
+                const record = value as Record<string, unknown>;
+                if (record.source === 'calculatedField' && typeof record.fieldId === 'string') ids.add(record.fieldId);
+                if (record.source === 'calculatedField' && typeof record.field === 'string') ids.add(record.field);
+                if (record.type === 'calculatedField' && typeof record.fieldId === 'string') ids.add(record.fieldId);
+                Object.values(record).forEach(collectFieldIds);
+            };
+            collectFieldIds(component.config);
+        }
+    }
+    return Array.from(ids);
+});
+
 // Methods
 function markDirty() {
     reportSchemaStore.isDirtyMutator(true);
+}
+
+function onCalculatedFieldsUpdate(fields: ReportCalculatedField[]) {
+    calculatedFields.value = clone(fields);
+    markDirty();
 }
 
 function toggleSystemDefault() {
@@ -517,9 +569,10 @@ function prepareLoadedPages(loadedPages: ReportPage[]): ReportPage[] {
 
 function buildSchemaJson(nameOverride = schemaName.value): string {
     const definition: ReportSchemaDefinition = {
-        schemaVersion: '1.0',
+        schemaVersion: '1.1',
         name: nameOverride,
         description: schemaDescription.value,
+        calculatedFields: clone(calculatedFields.value),
         pages: pages.value.map((p, pi) => ({
             ...p,
             order: pi,
@@ -597,11 +650,13 @@ function loadSchemaIntoBuilder(schema: ReportSchemaDTO) {
 
     try {
         const definition = JSON.parse(schema.schemaJson) as ReportSchemaDefinition;
+        calculatedFields.value = clone(definition.calculatedFields || []);
         pages.value = definition.pages && definition.pages.length > 0
             ? prepareLoadedPages(definition.pages)
             : [createDefaultPage()];
     } catch {
         pages.value = [createDefaultPage()];
+        calculatedFields.value = [];
     }
 
     activePageIndex.value = 0;
@@ -617,6 +672,7 @@ function onNew() {
     schemaDescription.value = '';
     isSystemDefault.value = false;
     pages.value = [createDefaultPage()];
+    calculatedFields.value = [];
     activePageIndex.value = 0;
     selectedComponentId.value = '';
     reportSchemaStore.selectedReportSchemaMutator(clone(emptyReportSchemaDTO));

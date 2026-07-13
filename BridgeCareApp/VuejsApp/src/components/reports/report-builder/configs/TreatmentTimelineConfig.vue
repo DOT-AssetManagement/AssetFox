@@ -11,11 +11,11 @@
 
         <v-divider class="my-3" />
 
-        <div class="text-caption text-uppercase mb-2" style="letter-spacing: 0.08em; color: #666;">Static Attribute Columns</div>
-        <p class="text-caption text-grey mb-1">Asset attributes shown to the left of the per-year columns. The asset key column is added automatically.</p>
+        <div class="text-caption text-uppercase mb-2" style="letter-spacing: 0.08em; color: #666;">Static Fields</div>
+        <p class="text-caption text-grey mb-1">Fields shown after the automatically-added asset key and year columns.</p>
         <v-btn size="small" variant="outlined" class="text-none mb-2" @click="showAttrPicker = true">
             <i class="fas fa-plus mr-2" style="font-size: 10px;" />
-            Add Attributes
+            Add Fields
         </v-btn>
         <ColumnChipList
             :columns="localConfig.attributeColumns"
@@ -50,7 +50,7 @@
             </v-btn>
             <v-btn size="small" variant="outlined" class="text-none" @click="showYearAttrPicker = true">
                 <i class="fas fa-plus mr-2" style="font-size: 10px;" />
-                Attributes
+                Fields
             </v-btn>
         </div>
         <ColumnChipList
@@ -59,14 +59,16 @@
             @update:columns="onYearFieldsUpdate"
         />
 
-        <AttributeColumnPicker
+        <ReportFieldPicker
             v-model="showAttrPicker"
-            :existing-attribute-names="localConfig.attributeColumns.map(c => c.attributeName)"
+            :existing-field-keys="localConfig.attributeColumns.map(reportColumnKey)"
+            :calculated-fields="calculatedFields"
             @save="onAttrPickerSave"
         />
-        <AttributeColumnPicker
+        <ReportFieldPicker
             v-model="showYearAttrPicker"
-            :existing-attribute-names="yearAttributeNames"
+            :existing-field-keys="yearFieldKeys"
+            :calculated-fields="calculatedFields"
             @save="onYearAttrPickerSave"
         />
     </div>
@@ -79,12 +81,16 @@ import {
     TreatmentTimelineConfig,
     ColumnDef,
     ReportAttributeOption,
+    ReportCalculatedField,
     YearField,
+    columnDefFromReportField,
+    reportColumnKey,
+    reportFieldOptionKey,
 } from '@/shared/models/iAM/report-schema';
-import AttributeColumnPicker from '../shared/AttributeColumnPicker.vue';
+import ReportFieldPicker from '../shared/ReportFieldPicker.vue';
 import ColumnChipList from '../shared/ColumnChipList.vue';
 
-const props = defineProps<{ config: TreatmentTimelineConfig }>();
+const props = defineProps<{ config: TreatmentTimelineConfig; calculatedFields: ReportCalculatedField[] }>();
 const emit = defineEmits<{ (e: 'update:config', val: TreatmentTimelineConfig): void }>();
 
 const localConfig = ref<TreatmentTimelineConfig>(clone(props.config));
@@ -93,37 +99,42 @@ const showYearAttrPicker = ref(false);
 
 watch(() => props.config, (val) => { localConfig.value = clone(val); }, { deep: true });
 
-const yearAttributeNames = computed(() => localConfig.value.yearDataFields
-    .filter(field => field.type === 'attribute' && !!field.attributeName)
-    .map(field => field.attributeName as string));
+const calculatedFields = computed(() => props.calculatedFields);
+const yearFieldKeys = computed(() => localConfig.value.yearDataFields
+    .filter(field => field.type === 'attribute' || field.type === 'calculatedField')
+    .map(field => field.type === 'calculatedField'
+        ? `calculatedField:${field.fieldId || ''}`
+        : `attribute:${field.fieldId || field.attributeName || ''}`));
 
 function onAttrPickerSave(attributes: ReportAttributeOption[]) {
-    const existing = new Map(localConfig.value.attributeColumns.map(c => [c.attributeName, c]));
+    const existing = new Map(localConfig.value.attributeColumns.map(c => [reportColumnKey(c), c]));
     localConfig.value.attributeColumns = attributes.map(attribute =>
-        existing.get(attribute.name) || {
-            attributeName: attribute.name,
-            displayHeader: attribute.name,
-            format: attribute.type === 'NUMBER' ? 'number' : 'text',
-            width: 12,
-        } as ColumnDef
+        existing.get(reportFieldOptionKey(attribute)) || columnDefFromReportField(attribute)
     );
     emitUpdate();
 }
 
 function onYearAttrPickerSave(attributes: ReportAttributeOption[]) {
-    const selectedNames = new Set(attributes.map(attribute => attribute.name));
+    const selectedKeys = new Set(attributes.map(reportFieldOptionKey));
     const retainedFields = localConfig.value.yearDataFields.filter(field =>
-        field.type !== 'attribute' || (!!field.attributeName && selectedNames.has(field.attributeName))
+        !['attribute', 'calculatedField'].includes(field.type)
+        || selectedKeys.has(field.type === 'calculatedField'
+            ? `calculatedField:${field.fieldId || ''}`
+            : `attribute:${field.fieldId || field.attributeName || ''}`)
     );
-    const retainedNames = new Set(retainedFields
-        .filter(field => field.type === 'attribute')
-        .map(field => field.attributeName));
+    const retainedKeys = new Set(retainedFields
+        .filter(field => field.type === 'attribute' || field.type === 'calculatedField')
+        .map(field => field.type === 'calculatedField'
+            ? `calculatedField:${field.fieldId || ''}`
+            : `attribute:${field.fieldId || field.attributeName || ''}`));
 
     for (const attribute of attributes) {
-        if (!retainedNames.has(attribute.name)) {
+        const key = reportFieldOptionKey(attribute);
+        if (!retainedKeys.has(key)) {
             retainedFields.push({
-                type: 'attribute',
+                type: attribute.source,
                 attributeName: attribute.name,
+                fieldId: attribute.fieldId,
                 displayHeader: attribute.name,
                 format: attribute.type === 'NUMBER' ? 'number' : 'text',
             });

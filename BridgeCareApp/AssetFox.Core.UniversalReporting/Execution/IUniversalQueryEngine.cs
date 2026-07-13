@@ -6,13 +6,13 @@ namespace AssetFox.Core.UniversalReporting.Execution;
 public interface IUniversalQueryEngine
 {
     Task<PagedViewerResult> ExecutePagedAsync(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         CancellationToken cancellationToken);
 
     Task<ComponentResult> StreamAllAsync(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         CancellationToken cancellationToken);

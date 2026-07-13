@@ -20,9 +20,9 @@ public sealed class PieChartDataSource : ChartDataSourceBase, IComponentDataSour
     public string ComponentType => "pieChart";
 
     public ComponentQuery Build(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         AttributeLookup attributes) =>
-        BuildChartQuery(component, request, runId, "pie");
+        BuildChartQuery(executionContext, request, runId, "pie");
 }

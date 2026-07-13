@@ -23,22 +23,35 @@ namespace AssetFox.Core.UniversalReporting.Components
         public string ComponentType => "workSummary";
 
         public ComponentQuery Build(
-            ReportComponent component,
+            ReportExecutionContext executionContext,
             ViewerDataRequest request,
             int runId,
-            AttributeLookup attributes) => GetWorkSummaryData(component, request, runId);
+            AttributeLookup attributes) => GetWorkSummaryData(executionContext, request, runId);
 
         #region Work Summary
 
-        private ComponentQuery GetWorkSummaryData(ReportComponent component, ViewerDataRequest request, int runId)
+        private ComponentQuery GetWorkSummaryData(ReportExecutionContext executionContext, ViewerDataRequest request, int runId)
         {
+            var component = executionContext.Component;
             var config = component.Config ?? new Dictionary<string, object>();
             var groupByAttribute = GetConfigString(config, "groupByAttribute", "");
             var aggregateField = GetConfigString(config, "aggregateField", "count");
             var aggregateFunction = GetConfigString(config, "aggregateFunction", "count");
             var includePercentages = GetConfigBool(config, "includePercentages");
+            var groupByCalculatedFieldId = CalculatedFieldId(groupByAttribute);
+            var aggregateCalculatedFieldId = CalculatedFieldId(aggregateField);
+            var groupHeader = groupByCalculatedFieldId == null
+                ? groupByAttribute
+                : executionContext.CalculatedFields.FirstOrDefault(field =>
+                    string.Equals(field.Id, groupByCalculatedFieldId, StringComparison.OrdinalIgnoreCase))?.Name ?? "Group";
 
-            (string valueHeader, string valueFormat) = WorkSummaryHeaderResolver.Resolve(aggregateField, aggregateFunction);
+            var calculatedAggregate = aggregateCalculatedFieldId == null
+                ? null
+                : executionContext.CalculatedFields.FirstOrDefault(field =>
+                    string.Equals(field.Id, aggregateCalculatedFieldId, StringComparison.OrdinalIgnoreCase));
+            (string valueHeader, string valueFormat) = calculatedAggregate == null
+                ? WorkSummaryHeaderResolver.Resolve(aggregateField, aggregateFunction)
+                : ($"{aggregateFunction} {calculatedAggregate.Name}", "number");
 
             var context = _unitOfWork.Context;
 
@@ -56,7 +69,7 @@ namespace AssetFox.Core.UniversalReporting.Components
                 new ViewerColumnDTO
                 {
                     Key = "groupValue",
-                    Header = string.IsNullOrEmpty(groupByAttribute) ? "Group" : groupByAttribute,
+                    Header = string.IsNullOrEmpty(groupHeader) ? "Group" : groupHeader,
                     Format = "text",
                     Filterable = true,
                     Sortable = true
@@ -99,6 +112,7 @@ namespace AssetFox.Core.UniversalReporting.Components
                     aggregateField,
                     aggregateFunction,
                     includePercentages,
+                    executionContext,
                     cancellationToken));
         }
 
@@ -111,6 +125,7 @@ namespace AssetFox.Core.UniversalReporting.Components
             string aggregateField,
             string aggregateFunction,
             bool includePercentages,
+            ReportExecutionContext executionContext,
             [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var rows = new List<List<object>>();
@@ -120,9 +135,27 @@ namespace AssetFox.Core.UniversalReporting.Components
             {
                 new SqlParameter("@RunId", runId)
             };
+            var groupByCalculatedFieldId = CalculatedFieldId(groupByAttribute);
+            var aggregateCalculatedFieldId = CalculatedFieldId(aggregateField);
+            var calculatedFields = BuildCalculatedFieldProjection(
+                executionContext,
+                new[] { groupByCalculatedFieldId, aggregateCalculatedFieldId }
+                    .Where(id => !string.IsNullOrWhiteSpace(id))!,
+                ReportCalculatedFieldRowScope.Yearly,
+                parameters,
+                "workSummary");
+            var groupCalculatedField = calculatedFields.FindById(groupByCalculatedFieldId);
+            var aggregateCalculatedField = calculatedFields.FindById(aggregateCalculatedFieldId);
+            if (aggregateCalculatedField != null
+                && !string.Equals(aggregateCalculatedField.ResultType, "number", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    $"Work Summary aggregate calculated field '{aggregateCalculatedField.Name}' must be numeric.");
+            }
 
             // Determine whether cost needs to be aggregated
-            bool needsCostInCte = aggregateField.Equals("cost", StringComparison.OrdinalIgnoreCase)
+            bool needsCostInCte = aggregateCalculatedField == null
+                && aggregateField.Equals("cost", StringComparison.OrdinalIgnoreCase)
                 && !aggregateFunction.Equals("count", StringComparison.OrdinalIgnoreCase);
 
             string aggSelect;
@@ -130,7 +163,11 @@ namespace AssetFox.Core.UniversalReporting.Components
             string groupAttrJoins = "";
             string groupValueSelect;
 
-            if (string.IsNullOrEmpty(groupByAttribute))
+            if (groupCalculatedField != null)
+            {
+                groupValueSelect = $"CAST(wscfv.[{groupCalculatedField.ColumnKey}] AS NVARCHAR(4000)) AS GroupValue";
+            }
+            else if (string.IsNullOrEmpty(groupByAttribute))
             {
                 groupValueSelect = "'All' AS GroupValue";
             }
@@ -195,7 +232,19 @@ CostData AS (
             string costJoin = needsCostInCte ? "\n    LEFT JOIN CostData cd ON cd.AssetDetailId = ab.Id" : "";
             string costColumn = needsCostInCte ? ", ISNULL(cd.TreatmentCost, 0) AS TreatmentCost" : "";
 
-            if (needsCostInCte)
+            if (aggregateCalculatedField != null)
+            {
+                string sqlAggFunc = aggregateFunction.ToUpperInvariant() switch
+                {
+                    "AVG" => "AVG",
+                    "MIN" => "MIN",
+                    "MAX" => "MAX",
+                    "COUNT" => "COUNT",
+                    _ => "SUM"
+                };
+                aggSelect = $"{sqlAggFunc}(adata.CalculatedValue)";
+            }
+            else if (needsCostInCte)
             {
                 string sqlAggFunc = aggregateFunction.ToUpperInvariant() switch
                 {
@@ -212,6 +261,14 @@ CostData AS (
                 aggSelect = "COUNT(*)";
             }
 
+            var calculatedFieldCte = calculatedFields.IsEmpty ? "" : $",\n{calculatedFields.CteSql}";
+            var calculatedFieldJoin = calculatedFields.IsEmpty
+                ? ""
+                : $"\n    {calculatedFields.Join("ab", "Id", "wscfv")}";
+            var calculatedValueColumn = aggregateCalculatedField == null
+                ? ""
+                : $", wscfv.[{aggregateCalculatedField.ColumnKey}] AS CalculatedValue";
+
             // AssetBase CTE: the full treated-asset-year set with no correlated lookups
             // GroupAttr/Cost CTEs scan EAV once using IN (SELECT ... FROM AssetBase)
             // AssetData joins them all set-based
@@ -222,11 +279,11 @@ CostData AS (
     INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId
     WHERE ad.RunId = @RunId
     AND ad.AppliedTreatment IS NOT NULL AND ad.AppliedTreatment <> 'No Treatment'
-){groupAttrCtes}{costCte},
+){calculatedFieldCte}{groupAttrCtes}{costCte},
 AssetData AS (
     SELECT ab.Id, ab.MaintainableAssetId, ab.Year,
-        {groupValueSelect}{costColumn}
-    FROM AssetBase ab{groupAttrJoins}{costJoin}
+        {groupValueSelect}{costColumn}{calculatedValueColumn}
+    FROM AssetBase ab{calculatedFieldJoin}{groupAttrJoins}{costJoin}
 )
 SELECT ISNULL(adata.GroupValue, '(None)') AS GroupValue, adata.Year, {aggSelect} AS AggValue
 FROM AssetData adata
@@ -319,6 +376,14 @@ ORDER BY adata.GroupValue, adata.Year";
         }
 
         #endregion
+
+        private static string? CalculatedFieldId(string value)
+        {
+            const string prefix = "calculatedField:";
+            return value?.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) == true
+                ? value[prefix.Length..]
+                : null;
+        }
 
 
     }

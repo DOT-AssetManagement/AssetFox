@@ -19,6 +19,7 @@ namespace AssetFox.Core.UniversalReporting.Components
     {
         protected readonly UnitOfDataPersistenceWork _unitOfWork;
         protected readonly CriteriaSqlEmitter _criteriaEmitter;
+        protected readonly ReportCalculatedFieldSqlCompiler _calculatedFieldCompiler = new();
 
         // All known simulation fields (direct columns + computed fields)
         protected static readonly List<string> AssetDetailSimulationFields = new()
@@ -714,6 +715,8 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
             {
                 return jArray.Select(j => new SimpleColumnDef
                 {
+                    Source = j["source"]?.ToString() ?? "attribute",
+                    FieldId = j["fieldId"]?.ToString() ?? "",
                     AttributeName = j["attributeName"]?.ToString() ?? "",
                     DisplayHeader = j["displayHeader"]?.ToString() ?? j["attributeName"]?.ToString() ?? "",
                     Format = j["format"]?.ToString() ?? "text"
@@ -761,9 +764,12 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
 
         protected internal class SimpleColumnDef
         {
-            public string AttributeName { get; set; }
-            public string DisplayHeader { get; set; }
-            public string Format { get; set; }
+            public string Source { get; set; } = "attribute";
+            public string FieldId { get; set; } = "";
+            public string AttributeName { get; set; } = "";
+            public string DisplayHeader { get; set; } = "";
+            public string Format { get; set; } = "text";
+            public bool IsCalculatedField => string.Equals(Source, "calculatedField", StringComparison.OrdinalIgnoreCase);
         }
 
         protected internal class SimpleSimulationColumnDef
@@ -885,6 +891,123 @@ LEFT JOIN PivotedSummary ps ON ps.MaintainableAssetId = pg.MaintainableAssetId";
                 Sortable = column.Sortable,
                 Filterable = column.Filterable
             };
+        }
+
+        protected ReportCalculatedFieldProjectionPlan BuildCalculatedFieldProjection(
+            ReportExecutionContext executionContext,
+            IEnumerable<SimpleColumnDef> columns,
+            ReportCalculatedFieldRowScope rowScope,
+            List<SqlParameter> parameters)
+        {
+            var ids = columns
+                .Where(column => column.IsCalculatedField)
+                .Select(column => column.FieldId);
+            return BuildCalculatedFieldProjection(executionContext, ids, rowScope, parameters);
+        }
+
+        protected ReportCalculatedFieldProjectionPlan BuildCalculatedFieldProjection(
+            ReportExecutionContext executionContext,
+            IEnumerable<string> fieldIds,
+            ReportCalculatedFieldRowScope rowScope,
+            List<SqlParameter> parameters,
+            string sqlNamespace = "cf")
+        {
+            return _calculatedFieldCompiler.BuildProjection(
+                executionContext.CalculatedFields,
+                fieldIds,
+                _unitOfWork.AttributeRepo,
+                rowScope,
+                parameters,
+                sqlNamespace);
+        }
+
+        protected static List<SimpleColumnDef> NativeAttributeColumns(IEnumerable<SimpleColumnDef> columns) =>
+            columns.Where(column => !column.IsCalculatedField).ToList();
+
+        protected static void AddConfiguredViewerColumns(
+            List<ViewerColumnDTO> viewerColumns,
+            IEnumerable<SimpleColumnDef> configuredColumns,
+            ReportCalculatedFieldProjectionPlan calculatedFields,
+            string calculatedKeyPrefix = "")
+        {
+            foreach (var column in configuredColumns)
+            {
+                if (column.IsCalculatedField)
+                {
+                    var projection = calculatedFields.FindById(column.FieldId);
+                    if (projection == null)
+                    {
+                        continue;
+                    }
+
+                    viewerColumns.Add(new ViewerColumnDTO
+                    {
+                        Key = $"{calculatedKeyPrefix}{projection.ColumnKey}",
+                        Header = string.IsNullOrWhiteSpace(column.DisplayHeader) ? projection.Name : column.DisplayHeader,
+                        Format = column.Format,
+                        Filterable = true,
+                        Sortable = true
+                    });
+                    continue;
+                }
+
+                viewerColumns.Add(new ViewerColumnDTO
+                {
+                    Key = column.AttributeName,
+                    Header = column.DisplayHeader,
+                    Format = column.Format
+                });
+            }
+        }
+
+        protected static Dictionary<string, string> NativeViewerFilters(
+            Dictionary<string, string> filters,
+            ReportCalculatedFieldProjectionPlan calculatedFields) =>
+            (filters ?? new Dictionary<string, string>())
+                .Where(filter => calculatedFields.FindByColumnKey(filter.Key) == null)
+                .ToDictionary(filter => filter.Key, filter => filter.Value, StringComparer.OrdinalIgnoreCase);
+
+        protected static string BuildCalculatedFieldFilterWhere(
+            Dictionary<string, string> filters,
+            ReportCalculatedFieldProjectionPlan calculatedFields,
+            List<SqlParameter> parameters,
+            string calculatedAlias = "cfv")
+        {
+            var clauses = new List<string>();
+            var index = 0;
+            foreach (var filter in filters ?? new Dictionary<string, string>())
+            {
+                var field = calculatedFields.FindByColumnKey(filter.Key);
+                if (field == null || string.IsNullOrWhiteSpace(filter.Value))
+                {
+                    continue;
+                }
+
+                var parameterName = $"@cf_filter_{index++}";
+                parameters.Add(new SqlParameter(parameterName, $"%{filter.Value}%"));
+                clauses.Add($"CAST({calculatedAlias}.[{field.ColumnKey}] AS NVARCHAR(4000)) LIKE {parameterName}");
+            }
+
+            return string.Join(" AND ", clauses);
+        }
+
+        protected static bool TryBuildCalculatedFieldSort(
+            string? sortBy,
+            string? sortDirection,
+            ReportCalculatedFieldProjectionPlan calculatedFields,
+            out string sortExpression,
+            string parentAlias = "wk")
+        {
+            var field = calculatedFields.FindByColumnKey(sortBy);
+            if (field == null)
+            {
+                sortExpression = "";
+                return false;
+            }
+
+            var direction = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase) ? "DESC" : "ASC";
+            sortExpression = $"{parentAlias}.[{field.ColumnKey}] {direction}";
+            return true;
         }
     }
 }

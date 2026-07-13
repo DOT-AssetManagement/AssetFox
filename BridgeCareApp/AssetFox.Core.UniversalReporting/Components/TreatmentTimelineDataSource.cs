@@ -20,13 +20,14 @@ namespace AssetFox.Core.UniversalReporting.Components
         public string ComponentType => "treatmentTimeline";
 
         public ComponentQuery Build(
-            ReportComponent component,
+            ReportExecutionContext executionContext,
             ViewerDataRequest request,
             int runId,
-            AttributeLookup attributes) => GetTreatmentTimelineData(component, request, runId);
+            AttributeLookup attributes) => GetTreatmentTimelineData(executionContext, request, runId);
 
-        private ComponentQuery GetTreatmentTimelineData(ReportComponent component, ViewerDataRequest request, int runId)
+        private ComponentQuery GetTreatmentTimelineData(ReportExecutionContext executionContext, ViewerDataRequest request, int runId)
         {
+            var component = executionContext.Component;
             var config = component.Config ?? new Dictionary<string, object>();
             var staticAttributeColumns = GetConfigColumnDefs(config, "attributeColumns");
             var yearFields = GetYearFields(config);
@@ -40,6 +41,7 @@ namespace AssetFox.Core.UniversalReporting.Components
             };
 
             var requestedAttributeNames = staticAttributeColumns
+                .Where(column => !column.IsCalculatedField)
                 .Select(column => column.AttributeName)
                 .Concat(yearFields
                     .Where(field => field.Type == "attribute")
@@ -48,6 +50,22 @@ namespace AssetFox.Core.UniversalReporting.Components
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
             var resolvedAttributes = ResolveAttributes(requestedAttributeNames, parameters);
+            var staticCalculatedFields = BuildCalculatedFieldProjection(
+                executionContext,
+                staticAttributeColumns
+                    .Where(column => column.IsCalculatedField)
+                    .Select(column => column.FieldId),
+                ReportCalculatedFieldRowScope.SummaryByMaintainableAsset,
+                parameters,
+                "timelineStatic");
+            var yearCalculatedFields = BuildCalculatedFieldProjection(
+                executionContext,
+                yearFields
+                    .Where(field => field.Type == "calculatedField")
+                    .Select(field => field.FieldId),
+                ReportCalculatedFieldRowScope.Yearly,
+                parameters,
+                "timelineYear");
 
             var keyAttrInfo = ResolveKeyAttribute(request.SimulationId);
             var keyColName = keyAttrInfo.Name ?? "Asset ID";
@@ -60,13 +78,34 @@ namespace AssetFox.Core.UniversalReporting.Components
             var staticOutputs = new List<TimelineAttributeOutput>();
             foreach (var staticColumn in staticAttributeColumns)
             {
+                if (staticColumn.IsCalculatedField)
+                {
+                    var calculatedField = staticCalculatedFields.FindById(staticColumn.FieldId);
+                    if (calculatedField == null)
+                    {
+                        continue;
+                    }
+
+                    var calculatedOutputAlias = $"staticAttribute_{staticOutputs.Count}";
+                    staticOutputs.Add(new TimelineAttributeOutput(null, calculatedField, calculatedOutputAlias));
+                    columns.Add(new ViewerColumnDTO
+                    {
+                        Key = calculatedOutputAlias,
+                        Header = staticColumn.DisplayHeader,
+                        Format = staticColumn.Format,
+                        Sortable = false,
+                        Filterable = false
+                    });
+                    continue;
+                }
+
                 if (!resolvedAttributes.TryGetValue(staticColumn.AttributeName, out var attribute))
                 {
                     continue;
                 }
 
                 var outputAlias = $"staticAttribute_{staticOutputs.Count}";
-                staticOutputs.Add(new TimelineAttributeOutput(attribute, outputAlias));
+                staticOutputs.Add(new TimelineAttributeOutput(attribute, null, outputAlias));
                 columns.Add(new ViewerColumnDTO
                 {
                     Key = outputAlias,
@@ -108,6 +147,24 @@ namespace AssetFox.Core.UniversalReporting.Components
                         columns.Add(new ViewerColumnDTO
                         {
                             Key = outputAlias,
+                            Header = field.DisplayHeader,
+                            Format = field.Format,
+                            Sortable = false,
+                            Filterable = false
+                        });
+                        break;
+                    case "calculatedField":
+                        var calculatedField = yearCalculatedFields.FindById(field.FieldId);
+                        if (calculatedField == null)
+                        {
+                            break;
+                        }
+
+                        var calculatedOutputAlias = $"yearCalculated_{yearOutputs.Count}";
+                        yearOutputs.Add(new TimelineYearOutput(field, calculatedOutputAlias, null, calculatedField));
+                        columns.Add(new ViewerColumnDTO
+                        {
+                            Key = calculatedOutputAlias,
                             Header = field.DisplayHeader,
                             Format = field.Format,
                             Sortable = false,
@@ -169,7 +226,14 @@ namespace AssetFox.Core.UniversalReporting.Components
             var outputSelect = new StringBuilder();
             foreach (var output in staticOutputs)
             {
-                outputSelect.AppendLine($"    , tsa.[{output.Attribute.SqlAlias}] AS [{output.OutputAlias}]");
+                if (output.Attribute != null)
+                {
+                    outputSelect.AppendLine($"    , tsa.[{output.Attribute.SqlAlias}] AS [{output.OutputAlias}]");
+                }
+                else if (output.CalculatedField != null)
+                {
+                    outputSelect.AppendLine($"    , tscfv.[{output.CalculatedField.ColumnKey}] AS [{output.OutputAlias}]");
+                }
             }
 
             foreach (var output in yearOutputs)
@@ -187,10 +251,27 @@ namespace AssetFox.Core.UniversalReporting.Components
                     outputSelect.AppendLine(
                         $"    , COALESCE(tya.[{output.Attribute.SqlAlias}], tsa.[{output.Attribute.SqlAlias}]) AS [{output.OutputAlias}]");
                 }
+                else if (output.CalculatedField != null)
+                {
+                    outputSelect.AppendLine($"    , tycfv.[{output.CalculatedField.ColumnKey}] AS [{output.OutputAlias}]");
+                }
             }
 
+            var calculatedCtes = new[] { staticCalculatedFields.CteSql, yearCalculatedFields.CteSql }
+                .Where(cte => !string.IsNullOrWhiteSpace(cte))
+                .ToList();
+            var calculatedCtePrefix = calculatedCtes.Count == 0
+                ? ""
+                : $"{string.Join(",\n", calculatedCtes)},\n";
+            var staticCalculatedJoin = staticCalculatedFields.IsEmpty
+                ? ""
+                : $"\n{staticCalculatedFields.Join("pg", "MaintainableAssetId", "tscfv")}";
+            var yearCalculatedJoin = yearCalculatedFields.IsEmpty
+                ? ""
+                : $"\n{yearCalculatedFields.Join("pg", "Id", "tycfv")}";
+
             var sql = $@"
-;WITH {fragmentCtePrefix}FilteredAssets AS (
+;WITH {fragmentCtePrefix}{calculatedCtePrefix}FilteredAssets AS (
     SELECT ad.Id, ad.MaintainableAssetId, syd.Year, ad.AppliedTreatment
     FROM dbo.AssetDetail ad
     INNER JOIN dbo.SimulationYearDetail syd ON syd.RunId = @RunId AND syd.Id = ad.SimulationYearDetailId{fragmentJoins}
@@ -222,6 +303,7 @@ SELECT pg._AssetKey AS [{keyColName}], pg.Year, c.TotalCount
 FROM PagedRows pg
 CROSS JOIN Counted c
 {attributeCtes.JoinBlock}
+{staticCalculatedJoin}{yearCalculatedJoin}
 {costData.JoinClause}
 ORDER BY pg.RowNum";
 
@@ -320,13 +402,21 @@ ORDER BY pg.RowNum";
             {
                 var type = field["type"]?.ToString()?.Trim().ToLowerInvariant() ?? "";
                 var attributeName = field["attributeName"]?.ToString()?.Trim() ?? "";
-                if (type is not ("treatment" or "cost" or "attribute")
-                    || (type == "attribute" && string.IsNullOrWhiteSpace(attributeName)))
+                var fieldId = field["fieldId"]?.ToString()?.Trim() ?? "";
+                if (type is not ("treatment" or "cost" or "attribute" or "calculatedfield")
+                    || (type == "attribute" && string.IsNullOrWhiteSpace(attributeName))
+                    || (type == "calculatedfield" && !Guid.TryParse(fieldId, out _)))
                 {
                     continue;
                 }
 
-                var identity = type == "attribute" ? $"attribute:{attributeName}" : type;
+                type = type == "calculatedfield" ? "calculatedField" : type;
+                var identity = type switch
+                {
+                    "attribute" => $"attribute:{attributeName}",
+                    "calculatedField" => $"calculatedField:{fieldId}",
+                    _ => type
+                };
                 if (!seen.Add(identity))
                 {
                     continue;
@@ -336,6 +426,7 @@ ORDER BY pg.RowNum";
                 {
                     "treatment" => "Treatment",
                     "cost" => "Cost",
+                    "calculatedField" => field["displayHeader"]?.ToString() ?? "Calculated Field",
                     _ => attributeName
                 };
                 var defaultFormat = type == "cost" ? "currency" : "text";
@@ -344,6 +435,7 @@ ORDER BY pg.RowNum";
                 results.Add(new TimelineYearField(
                     type,
                     attributeName,
+                    fieldId,
                     string.IsNullOrWhiteSpace(displayHeader) ? defaultHeader : displayHeader,
                     string.IsNullOrWhiteSpace(format) ? defaultFormat : format));
             }
@@ -353,8 +445,8 @@ ORDER BY pg.RowNum";
 
         private static List<TimelineYearField> DefaultYearFields() => new()
         {
-            new("treatment", "", "Treatment", "text"),
-            new("cost", "", "Cost", "currency")
+            new("treatment", "", "", "Treatment", "text"),
+            new("cost", "", "", "Cost", "currency")
         };
 
         private sealed record ResolvedTimelineAttribute(
@@ -364,19 +456,22 @@ ORDER BY pg.RowNum";
             bool IsNumber);
 
         private sealed record TimelineAttributeOutput(
-            ResolvedTimelineAttribute Attribute,
+            ResolvedTimelineAttribute? Attribute,
+            ReportCalculatedFieldProjection? CalculatedField,
             string OutputAlias);
 
         private sealed record TimelineYearField(
             string Type,
             string AttributeName,
+            string FieldId,
             string DisplayHeader,
             string Format);
 
         private sealed record TimelineYearOutput(
             TimelineYearField Field,
             string OutputAlias,
-            ResolvedTimelineAttribute? Attribute);
+            ResolvedTimelineAttribute? Attribute,
+            ReportCalculatedFieldProjection? CalculatedField = null);
 
         private sealed record TimelineAttributeCtes(string CteBlock, string JoinBlock);
     }

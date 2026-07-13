@@ -114,7 +114,8 @@ namespace AssetFox.Core.UniversalReporting.Viewer
             }
 
             var viewerRequest = ViewerDtoMapper.FromDto(request);
-            var result = _queryEngine.ExecutePagedAsync(component, viewerRequest, runId, CancellationToken.None)
+            var executionContext = ReportExecutionContext.Create(component, schema.CalculatedFields);
+            var result = _queryEngine.ExecutePagedAsync(executionContext, viewerRequest, runId, CancellationToken.None)
                 .GetAwaiter()
                 .GetResult();
 

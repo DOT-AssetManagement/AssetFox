@@ -10,7 +10,7 @@ public interface IComponentDataSource
     string ComponentType { get; }
 
     ComponentQuery Build(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         AttributeLookup attributes);

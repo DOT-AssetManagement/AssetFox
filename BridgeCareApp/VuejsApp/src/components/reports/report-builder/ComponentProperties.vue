@@ -59,16 +59,19 @@
             <AssetDetailConfigEditor
                 v-if="localComponent.type === 'assetDetail'"
                 :config="localComponent.config as AssetDetailConfig"
+                :calculated-fields="calculatedFields"
                 @update:config="onConfigUpdate"
             />
             <TreatmentTimelineConfigEditor
                 v-else-if="localComponent.type === 'treatmentTimeline'"
                 :config="localComponent.config as TreatmentTimelineConfig"
+                :calculated-fields="calculatedFields"
                 @update:config="onConfigUpdate"
             />
             <WorkSummaryConfigEditor
                 v-else-if="localComponent.type === 'workSummary'"
                 :config="localComponent.config as WorkSummaryConfig"
+                :calculated-fields="calculatedFields"
                 @update:config="onConfigUpdate"
             />
             <BudgetSummaryConfigEditor
@@ -79,11 +82,13 @@
             <ConditionTrackingConfigEditor
                 v-else-if="localComponent.type === 'conditionTracking'"
                 :config="localComponent.config as ConditionTrackingConfig"
+                :calculated-fields="calculatedFields"
                 @update:config="onConfigUpdate"
             />
             <FundedTreatmentListConfigEditor
                 v-else-if="localComponent.type === 'fundedTreatmentList'"
                 :config="localComponent.config as FundedTreatmentListConfig"
+                :calculated-fields="calculatedFields"
                 @update:config="onConfigUpdate"
             />
             <TextBlockConfigEditor
@@ -95,6 +100,7 @@
                 v-else-if="isChartComponentType(localComponent.type)"
                 :component-type="localComponent.type"
                 :config="localComponent.config as ChartConfig"
+                :calculated-fields="calculatedFields"
                 @update:config="onConfigUpdate"
             />
         </div>
@@ -126,6 +132,7 @@ import { ref, watch, computed } from 'vue';
 import { clone } from 'ramda';
 import {
     ReportComponent,
+    ReportCalculatedField,
     ComponentConfig,
     AssetDetailConfig,
     TreatmentTimelineConfig,
@@ -151,6 +158,7 @@ import ChartConfigEditor from './configs/ChartConfig.vue';
 
 const props = defineProps<{
     component: ReportComponent | null;
+    calculatedFields: ReportCalculatedField[];
 }>();
 
 const emit = defineEmits<{

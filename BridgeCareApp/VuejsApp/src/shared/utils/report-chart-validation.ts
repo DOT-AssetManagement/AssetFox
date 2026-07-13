@@ -23,15 +23,19 @@ function bindingLabel(binding?: ChartFieldBinding): string {
 
 function compatibleWithValue(value: ChartFieldBinding, binding: ChartFieldBinding): boolean {
     if (value.source === 'allocation') {
-        return ['allocation', 'simulationYear', 'treatment', 'assetDetail', 'attribute'].includes(binding.source);
+        return ['allocation', 'simulationYear', 'treatment', 'assetDetail', 'attribute', 'calculatedField'].includes(binding.source);
     }
 
     if (value.source === 'assetDetail') {
-        return ['simulationYear', 'assetDetail', 'attribute'].includes(binding.source);
+        return ['simulationYear', 'assetDetail', 'attribute', 'calculatedField'].includes(binding.source);
     }
 
     if (value.source === 'attribute') {
-        return ['simulationYear', 'assetDetail', 'attribute'].includes(binding.source);
+        return ['simulationYear', 'assetDetail', 'attribute', 'calculatedField'].includes(binding.source);
+    }
+
+    if (value.source === 'calculatedField') {
+        return ['simulationYear', 'assetDetail', 'attribute', 'calculatedField'].includes(binding.source);
     }
 
     return false;

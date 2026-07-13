@@ -24,11 +24,12 @@ public abstract class ChartDataSourceBase : ComponentDataSourceBase
     }
 
     protected ComponentQuery BuildChartQuery(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         string expectedKind)
     {
+        var component = executionContext.Component;
         _validator.ThrowIfInvalid(component);
         var config = ChartConfigReader.Read(component.Config);
 
@@ -51,19 +52,34 @@ public abstract class ChartDataSourceBase : ComponentDataSourceBase
             .GroupBy(binding => binding!.Field, StringComparer.OrdinalIgnoreCase)
             .Select(group => group.First()!)
             .ToList();
+        var calculatedFieldIds = new[] { category, value, series }
+            .Where(binding => binding != null
+                && string.Equals(binding.Source, "calculatedField", StringComparison.OrdinalIgnoreCase))
+            .Select(binding => binding!.Field)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         var attributes = ResolveAttributes(attributeBindings, parameters);
+        var calculatedFields = BuildCalculatedFieldProjection(
+            executionContext,
+            calculatedFieldIds,
+            ReportCalculatedFieldRowScope.Yearly,
+            parameters,
+            "chart");
         var rawBaseSql = BuildRawBaseSql(component, parameters, usesAllocationBase, config);
         var attrCtes = BuildAttributeCtes(attributes);
-        var baseCte = BuildBaseCte(attributes);
-        var categoryExpr = BuildDimensionExpression(category, attributes);
+        var calculatedFieldCtes = calculatedFields.IsEmpty ? "" : $",\n{calculatedFields.CteSql}";
+        var baseCte = BuildBaseCte(attributes, calculatedFields);
+        var categoryExpr = BuildDimensionExpression(category, attributes, calculatedFields);
         var hasSeries = HasBinding(series);
-        var seriesExpr = hasSeries ? BuildDimensionExpression(series!, attributes) : "CAST(NULL AS NVARCHAR(200))";
+        var seriesExpr = hasSeries
+            ? BuildDimensionExpression(series!, attributes, calculatedFields)
+            : "CAST(NULL AS NVARCHAR(200))";
         var filterSql = BuildFilterSql(config, category, series, parameters);
         var groupBySql = hasSeries
             ? $"GROUP BY {categoryExpr}, {seriesExpr}"
             : $"GROUP BY {categoryExpr}";
-        var valueExpr = BuildValueExpression(value, attributes);
+        var valueExpr = BuildValueExpression(value, attributes, calculatedFields);
         var aggregateExpr = BuildAggregateExpression(value.Aggregate, valueExpr);
         var topN = config.Limit.TopN.GetValueOrDefault();
         var hasTopN = topN > 0;
@@ -73,7 +89,7 @@ public abstract class ChartDataSourceBase : ComponentDataSourceBase
             : "";
 
         var sql = $@"
-{rawBaseSql}{attrCtes}{baseCte}
+{rawBaseSql}{attrCtes}{calculatedFieldCtes}{baseCte}
 SELECT {topSql}
     {categoryExpr} AS Category,
     {seriesExpr} AS Series,
@@ -291,9 +307,11 @@ FROM Base b
         return sb.ToString();
     }
 
-    private static string BuildBaseCte(IReadOnlyList<ChartAttributeBinding> attributes)
+    private static string BuildBaseCte(
+        IReadOnlyList<ChartAttributeBinding> attributes,
+        ReportCalculatedFieldProjectionPlan calculatedFields)
     {
-        if (attributes.Count == 0)
+        if (attributes.Count == 0 && calculatedFields.IsEmpty)
         {
             return @",
 Base AS (
@@ -313,6 +331,16 @@ Base AS (
     LEFT JOIN {attr.Alias}Summary {attr.Alias}s ON {attr.Alias}s.MaintainableAssetId = rb.MaintainableAssetId");
         }
 
+        foreach (var field in calculatedFields.Fields)
+        {
+            selectCols.AppendLine($",\n        chartcfv.[{field.ColumnKey}] AS [{field.ColumnKey}]");
+        }
+
+        if (!calculatedFields.IsEmpty)
+        {
+            joins.AppendLine($"    {calculatedFields.Join("rb", "AssetDetailId", "chartcfv")}");
+        }
+
         return $@",
 Base AS (
     SELECT rb.*{selectCols}
@@ -322,12 +350,20 @@ Base AS (
 
     private static string BuildDimensionExpression(
         ChartFieldBindingDefinition binding,
-        IReadOnlyList<ChartAttributeBinding> attributes)
+        IReadOnlyList<ChartAttributeBinding> attributes,
+        ReportCalculatedFieldProjectionPlan calculatedFields)
     {
         if (string.Equals(binding.Source, "attribute", StringComparison.OrdinalIgnoreCase))
         {
             var attr = FindAttribute(attributes, binding.Field);
             return $"ISNULL(CAST(b.{attr.Alias}Text AS NVARCHAR(200)), '(None)')";
+        }
+
+        if (string.Equals(binding.Source, "calculatedField", StringComparison.OrdinalIgnoreCase))
+        {
+            var field = calculatedFields.FindById(binding.Field)
+                ?? throw new InvalidOperationException($"Chart calculated field '{binding.Field}' was not resolved.");
+            return $"ISNULL(CAST(b.[{field.ColumnKey}] AS NVARCHAR(200)), '(None)')";
         }
 
         return (binding.Source.ToLowerInvariant(), binding.Field.ToLowerInvariant()) switch
@@ -342,12 +378,25 @@ Base AS (
 
     private static string BuildValueExpression(
         ChartFieldBindingDefinition binding,
-        IReadOnlyList<ChartAttributeBinding> attributes)
+        IReadOnlyList<ChartAttributeBinding> attributes,
+        ReportCalculatedFieldProjectionPlan calculatedFields)
     {
         if (string.Equals(binding.Source, "attribute", StringComparison.OrdinalIgnoreCase))
         {
             var attr = FindAttribute(attributes, binding.Field);
             return $"b.{attr.Alias}Number";
+        }
+
+        if (string.Equals(binding.Source, "calculatedField", StringComparison.OrdinalIgnoreCase))
+        {
+            var field = calculatedFields.FindById(binding.Field)
+                ?? throw new InvalidOperationException($"Chart calculated field '{binding.Field}' was not resolved.");
+            if (!string.Equals(field.ResultType, "number", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Chart value calculated field '{field.Name}' must be numeric.");
+            }
+
+            return $"b.[{field.ColumnKey}]";
         }
 
         return (binding.Source.ToLowerInvariant(), binding.Field.ToLowerInvariant()) switch

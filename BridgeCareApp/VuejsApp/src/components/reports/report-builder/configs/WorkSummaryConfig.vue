@@ -3,7 +3,7 @@
         <div class="text-caption text-uppercase mb-2" style="letter-spacing: 0.08em; color: #666;">Group By</div>
         <v-autocomplete
             v-model="localConfig.groupByAttribute"
-            :items="attributeNames"
+            :items="groupByOptions"
             label="Group rows by attribute"
             variant="outlined"
             density="compact"
@@ -50,9 +50,14 @@
 import { ref, watch, computed } from 'vue';
 import { clone } from 'ramda';
 import { useAttributeStore } from '@/stores';
-import { WorkSummaryConfig, AggregateFunction, aggregateFunctionOptions } from '@/shared/models/iAM/report-schema';
+import {
+    WorkSummaryConfig,
+    AggregateFunction,
+    ReportCalculatedField,
+    aggregateFunctionOptions,
+} from '@/shared/models/iAM/report-schema';
 
-const props = defineProps<{ config: WorkSummaryConfig }>();
+const props = defineProps<{ config: WorkSummaryConfig; calculatedFields: ReportCalculatedField[] }>();
 const emit = defineEmits<{ (e: 'update:config', val: WorkSummaryConfig): void }>();
 
 const attributeStore = useAttributeStore();
@@ -60,15 +65,21 @@ const localConfig = ref<WorkSummaryConfig>(clone(props.config));
 
 watch(() => props.config, (val) => { localConfig.value = clone(val); }, { deep: true });
 
-const attributeNames = computed(() => {
+const groupByOptions = computed(() => {
     const attrs = attributeStore.attributesgetter ?? [];
-    return attrs.map((a: any) => a.name).sort();
+    return [
+        ...attrs.map((attribute: any) => ({ title: attribute.name, value: attribute.name })),
+        ...props.calculatedFields.map(field => ({ title: `${field.name} (calculated)`, value: `calculatedField:${field.id}` })),
+    ].sort((left, right) => left.title.localeCompare(right.title));
 });
 
-const aggregateFieldOptions = [
+const aggregateFieldOptions = computed(() => [
     { title: 'Treatment Cost', value: 'cost' },
     { title: 'Asset Count', value: 'count' },
-];
+    ...props.calculatedFields
+        .filter(field => field.resultType === 'number')
+        .map(field => ({ title: `${field.name} (calculated)`, value: `calculatedField:${field.id}` })),
+]);
 
 // Which aggregation functions are valid for each field. Asset Count is always
 // COUNT(*), so the function picker is hidden for that field entirely.
@@ -80,16 +91,22 @@ const validFunctionsByField: Record<string, AggregateFunction[]> = {
 const showFunctionPicker = computed(() => localConfig.value.aggregateField !== 'count');
 
 const availableFunctionOptions = computed(() => {
-    const allowed = validFunctionsByField[localConfig.value.aggregateField] ?? [];
+    const allowed = allowedFunctions(localConfig.value.aggregateField);
     return aggregateFunctionOptions.filter((opt) => allowed.includes(opt.value));
 });
 
 function onAggregateFieldChange() {
-    const allowed = validFunctionsByField[localConfig.value.aggregateField] ?? [];
+    const allowed = allowedFunctions(localConfig.value.aggregateField);
     if (!allowed.includes(localConfig.value.aggregateFunction)) {
         localConfig.value.aggregateFunction = allowed[0];
     }
     emitUpdate();
+}
+
+function allowedFunctions(field: string): AggregateFunction[] {
+    return field.startsWith('calculatedField:')
+        ? ['sum', 'avg', 'min', 'max', 'count']
+        : validFunctionsByField[field] ?? [];
 }
 
 function emitUpdate() {

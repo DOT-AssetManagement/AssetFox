@@ -121,17 +121,22 @@ public class ChartTemplateValidator
     {
         if (string.Equals(value.Source, "allocation", StringComparison.OrdinalIgnoreCase))
         {
-            return SourceIn(binding.Source, "allocation", "simulationYear", "treatment", "assetDetail", "attribute");
+            return SourceIn(binding.Source, "allocation", "simulationYear", "treatment", "assetDetail", "attribute", "calculatedField");
         }
 
         if (string.Equals(value.Source, "assetDetail", StringComparison.OrdinalIgnoreCase))
         {
-            return SourceIn(binding.Source, "simulationYear", "assetDetail", "attribute");
+            return SourceIn(binding.Source, "simulationYear", "assetDetail", "attribute", "calculatedField");
         }
 
         if (string.Equals(value.Source, "attribute", StringComparison.OrdinalIgnoreCase))
         {
-            return SourceIn(binding.Source, "simulationYear", "assetDetail", "attribute");
+            return SourceIn(binding.Source, "simulationYear", "assetDetail", "attribute", "calculatedField");
+        }
+
+        if (string.Equals(value.Source, "calculatedField", StringComparison.OrdinalIgnoreCase))
+        {
+            return SourceIn(binding.Source, "simulationYear", "assetDetail", "attribute", "calculatedField");
         }
 
         return false;

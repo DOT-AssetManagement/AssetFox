@@ -19,11 +19,12 @@ namespace AssetFox.Core.UniversalReporting.Components
         public string ComponentType => "budgetSummary";
 
         public ComponentQuery Build(
-            ReportComponent component,
+            ReportExecutionContext executionContext,
             ViewerDataRequest request,
             int runId,
             AttributeLookup attributes)
         {
+            var component = executionContext.Component;
             var config = component.Config ?? new Dictionary<string, object>();
             var showSpent = GetConfigBool(config, "showSpentAmount", true);
             var showRemaining = GetConfigBool(config, "showRemainingAmount", true);

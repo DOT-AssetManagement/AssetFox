@@ -20,9 +20,9 @@ public sealed class BarChartDataSource : ChartDataSourceBase, IComponentDataSour
     public string ComponentType => "barChart";
 
     public ComponentQuery Build(
-        ReportComponent component,
+        ReportExecutionContext executionContext,
         ViewerDataRequest request,
         int runId,
         AttributeLookup attributes) =>
-        BuildChartQuery(component, request, runId, "bar");
+        BuildChartQuery(executionContext, request, runId, "bar");
 }

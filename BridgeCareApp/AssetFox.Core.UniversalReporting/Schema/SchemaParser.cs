@@ -17,6 +17,17 @@ public static class SchemaParser
             throw new InvalidOperationException("Failed to deserialize report schema JSON.");
         }
 
+        schema.CalculatedFields ??= new List<ReportCalculatedField>();
+        schema.Pages ??= new List<ReportPage>();
+        foreach (var field in schema.CalculatedFields)
+        {
+            field.Rules ??= new List<ReportCalculationRule>();
+            foreach (var rule in field.Rules)
+            {
+                rule.Conditions ??= new List<ReportRuleCondition>();
+            }
+        }
+
         return schema;
     }
 

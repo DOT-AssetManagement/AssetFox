@@ -1,6 +1,6 @@
 import { AxiosPromise } from 'axios';
 import { API, coreAxiosInstance } from '@/shared/utils/axios-instance';
-import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
+import { ReportCalculatedField, ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 import { PagingRequest } from '@/shared/models/iAM/paging';
 import { LibraryUser } from '@/shared/models/iAM/user';
 
@@ -52,5 +52,9 @@ export default class ReportSchemaService {
 
     static requestUniversalReportExport(payload: { schemaId: string; simulationId: string }): AxiosPromise {
         return coreAxiosInstance.post(`${API.Report}/universal/export`, payload);
+    }
+
+    static validateCalculatedFields(fields: ReportCalculatedField[]): AxiosPromise {
+        return coreAxiosInstance.post(`${API.ReportSchema}/validate-calculated-fields`, fields);
     }
 }

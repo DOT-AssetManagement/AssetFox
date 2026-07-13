@@ -50,7 +50,7 @@ namespace AssetFox.Core.UniversalReporting.Tests
             var queryEngine = new Mock<IUniversalQueryEngine>();
             queryEngine
                 .Setup(engine => engine.StreamAllAsync(
-                    It.IsAny<ReportComponent>(),
+                    It.IsAny<ReportExecutionContext>(),
                     It.IsAny<ViewerDataRequest>(),
                     12,
                     It.IsAny<CancellationToken>()))
@@ -122,7 +122,7 @@ namespace AssetFox.Core.UniversalReporting.Tests
             var queryEngine = new Mock<IUniversalQueryEngine>();
             queryEngine
                 .Setup(engine => engine.StreamAllAsync(
-                    It.IsAny<ReportComponent>(),
+                    It.IsAny<ReportExecutionContext>(),
                     It.IsAny<ViewerDataRequest>(),
                     12,
                     It.IsAny<CancellationToken>()))
@@ -158,9 +158,9 @@ namespace AssetFox.Core.UniversalReporting.Tests
                 Assert.Equal(92d, worksheet.Cells[4, 8].Value);
 
                 queryEngine.Verify(engine => engine.StreamAllAsync(
-                    It.Is<ReportComponent>(exportComponent =>
-                        exportComponent.Config.ContainsKey("showNoTreatment")
-                        && Equals(exportComponent.Config["showNoTreatment"], true)),
+                    It.Is<ReportExecutionContext>(context =>
+                        context.Component.Config.ContainsKey("showNoTreatment")
+                        && Equals(context.Component.Config["showNoTreatment"], true)),
                     It.IsAny<ViewerDataRequest>(),
                     12,
                     It.IsAny<CancellationToken>()), Times.Once);

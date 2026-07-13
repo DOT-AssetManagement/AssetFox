@@ -110,6 +110,7 @@ namespace AssetFoxCore
             services.AddScoped<ICompleteSimulationCloningService, CompleteSimulationCloningService>();
             services.AddScoped<CriteriaSqlEmitter>();
             services.AddScoped<ChartTemplateValidator>();
+            services.AddScoped<ReportCalculatedFieldSqlCompiler>();
             services.AddScoped<IViewerDataService, ViewerDataService>();
             services.AddScoped<IComponentDataSource, AssetDetailDataSource>();
             services.AddScoped<IComponentDataSource, TreatmentTimelineDataSource>();

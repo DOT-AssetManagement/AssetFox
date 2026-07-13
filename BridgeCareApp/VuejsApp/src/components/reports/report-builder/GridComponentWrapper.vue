@@ -113,7 +113,7 @@ const previewText = computed(() => {
             const c = config as TreatmentTimelineConfig;
             const attrCols = c.attributeColumns?.length || 0;
             const yearFields = c.yearDataFields?.length || 0;
-            return `${attrCols} attribute column${attrCols !== 1 ? 's' : ''} · ${yearFields} year field${yearFields !== 1 ? 's' : ''}`;
+            return `${attrCols} static field${attrCols !== 1 ? 's' : ''} · ${yearFields} year field${yearFields !== 1 ? 's' : ''}`;
         }
         case 'workSummary': {
             const c = config as WorkSummaryConfig;
@@ -123,8 +123,8 @@ const previewText = computed(() => {
             return 'Budget utilization per year';
         case 'conditionTracking': {
             const c = config as ConditionTrackingConfig;
-            const count = c.conditionAttributes?.length || 0;
-            return `${count} condition attribute${count !== 1 ? 's' : ''}${c.showInitialState ? ' · Initial state' : ''}`;
+            const count = c.conditionFields?.length || c.conditionAttributes?.length || 0;
+            return `${count} condition field${count !== 1 ? 's' : ''}${c.showInitialState ? ' · Initial state' : ''}`;
         }
         case 'fundedTreatmentList': {
             const c = config as FundedTreatmentListConfig;

@@ -6,6 +6,7 @@ using AssetFox.Core.DTOs;
 using AssetFox.Core.DTOs.Enums;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFox.Core.UniversalReporting.Charts;
+using AssetFox.Core.UniversalReporting.Query;
 using AssetFox.Core.UniversalReporting.Schema;
 using AssetFoxCore.Controllers.BaseController;
 using AssetFoxCore.Models;
@@ -27,15 +28,18 @@ namespace AssetFoxCore.Controllers
             IHubService hubService,
             IHttpContextAccessor httpContextAccessor,
             IClaimHelper claimHelper,
-            ChartTemplateValidator chartTemplateValidator)
+            ChartTemplateValidator chartTemplateValidator,
+            ReportCalculatedFieldSqlCompiler calculatedFieldCompiler)
             : base(esecSecurity, unitOfWork, hubService, httpContextAccessor)
         {
             _claimHelper = claimHelper ?? throw new ArgumentNullException(nameof(claimHelper));
             _chartTemplateValidator = chartTemplateValidator ?? throw new ArgumentNullException(nameof(chartTemplateValidator));
+            _calculatedFieldCompiler = calculatedFieldCompiler ?? throw new ArgumentNullException(nameof(calculatedFieldCompiler));
         }
 
         private readonly IClaimHelper _claimHelper;
         private readonly ChartTemplateValidator _chartTemplateValidator;
+        private readonly ReportCalculatedFieldSqlCompiler _calculatedFieldCompiler;
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;
         private bool IncludeAllTemplates => !_claimHelper.RequirePermittedCheck();
 
@@ -48,6 +52,23 @@ namespace AssetFoxCore.Controllers
         public class ReportSchemaPagingRequest : PagingRequestModel<ReportSchemaDTO>
         {
             public string Scope { get; set; } = "all";
+        }
+
+        [HttpPost("validate-calculated-fields")]
+        [Authorize]
+        public IActionResult ValidateCalculatedFields([FromBody] List<ReportCalculatedField> fields)
+        {
+            try
+            {
+                _calculatedFieldCompiler.ValidateDefinitions(
+                    fields ?? new List<ReportCalculatedField>(),
+                    UnitOfWork.AttributeRepo);
+                return Ok(new { valid = true });
+            }
+            catch (Exception exception)
+            {
+                return BadRequest(new { error = exception.Message });
+            }
         }
 
         [HttpGet]
@@ -127,6 +148,11 @@ namespace AssetFoxCore.Controllers
                     {
                         return BadRequest($"Invalid schema JSON: {error}");
                     }
+
+                    if (!ValidateCalculatedFields(schema, out error))
+                    {
+                        return BadRequest($"Invalid schema JSON: {error}");
+                    }
                 }
 
                 if (dto.Id == Guid.Empty)
@@ -186,6 +212,11 @@ namespace AssetFoxCore.Controllers
                     }
 
                     if (!ValidateChartTemplates(schema, out error))
+                    {
+                        return BadRequest($"Invalid schema JSON: {error}");
+                    }
+
+                    if (!ValidateCalculatedFields(schema, out error))
                     {
                         return BadRequest($"Invalid schema JSON: {error}");
                     }
@@ -438,6 +469,24 @@ namespace AssetFoxCore.Controllers
 
             error = null;
             return true;
+        }
+
+        private bool ValidateCalculatedFields(ReportSchemaDefinition schema, out string error)
+        {
+            try
+            {
+                _calculatedFieldCompiler.ValidateDefinitions(
+                    schema.CalculatedFields ?? new List<ReportCalculatedField>(),
+                    UnitOfWork.AttributeRepo);
+                _calculatedFieldCompiler.ValidateSchemaReferences(schema);
+                error = null;
+                return true;
+            }
+            catch (Exception exception)
+            {
+                error = exception.Message;
+                return false;
+            }
         }
     }
 }

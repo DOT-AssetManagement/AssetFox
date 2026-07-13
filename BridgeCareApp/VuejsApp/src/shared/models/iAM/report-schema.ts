@@ -57,7 +57,58 @@ export interface ReportSchemaDefinition {
     schemaVersion: string;
     name: string;
     description: string;
+    calculatedFields: ReportCalculatedField[];
     pages: ReportPage[];
+}
+
+export type ReportCalculatedFieldResultType = 'text' | 'number';
+export type ReportCalculatedFieldMode = 'formula' | 'rules';
+
+export interface ReportAttributeReference {
+    attributeId: string;
+    token: string;
+    name: string;
+}
+
+export interface ReportExpressionDefinition {
+    expression: string;
+    attributeReferences: ReportAttributeReference[];
+}
+
+export interface ReportCalculationResult {
+    value: string | null;
+}
+
+export type ReportRuleLogicalOperator = 'all' | 'any';
+export type ReportRuleComparisonOperator =
+    'equals' | 'notEquals' |
+    'lessThan' | 'lessThanOrEqual' | 'greaterThan' | 'greaterThanOrEqual' |
+    'contains' | 'notContains' | 'startsWith' | 'endsWith';
+
+export interface ReportRuleCondition {
+    id: string;
+    attribute: ReportAttributeReference;
+    operator: ReportRuleComparisonOperator | '';
+    value: string | null;
+}
+
+export interface ReportCalculationRule {
+    id: string;
+    logicalOperator: ReportRuleLogicalOperator;
+    conditions: ReportRuleCondition[];
+    result: ReportCalculationResult;
+}
+
+export interface ReportCalculatedField {
+    id: string;
+    name: string;
+    description: string;
+    resultType: ReportCalculatedFieldResultType;
+    mode: ReportCalculatedFieldMode;
+    formula?: ReportExpressionDefinition;
+    rules: ReportCalculationRule[];
+    defaultResult?: ReportCalculationResult;
+    missingResult?: ReportCalculationResult;
 }
 
 export interface ReportPage {
@@ -133,6 +184,7 @@ export interface BudgetSummaryConfig {
 
 export interface ConditionTrackingConfig {
     conditionAttributes: string[];
+    conditionFields?: ColumnDef[];
     attributeColumns: ColumnDef[];
     showInitialState: boolean;
 }
@@ -218,6 +270,8 @@ export type ComponentConfig =
 // ============================================================
 
 export interface ColumnDef {
+    source?: 'attribute' | 'calculatedField';
+    fieldId?: string;
     attributeName: string;
     displayHeader: string;
     format: ColumnFormat;
@@ -225,6 +279,8 @@ export interface ColumnDef {
 }
 
 export interface ReportAttributeOption {
+    source: 'attribute' | 'calculatedField';
+    fieldId: string;
     name: string;
     type: string;
 }
@@ -236,8 +292,9 @@ export interface SimulationColumnDef {
 }
 
 export interface YearField {
-    type: 'treatment' | 'cost' | 'attribute';
+    type: 'treatment' | 'cost' | 'attribute' | 'calculatedField';
     attributeName?: string;
+    fieldId?: string;
     displayHeader: string;
     format: ColumnFormat;
 }
@@ -286,11 +343,68 @@ export const emptyYearField: YearField = {
 };
 
 export const emptyReportSchemaDefinition: ReportSchemaDefinition = {
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     name: '',
     description: '',
+    calculatedFields: [],
     pages: [createDefaultPage()],
 };
+
+export function createEmptyReportCalculatedField(): ReportCalculatedField {
+    return {
+        id: getNewGuid(),
+        name: '',
+        description: '',
+        resultType: 'text',
+        mode: 'rules',
+        formula: {
+            expression: '',
+            attributeReferences: [],
+        },
+        rules: [{
+            id: getNewGuid(),
+            logicalOperator: 'all',
+            conditions: [createEmptyReportRuleCondition()],
+            result: { value: null },
+        }],
+        defaultResult: { value: null },
+        missingResult: { value: null },
+    };
+}
+
+export function createEmptyReportRuleCondition(): ReportRuleCondition {
+    return {
+        id: getNewGuid(),
+        attribute: {
+            attributeId: '',
+            token: '',
+            name: '',
+        },
+        operator: '',
+        value: null,
+    };
+}
+
+export function reportColumnKey(column: Pick<ColumnDef, 'source' | 'fieldId' | 'attributeName'>): string {
+    return column.source === 'calculatedField'
+        ? `calculatedField:${column.fieldId || ''}`
+        : `attribute:${column.fieldId || column.attributeName}`;
+}
+
+export function reportFieldOptionKey(field: ReportAttributeOption): string {
+    return `${field.source}:${field.fieldId}`;
+}
+
+export function columnDefFromReportField(field: ReportAttributeOption): ColumnDef {
+    return {
+        source: field.source,
+        fieldId: field.fieldId,
+        attributeName: field.name,
+        displayHeader: field.name,
+        format: field.type === 'NUMBER' ? 'number' : 'text',
+        width: 12,
+    };
+}
 
 // ============================================================
 // Default configs per component type
@@ -330,6 +444,7 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
         case 'conditionTracking':
             return {
                 conditionAttributes: [],
+                conditionFields: [],
                 attributeColumns: [],
                 showInitialState: true,
             } as ConditionTrackingConfig;
@@ -388,9 +503,15 @@ export function createDefaultChartConfig(kind: ChartKind): ChartConfig {
 }
 
 export function pageSizeToGridH(pageSize: number): number {
-    if (pageSize <= 10) return 2;
-    if (pageSize <= 25) return 3;
-    if (pageSize <= 50) return 4;
+    if (pageSize <= 10) {
+        return 2;
+    }
+    if (pageSize <= 25) {
+        return 3;
+    }
+    if (pageSize <= 50) {
+        return 4;
+    }
     return 5;
 }
 

@@ -17,11 +17,12 @@ namespace AssetFox.Core.UniversalReporting.Components
         public string ComponentType => "textBlock";
 
         public ComponentQuery Build(
-            ReportComponent component,
+            ReportExecutionContext executionContext,
             ViewerDataRequest request,
             int runId,
             AttributeLookup attributes)
         {
+            var component = executionContext.Component;
             var config = component.Config ?? new Dictionary<string, object>();
             var content = GetConfigString(config, "content", "");
             var style = GetConfigString(config, "style", "body");
