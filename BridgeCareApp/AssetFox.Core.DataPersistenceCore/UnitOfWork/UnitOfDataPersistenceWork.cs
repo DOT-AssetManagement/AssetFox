@@ -203,6 +203,18 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
             }
         }
 
+        public void MigrateUsername(string oldUsername, string newUsername, string displayName)
+        {
+            // Share AddUserLock so a migrate and an add for the same user can't race.
+            lock (AddUserLock)
+            {
+                if (!UserRepo.UserExists(newUsername) && UserRepo.UserExists(oldUsername))
+                {
+                    UserRepo.MigrateUsername(oldUsername, newUsername, displayName);
+                }
+            }
+        }
+
         /// <summary><inheritdoc cref="IUnitOfWork.Commit"/></summary>
         public void Commit()
         {

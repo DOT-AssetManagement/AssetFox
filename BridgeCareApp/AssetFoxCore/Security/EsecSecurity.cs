@@ -124,7 +124,25 @@ namespace AssetFoxCore.Security
                 };
             }
 
-            if (_securityType == SecurityTypes.B2C || _securityType == SecurityTypes.Entra)
+            if (_securityType == SecurityTypes.Entra)
+            {
+                var HasAdminAccess = _roleClaimsMapper.HasAdminAccess(claimsPrincipal);
+                var HasSimulationAccess = _roleClaimsMapper.HasSimulationAccess(claimsPrincipal);
+
+                // Entra: identity is the unique email/preferred_username/oid, NOT the display name,
+                // so two users who share a display name remain distinct accounts. The display name
+                // is carried separately for UI and for migrating legacy display-name-keyed rows.
+                return new UserInfo
+                {
+                    Name = decodedToken.GetEntraUsername(),
+                    DisplayName = decodedToken.GetClaimValue("name"),
+                    Email = decodedToken.GetClaimValue("email"),
+                    HasAdminAccess = HasAdminAccess,
+                    HasSimulationAccess = HasSimulationAccess
+                };
+            }
+
+            if (_securityType == SecurityTypes.B2C)
             {
                 var HasAdminAccess = _roleClaimsMapper.HasAdminAccess(claimsPrincipal);
                 var HasSimulationAccess = _roleClaimsMapper.HasSimulationAccess(claimsPrincipal);
@@ -133,7 +151,7 @@ namespace AssetFoxCore.Security
                 {
                     Name = decodedToken.GetClaimValue("name"),
                     Email = decodedToken.GetClaimValue("email"),
-                    HasAdminAccess = HasAdminAccess, 
+                    HasAdminAccess = HasAdminAccess,
                     HasSimulationAccess = HasSimulationAccess
                 };
             }

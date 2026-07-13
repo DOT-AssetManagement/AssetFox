@@ -297,20 +297,33 @@ namespace AssetFoxCore.Controllers
                 var handler = new JwtSecurityTokenHandler();
                 var userToken = handler.ReadJwtToken(idToken);
 
-                var userNameClaim = userToken.Claims.FirstOrDefault(claim => claim.Type == "name");
-                if (userNameClaim == null)
+                if (_securityType == SecurityTypes.Entra)
                 {
-                    var subClaim = userToken.Claims.FirstOrDefault(claim => claim.Type == "sub");
-                    if (subClaim == null)
+                    // Must match EsecSecurity's Entra identity (email/preferred_username/oid), not the
+                    // display name, or this lookup misses the row created/renamed for the real user.
+                    userName = userToken.GetEntraUsername();
+                    if (string.IsNullOrEmpty(userName))
                     {
-                        return Unauthorized("The token does not contain a 'username' claim.");
+                        return Unauthorized("The token does not contain a usable identity claim.");
                     }
-
-                    userName = SecurityFunctions.ParseLdap(userToken.GetClaimValue("sub"))[0];
                 }
                 else
                 {
-                    userName = userNameClaim.Value;
+                    var userNameClaim = userToken.Claims.FirstOrDefault(claim => claim.Type == "name");
+                    if (userNameClaim == null)
+                    {
+                        var subClaim = userToken.Claims.FirstOrDefault(claim => claim.Type == "sub");
+                        if (subClaim == null)
+                        {
+                            return Unauthorized("The token does not contain a 'username' claim.");
+                        }
+
+                        userName = SecurityFunctions.ParseLdap(userToken.GetClaimValue("sub"))[0];
+                    }
+                    else
+                    {
+                        userName = userNameClaim.Value;
+                    }
                 }
             }
 

@@ -34,6 +34,39 @@ function activeAcquireTokenConfig(): PopupRequest {
     return isEntra() ? entraAcquireTokenConfig : b2cAcquireTokenConfig;
 }
 
+// Decodes a JWT payload without pulling in a dependency. Returns null on any malformed token.
+function decodeJwtPayload(token: string): Record<string, any> | null {
+    try {
+        const payload = token.split('.')[1];
+        const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+        const json = decodeURIComponent(
+            atob(normalized)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join(''),
+        );
+        return JSON.parse(json);
+    } catch {
+        return null;
+    }
+}
+
+// Entra identity: read it from the same access token the backend validates so the two never
+// diverge (SignalR groups and share-by-username depend on the strings matching). Mirrors the
+// backend's SecurityFunctions.GetEntraUsername priority: email -> preferred_username -> oid.
+// The display name is deliberately NOT used, since two users can share one.
+function entraUsernameFromAccessToken(): string | null {
+    const token = localStorage.getItem('access_token');
+    if (!hasValue(token)) {
+        return null;
+    }
+    const claims = decodeJwtPayload(token as string);
+    if (claims === null) {
+        return null;
+    }
+    return claims.email || claims.preferred_username || claims.oid || null;
+}
+
 let msalInstance: PublicClientApplication | null = null;
 function getMsalInstance(): PublicClientApplication {
     if (msalInstance === null) {
@@ -193,11 +226,18 @@ const actions = {
     async getAzureAccountDetails({ dispatch }: any) {
         await ensureInitialized();
         const accountDetails = getCurrentAccount();
-        if (hasValue(accountDetails) && hasValue(accountDetails!.name)) {
-            localStorage.setItem('LoggedInUser', accountDetails!.name as string);
+        // Entra: unique identity from the access token (email/preferred_username/oid), matching the
+        // backend. B2C: unchanged display-name behavior.
+        const username = isEntra()
+            ? entraUsernameFromAccessToken()
+            : hasValue(accountDetails) && hasValue(accountDetails!.name)
+                ? (accountDetails!.name as string)
+                : null;
+        if (hasValue(username)) {
+            localStorage.setItem('LoggedInUser', username as string);
            await dispatch('setAzureUserInfo', {
                 status: true,
-                username: accountDetails!.name,
+                username: username,
             });
         } else {
             localStorage.removeItem('LoggedInUser');
