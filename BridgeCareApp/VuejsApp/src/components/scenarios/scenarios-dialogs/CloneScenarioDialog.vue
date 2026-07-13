@@ -62,16 +62,14 @@ import { toRefs, computed, ref, watch } from 'vue';
 import { getUserName } from '@/shared/utils/get-user-info';
 import { User } from '@/shared/models/iAM/user';
 import {
-    emptyScenario,
-    Scenario,
     ScenarioUser,
     CloneScenario,
     emptyCloneScenario,
 } from '@/shared/models/iAM/scenario';
 import { getBlankGuid, getNewGuid } from '@/shared/utils/uuid-utils';
-import { find, isNil, propEq, clone } from 'ramda';
+import { clone, find, isNil, propEq } from 'ramda';
 import { emptyNetwork, Network } from '@/shared/models/iAM/network';
-import {CloneScenarioDialogData,CloneSimulationDialogData} from '@/shared/models/modals/clone-scenario-dialog-data';
+import { CloneSimulationDialogData } from '@/shared/models/modals/clone-scenario-dialog-data';
 import {
     InputValidationRules,
     rules as validationRules,
@@ -93,19 +91,55 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
     let isNetworkSelected = ref(false);
     let networkMetaData = ref<Network>({...emptyNetwork})
     let selectedNetworkName: string;
-    let hasCompatibleNetworks: boolean = false;
     const scenarioNameErrors = ref<string[]>([]);
+
+    function initializeNetworkSelection(force: boolean = false) {
+        const sourceNetworkId: string = props.dialogData.scenario.networkId;
+        const sourceNetworkName: string = props.dialogData.scenario.networkName;
+        const sourceNetwork = clone(networkStore.networksGetter.find((network: Network) => network.id === sourceNetworkId));
+
+        const hasCurrentSelection =
+            !isNil(selectedNetworkId) &&
+            selectedNetworkId !== '' &&
+            selectedNetworkId !== getBlankGuid();
+
+        if (!force && hasCurrentSelection) {
+            if (!isNil(sourceNetwork) && !isNil(networkMetaData.value) && networkMetaData.value.id === selectedNetworkId) {
+                networkMetaData.value = sourceNetwork;
+            }
+            return;
+        }
+
+        selectedNetworkId = sourceNetworkId;
+        selectedNetworkName = sourceNetworkName;
+
+        if (!isNil(sourceNetwork)) {
+            networkMetaData.value = sourceNetwork;
+        }
+
+        isNetworkSelected.value =
+            !isNil(sourceNetworkId) &&
+            sourceNetworkId !== '' &&
+            sourceNetworkId !== getBlankGuid();
+    }
 
     watch(dialogData,()=> {
         onModifyScenarioUserAccess();
     });
 
+    watch(
+        () => [props.dialogData.showDialog, props.dialogData.scenario.id],
+        ([showDialog]) => {
+            if (showDialog) {
+                initializeNetworkSelection(true);
+                onModifyScenarioUserAccess();
+                validateScenarioName();
+            }
+        },
+    );
+
     watch(() => networkStore.networksGetter, ()=>  {
-        selectedNetworkId = props.dialogData.scenario.networkId;
-        selectedNetworkName = props.dialogData.scenario.networkName;
-         networkMetaData.value =  networkStore.networksGetter.find(_ => _.id == props.dialogData.scenario.networkId) ||  networkMetaData.value;
-         isNetworkSelected.value = true;
-        hasCompatibleNetworks = true;
+        initializeNetworkSelection();
     });
 
     watch(shared, ()=> {
@@ -174,7 +208,7 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
             scenarioNameErrors.value.push(specialCharError as string);
         }
 
-        if (scenarioStore.getScenarioNames.find(_ => _ == props.dialogData.scenario.name) != undefined)
+        if (scenarioStore.getScenarioNames.find((scenarioName: string) => scenarioName == props.dialogData.scenario.name) != undefined)
         {
             scenarioNameErrors.value.push("There is already a scenario with that name")
         }
@@ -183,7 +217,7 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
 
     const hasValidationErrors = computed(() => scenarioNameErrors.value.length > 0);
     const isSaveButtonDisabled = computed(() => 
-        newScenario.name === '' || !isNetworkSelected.value || hasValidationErrors.value
+        dialogData.value.scenario.name === '' || !isNetworkSelected.value || hasValidationErrors.value
     );
     watch(() => dialogData.value.scenario.name, validateScenarioName);
 
@@ -199,8 +233,7 @@ import { useNetworkStore, useScenarioStore, useUserStore } from '@/stores';
         }
 
         newScenario = { ...emptyCloneScenario, id: getNewGuid() };
-        shared = ref(false);
-        hasCompatibleNetworks = false;
+        shared.value = false;
     }
 
 </script>
