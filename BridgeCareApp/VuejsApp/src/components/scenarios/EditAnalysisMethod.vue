@@ -68,7 +68,7 @@
                 >
                 </v-select>
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col v-if="hasAdminAccess" cols="12" md="4">
                 <v-subheader class="ghd-control-label ghd-md-gray">Benefit Limit</v-subheader>
                 <v-text-field
                     id="EditAnalysisMethod-benefitLimit-textField"
@@ -91,8 +91,8 @@
             </v-col>
         </v-row>
         <v-row>
-            <v-col cols="12" lg="5">
-                <v-switch 
+            <v-col v-if="hasAdminAccess" cols="12" lg="5">
+                <v-switch
                 id="EditAnalysisMethod-allowMultiBudgetFunding-switch"
                 class="ghd-checkbox"
                 color="#2A578D"
@@ -112,7 +112,7 @@
                 @update:model-value='onSetAnalysisMethodProperty("shouldAllowMultipleTreatments",$event)'/>
             </v-col>
         </v-row>
-        <v-row>
+        <v-row v-if="hasAdminAccess">
             <v-col cols="12" lg="5">
                 <v-switch 
                 id="EditAnalysisMethod-useSuperAssets-switch"
@@ -273,7 +273,7 @@ import { useAnalysisMethodStore, useAttributeStore, useAuthenticationStore, useN
             value: OptimizationStrategy.RemainingLifeToCostRatio,
         },
     ];
-    const spendingStrategy: SelectItem[] = [
+    const spendingStrategyOptions: SelectItem[] = [
         { text: 'No Spending', value: SpendingStrategy.NoSpending },
         {
             text: 'Unlimited Spending',
@@ -293,6 +293,20 @@ import { useAnalysisMethodStore, useAttributeStore, useAuthenticationStore, useN
         },
         { text: 'As Budget Permits', value: SpendingStrategy.AsBudgetPermits },
     ];
+    const adminOnlySpendingStrategies: SpendingStrategy[] = [
+        SpendingStrategy.UntilTargetAndDeficientConditionGoalsMet,
+        SpendingStrategy.UntilTargetConditionGoalsMet,
+        SpendingStrategy.UntilDeficientConditionGoalsMet,
+    ];
+    const spendingStrategy = computed<SelectItem[]>(() =>
+        hasAdminAccess.value
+            ? spendingStrategyOptions
+            : spendingStrategyOptions.filter(
+                option => !adminOnlySpendingStrategies.includes(
+                    option.value as SpendingStrategy,
+                ),
+            ),
+    );
     const benefitAttributes = ref<SelectItem[]>([]);
     const weightingAttributes = ref<SelectItem[]>([{ text: '', value: '' }]);
     const superAssetAttributes = ref<SelectItem[]>([]);

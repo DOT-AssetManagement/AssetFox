@@ -113,7 +113,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             AddIriConditionSection(worksheet, currentCell, reportOutputData, "IRI Condition - Pavement Section Miles BPN 2", chartRowsModel.IRI_BPN_2_ChartModel, BPNName.BPN2);
             AddIriConditionSection(worksheet, currentCell, reportOutputData, "IRI Condition - Pavement Section Miles BPN 3", chartRowsModel.IRI_BPN_3_ChartModel, BPNName.BPN3);
             AddIriConditionSection(worksheet, currentCell, reportOutputData, "IRI Condition - Pavement Section Miles BPN 4", chartRowsModel.IRI_BPN_4_ChartModel, BPNName.BPN4);
-            AddIriConditionSection(worksheet, currentCell, reportOutputData, "IRI Condition - Pavement Section Miles Statewide", chartRowsModel.IRI_StateWide_ChartModel, BPNName.Statewide, chartRowsModel);
+            AddIriConditionSection(worksheet, currentCell, reportOutputData, "IRI Condition - Pavement Section Miles Combined", chartRowsModel.IRI_StateWide_ChartModel, BPNName.Statewide, chartRowsModel);
 
             return chartRowsModel;
         }

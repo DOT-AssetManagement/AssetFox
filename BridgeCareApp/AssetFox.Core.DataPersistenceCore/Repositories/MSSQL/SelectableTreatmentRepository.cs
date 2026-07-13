@@ -969,7 +969,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .Select(_ => new SimpleTreatmentDTO()
                 {
                     Id = _.Id,
-                    Name = _.Name
+                    Name = _.Name,
+                    IsUnselectable = _.IsUnselectable
                 })
                 .OrderBy(_ => _.Name)
                 .ToList();
@@ -987,7 +988,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .Select(_ => new SimpleTreatmentDTO()
                 {
                     Id = _.Id,
-                    Name = _.Name
+                    Name = _.Name,
+                    IsUnselectable = _.IsUnselectable
                 })
                 .OrderBy(_ => _.Name)
                 .ToList();

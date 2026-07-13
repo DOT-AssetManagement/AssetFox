@@ -121,7 +121,33 @@
                             <v-list-item ripple :class="{'selected-treatment-item': isSelectedTreatmentItem(treatmentSelectItem.value)}"
                                         avatar @click='onSetTreatmentSelectItemValue(treatmentSelectItem.value)'>
                                 <v-list-item-content class ="item-content">
-                                    <span>{{treatmentSelectItem.text}}</span>
+                                    <div class="treatment-list-label">
+                                        <span>{{treatmentSelectItem.text}}</span>
+                                        <v-tooltip
+                                            v-if="hasScenario && treatmentSelectItem.isUnselectable"
+                                            location="top"
+                                            text="This treatment was marked as unselectable."
+                                        >
+                                            <template v-slot:activator="{ props }">
+                                                <span
+                                                    v-bind="props"
+                                                    class="treatment-unselectable-tooltip-target"
+                                                    aria-label="Treatment marked as unselectable"
+                                                    role="img"
+                                                    @click.stop
+                                                >
+                                                    <v-icon
+                                                        class="treatment-unselectable-icon"
+                                                        color="#B26A00"
+                                                        size="small"
+                                                        aria-hidden="true"
+                                                    >
+                                                        fas fa-exclamation
+                                                    </v-icon>
+                                                </span>
+                                            </template>
+                                        </v-tooltip>
+                                    </div>
                                     <div style="display: flex; flex-shrink: 0;">
                                     <v-btn flat icon style="margin-left: 10px; background-color: transparent;" v-show="treatmentSelectItem.text!='No Treatment'"
                                     @click.stop="OnCloneTreatmentClicked(treatmentSelectItem.value)"  class="ghd-red">
@@ -460,7 +486,11 @@ import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.v
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import { getUrl } from '@/shared/utils/get-url';
 import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore, useTreatmentStore, useUnsavedChangesStore, useUserStore } from '@/stores';
-    const emit = defineEmits(['submit'])    
+    interface TreatmentSelectItem extends SelectItem {
+        isUnselectable: boolean;
+    }
+
+    const emit = defineEmits(['submit'])
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     const $router = useRouter();
     const confirm = useConfirm();
@@ -480,7 +510,7 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     let selectedScenarioId: string = getBlankGuid();
     let hasSelectedLibrary = ref(false);
     let librarySelectItems = shallowRef<SelectItem[]>([]);
-    let treatmentSelectItems = shallowRef<SelectItem[]>([]);
+    let treatmentSelectItems = shallowRef<TreatmentSelectItem[]>([]);
     let treatmentSelectItemValue = ref("");
     let selectedTreatment = ref(clone(emptyTreatment));
     let selectedTreatmentDetails: TreatmentDetails = clone(emptyTreatmentDetails);
@@ -715,6 +745,7 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
         treatmentSelectItems.value = simpleTreatments.value.map((treatment: SimpleTreatment) => ({
             text: treatment.name,
             value: treatment.id,
+            isUnselectable: treatment.isUnselectable,
         }));
 
         checkHasUnsavedChanges()
@@ -727,7 +758,8 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
         treatmentSelectItems.value = treatments.value.map((treatment: Treatment) => ({
             text: treatment.name,
             value: treatment.id,
-        }));       
+            isUnselectable: treatment.isUnselectable,
+        }));
         unsavedChangesStore.setHasUnsavedChanges(false)
         disableCrudButtons();
     }
@@ -1108,7 +1140,11 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
             else 
                 newTreatment.libraryId = selectedTreatmentLibrary.value.id
             addedRows = append(newTreatment, addedRows);
-            simpleTreatments.value = append({name: newTreatment.name, id: newTreatment.id}, simpleTreatments.value);
+            simpleTreatments.value = append({
+                name: newTreatment.name,
+                id: newTreatment.id,
+                isUnselectable: newTreatment.isUnselectable,
+            }, simpleTreatments.value);
             setTimeout(() => (treatmentSelectItemValue.value = newTreatment.id));
         }
     }
@@ -1294,6 +1330,11 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
 
     function modifySelectedTreatment(treatment: Treatment) {
         selectedTreatment.value = treatment;
+        treatmentSelectItems.value = treatmentSelectItems.value.map(item =>
+            item.value.toString() === treatment.id
+                ? { ...item, isUnselectable: treatment.isUnselectable }
+                : item,
+        );
 
         onUpdateRow(treatment.id, treatment);
         checkHasUnsavedChanges();
@@ -1376,14 +1417,22 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
             newTreatment.libraryId = parentLibraryId
             newTreatment.name = result.file.name.slice(0, -5);
             addedRows = append(newTreatment, addedRows);
-            simpleTreatments.value = append({name: result.file.name.slice(0, -5), id: selectedScenarioId}, simpleTreatments.value);
+            simpleTreatments.value = append({
+                name: result.file.name.slice(0, -5),
+                id: selectedScenarioId,
+                isUnselectable: newTreatment.isUnselectable,
+            }, simpleTreatments.value);
             setTimeout(() => (treatmentSelectItemValue.value = newTreatment.id));
         }
         else{
             newTreatment.libraryId = selectedTreatmentLibrary.value.id
             newTreatment.name = result.file.name.slice(0, -5);
             addedRows = append(newTreatment, addedRows);
-            simpleTreatments.value = append({name: result.file.name.slice(0, -5), id: newTreatment.libraryId}, simpleTreatments.value);
+            simpleTreatments.value = append({
+                name: result.file.name.slice(0, -5),
+                id: newTreatment.libraryId,
+                isUnselectable: newTreatment.isUnselectable,
+            }, simpleTreatments.value);
             setTimeout(() => (treatmentSelectItemValue.value = newTreatment.id));
         }
             
@@ -1630,7 +1679,11 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
 
         if (!isNil(treatmentClone)) {
             addedRows = append(treatmentClone, addedRows);
-            simpleTreatments.value = append({name: treatmentClone.name, id: treatmentClone.id}, simpleTreatments.value);
+            simpleTreatments.value = append({
+                name: treatmentClone.name,
+                id: treatmentClone.id,
+                isUnselectable: treatmentClone.isUnselectable,
+            }, simpleTreatments.value);
             setTimeout(() => (treatmentSelectItemValue.value = treatmentClone.id));
         }
 
@@ -1730,5 +1783,25 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+.treatment-list-label {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+.treatment-unselectable-tooltip-target {
+    align-items: center;
+    background: transparent;
+    border-radius: 50%;
+    clip-path: circle(50%);
+    display: inline-flex;
+    flex: 0 0 28px;
+    height: 28px;
+    justify-content: center;
+    margin-left: 4px;
+    width: 28px;
+}
+.treatment-unselectable-icon {
+    pointer-events: none;
 }
 </style>

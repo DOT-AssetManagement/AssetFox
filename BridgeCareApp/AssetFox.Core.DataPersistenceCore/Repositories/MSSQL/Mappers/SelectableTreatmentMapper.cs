@@ -315,7 +315,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                         .Select(_ => new SimpleTreatmentDTO
                         {
                             Id = _.SelectableTreatmentId,
-                            Name = _.SelectableTreatment.Name
+                            Name = _.SelectableTreatment.Name,
+                            IsUnselectable = _.SelectableTreatment.IsUnselectable
                         })
                         .OrderBy(_ => _.Name)
                         .ToList()
@@ -352,7 +353,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                         .Select(_ => new SimpleTreatmentDTO
                         {
                             Id = _.ScenarioSelectableTreatmentId,
-                            Name = _.ScenarioSelectableTreatment.Name
+                            Name = _.ScenarioSelectableTreatment.Name,
+                            IsUnselectable = _.ScenarioSelectableTreatment.IsUnselectable
                         })
                         .OrderBy(_ => _.Name)
                         .ToList()

@@ -208,6 +208,8 @@ namespace AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment
             SetupAttributesAndNetwork();
             var simulation = SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork);
             var budget = CreateScenarioTestData(simulation.Id);
+            _testScenarioTreatment.IsUnselectable = true;
+            TestHelper.UnitOfWork.Context.SaveChanges();
 
             // Act
             var dtos = TestHelper.UnitOfWork.SelectableTreatmentRepo.GetSimpleTreatmentsBySimulationId(simulation.Id);
@@ -215,6 +217,7 @@ namespace AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment
             Assert.Single(dtos);
 
             Assert.Equal(_testScenarioTreatment.Id, dtos[0].Id);
+            Assert.True(dtos[0].IsUnselectable);
         }
 
         [Fact]

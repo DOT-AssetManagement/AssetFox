@@ -63,7 +63,8 @@ namespace AssetFoxCore.Services.SimulationCloning
                 clonedTreatmentDtos.Add(new SimpleTreatmentDTO
                 {
                     Id = clonedTreatment.Id,
-                    Name = clonedTreatment.Name
+                    Name = clonedTreatment.Name,
+                    IsUnselectable = clonedTreatment.IsUnselectable
                 });
             }
 

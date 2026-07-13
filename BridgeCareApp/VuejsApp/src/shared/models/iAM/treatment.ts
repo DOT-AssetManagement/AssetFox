@@ -49,6 +49,7 @@ export interface TreatmentConsequence {
 export interface SimpleTreatment {
     id: string;
     name: string;
+    isUnselectable: boolean;
 }
 
 export interface TreatmentSupersedeRule {
@@ -201,6 +202,7 @@ export const treatmentCategoryReverseMap: Map<TreatmentCategory, string> = new M
 export const emptySimpleTreatment: SimpleTreatment = {
     id: getBlankGuid(),
     name: '',
+    isUnselectable: false,
 }
 
 export interface TreatmentsFileImport {

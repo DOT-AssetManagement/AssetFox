@@ -114,7 +114,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PavementWorkSummary
             AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles BPN 2", chartRowsModel.OPI_BPN_2_ChartModel, BPNName.BPN2);
             AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles BPN 3", chartRowsModel.OPI_BPN_3_ChartModel, BPNName.BPN3);
             AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles BPN 4", chartRowsModel.OPI_BPN_4_ChartModel, BPNName.BPN4);
-            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles Statewide", chartRowsModel.OPI_StateWide_ChartModel, BPNName.Statewide, chartRowsModel);
+            AddOpiConditionSection(worksheet, currentCell, reportOutputData, "OPI Condition - Pavement Section Miles Combined", chartRowsModel.OPI_StateWide_ChartModel, BPNName.Statewide, chartRowsModel);
 
             return chartRowsModel;
         }
