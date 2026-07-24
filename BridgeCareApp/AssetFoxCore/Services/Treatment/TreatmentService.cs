@@ -16,6 +16,9 @@ namespace AssetFoxCore.Services
 {
     public class TreatmentService : ITreatmentService
     {
+        private const string DuplicateTreatmentNamesMessage =
+            "Treatment import rejected because duplicate treatment names are not allowed: {0}.";
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly ExcelTreatmentLoader _treatmentLoader;
 
@@ -59,6 +62,15 @@ namespace AssetFoxCore.Services
         public void ImportScenarioTreatmentsFileSingle(Guid simulationId, ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
             queueLog ??= new DoNothingWorkQueueLog();
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
+                return;
+            }
+
+            ValidateAdditiveImportTreatmentNames(
+                excelPackage,
+                _unitOfWork.SelectableTreatmentRepo.GetScenarioSelectableTreatmentNames(simulationId));
+
             var validationMessages = new List<string>();
             var scenarioTreatments = new List<TreatmentDTO>();
             var scenarioBudgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
@@ -103,10 +115,17 @@ namespace AssetFoxCore.Services
             ExcelPackage excelPackage, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null)
         {
             queueLog ??= new DoNothingWorkQueueLog();
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+            {
+                return;
+            }
+
             queueLog.UpdateWorkQueueStatus("Starting Import");
             var validationMessages = new List<string>();
-            //if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
-                //return new TreatmentImportResultDTO();
+            ValidateAdditiveImportTreatmentNames(
+                excelPackage,
+                _unitOfWork.SelectableTreatmentRepo.GetSelectableTreatmentNames(treatmentLibraryId));
+
             var treatmentLibrary = _unitOfWork.SelectableTreatmentRepo.GetSingleTreatmentLibary(treatmentLibraryId);
             var library = new TreatmentLibraryDTO
             {
@@ -122,8 +141,6 @@ namespace AssetFoxCore.Services
 
             foreach (var worksheet in excelPackage.Workbook.Worksheets)
             {
-                //if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
-                    //return new TreatmentImportResultDTO();
                 var loadTreatment = _treatmentLoader.LoadTreatment(worksheet);
                 library.Treatments.Add(loadTreatment.Treatment);
                 validationMessages.AddRange(loadTreatment.ValidationMessages);
@@ -131,6 +148,38 @@ namespace AssetFoxCore.Services
 
             _unitOfWork.SelectableTreatmentRepo.AddLibraryTreatments(library.Treatments, library.Id);
       
+        }
+
+        private static void ValidateAdditiveImportTreatmentNames(
+            ExcelPackage excelPackage,
+            IEnumerable<string> existingTreatmentNames)
+        {
+            var importedTreatmentNames = excelPackage.Workbook.Worksheets
+                .Select(worksheet => worksheet.Name.Trim())
+                .ToList();
+
+            var duplicateNames = importedTreatmentNames
+                .GroupBy(name => name, StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+
+            var existingNames = new HashSet<string>(
+                existingTreatmentNames.Select(name => name.Trim()),
+                StringComparer.OrdinalIgnoreCase);
+
+            duplicateNames.AddRange(importedTreatmentNames.Where(existingNames.Contains));
+            duplicateNames = duplicateNames
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (duplicateNames.Any())
+            {
+                throw new InvalidOperationException(string.Format(
+                    DuplicateTreatmentNamesMessage,
+                    string.Join(", ", duplicateNames)));
+            }
         }
 
         public TreatmentImportResultDTO ImportLibraryTreatmentsFile(

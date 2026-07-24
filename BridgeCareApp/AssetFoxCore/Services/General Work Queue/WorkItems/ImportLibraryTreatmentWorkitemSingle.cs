@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.DTOs.Enums;
 using AssetFoxCore.Controllers;
+using AssetFox.Core.DTOs;
 
 namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
 {
@@ -24,7 +25,12 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
         public string WorkDescription => "Import Library Treatment";
 
         public WorkQueueMetadata Metadata =>
-            new WorkQueueMetadata() { WorkType = WorkType.ImportLibraryTreatment, DomainType = DomainType.Treatment };
+            new WorkQueueMetadata()
+            {
+                WorkType = WorkType.ImportLibraryTreatment,
+                DomainType = DomainType.Treatment,
+                DomainId = TreatmentLibraryId
+            };
 
         public string WorkName => NetworkName;
 
@@ -44,7 +50,8 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
 
-            _hubService.SendRealTimeErrorMessage(UserId, $"{TreatmentController.TreatmentError}::ImportLibraryTreatmentsFile - Something was wrong with the provided file", e ?? new Exception(), false);
+            var message = e?.Message ?? "Something was wrong with the provided file";
+            _hubService.SendRealTimeErrorMessage(UserId, $"{TreatmentController.TreatmentError}::ImportLibraryTreatmentsFile - {message}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)
@@ -52,6 +59,11 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
             using var scope = serviceProvider.CreateScope();
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
             _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastTaskCompleted, $"successfully imported treatment library: {WorkName}");
+            _hubService.SendRealTimeMessage(UserId, HubConstant.BroadcastImportCompletion, new ImportCompletionDTO
+            {
+                Id = Metadata.DomainId,
+                WorkType = Metadata.WorkType
+            });
         }
 
         public void OnUpdate(IServiceProvider serviceProvider)

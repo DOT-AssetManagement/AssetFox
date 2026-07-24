@@ -535,7 +535,6 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     const showImportSupersedeDialog = ref<boolean>(false);
     const confirmBeforeDeleteTreatmentAlertData = ref<AlertData>(clone(emptyAlertData));
     let isNoTreatmentSelected = ref(false);
-    let hasImport: boolean = false;
     let modifiedDate = ref<string>('');
 
     let deletionIds: ShallowRef<string[]> = ref([]);
@@ -572,7 +571,6 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     let loadedParentName: string = "";
     let loadedParentId: string  = uuidNIL;
     let newLibrarySelection: boolean = false;
-    let newTreatment: Treatment = {...emptyTreatment, id: getNewGuid(), addTreatment: false};
     const showSuccessPopup = ref(false);
     const importSuccessMessage = ref('Successfully uploaded treatments.');
 
@@ -1413,40 +1411,16 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
         showImportTreatmentDialog.value = false;
         if (result === null) return;
 
-        if(hasScenario.value){
-            newTreatment.libraryId = parentLibraryId
-            newTreatment.name = result.file.name.slice(0, -5);
-            addedRows = append(newTreatment, addedRows);
-            simpleTreatments.value = append({
-                name: result.file.name.slice(0, -5),
-                id: selectedScenarioId,
-                isUnselectable: newTreatment.isUnselectable,
-            }, simpleTreatments.value);
-            setTimeout(() => (treatmentSelectItemValue.value = newTreatment.id));
-        }
-        else{
-            newTreatment.libraryId = selectedTreatmentLibrary.value.id
-            newTreatment.name = result.file.name.slice(0, -5);
-            addedRows = append(newTreatment, addedRows);
-            simpleTreatments.value = append({
-                name: result.file.name.slice(0, -5),
-                id: newTreatment.libraryId,
-                isUnselectable: newTreatment.isUnselectable,
-            }, simpleTreatments.value);
-            setTimeout(() => (treatmentSelectItemValue.value = newTreatment.id));
-        }
-            
-            if (hasValue(result) && hasValue(result.file)) {
+        if (hasValue(result) && hasValue(result.file)) {
             const data: TreatmentsFileImport = {
-                file: result.file 
+                file: result.file
             };
             if (hasScenario.value) {
-                TreatmentService.importScenarioTreatments(data.file, newTreatment.libraryId, hasScenario.value)
+                TreatmentService.importScenarioTreatments(data.file, selectedScenarioId, hasScenario.value)
             }
             else{
                 TreatmentService.importLibraryTreatments(data.file, selectedTreatmentLibrary.value.id, hasScenario.value)
             }
-            hasImport = true;
         }
     }
 
