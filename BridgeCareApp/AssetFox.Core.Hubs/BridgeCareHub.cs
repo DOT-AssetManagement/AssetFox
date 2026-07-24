@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
@@ -9,7 +10,41 @@ namespace AssetFox.Core.Hubs
 
         public async Task AssociateMessage(string username)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, username);
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new HubException("A username is required to associate a hub connection.");
+            }
+
+            await Groups.AddToGroupAsync(
+                Context.ConnectionId,
+                HubUserGroup.GetGroupName(username));
+        }
+
+        public async Task DisassociateMessage(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return;
+            }
+
+            await Groups.RemoveFromGroupAsync(
+                Context.ConnectionId,
+                HubUserGroup.GetGroupName(username));
+        }
+    }
+
+    public static class HubUserGroup
+    {
+        public static string GetGroupName(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new ArgumentException(
+                    "A username is required to identify a hub group.",
+                    nameof(username));
+            }
+
+            return username.Trim().ToUpperInvariant();
         }
     }
 

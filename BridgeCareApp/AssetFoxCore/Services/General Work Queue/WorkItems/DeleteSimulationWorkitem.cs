@@ -53,7 +53,7 @@ namespace AssetFoxCore.Services.General_Work_Queue.WorkItems
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
             var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, $"{SimulationController.SimulationError}::DeleteSimulation - {errorMessage}", e ?? new Exception(), false);
+            _hubService.SendRealTimeErrorMessage(UserId, $"{SimulationController.SimulationError}::DeleteSimulation - {errorMessage}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)

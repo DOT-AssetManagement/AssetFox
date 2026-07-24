@@ -172,6 +172,7 @@ export const useAuthenticationStore = defineStore('authentication', {
             this.username = '';
             this.authenticated = false;
             localStorage.removeItem('UserInfo');
+            localStorage.removeItem('LoggedInUser');
             localStorage.removeItem('TokenExpiration');
             if (hasValue(localStorage.getItem('UserTokens'))) {
                 await AuthenticationService.revokeIdToken();

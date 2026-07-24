@@ -1,23 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
-using System.Threading.Tasks;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AssetFox.Core.Hubs.Services
 {
     public class HubService : IHubService
     {
         private readonly IHubContext<BridgeCareHub> _hubContext;
+        private readonly ILogger<HubService> _logger;
 
         public Dictionary<string, string> _errorList;
 
-        //public HubService(IHubContext<BridgeCareHub> hubContext) => _hubContext = hubContext;
-        public HubService(IHubContext<BridgeCareHub> hubContext)
+        public HubService(
+            IHubContext<BridgeCareHub> hubContext,
+            ILogger<HubService> logger = null)
         {
-            _hubContext = hubContext;
+            _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
+            _logger = logger ?? NullLogger<HubService>.Instance;
             _errorList = new Dictionary<string, string>()
             {
                 {"Exception", "An exception has occurred." },
@@ -37,20 +41,7 @@ namespace AssetFox.Core.Hubs.Services
 
         public void SendRealTimeErrorMessage(string username, string arg, Exception e, bool shouldRethrowError = true)
         {
-            Task sendTask;
-
-            if (string.IsNullOrEmpty(username))
-            {
-                sendTask = _hubContext?.Clients?.All?.SendAsync(HubConstant.BroadcastError, arg, e.StackTrace);
-            }
-            else
-            {
-                sendTask = _hubContext?.Clients?.Group(username)?.SendAsync(HubConstant.BroadcastError, arg, e.StackTrace);
-            }
-
-            sendTask ??= Task.CompletedTask;
-
-            sendTask.GetAwaiter().GetResult();
+            SendToUser(username, HubConstant.BroadcastError, arg, e?.StackTrace);
 
             if (shouldRethrowError)
             {
@@ -60,14 +51,7 @@ namespace AssetFox.Core.Hubs.Services
         }
         public void SendRealTimeErrorMessage(string username, string arg1, string arg2, Exception e, bool shouldRethrowError = true)
         {
-            if (string.IsNullOrEmpty(username))
-            {
-                _hubContext?.Clients?.All?.SendAsync(HubConstant.BroadcastError, arg1, e.StackTrace, arg2);               
-            }
-            else
-            {
-                _hubContext?.Clients?.Group(username)?.SendAsync(HubConstant.BroadcastError, arg1, e.StackTrace, arg2);
-            }
+            SendToUser(username, HubConstant.BroadcastError, arg1, e?.StackTrace, arg2);
 
             if (shouldRethrowError)
             {
@@ -78,25 +62,40 @@ namespace AssetFox.Core.Hubs.Services
 
         public void SendRealTimeMessage(string username, string method, object arg)
         {
-            if (string.IsNullOrEmpty(username))
-            {
-                _hubContext?.Clients?.All?.SendAsync(method, arg);
-            }
-            else
-            {
-                _hubContext?.Clients?.Group(username)?.SendAsync(method, arg);
-            }
+            SendToUser(username, method, arg);
         }
 
         public void SendRealTimeMessage(string username, string method, object arg1, object arg2)
         {
-            if (string.IsNullOrEmpty(username))
+            SendToUser(username, method, arg1, arg2);
+        }
+
+        private void SendToUser(string username, string method, params object[] args)
+        {
+            if (string.IsNullOrWhiteSpace(username))
             {
-                _hubContext?.Clients?.All?.SendAsync(method, arg1, arg2);
+                _logger.LogWarning(
+                    "Skipped SignalR method {Method} because no target username was provided.",
+                    method);
+                return;
             }
-            else
+
+            try
             {
-                _hubContext?.Clients?.Group(username)?.SendAsync(method, arg1, arg2);
+                var groupName = HubUserGroup.GetGroupName(username);
+                _hubContext.Clients
+                    .Group(groupName)
+                    .SendCoreAsync(method, args)
+                    .GetAwaiter()
+                    .GetResult();
+            }
+            catch (Exception sendException)
+            {
+                _logger.LogError(
+                    sendException,
+                    "Failed to send SignalR method {Method} to user {Username}.",
+                    method,
+                    username);
             }
         }
     }

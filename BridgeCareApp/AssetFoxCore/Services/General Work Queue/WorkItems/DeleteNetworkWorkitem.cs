@@ -53,7 +53,7 @@ namespace AssetFoxCore.Services
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
             var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, $"Network Error::DeleteNetwork - {errorMessage}", e ?? new Exception(), false);
+            _hubService.SendRealTimeErrorMessage(UserId, $"Network Error::DeleteNetwork - {errorMessage}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)

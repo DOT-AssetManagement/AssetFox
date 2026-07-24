@@ -150,7 +150,7 @@ namespace AssetFoxCore.Services
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
             var errorMessage = e?.Message ?? string.Empty;
 
-            _hubService.SendRealTimeMessage(UserId, $"{AggregationError}::NetworkAggregateAccess - {errorMessage}", e ?? new Exception(), false);
+            _hubService.SendRealTimeErrorMessage(UserId, $"{AggregationError}::NetworkAggregateAccess - {errorMessage}", e ?? new Exception(), false);
         }
 
         public void OnCompletion(IServiceProvider serviceProvider)
