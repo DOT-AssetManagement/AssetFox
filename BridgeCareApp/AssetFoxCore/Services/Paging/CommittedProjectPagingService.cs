@@ -12,7 +12,7 @@ namespace AssetFoxCore.Services
 {
     public class CommittedProjectPagingService :BasePagingService<SectionCommittedProjectDTO>,  ICommittedProjectPagingService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
         public const string UnknownBudgetName = "Unknown";
 
         // TODO: Determine based on associated network

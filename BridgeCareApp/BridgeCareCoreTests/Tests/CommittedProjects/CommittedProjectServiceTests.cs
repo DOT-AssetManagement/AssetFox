@@ -134,6 +134,34 @@ namespace AssetFoxCoreTests.Tests
         }
 
         [Fact]
+        public void ServiceInstancesKeepTheirOwnScopedUnitOfWork()
+        {
+            // Arrange
+            var firstUnitOfWork = new Mock<IUnitOfWork>();
+            var firstMaintainableAssetRepository = new Mock<IMaintainableAssetRepository>();
+            firstUnitOfWork.Setup(_ => _.MaintainableAssetRepo).Returns(firstMaintainableAssetRepository.Object);
+
+            var secondUnitOfWork = new Mock<IUnitOfWork>();
+            var secondMaintainableAssetRepository = new Mock<IMaintainableAssetRepository>();
+            secondUnitOfWork.Setup(_ => _.MaintainableAssetRepo).Returns(secondMaintainableAssetRepository.Object);
+
+            var hubService = HubServiceMocks.Default();
+            var firstService = new CommittedProjectService(firstUnitOfWork.Object, hubService);
+            _ = new CommittedProjectService(secondUnitOfWork.Object, hubService);
+
+            // Act
+            firstService.GetTreatmentCost("asset-key", Guid.NewGuid(), Guid.NewGuid());
+
+            // Assert
+            firstMaintainableAssetRepository.Verify(
+                _ => _.GetMaintainableAssetByKeyAttribute(It.IsAny<Guid>(), "asset-key"),
+                Times.Once);
+            secondMaintainableAssetRepository.Verify(
+                _ => _.GetMaintainableAssetByKeyAttribute(It.IsAny<Guid>(), It.IsAny<string>()),
+                Times.Never);
+        }
+
+        [Fact]
         public void ImportHandlesBadSimulationId()
         {
             // Arrange

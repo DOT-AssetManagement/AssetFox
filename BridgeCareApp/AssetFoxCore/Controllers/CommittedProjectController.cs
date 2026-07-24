@@ -31,8 +31,8 @@ namespace AssetFoxCore.Controllers
     {
         public const string CommittedProjectError = "Committed Project Error";
         public const string RequestMimeTypeIsInvalid = "Request MIME type is invalid.";
-        private static ICommittedProjectService _committedProjectService;
-        private static ICommittedProjectPagingService _committedProjectPagingService;
+        private readonly ICommittedProjectService _committedProjectService;
+        private readonly ICommittedProjectPagingService _committedProjectPagingService;
         private readonly IClaimHelper _claimHelper;
         private readonly IGeneralWorkQueueService _generalWorkQueueService;
         private Guid UserId => UnitOfWork.CurrentUser?.Id ?? Guid.Empty;

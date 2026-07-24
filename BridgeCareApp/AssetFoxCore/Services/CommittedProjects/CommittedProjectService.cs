@@ -18,7 +18,7 @@ namespace AssetFoxCore.Services.CommittedProjects
 {
     public class CommittedProjectService : ICommittedProjectService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IHubService _hubService;
         public const string UnknownBudgetName = "Unknown";
 
@@ -179,7 +179,7 @@ namespace AssetFoxCore.Services.CommittedProjects
             return consequencesToReturn;
         }
 
-        private static bool IsCriteriaValid(CalculateEvaluateCompiler compiler, string expression, Guid assetId)
+        private bool IsCriteriaValid(CalculateEvaluateCompiler compiler, string expression, Guid assetId)
         {
             var attributes = InstantiateCompilerAndGetExpressionAttributes(expression, compiler);
             var attributeIds = attributes.Select(a => a.Id).ToList();
@@ -202,7 +202,7 @@ namespace AssetFoxCore.Services.CommittedProjects
             return evaluator.Delegate(scope);
         }
 
-        private static List<AttributeDTO> InstantiateCompilerAndGetExpressionAttributes(string mergedCriteriaExpression, CalculateEvaluateCompiler compiler)
+        private List<AttributeDTO> InstantiateCompilerAndGetExpressionAttributes(string mergedCriteriaExpression, CalculateEvaluateCompiler compiler)
         {
             var modifiedExpression = mergedCriteriaExpression
                     .Replace("[", "")
