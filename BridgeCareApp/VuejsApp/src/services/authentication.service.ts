@@ -7,7 +7,9 @@ export default class AuthenticationService {
     }
 
     static refreshTokens(refreshToken: string): AxiosPromise {
-        return coreAxiosInstance.get(`${API.Authentication}/RefreshToken/${refreshToken}`);
+        return coreAxiosInstance.post(`${API.Authentication}/RefreshToken`, {
+            refreshToken,
+        });
     }
 
     static getUserInfo(token: string): AxiosPromise {

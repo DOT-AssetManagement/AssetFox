@@ -1,5 +1,4 @@
 import { SecurityTypes } from '@/shared/utils/security-types';
-import { clearRefreshIntervalID } from '@/shared/utils/refresh-interval-id';
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import AuthenticationService from '@/services/authentication.service';
 import { hasValue } from './has-value-util';
@@ -38,10 +37,14 @@ const isAuthenticatedEsecUser = () => {
                 throw new Error('User is not active');
             }
         })
-        .catch((error) => {
+        .catch((error: any) => {
+            const errorMessage =
+                error?.response?.data?.message ??
+                error?.message ??
+                'Your ESEC session could not be renewed. Please sign in again.';
             notificationStore.addErrorNotification({
                 message: 'Authentication Error.',
-                longMessage: error,
+                longMessage: errorMessage,
             });
 
             return false;
@@ -107,7 +110,6 @@ export const isAuthenticatedUser = () => {
 const onLogout = () => {
     const authenticationStore = useAuthenticationStore(pinia);
     authenticationStore.logOut().then(() => {
-        clearRefreshIntervalID(); 
         localStorage.clear();
         sessionStorage.clear();      
     });

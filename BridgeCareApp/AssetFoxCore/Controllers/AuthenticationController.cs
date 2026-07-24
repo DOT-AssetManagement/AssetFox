@@ -154,12 +154,17 @@ namespace AssetFoxCore.Controllers
         /// <summary>
         ///     Sends a refresh token to ESEC, returning a new Access Token
         /// </summary>
-        /// <param name="refreshToken">Refresh token</param>
+        /// <param name="request">Refresh-token request</param>
         /// <returns></returns>
-        [HttpGet]
-        [Route("RefreshToken/{refreshToken}")]
-        public async Task<IActionResult> GetRefreshToken(string refreshToken)
+        [HttpPost]
+        [Route("RefreshToken")]
+        public async Task<IActionResult> GetRefreshToken([FromBody] RefreshTokenRequestDTO request)
         {
+            if (string.IsNullOrWhiteSpace(request?.RefreshToken))
+            {
+                return BadRequest(new { message = "A refresh token is required." });
+            }
+
             try
             {
                 // These two lines should be removed as soon as the ESEC site's certificates start working
@@ -174,24 +179,48 @@ namespace AssetFoxCore.Controllers
 
                 var formData = new List<KeyValuePair<string, string>>
                 {
+                    new KeyValuePair<string, string>("grant_type", "refresh_token"),
+                    new KeyValuePair<string, string>("refresh_token", request.RefreshToken),
                     new KeyValuePair<string, string>("client_id", _esecConfig["EsecClientId"]),
                     new KeyValuePair<string, string>("client_secret", _esecConfig["EsecClientSecret"])
                 };
                 HttpContent content = new FormUrlEncodedContent(formData);
 
-                var query = $"?grant_type=refresh_token&refresh_token={WebUtility.UrlDecode(refreshToken)}";
-
-                var responseTask = await client.PostAsync("token" + query, content);
-                var response = responseTask.Content.ReadAsStringAsync().Result;
+                using var responseMessage = await client.PostAsync("token", content);
+                var response = await responseMessage.Content.ReadAsStringAsync();
 
                 ValidateResponse(response);
 
-                return Ok(response);
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    throw new HttpRequestException(
+                        $"ESEC token endpoint returned HTTP {(int)responseMessage.StatusCode}.");
+                }
+
+                var userTokens = JsonConvert.DeserializeObject<UserTokensDTO>(response);
+                if (string.IsNullOrWhiteSpace(userTokens?.access_token))
+                {
+                    throw new AuthenticationException(
+                        "The ESEC refresh response did not contain an access token.");
+                }
+
+                return Ok(userTokens);
+            }
+            catch (AuthenticationException e)
+            {
+                _log.Warning($"ESEC token refresh was rejected: {e.Message}");
+                return Unauthorized(new
+                {
+                    message = "Your ESEC session could not be renewed. Please sign in again."
+                });
             }
             catch (Exception e)
             {
-                HubService.SendRealTimeErrorMessage(UserInfo?.Name, $"{AuthenticationError}::GetRefreshToken - {e.Message}", e);
-                return Ok();
+                _log.Error($"ESEC token refresh failed: {e.Message}");
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    message = "The ESEC authentication service is unavailable. Please try again."
+                });
             }
 
         }

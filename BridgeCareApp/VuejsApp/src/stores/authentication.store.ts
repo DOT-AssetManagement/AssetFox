@@ -19,6 +19,45 @@ export interface AuthenticationStoreState {
     accessDenied: boolean;
 }
 
+const defaultTokenLifetimeSeconds = 30 * 60;
+const tokenRefreshWindowMinutes = 15;
+const tokenRefreshLockName = 'bridgecare-esec-token-refresh';
+let refreshTokensPromise: Promise<void> | null = null;
+
+function getTokenLifetimeSeconds(tokens: Partial<UserTokens>): number {
+    const expiresInSeconds = Number(tokens.expires_in);
+    return Number.isFinite(expiresInSeconds) && expiresInSeconds > 0
+        ? expiresInSeconds
+        : defaultTokenLifetimeSeconds;
+}
+
+function setTokenExpiration(tokens: Partial<UserTokens>) {
+    const expirationInMilliseconds = moment()
+        .add(getTokenLifetimeSeconds(tokens), 'seconds')
+        .valueOf();
+    localStorage.setItem(
+        'TokenExpiration',
+        expirationInMilliseconds.toString(),
+    );
+}
+
+function browserTokensNeedRefresh(): boolean {
+    const tokenExpirationValue = localStorage.getItem('TokenExpiration');
+    if (!hasValue(tokenExpirationValue)) {
+        throw new Error('Cannot determine user authentication status');
+    }
+
+    const storedTokenExpiration = Number(tokenExpirationValue);
+    if (!Number.isFinite(storedTokenExpiration)) {
+        throw new Error('Cannot determine user authentication status');
+    }
+
+    return (
+        moment(storedTokenExpiration).diff(moment(), 'minutes') <=
+        tokenRefreshWindowMinutes
+    );
+}
+
 function resetAuthenticationState(state: AuthenticationStoreState) {
     state.hasRole = false;
     state.checkedForRole = false;
@@ -44,7 +83,6 @@ export const useAuthenticationStore = defineStore('authentication', {
         async getUserTokens(code: string) {
             await AuthenticationService.getUserTokens(code).then(
                 (response: AxiosResponse) => {
-                    const expirationInMilliseconds = moment().add(30, 'minutes');                
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
@@ -54,10 +92,7 @@ export const useAuthenticationStore = defineStore('authentication', {
                             'UserTokens',
                             JSON.stringify(userTokens),
                         );
-                        localStorage.setItem(
-                            'TokenExpiration',
-                            expirationInMilliseconds.valueOf().toString(),
-                        );
+                        setTokenExpiration(userTokens);
                         this.authenticated = true;
                     }
                 },
@@ -70,58 +105,106 @@ export const useAuthenticationStore = defineStore('authentication', {
                 throw new Error('Cannot determine user authentication status');
             }
 
-            const storedTokenExpiration: number = parseInt(
-                localStorage.getItem('TokenExpiration') as string,
-            );
-            if (isNaN(storedTokenExpiration)) {
-                throw new Error('Cannot determine user authentication status');
-            }
-
-            const currentDateTime = moment();
-            const tokenExpirationDateTime = moment(storedTokenExpiration);
-            const differenceInMinutes = tokenExpirationDateTime.diff(
-                currentDateTime,
-                'minutes',
-            );
-            
-            if (differenceInMinutes > 15) {
+            if (!browserTokensNeedRefresh()) {
                 return;
             }
            
             await this.refreshTokens();
         },
 
-// TODO check with ESEC not B2C
-// On component load, check the token's time stamp, and set a delayed call to refresh the token when less than 5 minutes remain.
-// TODO try checking and renwing interval in logOut? Or atleast on each component load in router.ts
         async refreshTokens() {
-            if (!hasValue(localStorage.getItem('UserTokens'))) {
-                throw new Error('Cannot determine user authentication status');
-            } else {
-                this.refreshing = true;
+            if (refreshTokensPromise !== null) {
+                return refreshTokensPromise;
+            }
+
+            const refresh = async () => {
+                if (!hasValue(localStorage.getItem('UserTokens'))) {
+                    throw new Error(
+                        'Cannot determine user authentication status',
+                    );
+                }
+
                 const userTokens: UserTokens = JSON.parse(
                     localStorage.getItem('UserTokens') as string,
-                ) as UserTokens;            
-                await AuthenticationService.refreshTokens(
-                    userTokens.refresh_token,
-                ).then((response: AxiosResponse) => {
-                    const expirationInMilliseconds = moment().add(30, 'minutes');
+                ) as UserTokens;
+                if (!hasValue(userTokens.refresh_token)) {
+                    throw new Error('No ESEC refresh token is available');
+                }
+
+                this.refreshing = true;
+                try {
+                    const response = await AuthenticationService.refreshTokens(
+                        userTokens.refresh_token,
+                    );
                     if (
                         hasValue(response, 'status') &&
                         http2XX.test(response.status.toString())
                     ) {
-                        const refreshedTokens: UserTokens = response.data as UserTokens;
+                        const refreshedTokens =
+                            response.data as Partial<UserTokens>;
+                        if (!hasValue(refreshedTokens, 'access_token')) {
+                            throw new Error(
+                                'The ESEC refresh response did not contain an access token',
+                            );
+                        }
+
+                        const mergedTokens = {
+                            ...userTokens,
+                            ...refreshedTokens,
+                        } as UserTokens;
+                        if (!hasValue(refreshedTokens.refresh_token)) {
+                            mergedTokens.refresh_token =
+                                userTokens.refresh_token;
+                        }
+                        if (!hasValue(refreshedTokens.id_token)) {
+                            mergedTokens.id_token = userTokens.id_token;
+                        }
+                        if (!hasValue(refreshedTokens.expires_in)) {
+                            mergedTokens.expires_in = userTokens.expires_in;
+                        }
+
                         localStorage.setItem(
                             'UserTokens',
-                            JSON.stringify(refreshedTokens),
+                            JSON.stringify(mergedTokens),
                         );
-                        localStorage.setItem(
-                            'TokenExpiration',
-                            expirationInMilliseconds.valueOf().toString(),
-                        );
+                        setTokenExpiration(mergedTokens);
                     }
-                });
-                this.refreshing = false;
+                } finally {
+                    this.refreshing = false;
+                }
+            };
+
+            const runRefresh = async () => {
+                if (
+                    typeof navigator !== 'undefined' &&
+                    navigator.locks !== undefined
+                ) {
+                    await navigator.locks.request(
+                        tokenRefreshLockName,
+                        async () => {
+                            // Another tab may have refreshed while this tab
+                            // was waiting for the browser-wide lock.
+                            if (!browserTokensNeedRefresh()) {
+                                return;
+                            }
+                            await refresh();
+                        },
+                    );
+                    return;
+                }
+
+                await refresh();
+            };
+
+            refreshTokensPromise = runRefresh().finally(() => {
+                refreshTokensPromise = null;
+            });
+            return refreshTokensPromise;
+        },
+
+        async waitForTokenRefresh() {
+            if (refreshTokensPromise !== null) {
+                await refreshTokensPromise;
             }
         },
 

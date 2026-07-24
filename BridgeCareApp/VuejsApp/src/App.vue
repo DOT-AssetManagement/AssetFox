@@ -317,14 +317,9 @@ import { Notification } from '@/shared/models/iAM/notifications';
 import { User, emptyUser } from '@/shared/models/iAM/user';
 import { SecurityTypes } from '@/shared/utils/security-types';
 import {
-    clearRefreshIntervalID,
-    setRefreshIntervalID,
-} from '@/shared/utils/refresh-interval-id';
-import {
     isAuthenticatedUser,
     onHandleLogout,
 } from '@/shared/utils/authentication-utils';
-import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import NewsDialog from '@/components/NewsDialog.vue'
 import { Announcement, emptyAnnouncement } from '@/shared/models/iAM/announcement';
 import {
@@ -483,9 +478,14 @@ import ConfirmDialog from 'primevue/confirmdialog';
         selectedScenarioHasStatus.value = hasValue(selectedScenario.value.status);
     })
 
-    watch(() => authenticationStore.authenticated, () => {
-        if (authenticationStore.authenticated) {
+    watch(() => authenticationStore.authenticated, authenticated => {
+        if (authenticated) {
             onAuthenticate();
+            if (authenticationStore.securityType === SecurityTypes.esec) {
+                startTokenCheckTimer();
+            }
+        } else {
+            stopTokenCheckTimer();
         }
     });
 
@@ -536,14 +536,19 @@ import ConfirmDialog from 'primevue/confirmdialog';
         const shouldTrackRequest = (url?: string) =>
             !isNil(url) &&
             ignoredAPIs.every((ignored: string) => url.indexOf(ignored) === -1);
+        const isTokenRefreshRequest = (url?: string) =>
+            !isNil(url) && url.indexOf('RefreshToken') !== -1;
 
         // create a request handler
         async function requestHandler(
             request: AxiosRequestConfig,
         ) {
             request.headers = setContentTypeCharset(request.headers);
-            if (authenticationStore.refreshing) {
-                await new Promise(_ => setTimeout(_, 5000));
+            if (
+                authenticationStore.refreshing &&
+                !isTokenRefreshRequest(request.url)
+            ) {
+                await authenticationStore.waitForTokenRefresh();
             }
 
             request.headers = setAuthHeader(request.headers);
@@ -585,6 +590,9 @@ import ConfirmDialog from 'primevue/confirmdialog';
             }
             if (shouldTrackRequest(error.config?.url))
                 busyStore.decrementProcessCounter();
+            if (isTokenRefreshRequest(error.config?.url)) {
+                return Promise.reject(error);
+            }
             unauthorizedError = hasValue(unauthorizedError) ? error.response!.data : "User is not authorized!";
             if (error.response!.status === 500) return;
             
@@ -621,17 +629,6 @@ import ConfirmDialog from 'primevue/confirmdialog';
             (error: any) => errorHandler(error),
         );
 
-        if (
-            authenticationStore.securityType === SecurityTypes.esec &&
-            UnsecuredRoutePathNames.indexOf(
-                router.currentRoute.value.name as string,
-            ) === -1
-        ) {
-            // Upon opening the page, and every 30 seconds, check if authentication data
-            // has been changed by another tab or window
-            clearRefreshIntervalID();
-            setRefreshIntervalID();
-        }
     }
 
     
@@ -656,9 +653,12 @@ import ConfirmDialog from 'primevue/confirmdialog';
         
         currentURL = router.currentRoute.value.name;
 
-        if(authenticationStore.securityType === SecurityTypes.esec)
+        if (
+            authenticationStore.securityType === SecurityTypes.esec &&
+            authenticationStore.authenticated
+        )
         {
-            startTokenCheckTimer(); 
+            startTokenCheckTimer();
         }
 
         if(implementationName.value === "")
@@ -678,9 +678,13 @@ import ConfirmDialog from 'primevue/confirmdialog';
 
     function startTokenCheckTimer()
     {
+        if (tokenCheckInterval !== null) {
+            return;
+        }
+
         tokenCheckInterval = setInterval(() => {
-            checkToken();
-      }, 300000);
+            void checkToken();
+        }, 300000);
     }
 
     function stopTokenCheckTimer()
@@ -693,7 +697,17 @@ import ConfirmDialog from 'primevue/confirmdialog';
     }
 
     async function checkToken() {
-        await authenticationStore.checkBrowserTokens();
+        try {
+            await authenticationStore.checkBrowserTokens();
+        } catch {
+            stopTokenCheckTimer();
+            notificationStore.addWarningNotification({
+                message: 'Session expired',
+                longMessage:
+                    'Your ESEC session could not be renewed. Please sign in again.',
+            });
+            onHandleLogout();
+        }
     }
 
 
