@@ -168,6 +168,36 @@ namespace AssetFox.Core.UnitTestsCore.Tests.CommittedProjects
         }
 
         [Fact]
+        public void ValidateAllCommittedProjects_AllowsFreshScenarioWithoutProjectsOrBudgets()
+        {
+            var repo = new CommittedProjectRepository(_testUOW);
+
+            var result = repo.ValidateAllCommittedProjects(
+                new List<SectionCommittedProjectDTO>(),
+                new List<int>(),
+                new Dictionary<string, bool>());
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void ValidateAllCommittedProjects_RejectsProjectsWhenNoBudgetYearsExist()
+        {
+            var repo = new CommittedProjectRepository(_testUOW);
+            var projects = new List<SectionCommittedProjectDTO>
+            {
+                new SectionCommittedProjectDTO()
+            };
+
+            var result = repo.ValidateAllCommittedProjects(
+                projects,
+                new List<int>(),
+                new Dictionary<string, bool>());
+
+            Assert.False(result);
+        }
+
+        [Fact]
         public void GetSectionCommittedProjectsHandlesBadSimulations()
         { 
             // Arrange

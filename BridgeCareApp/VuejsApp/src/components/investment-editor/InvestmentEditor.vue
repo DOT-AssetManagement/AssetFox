@@ -530,6 +530,18 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
             return investmentPlan.value.numberOfYearsInAnalysisPeriod;
         }
 
+    async function emitInvestmentValidationStatus() {
+        const response = await InvestmentService.ValidateScenarioInvestment(
+            selectedScenarioId,
+        );
+
+        if (hasValue(response, 'data') && response.data === true) {
+            $emitter.emit('InvestmentSettingsUpdated');
+        } else {
+            $emitter.emit('InvestmentSettingsWithErrors');
+        }
+    }
+
     onMounted(async () => {
         librarySelectItemValue.value = '';
         await investmentStore.getHasPermittedAccess();
@@ -550,18 +562,8 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
                     alertStore.setAlertMessage("An investment import has been added to the queue")
                 }
             });
-            await initializePages().then(async ()=>{
-                await InvestmentService.ValidateScenarioInvestment(selectedScenarioId).then((response: AxiosResponse) => {                    
-                    if(hasValue(response, 'data') && response.data === true)
-                    {
-                        $emitter.emit('InvestmentSettingsUpdated');
-                    }
-                    else
-                    {
-                        $emitter.emit('InvestmentSettingsWithErrors');
-                    }
-                });
-            });            
+            await initializePages();
+            await emitInvestmentValidationStatus();
         }
         else
             initializing = false;        
@@ -583,9 +585,10 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
         );
-        
-        $emitter.off('InvestmentSettingsUpdated');
-        $emitter.off('InvestmentSettingsWithErrors');
+        $emitter.off(
+            Hub.BroadcastEventType.BroadcastImportFailureEvent,
+            importFailed,
+        );
     });
         
     // Watchers
@@ -880,10 +883,10 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
     }
 
     function cloneStateInvestmentPlan() {
-        let investmentPlan: InvestmentPlan = clone(investmentStore.getInvestmentPlan);
-        investmentPlan = {
-            ...investmentPlan,
-            id: investmentPlan.id === uuidNIL ? getNewGuid() : investmentPlan.id,
+        const stateInvestmentPlan: InvestmentPlan = clone(investmentStore.getInvestmentPlan);
+        investmentPlan.value = {
+            ...stateInvestmentPlan,
+            id: stateInvestmentPlan.id === uuidNIL ? getNewGuid() : stateInvestmentPlan.id,
         };
     }
 
@@ -1335,7 +1338,11 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
     }
 
     async function onUpsertInvestment() {
-        const investmentPlanUpsert: InvestmentPlan = clone(investmentPlan.value);
+        const investmentPlanUpsert: InvestmentPlan = {
+            ...clone(investmentPlan.value),
+            id: investmentPlan.value.id === uuidNIL ? getNewGuid() : investmentPlan.value.id,
+        };
+        investmentPlan.value = clone(investmentPlanUpsert);
         let currentLibraryName = selectedBudgetLibrary.value.name;
 
         if (selectedBudgetLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection ===false) {scenarioLibraryIsModified.value = true;}
@@ -1349,28 +1356,31 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
             deletionyears: deletionYears.value,
             updatedBudgetAmounts: mapToIndexSignature(updatedBudgetAmounts.value),
             Investment: {
-                ...investmentPlan.value,
-                minimumProjectCostLimit: hasValue(investmentPlan.value.minimumProjectCostLimit)
-                    ? parseFloat(investmentPlan.value.minimumProjectCostLimit.toString().replace(/(\$*)(\,*)/g, ''))
+                ...investmentPlanUpsert,
+                minimumProjectCostLimit: hasValue(investmentPlanUpsert.minimumProjectCostLimit)
+                    ? parseFloat(investmentPlanUpsert.minimumProjectCostLimit.toString().replace(/(\$*)(\,*)/g, ''))
                     : 0,
             },
             addedBudgetAmounts: mapToIndexSignature(addedBudgetAmounts.value),
             firstYearAnalysisBudgetShift: firstYearOfAnalysisPeriodShift.value,
             isModified: scenarioLibraryIsModified.value,
         }
-        InvestmentService.upsertInvestment(sync ,selectedScenarioId).then(async (response: AxiosResponse) => {
-            if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                parentLibraryId = librarySelectItemValue.value ? librarySelectItemValue.value: "";
-                firstYearOfAnalysisPeriodShift.value = 0;
-                investmentPlanMutator(investmentPlanUpsert)
-                clearChanges();
-                addSuccessNotificationAction({message: "Modified investment"});
+        const response = await InvestmentService.upsertInvestment(
+            sync,
+            selectedScenarioId,
+        );
+        if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
+            parentLibraryId = librarySelectItemValue.value ? librarySelectItemValue.value: "";
+            firstYearOfAnalysisPeriodShift.value = 0;
+            investmentStore.investmentPlanMutator(investmentPlanUpsert)
+            clearChanges();
+            notificationStore.addSuccessNotification({message: "Modified investment"});
 
-                librarySelectItemValue.value = null;
-                hasInvestmentJustBeenSaved = true;
-                $emitter.emit('InvestmentSettingsUpdated');
-            }
-        });
+            hasInvestmentJustBeenSaved = true;
+            await emitInvestmentValidationStatus();
+            unsavedChangesStore.setHasUnsavedChanges(false);
+            librarySelectItemValue.value = null;
+        }
         // $emitter.emit('switchedToNewInvestmentLibrary', sync);
     }
 
@@ -1695,16 +1705,7 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
                 showSuccessPopup.value = true;
 
                 if(hasScenario.value) {
-                    await InvestmentService.ValidateScenarioInvestment(selectedScenarioId).then((response: AxiosResponse) => {                        
-                        if(hasValue(response, 'data') && response.data === true)
-                        {                            
-                            $emitter.emit('InvestmentSettingsUpdated');
-                        }
-                        else
-                        {                            
-                            $emitter.emit('InvestmentSettingsWithErrors');
-                        }
-                    });
+                    await emitInvestmentValidationStatus();
                 }
             });
         }
@@ -1714,10 +1715,10 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
         clearChanges(); 
         pagination.page = 1;
         initializePages().then(async () => {
-            setAlertMessageAction('');
-            isSuccessfulImportMutator(false);        
+            alertStore.setAlertMessage('');
+            investmentStore.isSuccessfulImportMutator(false);
             if(hasScenario.value){                
-                investmentPlanMutator(investmentPlan.value);
+                investmentStore.investmentPlanMutator(investmentPlan.value);
                 firstYearOfAnalysisPeriodShift.value = 0;
             }
             else{

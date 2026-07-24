@@ -495,6 +495,11 @@ namespace AssetFoxCore.Controllers
                 {
                     _claimHelper.CheckUserSimulationReadAuthorization(simulationId, UserId);
                     var sectionCommittedProjectDtos = UnitOfWork.CommittedProjectRepo.GetSectionCommittedProjectDTOs(simulationId);
+                    if (sectionCommittedProjectDtos == null || sectionCommittedProjectDtos.Count == 0)
+                    {
+                        return true;
+                    }
+
                     var budgetYears = UnitOfWork.BudgetRepo.GetBudgetYearsBySimulationId(simulationId);
                     var keyAttrName = UnitOfWork.AttributeRepo.GetSingleById(network.KeyAttribute).Name;
                     var keyAttrValues = sectionCommittedProjectDtos.Select(_ => _.LocationKeys[keyAttrName]).ToList();
@@ -506,7 +511,7 @@ namespace AssetFoxCore.Controllers
             }
             catch (UnauthorizedAccessException e)
             {
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{CommittedProjectError}::GetCommittedProjects - {HubService.errorList["Unauthorized"]}", e);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{CommittedProjectError}::ValidateAllCommittedProjects - {HubService.errorList["Unauthorized"]}", e);
             }
             catch (RowNotInTableException)
             {
@@ -515,7 +520,7 @@ namespace AssetFoxCore.Controllers
             catch (Exception e)
             {
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{CommittedProjectError}::GetCommittedProjects for {simulationName} - {e.Message}", e);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{CommittedProjectError}::ValidateAllCommittedProjects for {simulationName} - {e.Message}", e);
             }
             return Ok(isValid);
         }

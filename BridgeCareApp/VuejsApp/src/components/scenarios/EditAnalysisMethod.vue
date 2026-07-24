@@ -540,14 +540,24 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
         }
         else
         {
-            if(analysisMethod.value.benefit.id === getBlankGuid())
+            await saveAnalysisMethod();
+        }
+    }
+
+    async function saveAnalysisMethod() {
+        if(analysisMethod.value.benefit.id === getBlankGuid())
             analysisMethod.value.benefit.id = getNewGuid();
-            const responseData = await analysisMethodStore.upsertAnalysisMethod(analysisMethod.value, selectedScenarioId.value);
-            
-            if(responseData === "Analysis Method successfully updated")
-            {
-                $emitter.emit('AnalysisMethodUpdated');              
-            }
+
+        const responseData = await analysisMethodStore.upsertAnalysisMethod(
+            analysisMethod.value,
+            selectedScenarioId.value,
+        );
+
+        if(responseData === "Analysis Method successfully updated")
+        {
+            hasUnsavedChanges.value = false;
+            unsavedChangesStore.setHasUnsavedChanges(false);
+            $emitter.emit('AnalysisMethodUpdated');
         }
     }
 
@@ -562,17 +572,10 @@ analysisMethodStore.getAnalysisMethod(selectedScenarioId.value)
     }
 
     async function onConfirmEmptyCriteriaAlertSubmit(submit: boolean) {
-        ConfirmEmptyCriteria.value = clone(emptyAlertData);        
+        ConfirmEmptyCriteria.value = clone(emptyAlertData);
         if (submit) {
-            if(analysisMethod.value.benefit.id === getBlankGuid())
-            analysisMethod.value.benefit.id = getNewGuid();
-            const responseData = await analysisMethodStore.upsertAnalysisMethod(analysisMethod.value, selectedScenarioId.value);
-            
-            if(responseData === "Analysis Method successfully updated")
-            {
-                $emitter.emit('AnalysisMethodUpdated');              
-            }
-        } 
+            await saveAnalysisMethod();
+        }
     }
 
     function onDiscardChanges() {

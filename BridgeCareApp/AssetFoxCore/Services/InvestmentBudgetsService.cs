@@ -721,15 +721,12 @@ namespace AssetFoxCore.Services
 
         public bool ValidateScenarioInvestment(Guid simulationId)
         {
-            bool isValid = true;
-
             var investmentPlan = _unitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulationId);
-            var emptyDto = new InvestmentPlanDTO();
-            if(investmentPlan.Id == emptyDto.Id) // emptyDto.Id has empty guid
+            if (investmentPlan == null || investmentPlan.Id == Guid.Empty)
             {
                 return false;
             }
-            if(investmentPlan.MinimumProjectCostLimit <= 0)
+            if (investmentPlan.MinimumProjectCostLimit <= 0)
             {
                 return false;
             }
@@ -739,13 +736,13 @@ namespace AssetFoxCore.Services
             }
 
             var budgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
-            if(budgets.Count == 0)
+            if (budgets == null || budgets.Count == 0)
             {
                 return false;
             }
             foreach (var budget in budgets)
             {
-                if (budget.BudgetAmounts.Count == 0)
+                if (budget?.BudgetAmounts == null || budget.BudgetAmounts.Count == 0)
                 {
                     return false;
                 }
@@ -758,7 +755,7 @@ namespace AssetFoxCore.Services
                 }
             }
 
-            return isValid;
+            return true;
         }
     }
 }

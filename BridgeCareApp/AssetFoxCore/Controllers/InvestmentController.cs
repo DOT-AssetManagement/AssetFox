@@ -37,8 +37,8 @@ namespace AssetFoxCore.Controllers
         public const string RequestedToModifyNonexistentLibraryErrorMessage = "The request says to modify a library, but the library does not exist.";
         public const string RequestedToCreateExistingLibraryErrorMessage = "The request says to create a new library, but the library already exists.";
 
-        private static IInvestmentBudgetsService _investmentBudgetsService;
-        private static IInvestmentPagingService _investmentPagingService;
+        private readonly IInvestmentBudgetsService _investmentBudgetsService;
+        private readonly IInvestmentPagingService _investmentPagingService;
         public readonly IInvestmentDefaultDataService _investmentDefaultDataService;
         public readonly IGeneralWorkQueueService _generalWorkQueueService;
         private readonly IClaimHelper _claimHelper;
@@ -708,18 +708,18 @@ namespace AssetFoxCore.Controllers
         [HttpGet]
         [Route("ValidateScenarioInvestment/{simulationId}")]
         [Authorize]
-        public async Task<IActionResult> ValidateScenarioInvestment(Guid simulationId)
+        public IActionResult ValidateScenarioInvestment(Guid simulationId)
         {
             try
             {
-                var result = await Task.Factory.StartNew(() => _investmentBudgetsService.ValidateScenarioInvestment(simulationId));
+                var result = _investmentBudgetsService.ValidateScenarioInvestment(simulationId);
                 return Ok(result);
             }
             catch (Exception e)
             {
-                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::GetScenarioInvestmentPage - {e.Message}", e);
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{InvestmentError}::ValidateScenarioInvestment - {e.Message}", e);
             }
-            return Ok();
+            return Ok(false);
         }
 
         private InvestmentDTO GetForScenario(Guid scenarioId)

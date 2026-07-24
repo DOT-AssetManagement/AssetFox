@@ -40,8 +40,8 @@ export const useAnalysisMethodStore = defineStore('analysisMethod', {
                     await AnalysisMethodService.getSimulationAnalysisSetting(
                         scenarioId,
                     );
-                if (response.data === false) {
-                    this.simulationAnalysisSetting = false;
+                if (typeof response.data === 'boolean') {
+                    this.simulationAnalysisSetting = response.data;
                 } else if (response.data && typeof response.data === 'object') {
                     if ('isSettingStored' in response.data) {
                         this.simulationAnalysisSetting = Boolean(
@@ -65,6 +65,7 @@ export const useAnalysisMethodStore = defineStore('analysisMethod', {
                     http2XX.test(response.status.toString())
                 ) {
                     this.analysisMethod = clone(analysisMethod);
+                    this.simulationAnalysisSetting = true;
                     notificationStore.addSuccessNotification({
                         message: 'Analysis method saved successfully',
                     });

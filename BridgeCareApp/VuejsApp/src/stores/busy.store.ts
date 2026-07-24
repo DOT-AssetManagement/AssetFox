@@ -16,7 +16,7 @@ export const useBusyStore = defineStore('busy', {
             this.processCounter += 1;
         },
         decrementProcessCounter() {
-            this.processCounter -= 1;
+            this.processCounter = Math.max(0, this.processCounter - 1);
         },
         setProcessCounter(count: number) {
             this.processCounter = count;

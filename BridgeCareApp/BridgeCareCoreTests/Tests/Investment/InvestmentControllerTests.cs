@@ -13,6 +13,7 @@ using AssetFox.Core.UnitTestsCore.Extensions;
 using AssetFox.Core.UnitTestsCore.Tests;
 using AssetFox.Core.UnitTestsCore.TestUtils;
 using AssetFoxCore.Controllers;
+using AssetFoxCore.Interfaces;
 using AssetFoxCore.Models;
 using AssetFoxCore.Services;
 using AssetFoxCore.Services.DefaultData;
@@ -120,6 +121,36 @@ namespace AssetFoxCoreTests.Tests
                 ScenarioBudgets = new List<BudgetDTO>(),
             };
             ObjectAssertions.Equivalent(expected, value);
+        }
+
+        [Fact]
+        public void ValidateScenarioInvestment_UsesServiceFromControllerScope()
+        {
+            var simulationId = Guid.NewGuid();
+            var firstUnitOfWork = UnitOfWorkMocks.EveryoneExists();
+            var secondUnitOfWork = UnitOfWorkMocks.EveryoneExists();
+            var firstService = new Mock<IInvestmentBudgetsService>();
+            var secondService = new Mock<IInvestmentBudgetsService>();
+            firstService
+                .Setup(service => service.ValidateScenarioInvestment(simulationId))
+                .Returns(true);
+
+            var firstController = TestInvestmentControllerSetup.CreateAdminController(
+                firstUnitOfWork,
+                investmentBudgetServiceMock: firstService);
+            _ = TestInvestmentControllerSetup.CreateAdminController(
+                secondUnitOfWork,
+                investmentBudgetServiceMock: secondService);
+
+            var result = firstController.ValidateScenarioInvestment(simulationId);
+
+            Assert.True((bool)ActionResultAssertions.OkObject(result));
+            firstService.Verify(
+                service => service.ValidateScenarioInvestment(simulationId),
+                Times.Once);
+            secondService.Verify(
+                service => service.ValidateScenarioInvestment(It.IsAny<Guid>()),
+                Times.Never);
         }
 
         [Fact]

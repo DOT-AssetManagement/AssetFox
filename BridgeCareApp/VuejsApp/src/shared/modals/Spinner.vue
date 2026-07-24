@@ -19,7 +19,7 @@ import { computed } from 'vue';
 import { useBusyStore } from '@/stores';
 
 const busyStore = useBusyStore();
-const showDialogComputed = computed<boolean>(() => busyStore.getProcessCounter !== 0);
+const showDialogComputed = computed<boolean>(() => busyStore.getProcessCounter > 0);
 
 </script>
 

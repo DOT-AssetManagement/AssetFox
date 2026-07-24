@@ -494,21 +494,38 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         public bool ValidateAllCommittedProjects(List<SectionCommittedProjectDTO> sectionCommittedProjectDtos, List<int> budgetYears, Dictionary<string, bool> keyAttributeValuesExists)
         {
+            if (sectionCommittedProjectDtos == null || sectionCommittedProjectDtos.Count == 0)
+            {
+                return true;
+            }
+
+            if (budgetYears == null || budgetYears.Count == 0)
+            {
+                return false;
+            }
+
             bool isValid = true;
             budgetYears = [.. budgetYears.Order()];
             var firstYear = budgetYears.First();
             var lastYear = budgetYears.Last();
 
             // check if brkey is valid
-            if (keyAttributeValuesExists.Any(_ => !_.Value))
+            if (keyAttributeValuesExists == null || keyAttributeValuesExists.Any(_ => !_.Value))
             {
                 return false;
             }
 
             foreach (var sectionCommittedProjectDto in sectionCommittedProjectDtos)
             {
+                if (sectionCommittedProjectDto == null)
+                {
+                    return false;
+                }
+
                 // Treatment
-                if (sectionCommittedProjectDto.Treatment.Length == 0 || sectionCommittedProjectDto.Treatment.Contains("Default Treatment"))
+                if (sectionCommittedProjectDto.Treatment == null
+                    || sectionCommittedProjectDto.Treatment.Length == 0
+                    || sectionCommittedProjectDto.Treatment.Contains("Default Treatment"))
                 {
                     isValid = false;
                 }
@@ -521,12 +538,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 {
                     isValid = false;
                 }
-                if (budgetYears.Count > 0)
+                if (year < firstYear || year > lastYear)
                 {                    
-                    if (year < firstYear || year > lastYear)
-                    {
-                        isValid = false;
-                    }
+                    isValid = false;
                 }
 
                 // cost

@@ -533,6 +533,10 @@ import ConfirmDialog from 'primevue/confirmdialog';
             });
         }
 
+        const shouldTrackRequest = (url?: string) =>
+            !isNil(url) &&
+            ignoredAPIs.every((ignored: string) => url.indexOf(ignored) === -1);
+
         // create a request handler
         async function requestHandler(
             request: AxiosRequestConfig,
@@ -543,7 +547,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
             }
 
             request.headers = setAuthHeader(request.headers);
-            if(ignoredAPIs.every((ignored: string) => request.url!.indexOf(ignored) === -1,))
+            if (shouldTrackRequest(request.url))
                 busyStore.incrementProcessCounter();
             return request;
         }
@@ -563,10 +567,8 @@ import ConfirmDialog from 'primevue/confirmdialog';
         // create a success & error handler
         const successHandler = (response: AxiosResponse) => {
             response.headers = setContentTypeCharset(response.headers);
-            if(!isNil(response.config.url)){
-                if(ignoredAPIs.every((ignored: string) => response.config.url!.indexOf(ignored) === -1,))
-                    new Promise(_ => setTimeout(_, 10)).then(() => busyStore.decrementProcessCounter()) 
-            }         
+            if (shouldTrackRequest(response.config.url))
+                new Promise(_ => setTimeout(_, 10)).then(() => busyStore.decrementProcessCounter());
             return response;
         };
         const errorHandler = (error: AxiosError) => {
@@ -580,8 +582,9 @@ import ConfirmDialog from 'primevue/confirmdialog';
                 error.response.headers = setContentTypeCharset(
                     error.response.headers,
                 );
-            }    
-            busyStore.setProcessCounter(0);
+            }
+            if (shouldTrackRequest(error.config?.url))
+                busyStore.decrementProcessCounter();
             unauthorizedError = hasValue(unauthorizedError) ? error.response!.data : "User is not authorized!";
             if (error.response!.status === 500) return;
             

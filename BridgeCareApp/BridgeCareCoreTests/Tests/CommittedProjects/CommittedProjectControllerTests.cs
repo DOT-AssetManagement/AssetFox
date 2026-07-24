@@ -314,6 +314,26 @@ namespace AssetFoxCoreTests.Tests
         }
 
         [Fact]
+        public async Task ValidateAllCommittedProjects_AllowsFreshScenarioWithoutLoadingValidationMetadata()
+        {
+            var simulationId = Guid.NewGuid();
+            _mockCommittedProjectRepo
+                .Setup(repository => repository.GetSectionCommittedProjectDTOs(simulationId))
+                .Returns(new List<SectionCommittedProjectDTO>());
+            var controller = CreateTestController(new List<string>());
+
+            var result = await controller.ValidateAllCommittedProjects(
+                simulationId,
+                new NetworkDTO());
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.True(Assert.IsType<bool>(okResult.Value));
+            _mockUOW.VerifyGet(unitOfWork => unitOfWork.BudgetRepo, Times.Never);
+            _mockUOW.VerifyGet(unitOfWork => unitOfWork.AttributeRepo, Times.Never);
+            _mockUOW.VerifyGet(unitOfWork => unitOfWork.MaintainableAssetRepo, Times.Never);
+        }
+
+        [Fact]
         public async Task UpsertSectionWorksWithValidProjects()
         {
             // Arrange
