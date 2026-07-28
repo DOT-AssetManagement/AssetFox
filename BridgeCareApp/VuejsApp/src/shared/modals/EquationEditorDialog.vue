@@ -392,21 +392,17 @@ import ValidationService from '@/services/validation.service';
 import {EquationValidationParameters, ValidationResult} from '@/shared/models/iAM/expression-validation';
 import { emptyUserCriteriaFilter } from '../models/iAM/user-criteria-filter';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
+import { useAttributeStore } from '@/stores';
 
-let store = useStore();
+const attributeStore = useAttributeStore();
 const emit = defineEmits(['submit'])
 const props = defineProps<{
   dialogData: EquationEditorDialogData,
   isFromPerformanceCurveEditor: Boolean
     }>()
     let showDialogComputed = computed(() => props.dialogData.showDialog);
-    
-let stateNumericAttributes = computed<Attribute[]>(() => store.state.attributeModule.numericAttributes);
-async function getAttributesAction(payload?: any): Promise<any> {await store.dispatch('getAttributes');}
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification');}
 
   let equation: Equation = {...emptyEquation, id: getNewGuid()};
   const attributesList = ref<string[]>([]);  
@@ -450,18 +446,18 @@ function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNot
    */
   onMounted(()=>mounted())
    function mounted() {
-    if (hasValue(stateNumericAttributes.value)) {
+    if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributesList();
     }
   }
 
   /**
-   * onStateNumericAttributesChanged => stateNumericAttributes watcher is used to trigger a function to set the
+  * onStateNumericAttributesChanged => the numeric attribute watcher is used to trigger a function to set the
    * attributesList object.
    */
-  watch(stateNumericAttributes,()=>onStateNumericAttributesChanged())
+  watch(() => attributeStore.getNumericAttributes,()=>onStateNumericAttributesChanged())
   function onStateNumericAttributesChanged() {
-    if (hasValue(stateNumericAttributes.value)) {
+    if (hasValue(attributeStore.getNumericAttributes)) {
       setAttributesList();
     }
   }
@@ -555,7 +551,7 @@ function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNot
    * setAttributesList => function is used to set the attributesList object.
    */
   function setAttributesList() {
-    attributesList.value = getPropertyValues('name', stateNumericAttributes.value);
+    attributesList.value = getPropertyValues('name', attributeStore.getNumericAttributes);
   }
 
   /**

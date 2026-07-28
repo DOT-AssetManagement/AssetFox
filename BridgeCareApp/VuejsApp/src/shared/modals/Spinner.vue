@@ -15,12 +15,11 @@
 </template>
 
 <script lang="ts" setup>
-    import Vue, { computed } from 'vue';
-import { useStore } from 'vuex';
+import { computed } from 'vue';
+import { useBusyStore } from '@/stores';
 
-
-let store = useStore();
-let showDialogComputed = computed<boolean>(() => store.state.busyModule.processCounter !== 0)
+const busyStore = useBusyStore();
+const showDialogComputed = computed<boolean>(() => busyStore.getProcessCounter !== 0);
 
 </script>
 

@@ -164,5 +164,32 @@ namespace AssetFox.Core.UnitTestsCore.Tests.User
                 .Single(u => u.Id == user.Id);
             Assert.False(userAfter.HasInventoryAccess);
         }
+
+        [Fact]
+        public async Task DeactivateUser_Does()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, true);
+            Assert.True(user.ActiveStatus);
+
+            TestHelper.UnitOfWork.UserCriteriaRepo.DeactivateUser(user.Id);
+
+            var deactivatedUser = await TestHelper.UnitOfWork.UserRepo.GetUserById(user.Id);
+            Assert.False(deactivatedUser.ActiveStatus);
+        }
+
+
+        [Fact]
+        public async Task ReactivateUser_Does()
+        {
+            var user = await UserTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, true);
+            TestHelper.UnitOfWork.UserCriteriaRepo.DeactivateUser(user.Id);
+            var deactivatedUser = await TestHelper.UnitOfWork.UserRepo.GetUserById(user.Id);
+            Assert.False(deactivatedUser.ActiveStatus);
+
+            TestHelper.UnitOfWork.UserCriteriaRepo.ReactivateUser(user.Id);
+
+            var reactivatedUser = await TestHelper.UnitOfWork.UserRepo.GetUserById(user.Id);
+            Assert.True(reactivatedUser.ActiveStatus);
+        }
     }
 }

@@ -40,7 +40,6 @@
 <script lang="ts" setup>
 import Vue from 'vue';
 import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import router from '@/router';
 import { any, clone, isNil, propEq } from 'ramda';
 import { NavigationTab } from '@/shared/models/iAM/navigation-tab';
@@ -52,10 +51,10 @@ import DataSvg from '@/shared/icons/DataSvg.vue';
 import { createDecipheriv } from 'crypto';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {faHdd} from '@fortawesome/free-regular-svg-icons'
+import { useAuthenticationStore } from '@/stores';
 
-    let store = useStore();
-    let hasAdminAccess = ref<boolean>(store.state.authenticationModule.hasAdminAccess);
-    let userID = ref<string>(store.state.authenticationModule.userID);
+    const authenticationStore = useAuthenticationStore();
+    let hasAdminAccess = ref<boolean>(authenticationStore.hasAdminAccess);
     let networkId: string = getBlankGuid();
     let networkName: string = '';
     let navigationTabs: NavigationTab[] = [

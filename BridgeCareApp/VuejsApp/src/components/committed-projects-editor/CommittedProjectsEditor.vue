@@ -264,11 +264,11 @@
             <v-row justify="center" style="padding-bottom: 80px;">
                 <CancelButton 
                     @cancel="onCancelClick"
-                    :disabled="!hasUnsavedChanges"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                 />
                 <SaveButton 
                     @save="OnSaveClick"
-                    :disabled="!hasUnsavedChanges || disableCrudButtons"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges || disableCrudButtons"
                 />
             </v-row>
         </v-col> 
@@ -342,7 +342,7 @@ import InvestmentService from '@/services/investment.service';
 import { Hub } from '@/connectionHub';
 import { WorkType } from '@/shared/models/iAM/scenario';
 import { importCompletion } from '@/shared/models/iAM/ImportCompletion';
-import { storeKey, useStore } from 'vuex';
+import { useAlertStore, useAttributeStore, useCommittedProjectStore, useInvestmentStore, useNetworkStore, useNotificationStore, useScenarioStore, useTreatmentStore, useUnsavedChangesStore } from '@/stores';
 import mitt, { Emitter, EventType } from 'mitt';
 import { getUrl } from '@/shared/utils/get-url';
 import  currencyTextbox  from '@/shared/components/CurrencyTextbox.vue';
@@ -353,7 +353,9 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import UploadDialog from '@/shared/components/dialogs/UploadDialog.vue';
 import TreatmentSelectionPopup from './committed-project-editor-dialogs/TreatmentSelectionPopup.vue';
 
-    let store = useStore();
+    const committedProjectStore = useCommittedProjectStore();
+    const networkStore = useNetworkStore();
+    const treatmentStore = useTreatmentStore();
     const $router = useRouter();    
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     created();
@@ -407,24 +409,13 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
     let isKeyAttributeValidMap: Map<string, boolean> = new Map<string, boolean>();
     let projectPagination = shallowReactive<Pagination>(clone(emptyPagination));
     let AllCommittedProjectsValid: boolean = false;
-    const stateSectionCommittedProjects = computed<SectionCommittedProject[]>(() => store.state.committedProjectsModule.sectionCommittedProjects);
-    const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
-    const stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() =>store.state.investmentModule.scenarioSimpleBudgetDetails);
-    const hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    const networks = computed<Network[]>(() => store.state.networkModule.networks);
-    const stateSimpleScenarioSelectableTreatments = computed<SimpleTreatment[]>(() => store.state.treatmentModule.simpleScenarioSelectableTreatments);
 
-    async function getSimpleScenarioSelectableTreatmentsAction(payload?: any): Promise<any> { await store.dispatch('getSimpleScenarioSelectableTreatments', payload); }
-    async function getScenarioSimpleBudgetDetailsAction(payload?: any): Promise<any> { await store.dispatch('getScenarioSimpleBudgetDetails', payload); }
-    async function getAttributesAction(payload?: any): Promise<any> { await store.dispatch('getAttributes', payload); }
-    async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload); }
-    async function deleteSimulationCommittedProjectsAction(payload?: any): Promise<any> { await store.dispatch('deleteSimulationCommittedProjects', payload); }
-    function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload); }
-    function addSuccessNotificationAction(payload?: any) {  store.dispatch('addSuccessNotification', payload); }
-    async function addErrorNotificationAction(payload?: any): Promise<any> { await store.dispatch('addErrorNotification', payload); } 
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserOrSharedScenario', payload); }
-    function selectScenarioAction(payload?: any){  store.dispatch('selectScenario', payload); }
-    function setAlertMessageAction(payload?: any){ store.dispatch('setAlertMessage', payload); }
+    const attributeStore = useAttributeStore();
+    const investmentStore = useInvestmentStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
+    const scenarioStore = useScenarioStore();
+    const alertStore = useAlertStore();
+    const notificationStore = useNotificationStore();
     
     let selectedCpItems = ref<SectionCommittedProjectTableData[]>([]);
     let sectionCommittedProjects = ref<SectionCommittedProject[]>([]);
@@ -527,7 +518,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         networkId = $router.currentRoute.value.query.networkId as string;
         
         if (scenarioId === uuidNIL || networkId == uuidNIL) {
-            addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                message: 'Found no selected scenario for edit',
             });
             $router.push('/Scenarios/');
@@ -537,9 +528,9 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             categorySelectItems.value.push({text: cat, value: i})     
             i++   
         });
-        await getSimpleScenarioSelectableTreatmentsAction(scenarioId)
+        await treatmentStore.getSimpleScenarioSelectableTreatments(scenarioId)
         hasScenario = true;
-        await getNetworksAction();
+        await networkStore.getNetworks();
         await InvestmentService.getScenarioBudgetYears(scenarioId).then(response => {  
             if(response.data) {
                 if (response.data.length === 0) {
@@ -555,14 +546,14 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 isNoTreatmentBefore.value = response.data;
             }
         });
-        await getScenarioSimpleBudgetDetailsAction({scenarioId: scenarioId});
-        await getAttributesAction();
+        await investmentStore.getScenarioSimpleBudgetDetails(scenarioId);
+        await attributeStore.getAttributes();
         
-        await getCurrentUserOrSharedScenarioAction({simulationId: scenarioId});
-        selectScenarioAction({ scenarioId: scenarioId });
+        await scenarioStore.getCurrentUserOrSharedScenario(scenarioId);
+        scenarioStore.selectScenario(scenarioId);
         await ScenarioService.getHiddenUploadQueuedWorkByDomainIdAndWorkType({domainId: scenarioId, workType: WorkType.ImportCommittedProject}).then(response => {
             if(response.data){
-                setAlertMessageAction("Committed project import has been added to the queue");
+                alertStore.setAlertMessage("Committed project import has been added to the queue");
             }
         });
         await initializePages();
@@ -582,13 +573,13 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     onBeforeUnmount(() => beforeDestroy())
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
 
         $emitter.off(
             Hub.BroadcastEventType.BroadcastImportCompletionEvent,
             importCompleted,
         );
-        setAlertMessageAction('');
+        alertStore.setAlertMessage('');
     }
 
     async function validateAllCommittedProjects()
@@ -621,19 +612,19 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         }
     });
 
-    watch(networks, (newNetworks) => {
-        network = newNetworks.find(o => o.id === networkId) || clone(emptyNetwork);
+    watch(() => networkStore.networksGetter, (newNetworks: Network[]) => {
+        network = newNetworks.find((currentNetwork: Network) => currentNetwork.id === networkId) || clone(emptyNetwork);
     });
 
 
-    watch(stateAttributes, () => {
-        attributeSelectItems = stateAttributes.value.map(
+    watch(() =>attributeStore.attributesgetter, () => {
+        attributeSelectItems = attributeStore.attributesgetter.map(
             (attribute: Attribute) => ({
                 text: attribute.name,
                 value: attribute.name
             }),
         );
-        let keyAttr = stateAttributes.value.find(_ => _.id == network.keyAttribute);
+        let keyAttr = attributeStore.attributesgetter.find(_ => _.id == network.keyAttribute);
         if(!isNil(keyAttr)){
             keyattr = keyAttr.name;
             cpGridHeaders.value[0].title = keyattr;
@@ -647,14 +638,14 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         );
     };
 
-    watch(stateSimpleScenarioSelectableTreatments, () => {
-        treatmentSelectItems.value = stateSimpleScenarioSelectableTreatments.value.map(
+    watch(() => treatmentStore.simpleScenarioSelectableTreatmentsGetter, () => {
+        treatmentSelectItems.value = treatmentStore.simpleScenarioSelectableTreatmentsGetter.map(
             (treatment: SimpleTreatment) => (treatment.name)
         );
     });
 
-    watch(stateScenarioSimpleBudgetDetails, () => {
-        budgetSelectItems.value = stateScenarioSimpleBudgetDetails.value.map(
+    watch(() => investmentStore.scenarioSimpleBudgetDetailsGetter, () => {
+        budgetSelectItems.value = investmentStore.scenarioSimpleBudgetDetailsGetter.map(
             (budget: SimpleBudgetDetail) => ({
                 text: budget.name,
                 value: budget.name
@@ -662,8 +653,8 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         );
     });
 
-    watch(stateSectionCommittedProjects, () => {
-        sectionCommittedProjects.value = clone(stateSectionCommittedProjects.value);
+    watch(() => committedProjectStore.getSectionCommittedProjects, () => {
+        sectionCommittedProjects.value = clone(committedProjectStore.getSectionCommittedProjects);
         setCpItems();
     });
 
@@ -921,7 +912,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                 if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
                     deletionIds.value = [];
                     $emitter.emit('AllCommittedProjectsDeleted');
-                    addSuccessNotificationAction({ message: 'Deleted committed projects' });
+                    notificationStore.addSuccessNotification({ message: 'Deleted committed projects' });
                 }
                 performUpsert();
             });
@@ -934,7 +925,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function handleUpsertResponse(response: AxiosResponse) {
         if (hasValue(response, 'status') && http2XX.test(response.status.toString())) {
-            addSuccessNotificationAction({ message: 'Committed Projects Updated Successfully' });
+            notificationStore.addSuccessNotification({ message: 'Committed Projects Updated Successfully' });
             console.log(selectedCpItems.value);
             console.log(totalItems.value);
             if(totalItems.value !== 0)
@@ -1033,10 +1024,10 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
                     scenarioId,
                     ).then((response: any) =>{                        
                         if(!isNil(response))
-                            setAlertMessageAction("Committed project import has been added to the queue");                        
+                            alertStore.setAlertMessage("Committed project import has been added to the queue");                        
                     })
             } else {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'No file selected.',
                     longMessage:
                         'No file selected to upload the committed projects.',
@@ -1049,7 +1040,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
         alertDataForDeletingCommittedProjects.value = { ...emptyAlertData };
 
         if (doDelete) {
-            deleteSimulationCommittedProjectsAction(scenarioId);
+            committedProjectStore.deleteSimulationCommittedProjects(scenarioId);
             $emitter.emit('AllCommittedProjectsDeleted');
             CommittedProjectsService.deleteSimulationCommittedProjects(scenarioId).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
@@ -1072,7 +1063,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function cpItemFactory(scp: SectionCommittedProject): SectionCommittedProjectTableData {
         const budget: SimpleBudgetDetail = find(
-            propEq('id', scp.scenarioBudgetId), stateScenarioSimpleBudgetDetails.value,
+            propEq('id', scp.scenarioBudgetId), investmentStore.scenarioSimpleBudgetDetailsGetter,
         ) as SimpleBudgetDetail;
         let cat = reverseCatMap.get(scp.category);
         let value = '';
@@ -1102,7 +1093,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function handleBudgetChange(row: SectionCommittedProject, scp: SectionCommittedProjectTableData, budgetName: string){
         const budget: SimpleBudgetDetail = find(
-            propEq('name', budgetName), stateScenarioSimpleBudgetDetails.value,
+            propEq('name', budgetName), investmentStore.scenarioSimpleBudgetDetailsGetter,
         ) as SimpleBudgetDetail;
         if(!isNil(budget)){
             row.scenarioBudgetId = budget.id;
@@ -1149,7 +1140,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
       const file = event.target.files[0];
       CommittedProjectsService.importCommittedProjectTemplate(file).then((response: AxiosResponse) => {
                 if(hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                    addSuccessNotificationAction({message:'Updated Default Template'})      
+                    notificationStore.addSuccessNotification({message:'Updated Default Template'})      
                 }
             });
    }   
@@ -1473,7 +1464,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
 
     function checkHasUnsavedChanges(){
         const hasUnsavedChanges: boolean = committedProjectsAreChanged() || isNoTreatmentBeforeCache.value != isNoTreatmentBefore.value
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function committedProjectsAreChanged() : boolean{
@@ -1488,7 +1479,7 @@ import TreatmentSelectionPopup from './committed-project-editor-dialogs/Treatmen
             projectPagination.page = 1
             clearChanges();
             onPaginationChanged().then(() => {
-                setAlertMessageAction('');
+                alertStore.setAlertMessage('');
                 if (totalItems.value > 0) {
                     dialogMessage.value = 'Committed projects in the sheet were imported and saved. See error export sheet for any invalid cells.';
                 } else {

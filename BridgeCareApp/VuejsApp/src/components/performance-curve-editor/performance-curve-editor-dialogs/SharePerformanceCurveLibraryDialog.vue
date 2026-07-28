@@ -72,19 +72,18 @@ import {setItemPropertyValueInList} from '@/shared/utils/setter-utils';
 import {PerformanceCurveLibraryUserGridRow, SharePerformanceCurveLibraryDialogData } from '@/shared/models/modals/share-performance-curve-library-dialog-data';
 import PerformanceCurveService from '@/services/performance-curve.service';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
 const emit = defineEmits(['submit'])
-let store = useStore();
+const userStore = useUserStore();
 const props = defineProps<{
   dialogData: SharePerformanceCurveLibraryDialogData
     }>()
 const { dialogData } = toRefs(props);
     // let showDialogComputed = computed(() => props.dialogData.showDialog);
-const stateUsers = computed<User[]>(() => store.state.userModule.users);
 let performanceCurveLibraryUserGridHeaders: any[] = [
     {title: 'Username', key: 'username', align: 'left', sortable: true, class: '', width: ''},
     {title: 'Shared With', key: '', align: 'left', sortable: true, class: '', width: ''},
@@ -104,7 +103,7 @@ watch(dialogData,()=> {
   function onSetGridData() {
     const currentUser: string = getUserName();
 
-    performanceCurveLibraryUserGridRows.value = stateUsers.value
+    performanceCurveLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

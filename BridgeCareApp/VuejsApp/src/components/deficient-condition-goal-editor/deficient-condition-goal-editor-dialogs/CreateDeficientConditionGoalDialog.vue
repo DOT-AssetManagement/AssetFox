@@ -65,20 +65,18 @@ import {getPropertyValues} from '@/shared/utils/getter-utils';
 import {hasValue} from '@/shared/utils/has-value-util';
 import {InputValidationRules, rules as validationRules} from '@/shared/utils/input-validation-rules';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
-import { useStore } from 'vuex';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
+import { useAttributeStore } from '@/stores';
 
-  let store = useStore();
+  const attributeStore = useAttributeStore();
   const props = defineProps<{
     currentNumberOfDeficientConditionGoals: number,
     showDialog: boolean
   }>()
   const { showDialog, currentNumberOfDeficientConditionGoals } = toRefs(props);
   const emit = defineEmits(['submit'])
-
-  const stateNumericAttributes = computed<Attribute[]>(() =>store.state.attributeModule.numericAttributes);
 
   const newDeficientConditionGoal = ref<DeficientConditionGoal>(clone({...emptyDeficientConditionGoal, id: getNewGuid()}));
   const numericAttributeNames = ref<string[]>([]);
@@ -91,7 +89,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
     setNumericAttributeNames();
   });
 
-  watch(stateNumericAttributes, () => {
+  watch(() => attributeStore.getNumericAttributes, () => {
     setNumericAttributeNames();
   });
 
@@ -117,8 +115,8 @@ import XButton from '@/shared/components/buttons/XButton.vue';
   }
 
   function setNumericAttributeNames() {
-    if (hasValue(stateNumericAttributes)) {
-      numericAttributeNames.value = getPropertyValues('name', stateNumericAttributes.value);
+    if (hasValue(attributeStore.getNumericAttributes)) {
+      numericAttributeNames.value = getPropertyValues('name', attributeStore.getNumericAttributes);
 
       if (showDialog) {
         setNewDeficientConditionGoalDefaultValues();

@@ -34,15 +34,15 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PamsData
             if (_summaryReportHelper == null) { throw new ArgumentNullException(nameof(_summaryReportHelper)); }
         }
 
-        private static List<string> GetHeaders() => new()
-        {                
+        private static List<string> GetHeaders() =>
+        [
                 "CRSeg",
                 "CRS",
                 "County",
                 "Route",
                 "District",
-                "Start",
-                "End",
+                "Start Segment",
+                "End Segment",
                 "Length(ft)",
                 "Width(ft)",
                 "Pavement Depth(in)",
@@ -59,7 +59,7 @@ namespace AssetFox.Core.Reporting.Services.PAMSSummaryReport.PamsData
                 "ADT",
                 "Truck %",
                 "Risk Score",
-            };
+            ];
 
         private static List<string> GetSubHeaders() =>
             [

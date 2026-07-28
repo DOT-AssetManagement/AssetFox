@@ -9,7 +9,7 @@
   </template>
   
   <script setup lang="ts">
-  import { useStore } from 'vuex';
+  import { useNotificationStore } from '@/stores';
   import { downloadSimulationLog } from '@/shared/utils/simulation-log-utils';
   
   const props = defineProps({
@@ -28,23 +28,15 @@
   });
   
   const emit = defineEmits(['success', 'error']);
-  const store = useStore();
-
-  function addSuccessNotificationAction(payload: any) {
-    store.dispatch('addSuccessNotification', payload);
-  }
-
-  function addErrorNotificationAction(payload: any) {
-    store.dispatch('addErrorNotification', payload);
-  }
+  const notificationStore = useNotificationStore();
   
   async function onDownloadSimulationLog() {
     await downloadSimulationLog(
       props.networkId,
       props.selectedScenarioId,
       props.simulationName,
-      addSuccessNotificationAction,
-      addErrorNotificationAction,
+      notificationStore.addSuccessNotification,
+      notificationStore.addErrorNotification,
     );
 }
   </script>

@@ -40,7 +40,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories
         void UpdateSimulationAndPossiblyUsers(SimulationDTO dto);
 
         void DeleteSimulation(Guid simulationId, CancellationToken? cancellationToken = null, IWorkQueueLog queueLog = null);
-        void DeleteSimulationReports(Guid simulationId);
+        void DeleteSimulationReports(Guid simulationId, bool throwIfReportsPathNotFound);
 
         void DeleteSimulationsByNetworkId(Guid networkId);
 

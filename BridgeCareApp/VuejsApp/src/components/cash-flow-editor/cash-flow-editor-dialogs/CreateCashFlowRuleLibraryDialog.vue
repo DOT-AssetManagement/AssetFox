@@ -53,14 +53,12 @@ import {getUserName} from '@/shared/utils/get-user-info';
 import {InputValidationRules, rules} from '@/shared/utils/input-validation-rules';
 import {clone} from 'ramda';
 import {getNewGuid} from '@/shared/utils/uuid-utils';
-import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SubmitButton from '@/shared/components/buttons/SubmitButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue'; 
 import XButton from '@/shared/components/buttons/XButton.vue';
 
-  let store = useStore();
-
-  let getIdByUserNameGetter: any = store.getters.getIdByUserName;
+  const userStore = useUserStore();
 
   const props = defineProps<{dialogData: CreateCashFlowRuleLibraryDialogData}>()
   let showDialogComputed = computed(() => props.dialogData.showDialog);
@@ -88,7 +86,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
                 : []
           }))
           : [],
-        owner: getIdByUserNameGetter(currentUser),
+        owner: userStore.getIdByUserName(currentUser),
     };
   }
 

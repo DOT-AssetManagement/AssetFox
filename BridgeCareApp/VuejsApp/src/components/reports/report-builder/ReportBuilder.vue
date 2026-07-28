@@ -293,7 +293,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { clone } from 'ramda';
-import { useStore } from 'vuex';
 import {
     ReportSchemaDTO,
     ReportSchemaDefinition,
@@ -309,8 +308,11 @@ import PageEditor from './PageEditor.vue';
 import ComponentProperties from './ComponentProperties.vue';
 import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vue';
 import ShareReportTemplateDialog from '@/components/reports/ShareReportTemplateDialog.vue';
+import { useAuthenticationStore, useNotificationStore, useReportSchemaStore } from '@/stores';
 
-const store = useStore();
+const authenticationStore = useAuthenticationStore();
+const notificationStore = useNotificationStore();
+const reportSchemaStore = useReportSchemaStore();
 
 // Schema state
 const schemaName = ref('');
@@ -349,7 +351,7 @@ const selectedComponent = computed<ReportComponent | null>(() => {
     return activePage.value.components.find(c => c.id === selectedComponentId.value) || null;
 });
 
-const hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 
 const isReadOnly = computed<boolean>(() =>
     !!currentSchemaId.value && currentSchema.value?.canModify === false
@@ -366,7 +368,7 @@ const deleteTemplateMessage = computed<string>(() => {
 
 // Methods
 function markDirty() {
-    store.commit('isDirtyMutator', true);
+    reportSchemaStore.isDirtyMutator(true);
 }
 
 function toggleSystemDefault() {
@@ -533,7 +535,7 @@ async function onSave() {
     if (firstBlocker) {
         activePageIndex.value = firstBlocker.pageIndex;
         selectedComponentId.value = firstBlocker.componentId;
-        store.dispatch('addErrorNotification', {
+        notificationStore.addErrorNotification({
             message: 'Fix chart configuration before saving.',
             longMessage: firstBlocker.message,
         });
@@ -561,7 +563,7 @@ async function onSave() {
         modifiedDate: now,
     };
 
-    const saved = await store.dispatch('saveReportSchema', { schema: dto }) as ReportSchemaDTO | null;
+    const saved = await reportSchemaStore.saveReportSchema(dto) as ReportSchemaDTO | null;
 
     if (saved?.id) {
         currentSchemaId.value = saved.id;
@@ -579,8 +581,8 @@ async function onLoadSchema(schema: ReportSchemaDTO) {
     let fullSchema = schema;
 
     if (!fullSchema.schemaJson) {
-        await store.dispatch('getReportSchema', { id: schema.id });
-        fullSchema = store.state.reportSchemaModule.selectedReportSchema as ReportSchemaDTO;
+        await reportSchemaStore.getReportSchema(schema.id);
+        fullSchema = reportSchemaStore.selectedReportSchema as ReportSchemaDTO;
     }
 
     loadSchemaIntoBuilder(fullSchema);
@@ -604,8 +606,8 @@ function loadSchemaIntoBuilder(schema: ReportSchemaDTO) {
 
     activePageIndex.value = 0;
     selectedComponentId.value = '';
-    store.commit('selectedReportSchemaMutator', schema);
-    store.commit('isDirtyMutator', false);
+    reportSchemaStore.selectedReportSchemaMutator(schema);
+    reportSchemaStore.isDirtyMutator(false);
 }
 
 function onNew() {
@@ -617,8 +619,8 @@ function onNew() {
     pages.value = [createDefaultPage()];
     activePageIndex.value = 0;
     selectedComponentId.value = '';
-    store.commit('selectedReportSchemaMutator', clone(emptyReportSchemaDTO));
-    store.commit('isDirtyMutator', false);
+    reportSchemaStore.selectedReportSchemaMutator(clone(emptyReportSchemaDTO));
+    reportSchemaStore.isDirtyMutator(false);
 }
 
 async function confirmDeleteTemplate() {
@@ -628,7 +630,7 @@ async function confirmDeleteTemplate() {
     }
 
     deletingTemplate.value = true;
-    const deleted = await store.dispatch('deleteReportSchema', { id: currentSchemaId.value }) as boolean;
+    const deleted = await reportSchemaStore.deleteReportSchema(currentSchemaId.value) as boolean;
     deletingTemplate.value = false;
     showDeleteTemplateConfirm.value = false;
 
@@ -650,7 +652,7 @@ function openShareDialog(schema?: ReportSchemaDTO) {
 function onSharingSaved(schema: ReportSchemaDTO) {
     if (schema.id === currentSchemaId.value) {
         currentSchema.value = schema;
-        store.commit('selectedReportSchemaMutator', schema);
+        reportSchemaStore.selectedReportSchemaMutator(schema);
     }
     shareDialogSchema.value = schema;
 }

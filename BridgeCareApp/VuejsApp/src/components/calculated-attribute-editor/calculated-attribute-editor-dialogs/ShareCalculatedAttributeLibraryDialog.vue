@@ -72,18 +72,17 @@ import {DataTableHeader} from '@/shared/models/vue/data-table-header';
 import {CalculatedAttributeLibraryUserGridRow, ShareCalculatedAttributeLibraryDialogData, emptyShareCalculatedAttributeLibraryDialogData } from '@/shared/models/modals/share-calculated-attribute-data';
 import CalculatedAttributeService from '@/services/calculated-attribute.service';
 import { http2XX } from '@/shared/utils/http-utils';
-import { useStore } from 'vuex';
+import { useUserStore } from '@/stores';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
 
 const emit = defineEmits(['submit'])
-let store = useStore();
+const userStore = useUserStore();
 const props = defineProps<{
     dialogData: ShareCalculatedAttributeLibraryDialogData
   }>()
 const {dialogData } = toRefs(props);
-const stateUsers = computed<User[]>(() => store.state.userModule.users);
 const shareCalculatedAttributeLibraryUserGridHeaders = ref<any[]>([
     {title: 'Username', key: 'username', align: 'left', sortable: true, class: '', width: ''},
     {title: 'Shared With', key: 'isShared', align: 'left', sortable: true, class: '', width: ''},
@@ -103,7 +102,7 @@ const shareCalculatedAttributeLibraryUserGridHeaders = ref<any[]>([
   function onSetGridData() {
     const currentUser: string = getUserName();
 
-    shareCalculatedAttributeLibraryUserGridRows.value = stateUsers.value
+    shareCalculatedAttributeLibraryUserGridRows.value = userStore.getUsers
         .filter((user: User) => user.username !== currentUser)
         .map((user: User) => ({
           id: user.id,

@@ -49,19 +49,19 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { clone } from 'ramda';
-import { useStore } from 'vuex';
+import { useAttributeStore } from '@/stores';
 import { WorkSummaryConfig, AggregateFunction, aggregateFunctionOptions } from '@/shared/models/iAM/report-schema';
 
 const props = defineProps<{ config: WorkSummaryConfig }>();
 const emit = defineEmits<{ (e: 'update:config', val: WorkSummaryConfig): void }>();
 
-const store = useStore();
+const attributeStore = useAttributeStore();
 const localConfig = ref<WorkSummaryConfig>(clone(props.config));
 
 watch(() => props.config, (val) => { localConfig.value = clone(val); }, { deep: true });
 
 const attributeNames = computed(() => {
-    const attrs = store.state.attributeModule?.attributes ?? [];
+    const attrs = attributeStore.attributesgetter ?? [];
     return attrs.map((a: any) => a.name).sort();
 });
 

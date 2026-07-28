@@ -221,29 +221,23 @@ import {
 import { UserCriteriaFilter } from '../models/iAM/user-criteria-filter';
 import { getBlankGuid, getNewGuid } from '../utils/uuid-utils';
 import { ref, onMounted, computed, toRefs, watch, Ref} from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { getUrl } from "../utils/get-url";
 import { reactive } from 'vue';
 import QueryEditor from "../components/queryEditor/QueryEditorGroup.vue"
 import TrashCanSvg from '@/shared/icons/TrashCanSvg.vue';
+import { useAttributeStore, useNetworkStore, useNotificationStore, useUserStore } from '@/stores';
 
-let store = useStore();
+const attributeStore = useAttributeStore();
+const networkStore = useNetworkStore();
+const notificationStore = useNotificationStore();
+const userStore = useUserStore();
 const $router = useRouter();
 const emit = defineEmits(['submit','submitCriteriaEditorResult'])
 const props = defineProps<{
     criteriaEditorData: CriteriaEditorData
     }>()
 const { criteriaEditorData } = toRefs(props);
-const stateAttributes = computed<Attribute[]>(() => store.state.attributeModule.attributes);
-const stateAttributesSelectValues = computed<AttributeSelectValues[]>(() => store.state.attributeModule.attributesSelectValues);
-const stateNetworks = computed<Network[]>(() => store.state.networkModule.networks);
-const currentUserCriteriaFilter = computed<UserCriteriaFilter>(() => store.state.userModule.currentUserCriteriaFilter);
-const stateCheckedSelectAttributes = computed<string[]>(() => store.state.attributeModule.checkedSelectAttributes);
-
-async function getAttributesAction(payload?: any): Promise<any> {await store.dispatch('getAttributes', payload);}
-async function getAttributeSelectValuesAction(payload?: any): Promise<any> {await store.dispatch('getAttributeSelectValues',payload);}
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification',payload);}
 const tab = ref<any>(null);
     const queryBuilderRules = ref<CriteriaConfigRule[]>([]);
     
@@ -267,12 +261,12 @@ const tab = ref<any>(null);
             criteriaEditorData.value.mergedCriteriaExpression != null
                 ? criteriaEditorData.value.mergedCriteriaExpression
                 : '',
-            addErrorNotificationAction,
+            notificationStore.addErrorNotification,
         ) as Criteria;
 
         setSubCriteriaClauses(mainCriteria);
 
-        if (hasValue(stateAttributes)) {
+        if (hasValue(attributeStore.attributesgetter)) {
             
             onStateAttributesChanged();
             onStateAttributesSelectValues();
@@ -292,7 +286,7 @@ const tab = ref<any>(null);
             criteriaEditorData.value.mergedCriteriaExpression != null
                 ? criteriaEditorData.value.mergedCriteriaExpression
                 : '',
-            addErrorNotificationAction,
+            notificationStore.addErrorNotification,
         ) as Criteria;
         const parsedSubCriteria:
             | string[]
@@ -323,9 +317,9 @@ const tab = ref<any>(null);
         }
     });
 
-    watch(stateAttributes, onStateAttributesChanged);
+    watch(() => attributeStore.attributesgetter, onStateAttributesChanged);
     function onStateAttributesChanged(){
-        if (hasValue(stateAttributes.value)) {
+        if (hasValue(attributeStore.attributesgetter)) {
             setQueryBuilderRules();
         }
     }
@@ -354,9 +348,9 @@ const tab = ref<any>(null);
             }
 
             /* if (hasValue(missingAttributes)) {
-                getAttributeSelectValuesAction({
+                attributeStore.getAttributeSelectValues(
                     attributeNames: missingAttributes,
-                });
+                );
             } */
         }
     });
@@ -365,13 +359,13 @@ const tab = ref<any>(null);
         resetSubCriteriaValidationProperties();
     });
 
-    watch(stateAttributesSelectValues, onStateAttributesSelectValues)
+    watch(() => attributeStore.getAttributesSelectValues, onStateAttributesSelectValues)
     function onStateAttributesSelectValues(){
         if (
             hasValue(queryBuilderRules.value) &&
-            hasValue(stateAttributesSelectValues.value)
+            hasValue(attributeStore.getAttributesSelectValues)
         ) {
-            const filteredAttributesSelectValues: AttributeSelectValues[] = stateAttributesSelectValues.value.filter(
+            const filteredAttributesSelectValues: AttributeSelectValues[] = attributeStore.getAttributesSelectValues.filter(
                 (asv: AttributeSelectValues) => hasValue(asv.values),
             );
             if (hasValue(filteredAttributesSelectValues)) {
@@ -405,7 +399,7 @@ const tab = ref<any>(null);
     }
 
     function setQueryBuilderRules() {
-        queryBuilderRules.value = stateAttributes.value.map(
+        queryBuilderRules.value = attributeStore.attributesgetter.map(
             (attribute: Attribute) => ({
                 type: attribute.type,
                 label: attribute.name,
@@ -507,7 +501,7 @@ const tab = ref<any>(null);
             //selectedSubCriteriaClause = parseCriteriaString(subCriteriaClause);
             let convertedCriteria = convertCriteriaExpressionToCriteriaObject(
                 subCriteriaClause,
-                addErrorNotificationAction,
+                notificationStore.addErrorNotification,
             );
             if(!isNil(convertedCriteria))
                 await loadCriteriaSelectAttributes(convertedCriteria)
@@ -593,7 +587,7 @@ const tab = ref<any>(null);
             //const parsedRawSubCriteria = parseCriteriaString(selectedRawSubCriteriaClause);
             const parsedRawSubCriteria = convertCriteriaExpressionToCriteriaObject(
                 selectedRawSubCriteriaClause.value,
-                addErrorNotificationAction,
+                notificationStore.addErrorNotification,
             );
             if (parsedRawSubCriteria && selectedRawSubCriteriaClause.value != '') {
                 await loadCriteriaSelectAttributes(parsedRawSubCriteria);
@@ -645,7 +639,7 @@ const tab = ref<any>(null);
         networkId = $router.currentRoute.value.query['networkId'] as string
         const validationParameter = {
                 expression: parsedCriteria.join(''),
-                currentUserCriteriaFilter: currentUserCriteriaFilter.value,
+                currentUserCriteriaFilter: userStore.getCurrentUserCriteriaFilter,
                 networkId:networkId
             } as ValidationParameter;
         ValidationService.getCriterionValidationResult(
@@ -701,7 +695,7 @@ const tab = ref<any>(null);
     {
         const validationParameter = {
                 expression: parsedCriteria.join(''),
-                currentUserCriteriaFilter: currentUserCriteriaFilter.value,
+                currentUserCriteriaFilter: userStore.getCurrentUserCriteriaFilter,
                 networkId:getBlankGuid()
             } as ValidationParameter;
         ValidationService.getCriterionValidationResultNoCount(
@@ -872,7 +866,7 @@ const tab = ref<any>(null);
         const parsedSelectedRawSubCriteriaClause = convertCriteriaObjectToCriteriaExpression(
             convertCriteriaExpressionToCriteriaObject(
                 selectedRawSubCriteriaClause.value,
-                addErrorNotificationAction,
+                notificationStore.addErrorNotification,
             ) as Criteria,
         );
 
@@ -910,7 +904,7 @@ const tab = ref<any>(null);
                         //const parsedSubCriteriaClause: Criteria = parseCriteriaString(subCriteriaClause) as Criteria;
                         const parsedSubCriteriaClause: Criteria = convertCriteriaExpressionToCriteriaObject(
                             subCriteriaClause,
-                            addErrorNotificationAction,
+                            notificationStore.addErrorNotification,
                         ) as Criteria;
                         if (
                             hasValue(parsedSubCriteriaClause) &&
@@ -950,7 +944,7 @@ const tab = ref<any>(null);
             if (
                 !any(
                     propEq('attribute', criteriaRule.rule),
-                    stateAttributesSelectValues.value,
+                    attributeStore.getAttributesSelectValues,
                 ) &&
                 missingAttributes.indexOf(criteriaRule.rule) === -1
             ) {
@@ -965,7 +959,7 @@ const tab = ref<any>(null);
         let attributesToCheck: string[] = [];
         loadCriteriaSelectAttributesRecurse(criteria, attributesToCheck) 
         if(attributesToCheck.length != 0)       
-            await getAttributeSelectValuesAction({attributeNames: Array.from(new Set(attributesToCheck))});
+            await attributeStore.getAttributeSelectValues(Array.from(new Set(attributesToCheck)));
     }
 
     async function loadCriteriaSelectAttributesRecurse(criteria: Criteria, attributesToCheck: string[]){
@@ -977,7 +971,7 @@ const tab = ref<any>(null);
                 loadCriteriaSelectAttributesRecurse(_.query as Criteria, attributesToCheck)
                 else
                 {
-                    if(isNil(stateCheckedSelectAttributes.value.find(__ => __ === (_.query as CriteriaRule).selectedOperand)))
+                    if(isNil(attributeStore.getCheckedSelectAttributes.find(__ => __ === (_.query as CriteriaRule).selectedOperand)))
                     {
                         attributesToCheck.push((_.query as CriteriaRule).selectedOperand)
                     }

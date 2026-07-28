@@ -41,15 +41,13 @@
 import { ref, toRefs, watch, shallowRef, computed, onMounted } from 'vue';
 import { clone, contains, isNil } from 'ramda';
 import { SimpleBudgetDetail } from '@/shared/models/iAM/investment';
-import { useStore } from 'vuex';
+import { useInvestmentStore } from '@/stores';
 
 import { isEqual } from '@/shared/utils/has-unsaved-changes-helper';
 import { getPropertyValues } from '@/shared/utils/getter-utils';
 
     const emit = defineEmits(['submit', 'onModifyBudgets'])
-    let store = useStore();
-    
-    const stateScenarioSimpleBudgetDetails = computed<SimpleBudgetDetail[]>(() => store.state.investmentModule.scenarioSimpleBudgetDetails);
+    const investmentStore = useInvestmentStore();
 
     const props = defineProps<{
          selectedTreatmentBudgets: string[],
@@ -65,15 +63,15 @@ import { getPropertyValues } from '@/shared/utils/getter-utils';
     const selectedBudgets = ref<SimpleBudgetDetail[]>([]);
 
     onMounted(() => {  
-        if(stateScenarioSimpleBudgetDetails.value.length > 0){
-            budgets.value = clone(stateScenarioSimpleBudgetDetails.value);
+        if(investmentStore.scenarioSimpleBudgetDetailsGetter.length > 0){
+            budgets.value = clone(investmentStore.scenarioSimpleBudgetDetailsGetter);
             selectedBudgets.value = getSelectedBudgets();
         }   
         onSelectedTreatmentBudgetsChanged();
     })
 
-    watch(stateScenarioSimpleBudgetDetails, () => {
-        budgets.value = clone(stateScenarioSimpleBudgetDetails.value);
+    watch(() => investmentStore.scenarioSimpleBudgetDetailsGetter, () => {
+        budgets.value = clone(investmentStore.scenarioSimpleBudgetDetailsGetter);
     });
 
     watch(() => props.selectedTreatmentBudgets, onSelectedTreatmentBudgetsChanged);

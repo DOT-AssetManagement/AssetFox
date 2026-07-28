@@ -196,7 +196,7 @@
                 />
                 <CancelButton 
                     @cancel="onDiscardChanges"
-                    :disabled="!hasUnsavedChanges"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <CreateAsNewLibraryButton 
@@ -205,12 +205,12 @@
                 />
                 <SaveButton 
                     @save="onUpsertScenarioCashFlowRules"
-                    :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <UpdateLibraryButton 
                     @updateLibrary="onUpsertCashFlowRuleLibrary"
-                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="!hasScenario"
                 />                                     
             </v-row>
@@ -297,7 +297,6 @@ import CashFlowService from '@/services/cash-flow.service';
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import { LibraryUser } from '@/shared/models/iAM/user';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { getUrl } from '@/shared/utils/get-url';
@@ -316,39 +315,17 @@ import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibrary
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
 import { emit } from 'process';
+import { useAuthenticationStore, useCashFlowStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
 
-let store = useStore();
+const authenticationStore = useAuthenticationStore();
+const cashFlowStore = useCashFlowStore();
+const notificationStore = useNotificationStore();
+const scenarioStore = useScenarioStore();
+const unsavedChangesStore = useUnsavedChangesStore();
+const userStore = useUserStore();
 const confirm = useConfirm();
 const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
-// const stateSimulationReportNames = computed<string[]>(() => store.state.adminDataModule.simulationReportNames);
-
-const stateCashFlowRuleLibraries = computed<CashFlowRuleLibrary[]>(() => store.state.cashFlowModule.cashFlowRuleLibraries);
-let stateSelectedCashRuleFlowLibrary = computed<CashFlowRuleLibrary>(() => store.state.cashFlowModule.selectedCashFlowRuleLibrary);
-let stateScenarioCashFlowRules = computed<CashFlowRule[]>(() => store.state.cashFlowModule.scenarioCashFlowRules);
-let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
-let hasPermittedAccess = computed<boolean>(() => store.state.cashFlowModule.hasPermittedAccess);
-let isSharedLibrary = computed<boolean>(() => store.state.cashFlowModule.isSharedLibrary);
-
-async function getIsSharedLibraryAction(payload?: any): Promise<any> {await store.dispatch('getIsSharedCashFlowRuleLibrary', payload);}
-async function getHasPermittedAccessAction(payload?: any): Promise<any> {await store.dispatch('getHasPermittedAccess', payload);}
-async function getCashFlowRuleLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getCashFlowRuleLibraries', payload);}
-async function selectedCashFlowRuleLibraryAction(payload?: any): Promise<any> {await store.dispatch('selectCashFlowRuleLibrary', payload);}
-async function upsertCashFlowRuleLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertCashFlowRuleLibrary', payload);}
-async function deleteCashFlowRuleLibraryAction(payload?: any): Promise<any> {await store.dispatch('deleteCashFlowRuleLibrary', payload);}
-function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);}
-function setHasUnsavedChangesAction(payload?: any) { store.dispatch('setHasUnsavedChanges', payload);}
-async function getScenarioCashFlowRulesAction(payload?: any): Promise<any> {await store.dispatch('getScenarioCashFlowRules', payload);}
-async function upsertScenarioCashFlowRulesAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioCashFlowRules', payload);}
-function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
-async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
- function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
-
-function cashFlowRuleLibraryMutator(payload: any){store.commit('cashFlowRuleLibraryMutator', payload);}
-function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selectedCashFlowRuleLibraryMutator', payload);}
-
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
 
     let gridSearchTerm = '';
     let currentSearch = '';
@@ -474,12 +451,12 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
     created();
     async function created() {
         librarySelectItemValue.value = "";
-        await getCashFlowRuleLibrariesAction()
-        await getHasPermittedAccessAction()
+        await cashFlowStore.getCashFlowRuleLibraries()
+        await cashFlowStore.getHasPermittedAccess()
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.CashFlow) !== -1) {
             selectedScenarioId = $router.currentRoute.value.query.scenarioId;
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Unable to identify selected scenario.',
                 });
                 $router.push('/Scenarios/');
@@ -487,19 +464,19 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
             }
 
             hasScenario.value = true;
-            await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})     
-            selectScenarioAction({ scenarioId: selectedScenarioId });        
+            await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+            scenarioStore.selectScenario(selectedScenarioId);
             await initializePages();                                   
         }
     }
 
 
     onBeforeUnmount(() => {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     });
 
-    watch(stateCashFlowRuleLibraries, () => {
-        librarySelectItems.value = stateCashFlowRuleLibraries.value.map(
+    watch(() => cashFlowStore.cashFlowRuleLibrariesGetter, () => {
+        librarySelectItems.value = cashFlowStore.cashFlowRuleLibrariesGetter.map(
             (library: CashFlowRuleLibrary) => ({
                 text: library.name,
                 value: library.id,
@@ -507,16 +484,10 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
         );
     });
 
-    watch(stateSelectedCashRuleFlowLibrary, () => {
+    watch(() => cashFlowStore.getSelectedCashFlowRuleLibrary, () => {
         selectedCashFlowRuleLibrary.value = clone(
-            stateSelectedCashRuleFlowLibrary.value,
+            cashFlowStore.getSelectedCashFlowRuleLibrary,
         );
-    });
-
-    watch(stateScenarioCashFlowRules, () => {
-        if (hasScenario.value) {
-            cashFlowRuleGridData.value = clone(stateScenarioCashFlowRules.value);
-        }
     });
 
     watch(selectedCashFlowRule, () => {
@@ -571,7 +542,7 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
                     rowCache = clone(currentPage.value)
                     totalItems.value = data.totalItems;
                     if (!isNil(selectedCashFlowRuleLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedCashFlowRuleLibrary.value).then(() =>isShared = isSharedLibrary.value);
+                        cashFlowStore.getIsSharedCashFlowRuleLibrary(selectedCashFlowRuleLibrary.value.id).then(() => isShared = cashFlowStore.getIsSharedLibrary);
                     }
             }
         });     
@@ -650,14 +621,14 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
                     if(cashFlowRuleLibrary.cashFlowRules.length == 0){
                         clearChanges();
                     }
-                    cashFlowRuleLibraryMutator(cashFlowRuleLibrary);
+                    cashFlowStore.cashFlowRuleLibraryMutator(cashFlowRuleLibrary);
                     if(hasScenario.value){
                         scenarioHasCreatedNew = true;
                         importLibraryDisabled = true;
                     }                   
                     else
                         librarySelectItemValue.value = cashFlowRuleLibrary.id;
-                    addSuccessNotificationAction({message:'Added cash flow rule library'})
+                    notificationStore.addSuccessNotification({message:'Added cash flow rule library'})
                 }               
             });
         }
@@ -721,17 +692,17 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
     }
 
     function checkLibraryEditPermission() {
-        hasLibraryEditPermission = hasAdminAccess.value || (hasPermittedAccess.value && checkUserIsLibraryOwner());
+        hasLibraryEditPermission = authenticationStore.getHasAdminAccess || (cashFlowStore.hasPermittedAccessGetter && checkUserIsLibraryOwner());
     }
 
     function checkUserIsLibraryOwner() {
-        return getUserNameByIdGetter(selectedCashFlowRuleLibrary.value.owner) == getUserName();
+        return userStore.getUserNameById(selectedCashFlowRuleLibrary.value.owner ?? "") == getUserName();
     }
 
     function getOwnerUserName(): string {
 
         if (!hasCreatedLibrary) {
-            return getUserNameByIdGetter(selectedCashFlowRuleLibrary.value.owner);
+            return userStore.getUserNameById(selectedCashFlowRuleLibrary.value.owner ?? "") || '';
         }
         return getUserName();
     }
@@ -791,7 +762,7 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
     }
 
     async function onUpsertScenarioCashFlowRules() {
-        if (selectedCashFlowRuleLibrary.value.id === uuidNIL || hasUnsavedChanges.value && libraryImported === false) {scenarioLibraryIsModified = true;}
+        if (selectedCashFlowRuleLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && libraryImported === false) {scenarioLibraryIsModified = true;}
         else { scenarioLibraryIsModified = false; }
 
         CashFlowService.upsertScenarioCashFlowRules({
@@ -806,7 +777,7 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
                 clearChanges();
                 librarySelectItemValue.value = "";
                 resetPage();
-                addSuccessNotificationAction({message: "Modified scenario's cash flow rules"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's cash flow rules"});
                 importLibraryDisabled = true;
                 libraryImported = false;
             }           
@@ -818,11 +789,6 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
     }
 
     function onUpsertCashFlowRuleLibrary() {
-        // const cashFlowRuleLibrary: CashFlowRuleLibrary = {
-        //     ...clone(selectedCashFlowRuleLibrary),
-        //     cashFlowRules: clone(currentPage),
-        // };
-
         const upsertRequest: LibraryUpsertPagingRequest<CashFlowRuleLibrary, CashFlowRule> = {
                 library: selectedCashFlowRuleLibrary.value,
                 isNewLibrary: false,
@@ -838,9 +804,9 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
         CashFlowService.upsertCashFlowRuleLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges();
-                cashFlowRuleLibraryMutator(selectedCashFlowRuleLibrary.value);
-                selectedCashFlowRuleLibraryMutator(selectedCashFlowRuleLibrary.value.id);
-                addSuccessNotificationAction({message: "Updated cash flow rule library",});
+                cashFlowStore.cashFlowRuleLibraryMutator(selectedCashFlowRuleLibrary.value);
+                cashFlowStore.selectedCashFlowRuleLibraryMutator(selectedCashFlowRuleLibrary.value.id);
+                notificationStore.addSuccessNotification({message: "Updated cash flow rule library",});
             }
         });
     }
@@ -944,7 +910,7 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
 
         if (submit) {
             librarySelectItemValue.value = '';
-            deleteCashFlowRuleLibraryAction(
+            cashFlowStore.deleteCashFlowRuleLibrary(
                 selectedCashFlowRuleLibrary.value.id,
             );
         }
@@ -992,12 +958,12 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
             addedRows.value.length > 0 ||
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedCashFlowRuleLibrary.value,  stateSelectedCashRuleFlowLibrary.value))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedCashFlowRuleLibrary.value, cashFlowStore.getSelectedCashFlowRuleLibrary))
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
 
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",
@@ -1019,7 +985,7 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
             return;
         }
         let foundLibrary: CashFlowRuleLibrary = emptyCashFlowRuleLibrary;
-        stateCashFlowRuleLibraries.value.forEach(library => {
+        cashFlowStore.cashFlowRuleLibrariesGetter.forEach(library => {
             if (library.id === libraryId ) {
                 foundLibrary = clone(library);
             }
@@ -1032,7 +998,7 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
         trueLibrarySelectItemValue = librarySelectItemValue.value;
         if(!hasScenario.value || !isNil(librarySelectItemValue.value))
         {    
-            selectedCashFlowRuleLibraryAction(librarySelectItemValue.value);
+            cashFlowStore.selectCashFlowRuleLibrary(librarySelectItemValue.value);
         }
         else
         {
@@ -1045,7 +1011,7 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
         }
 
         setParentLibraryName(librarySelectItemValue.value);
-        selectedCashFlowRuleLibraryAction(librarySelectItemValue.value);
+        cashFlowStore.selectCashFlowRuleLibrary(librarySelectItemValue.value);
         importLibraryDisabled = true;
         scenarioLibraryIsModified = false;
         libraryImported = true;
@@ -1086,9 +1052,9 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
             onPaginationChanged();
     }
 
-    watch(isSharedLibrary, () => onStateSharedAccessChanged())
+    watch(() => cashFlowStore.getIsSharedLibrary, () => onStateSharedAccessChanged())
     function onStateSharedAccessChanged() {
-        isShared = isSharedLibrary.value;
+        isShared = cashFlowStore.getIsSharedLibrary;
         if (!isNil(selectedCashFlowRuleLibrary.value)) {
             selectedCashFlowRuleLibrary.value.isShared = isShared;
         } 
@@ -1160,7 +1126,7 @@ function selectedCashFlowRuleLibraryMutator(payload: any){store.commit('selected
                 libraryUserData.push(libraryUser);
             });
             if (!isNil(selectedCashFlowRuleLibrary.value.id)) {
-                getIsSharedLibraryAction(selectedCashFlowRuleLibrary.value).then(() => isShared = isSharedLibrary.value);
+                cashFlowStore.getIsSharedCashFlowRuleLibrary(selectedCashFlowRuleLibrary.value.id).then(() => isShared = cashFlowStore.getIsSharedLibrary);
             }
             //update budget library sharing
             CashFlowService.upsertOrDeleteCashFlowRuleLibraryUsers(selectedCashFlowRuleLibrary.value.id, libraryUserData).then((response: AxiosResponse) => {

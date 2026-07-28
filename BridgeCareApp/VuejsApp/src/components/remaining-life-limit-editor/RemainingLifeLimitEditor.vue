@@ -198,7 +198,7 @@
             <v-row v-show="hasSelectedLibrary || hasScenario" style="padding-bottom: 40px;" align-content="center" justify="center">
                 <CancelButton 
                     @cancel="onDiscardChanges"
-                    :disabled="!hasUnsavedChanges"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <DeleteLibraryButton 
@@ -210,12 +210,12 @@
                 />
                 <SaveButton 
                     @save="onUpsertScenarioRemainingLifeLimits"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges"
+                    :disabled="disableCrudButton() || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <UpdateLibraryButton 
                     @updateLibrary="onUpsertRemainingLifeLimitLibrary"
-                    :disabled="disableCrudButton() || !hasUnsavedChanges"
+                    :disabled="disableCrudButton() || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="!hasScenario"
                 />
             </v-row>
@@ -290,7 +290,6 @@ import { emptyShareRemainingLifeLimitLibraryDialogData, ShareRemainingLifeLimitL
 import { AxiosResponse } from 'axios';
 import { http2XX } from '@/shared/utils/http-utils';
 import { LibraryUser } from '@/shared/models/iAM/user';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -308,36 +307,19 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
+import { useAttributeStore, useAuthenticationStore, useNotificationStore, useRemainingLifeLimitStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-    let store = useStore();
+    const attributeStore = useAttributeStore();
+    const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
+    const remainingLifeLimitStore = useRemainingLifeLimitStore();
+    const scenarioStore = useScenarioStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
+    const userStore = useUserStore();
     const confirm = useConfirm();
     const $router = useRouter();
 
-    const stateRemainingLifeLimitLibraries = computed<RemainingLifeLimitLibrary[]>(() => store.state.remainingLifeLimitModule.remainingLifeLimitLibraries);
-    const stateSelectedRemainingLifeLimitLibrary = computed<RemainingLifeLimitLibrary>(() =>store.state.remainingLifeLimitModule.selectedRemainingLifeLimitLibrary);
-    let stateNumericAttributes = computed<Attribute[]>(() =>store.state.attributeModule.numericAttributes);
-    let stateScenarioRemainingLifeLimits = computed<RemainingLifeLimit[]>(() =>store.state.remainingLifeLimitModule.scenarioRemainingLifeLimits);
-    let hasUnsavedChanges = computed<boolean>(() =>store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    let hasAdminAccess = computed<boolean>(() =>store.state.authenticationModule.hasAdminAccess) ;
-    let isSharedLibrary = computed<boolean>(() =>store.state.remainingLifeLimitModule.isSharedLibrary);
-
-    async function getIsSharedLibraryAction(payload?: any): Promise<any>{await store.dispatch('getIsSharedRemainingLifeLimitLibrary', payload)}
-    async function getRemainingLifeLimitLibrariesAction(payload?: any): Promise<any>{await store.dispatch('getRemainingLifeLimitLibraries', payload)}
-    async function upsertRemainingLifeLimitLibraryAction(payload?: any): Promise<any>{await store.dispatch('upsertRemainingLifeLimitLibrary', payload)}
-    async function deleteRemainingLifeLimitLibraryAction(payload?: any): Promise<any>{await store.dispatch('deleteRemainingLifeLimitLibrary', payload)}
-    function selectRemainingLifeLimitLibraryAction(payload?: any){store.dispatch('selectRemainingLifeLimitLibrary', payload)}
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
-    function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload)}
-    async function getScenarioRemainingLifeLimitsAction(payload?: any): Promise<any>{await store.dispatch('getScenarioRemainingLifeLimits', payload)}
-    async function upsertScenarioRemainingLifeLimitsAction(payload?: any): Promise<any>{await store.dispatch('upsertScenarioRemainingLifeLimits', payload)}
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload)}
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any>{await store.dispatch('getCurrentUserOrSharedScenario', payload)}
-    function selectScenarioAction(payload?: any){ store.dispatch('selectScenario', payload)}
-    
-    function addedOrUpdatedRemainingLifeLimselectListItemsrefitLibraryMutator(payload: any){store.commit('addedOrUpdatedRemainingLifeLimitLibraryMutator', payload);}
-    function selectedRemainingLifeLimitLibraryMutator(payload: any){store.commit('selectedRemainingLifeLimitLibraryMutator', payload);}
-
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
+    let hasAdminAccess = computed<boolean>(() =>authenticationStore.hasAdminAccess) ;
 
     let remainingLifeLimitLibraries: RemainingLifeLimitLibrary[] = [];
     let selectedRemainingLifeLimitLibrary: ShallowRef<RemainingLifeLimitLibrary> = shallowRef(clone(
@@ -441,34 +423,35 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
 
     onMounted(async () => {
         librarySelectItemValue.value = null;
-        await getRemainingLifeLimitLibrariesAction()
+        await remainingLifeLimitStore.getRemainingLifeLimitLibraries()
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.RemainingLifeLimit) !== -1) {
             selectedScenarioId = $router.currentRoute.value.query.scenarioId;
             if (selectedScenarioId === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 $router.push('/Scenarios/');
             }
             hasScenario.value = true;
-            await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId})
-            selectScenarioAction({ scenarioId: selectedScenarioId });        
+            await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId)
+            scenarioStore.selectScenario(selectedScenarioId);
             await initializePages();                            
         }
 
+        await attributeStore.getAttributes();
         setAttributesSelectListItems();
     });
 
     onBeforeUnmount(() => {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     });
 
     watch(selectedGridRows, ()=> {
             selectedRemainingLifeIds = getPropertyValues('id', selectedGridRows.value,) as string[];
         });
 
-    watch(stateRemainingLifeLimitLibraries, ()=>  {
-        selectListItems.value = stateRemainingLifeLimitLibraries.value.map(
+    watch(() => remainingLifeLimitStore.remainingLifeLimitLibrariesGetter, ()=>  {
+        selectListItems.value = remainingLifeLimitStore.remainingLifeLimitLibrariesGetter.map(
             (remainingLifeLimitLibrary: RemainingLifeLimitLibrary) => ({
                 text: remainingLifeLimitLibrary.name,
                 value: remainingLifeLimitLibrary.id,
@@ -493,14 +476,14 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
     });
     function onLibrarySelectItemValueChanged() {
         trueLibrarySelectItemValue = librarySelectItemValue.value
-        selectRemainingLifeLimitLibraryAction({
-            libraryId: librarySelectItemValue.value,
-        });
+        remainingLifeLimitStore.selectRemainingLifeLimitLibrary(
+            librarySelectItemValue.value ?? '',
+        );
     }
 
-    watch(stateSelectedRemainingLifeLimitLibrary,  ()=> {
+    watch(() => remainingLifeLimitStore.getSelectedRemainingLifeLimitLibrary,  ()=> {
         selectedRemainingLifeLimitLibrary.value = clone(
-            stateSelectedRemainingLifeLimitLibrary.value,
+            remainingLifeLimitStore.getSelectedRemainingLifeLimitLibrary,
         );
     });
 
@@ -512,9 +495,9 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
             onPaginationChanged(); 
     });
 
-    watch(stateScenarioRemainingLifeLimits, ()=> {
+    watch(() => remainingLifeLimitStore.scenarioRemainingLifeLimitsGetter, ()=> {
         if (hasScenario.value) {
-            currentPage.value = clone(stateScenarioRemainingLifeLimits.value);
+            currentPage.value = clone(remainingLifeLimitStore.scenarioRemainingLifeLimitsGetter);
         }
     });
 
@@ -527,11 +510,11 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
         });
     });
     
-    watch(isSharedLibrary, ()=> {
-        isShared = isSharedLibrary.value;
+    watch(() => remainingLifeLimitStore.getIsSharedLibrary, ()=> {
+        isShared = remainingLifeLimitStore.getIsSharedLibrary;
     });
     
-    watch(stateNumericAttributes, ()=> {
+    watch(() => attributeStore.getNumericAttributes, ()=> {
         setAttributesSelectListItems();
     });
 
@@ -579,7 +562,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
                     rowCache = clone(currentPage.value)
                     totalItems.value = data.totalItems;
                     if (!isNil(selectedRemainingLifeLimitLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedRemainingLifeLimitLibrary.value).then(() => isShared = isSharedLibrary.value);
+                        remainingLifeLimitStore.getIsSharedRemainingLifeLimitLibrary(selectedRemainingLifeLimitLibrary.value.id).then(() => isShared = remainingLifeLimitStore.getIsSharedLibrary);
                     }
                 }
             });     
@@ -599,8 +582,8 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
     // });
 
     function setAttributesSelectListItems() {
-        if (hasValue(stateNumericAttributes)) {
-            numericAttributeSelectItems.value = stateNumericAttributes.value.map(
+        if (hasValue(attributeStore.getNumericAttributes)) {
+            numericAttributeSelectItems.value = attributeStore.getNumericAttributes.map(
                 (attribute: Attribute) => ({
                     text: attribute.name,
                     value: attribute.name,
@@ -616,7 +599,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
     function getOwnerUserName(): string {
 
         if (!hasCreatedLibrary) {
-        return getUserNameByIdGetter(selectedRemainingLifeLimitLibrary.value.owner);
+        return userStore.getUserNameById(selectedRemainingLifeLimitLibrary.value.owner ?? '');
         }
         
         return getUserName();
@@ -681,8 +664,8 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
                         clearChanges();
                     }
 
-                    addedOrUpdatedRemainingLifeLimselectListItemsrefitLibraryMutator(library);
-                    addSuccessNotificationAction({message:'Added remaining life limit library'})
+                    remainingLifeLimitStore.addedOrUpdatedRemainingLifeLimitLibraryMutator(library);
+                    notificationStore.addSuccessNotification({message:'Added remaining life limit library'})
                 }               
             })
         }
@@ -758,15 +741,15 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
         RemainingLifeLimitService.upsertRemainingLifeLimitLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges()
-                addedOrUpdatedRemainingLifeLimselectListItemsrefitLibraryMutator(selectedRemainingLifeLimitLibrary.value);
-                selectedRemainingLifeLimitLibraryMutator(selectedRemainingLifeLimitLibrary.value.id)
-                addSuccessNotificationAction({message: "Updated remaining life limit library",});               
+                remainingLifeLimitStore.addedOrUpdatedRemainingLifeLimitLibraryMutator(selectedRemainingLifeLimitLibrary.value);
+                remainingLifeLimitStore.selectedRemainingLifeLimitLibraryMutator(selectedRemainingLifeLimitLibrary.value.id)
+                notificationStore.addSuccessNotification({message: "Updated remaining life limit library",});               
             }
         });
     }
 
     function onUpsertScenarioRemainingLifeLimits() {
-        if (selectedRemainingLifeLimitLibrary.value.id === uuidNIL || hasUnsavedChanges.value && newLibrarySelection.value ===false) {scenarioLibraryIsModified.value = true;}
+        if (selectedRemainingLifeLimitLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && newLibrarySelection.value ===false) {scenarioLibraryIsModified.value = true;}
         else { scenarioLibraryIsModified.value = false; }
 
         RemainingLifeLimitService.upsertScenarioRemainingLifeLimits({
@@ -781,7 +764,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
                 clearChanges();
                 librarySelectItemValue.value = null;
                 resetPage();
-                addSuccessNotificationAction({message: "Modified scenario's remaining life limits"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's remaining life limits"});
             }           
         });
     } 
@@ -812,9 +795,9 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
 
         if (submit) {
             librarySelectItemValue.value = null;
-            deleteRemainingLifeLimitLibraryAction({
-                libraryId: selectedRemainingLifeLimitLibrary.value.id,
-            });
+            remainingLifeLimitStore.deleteRemainingLifeLimitLibrary(
+                selectedRemainingLifeLimitLibrary.value.id,
+            );
         }
     }
 
@@ -886,12 +869,12 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
             addedRows.value.length > 0 ||
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedRemainingLifeLimitLibrary.value, stateSelectedRemainingLifeLimitLibrary.value))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedRemainingLifeLimitLibrary.value, remainingLifeLimitStore.getSelectedRemainingLifeLimitLibrary))
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",
                 acceptLabel: "Continue",
@@ -939,7 +922,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
                         libraryUserData.push(libraryUser);
                     });
                     if (!isNil(selectedRemainingLifeLimitLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedRemainingLifeLimitLibrary.value).then(() => isShared = isSharedLibrary.value);
+                        remainingLifeLimitStore.getIsSharedRemainingLifeLimitLibrary(selectedRemainingLifeLimitLibrary.value.id).then(() => isShared = remainingLifeLimitStore.getIsSharedLibrary);
                     }
                     //update budget library sharing
                     RemainingLifeLimitService.upsertOrDeleteRemainingLifeLimitLibraryUsers(selectedRemainingLifeLimitLibrary.value.id, libraryUserData).then((response: AxiosResponse) => {
@@ -957,7 +940,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
             return;
         }
         let foundLibrary: RemainingLifeLimitLibrary = emptyRemainingLifeLimitLibrary;
-        stateRemainingLifeLimitLibraries.value.forEach(library => {
+        remainingLifeLimitStore.remainingLifeLimitLibrariesGetter.forEach(library => {
             if (library.id === libraryId ) {
                 foundLibrary = clone(library);
             }

@@ -83,17 +83,15 @@
     import Vue, { computed } from 'vue';
     import {AlertPreChecksData, PreChecksValidationLog, emptyPreChecksValidationLog } from '../models/modals/alert-data';
     import {inject, reactive, ref, onMounted, onBeforeUnmount, watch, Ref} from 'vue';
-    import { useStore } from 'vuex';
     import { useRouter } from 'vue-router';
     import ScenarioService from '@/services/scenario.service';
     import FileDownload from 'js-file-download';
     import { AxiosResponse } from 'axios';
     import { hasValue } from '@/shared/utils/has-value-util';
     import { prop, clone } from 'ramda';
+    import { useNotificationStore } from '@/stores';
     
-    let store = useStore();
-    function addSuccessNotificationAction(payload?: any){ store.dispatch('addSuccessNotification', payload)}    
-    function addErrorNotificationAction(payload?: any){ store.dispatch('addErrorNotification', payload)}
+    const notificationStore = useNotificationStore();
 
     const props = defineProps<{
         dialogDataPreChecks: AlertPreChecksData,
@@ -172,7 +170,7 @@
             const response: AxiosResponse<any> = await ScenarioService.getPreChecksDownloadLog(filteredLog.value);
         
             if (hasValue(response, 'data')) {                
-                addSuccessNotificationAction({ message: 'Pre-Checks Log downloaded' });
+                notificationStore.addSuccessNotification({ message: 'Pre-Checks Log downloaded' });
                 FileDownload(response.data, `Pre-Checks Log ${props.scenario}.txt`);
             } else {
                 throw new Error('No data received');
@@ -180,7 +178,7 @@
             onSubmit(false);
         } catch (error) {
             console.error('Error downloading Pre-Checks Log:', error);
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: 'Failed to download Pre-Checks Log',
                 longMessage:
                     'Failed to download Pre-Checks Log. Please try again',

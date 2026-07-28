@@ -48,7 +48,7 @@
                             @click="onNavigate('/EditRawData/')"
                             class="assetFox-blue-pantone-281"
                             variant = "flat"
-                            v-if="hasAdminAccess"
+                            v-if="authenticationStore.hasAdminAccess"
                             
                         >
                             Raw Data
@@ -58,7 +58,7 @@
                             @click="onNavigate('/EditAdmin/')"
                             class="assetFox-blue-pantone-281"
                             variant = "flat"
-                            v-if="hasAdminAccess"
+                            v-if="authenticationStore.hasAdminAccess"
                         >
                             Administration
                         </v-btn>
@@ -99,11 +99,11 @@
                                 title="Notifications">
                                 <img style="position:absolute; top:20px; height:25px;" :src="getUrl('assets/icons/bell.svg')"/>
                                 <v-badge
-                                    v-if="notificationCounter > 0"
+                                    v-if="notificationStore.counter > 0"
                                     overlap
                                     style="position: absolute;"
                                     :size="30"
-                                    :content="notificationCounter"
+                                    :content="notificationStore.counter"
                                     :animated="true"
                                     fontSize="12px"
                                     counterStyle="round"
@@ -124,7 +124,7 @@
                             </v-toolbar>
                             <v-list>
                                 <v-list-group
-                                    v-for="(notification, index) in notifications"
+                                    v-for="(notification, index) in notificationStore.notifications"
                                     :key="notification.id"                                    
                                     v-model="notification.active"
                                     append-icon=""
@@ -144,7 +144,7 @@
                                                         {{ notification.shortMessage }}                                            
                                                     </v-list-item-content>
                                                 </v-col>
-                                                <v-col v-if="hasAdminAccess && !isNil(notification.stackTrace)" align-self="center"> 
+                                                <v-col v-if="authenticationStore.hasAdminAccess && !isNil(notification.stackTrace)" align-self="center"> 
                                                     <v-btn size="small" variant="text" @click.stop="onStackTraceClick(index)">
                                                             Show Stack
                                                     </v-btn>
@@ -179,12 +179,12 @@
                     </v-btn>
                     <v-divider class="mx-1 navbar-divider" vertical style="background-color: #798899; left: 0px;position: relative;" />
                     <img style="height:40px; position:relative; top:2px; margin-left: 10px;" :src="getUrl('assets/icons/user-no-circle.svg')"/>
-                    <span id="App-username-span">{{ username }}</span>
+                    <span id="App-username-span">{{ authenticationStore.username }}</span>
                 </v-toolbar-title>
-                <v-toolbar-title class="white--text" v-if="!authenticated" style="justify-content: end; display: flex;max-width: 150px">
+                <v-toolbar-title class="white--text" v-if="!authenticationStore.authenticated" style="justify-content: end; display: flex;max-width: 150px">
                     <v-btn
                         style="background-color: #002E6C;"
-                        v-if="securityType === b2cSecurityType || securityType === entraSecurityType"
+                        v-if="authenticationStore.securityType === b2cSecurityType || authenticationStore.securityType === entraSecurityType"
                         @click="onAzureLogin"
                         class="mx-2"
                         icon
@@ -194,7 +194,7 @@
                     </v-btn>
                     <v-btn
                         style="background-color: #002E6C;"
-                        v-if="securityType === localDebugSecurityType"
+                        v-if="authenticationStore.securityType === localDebugSecurityType"
                         @click="onLocalDebugLogin"
                         class="mx-2"
                         icon
@@ -204,7 +204,7 @@
                     </v-btn>
                     <v-btn
                         style="background-color: #002E6C;"
-                        v-if="securityType === esecSecurityType && currentURL != 'AuthenticationStart'"
+                        v-if="authenticationStore.securityType === esecSecurityType && currentURL != 'AuthenticationStart'"
                         @click="onNavigate('/AuthenticationStart/')"
                         class="mx-2"
                         icon
@@ -213,11 +213,11 @@
                         <font-awesome-icon :icon="['fas','sign-in-alt']"/>
                     </v-btn>
                 </v-toolbar-title>
-                <v-toolbar-title class="white--text" v-if="authenticated" style="justify-content: end; display: flex;max-width: 150px">
+                <v-toolbar-title class="white--text" v-if="authenticationStore.authenticated" style="justify-content: end; display: flex;max-width: 150px">
                     <v-btn
                         style="background-color: #002E6C;"
                         id="App-b2cLogout-vbtn"
-                        v-if="securityType === b2cSecurityType || securityType === entraSecurityType || securityType === localDebugSecurityType"
+                        v-if="authenticationStore.securityType === b2cSecurityType || authenticationStore.securityType === entraSecurityType || authenticationStore.securityType === localDebugSecurityType"
                         @click="onAzureLogout"
                         class="mx-2"
                         icon
@@ -229,7 +229,7 @@
                     <v-btn
                         style="background-color: #002E6C;"  
                         id="App-esecLogout-vbtn"
-                        v-if="securityType === esecSecurityType"
+                        v-if="authenticationStore.securityType === esecSecurityType"
                         @click="onLogout"
                         class="mx-2"
                         icon                        
@@ -242,7 +242,7 @@
                 <v-alert
                 v-model='alert'
                 type="info">
-                    {{stateAlertMessage}}
+                    {{ alertStore.alertMessage }}
                 </v-alert>
                 <div class="scenario-status" v-if="hasSelectedScenario" style="margin-bottom: 20px; height: auto;">
                         <br>
@@ -327,7 +327,21 @@ import {
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import NewsDialog from '@/components/NewsDialog.vue'
 import { Announcement, emptyAnnouncement } from '@/shared/models/iAM/announcement';
-import { useStore } from 'vuex';
+import {
+    useAdminDataStore,
+    useAdminSiteSettingsStore,
+    useAlertStore,
+    useAnnouncementStore,
+    useAttributeStore,
+    useAuthenticationStore,
+    useAzureB2CStore,
+    useBusyStore,
+    useConfigStore,
+    useNetworkStore,
+    useNotificationStore,
+    useUserStore,
+} from '@/stores';
+import { useScenarioStore } from '@/stores/scenario.store';
 import router from './router';
 import mitt, { Emitter, EventType } from 'mitt'
 import vuetify from '@/plugins/vuetify';
@@ -335,54 +349,19 @@ import { getUrl } from './shared/utils/get-url';
 import { UserInfoLocal } from './shared/models/iAM/authentication';
 import ConfirmDialog from 'primevue/confirmdialog';
 
-    let store = useStore();
-    const config = computed<Config | null>(() => store.getters.getConfig);
-    let authenticated = computed(() => store.state.authenticationModule.authenticated);
-    let hasRole = computed<boolean>(() => store.state.authenticationModule.hasRole);
-    let username = computed<string>(() => store.state.authenticationModule.username);
-    let hasAdminAccess = computed(() => store.state.authenticationModule.hasAdminAccess);
-    const refreshing = computed<boolean>(() => store.state.authenticationModule.refreshing);
-    let simulationRunSettingId = computed(() => store.state.scenarioModule.simulationRunSettingId);
-    let updatedSimulationRunSettingName = computed(() => store.state.scenarioModule.simulationRunSettingName);
-    const notifications = computed<Notification[]>(() => store.state.notificationModule.notifications);
-    const notificationCounter = computed<number>(() => store.state.notificationModule.counter);
-    const stateSelectedScenario = computed<Scenario>(() => store.state.scenarioModule.selectedScenario);
-    const packageVersion = computed<string>(() => store.state.announcementModule.packageVersion);
-    const securityType = computed<string>(() => store.state.authenticationModule.securityType);
-    const announcements = computed(() => store.state.announcementModule.announcements);
-    const currentUser = computed<User>(() =>store.state.userModule.currentUser);
-    const stateImplementationName = computed<string>(()=>store.state.adminSiteSettingsModule.implementationName);
-    const stateInventoryReportNames = computed<string[]>(() => store.state.adminDataModule.inventoryReportNames);
-    const stateAlertMessage = computed<string>(() => store.state.alertModule.alertMessage);
-    const adminEmail = computed<string>(() => store.state.adminSiteSettingsModule.adminContactEmail);
-    const stateAlert = ref<boolean>(store.state.alertModule.alert);
-    async function logOutAction(payload?: any): Promise<any> {await store.dispatch('logOut', payload);}
-    async function getNetworksAction(payload?: any): Promise<any> { await store.dispatch('getNetworks', payload);}
-    async function getAttributesAction(payload?: any): Promise<any> { await store.dispatch('getAttributes', payload);}
-    async function getAnnouncementsAction(payload?: any): Promise<any> { await store.dispatch('getAnnouncements', payload);}
-    function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
-    function addWarningNotificationAction(payload?: any) { store.dispatch('addWarningNotification', payload);}
-    function addErrorNotificationAction(payload?: any) { store.dispatch('addErrorNotification', payload);} 
-    function addErrorNotificationWithStackTraceAction(payload?: any) { store.dispatch('addErrorNotificationWithStackTrace', payload);} 
-    function addInfoNotificationAction(payload?: any) { store.dispatch('addInfoNotification', payload);} 
-    function addTaskCompletedNotificationAction(payload: any) { store.dispatch('addTaskCompletedNotification', payload)}
-    function removeNotificationAction(payload?: any) { store.dispatch('removeNotification', payload);}
-    function clearNotificationCounterAction(payload?: any) { store.dispatch('clearNotificationCounter', payload);} 
-    async function generatePollingSessionIdAction(payload?: any): Promise<any> { await store.dispatch('generatePollingSessionId', payload);}
-    async function getAllUsersAction(payload?: any): Promise<any> { await store.dispatch('getAllUsers', payload);}
-    async function getUserCriteriaFilterAction(payload?: any): Promise<any> { await store.dispatch('getUserCriteriaFilter', payload);} 
-    function loadNotificationsActions(payload?: any) {  store.dispatch('loadNotifications', payload);} 
-    async function azureB2CLoginAction(payload?: any): Promise<any> { await store.dispatch('azureB2CLogin', payload);} 
-    async function localDebugLoginAction(payload?: any): Promise<any> { await store.dispatch('localDebugLogin', payload);} 
-    async function azureB2CLogoutAction(payload?: any): Promise<any> { await store.dispatch('azureB2CLogout', payload);} 
-    async function getCurrentUserByUserNameAction(payload?: any): Promise<any> { await store.dispatch('getCurrentUserByUserName', payload);}
-    async function updateUserLastNewsAccessDateAction(payload?: any): Promise<any> { await store.dispatch('updateUserLastNewsAccessDate', payload);}
-    async function getImplementationNameAction(payload?: any): Promise<any> { await store.dispatch('getImplementationName', payload);}
-    async function getInventoryReportsAction(payload?: any): Promise<any> { await store.dispatch('getInventoryReports', payload);} 
-    function setAlertMessageAction(payload?: any) { store.dispatch('setAlertMessage', payload);} 
-    function incrementProcessCounterAction(payload?: any) { store.dispatch('incrementProcessCounter', payload);}
-    function decrementProcessCounterAction(payload?: any) { store.dispatch('decrementProcessCounter', payload);}
-    function setProcessCounterAction(payload?: any) { store.dispatch('setProcessCounter', payload);}
+    const configStore = useConfigStore();
+    const authenticationStore = useAuthenticationStore();
+    const scenarioStore = useScenarioStore();
+    const notificationStore = useNotificationStore();
+    const announcementStore = useAnnouncementStore();
+    const userStore = useUserStore();
+    const adminSiteSettingsStore = useAdminSiteSettingsStore();
+    const adminDataStore = useAdminDataStore();
+    const alertStore = useAlertStore();
+    const busyStore = useBusyStore();
+    const azureB2CStore = useAzureB2CStore();
+    const networkStore = useNetworkStore();
+    const attributeStore = useAttributeStore();
 
     let drawer: boolean = false;
     let latestNewsDate: string = '0001-01-01';
@@ -421,8 +400,8 @@ import ConfirmDialog from 'primevue/confirmdialog';
     let inventoryReportName: string = '';
     let alert: Ref<boolean> = ref(false);
 
-    const agencyLogoFilename = computed(() => config.value?.logos?.agencyFilename);
-    const implementationLogoFilename = computed(() => config.value?.logos?.implementationFilename);
+    const agencyLogoFilename = computed(() => configStore.config?.logos?.agencyFilename);
+    const implementationLogoFilename = computed(() => configStore.config?.logos?.implementationFilename);
 
     const agencyLogoError = ref(false);
     const implementationLogoError = ref(false);
@@ -485,43 +464,43 @@ import ConfirmDialog from 'primevue/confirmdialog';
     }
 
     function authenticatedWithRole() {
-        return authenticated && hasRole;
+        return authenticationStore.authenticated && authenticationStore.hasRole;
     }
     
-    watch(stateSelectedScenario, () => {
-        selectedScenario.value = clone(stateSelectedScenario.value);
+    watch(() => scenarioStore.selectedScenario, () => {
+        selectedScenario.value = clone(scenarioStore.selectedScenario);
         hasSelectedScenario.value= selectedScenario.value.id !== getBlankGuid();
         selectedScenarioHasStatus.value = hasValue(selectedScenario.value.status);
     })
 
-    watch(authenticated, () => {
-        if (authenticated.value) {
+    watch(() => authenticationStore.authenticated, () => {
+        if (authenticationStore.authenticated) {
             onAuthenticate();
         }
     });
 
-    watch(announcements, () => {
-        latestNewsDate = getDateOnly(announcements.value[0].createdDate.toString()); 
+    watch(() => announcementStore.announcementsGetter, () => {
+        latestNewsDate = getDateOnly(announcementStore.announcementsGetter[0].createdDate.toString()); 
     });
 
-    watch(currentUser, () => {
-        currentUserLastNewsAccessDate = getDateOnly(currentUser.value.lastNewsAccessDate);
+    watch(() => userStore.currentUser, () => {
+        currentUserLastNewsAccessDate = getDateOnly(userStore.currentUser.lastNewsAccessDate);
         checkLastNewsAccessDate();
     });
 
-    watch(stateImplementationName, () =>  {
-        implementationName.value = stateImplementationName.value;
+    watch(() => adminSiteSettingsStore.implementationName, () =>  {
+        implementationName.value = adminSiteSettingsStore.implementationName;
     })
 
-    watch(stateInventoryReportNames, onStateInventoryReportNamesChanged)
+    watch(() => adminDataStore.inventoryReportNames, onStateInventoryReportNamesChanged)
     function onStateInventoryReportNamesChanged(){
-        if(stateInventoryReportNames.value.length > 0)
-            inventoryReportName = stateInventoryReportNames.value[0]
+        if(adminDataStore.inventoryReportNames.length > 0)
+            inventoryReportName = adminDataStore.inventoryReportNames[0]
     }
 
-    watch(stateAlertMessage, onStateAlertMessageChanged)
+    watch(() => alertStore.alertMessage, onStateAlertMessageChanged)
     function onStateAlertMessageChanged(){
-        if(stateAlertMessage.value.trim() !== ''){
+        if(alertStore.alertMessage.trim() !== ''){
             alert.value = true;
         }
         else
@@ -531,15 +510,15 @@ import ConfirmDialog from 'primevue/confirmdialog';
     watch(alert, onAlertChanged)
     function onAlertChanged(){
         if(!alert.value){
-            setAlertMessageAction('');
+            alertStore.setAlertMessage('');
         }
     }
         
     function created() {
         packageVersionEnv.value = import.meta.env.VITE_APP_VERSION // declared in .env files
 
-        if (!config.value) {
-            store.dispatch('loadConfig').catch(error => {
+        if (!configStore.config) {
+            configStore.loadConfig().catch(error => {
                 console.error("Failed to load config in App.vue:", error);
             });
         }
@@ -549,13 +528,13 @@ import ConfirmDialog from 'primevue/confirmdialog';
             request: AxiosRequestConfig,
         ) {
             request.headers = setContentTypeCharset(request.headers);
-            if (refreshing.value) {
+            if (authenticationStore.refreshing) {
                 await new Promise(_ => setTimeout(_, 5000));
             }
 
             request.headers = setAuthHeader(request.headers);
             if(ignoredAPIs.every((ignored: string) => request.url!.indexOf(ignored) === -1,))
-                incrementProcessCounterAction();
+                busyStore.incrementProcessCounter();
             return request;
         }
 
@@ -576,7 +555,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
             response.headers = setContentTypeCharset(response.headers);
             if(!isNil(response.config.url)){
                 if(ignoredAPIs.every((ignored: string) => response.config.url!.indexOf(ignored) === -1,))
-                    new Promise(_ => setTimeout(_, 10)).then(() => decrementProcessCounterAction()) 
+                    new Promise(_ => setTimeout(_, 10)).then(() => busyStore.decrementProcessCounter()) 
             }         
             return response;
         };
@@ -592,11 +571,11 @@ import ConfirmDialog from 'primevue/confirmdialog';
                     error.response.headers,
                 );
             }    
-            setProcessCounterAction(0);
+            busyStore.setProcessCounter(0);
             unauthorizedError = hasValue(unauthorizedError) ? error.response!.data : "User is not authorized!";
             if (error.response!.status === 500) return;
             
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: error.response!.status === 403 ? "Authorization Failed" : "HTTP Error",
                 longMessage: error.response!.status === 403 ? unauthorizedError : getErrorMessage(error),
             });
@@ -630,7 +609,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
         );
 
         if (
-            securityType === SecurityTypes.esec &&
+            authenticationStore.securityType === SecurityTypes.esec &&
             UnsecuredRoutePathNames.indexOf(
                 router.currentRoute.value.name as string,
             ) === -1
@@ -664,7 +643,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
         
         currentURL = router.currentRoute.value.name;
 
-        if(securityType.value === SecurityTypes.esec)
+        if(authenticationStore.securityType === SecurityTypes.esec)
         {
             startTokenCheckTimer(); 
         }
@@ -672,7 +651,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
         if(implementationName.value === "")
             implementationName.value = "BridgeCare"
         else
-            implementationName.value = stateImplementationName.value
+            implementationName.value = adminSiteSettingsStore.implementationName
     });
 
     onBeforeUnmount(() => beforeDestroy());
@@ -701,7 +680,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
     }
 
     async function checkToken() {
-        await store.dispatch('checkBrowserTokens');
+        await authenticationStore.checkBrowserTokens();
     }
 
 
@@ -710,13 +689,13 @@ import ConfirmDialog from 'primevue/confirmdialog';
         let stackTrace: string = data.stackTrace !== undefined ? data.stackTrace.toString() : "";
         let spl = errorNotification.split('::');
         if (spl.length > 0 ) {
-            addErrorNotificationWithStackTraceAction( {
+            notificationStore.addErrorNotificationWithStackTrace( {
                 message: spl[0],
                 longMessage: spl.length>1 ? spl[1] : 'Unknown Error',
                 stackTrace: stackTrace
             });
         } else {
-            addErrorNotificationWithStackTraceAction( {
+            notificationStore.addErrorNotificationWithStackTrace( {
                 message: 'Server Error',
                 longMessage: data.error,
                 stackTrace: stackTrace
@@ -725,7 +704,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
     }
 
     function onAddInfoNotification(data: any) {
-        addInfoNotificationAction({
+        notificationStore.addInfoNotification({
             message: 'Server Update',
             longMessage: data.info
         });
@@ -735,12 +714,12 @@ import ConfirmDialog from 'primevue/confirmdialog';
         let warningNotification:string = data.warning.toString();
         let spl = warningNotification.split('::');
         if (spl.length > 0) {
-            addWarningNotificationAction({
+            notificationStore.addWarningNotification({
                 message: spl[0],
                 longMessage: spl.length > 1 ? spl[1] : ''
             });
         } else {
-            addWarningNotificationAction({
+            notificationStore.addWarningNotification({
                 message: 'Server Warning',
                 longMessage: data.warning,
             });
@@ -751,7 +730,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
 
         const taskMessage = data.task as string;
         const taskMessageLowerCase = taskMessage.toLowerCase();
-        addTaskCompletedNotificationAction({
+        notificationStore.addTaskCompletedNotification({
             message: 'Task Completed',
             longMessage: taskMessage
         });
@@ -813,19 +792,19 @@ import ConfirmDialog from 'primevue/confirmdialog';
 
     function onAzureLogin() {
         if (router.currentRoute.value.name === 'AuthenticationStart') {
-            azureB2CLoginAction();
+            azureB2CStore.azureB2CLogin();
         } else {
             router.push('/AuthenticationStart');
         }
     }
 
     function onAzureLogout() {
-        azureB2CLogoutAction().then(() => onLogout());
+        azureB2CStore.azureB2CLogout().then(() => onLogout());
     }
 
     function onLocalDebugLogin() {
-        var payload = config.value?.localDegugInfo as UserInfoLocal
-        localDebugLoginAction(payload).then(() => router.push('/Scenarios/'));
+        var payload = configStore.config?.localDegugInfo as UserInfoLocal
+        Promise.resolve(authenticationStore.localDebugLogin(payload)).then(() => router.push('/Scenarios/'));
     }
     
     /**
@@ -833,17 +812,17 @@ import ConfirmDialog from 'primevue/confirmdialog';
      */
     function onAuthenticate() {
         //$forceUpdate();
-        getNetworksAction().then(() =>
-        getAttributesAction().then(() =>
-        getAllUsersAction().then(() =>
-        getAnnouncementsAction().then(() =>
-        getUserCriteriaFilterAction().then(() =>{
-            if (username != null && username.value != '') {
-                getCurrentUserByUserNameAction(username.value);
+        networkStore.getNetworks().then(() =>
+        attributeStore.getAttributes().then(() =>
+        userStore.getAllUsers().then(() =>
+        announcementStore.getAnnouncements().then(() =>
+        userStore.getUserCriteriaFilter().then(() =>{
+            if (authenticationStore.username != null && authenticationStore.username !== '') {
+                userStore.getCurrentUserByUserName(authenticationStore.username);
             }
         }).then(() =>
         //If these gets are placed before authorization, GetUserInformation() in EsecSecurity.cs will throw an error, as its HttpRequest will have no Authorization header!
-        getImplementationNameAction()
+        adminSiteSettingsStore.getImplementationName()
         )))));
     }
   function $forceUpdate() {
@@ -855,7 +834,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
      * and redirects users to the landing page
      */
     function onLogout() {
-        logOutAction().then(() => {
+        authenticationStore.logOut().then(() => {
             onNavigate('/iAM/');
         });
     }
@@ -874,17 +853,20 @@ import ConfirmDialog from 'primevue/confirmdialog';
     }
 
     function onNotificationMenuSelect() {
-        clearNotificationCounterAction();
+        notificationStore.clearNotificationCounter();
     }
 
     function onRemoveNotification(id: number) {
-        removeNotificationAction(id);
+        notificationStore.removeNotification(id);
     }
 
     function onShowNewsDialog() {
         showNewsDialog.value = true;
-        if (currentUser.value.id != getBlankGuid()) {
-            updateUserLastNewsAccessDateAction({id: currentUser.value.id, accessDate: latestNewsDate});
+        if (userStore.currentUser.id != getBlankGuid()) {
+            userStore.updateUserLastNewsAccessDate(
+                userStore.currentUser.id,
+                latestNewsDate,
+            );
         }
         hasUnreadNewsItem = false;
     }
@@ -898,15 +880,16 @@ import ConfirmDialog from 'primevue/confirmdialog';
             showDialog: true,
             heading: 'Stack Trace',
             choice: false,
-            message: notifications.value[index].stackTrace!,        
+            message: notificationStore.notifications[index].stackTrace!,        
         };
         
     }
 
-    function onBugButtonClicked() {
-        let message = 'Please contact the administrator to report a bug.';        
-        if(adminEmail.value.trim() !== '')            
-            message += ` Email: ${adminEmail.value}`;
+    async function onBugButtonClicked() {
+        let message = 'Please contact the administrator to report a bug.';  
+        await adminSiteSettingsStore.getAdminContactEmail();      
+        if(adminSiteSettingsStore.adminContactEmail.trim() !== '')            
+            message += ` Email: ${adminSiteSettingsStore.adminContactEmail}`;
         bugReportAlert.value = {
             showDialog: true,
             heading: 'Report a Bug',
@@ -927,7 +910,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
         hasUnreadNewsItem = newsAccessDateComparison(latestNewsDate, currentUserLastNewsAccessDate);
     }
 
-    const toggleExpand = (active:boolean,index:number) => {notifications.value[index].active=!active};
+    const toggleExpand = (active:boolean,index:number) => { notificationStore.notifications[index].active=!active};
 </script>
 
 <style>

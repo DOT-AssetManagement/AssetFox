@@ -150,8 +150,8 @@
                         :networkId="networkId"
                         :selectedScenarioId="selectedScenarioId"
                         :simulationName="simulationName"
-                        @success="handleSuccess"
-                        @error="handleError"
+                        @success="notificationStore.addSuccessNotification"
+                        @error="notificationStore.addErrorNotification"
                     />
                 </v-row>
             </v-col>
@@ -192,7 +192,6 @@ import {
     InputValidationRules,
     rules as validationRules,
 } from '@/shared/utils/input-validation-rules';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router'; 
 import Dialog from 'primevue/dialog';
 import DataTable from 'primevue/datatable';
@@ -211,17 +210,15 @@ import UserDefinedReportInputDialog from '@/components/reports/reports-dialogs/U
 import PamsPbExportReportInputDialog from '@/components/reports/reports-dialogs/PamsPbExportReportInputDialog.vue';
 import { ReportSchemaDTO } from '@/shared/models/iAM/report-schema';
 import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vue';
+import { useAdminDataStore, useAuthenticationStore, useNotificationStore, useReportSchemaStore } from '@/stores';
 
-    let store = useStore();
+    const adminDataStore = useAdminDataStore();
+    const authenticationStore = useAuthenticationStore();
+    const notificationStore = useNotificationStore();
+    const reportSchemaStore = useReportSchemaStore();
     const router = useRouter();
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>> 
-    const stateSimulationReportNames = computed<string[]>(() => store.state.adminDataModule.simulationReportNames);
-    function addErrorNotificationAction(payload?: any) {  store.dispatch('addErrorNotification',payload);} 
-    function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification',payload);} 
-    async function getSimulationReportsAction(payload?: any): Promise<any> { await store.dispatch('getSimulationReports',payload);} 
-    async function updateSimulationReportDetailAction(payload?: any): Promise<any>{await store.dispatch('updateSimulationReportDetail', payload)}  
-    const notifications = computed<Notification[]>(() => store.state.notificationModule.notifications);
-    let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
+    let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 
     let editShow = ref<boolean>(false);
     let showUserDefinedReportInputDialog = ref<boolean>(false);
@@ -323,18 +320,18 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
         networkId.value = router.currentRoute.value.query.networkId as string;
         if (selectedScenarioId.value === getBlankGuid()) {
                 // set 'no selected scenario' error message, then redirect user to Scenarios UI
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 router.push('/Scenarios/');
             }
 
-        await getSimulationReportsAction();
-        await getReportGenerationStatus();
+        await adminDataStore.getSimulationReports();        
+        await getReportGenerationStatus();        
     });
 
-    watch(stateSimulationReportNames, () => {
-        stateSimulationReportNames.value.forEach(reportName => {
+    watch(() => adminDataStore.getSimulationReportNames, () => {
+        adminDataStore.getSimulationReportNames.forEach(reportName => {
             currentPage.value.push({
                 id: getNewGuid(),
                 name: reportName,
@@ -342,12 +339,12 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
                 isGenerated: false                
             });
         });
-        if(stateSimulationReportNames.value.length > 0)
+        if(adminDataStore.getSimulationReportNames.length > 0)
             selectedReport.value = currentPage.value[0];
 
     });
 
-    watch(notifications, (newNotifications) => {
+    watch(() => notificationStore.getNotifications, (newNotifications: Notification[]) => {
         if (newNotifications.length > 0) {
             const latestNotification = newNotifications[0];
             
@@ -401,10 +398,7 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
         exportStatus.value = 'Starting Excel export...';
 
         try {
-            const response = await store.dispatch('requestUniversalReportExport', {
-                schemaId: targetSchema.id,
-                simulationId: selectedScenarioId.value,
-            });
+            const response = await reportSchemaStore.requestUniversalReportExport(targetSchema.id, selectedScenarioId.value);
 
             exportReportName.value = response?.reportName || 'UniversalReport';
             exportReportId.value = response?.reportId || '';
@@ -439,9 +433,9 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
                 reportName: exportReportName.value,
                 simulationName: simulationName.value,
             });
-            addSuccessNotificationAction({ message: 'Excel export downloaded.' });
+            notificationStore.addSuccessNotification({ message: 'Excel export downloaded.' })
         } catch (e) {
-            addErrorNotificationAction({ message: 'Excel export finished, but download failed.' });
+            notificationStore.addErrorNotification({ message: 'Excel export finished, but download failed.' });
         } finally {
             exportStatus.value = '';
             exportReportId.value = '';
@@ -469,14 +463,6 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
 
     function showEditDialog(): void {
         editShow.value = !editShow.value;
-    }
-
-    function handleSuccess(payload: any) {
-        store.dispatch('addSuccessNotification', payload);
-    }
-
-    function handleError(payload: any) {
-        store.dispatch('addErrorNotification', payload);
     }
 
     function onShowCriterionEditorDialog(reportId: string) {
@@ -561,11 +547,11 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
                 const resultId: string = response.data as string;
                 //reportIndexID = resultId;
             }
-            addSuccessNotificationAction({
+            notificationStore.addSuccessNotification({
                 message: selectedReport.value.name +  ' report generation started for ' + simulationName.value + '.',
             });
         } else {
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: 'Failed to generate apricot for ' + simulationName.value + '.',
                 longMessage:
                     'Failed to generate the report or output. Make sure the scenario has been run',
@@ -580,7 +566,7 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
         ) as Report | undefined; // Type it correctly, find can return undefined
 
         if (!reportToDownload) {
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: 'Report not found.',
                 longMessage: 'The specified report could not be found in the current list.',
             });
@@ -606,14 +592,14 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
             // The download is triggered by the service.
             // You might want a generic "Download started" message here,
             // or let the browser's download indication be sufficient.
-            addSuccessNotificationAction({
+            notificationStore.addSuccessNotification({
                 message: `'${reportToDownload.name}' report download has started for ${simulationName.value}.`,
             });
 
         } 
         catch (error: any) {
             console.error('Error in onDownloadReport:', error);
-            addErrorNotificationAction({
+            notificationStore.addErrorNotification({
                 message: `Failed to download '${reportToDownload.name}'.`,
                 longMessage: error.message || 'An unexpected error occurred. Please check server logs or try again.',
             });
@@ -657,13 +643,13 @@ import ReportTemplateBrowser from '@/components/reports/ReportTemplateBrowser.vu
             selectedScenarioId.value, selectedReport.value.name
         ).then((response: AxiosResponse<any>) => {
             if (hasValue(response, 'data')) {
-                addSuccessNotificationAction({
+                notificationStore.addSuccessNotification({
                         message: selectedReport.value.name +  ' report has been deleted for ' + simulationName.value + '.',
                     });
                     selectedReport.value.isGenerated = false;
                     selectedReport.value.reportStatus = "Report Deleted";
             } else {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Failed to delete report.',
                     longMessage:
                         'Failed to download the report or output. Make sure the scenario has been run',

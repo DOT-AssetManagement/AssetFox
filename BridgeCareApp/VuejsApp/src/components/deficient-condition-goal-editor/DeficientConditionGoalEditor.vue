@@ -250,7 +250,7 @@
             <v-row justify="center" style="padding-bottom: 40px;">
                 <CancelButton 
                     @cancel="onDiscardChanges"
-                    :disabled="!hasUnsavedChanges"
+                    :disabled="!unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <DeleteLibraryButton 
@@ -264,12 +264,12 @@
                 />
                 <SaveButton 
                     @save="onUpsertScenarioDeficientConditionGoals"
-                    :disabled="disableCrudButtonsResult || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="hasScenario"
                 />
                 <UpdateLibraryButton 
                     @updateLibrary="onUpsertDeficientConditionGoalLibrary"
-                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !hasUnsavedChanges"
+                    :disabled="disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges"
                     :show="!hasScenario"
                 />       
             </v-row>
@@ -351,7 +351,6 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { LibraryUser } from '@/shared/models/iAM/user';
 import { emptyShareDeficientConditionGoalLibraryDialogData, ShareDeficientConditionGoalLibraryDialogData } from '@/shared/models/modals/share-deficient-condition-goal-data';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import ConfirmDialog from 'primevue/confirmdialog';
@@ -367,40 +366,18 @@ import DeleteLibraryButton from '@/shared/components/buttons/DeleteLibraryButton
 import CreateNewLibraryButton from '@/shared/components/buttons/CreateNewLibraryButton.vue';
 import ShareLibraryButton from '@/shared/components/buttons/ShareLibraryButton.vue';
 import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButton.vue';
+import { useAttributeStore, useAuthenticationStore, useDeficientConditionGoalStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore, useUserStore } from '@/stores';
 
-    let store = useStore();
+    const attributeStore = useAttributeStore();
+    const authenticationStore = useAuthenticationStore();
+    const deficientConditionGoalStore = useDeficientConditionGoalStore();
+    const notificationStore = useNotificationStore();
+    const scenarioStore = useScenarioStore();
+    const unsavedChangesStore = useUnsavedChangesStore();
+    const userStore = useUserStore();
     const confirm = useConfirm();
     const $router = useRouter();
-    let stateDeficientConditionGoalLibraries = computed<DeficientConditionGoalLibrary[]>(() => store.state.deficientConditionGoalModule.deficientConditionGoalLibraries);
-    let stateSelectedDeficientConditionGoalLibrary = computed<DeficientConditionGoalLibrary>(() => store.state.deficientConditionGoalModule.selectedDeficientConditionGoalLibrary);
-    let stateNumericAttributes = computed<Attribute[]>(() => store.state.attributeModule.numericAttributeNames);
-    let stateScenarioDeficientConditionGoals = computed<DeficientConditionGoal[]>(() => store.state.deficientConditionGoalModule.scenarioDeficientConditionGoals);
-    let hasUnsavedChanges = computed<boolean>(() => store.state.unsavedChangesFlagModule.hasUnsavedChanges);
-    let hasAdminAccess = computed<boolean>(() => store.state.authenticationModule.hasAdminAccess);
-    let hasPermittedAccess = computed<boolean>(() => store.state.deficientConditionGoalModule.hasPermittedAccess);
-    let isSharedLibrary = computed<boolean>(() => store.state.deficientConditionGoalModule.isSharedLibrary);
-
-    async function getNetworks(payload?: any): Promise<any> {await store.dispatch('getNetworks', payload);}
-    async function getIsSharedLibraryAction(payload?: any): Promise<any> {await store.dispatch('getIsSharedDeficientConditionGoalLibrary', payload);}
-    async function getHasPermittedAccessAction(payload?: any): Promise<any> {await store.dispatch('getHasPermittedAccess', payload);}
-    function addErrorNotificationAction(payload?: any) {store.dispatch('addErrorNotification', payload);}
-    async function getDeficientConditionGoalLibrariesAction(payload?: any): Promise<any> {await store.dispatch('getDeficientConditionGoalLibraries', payload);}
-    async function selectDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('selectDeficientConditionGoalLibrary', payload);}
-    async function upsertDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('upsertDeficientConditionGoalLibrary', payload);}
-    async function deleteDeficientConditionGoalLibraryAction(payload?: any): Promise<any> {await store.dispatch('deleteDeficientConditionGoalLibrary', payload);}
-    async function getAttributesAction(payload?: any): Promise<any> {await store.dispatch('getAttributes', payload);}
-    function setHasUnsavedChangesAction(payload?: any){ store.dispatch('setHasUnsavedChanges', payload);}
-    async function getScenarioDeficientConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('getScenarioDeficientConditionGoals', payload);}
-    async function upsertScenarioDeficientConditionGoalsAction(payload?: any): Promise<any> {await store.dispatch('upsertScenarioDeficientConditionGoals', payload);}
-    function addSuccessNotificationAction(payload?: any) { store.dispatch('addSuccessNotification', payload);}
-    function selectScenarioAction(payload?: any) { store.dispatch('selectScenario', payload);}
-    async function getCurrentUserOrSharedScenarioAction(payload?: any): Promise<any> {await store.dispatch('getCurrentUserOrSharedScenario', payload);}
-    
-    function addedOrUpdatedDeficientConditionGoalLibraryMutator(payload: any){store.commit('addedOrUpdatedDeficientConditionGoalLibraryMutator', payload);}
-    function selectedDeficientConditionGoalLibraryMutator(payload: any){store.commit('selectedDeficientConditionGoalLibraryMutator', payload);}
-
-    let getNumericAttributesGetter: any = store.getters.getNumericAttributes;
-    let getUserNameByIdGetter: any = store.getters.getUserNameById;
+    let hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAccess);
 
     const selectedScenarioId = ref<string>(getBlankGuid());
     let librarySelectItems  = ref<SelectItem[]>([]);
@@ -510,34 +487,35 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
     }
     onMounted(async () => {
         librarySelectItemValue.value = null;
-        await getDeficientConditionGoalLibrariesAction()
-        numericAttributeNames = getPropertyValues('name', getNumericAttributesGetter);
-        await getHasPermittedAccessAction()
+        await deficientConditionGoalStore.getDeficientConditionGoalLibraries()
+        await attributeStore.getAttributes();
+        numericAttributeNames = getPropertyValues('name', attributeStore.getNumericAttributes);
+        await deficientConditionGoalStore.getHasPermittedAccess()
         if ($router.currentRoute.value.path.indexOf(ScenarioRoutePaths.DeficientConditionGoal) !== -1) {
             selectedScenarioId.value = $router.currentRoute.value.query.scenarioId as string;
 
             if (selectedScenarioId.value === uuidNIL) {
-                addErrorNotificationAction({
+                notificationStore.addErrorNotification({
                     message: 'Found no selected scenario for edit',
                 });
                 $router.push('/Scenarios/');
             }
 
             hasScenario.value = true;
-            await getCurrentUserOrSharedScenarioAction({simulationId: selectedScenarioId.value})       
-            selectScenarioAction({ scenarioId: selectedScenarioId.value });        
+            await scenarioStore.getCurrentUserOrSharedScenario(selectedScenarioId.value)
+            scenarioStore.selectScenario(selectedScenarioId.value);
             await initializePages();                                      
         }
                 
     });
     onBeforeUnmount(() => beforeDestroy); 
     function beforeDestroy() {
-        setHasUnsavedChangesAction({ value: false });
+        unsavedChangesStore.setHasUnsavedChanges(false);
     }
 
-    watch(stateDeficientConditionGoalLibraries, () => onStateDeficientConditionGoalLibrariesChanged())
+    watch(() => deficientConditionGoalStore.deficientConditionGoalLibrariesGetter, () => onStateDeficientConditionGoalLibrariesChanged())
     function onStateDeficientConditionGoalLibrariesChanged() {
-        librarySelectItems.value = stateDeficientConditionGoalLibraries.value.map(
+        librarySelectItems.value = deficientConditionGoalStore.deficientConditionGoalLibrariesGetter.map(
             (library: DeficientConditionGoalLibrary) => ({
                 text: library.name,
                 value: library.id,
@@ -570,9 +548,9 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
     function onSelectItemValueChanged() {
         trueLibrarySelectItemValue = librarySelectItemValue.value
         if(!hasScenario.value || isNil(librarySelectItemValue.value))
-            selectDeficientConditionGoalLibraryAction({
-                libraryId: librarySelectItemValue.value,
-            });
+            deficientConditionGoalStore.selectDeficientConditionGoalLibrary(
+                librarySelectItemValue.value as string,
+            );
         else if(!isNil(librarySelectItemValue.value) && !scenarioHasCreatedNew)
         {
             importLibraryDisabled.value = false;
@@ -581,10 +559,10 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
         scenarioHasCreatedNew = false;
     }
 
-    watch(stateSelectedDeficientConditionGoalLibrary, () => onStateSelectedDeficientConditionGoalLibraryChanged())
+    watch(() => deficientConditionGoalStore.getSelectedDeficientConditionGoalLibrary, () => onStateSelectedDeficientConditionGoalLibraryChanged())
     function onStateSelectedDeficientConditionGoalLibraryChanged() {
         selectedDeficientConditionGoalLibrary.value = clone(
-            stateSelectedDeficientConditionGoalLibrary.value,
+            deficientConditionGoalStore.getSelectedDeficientConditionGoalLibrary,
         );
     }
 
@@ -612,16 +590,9 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
         selectedDeficientConditionGoalIds = getPropertyValues('id', selectedGridRows.value,) as string[];
     }
 
-    watch(stateNumericAttributes, () => onStateNumericAttributesChanged())
+    watch(() => attributeStore.getNumericAttributes, () => onStateNumericAttributesChanged())
     function onStateNumericAttributesChanged() {
-        numericAttributeNames = getPropertyValues('name', stateNumericAttributes.value);
-    }
-
-    watch(stateScenarioDeficientConditionGoals, () => onStateScenarioDeficientConditionGoalsChanged())
-    function onStateScenarioDeficientConditionGoalsChanged() {
-        if (hasScenario.value) {
-            currentPage.value = clone(stateScenarioDeficientConditionGoals.value);
-        }
+        numericAttributeNames = getPropertyValues('name', attributeStore.getNumericAttributes);
     }
 
     watch(currentPage, () => onCurrentPageChanged())
@@ -633,9 +604,9 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
         });
     }
 
-    watch(isSharedLibrary, () => onStateSharedAccessChanged())
+    watch(() => deficientConditionGoalStore.getIsSharedLibrary, () => onStateSharedAccessChanged())
     function onStateSharedAccessChanged() {
-        isShared = isSharedLibrary.value;
+        isShared = deficientConditionGoalStore.getIsSharedLibrary;
     }
 
     watch(pagination, () => onPaginationChanged())
@@ -682,7 +653,8 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
                     rowCache = clone(currentPage.value)
                     totalItems = data.totalItems;
                     if (!isNil(selectedDeficientConditionGoalLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedDeficientConditionGoalLibrary.value).then(() => isShared = isSharedLibrary.value);
+                        deficientConditionGoalStore.getIsSharedDeficientConditionGoalLibrary(selectedDeficientConditionGoalLibrary.value.id)
+                            .then(() => isShared = deficientConditionGoalStore.getIsSharedLibrary);
                     }      
 
                 }
@@ -691,9 +663,9 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
 
     function importLibrary() {
         setParentLibraryName(librarySelectItemValue.value ? librarySelectItemValue.value : "");
-        selectDeficientConditionGoalLibraryAction({
-            libraryId: librarySelectItemValue.value,
-        });
+        deficientConditionGoalStore.selectDeficientConditionGoalLibrary(
+            librarySelectItemValue.value as string,
+        );
         importLibraryDisabled.value = true;
         scenarioLibraryIsModified.value = false;
         libraryImported = true;
@@ -702,7 +674,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
 
     function getOwnerUserName(): string {
         if (!hasCreatedLibrary) {
-        return getUserNameByIdGetter(selectedDeficientConditionGoalLibrary.value.owner);
+        return userStore.getUserNameById(selectedDeficientConditionGoalLibrary.value.owner ?? "");
         }
         return getUserName();
     }
@@ -712,11 +684,11 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
     }
 
     function checkLibraryEditPermission() {
-        hasLibraryEditPermission = hasAdminAccess.value || (hasPermittedAccess.value && checkUserIsLibraryOwner());
+        hasLibraryEditPermission = hasAdminAccess.value || (deficientConditionGoalStore.hasPermittedAccessGetter && checkUserIsLibraryOwner());
     }
 
     function checkUserIsLibraryOwner() {
-        return getUserNameByIdGetter(selectedDeficientConditionGoalLibrary.value.owner) == getUserName();
+        return userStore.getUserNameById(selectedDeficientConditionGoalLibrary.value.owner ?? "") == getUserName();
     }
 
     function onShowCreateDeficientConditionGoalLibraryDialog(createExistingLibraryAsNew: boolean) {
@@ -759,8 +731,8 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
                         importLibraryDisabled.value = true;
                     }
                     
-                    addedOrUpdatedDeficientConditionGoalLibraryMutator(library);
-                    addSuccessNotificationAction({message:'Added deficient condition goal library'})
+                    deficientConditionGoalStore.addedOrUpdatedDeficientConditionGoalLibraryMutator(library);
+                    notificationStore.addSuccessNotification({message:'Added deficient condition goal library'})
                 }               
             })
         }
@@ -824,15 +796,15 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
         DeficientConditionGoalService.upsertDeficientConditionGoalLibrary(upsertRequest).then((response: AxiosResponse) => {
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                 clearChanges()
-                addedOrUpdatedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value);
-                selectedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value.id);
-                addSuccessNotificationAction({message: "Updated deficient condition goal library",});
+                deficientConditionGoalStore.addedOrUpdatedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value);
+                deficientConditionGoalStore.selectedDeficientConditionGoalLibraryMutator(selectedDeficientConditionGoalLibrary.value.id);
+                notificationStore.addSuccessNotification({message: "Updated deficient condition goal library",});
             }
         });
     }
 
     function onUpsertScenarioDeficientConditionGoals() {
-        if (selectedDeficientConditionGoalLibrary.value.id === uuidNIL || hasUnsavedChanges.value && libraryImported === false) { scenarioLibraryIsModified.value = true; }
+        if (selectedDeficientConditionGoalLibrary.value.id === uuidNIL || unsavedChangesStore.getHasUnsavedChanges && libraryImported === false) { scenarioLibraryIsModified.value = true; }
         else { scenarioLibraryIsModified.value = false; }
 
         DeficientConditionGoalService.upsertScenarioDeficientConditionGoals({
@@ -847,7 +819,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
                 clearChanges();
                 librarySelectItemValue.value = null;
                 resetPage();
-                addSuccessNotificationAction({message: "Modified scenario's deficient condition goals"});
+                notificationStore.addSuccessNotification({message: "Modified scenario's deficient condition goals"});
                 importLibraryDisabled.value = true;
                 libraryImported = false;
             }           
@@ -906,9 +878,9 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
 
         if (submit) {
             librarySelectItemValue.value = null;
-            deleteDeficientConditionGoalLibraryAction({
-                libraryId: selectedDeficientConditionGoalLibrary.value.id,
-            });
+            deficientConditionGoalStore.deleteDeficientConditionGoalLibrary(
+                selectedDeficientConditionGoalLibrary.value.id,
+            );
         }
     }
 
@@ -982,12 +954,12 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
             addedRows.value.length > 0 ||
             updatedRowsMap.size > 0 || 
             (hasScenario.value && hasSelectedLibrary.value) ||
-            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedDeficientConditionGoalLibrary.value , stateSelectedDeficientConditionGoalLibrary.value))
-        setHasUnsavedChangesAction({ value: hasUnsavedChanges });
+            (hasSelectedLibrary.value && hasUnsavedChangesCore('', selectedDeficientConditionGoalLibrary.value , deficientConditionGoalStore.getSelectedDeficientConditionGoalLibrary))
+        unsavedChangesStore.setHasUnsavedChanges(hasUnsavedChanges);
     }
 
     function CheckUnsavedDialog(next: any, otherwise: any) {
-        if (hasUnsavedChanges.value && unsavedDialogAllowed) {
+        if (unsavedChangesStore.getHasUnsavedChanges && unsavedDialogAllowed) {
 
             confirm.require({
                 message: "You have unsaved changes. Are you sure you wish to continue?",
@@ -1036,7 +1008,8 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
                         libraryUserData.push(libraryUser);
                     });
                     if (!isNil(selectedDeficientConditionGoalLibrary.value.id) ) {
-                        getIsSharedLibraryAction(selectedDeficientConditionGoalLibrary.value).then(() => isShared = isSharedLibrary.value);
+                        deficientConditionGoalStore.getIsSharedDeficientConditionGoalLibrary(selectedDeficientConditionGoalLibrary.value.id)
+                            .then(() => isShared = deficientConditionGoalStore.getIsSharedLibrary);
                     }
                     //update budget library sharing
                     DeficientConditionGoalService.upsertOrDeleteDeficientConditionGoalLibraryUsers(selectedDeficientConditionGoalLibrary.value.id, libraryUserData).then((response: AxiosResponse) => {
@@ -1054,7 +1027,7 @@ import DeleteSelectedButton from '@/shared/components/buttons/DeleteSelectedButt
             return;
         }
         let foundLibrary: DeficientConditionGoalLibrary = emptyDeficientConditionGoalLibrary;
-        stateDeficientConditionGoalLibraries.value.forEach(library => {
+        deficientConditionGoalStore.deficientConditionGoalLibrariesGetter.forEach(library => {
             if (library.id === libraryId ) {
                 foundLibrary = clone(library);
             }
