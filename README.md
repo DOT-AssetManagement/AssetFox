@@ -1,5 +1,16 @@
-# Welcome to AssetFox!
-This application is designed and maintained by PennDOT Asset Management for DOT's, Agencies and municipalities who wish to optimize their infrastructure investment and forecast asset conditions into the future. This application is dessigned for DOT level bridge and pavement assets, but was constructed asset-agnostic, so it can be applied to any class of asset, including trucks, pipes or buildings.
+Welcome to AssetFox!
+AssetFox is developed and maintained by PennDOT Asset Management to help transportation owners make smarter, more strategic infrastructure decisions. Built for State DOTs, agencies, and municipalities, the platform delivers powerful tools to optimize investment, evaluate treatment strategies, and forecast asset conditions far into the future.
+
+Originally engineered for bridge and pavement networks, AssetFox is fully asset‑agnostic. Its flexible architecture allows any organization to model and manage any asset class — from trucks and pipes to buildings and facilities — using the same modern, data‑driven framework.
+
+AssetFox gives owners the ability to:
+
+Understand long‑term performance trends
+Compare investment scenarios
+Optimize treatment timing and funding
+Support TAM‑aligned planning and reporting
+
+Welcome aboard — your assets have a smarter future ahead.
 
 ---
 
