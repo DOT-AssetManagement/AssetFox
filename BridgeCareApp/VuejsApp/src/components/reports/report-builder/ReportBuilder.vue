@@ -877,7 +877,7 @@ function onSharingSaved(schema: ReportSchemaDTO) {
 }
 
 .report-builder__palette {
-    width: 210px;
+    width: 280px;
     flex-shrink: 0;
     overflow-y: auto;
     background: #FFFFFF;

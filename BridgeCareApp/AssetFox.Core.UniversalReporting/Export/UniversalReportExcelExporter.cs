@@ -1,5 +1,6 @@
 using System.Drawing;
 using AssetFox.Core.UniversalReporting.Charts;
+using AssetFox.Core.UniversalReporting.Components.ScenarioParameters;
 using AssetFox.Core.UniversalReporting.Execution;
 using AssetFox.Core.UniversalReporting.Schema;
 using AssetFox.Core.UniversalReporting.Viewer;
@@ -18,6 +19,10 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
     private const int TimelineFieldHeaderRow = 3;
     private const int TimelineDataStartRow = 4;
     private const string TimelineStaticColumnPrefix = "staticAttribute_";
+    private const int ScenarioParameterStandardLayoutColumns = 20;
+    private const int ScenarioParameterKeyValueColumns = 8;
+    private const double ScenarioParameterColumnWidth = 16;
+    private const double ScenarioParameterFirstColumnWidth = 14;
     private const double MaxColumnWidth = 45;
     private const double MinColumnWidth = 10;
     private const string CompactCurrencyFormat = "[>=1000000000]$0.0,,,\"B\";[>=1000000]$0.0,,\"M\";$#,##0.00";
@@ -26,6 +31,7 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
     private static readonly Color AlternatingRowFillColor = Color.LightGray;
     private static readonly Color TotalFillColor = Color.FromArgb(217, 217, 217);
     private static readonly Color BorderColor = Color.FromArgb(166, 166, 166);
+    private static readonly Color ScenarioParameterSectionFillColor = Color.FromArgb(69, 90, 100);
     private static readonly Color[] StandardChartColors =
     {
         Color.FromArgb(42, 87, 141),
@@ -82,6 +88,20 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
                 cancellationToken);
 
             var worksheetName = worksheetNamer.Name(title, i);
+            if (string.Equals(component.Type, "scenarioParameters", StringComparison.OrdinalIgnoreCase))
+            {
+                await WriteScenarioParametersWorksheetAsync(
+                    package,
+                    worksheetName,
+                    title,
+                    component,
+                    schema.CalculatedFields,
+                    simulationId,
+                    runId,
+                    cancellationToken);
+                continue;
+            }
+
             if (string.Equals(component.Type, "treatmentTimeline", StringComparison.OrdinalIgnoreCase))
             {
                 await WriteTreatmentTimelineWorksheetAsync(
@@ -162,6 +182,328 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
         await File.WriteAllBytesAsync(filePath, package.GetAsByteArray(), cancellationToken);
         return filePath;
     }
+
+    private async Task WriteScenarioParametersWorksheetAsync(
+        ExcelPackage package,
+        string worksheetName,
+        string title,
+        ReportComponent component,
+        IReadOnlyList<ReportCalculatedField> calculatedFields,
+        Guid simulationId,
+        int runId,
+        CancellationToken cancellationToken)
+    {
+        var request = new ViewerDataRequest
+        {
+            SimulationId = simulationId,
+            Page = 1,
+            PageSize = int.MaxValue,
+            SortDirection = "asc",
+            ColumnFilters = new Dictionary<string, string>()
+        };
+        var executionContext = ReportExecutionContext.Create(component, calculatedFields);
+        var result = await _queryEngine.StreamAllAsync(executionContext, request, runId, cancellationToken);
+        var encodedRows = new List<List<object>>();
+        await foreach (var row in result.Rows.WithCancellation(cancellationToken))
+        {
+            encodedRows.Add(row);
+        }
+
+        var document = ScenarioParametersDataContract.Decode(result.Columns, encodedRows);
+        var worksheet = package.Workbook.Worksheets.Add(worksheetName);
+        var maximumColumns = Math.Max(ScenarioParameterKeyValueColumns, document.Sections
+            .Select(GetScenarioParameterSectionLastColumn)
+            .DefaultIfEmpty(ScenarioParameterKeyValueColumns)
+            .Max());
+        WriteWorksheetTitle(worksheet, title, maximumColumns);
+        worksheet.View.ShowGridLines = false;
+
+        var currentRow = DataStartRow;
+        if (document.Sections.Count == 0)
+        {
+            worksheet.Cells[currentRow, 1].Value = "No scenario parameters are available for the selected sections.";
+            worksheet.Cells[currentRow, 1, currentRow, maximumColumns].Merge = maximumColumns > 1;
+            worksheet.Cells[currentRow, 1].Style.Font.Italic = true;
+            worksheet.Cells[currentRow, 1].Style.Font.Color.SetColor(Color.DimGray);
+            ApplyBorder(worksheet.Cells[currentRow, 1, currentRow, maximumColumns]);
+            currentRow++;
+        }
+
+        foreach (var section in document.Sections.OrderBy(section => section.Order))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var hasRowHeader = !string.IsNullOrWhiteSpace(section.RowHeader);
+            var columnSpans = GetScenarioParameterColumnSpans(section);
+            var sectionLastColumn = GetScenarioParameterSectionLastColumn(section);
+            var sectionHeader = worksheet.Cells[currentRow, 1, currentRow, sectionLastColumn];
+            sectionHeader.Merge = sectionLastColumn > 1;
+            sectionHeader.Value = section.Title;
+            sectionHeader.Style.Font.Bold = true;
+            sectionHeader.Style.Font.Color.SetColor(Color.White);
+            sectionHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            sectionHeader.Style.Fill.BackgroundColor.SetColor(ScenarioParameterSectionFillColor);
+            ApplyBorder(sectionHeader);
+            worksheet.Row(currentRow).Height = 22;
+            currentRow++;
+
+            if (section.Kind == ScenarioParameterSectionKinds.KeyValue)
+            {
+                var labelSpan = columnSpans[0];
+                var valueSpan = columnSpans[1];
+                foreach (var row in section.Rows.OrderBy(row => row.Order))
+                {
+                    var labelRange = MergeScenarioParameterRange(worksheet, currentRow, labelSpan);
+                    labelRange.Value = row.Label;
+                    labelRange.Style.Font.Bold = true;
+                    labelRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    labelRange.Style.Fill.BackgroundColor.SetColor(TitleFillColor);
+                    var cell = row.Cells.OrderBy(item => item.ColumnKey, StringComparer.OrdinalIgnoreCase).FirstOrDefault();
+                    var valueRange = MergeScenarioParameterRange(worksheet, currentRow, valueSpan);
+                    WriteScenarioParameterValue(valueRange, cell?.Value, cell?.Format);
+                    valueRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                    var rowRange = worksheet.Cells[currentRow, labelSpan.StartColumn, currentRow, valueSpan.EndColumn];
+                    rowRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                    rowRange.Style.WrapText = true;
+                    ApplyBorder(rowRange);
+                    worksheet.Row(currentRow).Height = string.Equals(
+                        section.Key,
+                        ScenarioParameterSectionKeys.ScenarioCriteria,
+                        StringComparison.OrdinalIgnoreCase)
+                        ? 54
+                        : 24;
+                    currentRow++;
+                }
+            }
+            else
+            {
+                var tableStartRow = currentRow;
+                var spanIndex = 0;
+                if (hasRowHeader)
+                {
+                    var rowHeaderRange = MergeScenarioParameterRange(worksheet, currentRow, columnSpans[spanIndex++]);
+                    rowHeaderRange.Value = section.RowHeader;
+                }
+
+                foreach (var column in section.Columns.OrderBy(column => column.Order))
+                {
+                    var headerCell = MergeScenarioParameterRange(worksheet, currentRow, columnSpans[spanIndex++]);
+                    headerCell.Value = column.Label;
+                }
+
+                var tableLastColumn = columnSpans[^1].EndColumn;
+                var tableHeader = worksheet.Cells[currentRow, 1, currentRow, tableLastColumn];
+                tableHeader.Style.Font.Bold = true;
+                tableHeader.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                tableHeader.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                tableHeader.Style.WrapText = true;
+                tableHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                tableHeader.Style.Fill.BackgroundColor.SetColor(TitleFillColor);
+                ApplyBorder(tableHeader);
+                worksheet.Row(currentRow).Height = 34;
+                currentRow++;
+
+                var dataRowIndex = 0;
+                foreach (var row in section.Rows.OrderBy(row => row.Order))
+                {
+                    spanIndex = 0;
+                    if (hasRowHeader)
+                    {
+                        var rowHeaderRange = MergeScenarioParameterRange(worksheet, currentRow, columnSpans[spanIndex++]);
+                        rowHeaderRange.Value = row.Label;
+                    }
+
+                    var cells = row.Cells.ToDictionary(cell => cell.ColumnKey, StringComparer.OrdinalIgnoreCase);
+                    foreach (var column in section.Columns.OrderBy(column => column.Order))
+                    {
+                        cells.TryGetValue(column.Key, out var cell);
+                        var valueRange = MergeScenarioParameterRange(worksheet, currentRow, columnSpans[spanIndex++]);
+                        WriteScenarioParameterValue(valueRange, cell?.Value, cell?.Format);
+                    }
+
+                    var dataRow = worksheet.Cells[currentRow, 1, currentRow, tableLastColumn];
+                    dataRow.Style.VerticalAlignment = ExcelVerticalAlignment.Top;
+                    dataRow.Style.WrapText = !string.Equals(
+                        section.Key,
+                        ScenarioParameterSectionKeys.Funding,
+                        StringComparison.OrdinalIgnoreCase);
+                    if (dataRowIndex % 2 == 1)
+                    {
+                        dataRow.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        dataRow.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(248, 250, 252));
+                    }
+
+                    worksheet.Row(currentRow).Height = GetScenarioParameterDataRowHeight(section.Key);
+                    currentRow++;
+                    dataRowIndex++;
+                }
+
+                if (currentRow > tableStartRow)
+                {
+                    ApplyBorder(worksheet.Cells[tableStartRow, 1, currentRow - 1, tableLastColumn]);
+                }
+            }
+
+            currentRow++;
+        }
+
+        var lastRow = Math.Max(TitleRow, currentRow - 1);
+        worksheet.Cells[TitleRow, 1, lastRow, maximumColumns].Style.VerticalAlignment = ExcelVerticalAlignment.Top;
+        worksheet.Row(TitleRow).Height = 24;
+        for (var columnIndex = 1; columnIndex <= maximumColumns; columnIndex++)
+        {
+            worksheet.Column(columnIndex).Width = columnIndex == 1
+                ? ScenarioParameterFirstColumnWidth
+                : ScenarioParameterColumnWidth;
+        }
+
+        worksheet.View.FreezePanes(DataStartRow, 1);
+    }
+
+    private static IReadOnlyList<ScenarioParameterColumnSpan> GetScenarioParameterColumnSpans(
+        ScenarioParameterSection section)
+    {
+        if (section.Kind == ScenarioParameterSectionKinds.KeyValue)
+        {
+            return string.Equals(
+                section.Key,
+                ScenarioParameterSectionKeys.ScenarioCriteria,
+                StringComparison.OrdinalIgnoreCase)
+                ? new[]
+                {
+                    new ScenarioParameterColumnSpan(1, 3),
+                    new ScenarioParameterColumnSpan(4, ScenarioParameterStandardLayoutColumns)
+                }
+                : new[]
+                {
+                    new ScenarioParameterColumnSpan(1, 3),
+                    new ScenarioParameterColumnSpan(4, ScenarioParameterKeyValueColumns)
+                };
+        }
+
+        if (section.Columns.Count == 4
+            && string.Equals(section.Key, ScenarioParameterSectionKeys.Priorities, StringComparison.OrdinalIgnoreCase))
+        {
+            return new[]
+            {
+                new ScenarioParameterColumnSpan(1, 1),
+                new ScenarioParameterColumnSpan(2, 3),
+                new ScenarioParameterColumnSpan(4, 10),
+                new ScenarioParameterColumnSpan(11, ScenarioParameterStandardLayoutColumns)
+            };
+        }
+
+        if (section.Columns.Count == 5
+            && string.Equals(section.Key, ScenarioParameterSectionKeys.CashFlow, StringComparison.OrdinalIgnoreCase))
+        {
+            return new[]
+            {
+                new ScenarioParameterColumnSpan(1, 3),
+                new ScenarioParameterColumnSpan(4, 10),
+                new ScenarioParameterColumnSpan(11, 12),
+                new ScenarioParameterColumnSpan(13, 16),
+                new ScenarioParameterColumnSpan(17, ScenarioParameterStandardLayoutColumns)
+            };
+        }
+
+        if (section.Columns.Count == 3
+            && string.Equals(section.Key, ScenarioParameterSectionKeys.BudgetCriteria, StringComparison.OrdinalIgnoreCase))
+        {
+            return new[]
+            {
+                new ScenarioParameterColumnSpan(1, 2),
+                new ScenarioParameterColumnSpan(3, 5),
+                new ScenarioParameterColumnSpan(6, ScenarioParameterStandardLayoutColumns)
+            };
+        }
+
+        if (section.Columns.Count == 4
+            && string.Equals(section.Key, ScenarioParameterSectionKeys.Treatments, StringComparison.OrdinalIgnoreCase))
+        {
+            return new[]
+            {
+                new ScenarioParameterColumnSpan(1, 3),
+                new ScenarioParameterColumnSpan(4, 6),
+                new ScenarioParameterColumnSpan(7, 9),
+                new ScenarioParameterColumnSpan(10, ScenarioParameterStandardLayoutColumns)
+            };
+        }
+
+        var columnCount = section.Columns.Count + (string.IsNullOrWhiteSpace(section.RowHeader) ? 0 : 1);
+        return Enumerable.Range(1, Math.Max(1, columnCount))
+            .Select(column => new ScenarioParameterColumnSpan(column, column))
+            .ToList();
+    }
+
+    private static int GetScenarioParameterSectionLastColumn(ScenarioParameterSection section) =>
+        GetScenarioParameterColumnSpans(section)[^1].EndColumn;
+
+    private static ExcelRange MergeScenarioParameterRange(
+        ExcelWorksheet worksheet,
+        int row,
+        ScenarioParameterColumnSpan span)
+    {
+        var range = worksheet.Cells[row, span.StartColumn, row, span.EndColumn];
+        range.Merge = span.EndColumn > span.StartColumn;
+        return range;
+    }
+
+    private static double GetScenarioParameterDataRowHeight(string sectionKey)
+    {
+        if (string.Equals(sectionKey, ScenarioParameterSectionKeys.Priorities, StringComparison.OrdinalIgnoreCase))
+        {
+            return 60;
+        }
+
+        if (string.Equals(sectionKey, ScenarioParameterSectionKeys.BudgetCriteria, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(sectionKey, ScenarioParameterSectionKeys.Treatments, StringComparison.OrdinalIgnoreCase))
+        {
+            return 72;
+        }
+
+        return string.Equals(sectionKey, ScenarioParameterSectionKeys.Funding, StringComparison.OrdinalIgnoreCase)
+            ? 22
+            : 28;
+    }
+
+    private static void WriteScenarioParameterValue(ExcelRange cell, object? value, string? format)
+    {
+        if (string.Equals(format, "boolean", StringComparison.OrdinalIgnoreCase))
+        {
+            cell.Value = value is bool boolean
+                ? boolean ? "Yes" : "No"
+                : value;
+            return;
+        }
+
+        if (string.Equals(format, "date", StringComparison.OrdinalIgnoreCase))
+        {
+            if (value is DateTime date)
+            {
+                cell.Value = date;
+                cell.Style.Numberformat.Format = "m/d/yyyy h:mm AM/PM";
+                return;
+            }
+
+            if (DateTime.TryParse(Convert.ToString(value), out var parsedDate))
+            {
+                cell.Value = parsedDate;
+                cell.Style.Numberformat.Format = "m/d/yyyy h:mm AM/PM";
+                return;
+            }
+        }
+
+        cell.Value = value;
+        cell.Style.Numberformat.Format = format?.ToLowerInvariant() switch
+        {
+            "currency" => "$#,##0.##",
+            "number" => "#,##0.##",
+            "percent" => "0.0\"%\"",
+            "year" => "0",
+            _ => cell.Style.Numberformat.Format
+        };
+    }
+
+    private sealed record ScenarioParameterColumnSpan(int StartColumn, int EndColumn);
 
     private async Task WriteTreatmentTimelineWorksheetAsync(
         ExcelPackage package,

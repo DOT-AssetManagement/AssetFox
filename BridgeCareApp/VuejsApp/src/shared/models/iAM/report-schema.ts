@@ -144,6 +144,7 @@ export type ComponentType =
     | 'treatmentTimeline'
     | 'workSummary'
     | 'budgetSummary'
+    | 'scenarioParameters'
     | 'conditionTracking'
     | 'fundedTreatmentList'
     | 'barChart'
@@ -180,6 +181,21 @@ export interface WorkSummaryConfig {
 export interface BudgetSummaryConfig {
     showSpentAmount: boolean;
     showRemainingAmount: boolean;
+}
+
+export type ScenarioParametersSectionKey =
+    | 'scenario'
+    | 'investment'
+    | 'analysis'
+    | 'scenarioCriteria'
+    | 'priorities'
+    | 'cashFlow'
+    | 'funding'
+    | 'budgetCriteria'
+    | 'treatments';
+
+export interface ScenarioParametersConfig {
+    sections: ScenarioParametersSectionKey[];
 }
 
 export interface ConditionTrackingConfig {
@@ -260,6 +276,7 @@ export type ComponentConfig =
     | TreatmentTimelineConfig
     | WorkSummaryConfig
     | BudgetSummaryConfig
+    | ScenarioParametersConfig
     | ConditionTrackingConfig
     | FundedTreatmentListConfig
     | ChartConfig
@@ -441,6 +458,10 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
                 showSpentAmount: true,
                 showRemainingAmount: true,
             } as BudgetSummaryConfig;
+        case 'scenarioParameters':
+            return {
+                sections: scenarioParametersSectionOptions.map(section => section.value),
+            } as ScenarioParametersConfig;
         case 'conditionTracking':
             return {
                 conditionAttributes: [],
@@ -592,6 +613,13 @@ export const componentTypeInfo: Record<ComponentType, ComponentTypeInfo> = {
         color: '#6A1B9A',
         chipColor: '#F3E5F5',
     },
+    scenarioParameters: {
+        label: 'Scenario Parameters',
+        description: 'Scenario settings, criteria, funding, and treatments',
+        icon: 'fas fa-sliders-h',
+        color: '#455A64',
+        chipColor: '#ECEFF1',
+    },
     conditionTracking: {
         label: 'Condition Tracking',
         description: 'Track condition attribute changes over the simulation',
@@ -639,6 +667,18 @@ export const componentTypeInfo: Record<ComponentType, ComponentTypeInfo> = {
 export function isChartComponentType(type: ComponentType | string): boolean {
     return type === 'barChart' || type === 'pieChart' || type === 'lineChart';
 }
+
+export const scenarioParametersSectionOptions: { title: string; value: ScenarioParametersSectionKey }[] = [
+    { title: 'Scenario', value: 'scenario' },
+    { title: 'Investment', value: 'investment' },
+    { title: 'Analysis', value: 'analysis' },
+    { title: 'Scenario Criteria', value: 'scenarioCriteria' },
+    { title: 'Analysis Priorities', value: 'priorities' },
+    { title: 'Cash Flow Rules', value: 'cashFlow' },
+    { title: 'Funding by Year', value: 'funding' },
+    { title: 'Budget Criteria', value: 'budgetCriteria' },
+    { title: 'Treatments', value: 'treatments' },
+];
 
 // ============================================================
 // Simulation Fields Metadata

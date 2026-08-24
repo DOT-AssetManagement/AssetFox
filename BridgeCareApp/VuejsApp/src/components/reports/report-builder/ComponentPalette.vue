@@ -40,6 +40,7 @@ const componentTypes: ComponentType[] = [
     'treatmentTimeline',
     'workSummary',
     'budgetSummary',
+    'scenarioParameters',
     'conditionTracking',
     'fundedTreatmentList',
     'barChart',
@@ -94,9 +95,7 @@ const componentTypes: ComponentType[] = [
     font-weight: 600;
     color: #333;
     line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
 }
 
 .palette-desc {
@@ -104,9 +103,6 @@ const componentTypes: ComponentType[] = [
     color: #999;
     line-height: 1.3;
     margin-top: 1px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    overflow-wrap: anywhere;
 }
 </style>

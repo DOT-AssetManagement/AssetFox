@@ -72,6 +72,7 @@ import {
     AssetDetailConfig,
     TreatmentTimelineConfig,
     WorkSummaryConfig,
+    ScenarioParametersConfig,
     FundedTreatmentListConfig,
     ConditionTrackingConfig,
     ChartConfig,
@@ -121,6 +122,11 @@ const previewText = computed(() => {
         }
         case 'budgetSummary':
             return 'Budget utilization per year';
+        case 'scenarioParameters': {
+            const c = config as ScenarioParametersConfig;
+            const count = c.sections?.length || 0;
+            return `${count} section${count !== 1 ? 's' : ''} selected`;
+        }
         case 'conditionTracking': {
             const c = config as ConditionTrackingConfig;
             const count = c.conditionFields?.length || c.conditionAttributes?.length || 0;

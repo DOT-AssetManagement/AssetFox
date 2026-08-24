@@ -9,6 +9,12 @@
                     v-if="component.type === 'textBlock'"
                     :component="component"
                 />
+                <ViewerScenarioParameters
+                    v-else-if="component.type === 'scenarioParameters'"
+                    :component="component"
+                    :schemaId="schemaId"
+                    :simulationId="simulationId"
+                />
                 <ViewerChart
                     v-else-if="isChartComponentType(component.type)"
                     :component="component"
@@ -31,6 +37,7 @@ import { computed } from 'vue';
 import { ReportComponent, isChartComponentType } from '@/shared/models/iAM/report-schema';
 import ViewerDataTable from './ViewerDataTable.vue';
 import ViewerTextBlock from './ViewerTextBlock.vue';
+import ViewerScenarioParameters from './ViewerScenarioParameters.vue';
 import ViewerChart from './ViewerChart.vue';
 
 const props = defineProps<{

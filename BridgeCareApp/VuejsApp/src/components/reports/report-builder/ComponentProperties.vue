@@ -26,7 +26,7 @@
                 @update:model-value="emitUpdate"
             />
             <v-select
-                v-if="localComponent.type !== 'textBlock' && !isChartComponentType(localComponent.type)"
+                v-if="localComponent.type !== 'textBlock' && localComponent.type !== 'scenarioParameters' && !isChartComponentType(localComponent.type)"
                 v-model="localComponent.pageSize"
                 :items="pageSizeOptions"
                 label="Rows per page"
@@ -37,7 +37,7 @@
                 @update:model-value="emitUpdate"
             />
             <v-checkbox
-                v-if="localComponent.type !== 'textBlock' && !isChartComponentType(localComponent.type)"
+                v-if="localComponent.type !== 'textBlock' && localComponent.type !== 'scenarioParameters' && !isChartComponentType(localComponent.type)"
                 v-model="localComponent.stripedRows"
                 label="Alternating row colors"
                 density="compact"
@@ -79,6 +79,11 @@
                 :config="localComponent.config as BudgetSummaryConfig"
                 @update:config="onConfigUpdate"
             />
+            <ScenarioParametersConfigEditor
+                v-else-if="localComponent.type === 'scenarioParameters'"
+                :config="localComponent.config as ScenarioParametersConfig"
+                @update:config="onConfigUpdate"
+            />
             <ConditionTrackingConfigEditor
                 v-else-if="localComponent.type === 'conditionTracking'"
                 :config="localComponent.config as ConditionTrackingConfig"
@@ -105,10 +110,10 @@
             />
         </div>
 
-        <v-divider class="my-2" />
+        <v-divider v-if="localComponent.type !== 'scenarioParameters'" class="my-2" />
 
         <!-- Filter -->
-        <div class="props-section">
+        <div v-if="localComponent.type !== 'scenarioParameters'" class="props-section">
             <div class="props-section__header">
                 <i class="fas fa-filter mr-2" style="font-size: 11px; color: #888;" />
                 Filter
@@ -138,6 +143,7 @@ import {
     TreatmentTimelineConfig,
     WorkSummaryConfig,
     BudgetSummaryConfig,
+    ScenarioParametersConfig,
     ConditionTrackingConfig,
     FundedTreatmentListConfig,
     TextBlockConfig,
@@ -151,6 +157,7 @@ import AssetDetailConfigEditor from './configs/AssetDetailConfig.vue';
 import TreatmentTimelineConfigEditor from './configs/TreatmentTimelineConfig.vue';
 import WorkSummaryConfigEditor from './configs/WorkSummaryConfig.vue';
 import BudgetSummaryConfigEditor from './configs/BudgetSummaryConfig.vue';
+import ScenarioParametersConfigEditor from './configs/ScenarioParametersConfig.vue';
 import ConditionTrackingConfigEditor from './configs/ConditionTrackingConfig.vue';
 import FundedTreatmentListConfigEditor from './configs/FundedTreatmentListConfig.vue';
 import TextBlockConfigEditor from './configs/TextBlockConfig.vue';
