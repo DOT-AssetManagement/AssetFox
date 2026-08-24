@@ -80,6 +80,30 @@ namespace AssetFox.Core.UniversalReporting.Tests
             Assert.False(config.Filters.ExcludeNoTreatment);
         }
 
+        [Fact]
+        public void ValidateComponent_WeightedAverage_ReturnsNoBlockers()
+        {
+            var validator = new ChartTemplateValidator();
+            var component = CreateChartComponent("barChart", "bar", "single", includeSeries: false);
+            ((Dictionary<string, object>)component.Config["bindings"])["value"] = AttributeBinding("IRI", "weightedAvg");
+
+            var issues = validator.ValidateComponent(component);
+
+            Assert.DoesNotContain(issues, issue => issue.Blocker);
+        }
+
+        [Fact]
+        public void ValidateComponent_UnsupportedAggregation_ReturnsBlocker()
+        {
+            var validator = new ChartTemplateValidator();
+            var component = CreateChartComponent("barChart", "bar", "single", includeSeries: false);
+            ((Dictionary<string, object>)component.Config["bindings"])["value"] = AttributeBinding("IRI", "median");
+
+            var issues = validator.ValidateComponent(component);
+
+            Assert.Contains(issues, issue => issue.Blocker && issue.Message.Contains("unsupported aggregation"));
+        }
+
         private static ReportComponent CreateChartComponent(
             string type,
             string kind,
@@ -143,6 +167,17 @@ namespace AssetFox.Core.UniversalReporting.Tests
                 ["role"] = "measure",
                 ["aggregate"] = "sum",
                 ["format"] = "currency"
+            };
+
+        private static Dictionary<string, object> AttributeBinding(string name, string aggregate) =>
+            new()
+            {
+                ["source"] = "attribute",
+                ["field"] = name,
+                ["label"] = name,
+                ["role"] = "measure",
+                ["aggregate"] = aggregate,
+                ["format"] = "number"
             };
     }
 }

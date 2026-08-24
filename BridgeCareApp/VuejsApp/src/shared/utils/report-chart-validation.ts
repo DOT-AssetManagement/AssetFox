@@ -13,6 +13,8 @@ export interface ChartValidationIssue {
     blocker: boolean;
 }
 
+const supportedAggregations = ['sum', 'avg', 'weightedAvg', 'min', 'max', 'count'];
+
 function hasBinding(binding?: ChartFieldBinding): boolean {
     return !!binding?.source && !!binding?.field && !!binding?.label;
 }
@@ -65,6 +67,10 @@ export function validateChartConfig(
         add('Choose a value field.');
     } else if (value?.role !== 'measure') {
         add(`${bindingLabel(value)} must be used as a measure.`);
+    }
+
+    if (value?.aggregate && !supportedAggregations.includes(value.aggregate)) {
+        add(`${bindingLabel(value)} uses an unsupported aggregation.`);
     }
 
     if (chartKind === 'pie' && hasBinding(series)) {

@@ -7,11 +7,13 @@ using AssetFox.Core.UniversalReporting.Query;
 using AssetFox.Core.UniversalReporting.Schema;
 using AssetFox.Core.UniversalReporting.Viewer;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace AssetFox.Core.UniversalReporting.Components;
 
 public abstract class ChartDataSourceBase : ComponentDataSourceBase
 {
+    private const string SpatialWeightCalculatedFieldId = "15e9f1db-38f6-4b64-89e8-a338e95cba63";
     private readonly ChartTemplateValidator _validator;
 
     protected ChartDataSourceBase(
@@ -66,10 +68,14 @@ public abstract class ChartDataSourceBase : ComponentDataSourceBase
             ReportCalculatedFieldRowScope.Yearly,
             parameters,
             "chart");
+        var spatialWeight = IsWeightedAverage(value.Aggregate)
+            ? BuildSpatialWeightProjection(request.SimulationId, parameters)
+            : new ReportCalculatedFieldProjectionPlan();
         var rawBaseSql = BuildRawBaseSql(component, parameters, usesAllocationBase, config);
         var attrCtes = BuildAttributeCtes(attributes);
         var calculatedFieldCtes = calculatedFields.IsEmpty ? "" : $",\n{calculatedFields.CteSql}";
-        var baseCte = BuildBaseCte(attributes, calculatedFields);
+        var spatialWeightCtes = spatialWeight.IsEmpty ? "" : $",\n{spatialWeight.CteSql}";
+        var baseCte = BuildBaseCte(attributes, calculatedFields, spatialWeight);
         var categoryExpr = BuildDimensionExpression(category, attributes, calculatedFields);
         var hasSeries = HasBinding(series);
         var seriesExpr = hasSeries
@@ -80,7 +86,7 @@ public abstract class ChartDataSourceBase : ComponentDataSourceBase
             ? $"GROUP BY {categoryExpr}, {seriesExpr}"
             : $"GROUP BY {categoryExpr}";
         var valueExpr = BuildValueExpression(value, attributes, calculatedFields);
-        var aggregateExpr = BuildAggregateExpression(value.Aggregate, valueExpr);
+        var aggregateExpr = BuildAggregateExpression(value.Aggregate, valueExpr, "b.SpatialWeight");
         var topN = config.Limit.TopN.GetValueOrDefault();
         var hasTopN = topN > 0;
         var orderBySql = BuildOrderBySql(hasSeries, hasTopN || string.Equals(expectedKind, "pie", StringComparison.OrdinalIgnoreCase));
@@ -89,7 +95,7 @@ public abstract class ChartDataSourceBase : ComponentDataSourceBase
             : "";
 
         var sql = $@"
-{rawBaseSql}{attrCtes}{calculatedFieldCtes}{baseCte}
+{rawBaseSql}{attrCtes}{calculatedFieldCtes}{spatialWeightCtes}{baseCte}
 SELECT {topSql}
     {categoryExpr} AS Category,
     {seriesExpr} AS Series,
@@ -269,6 +275,51 @@ FROM Base b
         return result;
     }
 
+    private ReportCalculatedFieldProjectionPlan BuildSpatialWeightProjection(
+        Guid simulationId,
+        List<SqlParameter> parameters)
+    {
+        var simulation = _unitOfWork.Context.Simulation
+            .AsNoTracking()
+            .Where(item => item.Id == simulationId)
+            .Select(item => new { item.Name, item.NetworkId })
+            .SingleOrDefault()
+            ?? throw new InvalidOperationException($"Scenario '{simulationId}' was not found.");
+        var expression = _unitOfWork.MaintainableAssetRepo
+            .GetPredominantAssetSpatialWeighting(simulation.NetworkId);
+        if (string.IsNullOrWhiteSpace(expression))
+        {
+            throw new InvalidOperationException(
+                $"The network for scenario '{simulation.Name}' does not have a spatial weighting equation.");
+        }
+
+        var field = new ReportCalculatedField
+        {
+            Id = SpatialWeightCalculatedFieldId,
+            Name = "Spatial Weight",
+            ResultType = "number",
+            Mode = "formula",
+            Formula = new ReportExpressionDefinition { Expression = expression }
+        };
+
+        try
+        {
+            return _calculatedFieldCompiler.BuildProjection(
+                new[] { field },
+                new[] { field.Id },
+                _unitOfWork.AttributeRepo,
+                ReportCalculatedFieldRowScope.Yearly,
+                parameters,
+                "chartweight");
+        }
+        catch (Exception exception)
+        {
+            throw new InvalidOperationException(
+                $"The network spatial weighting equation could not be used for this chart: {exception.Message}",
+                exception);
+        }
+    }
+
     private static string BuildAttributeCtes(IReadOnlyList<ChartAttributeBinding> attributes)
     {
         if (attributes.Count == 0)
@@ -309,9 +360,10 @@ FROM Base b
 
     private static string BuildBaseCte(
         IReadOnlyList<ChartAttributeBinding> attributes,
-        ReportCalculatedFieldProjectionPlan calculatedFields)
+        ReportCalculatedFieldProjectionPlan calculatedFields,
+        ReportCalculatedFieldProjectionPlan spatialWeight)
     {
-        if (attributes.Count == 0 && calculatedFields.IsEmpty)
+        if (attributes.Count == 0 && calculatedFields.IsEmpty && spatialWeight.IsEmpty)
         {
             return @",
 Base AS (
@@ -339,6 +391,14 @@ Base AS (
         if (!calculatedFields.IsEmpty)
         {
             joins.AppendLine($"    {calculatedFields.Join("rb", "AssetDetailId", "chartcfv")}");
+        }
+
+        if (!spatialWeight.IsEmpty)
+        {
+            var field = spatialWeight.FindById(SpatialWeightCalculatedFieldId)
+                ?? throw new InvalidOperationException("The chart spatial weight projection was not resolved.");
+            selectCols.AppendLine($",\n        chartweightcfv.[{field.ColumnKey}] AS SpatialWeight");
+            joins.AppendLine($"    {spatialWeight.Join("rb", "AssetDetailId", "chartweightcfv")}");
         }
 
         return $@",
@@ -407,17 +467,24 @@ Base AS (
         };
     }
 
-    private static string BuildAggregateExpression(string? aggregate, string valueExpr)
+    private static string BuildAggregateExpression(
+        string? aggregate,
+        string valueExpr,
+        string spatialWeightExpr)
     {
         return aggregate?.ToLowerInvariant() switch
         {
             "avg" => $"COALESCE(AVG({valueExpr}), 0)",
+            "weightedavg" => $"COALESCE(SUM(CAST({valueExpr} AS FLOAT) * CAST({spatialWeightExpr} AS FLOAT)) / NULLIF(SUM(CASE WHEN {valueExpr} IS NOT NULL THEN CAST({spatialWeightExpr} AS FLOAT) END), 0), 0)",
             "min" => $"COALESCE(MIN({valueExpr}), 0)",
             "max" => $"COALESCE(MAX({valueExpr}), 0)",
             "count" => "COUNT(*)",
             _ => $"COALESCE(SUM({valueExpr}), 0)"
         };
     }
+
+    private static bool IsWeightedAverage(string? aggregate) =>
+        string.Equals(aggregate, "weightedAvg", StringComparison.OrdinalIgnoreCase);
 
     private static bool HasBinding(ChartFieldBindingDefinition? binding) =>
         binding != null

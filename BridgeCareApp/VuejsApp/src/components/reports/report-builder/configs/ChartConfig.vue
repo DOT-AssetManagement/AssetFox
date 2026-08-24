@@ -342,6 +342,7 @@ const selectedAggregate = computed({
 const aggregateOptions = [
     { title: 'Sum', value: 'sum' },
     { title: 'Average', value: 'avg' },
+    { title: 'Weighted Average', value: 'weightedAvg' },
     { title: 'Minimum', value: 'min' },
     { title: 'Maximum', value: 'max' },
     { title: 'Count', value: 'count' },

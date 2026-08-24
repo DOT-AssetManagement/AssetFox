@@ -4,6 +4,11 @@ namespace AssetFox.Core.UniversalReporting.Charts;
 
 public class ChartTemplateValidator
 {
+    private static readonly HashSet<string> SupportedAggregations = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "sum", "avg", "weightedAvg", "min", "max", "count"
+    };
+
     public static bool IsChartComponent(string? componentType) =>
         string.Equals(componentType, "barChart", StringComparison.OrdinalIgnoreCase)
         || string.Equals(componentType, "pieChart", StringComparison.OrdinalIgnoreCase)
@@ -51,6 +56,13 @@ public class ChartTemplateValidator
         else if (!string.Equals(value!.Role, "measure", StringComparison.OrdinalIgnoreCase))
         {
             Add($"{BindingLabel(value)} must be used as a measure.");
+        }
+
+        if (value != null
+            && !string.IsNullOrWhiteSpace(value.Aggregate)
+            && !SupportedAggregations.Contains(value.Aggregate))
+        {
+            Add($"{BindingLabel(value)} uses an unsupported aggregation.");
         }
 
         if (string.Equals(chartKind, "pie", StringComparison.OrdinalIgnoreCase) && HasBinding(series))

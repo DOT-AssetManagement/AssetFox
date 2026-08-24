@@ -225,7 +225,7 @@ export interface TextBlockConfig {
 
 export type ChartKind = 'bar' | 'pie' | 'line';
 export type ChartRole = 'dimension' | 'measure' | 'series' | 'tooltip';
-export type ChartAggregation = 'sum' | 'avg' | 'count' | 'min' | 'max';
+export type ChartAggregation = 'sum' | 'avg' | 'weightedAvg' | 'count' | 'min' | 'max';
 
 export interface ChartFieldBinding {
     source: string;
