@@ -159,6 +159,7 @@ public sealed class UniversalReportLegacyAdapter : IReport
             new TreatmentTimelineDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new ConditionTrackingDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new FundedTreatmentListDataSource(unitOfDataPersistenceWork, criteriaEmitter),
+            new UnfundedTreatmentListDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new WorkSummaryDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new BudgetSummaryDataSource(unitOfDataPersistenceWork, criteriaEmitter),
             new ScenarioParametersDataSource(unitOfDataPersistenceWork, criteriaEmitter),

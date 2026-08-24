@@ -147,6 +147,7 @@ export type ComponentType =
     | 'scenarioParameters'
     | 'conditionTracking'
     | 'fundedTreatmentList'
+    | 'unfundedTreatmentList'
     | 'barChart'
     | 'pieChart'
     | 'lineChart'
@@ -208,6 +209,12 @@ export interface ConditionTrackingConfig {
 export interface FundedTreatmentListConfig {
     columns: ColumnDef[];
     simulationColumns: SimulationColumnDef[];
+    sorting: SortingConfig;
+}
+
+export interface UnfundedTreatmentListConfig {
+    columns: ColumnDef[];
+    candidateColumns: UnfundedTreatmentColumnDef[];
     sorting: SortingConfig;
 }
 
@@ -279,6 +286,7 @@ export type ComponentConfig =
     | ScenarioParametersConfig
     | ConditionTrackingConfig
     | FundedTreatmentListConfig
+    | UnfundedTreatmentListConfig
     | ChartConfig
     | TextBlockConfig;
 
@@ -308,6 +316,12 @@ export interface SimulationColumnDef {
     format: ColumnFormat;
 }
 
+export interface UnfundedTreatmentColumnDef {
+    field: UnfundedTreatmentField;
+    displayHeader: string;
+    format: ColumnFormat;
+}
+
 export interface YearField {
     type: 'treatment' | 'cost' | 'attribute' | 'calculatedField';
     attributeName?: string;
@@ -330,6 +344,15 @@ export type SimulationField =
     | 'treatmentStatus'
     | 'cost'
     | 'budget';
+
+export type UnfundedTreatmentField =
+    | 'year'
+    | 'candidateTreatment'
+    | 'estimatedCost'
+    | 'benefit'
+    | 'conditionChange'
+    | 'remainingLife'
+    | 'budgetPriority';
 
 // ============================================================
 // Defaults
@@ -479,6 +502,18 @@ export function createDefaultConfig(type: ComponentType): ComponentConfig {
                 ],
                 sorting: { ...emptySortingConfig },
             } as FundedTreatmentListConfig;
+        case 'unfundedTreatmentList':
+            return {
+                columns: [],
+                candidateColumns: unfundedTreatmentFieldOptions
+                    .filter(field => field.required)
+                    .map(field => ({
+                        field: field.field,
+                        displayHeader: field.label,
+                        format: field.defaultFormat,
+                    })),
+                sorting: { ...emptySortingConfig },
+            } as UnfundedTreatmentListConfig;
         case 'barChart':
             return createDefaultChartConfig('bar');
         case 'pieChart':
@@ -634,6 +669,13 @@ export const componentTypeInfo: Record<ComponentType, ComponentTypeInfo> = {
         color: '#BF360C',
         chipColor: '#FBE9E7',
     },
+    unfundedTreatmentList: {
+        label: 'Unfunded Treatments',
+        description: 'Treatment opportunities that were not funded over time',
+        icon: 'fas fa-list-ul',
+        color: '#8D4B20',
+        chipColor: '#FFF3E0',
+    },
     barChart: {
         label: 'Bar Chart',
         description: 'Compare values across categories or years',
@@ -690,6 +732,13 @@ export interface SimulationFieldInfo {
     defaultFormat: ColumnFormat;
 }
 
+export interface UnfundedTreatmentFieldInfo {
+    field: UnfundedTreatmentField;
+    label: string;
+    defaultFormat: ColumnFormat;
+    required: boolean;
+}
+
 export const simulationFieldOptions: SimulationFieldInfo[] = [
     { field: 'year', label: 'Year', defaultFormat: 'number' },
     { field: 'appliedTreatment', label: 'Treatment Applied', defaultFormat: 'text' },
@@ -697,6 +746,16 @@ export const simulationFieldOptions: SimulationFieldInfo[] = [
     { field: 'budget', label: 'Budget', defaultFormat: 'text' },
     { field: 'treatmentCause', label: 'Treatment Cause', defaultFormat: 'text' },
     { field: 'treatmentStatus', label: 'Treatment Status', defaultFormat: 'text' },
+];
+
+export const unfundedTreatmentFieldOptions: UnfundedTreatmentFieldInfo[] = [
+    { field: 'year', label: 'Analysis Year', defaultFormat: 'number', required: true },
+    { field: 'candidateTreatment', label: 'Candidate Treatment', defaultFormat: 'text', required: true },
+    { field: 'estimatedCost', label: 'Estimated Cost', defaultFormat: 'currency', required: true },
+    { field: 'benefit', label: 'Benefit', defaultFormat: 'number', required: false },
+    { field: 'conditionChange', label: 'Condition Change', defaultFormat: 'number', required: false },
+    { field: 'remainingLife', label: 'Remaining Life', defaultFormat: 'number', required: false },
+    { field: 'budgetPriority', label: 'Budget Priority', defaultFormat: 'number', required: false },
 ];
 
 // ============================================================

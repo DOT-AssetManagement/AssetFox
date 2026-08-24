@@ -737,9 +737,9 @@ namespace AssetFox.Core.UniversalReporting.Tests
         [Fact]
         public void SchemaParser_RoundTrip_AllComponentTypes_Preserved()
         {
-            // Ensure all 7 component types survive JSON round-trip correctly
+            // Ensure all table component types survive JSON round-trip correctly
             var types = new[] { "assetDetail", "treatmentTimeline", "conditionTracking",
-                "fundedTreatmentList", "workSummary", "budgetSummary", "textBlock" };
+                "fundedTreatmentList", "unfundedTreatmentList", "workSummary", "budgetSummary", "textBlock" };
 
             var components = types.Select((t, i) => new ReportComponent
             {
@@ -753,7 +753,7 @@ namespace AssetFox.Core.UniversalReporting.Tests
             var schemaDto = CreateSchemaDTO(components);
             var parsed = SchemaParser.Parse(schemaDto.SchemaJson);
 
-            Assert.Equal(7, parsed.Pages[0].Components.Count);
+            Assert.Equal(types.Length, parsed.Pages[0].Components.Count);
             for (int i = 0; i < types.Length; i++)
             {
                 Assert.Equal(types[i], parsed.Pages[0].Components[i].Type);
@@ -767,7 +767,7 @@ namespace AssetFox.Core.UniversalReporting.Tests
             // Test that the switch expression in GetComponentData handles all known types
             // by verifying the type string matches what would be lowered
             var knownTypes = new[] { "assetDetail", "treatmentTimeline", "conditionTracking",
-                "fundedTreatmentList", "workSummary", "budgetSummary", "textBlock" };
+                "fundedTreatmentList", "unfundedTreatmentList", "workSummary", "budgetSummary", "textBlock" };
 
             foreach (var type in knownTypes)
             {
@@ -779,6 +779,7 @@ namespace AssetFox.Core.UniversalReporting.Tests
                     "treatmenttimeline" => true,
                     "conditiontracking" => true,
                     "fundedtreatmentlist" => true,
+                    "unfundedtreatmentlist" => true,
                     "worksummary" => true,
                     "budgetsummary" => true,
                     "textblock" => true,
@@ -799,6 +800,7 @@ namespace AssetFox.Core.UniversalReporting.Tests
                 { "ASSETDETAIL", "assetdetail" },
                 { "assetDetail", "assetdetail" },
                 { "FundedTreatmentList", "fundedtreatmentlist" },
+                { "UnfundedTreatmentList", "unfundedtreatmentlist" },
                 { "BUDGETSUMMARY", "budgetsummary" },
                 { "textBlock", "textblock" },
             };
@@ -807,6 +809,54 @@ namespace AssetFox.Core.UniversalReporting.Tests
             {
                 Assert.Equal(kvp.Value, kvp.Key.ToLowerInvariant());
             }
+        }
+
+        #endregion
+
+        #region UnfundedTreatmentList Config Tests
+
+        [Fact]
+        public void UnfundedTreatmentList_Config_PreservesCandidateAndAssetColumns()
+        {
+            var json = @"{
+                ""schemaVersion"": ""1.1"",
+                ""name"": ""Unfunded Treatments"",
+                ""description"": """",
+                ""pages"": [{
+                    ""id"": ""page-1"",
+                    ""name"": ""Page 1"",
+                    ""order"": 0,
+                    ""components"": [{
+                        ""id"": ""utl-1"",
+                        ""type"": ""unfundedTreatmentList"",
+                        ""title"": ""Unfunded Treatments"",
+                        ""order"": 0,
+                        ""visible"": true,
+                        ""config"": {
+                            ""columns"": [
+                                { ""source"": ""attribute"", ""attributeName"": ""DISTRICT"", ""displayHeader"": ""District"", ""format"": ""text"" }
+                            ],
+                            ""candidateColumns"": [
+                                { ""field"": ""year"", ""displayHeader"": ""Analysis Year"", ""format"": ""number"" },
+                                { ""field"": ""candidateTreatment"", ""displayHeader"": ""Candidate Treatment"", ""format"": ""text"" },
+                                { ""field"": ""estimatedCost"", ""displayHeader"": ""Estimated Cost"", ""format"": ""currency"" },
+                                { ""field"": ""benefit"", ""displayHeader"": ""Benefit"", ""format"": ""number"" }
+                            ],
+                            ""sorting"": { ""field"": ""year"", ""direction"": ""asc"" }
+                        }
+                    }]
+                }]
+            }";
+
+            var component = SchemaParser.Parse(json).Pages[0].Components[0];
+            var columns = Assert.IsType<Newtonsoft.Json.Linq.JArray>(component.Config["columns"]);
+            var candidateColumns = Assert.IsType<Newtonsoft.Json.Linq.JArray>(component.Config["candidateColumns"]);
+
+            Assert.Equal("unfundedTreatmentList", component.Type);
+            Assert.Single(columns);
+            Assert.Equal(4, candidateColumns.Count);
+            Assert.Equal("benefit", candidateColumns[3]?["field"]?.ToString());
+            Assert.False(component.Config.ContainsKey("viewMode"));
         }
 
         #endregion

@@ -116,6 +116,7 @@ namespace AssetFoxCore
             services.AddScoped<IComponentDataSource, TreatmentTimelineDataSource>();
             services.AddScoped<IComponentDataSource, ConditionTrackingDataSource>();
             services.AddScoped<IComponentDataSource, FundedTreatmentListDataSource>();
+            services.AddScoped<IComponentDataSource, UnfundedTreatmentListDataSource>();
             services.AddScoped<IComponentDataSource, WorkSummaryDataSource>();
             services.AddScoped<IComponentDataSource, BudgetSummaryDataSource>();
             services.AddScoped<IComponentDataSource, ScenarioParametersDataSource>();

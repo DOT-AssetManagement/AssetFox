@@ -43,6 +43,7 @@ const componentTypes: ComponentType[] = [
     'scenarioParameters',
     'conditionTracking',
     'fundedTreatmentList',
+    'unfundedTreatmentList',
     'barChart',
     'pieChart',
     'lineChart',

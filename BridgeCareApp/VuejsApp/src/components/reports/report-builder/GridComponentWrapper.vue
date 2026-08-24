@@ -74,6 +74,7 @@ import {
     WorkSummaryConfig,
     ScenarioParametersConfig,
     FundedTreatmentListConfig,
+    UnfundedTreatmentListConfig,
     ConditionTrackingConfig,
     ChartConfig,
     TextBlockConfig,
@@ -136,6 +137,15 @@ const previewText = computed(() => {
             const c = config as FundedTreatmentListConfig;
             const colCount = (c.columns?.length || 0) + (c.simulationColumns?.length || 0);
             return `${colCount} column${colCount !== 1 ? 's' : ''}`;
+        }
+        case 'unfundedTreatmentList': {
+            const c = config as UnfundedTreatmentListConfig;
+            const requiredFields = 4; // Asset key plus the three required unfunded fields.
+            const optionalFields = c.candidateColumns?.filter(column =>
+                !['year', 'candidateTreatment', 'estimatedCost'].includes(column.field)
+            ).length || 0;
+            const colCount = requiredFields + optionalFields + (c.columns?.length || 0);
+            return `${colCount} column${colCount !== 1 ? 's' : ''} · Through time`;
         }
         case 'barChart':
         case 'pieChart':

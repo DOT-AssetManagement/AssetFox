@@ -96,6 +96,12 @@
                 :calculated-fields="calculatedFields"
                 @update:config="onConfigUpdate"
             />
+            <UnfundedTreatmentListConfigEditor
+                v-else-if="localComponent.type === 'unfundedTreatmentList'"
+                :config="localComponent.config as UnfundedTreatmentListConfig"
+                :calculated-fields="calculatedFields"
+                @update:config="onConfigUpdate"
+            />
             <TextBlockConfigEditor
                 v-else-if="localComponent.type === 'textBlock'"
                 :config="localComponent.config as TextBlockConfig"
@@ -146,6 +152,7 @@ import {
     ScenarioParametersConfig,
     ConditionTrackingConfig,
     FundedTreatmentListConfig,
+    UnfundedTreatmentListConfig,
     TextBlockConfig,
     ChartConfig,
     componentTypeInfo,
@@ -160,6 +167,7 @@ import BudgetSummaryConfigEditor from './configs/BudgetSummaryConfig.vue';
 import ScenarioParametersConfigEditor from './configs/ScenarioParametersConfig.vue';
 import ConditionTrackingConfigEditor from './configs/ConditionTrackingConfig.vue';
 import FundedTreatmentListConfigEditor from './configs/FundedTreatmentListConfig.vue';
+import UnfundedTreatmentListConfigEditor from './configs/UnfundedTreatmentListConfig.vue';
 import TextBlockConfigEditor from './configs/TextBlockConfig.vue';
 import ChartConfigEditor from './configs/ChartConfig.vue';
 
