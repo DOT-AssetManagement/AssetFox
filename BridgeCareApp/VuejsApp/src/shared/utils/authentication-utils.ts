@@ -1,4 +1,4 @@
-import { SecurityTypes } from '@/shared/utils/security-types';
+import { SecurityTypes, isAzureSecurityType } from '@/shared/utils/security-types';
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import AuthenticationService from '@/services/authentication.service';
 import { hasValue } from './has-value-util';
@@ -100,7 +100,7 @@ export const isAuthenticatedUser = () => {
     if (authenticationStore.securityType === SecurityTypes.esec) {
         return isAuthenticatedEsecUser();
     }
-    if (authenticationStore.securityType === SecurityTypes.b2c) {
+    if (isAzureSecurityType(authenticationStore.securityType)) {
         return isAuthenticatedAzureUser();
     }
 

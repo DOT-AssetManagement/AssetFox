@@ -38,6 +38,32 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             });
         }
 
+        public void MigrateUsername(string oldUsername, string newUsername, string displayName)
+        {
+            if (string.IsNullOrEmpty(oldUsername) || string.IsNullOrEmpty(newUsername))
+            {
+                return;
+            }
+
+            _unitOfWork.AsTransaction(() =>
+            {
+                var user = _unitOfWork.Context.User.FirstOrDefault(_ => _.Username == oldUsername);
+                // Re-check inside the transaction: skip if the legacy row is gone or the target
+                // username already exists (another concurrent login may have migrated it first).
+                if (user == null || _unitOfWork.Context.User.Any(_ => _.Username == newUsername))
+                {
+                    return;
+                }
+
+                user.Username = newUsername;
+                if (!string.IsNullOrEmpty(displayName))
+                {
+                    user.Name = displayName;
+                }
+                _unitOfWork.Context.User.Update(user);
+            });
+        }
+
         public void UpdateLastNewsAccessDate(Guid id, DateTime accessDate)
         {
             var user = _unitOfWork.Context.User.Where(x => x.Id == id).FirstOrDefault();

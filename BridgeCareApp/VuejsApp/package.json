@@ -21,6 +21,7 @@
         "@fortawesome/free-regular-svg-icons": "6.7.2",
         "@fortawesome/free-solid-svg-icons": "6.7.2",
         "@fortawesome/vue-fontawesome": "3.2.0",
+        "@azure/msal-browser": "^3.28.1",
         "@kyvg/vue3-notification": "3.4.2",
         "@mdi/font": "7.0.96",
         "@microsoft/signalr": "3.1.31",

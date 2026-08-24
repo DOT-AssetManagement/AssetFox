@@ -4,7 +4,10 @@
       "SecurityType": "ESEC",
       "RolesClaims": [
         {
-          "IPRoles": [ "PD-BAMS-Administrator", "PD-PAMS-Administrator" ],
+          "IPRoles": [
+            "PD-BAMS-Administrator",
+            "PD-PAMS-Administrator"
+          ],
           "InternalRole": "Administrator",
           "Claims": [
             "AdminAccess",
@@ -94,7 +97,11 @@
           ]
         },
         {
-          "IPRoles": [ "PD-BAMS-DBEngineer", "PD-BAMS-PlanningPartner", "PD-PAMS-PavementManager" ],
+          "IPRoles": [
+            "PD-BAMS-DBEngineer",
+            "PD-BAMS-PlanningPartner",
+            "PD-PAMS-PavementManager"
+          ],
           "InternalRole": "Editor",
           "Claims": [
             "AttributesViewAccess",
@@ -167,7 +174,9 @@
           ]
         },
         {
-          "IPRoles": [ "None" ],
+          "IPRoles": [
+            "None"
+          ],
           "InternalRole": "SimulationPowerUser",
           "Claims": [
             "SimulationAccess",
@@ -234,7 +243,12 @@
           ]
         },
         {
-          "IPRoles": [ "ReadOnly", "PD-PAMS-Viewers", "PD-BAMS-CWOPA", "PD-PAMS-CWOPA"],
+          "IPRoles": [
+            "ReadOnly",
+            "PD-PAMS-Viewers",
+            "PD-BAMS-CWOPA",
+            "PD-PAMS-CWOPA"
+          ],
           "InternalRole": "ReadOnly",
           "Claims": [
             "AttributesViewAccess",
@@ -264,7 +278,9 @@
           ]
         },
         {
-          "IPRoles": [ "Default" ],
+          "IPRoles": [
+            "Default"
+          ],
           "InternalRole": "Default",
           "Claims": [
             "AttributesViewAccess",
@@ -293,13 +309,15 @@
             "CommittedProjectViewPermittedAccess"
           ]
         }
-      ]      
+      ]
     },
     {
       "SecurityType": "B2C",
       "RolesClaims": [
         {
-          "IPRoles": [ "Administrator" ],
+          "IPRoles": [
+            "Administrator"
+          ],
           "InternalRole": "Administrator",
           "Claims": [
             "AdminAccess",
@@ -389,7 +407,10 @@
           ]
         },
         {
-          "IPRoles": [ "Editor", "Default" ],
+          "IPRoles": [
+            "Editor",
+            "Default"
+          ],
           "InternalRole": "Editor",
           "Claims": [
             "AttributesViewAccess",
@@ -462,7 +483,9 @@
           ]
         },
         {
-          "IPRoles": [ "SimulationPowerUser" ],
+          "IPRoles": [
+            "SimulationPowerUser"
+          ],
           "InternalRole": "SimulationPowerUser",
           "Claims": [
             "SimulationAccess",
@@ -529,7 +552,283 @@
           ]
         },
         {
-          "IPRoles": [ "ReadOnly" ],
+          "IPRoles": [
+            "ReadOnly"
+          ],
+          "InternalRole": "ReadOnly",
+          "Claims": [
+            "AttributesViewAccess",
+            "NetworkViewAccess",
+            "SimulationViewPermittedAccess",
+            "AnnouncementViewAccess",
+            "BudgetPriorityViewPermittedFromLibraryAccess",
+            "BudgetPriorityViewPermittedFromScenarioAccess",
+            "CalculatedAttributesViewAccess",
+            "CashFlowViewPermittedFromLibraryAccess",
+            "CashFlowViewPermittedFromScenarioAccess",
+            "DeficientConditionGoalViewPermittedFromLibraryAccess",
+            "DeficientConditionGoalViewPermittedFromScenarioAccess",
+            "InvestmentViewPermittedFromLibraryAccess",
+            "InvestmentViewPermittedFromScenarioAccess",
+            "PerformanceCurveViewPermittedFromLibraryAccess",
+            "PerformanceCurveViewPermittedFromScenarioAccess",
+            "RemainingLifeLimitViewPermittedFromLibraryAccess",
+            "RemainingLifeLimitViewPermittedFromScenarioAccess",
+            "TargetConditionGoalViewPermittedFromLibraryAccess",
+            "TargetConditionGoalViewPermittedFromScenarioAccess",
+            "TreatmentViewPermittedFromLibraryAccess",
+            "TreatmentViewPermittedFromScenarioAccess",
+            "UserCriteriaViewAccess",
+            "AnalysisMethodViewPermittedAccess",
+            "CommittedProjectViewPermittedAccess"
+          ]
+        }
+      ]
+    },
+    {
+      "SecurityType": "Entra",
+      "RolesClaims": [
+        {
+          "IPRoles": [
+            "Administrator"
+          ],
+          "InternalRole": "Administrator",
+          "Claims": [
+            "AdminAccess",
+            "AttributesUpdateAccess",
+            "AttributesAddAccess",
+            "AttributesViewAccess",
+            "DataSourceModifyAccess",
+            "DataSourceViewAccess",
+            "NetworkAggregateAccess",
+            "NetworkAddAccess",
+            "NetworkViewAccess",
+            "NetworkDeleteAccess",
+            "EditNetworkNameAccess",
+            "SimulationUpdateAnyAccess",
+            "SimulationDeleteAnyAccess",
+            "SimulationRunAnyAccess",
+            "SimulationCloneAnyAccess",
+            "SimulationViewAnyAccess",
+            "SimulationValidateAnyAccess",
+            "SimulationCreateAccess",
+            "AnnouncementModifyAccess",
+            "AnnouncementViewAccess",
+            "BudgetPriorityAddAnyFromLibraryAccess",
+            "BudgetPriorityUpdateAnyFromLibraryAccess",
+            "BudgetPriorityDeleteAnyFromLibraryAccess",
+            "BudgetPriorityViewAnyFromLibraryAccess",
+            "BudgetPriorityModifyAnyFromScenarioAccess",
+            "BudgetPriorityViewAnyFromScenarioAccess",
+            "CalculatedAttributesModifyFromScenarioAccess",
+            "CalculatedAttributesChangeInScenarioAccess",
+            "CalculatedAttributesViewAccess",
+            "CalculatedAttributesModifyFromLibraryAccess",
+            "CalculatedAttributesChangeDefaultLibraryAccess",
+            "CashFlowModifyAnyFromLibraryAccess",
+            "CashFlowViewAnyFromLibraryAccess",
+            "CashFlowModifyAnyFromScenarioAccess",
+            "CashFlowViewAnyFromScenarioAccess",
+            "DeficientConditionGoalViewAnyFromScenarioAccess",
+            "DeficientConditionGoalModifyAnyFromLibraryAccess",
+            "DeficientConditionGoalViewAnyFromLibraryAccess",
+            "DeficientConditionGoalModifyAnyFromScenarioAccess",
+            "InvestmentModifyAnyFromLibraryAccess",
+            "InvestmentImportAnyFromLibraryAccess",
+            "InvestmentViewAnyFromLibraryAccess",
+            "InvestmentModifyAnyFromScenarioAccess",
+            "InvestmentImportAnyFromScenarioAccess",
+            "InvestmentViewAnyFromScenarioAccess",
+            "PerformanceCurveAddAnyFromLibraryAccess",
+            "PerformanceCurveUpdateAnyFromLibraryAccess",
+            "PerformanceCurveDeleteAnyFromLibraryAccess",
+            "PerformanceCurveImportAnyFromLibraryAccess",
+            "PerformanceCurveViewAnyFromLibraryAccess",
+            "PerformanceCurveModifyAnyFromScenarioAccess",
+            "PerformanceCurveImportAnyFromScenarioAccess",
+            "PerformanceCurveViewAnyFromScenarioAccess",
+            "RemainingLifeLimitAddAnyFromLibraryAccess",
+            "RemainingLifeLimitUpdateAnyFromLibraryAccess",
+            "RemainingLifeLimitDeleteAnyFromLibraryAccess",
+            "RemainingLifeLimitViewAnyFromLibraryAccess",
+            "RemainingLifeLimitModifyAnyFromScenarioAccess",
+            "RemainingLifeLimitViewAnyFromScenarioAccess",
+            "TargetConditionGoalAddAnyFromLibraryAccess",
+            "TargetConditionGoalUpdateAnyFromLibraryAccess",
+            "TargetConditionGoalDeleteAnyFromLibraryAccess",
+            "TargetConditionGoalViewAnyFromLibraryAccess",
+            "TargetConditionGoalModifyAnyFromScenarioAccess",
+            "TargetConditionGoalViewAnyFromScenarioAccess",
+            "TreatmentAddAnyFromLibraryAccess",
+            "TreatmentUpdateAnyFromLibraryAccess",
+            "TreatmentDeleteAnyFromLibraryAccess",
+            "TreatmentImportAnyFromLibraryAccess",
+            "TreatmentViewAnyFromLibraryAccess",
+            "TreatmentModifyAnyFromScenarioAccess",
+            "TreatmentImportAnyFromScenarioAccess",
+            "TreatmentViewAnyFromScenarioAccess",
+            "TreatmentSupersedeRuleImportAnyFromScenarioAccess",
+            "TreatmentSupersedeRuleImportAnyFromLibraryAccess",
+            "UserCriteriaModifyAccess",
+            "UserCriteriaViewAccess",
+            "AnalysisMethodModifyAnyAccess",
+            "AnalysisMethodViewAnyAccess",
+            "CommittedProjectModifyAnyAccess",
+            "CommittedProjectImportAnyAccess",
+            "CommittedProjectViewAnyAccess",
+            "UseAnyGraphQLAccess",
+            "AdminSiteSettingsAccess"
+          ]
+        },
+        {
+          "IPRoles": [
+            "Editor",
+            "Default"
+          ],
+          "InternalRole": "Editor",
+          "Claims": [
+            "AttributesViewAccess",
+            "NetworkViewAccess",
+            "SimulationCreateAccess",
+            "SimulationUpdatePermittedAccess",
+            "SimulationDeletePermittedAccess",
+            "SimulationRunPermittedAccess",
+            "SimulationClonePermittedAccess",
+            "SimulationViewPermittedAccess",
+            "SimulationValidatePermittedAccess",
+            "AnnouncementViewAccess",
+            "BudgetPriorityAddPermittedFromLibraryAccess",
+            "BudgetPriorityUpdatePermittedFromLibraryAccess",
+            "BudgetPriorityDeletePermittedFromLibraryAccess",
+            "BudgetPriorityViewPermittedFromLibraryAccess",
+            "BudgetPriorityModifyPermittedFromScenarioAccess",
+            "BudgetPriorityViewPermittedFromScenarioAccess",
+            "CalculatedAttributesViewAccess",
+            "CashFlowModifyPermittedFromLibraryAccess",
+            "CashFlowViewPermittedFromLibraryAccess",
+            "CashFlowModifyPermittedFromScenarioAccess",
+            "CashFlowViewPermittedFromScenarioAccess",
+            "DeficientConditionGoalModifyPermittedFromLibraryAccess",
+            "DeficientConditionGoalViewPermittedFromLibraryAccess",
+            "DeficientConditionGoalModifyPermittedFromScenarioAccess",
+            "DeficientConditionGoalViewPermittedFromScenarioAccess",
+            "InvestmentModifyPermittedFromLibraryAccess",
+            "InvestmentImportPermittedFromLibraryAccess",
+            "InvestmentViewPermittedFromLibraryAccess",
+            "InvestmentModifyPermittedFromScenarioAccess",
+            "InvestmentImportPermittedFromScenarioAccess",
+            "InvestmentViewPermittedFromScenarioAccess",
+            "PerformanceCurveAddPermittedFromLibraryAccess",
+            "PerformanceCurveUpdatePermittedFromLibraryAccess",
+            "PerformanceCurveDeletePermittedFromLibraryAccess",
+            "PerformanceCurveImportPermittedFromLibraryAccess",
+            "PerformanceCurveViewPermittedFromLibraryAccess",
+            "PerformanceCurveModifyPermittedFromScenarioAccess",
+            "PerformanceCurveImportPermittedFromScenarioAccess",
+            "PerformanceCurveViewPermittedFromScenarioAccess",
+            "RemainingLifeLimitAddPermittedFromLibraryAccess",
+            "RemainingLifeLimitUpdatePermittedFromLibraryAccess",
+            "RemainingLifeLimitDeletePermittedFromLibraryAccess",
+            "RemainingLifeLimitViewPermittedFromLibraryAccess",
+            "RemainingLifeLimitModifyPermittedFromScenarioAccess",
+            "RemainingLifeLimitViewPermittedFromScenarioAccess",
+            "TargetConditionGoalAddPermittedFromLibraryAccess",
+            "TargetConditionGoalUpdatePermittedFromLibraryAccess",
+            "TargetConditionGoalDeletePermittedFromLibraryAccess",
+            "TargetConditionGoalViewPermittedFromLibraryAccess",
+            "TargetConditionGoalModifyPermittedFromScenarioAccess",
+            "TargetConditionGoalViewPermittedFromScenarioAccess",
+            "TreatmentAddPermittedFromLibraryAccess",
+            "TreatmentUpdatePermittedFromLibraryAccess",
+            "TreatmentDeletePermittedFromLibraryAccess",
+            "TreatmentImportPermittedFromLibraryAccess",
+            "TreatmentViewPermittedFromLibraryAccess",
+            "TreatmentModifyPermittedFromScenarioAccess",
+            "TreatmentImportPermittedFromScenarioAccess",
+            "TreatmentSupersedeRuleImportPermittedFromScenarioAccess",
+            "TreatmentSupersedeRuleImportPermittedFromLibraryAccess",
+            "TreatmentViewPermittedFromScenarioAccess",
+            "UserCriteriaViewAccess",
+            "AnalysisMethodModifyPermittedAccess",
+            "AnalysisMethodViewPermittedAccess",
+            "CommittedProjectModifyPermittedAccess",
+            "CommittedProjectImportPermittedAccess",
+            "CommittedProjectViewPermittedAccess"
+          ]
+        },
+        {
+          "IPRoles": [
+            "SimulationPowerUser"
+          ],
+          "InternalRole": "SimulationPowerUser",
+          "Claims": [
+            "SimulationAccess",
+            "AttributesViewAccess",
+            "NetworkViewAccess",
+            "AnnouncementViewAccess",
+            "BudgetPriorityAddPermittedFromLibraryAccess",
+            "BudgetPriorityUpdatePermittedFromLibraryAccess",
+            "BudgetPriorityDeletePermittedFromLibraryAccess",
+            "BudgetPriorityViewPermittedFromLibraryAccess",
+            "BudgetPriorityModifyPermittedFromScenarioAccess",
+            "BudgetPriorityViewPermittedFromScenarioAccess",
+            "CalculatedAttributesViewAccess",
+            "CashFlowModifyPermittedFromLibraryAccess",
+            "CashFlowViewPermittedFromLibraryAccess",
+            "CashFlowModifyPermittedFromScenarioAccess",
+            "CashFlowViewPermittedFromScenarioAccess",
+            "DeficientConditionGoalModifyPermittedFromLibraryAccess",
+            "DeficientConditionGoalViewPermittedFromLibraryAccess",
+            "DeficientConditionGoalModifyPermittedFromScenarioAccess",
+            "DeficientConditionGoalViewPermittedFromScenarioAccess",
+            "InvestmentModifyPermittedFromLibraryAccess",
+            "InvestmentImportPermittedFromLibraryAccess",
+            "InvestmentViewPermittedFromLibraryAccess",
+            "InvestmentModifyPermittedFromScenarioAccess",
+            "InvestmentImportPermittedFromScenarioAccess",
+            "InvestmentViewPermittedFromScenarioAccess",
+            "PerformanceCurveAddPermittedFromLibraryAccess",
+            "PerformanceCurveUpdatePermittedFromLibraryAccess",
+            "PerformanceCurveDeletePermittedFromLibraryAccess",
+            "PerformanceCurveImportPermittedFromLibraryAccess",
+            "PerformanceCurveViewPermittedFromLibraryAccess",
+            "PerformanceCurveModifyPermittedFromScenarioAccess",
+            "PerformanceCurveImportPermittedFromScenarioAccess",
+            "PerformanceCurveViewPermittedFromScenarioAccess",
+            "RemainingLifeLimitAddPermittedFromLibraryAccess",
+            "RemainingLifeLimitUpdatePermittedFromLibraryAccess",
+            "RemainingLifeLimitDeletePermittedFromLibraryAccess",
+            "RemainingLifeLimitViewPermittedFromLibraryAccess",
+            "RemainingLifeLimitModifyPermittedFromScenarioAccess",
+            "RemainingLifeLimitViewPermittedFromScenarioAccess",
+            "TargetConditionGoalAddPermittedFromLibraryAccess",
+            "TargetConditionGoalUpdatePermittedFromLibraryAccess",
+            "TargetConditionGoalDeletePermittedFromLibraryAccess",
+            "TargetConditionGoalViewPermittedFromLibraryAccess",
+            "TargetConditionGoalModifyPermittedFromScenarioAccess",
+            "TargetConditionGoalViewPermittedFromScenarioAccess",
+            "TreatmentAddPermittedFromLibraryAccess",
+            "TreatmentUpdatePermittedFromLibraryAccess",
+            "TreatmentDeletePermittedFromLibraryAccess",
+            "TreatmentImportPermittedFromLibraryAccess",
+            "TreatmentViewPermittedFromLibraryAccess",
+            "TreatmentModifyPermittedFromScenarioAccess",
+            "TreatmentImportPermittedFromScenarioAccess",
+            "TreatmentSupersedeRuleImportPermittedFromScenarioAccess",
+            "TreatmentSupersedeRuleImportPermittedFromLibraryAccess",
+            "TreatmentViewPermittedFromScenarioAccess",
+            "UserCriteriaViewAccess",
+            "AnalysisMethodModifyPermittedAccess",
+            "AnalysisMethodViewPermittedAccess",
+            "CommittedProjectModifyPermittedAccess",
+            "CommittedProjectImportPermittedAccess",
+            "CommittedProjectViewPermittedAccess"
+          ]
+        },
+        {
+          "IPRoles": [
+            "ReadOnly"
+          ],
           "InternalRole": "ReadOnly",
           "Claims": [
             "AttributesViewAccess",

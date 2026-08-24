@@ -114,6 +114,8 @@ namespace AssetFox.Core.DataPersistenceCore.UnitOfWork
 
         void AddUser(string username, bool hasAdminClaim);
 
+        void MigrateUsername(string oldUsername, string newUsername, string displayName);
+
         ///<summary>Commit the transaction for the database repository</summary>
         ///<remarks>Only use this when the transaction MUST occur outside the data repository</remarks>
         void Commit();

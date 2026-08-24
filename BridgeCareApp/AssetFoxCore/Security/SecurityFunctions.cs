@@ -26,6 +26,25 @@ namespace AssetFoxCore.Security
             jwt.Claims.FirstOrDefault(claim => claim.Type == type)?.Value;
 
         /// <summary>
+        ///     Derives the stable, unique username for an Entra External ID user from its token.
+        ///     The display-name ("name") claim is NOT unique, so it cannot be used as an identity
+        ///     key: two users with the same display name would collapse into a single account and
+        ///     see each other's data. This prefers the email, falling back to preferred_username and
+        ///     finally the immutable directory object id (oid) so that a usable unique key is always
+        ///     produced. This must stay in lock-step with the frontend's username derivation and the
+        ///     value read from the same access token, or SignalR routing and share-by-username break.
+        /// </summary>
+        public static string GetEntraUsername(this JwtSecurityToken jwt) =>
+            FirstNonEmpty(
+                jwt.GetClaimValue("email"),
+                jwt.GetClaimValue("preferred_username"),
+                jwt.GetClaimValue("oid"),
+                jwt.GetClaimValue("http://schemas.microsoft.com/identity/claims/objectidentifier"));
+
+        private static string FirstNonEmpty(params string[] values) =>
+            values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+
+        /// <summary>
         ///     Given an LDAP-formatted string from ESEC, extracts the Common Name (CN) fields.
         /// </summary>
         /// <param name="ldap"></param>

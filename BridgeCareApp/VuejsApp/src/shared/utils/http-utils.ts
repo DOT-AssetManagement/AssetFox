@@ -3,7 +3,7 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { prop } from 'ramda';
 import { UserInfoLocal, UserTokens } from '@/shared/models/iAM/authentication';
 import pinia, { useAuthenticationStore, useConfigStore } from '@/stores';
-import { SecurityTypes } from '@/shared/utils/security-types';
+import { SecurityTypes, isAzureSecurityType } from '@/shared/utils/security-types';
 import { json } from 'stream/consumers';
 export const http2XX = /(2(0|2)[0-8])/;
 
@@ -64,8 +64,7 @@ export const setAuthHeader = (headers: any) => {
 
     if (
         headers &&
-        authenticationStore.securityType ===
-            authenticationStore.azureSecurityType &&
+        isAzureSecurityType(authenticationStore.securityType) &&
         localStorage.getItem('access_token')
     ) {
         const accessToken: string = localStorage.getItem(

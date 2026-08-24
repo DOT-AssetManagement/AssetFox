@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
     import Vue, { computed, onMounted, ref } from 'vue';
-    import { SecurityTypes } from '@/shared/utils/security-types';
+    import { SecurityTypes, isAzureSecurityType } from '@/shared/utils/security-types';
 import { useRouter } from 'vue-router';
 import AuthenticationService from '@/services/authentication.service';
     import { useAuthenticationStore, useAzureB2CStore, useNotificationStore, useUserStore } from '@/stores';
@@ -72,7 +72,7 @@ import AuthenticationService from '@/services/authentication.service';
         }
 
         //Is this deprecated???
-        if (securityType === SecurityTypes.b2c) {
+        if (isAzureSecurityType(securityType)) {
             azureB2CStore.getAzureAccountDetails();
             if (!authenticated.value) {
                 onAuthenticationFailure();

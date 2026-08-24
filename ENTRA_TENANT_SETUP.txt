@@ -1,0 +1,255 @@
+================================================================================
+ASSETFOX - ENTRA EXTERNAL ID TENANT SETUP (per-state)
+================================================================================
+Purpose: Stand up a new, isolated cloud-identity tenant for a state instance
+(e.g. DOT Pavement). Each state runs on its
+own stack (DB / server / VM), so each gets its OWN Entra External ID tenant.
+No code changes are needed - Entra is already a supported SecurityType. Each
+state's deployment just carries its own config (entra.json + entra-config.ts +
+config.json).
+
+Why Entra External ID (not B2C): Azure AD B2C has been closed to new customers
+since May 1, 2025. Any NEW tenant must be Entra External ID (B2C's successor).
+
+--------------------------------------------------------------------------------
+KEY GOTCHAS (read first - these cost the most time)
+--------------------------------------------------------------------------------
+* CREATE FROM THE SUBSCRIPTION'S HOME DIRECTORY. The "Add a subscription" step
+  only lists subscriptions visible in the directory you're currently acting from.
+  Otherwise the subscription dropdown is empty. You can't share one subscription
+  across tenants; you create the new tenant from where the subscription lives.
+
+* TWO PERMISSION LAYERS. Managing the tenant (users/apps/groups) uses your
+  Global Administrator DIRECTORY role (you get this as creator). Viewing the
+  tenant as an Azure resource (portal.azure.com) uses AZURE RBAC on the
+  subscription/resource group. A 403 "cannot fetch details for tenant" usually
+  means you opened it in portal.azure.com without RBAC - manage it in the Entra
+  admin center instead (see step 2).
+
+* EXTERNAL TENANTS LIVE IN "MANAGE TENANTS", not the directory switcher. The
+  "All Directories" / Switch directory panel mostly shows workforce/B2C
+  directories. To reach an external tenant: Entra admin center -> Identity ->
+  Overview -> Manage tenants -> Switch.
+
+* DOMAINS ARE UNIQUE PER TENANT. The initial <name>.onmicrosoft.com cannot be
+  renamed/deleted and must be globally unique. A custom domain (e.g.
+  ct.pavement.assetfoxtest.com) can be verified in only ONE tenant, and requires
+  you to actually own the registered DNS domain (assetfoxtest.com) - the
+  onmicrosoft suffix does NOT mean you own the .com.
+
+* MFA IS PER TENANT. Both the MFA policy and your own Authenticator enrollment
+  are configured separately in each tenant. No cross-tenant sharing.
+
+* ROLE CACHE = ~1 DAY. After adding a user to a group, the backend caches their
+  mapped roles for up to 24h (ClaimsTransformation in-memory cache). It auto-
+  refreshes after a day, or immediately after an app-pool restart (iisreset).
+  Only affects users already cached; brand-new sign-ins get correct roles at once.
+
+================================================================================
+STEP 1 - CREATE THE EXTERNAL TENANT
+================================================================================
+1. Sign in to entra.microsoft.com as the account that owns the subscription.
+2. SWITCH INTO the subscription directory - the one
+   the billing subscription lives in. (Account flyout, top-right -> Switch
+   directory.)
+3. Identity -> Overview -> Manage tenants -> Create.
+4. Choose configuration: EXTERNAL (not Workforce).
+5. Basics:
+     Tenant Name:   e.g. "TPF-5(568) CT Pavement"
+     Domain Name:   e.g. "ctassetfoxtest"  -> ctassetfoxtest.onmicrosoft.com
+                    (cannot be changed later; must be globally unique)
+     Country/Region: United States
+6. Add a subscription:
+     Subscription:  Your billing tenant
+     Resource group: pick or create one (e.g. rg-assetfox-identity)
+7. Review + create.
+8. After it's created, Manage tenants -> select the new tenant -> Switch to this
+   tenant. Do ALL the following steps while switched INTO the new tenant.
+
+================================================================================
+STEP 2 - REGISTER THE MAIN APP (SPA / API)
+================================================================================
+1. App registrations -> New registration.
+2. Name: e.g. "AssetFox CT Web".
+3. Supported account types: Accounts in this organizational directory only.
+4. Redirect URI: platform = Single-page application (SPA); add the app's login
+   redirect URI (and post-logout redirect). Can be edited later.
+5. Record the Application (client) ID and Directory (tenant) ID.
+6. Expose an API -> set Application ID URI (api://<client-id>) -> Add a scope for
+   EACH scope Maine uses, with the SAME names:
+       read_data
+       write_data
+7. API permissions -> add the app's own exposed scopes (+ openid / profile /
+   offline_access as needed).
+
+================================================================================
+STEP 3 - REGISTER THE GRAPH APP (group-membership lookup)
+================================================================================
+This is the separate app the backend (GraphApiClientService) uses to read each
+user's group memberships.
+1. App registrations -> New registration. Name: e.g. "AssetFox CT Graph".
+2. Certificates & secrets -> New client secret -> COPY THE SECRET VALUE NOW
+   (shown only once).
+3. API permissions -> Add -> Microsoft Graph -> Application permissions ->
+   GroupMember.Read.All  (and User.Read.All if Maine uses it).
+4. Grant admin consent for the tenant (permission won't work until consented).
+5. Record this app's client ID + the secret + the tenant ID -> these go in the
+   backend entra.json (Entra:GraphApi).
+   NOTE: the Graph client ID does NOT go in the frontend entra-config.ts.
+
+================================================================================
+STEP 4 - CREATE THE GROUPS
+================================================================================
+Create SECURITY groups whose DISPLAY NAMES EXACTLY MATCH the IPRoles (must match
+RolesToClaimsMapping.json, case-sensitive):
+     Administrator
+     Editor
+     SimulationPowerUser
+     ReadOnly
+(That's the four to create. "Default" is the fallback for users with no matching
+group, so a Default group is optional.)
+Assign users to the appropriate groups.
+
+================================================================================
+STEP 5 - CREATE THE SIGN-UP / SIGN-IN USER FLOW
+================================================================================
+1. External Identities -> User flows -> New user flow.
+2. Use the combined SIGN-UP AND SIGN-IN flow (password reset is built in - no
+   separate B2C_1_PR-POL policy).
+3. Identity providers: enable Email + password (or Email one-time passcode) so
+   users can sign up. To make it INVITE-ONLY, leave self-service sign-up off and
+   create users via Identity -> Users -> New user (admin assigns a temp password;
+   no auto "create account" email for local accounts).
+4. IMPORTANT: associate the main app to the flow:
+   open the user flow -> Applications -> Add application -> select "AssetFox CT
+   Web". (If the app isn't added, the login popup has NO create-account option.)
+5. Choose the user attributes collected, to match Maine.
+
+================================================================================
+STEP 6 - (OPTIONAL) CUSTOM DOMAIN
+================================================================================
+1. Custom domains -> Add custom domain -> e.g. ct.pavement.assetfoxtest.com.
+   (Requires you to actually own/control DNS for assetfoxtest.com.)
+2. Add the DNS TXT record it provides to the assetfoxtest.com DNS zone; verify.
+3. Optionally set as primary / use in the CIAM authority for branded sign-in URLs.
+
+================================================================================
+STEP 7 - MFA
+================================================================================
+Configure per tenant (nothing carries over from Maine):
+* Authentication methods policy: enable Microsoft Authenticator (etc.).
+* Enforce MFA via the user flow / security defaults / Conditional Access.
+* Your own admin account enrolls Authenticator again in THIS tenant.
+* End users enroll their own device on first sign-in.
+
+================================================================================
+STEP 8 - COLLECT CONFIG VALUES FOR THE STATE'S DEPLOYMENT
+================================================================================
+Authority (CIAM) is derived from the onmicrosoft prefix:
+     https://ctassetfoxtest.ciamlogin.com/
+(Confirm via App registrations -> main app -> Overview -> Endpoints.)
+
+Backend  entra.json  (gitignored; SecurityType = "Entra"):
+   "Entra": {
+     "Instance":  "https://ctassetfoxtest.ciamlogin.com/",
+     "TenantId":  "<new tenant GUID>",
+     "ClientId":  "<main app client ID>",
+     "Audience":  "<main app client ID>",
+     "GraphApi": {
+       "TenantId":     "<new tenant GUID>",
+       "ClientId":     "<graph app client ID>",
+       "ClientSecret": "<graph app secret>",
+       "Scopes":       "https://graph.microsoft.com/.default"
+     }
+   }
+   (Match whichever Instance/TenantId shape the Maine entra.json uses.)
+
+Frontend  entra-config.ts:
+     clientId:        <main app client ID>
+     tenantId:        <new tenant GUID>
+     tenantName:      ctassetfoxtest.ciamlogin.com
+     authority:       https://ctassetfoxtest.ciamlogin.com/ctassetfoxtest.onmicrosoft.com
+     knownAuthorities: ['ctassetfoxtest.ciamlogin.com']
+     scopes:          api://<main app client ID>/read_data
+                      api://<main app client ID>/write_data
+
+Frontend  public/config.json:
+     "securityType": "Entra"
+
+--------------------------------------------------------------------------------
+THINGS TO KEEP IDENTICAL ACROSS STATES (so RolesToClaimsMapping.json "Entra"
+block works unchanged for all of them):
+   * Scope names: read_data, write_data
+   * Group display names: Administrator, Editor, SimulationPowerUser, ReadOnly
+Only the tenant/client IDs + domain differ per state (in the per-deployment
+config files).
+================================================================================
+
+================================================================================
+TROUBLESHOOTING - "GRANT ADMIN CONSENT" FAILS ON A NEW TENANT
+================================================================================
+Symptom (in the portal, API permissions -> Grant admin consent):
+   "Could not grant admin consent. Your organization does not have a
+    subscription (or service principal) for the following API(s):
+    Microsoft Graph"
+
+ROOT CAUSE: New External ID tenants provision service principals LAZILY and
+asynchronously. "Admin consent" is just the creation of an appRoleAssignment,
+which requires THREE objects to already exist:
+   1. The CLIENT app's service principal (the "Enterprise application" - NOT the
+      same as the App registration; it is auto-created on registration, but in a
+      fresh external tenant that can lag and be MISSING).
+   2. Microsoft Graph's service principal in the tenant.
+   3. The app role (e.g. GroupMember.Read.All) on the Graph SP.
+The portal's error blames Microsoft Graph, but the usual real gap is #1 - the
+client app has no service principal yet. DON'T trust the error text.
+
+DIAGNOSE - confirm which service principals actually exist (in the failing
+tenant's context):
+   Connect-MgGraph -TenantId <TENANT_GUID> -Environment Global `
+     -Scopes "Application.ReadWrite.All","AppRoleAssignment.ReadWrite.All","Directory.ReadWrite.All"
+   Get-MgContext   # verify TenantId matches the tenant you're fixing!
+   # Microsoft Graph SP (resource):
+   Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
+   # The client app's SP (your graph app) - if this returns NOTHING, that's the bug:
+   Get-MgServicePrincipal -Filter "appId eq '<CLIENT_APP_ID>'"
+
+FIX - create any missing SP and grant consent directly via PowerShell (bypasses
+the flaky portal button):
+
+   $clientAppId = "<CLIENT_APP_ID>"   # e.g. the graph app's Application (client) ID
+
+   # Ensure the client app's service principal exists
+   $clientSp = Get-MgServicePrincipal -Filter "appId eq '$clientAppId'"
+   if (-not $clientSp) { $clientSp = New-MgServicePrincipal -AppId $clientAppId }
+
+   # Microsoft Graph resource SP in this tenant (create if truly absent)
+   $graphSp = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
+   if (-not $graphSp) { $graphSp = New-MgServicePrincipal -AppId "00000003-0000-0000-c000-000000000000" }
+
+   # Grant the application permissions
+   foreach ($roleValue in @("GroupMember.Read.All","User.Read.All")) {
+       $appRole = $graphSp.AppRoles | Where-Object {
+           $_.Value -eq $roleValue -and $_.AllowedMemberTypes -contains "Application"
+       }
+       New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $clientSp.Id `
+           -PrincipalId $clientSp.Id -ResourceId $graphSp.Id -AppRoleId $appRole.Id
+   }
+
+Then refresh the portal API permissions page - status should read "Granted".
+
+GOTCHAS that wasted time (avoid these):
+   * WRONG TENANT / WRONG CLOUD. Always run Get-MgContext (or check the portal
+     top-right directory) BEFORE acting and confirm TenantId is the one you mean.
+     A government account (e.g. *.pa.gov) logs you into a US Gov / DoD cloud; a
+     telltale sign is an SPN like "https://dod-graph.microsoft.us/" appearing in
+     errors. Keep everything under the commercial account (spypondpartners.com)
+     with -Environment Global.
+   * "New-MgServicePrincipal ... already in use" (409) just means that SP already
+     exists in the connected tenant - you're either done, or in the wrong tenant.
+   * Need scope AppRoleAssignment.ReadWrite.All to CREATE the assignment;
+     Application.ReadWrite.All alone is not enough. Re-Connect-MgGraph with the
+     scopes shown above (accept the CLI consent prompt in the browser).
+   * You must hold Global Administrator (or Privileged Role Admin) in the target
+     tenant - you do as the tenant creator.
+================================================================================

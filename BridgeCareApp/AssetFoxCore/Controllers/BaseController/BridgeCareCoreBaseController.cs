@@ -90,7 +90,23 @@ namespace AssetFoxCore.Controllers.BaseController
             {
                 if (!UnitOfWork.UserRepo.UserExists(UserInfo.Name))
                 {
-                    UnitOfWork.AddUser(UserInfo.Name, UserInfo.HasAdminAccess);
+                    // Earlier builds keyed the User row on the (non-unique) display name. If a legacy
+                    // row exists for this user's display name and none exists yet under the new unique
+                    // identifier, rename it in place so their scenarios/shares (keyed on User.Id) carry
+                    // over. Otherwise create a fresh row.
+                    // NOTE: if two users historically shared a display name they were already merged
+                    // into one row; this migrates that row to whichever of them logs in first, and the
+                    // other starts clean. Those commingled scenarios must be reassigned manually.
+                    if (!string.IsNullOrEmpty(UserInfo.DisplayName)
+                        && !string.Equals(UserInfo.DisplayName, UserInfo.Name, StringComparison.Ordinal)
+                        && UnitOfWork.UserRepo.UserExists(UserInfo.DisplayName))
+                    {
+                        UnitOfWork.MigrateUsername(UserInfo.DisplayName, UserInfo.Name, UserInfo.DisplayName);
+                    }
+                    else
+                    {
+                        UnitOfWork.AddUser(UserInfo.Name, UserInfo.HasAdminAccess);
+                    }
                 }
 
                 UnitOfWork.SetUser(_userInfo.Name);

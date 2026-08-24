@@ -7,11 +7,11 @@ using AssetFoxCore.Security.Interfaces;
 using AssetFoxCore.Utils;
 using AssetFoxCore.Utils.Interfaces;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
 
 using Policy = AssetFoxCore.Security.SecurityConstants.Policy;
@@ -44,8 +44,27 @@ namespace AssetFoxCore.StartupExtension
 
             if (securityType == SecurityConstants.SecurityTypes.B2C)
             {
-                services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme)
-                    .AddAzureADB2CBearer(options => Configuration.Bind("AzureAdB2C", options));
+                // Azure AD B2C bearer token validation.
+                // The "AzureAdB2C" configuration section (supplied by b2c.json) provides the
+                // B2C instance/domain and the "B2C_1_*" sign-up/sign-in user-flow (policy).
+                // Microsoft.Identity.Web validates B2C tokens when that section includes the
+                // SignUpSignInPolicyId/Domain keys.
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApi(Configuration, "AzureAdB2C");
+            }
+
+            if (securityType == SecurityConstants.SecurityTypes.Entra)
+            {
+                // Microsoft Entra External ID (CIAM) bearer token validation.
+                // The "Entra" configuration section (supplied by entra.json) provides the
+                // CIAM authority, e.g.:
+                //   "Instance": "https://<tenant>.ciamlogin.com/"
+                //   "TenantId": "<external-tenant-id>"
+                //   "ClientId": "<api-app-client-id>"   (also the expected token audience)
+                // Entra External ID uses the standard OIDC metadata endpoint (no B2C "/tfp/"
+                // path or "B2C_1_*" user-flow/policy segment).
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApi(Configuration, "Entra");
             }
 
             services.AddAuthorization(options =>

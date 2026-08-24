@@ -16,7 +16,13 @@ namespace AssetFoxCore.Security
 
         public GraphApiClientService(IConfiguration configuration)
         {
-            var azureAdB2CSection = configuration.GetSection("AzureAdB2C");
+            // The Graph credentials live under "AzureAdB2C" (b2c.json) for the B2C path and
+            // under "Entra" (entra.json) for the Entra External ID path. Pick the section that
+            // matches the active SecurityType so each identity provider has its own settings.
+            var sectionName = configuration.GetSection("SecurityType").Value == SecurityConstants.SecurityTypes.Entra
+                ? "Entra"
+                : "AzureAdB2C";
+            var azureAdB2CSection = configuration.GetSection(sectionName);
             if (!azureAdB2CSection.GetChildren().Any())
             {
                 return;
@@ -47,7 +53,9 @@ namespace AssetFoxCore.Security
             var objectCollectionResponse = await _graphServiceClient.Users[userId].MemberOf.GetAsync();
             var result = objectCollectionResponse.Value;
 
-            foreach (var group in result.Cast<Group>())
+            // MemberOf can return directory objects other than groups (e.g. directory roles);
+            // OfType filters to groups instead of throwing InvalidCastException on the first non-group.
+            foreach (var group in result.OfType<Group>())
             {
                 groupNames.Add(group.DisplayName);
             }
