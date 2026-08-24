@@ -18,11 +18,11 @@ namespace AssetFoxCore.Services
 {
     public class WorkQueueService : IWorkQueueService
     {
-        private static IUnitOfWork _unitOfWork;
-        private static ISimulationRepository _simulationRepository;
-        private SequentialWorkQueue<WorkQueueMetadata> _sequentialWorkQueue;
-        private FastSequentialworkQueue<WorkQueueMetadata> _fastSequentialWorkQueue;
-        private HiddenUploadQueue<WorkQueueMetadata> _hiddenUploadQueue;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISimulationRepository _simulationRepository;
+        private readonly SequentialWorkQueue<WorkQueueMetadata> _sequentialWorkQueue;
+        private readonly FastSequentialworkQueue<WorkQueueMetadata> _fastSequentialWorkQueue;
+        private readonly HiddenUploadQueue<WorkQueueMetadata> _hiddenUploadQueue;
 
         public WorkQueueService(IUnitOfWork unitOfWork, SequentialWorkQueue<WorkQueueMetadata> sequentialWorkQueue, FastSequentialworkQueue<WorkQueueMetadata> fastSequentialworkQueue,
             HiddenUploadQueue<WorkQueueMetadata> hiddenUploadQueue,
