@@ -86,8 +86,15 @@ namespace AssetFoxCore.Services.CommittedProjects
 
             queueLog.UpdateWorkQueueStatus("Creating Committed Projects");
 
+            var committedProjectsWorksheet = excelPackage.Workbook.Worksheets
+                .FirstOrDefault(worksheet => string.Equals(
+                    worksheet.Name,
+                    "Committed Projects",
+                    StringComparison.OrdinalIgnoreCase))
+                ?? excelPackage.Workbook.Worksheets.FirstOrDefault();
+
             var committedProjectDTOs = importer.ImportProjectsFromWorksheet(
-                excelPackage.Workbook.Worksheets[0],
+                committedProjectsWorksheet,
                 simulation,
                 UserId);
 

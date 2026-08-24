@@ -204,6 +204,298 @@ namespace AssetFoxCoreTests.Tests
             Assert.Equal(2023, testInput[1].Year);
         }
 
+        [Fact]
+        public void ImportPrefersCommittedProjectsWorksheetWhenItIsNotFirst()
+        {
+            // Arrange
+            var importedProjects = new List<SectionCommittedProjectDTO>();
+            _mockCommittedProjectRepo
+                .Setup(repository => repository.UpsertCommittedProjects(It.IsAny<List<SectionCommittedProjectDTO>>()))
+                .Callback<List<SectionCommittedProjectDTO>>(projects => importedProjects = projects);
+            _mockSelectableTreatmentRepo
+                .Setup(repository => repository.GetScenarioSelectableTreatmentNames(TestDataForCommittedProjects.SimulationId))
+                .Returns(["Rehabilitation", "Maintenance"]);
+
+            using var workbook = new ExcelPackage();
+            var instructions = workbook.Workbook.Worksheets.Add("Instructions");
+            instructions.Cells[1, 1].Value = "This sheet is intentionally first.";
+            workbook.Workbook.Worksheets.Add("Committed Projects", _excelData.Workbook.Worksheets[0]);
+
+            var service = new CommittedProjectService(_testUOW, HubServiceMocks.Default());
+
+            // Act
+            service.ImportCommittedProjectFiles(
+                TestDataForCommittedProjects.SimulationId,
+                workbook,
+                "ErrorsWorkbook.xlsx",
+                "ignored user id");
+
+            // Assert
+            Assert.Equal(2, importedProjects.Count);
+        }
+
+        [Fact]
+        public void ImportFallsBackToFirstWorksheetWhenCommittedProjectsWorksheetIsAbsent()
+        {
+            // Arrange
+            var importedProjects = new List<SectionCommittedProjectDTO>();
+            _mockCommittedProjectRepo
+                .Setup(repository => repository.UpsertCommittedProjects(It.IsAny<List<SectionCommittedProjectDTO>>()))
+                .Callback<List<SectionCommittedProjectDTO>>(projects => importedProjects = projects);
+            _mockSelectableTreatmentRepo
+                .Setup(repository => repository.GetScenarioSelectableTreatmentNames(TestDataForCommittedProjects.SimulationId))
+                .Returns(["Rehabilitation", "Maintenance"]);
+
+            using var workbook = new ExcelPackage();
+            workbook.Workbook.Worksheets.Add("Client Upload", _excelData.Workbook.Worksheets[0]);
+            var service = new CommittedProjectService(_testUOW, HubServiceMocks.Default());
+
+            // Act
+            service.ImportCommittedProjectFiles(
+                TestDataForCommittedProjects.SimulationId,
+                workbook,
+                "InitialUpload.xlsx",
+                "ignored user id");
+
+            // Assert
+            Assert.Equal(2, importedProjects.Count);
+        }
+
+        [Fact]
+        public void ImportErrorWorkbookExplainsAndLinksToInvalidCells()
+        {
+            // Arrange
+            _mockSelectableTreatmentRepo
+                .Setup(repository => repository.GetScenarioSelectableTreatmentNames(It.IsAny<Guid>()))
+                .Returns(["Rehabilitation", "Maintenance"]);
+
+            var simulation = TestDataForCommittedProjects.TestSimulationDTO();
+            simulation.Id = Guid.NewGuid();
+            var outputFolder = Path.Combine("CommittedProjects", simulation.Id.ToString());
+
+            using var upload = new ExcelPackage();
+            var uploadWorksheet = upload.Workbook.Worksheets.Add("Client Upload", _excelData.Workbook.Worksheets[0]);
+            var projectSourceColumn = Enumerable.Range(1, uploadWorksheet.Dimension.End.Column)
+                .Single(column => string.Equals(
+                    uploadWorksheet.Cells[1, column].Text.Replace(" ", string.Empty),
+                    CommittedProjectsColumnHeaders.ProjectSource.Replace(" ", string.Empty),
+                    StringComparison.OrdinalIgnoreCase));
+            uploadWorksheet.Cells[1, projectSourceColumn].Value = CommittedProjectsColumnHeaders.ProjectSource;
+            var budgetColumn = Enumerable.Range(1, uploadWorksheet.Dimension.End.Column)
+                .Single(column => string.Equals(
+                    uploadWorksheet.Cells[1, column].Text,
+                    CommittedProjectsColumnHeaders.Budget,
+                    StringComparison.OrdinalIgnoreCase));
+            var yearColumn = Enumerable.Range(1, uploadWorksheet.Dimension.End.Column)
+                .Single(column => string.Equals(
+                    uploadWorksheet.Cells[1, column].Text,
+                    CommittedProjectsColumnHeaders.Year,
+                    StringComparison.OrdinalIgnoreCase));
+            var networkKeyColumn = Enumerable.Range(1, uploadWorksheet.Dimension.End.Column)
+                .Single(column => string.Equals(
+                    uploadWorksheet.Cells[1, column].Text,
+                    TestAttributeNames.BrKey,
+                    StringComparison.OrdinalIgnoreCase));
+            uploadWorksheet.Cells[2, budgetColumn].Value = "Not A Budget";
+            var duplicateRow = uploadWorksheet.Dimension.End.Row + 1;
+            uploadWorksheet.Cells[2, 1, 2, uploadWorksheet.Dimension.End.Column]
+                .Copy(uploadWorksheet.Cells[duplicateRow, 1]);
+
+            var importer = new CommittedProjectImporter(
+                _testUOW,
+                HubServiceMocks.Default(),
+                TestAttributeNames.BrKey,
+                [TestAttributeNames.BrKey, TestAttributeNames.BmsId]);
+
+            try
+            {
+                // Act
+                importer.ImportProjectsFromWorksheet(uploadWorksheet, simulation, "ignored user id");
+
+                // Assert
+                var errorFile = Directory.GetFiles(outputFolder, "*.xlsx").Single();
+                using var errorWorkbook = new ExcelPackage(new FileInfo(errorFile));
+
+                Assert.Equal(
+                    ["Committed Projects", "Import Errors", "Valid Values"],
+                    errorWorkbook.Workbook.Worksheets.Select(worksheet => worksheet.Name).ToArray());
+
+                var dataWorksheet = errorWorkbook.Workbook.Worksheets["Committed Projects"];
+                for (var row = 1; row <= uploadWorksheet.Dimension.End.Row; row++)
+                {
+                    for (var column = 1; column <= uploadWorksheet.Dimension.End.Column; column++)
+                    {
+                        var expectedValue = uploadWorksheet.Cells[row, column].Value;
+                        var actualValue = dataWorksheet.Cells[row, column].Value;
+                        if (expectedValue is string expectedText && expectedText.Length == 0)
+                        {
+                            Assert.Null(actualValue);
+                        }
+                        else
+                        {
+                            Assert.Equal(expectedValue?.ToString(), actualValue?.ToString());
+                        }
+                    }
+                }
+                Assert.Equal("Not A Budget", dataWorksheet.Cells[2, budgetColumn].Text);
+                Assert.Equal(OfficeOpenXml.Style.ExcelFillStyle.Solid, dataWorksheet.Cells[2, budgetColumn].Style.Fill.PatternType);
+                Assert.Equal(OfficeOpenXml.Style.ExcelFillStyle.Solid, dataWorksheet.Cells[duplicateRow, networkKeyColumn].Style.Fill.PatternType);
+                Assert.Equal(OfficeOpenXml.Style.ExcelFillStyle.Solid, dataWorksheet.Cells[duplicateRow, yearColumn].Style.Fill.PatternType);
+
+                var errorWorksheet = errorWorkbook.Workbook.Worksheets["Import Errors"];
+                var detailsTable = errorWorksheet.Tables["ImportErrorDetails"];
+                Assert.Equal(3, detailsTable.Address.Rows);
+                Assert.Contains(
+                    errorWorksheet.Cells,
+                    cell => cell.Text.Contains("does not match a scenario budget", StringComparison.OrdinalIgnoreCase));
+                Assert.Contains(
+                    errorWorksheet.Cells,
+                    cell => cell.Text.Contains($"{ExcelCellAddress.GetColumnLetter(yearColumn)}{duplicateRow}", StringComparison.OrdinalIgnoreCase));
+                Assert.Contains(errorWorksheet.Cells, cell => cell.Hyperlink != null);
+
+                var validValuesWorksheet = errorWorkbook.Workbook.Worksheets["Valid Values"];
+                Assert.Contains(validValuesWorksheet.Cells, cell => cell.Text == TestDataForCommittedProjects.InterstateBudgetName);
+            }
+            finally
+            {
+                if (Directory.Exists(outputFolder))
+                {
+                    Directory.Delete(outputFolder, true);
+                }
+            }
+        }
+
+        [Fact]
+        public void ImportErrorWorkbookReportsMixedBadDataWithoutLosingValues()
+        {
+            // Arrange
+            _mockSelectableTreatmentRepo
+                .Setup(repository => repository.GetScenarioSelectableTreatmentNames(It.IsAny<Guid>()))
+                .Returns(["Rehabilitation", "Maintenance"]);
+
+            var simulation = TestDataForCommittedProjects.TestSimulationDTO();
+            simulation.Id = Guid.NewGuid();
+            var outputFolder = Path.Combine("CommittedProjects", simulation.Id.ToString());
+
+            using var upload = new ExcelPackage();
+            var uploadWorksheet = upload.Workbook.Worksheets.Add("Bad Client Upload", _excelData.Workbook.Worksheets[0]);
+
+            int FindColumn(string header) => Enumerable.Range(1, uploadWorksheet.Dimension.End.Column)
+                .Single(column => string.Equals(
+                    uploadWorksheet.Cells[1, column].Text.Replace(" ", string.Empty),
+                    header.Replace(" ", string.Empty),
+                    StringComparison.OrdinalIgnoreCase));
+
+            var networkKeyColumn = FindColumn(TestAttributeNames.BrKey);
+            var secondaryKeyColumn = FindColumn(TestAttributeNames.BmsId);
+            var treatmentColumn = FindColumn(CommittedProjectsColumnHeaders.Treatment);
+            var yearColumn = FindColumn(CommittedProjectsColumnHeaders.Year);
+            var budgetColumn = FindColumn(CommittedProjectsColumnHeaders.Budget);
+            var costColumn = FindColumn(CommittedProjectsColumnHeaders.Cost);
+            var projectSourceColumn = FindColumn(CommittedProjectsColumnHeaders.ProjectSource);
+            var categoryColumn = FindColumn(CommittedProjectsColumnHeaders.Category);
+            uploadWorksheet.Cells[1, projectSourceColumn].Value = CommittedProjectsColumnHeaders.ProjectSource;
+
+            var badRow = uploadWorksheet.Dimension.End.Row + 1;
+            uploadWorksheet.Cells[2, 1, 2, uploadWorksheet.Dimension.End.Column]
+                .Copy(uploadWorksheet.Cells[badRow, 1]);
+            uploadWorksheet.Cells[badRow, networkKeyColumn].Value = "DOES-NOT-EXIST";
+            uploadWorksheet.Cells[badRow, secondaryKeyColumn].Value = null;
+            uploadWorksheet.Cells[badRow, treatmentColumn].Value = "Bundle [Rehabilitation|Unknown Treatment]";
+            uploadWorksheet.Cells[badRow, yearColumn].Value = 9999;
+            uploadWorksheet.Cells[badRow, budgetColumn].Value = "Unknown Budget";
+            uploadWorksheet.Cells[badRow, costColumn].Value = "not money";
+            uploadWorksheet.Cells[badRow, projectSourceColumn].Value = "not a source";
+            uploadWorksheet.Cells[badRow, categoryColumn].Value = "not a category";
+
+            var duplicateRow = badRow + 1;
+            uploadWorksheet.Cells[2, 1, 2, uploadWorksheet.Dimension.End.Column]
+                .Copy(uploadWorksheet.Cells[duplicateRow, 1]);
+
+            var importer = new CommittedProjectImporter(
+                _testUOW,
+                HubServiceMocks.Default(),
+                TestAttributeNames.BrKey,
+                [TestAttributeNames.BrKey, TestAttributeNames.BmsId]);
+
+            try
+            {
+                // Act
+                importer.ImportProjectsFromWorksheet(uploadWorksheet, simulation, "ignored user id");
+
+                // Assert
+                var errorFile = Directory.GetFiles(outputFolder, "*.xlsx").Single();
+                using var errorWorkbook = new ExcelPackage(new FileInfo(errorFile));
+                var dataWorksheet = errorWorkbook.Workbook.Worksheets["Committed Projects"];
+                var errorWorksheet = errorWorkbook.Workbook.Worksheets["Import Errors"];
+                var detailsTable = errorWorksheet.Tables["ImportErrorDetails"];
+
+                Assert.Equal(10, detailsTable.Address.Rows); // Header plus nine validation issues.
+                Assert.Contains(errorWorksheet.Cells, cell => cell.Text.Contains("9 issues", StringComparison.OrdinalIgnoreCase));
+
+                var expectedProblemFragments = new[]
+                {
+                    "does not match a maintainable asset",
+                    "required location value 'BMSID' is blank",
+                    "bundle contains treatment names that were not found",
+                    "does not match a scenario budget",
+                    "not a valid project cost",
+                    "not a recognized project source",
+                    "not a valid project year",
+                    "not a recognized treatment category",
+                    "duplicate row"
+                };
+                foreach (var expectedProblem in expectedProblemFragments)
+                {
+                    Assert.Contains(
+                        errorWorksheet.Cells,
+                        cell => cell.Text.Contains(expectedProblem, StringComparison.OrdinalIgnoreCase));
+                }
+
+                var badCellColumns = new[]
+                {
+                    networkKeyColumn,
+                    secondaryKeyColumn,
+                    treatmentColumn,
+                    yearColumn,
+                    budgetColumn,
+                    costColumn,
+                    projectSourceColumn,
+                    categoryColumn
+                };
+                foreach (var column in badCellColumns)
+                {
+                    Assert.Equal(
+                        OfficeOpenXml.Style.ExcelFillStyle.Solid,
+                        dataWorksheet.Cells[badRow, column].Style.Fill.PatternType);
+                }
+
+                Assert.Equal(
+                    OfficeOpenXml.Style.ExcelFillStyle.Solid,
+                    dataWorksheet.Cells[duplicateRow, networkKeyColumn].Style.Fill.PatternType);
+                Assert.Equal(
+                    OfficeOpenXml.Style.ExcelFillStyle.Solid,
+                    dataWorksheet.Cells[duplicateRow, yearColumn].Style.Fill.PatternType);
+                Assert.Equal(9, errorWorksheet.Cells.Count(cell => cell.Hyperlink != null));
+
+                Assert.Equal("DOES-NOT-EXIST", dataWorksheet.Cells[badRow, networkKeyColumn].Text);
+                Assert.Equal(string.Empty, dataWorksheet.Cells[badRow, secondaryKeyColumn].Text);
+                Assert.Equal("Bundle [Rehabilitation|Unknown Treatment]", dataWorksheet.Cells[badRow, treatmentColumn].Text);
+                Assert.Equal("9999", dataWorksheet.Cells[badRow, yearColumn].Text);
+                Assert.Equal("Unknown Budget", dataWorksheet.Cells[badRow, budgetColumn].Text);
+                Assert.Equal("not money", dataWorksheet.Cells[badRow, costColumn].Text);
+                Assert.Equal("not a source", dataWorksheet.Cells[badRow, projectSourceColumn].Text);
+                Assert.Equal("not a category", dataWorksheet.Cells[badRow, categoryColumn].Text);
+            }
+            finally
+            {
+                if (Directory.Exists(outputFolder))
+                {
+                    Directory.Delete(outputFolder, true);
+                }
+            }
+        }
+
         [Fact (Skip = "Broken")]
         public void ImportCreatesValidRecordsWithNoTreatment()
         {

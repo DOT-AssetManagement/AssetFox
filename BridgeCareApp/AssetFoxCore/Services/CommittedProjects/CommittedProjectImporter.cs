@@ -6,12 +6,13 @@ using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFoxCore.Utils;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using OfficeOpenXml.Table;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace AssetFoxCore.Services.CommittedProjects
@@ -27,13 +28,14 @@ namespace AssetFoxCore.Services.CommittedProjects
         private readonly string _networkKeyField;
         private List<string> _keyFields;
 
-        // Thread-safe collections for error tracking and project management
-        private Dictionary<ErrorType, List<string>> _validationErrorMessages = [];
+        // Collections for error tracking and project management
+        private List<ImportValidationError> _validationErrors = [];
         private Dictionary<(string locationIdentifier, int projectYear, string treatment), SectionCommittedProjectDTO> _projectsPerKey = [];
-        private Dictionary<(string locationIdentifier, int projectYear), bool> _processedKeys = [];
+        private Dictionary<(string locationIdentifier, int projectYear), int> _processedKeys = [];
 
-        // Configurable batch sizes for notifications
-        private const int MAX_ERROR_BATCH_SIZE = 5;
+        private const string DataSheetName = "Committed Projects";
+        private const string ErrorSheetName = "Import Errors";
+        private const string ValidValuesSheetName = "Valid Values";
 
         public enum ErrorType
         {
@@ -43,6 +45,29 @@ namespace AssetFoxCore.Services.CommittedProjects
             AssetNotFound,
             ParsingError,
             GeneralError
+        }
+
+        private sealed record ImportCellReference(int Row, int Column)
+        {
+            public string Address => Row > 0 && Column > 0
+                ? ExcelCellAddress.GetColumnLetter(Column) + Row
+                : string.Empty;
+        }
+
+        private sealed record ImportValidationError(
+            ErrorType Type,
+            string Code,
+            string Severity,
+            string ColumnName,
+            string CurrentValue,
+            string Problem,
+            string Resolution,
+            ImportCellReference Cell = null,
+            List<ImportCellReference> RelatedCells = null)
+        {
+            public string CellAddress => Cell?.Address ?? string.Empty;
+            public string RelatedCellAddresses => string.Join(", ",
+                (RelatedCells ?? []).Select(reference => reference.Address).Where(address => !string.IsNullOrEmpty(address)));
         }
 
         public CommittedProjectImporter(
@@ -63,13 +88,14 @@ namespace AssetFoxCore.Services.CommittedProjects
             string userId)
         {
             // Reset collections for each import
-            _validationErrorMessages = [];
+            _validationErrors = [];
             _projectsPerKey = [];
             _processedKeys = [];
 
             var headers = GetHeadersFromWorksheet(worksheet);
             if (!ValidateWorkSheet(worksheet, _hubService, _networkKeyField, headers, userId))
             {
+                SaveErrorExportWorkbook(simulation.Id, worksheet, [], [], []);
                 return [];
             }
 
@@ -90,12 +116,20 @@ namespace AssetFoxCore.Services.CommittedProjects
             var columnIndices = ValidateAndGetColumnIndices(headers, columnHeaders);
 
             var locationColumnNames = GetLocationColumnNamesAndKeyColumn(worksheet, headers, out var keyColumn);           
-            var projectsPerKey = new Dictionary<(string locationIdentifier, int projectYear, string treatment), SectionCommittedProjectDTO>();
 
             var maintainableAssetIdsPerLocationId = GetMaintainableAssetsPerLocationId(simulation.NetworkId);
             if (maintainableAssetIdsPerLocationId == null || maintainableAssetIdsPerLocationId.Count == 0)
             {
-                HandleValidationError(_hubService, userId, $"No maintainable assets were found for Network Id: {simulation.NetworkId}");
+                var problem = $"No maintainable assets were found for network {simulation.NetworkId}.";
+                AddValidationError(
+                    ErrorType.AssetNotFound,
+                    "CP011",
+                    string.Empty,
+                    string.Empty,
+                    problem,
+                    "Confirm that the scenario network contains imported assets before uploading committed projects.");
+                HandleValidationError(_hubService, userId, problem);
+                SaveErrorExportWorkbook(simulation.Id, worksheet, budgets.Keys, treatments, years);
                 return [];
             }
 
@@ -138,75 +172,383 @@ namespace AssetFoxCore.Services.CommittedProjects
                 }
                 catch (Exception)
                 {
-                    AddValidationError(ErrorType.GeneralError, $"Error processing row {row}");
+                    var rowCell = keyColumn > 0 ? new ImportCellReference(row, keyColumn) : null;
+                    AddValidationError(
+                        ErrorType.GeneralError,
+                        "CP012",
+                        _networkKeyField,
+                        rowCell == null ? string.Empty : GetCellDisplayValue(worksheet, rowCell),
+                        $"Row {row} could not be processed.",
+                        "Review the values in this row for unsupported or malformed data, then upload the corrected workbook again.",
+                        rowCell);
                 }
             };
 
-            // Batch error reporting
-            using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo("CommittedProjectsAudit")))
-            {                
-                var errorCount = CreateErrorExportSheet(excelPackage, worksheet);
-
-                // check and generate folder
-                var folderPathForSimulation = $"CommittedProjects\\{simulation.Id}";
-                if (Directory.Exists(folderPathForSimulation))
-                {
-                    Directory.Delete(folderPathForSimulation, true);
-                }
-                _ = Directory.CreateDirectory(folderPathForSimulation);
-                if (errorCount > 0)
-                {
-                    var filePath = Path.Combine(folderPathForSimulation, "CommittedProjectsAudit_Errors_" + errorCount + ".xlsx");
-                    var bin = excelPackage.GetAsByteArray();
-                    File.WriteAllBytes(filePath, bin);
-                }
-            }
+            SaveErrorExportWorkbook(simulation.Id, worksheet, budgets.Keys, treatments, years);
 
             return _projectsPerKey.Values.ToList();
         }
 
-        private int CreateErrorExportSheet(ExcelPackage excelPackage, ExcelWorksheet toCopyWorksheet)
+        private void SaveErrorExportWorkbook(
+            Guid simulationId,
+            ExcelWorksheet sourceWorksheet,
+            IEnumerable<string> budgets,
+            IEnumerable<string> treatments,
+            int[] years)
         {
-            var errorExportSheet = excelPackage.Workbook.Worksheets.Add("Committed Projects");
-
-            // Manually copy the cell values from the source to the new sheet
-            // This avoids copying potentially corrupted styles
-            for (int row = 1; row <= toCopyWorksheet.Dimension.End.Row; row++)
+            var folderPathForSimulation = Path.Combine("CommittedProjects", simulationId.ToString());
+            if (Directory.Exists(folderPathForSimulation))
             {
-                for (int col = 1; col <= toCopyWorksheet.Dimension.End.Column; col++)
-                {
-                    errorExportSheet.Cells[row, col].Value = toCopyWorksheet.Cells[row, col].Value;
-                }
+                Directory.Delete(folderPathForSimulation, true);
+            }
+            Directory.CreateDirectory(folderPathForSimulation);
+
+            if (!_validationErrors.Any())
+            {
+                return;
             }
 
-            var excelAddresses = new List<ExcelAddress>();
+            using var excelPackage = new ExcelPackage();
+            CreateDataSheet(excelPackage, sourceWorksheet);
+            CreateImportErrorsSheet(excelPackage);
+            CreateValidValuesSheet(excelPackage, budgets, treatments, years);
 
-            var regex = new Regex(@"Row (\d+), Column (\d+)", RegexOptions.Compiled);
-
-            foreach (var errorsPerType in _validationErrorMessages)
-            {
-                foreach (var error in errorsPerType.Value)
-                {
-                    Match match = regex.Match(error);
-
-                    if (match.Success)
-                    {
-                        int row = int.Parse(match.Groups[1].Value);
-                        int col = int.Parse(match.Groups[2].Value);
-
-                        var cells = errorExportSheet.Cells[row, col];
-
-                        if (!excelAddresses.Any(_ => _.Address == cells.Address))
-                        {
-                            excelAddresses.Add(cells);
-                        }
-                        ExcelHelper.ApplyColor(cells, Color.Red);
-                    }                    
-                }
-            }
-
-            return excelAddresses.Count;
+            var filePath = Path.Combine(
+                folderPathForSimulation,
+                $"CommittedProjectsAudit_Errors_{_validationErrors.Count}.xlsx");
+            File.WriteAllBytes(filePath, excelPackage.GetAsByteArray());
         }
+
+        private void CreateDataSheet(ExcelPackage excelPackage, ExcelWorksheet sourceWorksheet)
+        {
+            var dataSheet = excelPackage.Workbook.Worksheets.Add(DataSheetName);
+            if (sourceWorksheet?.Dimension != null)
+            {
+                for (var row = 1; row <= sourceWorksheet.Dimension.End.Row; row++)
+                {
+                    for (var column = 1; column <= sourceWorksheet.Dimension.End.Column; column++)
+                    {
+                        var sourceValue = sourceWorksheet.Cells[row, column].Value;
+                        dataSheet.Cells[row, column].Value = sourceValue is string text && text.Length == 0
+                            ? null
+                            : sourceValue;
+                    }
+                }
+
+                var header = dataSheet.Cells[1, 1, 1, sourceWorksheet.Dimension.End.Column];
+                header.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                header.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(31, 78, 121));
+                header.Style.Font.Color.SetColor(Color.White);
+                header.Style.Font.Bold = true;
+                header.AutoFilter = true;
+                dataSheet.View.FreezePanes(2, 1);
+                dataSheet.Cells.AutoFitColumns();
+
+                for (var column = 1; column <= sourceWorksheet.Dimension.End.Column; column++)
+                {
+                    dataSheet.Column(column).Width = Math.Min(Math.Max(dataSheet.Column(column).Width, 12), 30);
+                }
+            }
+
+            foreach (var cellReference in GetAllErrorCellReferences()
+                         .Where(reference => sourceWorksheet?.Dimension != null
+                             && reference.Row <= sourceWorksheet.Dimension.End.Row
+                             && reference.Column <= sourceWorksheet.Dimension.End.Column)
+                         .GroupBy(reference => reference.Address)
+                         .Select(group => group.First()))
+            {
+                var cell = dataSheet.Cells[cellReference.Row, cellReference.Column];
+                cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(255, 199, 206));
+                cell.Style.Font.Color.SetColor(Color.FromArgb(156, 0, 6));
+            }
+        }
+
+        private void CreateImportErrorsSheet(ExcelPackage excelPackage)
+        {
+            var errorSheet = excelPackage.Workbook.Worksheets.Add(ErrorSheetName);
+            errorSheet.View.ShowGridLines = false;
+            errorSheet.View.FreezePanes(3, 1);
+
+            const int sheetColumnCount = 6;
+            errorSheet.Cells[1, 1, 1, sheetColumnCount].Merge = true;
+            errorSheet.Cells[1, 1].Value = "Committed Project Import Errors";
+            FormatTitle(errorSheet.Cells[1, 1, 1, sheetColumnCount]);
+
+            errorSheet.Cells[2, 1, 2, sheetColumnCount].Merge = true;
+            errorSheet.Cells[2, 1].Value =
+                "Fix the highlighted cells on the Committed Projects sheet, then upload this workbook again. Click a cell address below to jump to it.";
+            errorSheet.Cells[2, 1].Style.WrapText = true;
+            errorSheet.Row(2).Height = 28;
+
+            var allCellReferences = GetAllErrorCellReferences().ToList();
+            var affectedRows = allCellReferences.Select(reference => reference.Row).Distinct().Count();
+            var affectedCells = allCellReferences.Select(reference => reference.Address).Distinct().Count();
+
+            errorSheet.Cells[4, 1, 4, sheetColumnCount].Merge = true;
+            errorSheet.Cells[4, 1].Value =
+                $"{_validationErrors.Count} {Pluralize(_validationErrors.Count, "issue", "issues")}  |  " +
+                $"{affectedRows} affected {Pluralize(affectedRows, "row", "rows")}  |  " +
+                $"{affectedCells} affected {Pluralize(affectedCells, "cell", "cells")}";
+            FormatSectionHeader(errorSheet.Cells[4, 1, 4, sheetColumnCount]);
+            errorSheet.Cells[4, 1].Style.Font.Size = 12;
+            errorSheet.Cells[4, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+            var groupedErrors = _validationErrors
+                .GroupBy(error => new
+                {
+                    error.Code,
+                    error.ColumnName,
+                    error.Resolution
+                })
+                .Select(group => new
+                {
+                    Occurrences = group.Count(),
+                    group.Key.ColumnName,
+                    Problem = GetSummaryProblem(group.First()),
+                    group.Key.Resolution
+                })
+                .OrderByDescending(group => group.Occurrences)
+                .ThenBy(group => group.ColumnName)
+                .Take(10)
+                .ToList();
+
+            const int groupedTitleRow = 6;
+            errorSheet.Cells[groupedTitleRow, 1, groupedTitleRow, sheetColumnCount].Merge = true;
+            errorSheet.Cells[groupedTitleRow, 1].Value = "Most Common Problems";
+            FormatSectionHeader(errorSheet.Cells[groupedTitleRow, 1, groupedTitleRow, sheetColumnCount]);
+
+            const int groupedHeaderRow = groupedTitleRow + 1;
+            var groupedHeaderBlocks = new[]
+            {
+                (Start: 1, End: 1, Label: "Occurrences"),
+                (Start: 2, End: 2, Label: "Field"),
+                (Start: 3, End: 4, Label: "Problem"),
+                (Start: 5, End: 6, Label: "How to Fix")
+            };
+            foreach (var block in groupedHeaderBlocks)
+            {
+                if (block.End > block.Start)
+                {
+                    errorSheet.Cells[groupedHeaderRow, block.Start, groupedHeaderRow, block.End].Merge = true;
+                }
+                errorSheet.Cells[groupedHeaderRow, block.Start].Value = block.Label;
+            }
+            var groupedHeaderRange = errorSheet.Cells[groupedHeaderRow, 1, groupedHeaderRow, sheetColumnCount];
+            groupedHeaderRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            groupedHeaderRange.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(31, 110, 140));
+            groupedHeaderRange.Style.Font.Color.SetColor(Color.White);
+            groupedHeaderRange.Style.Font.Bold = true;
+
+            for (var index = 0; index < groupedErrors.Count; index++)
+            {
+                var row = groupedHeaderRow + index + 1;
+                var groupedError = groupedErrors[index];
+                errorSheet.Cells[row, 1].Value = groupedError.Occurrences;
+                errorSheet.Cells[row, 2].Value = EmptyAsWorkbookScope(groupedError.ColumnName);
+                errorSheet.Cells[row, 3, row, 4].Merge = true;
+                errorSheet.Cells[row, 3].Value = groupedError.Problem;
+                errorSheet.Cells[row, 5, row, 6].Merge = true;
+                errorSheet.Cells[row, 5].Value = groupedError.Resolution;
+
+                var rowRange = errorSheet.Cells[row, 1, row, sheetColumnCount];
+                rowRange.Style.WrapText = true;
+                rowRange.Style.VerticalAlignment = ExcelVerticalAlignment.Top;
+                errorSheet.Cells[row, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                if (index % 2 == 0)
+                {
+                    rowRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    rowRange.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(221, 235, 247));
+                }
+                errorSheet.Row(row).Height = 32;
+            }
+
+            var detailTitleRow = groupedHeaderRow + groupedErrors.Count + 2;
+            errorSheet.Cells[detailTitleRow, 1, detailTitleRow, sheetColumnCount].Merge = true;
+            errorSheet.Cells[detailTitleRow, 1].Value = "Error Details";
+            FormatSectionHeader(errorSheet.Cells[detailTitleRow, 1, detailTitleRow, sheetColumnCount]);
+
+            var detailHeaderRow = detailTitleRow + 1;
+            var detailHeaders = new[]
+            {
+                "Cell / Scope", "Field", "Current Value", "What's Wrong", "How to Fix", "Related Cells"
+            };
+            for (var column = 1; column <= detailHeaders.Length; column++)
+            {
+                errorSheet.Cells[detailHeaderRow, column].Value = detailHeaders[column - 1];
+            }
+
+            var orderedErrors = _validationErrors
+                .OrderBy(error => error.Cell?.Row ?? 0)
+                .ThenBy(error => error.Cell?.Column ?? 0)
+                .ThenBy(error => error.Code)
+                .ToList();
+            for (var index = 0; index < orderedErrors.Count; index++)
+            {
+                var row = detailHeaderRow + index + 1;
+                var error = orderedErrors[index];
+                if (string.IsNullOrEmpty(error.CellAddress))
+                {
+                    errorSheet.Cells[row, 1].Value = "Workbook";
+                }
+                else
+                {
+                    errorSheet.Cells[row, 1].Value = error.CellAddress;
+                    errorSheet.Cells[row, 1].Hyperlink = new ExcelHyperLink(
+                        $"'{DataSheetName}'!{error.CellAddress}",
+                        error.CellAddress);
+                    errorSheet.Cells[row, 1].Style.Font.Color.SetColor(Color.FromArgb(5, 99, 193));
+                    errorSheet.Cells[row, 1].Style.Font.UnderLine = true;
+                }
+                errorSheet.Cells[row, 2].Value = EmptyAsWorkbookScope(error.ColumnName);
+                errorSheet.Cells[row, 3].Value = DisplayValue(error.CurrentValue);
+                errorSheet.Cells[row, 4].Value = error.Problem;
+                errorSheet.Cells[row, 5].Value = error.Resolution;
+                if (!string.IsNullOrEmpty(error.RelatedCellAddresses))
+                {
+                    errorSheet.Cells[row, 6].Value = error.RelatedCellAddresses;
+                }
+
+                errorSheet.Row(row).Height = 52;
+            }
+
+            var detailEndRow = detailHeaderRow + orderedErrors.Count;
+            var detailTable = errorSheet.Tables.Add(
+                errorSheet.Cells[detailHeaderRow, 1, detailEndRow, detailHeaders.Length],
+                "ImportErrorDetails");
+            detailTable.TableStyle = TableStyles.Medium2;
+
+            errorSheet.Cells[detailHeaderRow + 1, 3, detailEndRow, detailHeaders.Length].Style.WrapText = true;
+            errorSheet.Cells[detailHeaderRow + 1, 3, detailEndRow, 3].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+            errorSheet.Cells[detailHeaderRow + 1, 1, detailEndRow, detailHeaders.Length].Style.VerticalAlignment = ExcelVerticalAlignment.Top;
+
+            errorSheet.Column(1).Width = 12;
+            errorSheet.Column(2).Width = 18;
+            errorSheet.Column(3).Width = 22;
+            errorSheet.Column(4).Width = 30;
+            errorSheet.Column(5).Width = 34;
+            errorSheet.Column(6).Width = 16;
+        }
+
+        private static string GetSummaryProblem(ImportValidationError error) => error.Code switch
+        {
+            "CP001" => "A required value is blank.",
+            "CP002" => "The asset identifier does not match an asset in this scenario's network.",
+            "CP003" => "The project source is not recognized.",
+            "CP004" => "The budget does not match a scenario budget.",
+            "CP005" => "The project cost is not a valid number.",
+            "CP006" => "The treatment or treatment bundle is not valid.",
+            "CP007" => "The project year is outside the scenario investment period or is not a whole number.",
+            "CP008" => "The treatment category is not recognized.",
+            "CP009" => "More than one project uses the same asset and year.",
+            "CP010" => "A required column is missing from row 1.",
+            "CP011" => "The scenario network has no maintainable assets.",
+            "CP012" => "A row could not be processed.",
+            "CP013" => "The workbook structure is invalid.",
+            _ => error.Problem
+        };
+
+        private static string Pluralize(int count, string singular, string plural) =>
+            count == 1 ? singular : plural;
+
+        private static void CreateValidValuesSheet(
+            ExcelPackage excelPackage,
+            IEnumerable<string> budgets,
+            IEnumerable<string> treatments,
+            int[] years)
+        {
+            var validValuesSheet = excelPackage.Workbook.Worksheets.Add(ValidValuesSheetName);
+            validValuesSheet.View.ShowGridLines = false;
+            validValuesSheet.View.FreezePanes(4, 1);
+            validValuesSheet.Cells[1, 1, 1, 9].Merge = true;
+            validValuesSheet.Cells[1, 1].Value = "Valid Values for This Import";
+            FormatTitle(validValuesSheet.Cells[1, 1, 1, 9]);
+            validValuesSheet.Cells[2, 1, 2, 9].Merge = true;
+            validValuesSheet.Cells[2, 1].Value =
+                "Use these scenario-specific values when correcting the Committed Projects sheet. This sheet is informational and is not imported.";
+
+            var budgetValues = (budgets ?? []).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(value => value).ToList();
+            var treatmentValues = (treatments ?? []).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(value => value).ToList();
+            var categoryValues = Enum.GetNames<TreatmentCategory>().OrderBy(value => value).ToList();
+            var sourceValues = Enum.GetNames<ProjectSourceDTO>().OrderBy(value => value).ToList();
+
+            AddReferenceList(validValuesSheet, 1, "Budgets", budgetValues);
+            AddReferenceList(validValuesSheet, 3, "Treatments", treatmentValues);
+            AddReferenceList(validValuesSheet, 5, "Categories", categoryValues);
+            AddReferenceList(validValuesSheet, 7, "Project Sources", sourceValues);
+
+            validValuesSheet.Cells[3, 9].Value = "Investment Years";
+            FormatSectionHeader(validValuesSheet.Cells[3, 9]);
+            if (years?.Length >= 2)
+            {
+                validValuesSheet.Cells[4, 9].Value = $"Start: {years[0]}";
+                validValuesSheet.Cells[5, 9].Value = $"End: {years[1]}";
+            }
+            else
+            {
+                validValuesSheet.Cells[4, 9].Value = "Not available";
+            }
+
+            foreach (var column in new[] { 1, 3, 5, 7, 9 })
+            {
+                validValuesSheet.Column(column).Width = 28;
+            }
+        }
+
+        private static void AddReferenceList(
+            ExcelWorksheet worksheet,
+            int column,
+            string heading,
+            IReadOnlyList<string> values)
+        {
+            worksheet.Cells[3, column].Value = heading;
+            FormatSectionHeader(worksheet.Cells[3, column]);
+            if (!values.Any())
+            {
+                worksheet.Cells[4, column].Value = "No values available";
+                return;
+            }
+
+            for (var index = 0; index < values.Count; index++)
+            {
+                worksheet.Cells[index + 4, column].Value = values[index];
+            }
+        }
+
+        private static void FormatTitle(ExcelRange range)
+        {
+            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(31, 78, 121));
+            range.Style.Font.Color.SetColor(Color.White);
+            range.Style.Font.Bold = true;
+            range.Style.Font.Size = 16;
+            range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+            range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            range.Worksheet.Row(range.Start.Row).Height = 28;
+        }
+
+        private static void FormatSectionHeader(ExcelRange range)
+        {
+            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(221, 235, 247));
+            range.Style.Font.Color.SetColor(Color.FromArgb(31, 78, 121));
+            range.Style.Font.Bold = true;
+            range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+        }
+
+        private static string DisplayValue(string value) =>
+            string.IsNullOrWhiteSpace(value) ? "(blank)" : value;
+
+        private static string EmptyAsWorkbookScope(string value) =>
+            string.IsNullOrWhiteSpace(value) ? "Workbook" : value;
+
+        private IEnumerable<ImportCellReference> GetAllErrorCellReferences() =>
+            _validationErrors.SelectMany(error =>
+                (error.Cell == null ? Enumerable.Empty<ImportCellReference>() : new[] { error.Cell })
+                .Concat(error.RelatedCells ?? []));
+
+        private static string GetCellDisplayValue(ExcelWorksheet worksheet, ImportCellReference reference) =>
+            worksheet?.Cells[reference.Row, reference.Column].Text ?? string.Empty;
 
         /// <summary>
         /// Processes a single row in the worksheet and creates a committed project DTO.
@@ -229,22 +571,35 @@ namespace AssetFoxCore.Services.CommittedProjects
             var treatment = SafeGetTreatment(rowValues, columnIndices, treatments, CommittedProjectsColumnHeaders.Treatment, row);
 
             var key = (locationIdentifier: locationId, projectYear);
-            var columnIndex = columnIndices[_networkKeyField];
+            var keyColumnIndex = columnIndices[_networkKeyField];
+            var yearColumnIndex = columnIndices[CommittedProjectsColumnHeaders.Year];
 
             // Check for duplicates
-            if (!_processedKeys.TryAdd(key, true))
+            if (_processedKeys.TryGetValue(key, out var originalRow))
             {
-                // Duplicate found
-                AddValidationError(ErrorType.DuplicateEntry,
-                    $"Row {row}, Column {columnIndex}: Duplicate Project Removed Asset {locationId}, Year {projectYear}'");
-                // Add next column cell to highlight asset id and year both as they contribute to duplicate key
-                AddValidationError(ErrorType.DuplicateEntry,
-                    $"Row {row}, Column {columnIndex + 1}: Duplicate Project Removed Asset {locationId}, Year {projectYear}'");
-                
+                var relatedCells = new List<ImportCellReference>
+                {
+                    new(row, yearColumnIndex),
+                    new(originalRow, keyColumnIndex),
+                    new(originalRow, yearColumnIndex)
+                }.Where(reference => reference.Column > 0).ToList();
+
+                AddValidationError(
+                    ErrorType.DuplicateEntry,
+                    "CP009",
+                    _networkKeyField,
+                    locationId,
+                    $"This asset and project year duplicate row {originalRow}.",
+                    "Keep only one project for this asset and year, or change the asset identifier or year.",
+                    new ImportCellReference(row, keyColumnIndex),
+                    relatedCells);
+
                 return null; // Skip further processing
             }
-            
-            var assetId = ValidateLocationIdHasAssets(maintainableAssetIdsPerLocationId, locationId, row, columnIndex);
+
+            _processedKeys[key] = row;
+
+            var assetId = ValidateLocationIdHasAssets(maintainableAssetIdsPerLocationId, locationId, row, keyColumnIndex);
             var locationInformation = BuildLocationInformation(locationColumnNames, rowValues, assetId, row);        
 
             return new SectionCommittedProjectDTO
@@ -269,41 +624,73 @@ namespace AssetFoxCore.Services.CommittedProjects
             List<string> headers,
             string userId)
         {
-            bool isValid = true;
-
             // Validate worksheet existence
             if (worksheet == null)
             {
-                HandleValidationError(_hubService, userId, "Invalid spreadsheet: No worksheet found");
-                isValid = false;
-            }
-            // Validate worksheet dimensions
-            else if (worksheet.Dimension?.End.Row < 2)
-            {
-                HandleValidationError(_hubService, userId, "Invalid spreadsheet: Spreadsheet must contain column headers and at least one data row");
-                isValid = false;
-            }
-            else
-            {                
-                if (!_keyFields.Contains(_networkKeyField))
-                {
-                    HandleValidationError(_hubService, userId, $"Invalid network key field: {_networkKeyField}");
-                    isValid = false;
-                }
-                else
-                {
-                    // Validate key headers
-                    var missingKeyHeaders = _keyFields.Where(col => !headers.Contains(col, StringComparer.OrdinalIgnoreCase)).ToList();
-                    if (missingKeyHeaders.Count != 0)
-                    {
-                        var missingKeyHeaderNames = string.Join(", ", missingKeyHeaders);
-                        HandleValidationError(_hubService, userId, $"Invalid spreadsheet: Missing required key columns: {missingKeyHeaderNames}");
-                        isValid = false;
-                    }
-                }
+                const string message = "Invalid spreadsheet: No worksheet found.";
+                AddValidationError(
+                    ErrorType.GeneralError,
+                    "CP013",
+                    string.Empty,
+                    string.Empty,
+                    message,
+                    $"Add a worksheet named '{DataSheetName}' containing the committed-project headers and data.");
+                HandleValidationError(_hubService, userId, message);
+                return false;
             }
 
-            return isValid;
+            // Validate worksheet dimensions
+            if (worksheet.Dimension == null || worksheet.Dimension.End.Row < 2)
+            {
+                const string message = "Invalid spreadsheet: The worksheet must contain column headers and at least one data row.";
+                AddValidationError(
+                    ErrorType.GeneralError,
+                    "CP013",
+                    string.Empty,
+                    string.Empty,
+                    message,
+                    "Add the required headers to row 1 and at least one committed project beginning on row 2.");
+                HandleValidationError(_hubService, userId, message);
+                return false;
+            }
+
+            if (!_keyFields.Contains(_networkKeyField, StringComparer.OrdinalIgnoreCase))
+            {
+                var message = $"Invalid network key field configuration: {_networkKeyField}.";
+                AddValidationError(
+                    ErrorType.GeneralError,
+                    "CP013",
+                    _networkKeyField,
+                    string.Empty,
+                    message,
+                    "Ask an administrator to verify the network key-field configuration before importing this workbook.");
+                HandleValidationError(_hubService, userId, message);
+                return false;
+            }
+
+            // Validate key headers
+            var missingKeyHeaders = _keyFields
+                .Where(column => !headers.Contains(column, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+            foreach (var missingHeader in missingKeyHeaders)
+            {
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP010",
+                    missingHeader,
+                    string.Empty,
+                    $"Required location column '{missingHeader}' is missing from row 1.",
+                    $"Add a column named '{missingHeader}' to row 1 and provide a value for each project row.");
+            }
+
+            if (missingKeyHeaders.Count != 0)
+            {
+                var message = $"Invalid spreadsheet: Missing required key columns: {string.Join(", ", missingKeyHeaders)}.";
+                HandleValidationError(_hubService, userId, message);
+                return false;
+            }
+
+            return true;
         }                
 
         private static void HandleValidationError(IHubService _hubService, string userId, string message)
@@ -319,20 +706,39 @@ namespace AssetFoxCore.Services.CommittedProjects
         {
             if (!maintainableAssetIdsPerLocationId.TryGetValue(locationId, out var assetId))
             {
-                AddValidationError(ErrorType.AssetNotFound, $"Row {row}, Column {columnIndex}: Location '{locationId}' does not match any network asset.");
+                AddValidationError(
+                    ErrorType.AssetNotFound,
+                    "CP002",
+                    _networkKeyField,
+                    locationId,
+                    $"'{locationId}' does not match a maintainable asset in this scenario's network.",
+                    "Correct the asset identifier so it exactly matches an existing network asset.",
+                    new ImportCellReference(row, columnIndex));
             }
 
             return assetId;
         }
 
-        private void AddValidationError(ErrorType errorType, string message)
+        private void AddValidationError(
+            ErrorType errorType,
+            string code,
+            string columnName,
+            string currentValue,
+            string problem,
+            string resolution,
+            ImportCellReference cell = null,
+            IEnumerable<ImportCellReference> relatedCells = null)
         {
-            if (!_validationErrorMessages.TryGetValue(errorType, out var errorList))
-            {
-                errorList = [];
-                _validationErrorMessages[errorType] = errorList;
-            }
-            errorList.Add(message);
+            _validationErrors.Add(new ImportValidationError(
+                errorType,
+                code,
+                "Error",
+                columnName,
+                currentValue,
+                problem,
+                resolution,
+                cell,
+                relatedCells?.ToList() ?? []));
         }
 
 
@@ -358,7 +764,13 @@ namespace AssetFoxCore.Services.CommittedProjects
 
             if (keyColumn == -1)
             {
-                AddValidationError(ErrorType.MissingValue, $"Key location column '{_networkKeyField}' not found.");
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP010",
+                    _networkKeyField,
+                    string.Empty,
+                    $"Required network-key column '{_networkKeyField}' was not found in row 1.",
+                    $"Add a column named '{_networkKeyField}' to row 1.");
             }
 
             return locationColumnNames;
@@ -383,9 +795,18 @@ namespace AssetFoxCore.Services.CommittedProjects
                     ? cellValue.ToString()
                     : string.Empty;
 
-                if (string.IsNullOrWhiteSpace(value) && kvp.Value != "PROJECTSOURCEID")
+                if (string.IsNullOrWhiteSpace(value)
+                    && _keyFields.Contains(columnName, StringComparer.OrdinalIgnoreCase)
+                    && !string.Equals(columnName, _networkKeyField, StringComparison.OrdinalIgnoreCase))
                 {
-                    AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {column} ('{columnName}'): Value is null or empty.");
+                    AddValidationError(
+                        ErrorType.MissingValue,
+                        "CP001",
+                        columnName,
+                        string.Empty,
+                        $"Required location value '{columnName}' is blank.",
+                        $"Enter the '{columnName}' value for this network asset.",
+                        new ImportCellReference(row, column));
                 }
 
                 locationInformation[columnName] = value;
@@ -399,6 +820,11 @@ namespace AssetFoxCore.Services.CommittedProjects
         /// </summary>
         private static List<string> GetHeadersFromWorksheet(ExcelWorksheet worksheet)
         {
+            if (worksheet?.Dimension == null)
+            {
+                return [];
+            }
+
             return worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column]
                 .Select(cell => cell.GetValue<string>())
                 .Where(header => !string.IsNullOrEmpty(header))
@@ -432,16 +858,30 @@ namespace AssetFoxCore.Services.CommittedProjects
             var columnIndex = columnIndices[columnName];
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
             {
-                var identifier = cellValue.ToString();
+                var identifier = cellValue.ToString().Trim();
                 if (string.IsNullOrWhiteSpace(identifier))
                 {
-                    AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Location identifier is null or empty.");
+                    AddValidationError(
+                        ErrorType.MissingValue,
+                        "CP001",
+                        columnName,
+                        string.Empty,
+                        "The required network asset identifier is blank.",
+                        $"Enter the value of an existing network asset in '{columnName}'.",
+                        new ImportCellReference(row, columnIndex));
                 }
                 return identifier;
             }
             else
             {
-                AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Location identifier is missing.");
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP001",
+                    columnName,
+                    string.Empty,
+                    "The required network asset identifier is blank.",
+                    $"Enter the value of an existing network asset in '{columnName}'.",
+                    new ImportCellReference(row, columnIndex));
                 return string.Empty;
             }
         }   
@@ -486,19 +926,34 @@ namespace AssetFoxCore.Services.CommittedProjects
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
             {
                 var projectSourceValue = cellValue.ToString();
-                if (Enum.TryParse(projectSourceValue, true, out ProjectSourceDTO projectSource))
+                if (Enum.TryParse(projectSourceValue, true, out ProjectSourceDTO projectSource)
+                    && Enum.IsDefined(projectSource))
                 {
                     return projectSource;
                 }
                 else
                 {
-                    AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Invalid project source '{projectSourceValue}'.");
+                    AddValidationError(
+                        ErrorType.InvalidValue,
+                        "CP003",
+                        columnName,
+                        projectSourceValue,
+                        $"'{DisplayValue(projectSourceValue)}' is not a recognized project source.",
+                        $"Replace it with a project source listed on the '{ValidValuesSheetName}' sheet.",
+                        new ImportCellReference(row, columnIndex));
                     return ProjectSourceDTO.None;
                 }
             }
             else
             {
-                AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Project source is missing..");
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP001",
+                    columnName,
+                    string.Empty,
+                    "Project source is required but blank.",
+                    $"Enter a project source listed on the '{ValidValuesSheetName}' sheet.",
+                    new ImportCellReference(row, columnIndex));
                 return ProjectSourceDTO.None;
             }
         }
@@ -526,13 +981,27 @@ namespace AssetFoxCore.Services.CommittedProjects
                 }
                 else
                 {
-                    AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Budget '{budgetName}' not found.");
+                    AddValidationError(
+                        ErrorType.InvalidValue,
+                        "CP004",
+                        columnName,
+                        budgetName,
+                        $"'{DisplayValue(budgetName)}' does not match a scenario budget.",
+                        $"Replace it with a budget listed on the '{ValidValuesSheetName}' sheet.",
+                        new ImportCellReference(row, columnIndex));
                     return Guid.Empty;
                 }
             }
             else
             {
-                AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Budget is missing.");
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP001",
+                    columnName,
+                    string.Empty,
+                    "Budget is required but blank.",
+                    $"Enter a budget listed on the '{ValidValuesSheetName}' sheet.",
+                    new ImportCellReference(row, columnIndex));
                 return Guid.Empty;
             }
         }
@@ -559,13 +1028,27 @@ namespace AssetFoxCore.Services.CommittedProjects
                 }
                 else
                 {
-                    AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Invalid cost '{cellValue}'.");
+                    AddValidationError(
+                        ErrorType.InvalidValue,
+                        "CP005",
+                        columnName,
+                        cellValue.ToString(),
+                        $"'{DisplayValue(cellValue.ToString())}' is not a valid project cost.",
+                        "Enter a numeric amount, optionally formatted as currency (for example, 125000 or $125,000).",
+                        new ImportCellReference(row, columnIndex));
                     return 0.0;
                 }
             }
             else
             {
-                AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Cost is missing.");
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP001",
+                    columnName,
+                    string.Empty,
+                    "Project cost is required but blank.",
+                    "Enter the numeric cost of the committed project.",
+                    new ImportCellReference(row, columnIndex));
                 return 0.0;
             }
         }
@@ -589,19 +1072,39 @@ namespace AssetFoxCore.Services.CommittedProjects
 
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
             {
-
                 var treatment = cellValue.ToString().Trim();
                 if (string.IsNullOrWhiteSpace(treatment))
                 {
-                    AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment is null or empty.");
+                    AddValidationError(
+                        ErrorType.MissingValue,
+                        "CP001",
+                        columnName,
+                        string.Empty,
+                        "Treatment is required but blank.",
+                        $"Enter a treatment listed on the '{ValidValuesSheetName}' sheet.",
+                        new ImportCellReference(row, columnIndex));
                     result.Add("Default Treatment");
                     return getResultArray();
                 }
 
-                if (treatment.Contains("Bundle"))
+                if (treatment.Contains("Bundle", StringComparison.OrdinalIgnoreCase))
                 {
                     // Match contents inside brackets: [Treatment A|Treatment B]
                     var matches = Regex.Matches(treatment, @"\[(.*?)\]");
+                    if (matches.Count == 0)
+                    {
+                        AddValidationError(
+                            ErrorType.InvalidValue,
+                            "CP006",
+                            columnName,
+                            treatment,
+                            "The treatment bundle is malformed and contains no bracketed treatment list.",
+                            "Use the bundle format 'Bundle [Treatment A|Treatment B]' with valid treatment names.",
+                            new ImportCellReference(row, columnIndex));
+                        result.Add("Default Treatment");
+                        return getResultArray();
+                    }
+
                     var normalizedMatches = new List<string>();
                     foreach (Match match in matches)
                     {
@@ -609,20 +1112,44 @@ namespace AssetFoxCore.Services.CommittedProjects
                         normalizedMatches.AddRange(matchedTreatments);
                     }
 
-                    foreach(var name in normalizedMatches)
+                    var unknownTreatments = new List<string>();
+                    foreach (var name in normalizedMatches)
                     {
                         var matchingTreatment = treatments.FirstOrDefault(t => string.Equals(t.Trim(), name, StringComparison.OrdinalIgnoreCase));
                         if (matchingTreatment != null)
                         {
                             result.Add(matchingTreatment);
                         }
+                        else
+                        {
+                            unknownTreatments.Add(name);
+                        }
+                    }
+
+                    if (normalizedMatches.Count == 0 || unknownTreatments.Count != 0)
+                    {
+                        var problem = normalizedMatches.Count == 0
+                            ? "The treatment bundle does not contain any treatment names."
+                            : $"The bundle contains treatment names that were not found: {string.Join(", ", unknownTreatments)}.";
+                        AddValidationError(
+                            ErrorType.InvalidValue,
+                            "CP006",
+                            columnName,
+                            treatment,
+                            problem,
+                            $"Use only treatment names listed on the '{ValidValuesSheetName}' sheet.",
+                            new ImportCellReference(row, columnIndex));
+                    }
+
+                    if (result.Count == 0)
+                    {
+                        result.Add("Default Treatment");
                     }
 
                     return getResultArray();
                 }
 
                 // Check if treatment exists in the provided treatments list 
-                var normalizedTreatment = treatment.ToLowerInvariant();
                 var matchingSingleTreatment = treatments
                     .FirstOrDefault(t => string.Equals(t.Trim(), treatment, StringComparison.OrdinalIgnoreCase));
 
@@ -632,13 +1159,27 @@ namespace AssetFoxCore.Services.CommittedProjects
                     return getResultArray();
                 }
 
-                AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment '{treatment}' not found in the valid treatments list.");
+                AddValidationError(
+                    ErrorType.InvalidValue,
+                    "CP006",
+                    columnName,
+                    treatment,
+                    $"'{treatment}' does not match a scenario treatment.",
+                    $"Replace it with a treatment listed on the '{ValidValuesSheetName}' sheet.",
+                    new ImportCellReference(row, columnIndex));
                 result.Add("Default Treatment");
                 return getResultArray();
             }
             else
             {
-                AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment is missing.");
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP001",
+                    columnName,
+                    string.Empty,
+                    "Treatment is required but blank.",
+                    $"Enter a treatment listed on the '{ValidValuesSheetName}' sheet.",
+                    new ImportCellReference(row, columnIndex));
                 result.Add("Default Treatment");
                 return getResultArray();
             }
@@ -663,19 +1204,39 @@ namespace AssetFoxCore.Services.CommittedProjects
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
             {
                 var projectYearStr = cellValue.ToString();
-                if (int.TryParse(projectYearStr, out var intValue) && intValue >= years[0] && intValue <= years[1])
+                if (int.TryParse(projectYearStr, out var intValue)
+                    && years?.Length >= 2
+                    && intValue >= years[0]
+                    && intValue <= years[1])
                 {
                     return intValue;
                 }
                 else
                 {
-                    AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Invalid project year '{projectYearStr}'.");
+                    var allowedYears = years?.Length >= 2
+                        ? $"between {years[0]} and {years[1]}"
+                        : "within the scenario investment period";
+                    AddValidationError(
+                        ErrorType.InvalidValue,
+                        "CP007",
+                        columnName,
+                        projectYearStr,
+                        $"'{DisplayValue(projectYearStr)}' is not a valid project year {allowedYears}.",
+                        $"Enter a whole-number year {allowedYears}.",
+                        new ImportCellReference(row, columnIndex));
                     return 0;
                 }
             }
             else
             {
-                AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Project year is missing.");
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP001",
+                    columnName,
+                    string.Empty,
+                    "Project year is required but blank.",
+                    "Enter a whole-number year within the scenario investment period.",
+                    new ImportCellReference(row, columnIndex));
                 return 0;
             }
         }
@@ -695,19 +1256,34 @@ namespace AssetFoxCore.Services.CommittedProjects
             if (rowValues.TryGetValue(columnIndex, out var cellValue) && cellValue != null)
             {
                 var categoryValue = cellValue.ToString();
-                if (Enum.TryParse(categoryValue, true, out TreatmentCategory category))
+                if (Enum.TryParse(categoryValue, true, out TreatmentCategory category)
+                    && Enum.IsDefined(category))
                 {
                     return category;
                 }
                 else
                 {
-                    AddValidationError(ErrorType.InvalidValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Invalid treatment category '{categoryValue}'.");
+                    AddValidationError(
+                        ErrorType.InvalidValue,
+                        "CP008",
+                        columnName,
+                        categoryValue,
+                        $"'{DisplayValue(categoryValue)}' is not a recognized treatment category.",
+                        $"Replace it with a category listed on the '{ValidValuesSheetName}' sheet.",
+                        new ImportCellReference(row, columnIndex));
                     return TreatmentCategory.Other;
                 }
             }
             else
             {
-                AddValidationError(ErrorType.MissingValue, $"Row {row}, Column {columnIndex} ('{columnName}'): Treatment category is missing.");
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP001",
+                    columnName,
+                    string.Empty,
+                    "Treatment category is required but blank.",
+                    $"Enter a category listed on the '{ValidValuesSheetName}' sheet.",
+                    new ImportCellReference(row, columnIndex));
                 return TreatmentCategory.Other;
             }
         }
@@ -734,12 +1310,15 @@ namespace AssetFoxCore.Services.CommittedProjects
 
             missingColumns.Remove(CommittedProjectsColumnHeaders.ProjectId);
 
-            // Broadcast missing columns if any
-            if (missingColumns.Count != 0)
+            foreach (var missingColumn in missingColumns)
             {
-                var errors = new StringBuilder();
-                errors.Append($"Missing columns: {string.Join(", ", missingColumns)}. These will use default values.");
-                AddValidationError(ErrorType.MissingValue, errors.ToString());
+                AddValidationError(
+                    ErrorType.MissingValue,
+                    "CP010",
+                    missingColumn,
+                    string.Empty,
+                    $"Required project column '{missingColumn}' is missing from row 1.",
+                    $"Add a column named '{missingColumn}' to row 1 and provide a value for each project row.");
             }
 
             return columnIndices;
