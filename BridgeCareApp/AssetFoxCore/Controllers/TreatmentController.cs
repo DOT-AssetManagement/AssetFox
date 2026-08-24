@@ -20,6 +20,7 @@ using AssetFoxCore.Models;
 using AssetFox.Core.DataPersistenceCore.Repositories;
 using AssetFoxCore.Services.General_Work_Queue.WorkItems;
 using AssetFoxCore.Services;
+using AssetFoxCore.Services.SimulationCloning;
 
 namespace AssetFoxCore.Controllers
 {
@@ -392,6 +393,12 @@ namespace AssetFoxCore.Controllers
                     {
                         _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
                         dto.Treatments = items;
+                        if (upsertRequest.IsNewLibrary)
+                        {
+                            dto.RuleOverrides = TreatmentRuleOverrideCloner.CloneListForNewLibrary(
+                                dto.RuleOverrides,
+                                items);
+                        }
                     }
                     UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers(dto, upsertRequest.IsNewLibrary, UserId);
                 });
@@ -401,12 +408,18 @@ namespace AssetFoxCore.Controllers
             catch (UnauthorizedAccessException e)
             {
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertTreatmentLibrary - {HubService.errorList["Unauthorized"]}", e);
+                return Unauthorized(e.Message);
+            }
+            catch (InvalidOperationException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertTreatmentLibrary - {e.Message}", e);
+                return BadRequest(e.Message);
             }
             catch (Exception e)
             {
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertTreatmentLibrary - {e.Message}", e);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Unable to save the treatment library.");
             }
-            return Ok();
         }
 
         [HttpGet]
@@ -444,11 +457,7 @@ namespace AssetFoxCore.Controllers
                     var dtos = _treatmentPagingService.GetSyncedScenarioDataSet(simulationId, pagingSync);
                     TreatmentDtoListService.AddLibraryIdToScenarioSelectableTreatments(dtos, pagingSync.LibraryId);
                     TreatmentDtoListService.AddModifiedToScenarioSelectableTreatments(dtos, pagingSync.IsModified);
-                    UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(dtos, simulationId, pagingSync.LibraryId.HasValue);
-                    if (pagingSync.LibraryId.HasValue)
-                    {
-                        UnitOfWork.TreatmentRuleOverrideRepo.ReplaceScenarioRuleOverridesFromLibrary(simulationId, pagingSync.LibraryId.Value, dtos);
-                    }
+                    UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteScenarioSelectableTreatment(dtos, simulationId, pagingSync.LibraryId);
                 });
 
                 return Ok();
@@ -457,13 +466,14 @@ namespace AssetFoxCore.Controllers
             {
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertScenarioSelectedTreatments for {simulationName} - {HubService.errorList["Unauthorized"]}", e);
+                return Unauthorized(e.Message);
             }
             catch (Exception e)
             {
                 var simulationName = UnitOfWork.SimulationRepo.GetSimulationNameOrId(simulationId);
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertScenarioSelectedTreatments for {simulationName} - {e.Message}", e);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Unable to save the scenario treatments.");
             }
-            return Ok();
         }
 
         [HttpDelete]
@@ -1182,8 +1192,8 @@ namespace AssetFoxCore.Controllers
             catch (Exception e)
             {
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::UpsertRuleOverrides - {e.Message}", e);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Unable to save treatment rule overrides.");
             }
-            return Ok();
         }
 
         [HttpDelete]
@@ -1195,15 +1205,33 @@ namespace AssetFoxCore.Controllers
             {
                 await Task.Factory.StartNew(() =>
                 {
+                    var libraryId = UnitOfWork.TreatmentRuleOverrideRepo.GetLibraryIdForRuleOverride(overrideId);
+                    if (!libraryId.HasValue)
+                    {
+                        throw new KeyNotFoundException("The treatment rule override was not found.");
+                    }
+
+                    var libraryAccess = UnitOfWork.TreatmentLibraryUserRepo.GetLibraryAccess(libraryId.Value, UserId);
+                    _claimHelper.CheckUserLibraryModifyAuthorization(libraryAccess, UserId);
                     UnitOfWork.TreatmentRuleOverrideRepo.DeleteRuleOverride(overrideId);
                 });
                 return Ok();
             }
+            catch (KeyNotFoundException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::DeleteRuleOverride - {e.Message}", e);
+                return NotFound(e.Message);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::DeleteRuleOverride - {HubService.errorList["Unauthorized"]}", e);
+                return Unauthorized(e.Message);
+            }
             catch (Exception e)
             {
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{TreatmentError}::DeleteRuleOverride - {e.Message}", e);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Unable to delete the treatment rule override.");
             }
-            return Ok();
         }
 
         [HttpGet]

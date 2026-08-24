@@ -297,5 +297,39 @@ namespace AssetFoxCoreTests.Tests.Treatment
             var returnedConsequence = returnedDto.Consequences.Single();
             Assert.NotEqual(Guid.Empty, returnedConsequence.Id);
         }
+
+        [Fact]
+        public void CreateNewLibrary_FromScenarioWithSelectedLibrary_PreservesOriginalTreatmentIdForRelationshipRemapping()
+        {
+            var unitOfWork = UnitOfWorkMocks.New();
+            var selectableTreatmentRepo = SelectableTreatmentRepositoryMocks.New(unitOfWork);
+            var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var service = CreatePagingService(unitOfWork);
+            var simulationId = Guid.NewGuid();
+            var libraryId = Guid.NewGuid();
+            var sourceTreatmentId = Guid.NewGuid();
+            var treatment = TreatmentDtos.Dto(sourceTreatmentId);
+            treatment.Costs = new List<TreatmentCostDTO>();
+            treatment.Consequences = new List<TreatmentConsequenceDTO>();
+            treatment.SupersedeRules = new List<TreatmentSupersedeRuleDTO>();
+            selectableTreatmentRepo.Setup(repository => repository.GetSelectableTreatments(libraryId))
+                .ReturnsList(treatment);
+            budgetRepo.Setup(repository => repository.GetScenarioBudgets(simulationId)).ReturnsEmptyList();
+            var request = new LibraryUpsertPagingRequestModel<TreatmentLibraryDTO, TreatmentDTO>
+            {
+                IsNewLibrary = true,
+                Library = TreatmentLibraryDtos.Empty(),
+                ScenarioId = simulationId,
+                SyncModel = new PagingSyncModel<TreatmentDTO>
+                {
+                    LibraryId = libraryId
+                }
+            };
+
+            var returnedTreatment = service.GetSyncedLibraryDataset(request).Single();
+
+            Assert.NotEqual(sourceTreatmentId, returnedTreatment.Id);
+            Assert.Equal(sourceTreatmentId, returnedTreatment.SourceTreatmentId);
+        }
     }
 }

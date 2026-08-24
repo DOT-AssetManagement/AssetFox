@@ -67,6 +67,26 @@ namespace AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment
         }
 
         [Fact]
+        public void ToDomain_WithMixedOverrideOperators_PreservesCriterionOrder()
+        {
+            var treatmentEntity = simulationSource.SelectableTreatments.First();
+            treatmentEntity.CriterionLibraryScenarioSelectableTreatmentJoin = null;
+            var overrideCriteria = new[]
+            {
+                OverrideCriterion(treatmentEntity.Id, "AND", 0, "A"),
+                OverrideCriterion(treatmentEntity.Id, "OR", 1, "B"),
+                OverrideCriterion(treatmentEntity.Id, "AND", 2, "C")
+            };
+
+            var selectableTreatment = treatmentEntity.ToDomain(
+                testSimulation,
+                simulationSource.SelectableTreatments.ToList(),
+                overrideCriteria.ToList());
+
+            Assert.Equal("(((A) OR (B)) AND (C))", selectableTreatment.FeasibilityCriteria.Single().Expression);
+        }
+
+        [Fact]
         public void ToDomainOnTestTreatmentWithSupersedeRulesCosts()
         {
             // Arrange
@@ -124,6 +144,27 @@ namespace AssetFox.Core.UnitTestsCore.Tests.SelectableTreatment
             Assert.True(resultDto.PerformanceFactors.Count == 0);
             Assert.True(resultDto.Consequences.Count == 0);
            Assert.True(resultDto.SupersedeRules.Count == 1);
+        }
+
+        private static ScenarioTreatmentRuleOverrideCriterionEntity OverrideCriterion(
+            Guid treatmentId,
+            string logicalOperator,
+            int sortOrder,
+            string expression)
+        {
+            var criterion = new ScenarioTreatmentRuleOverrideCriterionEntity
+            {
+                Id = Guid.NewGuid(),
+                LogicalOperator = logicalOperator,
+                SortOrder = sortOrder,
+                CriterionExpression = expression
+            };
+            criterion.TreatmentJoins.Add(new ScenarioTreatmentRuleOverrideCriterionTreatmentEntity
+            {
+                ScenarioTreatmentRuleOverrideCriterionId = criterion.Id,
+                ScenarioSelectableTreatmentId = treatmentId
+            });
+            return criterion;
         }
     }
 }

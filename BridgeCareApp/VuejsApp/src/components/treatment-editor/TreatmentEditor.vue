@@ -286,6 +286,7 @@
                         :ruleOverrides="selectedTreatmentLibrary.ruleOverrides"
                         :treatmentSelectItems="treatmentSelectItems"
                         @update:ruleOverrides="onRuleOverridesChanged"
+                        @validity-changed="onRuleOverrideValidityChanged"
                     />
                 </v-col>
             </v-row>
@@ -322,14 +323,14 @@
                         @createAsNewLibrary="onShowCreateTreatmentLibraryDialog(true)"
                         :disabled='disableCrudButtons()'
                     />
-                    <SaveButton 
+                    <SaveButton
                         @save="onUpsertScenarioTreatments"
-                        :disabled='disableCrudButtonsResult || !unsavedChangesStore.getHasUnsavedChanges'
+                        :disabled='disableCrudButtons() || !unsavedChangesStore.getHasUnsavedChanges'
                         :show="hasScenario"
                     />
-                    <UpdateLibraryButton 
+                    <UpdateLibraryButton
                         @updateLibrary="onUpsertTreatmentLibrary"
-                        :disabled='disableCrudButtonsResult || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges'
+                        :disabled='disableCrudButtons() || !hasLibraryEditPermission || !unsavedChangesStore.getHasUnsavedChanges'
                         :show="!hasScenario"
                     />
                 </v-col>
@@ -529,7 +530,7 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     let hasScenario = ref(false);
     let budgets: SimpleBudgetDetail[] = [];
     let hasCreatedLibrary: boolean = false;
-    let disableCrudButtonsResult: boolean = false;
+    let createAsNewLibraryRequested: boolean = false;
     let hasLibraryEditPermission: boolean | Promise<boolean> = false;
     const showImportTreatmentsDialog = ref<boolean>(false);
     const showImportSupersedeDialog = ref<boolean>(false);
@@ -561,6 +562,7 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     const shareTreatmentLibraryDialogData = ref<ShareTreatmentLibraryDialogData>(clone(emptyShareTreatmentLibraryDialogData));
     let loadedScenarioId: string = '';
     const ruleOverrides = ref<TreatmentRuleOverride[]>([]);
+    const ruleOverridesAreValid = ref(true);
     const ruleOverrideTogglesKey = ref(0);
     let pendingScenarioOverrideSettings: ScenarioOverrideSetting[] = [];
     let hasPendingScenarioOverrideSettings = false;
@@ -997,6 +999,7 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     }
 
     function onShowCreateTreatmentLibraryDialog(createAsNewLibrary: boolean) {
+        createAsNewLibraryRequested = createAsNewLibrary;
         createTreatmentLibraryDialogData.value = {
             showDialog: true,
             selectedTreatmentLibraryTreatments: createAsNewLibrary ? simpleTreatments.value.map(_ => {
@@ -1005,11 +1008,18 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
                 treatment.id = _.id
                 return treatment
             }) : [],
+            selectedTreatmentLibraryRuleOverrides: createAsNewLibrary
+                ? clone(hasScenario.value
+                    ? ruleOverrides.value
+                    : selectedTreatmentLibrary.value.ruleOverrides || [])
+                : [],
         };
     }
 
-    function  onSubmitCreateTreatmentLibraryDialogResult(library: TreatmentLibrary) {
+    async function onSubmitCreateTreatmentLibraryDialogResult(library: TreatmentLibrary) {
         createTreatmentLibraryDialogData.value = clone(emptyCreateTreatmentLibraryDialogData,);
+        const shouldApplyCreatedLibraryToScenario = hasScenario.value && createAsNewLibraryRequested;
+        createAsNewLibraryRequested = false;
 
         if (!isNil(library)) {
             const upsertRequest: LibraryUpsertPagingRequest<TreatmentLibrary, Treatment> = {
@@ -1023,25 +1033,68 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
                     isModified: false
                  },
                  scenarioId: hasScenario.value ? selectedScenarioId : null
-            }
-            TreatmentService.upsertTreatmentLibrary(upsertRequest).then((response: AxiosResponse) => {
+            };
+            try {
+                const response: AxiosResponse = await TreatmentService.upsertTreatmentLibrary(upsertRequest);
                 if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
                     hasCreatedLibrary = true;
-                    if(!hasScenario.value)
-                        librarySelectItemValue.value = library.id;
                     if(library.treatments.length === 0){
                         clearChanges();
                     }
 
-                    treatmentStore.addedOrUpdatedTreatmentLibraryMutator(library);
-                    treatmentStore.getTreatmentLibraries().then(() => {
-                        // After refreshing, select the new library
+                    await treatmentStore.getTreatmentLibraries();
+                    if (shouldApplyCreatedLibraryToScenario) {
+                        await applyCreatedTreatmentLibraryToScenario(library.id);
+                        notificationStore.addSuccessNotification({
+                            message: 'Added treatment library and applied it to this scenario',
+                        });
+                    } else {
+                        if(!hasScenario.value) {
+                            librarySelectItemValue.value = library.id;
+                        }
                         treatmentStore.selectedTreatmentLibraryMutator(library.id);
-                    });
-                    notificationStore.addSuccessNotification({message:'Added treatment library'})
-                }               
-            })
+                        notificationStore.addSuccessNotification({message:'Added treatment library'});
+                    }
+                }
+            } catch {
+                // The axios interceptor reports the error. Preserve the source library selection.
+            }
         }
+    }
+
+    async function applyCreatedTreatmentLibraryToScenario(libraryId: string) {
+        const response: AxiosResponse = await TreatmentService.upsertScenarioSelectedTreatments({
+            libraryId,
+            rowsForDeletion: [],
+            updateRows: [],
+            addedRows: [],
+            isModified: false,
+        }, selectedScenarioId);
+
+        if (!hasValue(response, 'status') || !http2XX.test(response.status.toString())) {
+            throw new Error('Unable to apply the new treatment library to the scenario.');
+        }
+
+        librarySelectItemValue.value = '';
+        treatmentStore.selectedTreatmentLibraryMutator(uuidNIL);
+
+        await Promise.all([
+            treatmentStore.getSimpleScenarioSelectableTreatments(selectedScenarioId),
+            treatmentStore.getTreatmentLibraryBySimulationId(selectedScenarioId),
+        ]);
+
+        simpleTreatments.value = clone(treatmentStore.simpleScenarioSelectableTreatmentsGetter);
+        ruleOverrides.value = clone(treatmentStore.getScenarioTreatmentLibrary?.ruleOverrides || []);
+        treatmentSelectItemValue.value = '';
+        scenarioLibraryIsModified = false;
+        newLibrarySelection = false;
+        setParentLibraryName(libraryId);
+        loadedParentId = libraryId;
+        loadedParentName = parentLibraryName.value;
+        clearChanges();
+        unsavedChangesStore.setHasUnsavedChanges(false);
+        ruleOverrideTogglesKey.value += 1;
+        $emitter.emit('TreatmentSettingsUpdated');
     }
 
     function setParentLibraryName(libraryId: string) {
@@ -1095,7 +1148,14 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
         });
     }
 
-    function onUpsertTreatmentLibrary() {
+    async function onUpsertTreatmentLibrary() {
+        if (!ruleOverridesAreValid.value) {
+            notificationStore.addErrorNotification({
+                message: 'Complete all rule override names, criteria, expressions, and treatment selections before saving.',
+            });
+            return;
+        }
+
         const upsertRequest: LibraryUpsertPagingRequest<TreatmentLibrary, Treatment> = {
                 library: selectedTreatmentLibrary.value,
                 isNewLibrary: false,
@@ -1109,24 +1169,17 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
                 scenarioId: null
         }
 
-        TreatmentService.upsertTreatmentLibrary(upsertRequest).then(async (response: AxiosResponse) => {
+        try {
+            const response: AxiosResponse = await TreatmentService.upsertTreatmentLibrary(upsertRequest);
             if (hasValue(response, 'status') && http2XX.test(response.status.toString())){
-                // Save rule overrides separately
-                if (selectedTreatmentLibrary.value.ruleOverrides?.length >= 0) {
-                    try {
-                        await TreatmentRuleOverrideService.upsertRuleOverrides(
-                            selectedTreatmentLibrary.value.id,
-                            selectedTreatmentLibrary.value.ruleOverrides,
-                        );
-                    } catch {
-                        // Error handled by axios interceptor
-                    }
-                }
                 clearChanges();
-                treatmentStore.addedOrUpdatedTreatmentLibraryMutator(selectedTreatmentLibrary.value);
-                treatmentStore.selectedTreatmentLibraryMutator(selectedTreatmentLibrary.value.id);
+                await treatmentStore.getTreatmentLibraries();
+                treatmentStore.selectedTreatmentLibraryMutator(upsertRequest.library.id);
             }
-        });
+        } catch {
+            // The axios interceptor reports the error. Keep the editor dirty so the user can retry.
+            checkHasUnsavedChanges();
+        }
     }
 
     function onAddTreatment(newTreatment: Treatment) {
@@ -1150,6 +1203,11 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
     function onRuleOverridesChanged(overrides: TreatmentRuleOverride[]) {
         selectedTreatmentLibrary.value.ruleOverrides = overrides;
         checkHasUnsavedChanges();
+    }
+
+    function onRuleOverrideValidityChanged(isValid: boolean) {
+        ruleOverridesAreValid.value = isValid;
+        disableCrudButtons();
     }
 
     function upsertPendingScenarioOverrideSetting(setting: ScenarioOverrideSetting) {
@@ -1384,7 +1442,7 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
 
     function disableCrudButtons() { // TODO for supersedes?
         const rows = addedRows.concat(Array.from(updatedRowsMap.values()).map(r => r[1]));
-        const allDataIsValid: boolean = rows.every((treatment: Treatment) => {
+        const allDataIsValid: boolean = ruleOverridesAreValid.value && rows.every((treatment: Treatment) => {
             const allSubDataIsValid: boolean = treatment.consequences.every((consequence: TreatmentConsequence) => {
                     return (rules['generalRules'].valueIsNotEmpty(consequence.attribute,) === true &&
                         rules['treatmentRules']
@@ -1403,7 +1461,6 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
                 allDataIsValid);
         }
 
-        disableCrudButtonsResult = !allDataIsValid;
         return !allDataIsValid;
     }
 

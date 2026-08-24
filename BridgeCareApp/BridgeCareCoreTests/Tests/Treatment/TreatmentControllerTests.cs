@@ -131,6 +131,70 @@ namespace AssetFoxCoreTests.Tests
         }
 
         [Fact]
+        public async Task CreateLibraryFromScenario_RuleOverrideTargetsAreRemappedToNewLibraryTreatments()
+        {
+            var unitOfWork = UnitOfWorkMocks.New();
+            UserRepositoryMocks.EveryoneExists(unitOfWork);
+            var treatmentLibraryUserRepo = TreatmentLibraryUserMocks.New(unitOfWork);
+            var treatmentRepo = SelectableTreatmentRepositoryMocks.New(unitOfWork);
+            var pagingService = TreatmentPagingServiceMocks.EmptyMock;
+            var scenarioTreatmentId = Guid.NewGuid();
+            var newLibraryTreatmentId = Guid.NewGuid();
+            var newLibraryId = Guid.NewGuid();
+            var newLibraryTreatment = TreatmentDtos.Dto(newLibraryTreatmentId);
+            newLibraryTreatment.SourceTreatmentId = scenarioTreatmentId;
+            var sourceOverrideId = Guid.NewGuid();
+            var sourceCriterionId = Guid.NewGuid();
+            var library = new TreatmentLibraryDTO
+            {
+                Id = newLibraryId,
+                Name = "Created from scenario",
+                Treatments = new List<TreatmentDTO>(),
+                RuleOverrides = new List<TreatmentRuleOverrideDTO>
+                {
+                    new TreatmentRuleOverrideDTO
+                    {
+                        Id = sourceOverrideId,
+                        Name = "Scenario override",
+                        Criteria = new List<TreatmentRuleOverrideCriterionDTO>
+                        {
+                            new TreatmentRuleOverrideCriterionDTO
+                            {
+                                Id = sourceCriterionId,
+                                LogicalOperator = "AND",
+                                CriterionExpression = "Expression",
+                                TreatmentIds = new List<Guid> { scenarioTreatmentId }
+                            }
+                        }
+                    }
+                }
+            };
+            var request = new LibraryUpsertPagingRequestModel<TreatmentLibraryDTO, TreatmentDTO>
+            {
+                IsNewLibrary = true,
+                Library = library,
+                ScenarioId = Guid.NewGuid(),
+                SyncModel = new PagingSyncModel<TreatmentDTO>()
+            };
+            treatmentLibraryUserRepo.SetupGetLibraryAccess(newLibraryId, LibraryAccessModels.LibraryDoesNotExist());
+            pagingService.Setup(service => service.GetSyncedLibraryDataset(request))
+                .Returns(new List<TreatmentDTO> { newLibraryTreatment });
+            var controller = TestTreatmentControllerSetup.Create(unitOfWork, pagingService);
+
+            var result = await controller.UpsertTreatmentLibrary(request);
+
+            Assert.IsType<OkResult>(result);
+            var invocation = treatmentRepo.SingleInvocationWithName(
+                nameof(ISelectableTreatmentRepository.UpsertOrDeleteTreatmentLibraryTreatmentsAndPossiblyUsers));
+            var savedLibrary = Assert.IsType<TreatmentLibraryDTO>(invocation.Arguments[0]);
+            var savedOverride = Assert.Single(savedLibrary.RuleOverrides);
+            Assert.NotEqual(sourceOverrideId, savedOverride.Id);
+            var savedCriterion = Assert.Single(savedOverride.Criteria);
+            Assert.NotEqual(sourceCriterionId, savedCriterion.Id);
+            Assert.Equal(newLibraryTreatmentId, Assert.Single(savedCriterion.TreatmentIds));
+        }
+
+        [Fact]
         public async Task ShouldReturnOkResultOnScenarioPost()
         {
             var unitOfWork = UnitOfWorkMocks.New();

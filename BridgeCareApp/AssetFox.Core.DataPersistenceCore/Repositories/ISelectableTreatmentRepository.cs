@@ -32,7 +32,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories
 
         List<string> GetSelectableTreatmentNames(Guid libraryId);
 
-        void UpsertOrDeleteScenarioSelectableTreatment(List<TreatmentDTO> scenarioSelectableTreatments, Guid simulationId, bool replaceScenarioRuleOverrides = false);
+        void UpsertOrDeleteScenarioSelectableTreatment(List<TreatmentDTO> scenarioSelectableTreatments, Guid simulationId, Guid? ruleOverrideLibraryId = null);
         TreatmentLibraryDTO GetSingleTreatmentLibary(Guid libraryId);
         void ReplaceTreatmentLibrary(Guid libraryId, List<TreatmentDTO> treatments);
 

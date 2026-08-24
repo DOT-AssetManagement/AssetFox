@@ -358,24 +358,13 @@ import { useAdminDataStore } from '@/stores';
             return baseExpression?.trim() ?? '';
         }
 
-        const andExpressions = [
-            baseExpression?.trim() ? parenthesizeExpression(baseExpression) : '',
-            ...criteria
-                .filter(overrideCriterion => overrideCriterion.logicalOperator === 'AND')
-                .map(overrideCriterion => overrideCriterion.criterionExpression),
-        ].filter(expression => !!expression);
+        return criteria.reduce((combinedExpression, overrideCriterion) => {
+            if (!combinedExpression) {
+                return overrideCriterion.criterionExpression;
+            }
 
-        const expressionGroups: string[] = [];
-        if (andExpressions.length > 0) {
-            const andGroupExpression = andExpressions.join(' AND ');
-            expressionGroups.push(andExpressions.length > 1 ? parenthesizeExpression(andGroupExpression) : andGroupExpression);
-        }
-
-        expressionGroups.push(...criteria
-            .filter(overrideCriterion => overrideCriterion.logicalOperator === 'OR')
-            .map(overrideCriterion => overrideCriterion.criterionExpression));
-
-        return expressionGroups.join(' OR ');
+            return `(${combinedExpression} ${overrideCriterion.logicalOperator} ${overrideCriterion.criterionExpression})`;
+        }, baseExpression?.trim() ? parenthesizeExpression(baseExpression) : '');
     }
 
     function parenthesizeExpression(expression: string): string {

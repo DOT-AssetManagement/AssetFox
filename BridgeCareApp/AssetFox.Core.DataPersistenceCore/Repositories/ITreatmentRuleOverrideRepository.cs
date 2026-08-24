@@ -15,6 +15,8 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories
 
         void DeleteRuleOverride(Guid overrideId);
 
+        Guid? GetLibraryIdForRuleOverride(Guid overrideId);
+
         List<ScenarioTreatmentRuleOverrideSettingDTO> GetOverrideSettings(Guid simulationId);
 
         void UpsertOverrideSettings(Guid simulationId, List<ScenarioTreatmentRuleOverrideSettingDTO> settings);

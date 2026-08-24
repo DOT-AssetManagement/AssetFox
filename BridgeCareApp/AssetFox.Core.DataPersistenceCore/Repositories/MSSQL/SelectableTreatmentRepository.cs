@@ -702,7 +702,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         }
 
         public void UpsertOrDeleteScenarioSelectableTreatment(List<TreatmentDTO> scenarioSelectableTreatments,
-            Guid simulationId, bool replaceScenarioRuleOverrides = false)
+            Guid simulationId, Guid? ruleOverrideLibraryId = null)
         {
             if (!_unitOfWork.Context.Simulation.Any(_ => _.Id == simulationId))
             {
@@ -718,11 +718,6 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 .ToList();
             _unitOfWork.AsTransaction(() =>
             {
-                if (replaceScenarioRuleOverrides)
-                {
-                    _unitOfWork.TreatmentRuleOverrideRepo.DeleteScenarioRuleOverrides(simulationId);
-                }
-
                 _unitOfWork.Context.DeleteAll<ScenarioSelectableTreatmentScenarioBudgetEntity>(_ =>
                     _.ScenarioSelectableTreatment.SimulationId == simulationId);
 
@@ -840,6 +835,14 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 }
 
                 _unitOfWork.TreatmentRuleOverrideRepo.DeleteCriteriaWithoutTreatmentsForScenario(simulationId);
+
+                if (ruleOverrideLibraryId.HasValue)
+                {
+                    _unitOfWork.TreatmentRuleOverrideRepo.ReplaceScenarioRuleOverridesFromLibrary(
+                        simulationId,
+                        ruleOverrideLibraryId.Value,
+                        scenarioSelectableTreatments);
+                }
 
                 // Update last modified date
                 var simulationEntity = _unitOfWork.Context.Simulation.Single(_ => _.Id == simulationId);
@@ -1177,6 +1180,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             {
                 _unitOfWork.SelectableTreatmentRepo.UpsertTreatmentLibrary(dto);
                 _unitOfWork.SelectableTreatmentRepo.UpsertOrDeleteTreatments(dto.Treatments, dto.Id);
+                _unitOfWork.TreatmentRuleOverrideRepo.UpsertRuleOverrides(dto.Id, dto.RuleOverrides);
                 if (isNewLibrary)
                 {
                     var users = LibraryUserDtolists.OwnerAccess(userId);

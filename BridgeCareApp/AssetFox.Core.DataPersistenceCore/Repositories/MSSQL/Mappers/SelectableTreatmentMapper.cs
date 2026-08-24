@@ -424,28 +424,17 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL.Mappers
                 return baseCriteriaExpression;
             }
 
-            var andExpressions = new List<string>();
-            if (!string.IsNullOrWhiteSpace(baseCriteriaExpression))
+            var combinedExpression = string.IsNullOrWhiteSpace(baseCriteriaExpression)
+                ? string.Empty
+                : ParenthesizeExpression(baseCriteriaExpression);
+            foreach (var criterion in criteria)
             {
-                andExpressions.Add(ParenthesizeExpression(baseCriteriaExpression));
+                combinedExpression = string.IsNullOrWhiteSpace(combinedExpression)
+                    ? criterion.CriterionExpression
+                    : $"({combinedExpression} {criterion.LogicalOperator} {criterion.CriterionExpression})";
             }
 
-            andExpressions.AddRange(criteria
-                .Where(overrideCriterion => overrideCriterion.LogicalOperator == "AND")
-                .Select(overrideCriterion => overrideCriterion.CriterionExpression));
-
-            var expressionGroups = new List<string>();
-            if (andExpressions.Any())
-            {
-                var andGroupExpression = string.Join(" AND ", andExpressions);
-                expressionGroups.Add(andExpressions.Count > 1 ? ParenthesizeExpression(andGroupExpression) : andGroupExpression);
-            }
-
-            expressionGroups.AddRange(criteria
-                .Where(overrideCriterion => overrideCriterion.LogicalOperator == "OR")
-                .Select(overrideCriterion => overrideCriterion.CriterionExpression));
-
-            return string.Join(" OR ", expressionGroups);
+            return combinedExpression;
         }
 
         private static string ParenthesizeExpression(string expression)

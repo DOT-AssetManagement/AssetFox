@@ -29,6 +29,80 @@ public class TreatmentRuleOverrideRepositoryTests
     }
 
     [Fact]
+    public void UpsertRuleOverrides_AddingCriterionToSecondExistingOverride_PersistsAllCriteria()
+    {
+        var libraryId = Guid.NewGuid();
+        TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryId);
+        var treatments = Enumerable.Range(1, 4)
+            .Select(index => TreatmentTestSetup.ModelForSingleTreatmentOfLibrary(
+                Guid.NewGuid(),
+                $"Treatment {index}"))
+            .ToList();
+        TestHelper.UnitOfWork.SelectableTreatmentRepo.UpsertOrDeleteTreatments(treatments, libraryId);
+        var firstOverride = new TreatmentRuleOverrideDTO
+        {
+            Id = Guid.NewGuid(),
+            Name = "First Override",
+            Criteria = new List<TreatmentRuleOverrideCriterionDTO>
+            {
+                TreatmentRuleOverrideTestSetup.CriterionDto(treatments[0].Id, "First criterion"),
+                TreatmentRuleOverrideTestSetup.CriterionDto(treatments[1].Id, "Second criterion")
+            }
+        };
+        var secondOverride = new TreatmentRuleOverrideDTO
+        {
+            Id = Guid.NewGuid(),
+            Name = "Second Override",
+            Criteria = new List<TreatmentRuleOverrideCriterionDTO>
+            {
+                TreatmentRuleOverrideTestSetup.CriterionDto(treatments[2].Id, "Third criterion")
+            }
+        };
+        TestHelper.UnitOfWork.TreatmentRuleOverrideRepo.UpsertRuleOverrides(
+            libraryId,
+            new List<TreatmentRuleOverrideDTO> { firstOverride, secondOverride });
+
+        var reloadedOverrides = TestHelper.UnitOfWork.TreatmentRuleOverrideRepo
+            .GetRuleOverridesByLibraryId(libraryId);
+        reloadedOverrides.Single(ruleOverride => ruleOverride.Id == secondOverride.Id).Criteria.Add(
+            TreatmentRuleOverrideTestSetup.CriterionDto(treatments[3].Id, "Fourth criterion"));
+
+        TestHelper.UnitOfWork.TreatmentRuleOverrideRepo.UpsertRuleOverrides(libraryId, reloadedOverrides);
+
+        var persistedOverrides = TestHelper.UnitOfWork.TreatmentRuleOverrideRepo
+            .GetRuleOverridesByLibraryId(libraryId);
+        Assert.Equal(2, persistedOverrides.Single(ruleOverride => ruleOverride.Id == firstOverride.Id).Criteria.Count);
+        Assert.Equal(2, persistedOverrides.Single(ruleOverride => ruleOverride.Id == secondOverride.Id).Criteria.Count);
+    }
+
+    [Fact]
+    public void UpsertRuleOverrides_EmptyTreatmentIdsWithStaleTreatments_RejectsCriterion()
+    {
+        var libraryId = Guid.NewGuid();
+        TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryId);
+        var treatmentId = Guid.NewGuid();
+        TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(TestHelper.UnitOfWork, libraryId, treatmentId);
+        var ruleOverride = TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDbWithCriterion(
+            TestHelper.UnitOfWork,
+            libraryId,
+            Guid.NewGuid(),
+            treatmentId,
+            "Expression");
+        var persistedOverride = TestHelper.UnitOfWork.TreatmentRuleOverrideRepo
+            .GetRuleOverridesByLibraryId(libraryId)
+            .Single(rule => rule.Id == ruleOverride.Id);
+        Assert.NotEmpty(persistedOverride.Criteria[0].Treatments);
+        persistedOverride.Criteria[0].TreatmentIds = new List<Guid>();
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            TestHelper.UnitOfWork.TreatmentRuleOverrideRepo.UpsertRuleOverrides(
+                libraryId,
+                new List<TreatmentRuleOverrideDTO> { persistedOverride }));
+
+        Assert.Equal("Each treatment override criterion must select at least one treatment.", exception.Message);
+    }
+
+    [Fact]
     public void DeleteRuleOverride_OverrideInDb_Deletes()
     {
         var libraryId = Guid.NewGuid();
@@ -72,6 +146,46 @@ public class TreatmentRuleOverrideRepositoryTests
 
         var scenarioOverrides = repo.GetRuleOverridesBySimulationId(simulationId);
         Assert.Single(scenarioOverrides);
+    }
+
+    [Fact]
+    public void ReplaceScenarioRuleOverridesFromLibrary_TargetsScenarioTreatmentIds()
+    {
+        AttributeTestSetup.CreateAttributes(TestHelper.UnitOfWork);
+        NetworkTestSetup.CreateNetwork(TestHelper.UnitOfWork);
+        var simulationId = Guid.NewGuid();
+        SimulationTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, simulationId);
+        var libraryId = Guid.NewGuid();
+        TreatmentLibraryTestSetup.ModelForEntityInDb(TestHelper.UnitOfWork, libraryId);
+        var libraryTreatmentId = Guid.NewGuid();
+        TreatmentTestSetup.ModelForSingleTreatmentOfLibraryInDb(
+            TestHelper.UnitOfWork,
+            libraryId,
+            libraryTreatmentId);
+        TreatmentRuleOverrideTestSetup.ModelForLibraryEntityInDbWithCriterion(
+            TestHelper.UnitOfWork,
+            libraryId,
+            Guid.NewGuid(),
+            libraryTreatmentId,
+            "Expression");
+        var scenarioTreatmentId = Guid.NewGuid();
+        var scenarioTreatment = TreatmentTestSetup.ModelForSingleTreatmentOfSimulationInDb(
+            TestHelper.UnitOfWork,
+            simulationId,
+            scenarioTreatmentId,
+            sourceTreatmentId: libraryTreatmentId);
+
+        TestHelper.UnitOfWork.TreatmentRuleOverrideRepo.ReplaceScenarioRuleOverridesFromLibrary(
+            simulationId,
+            libraryId,
+            new List<TreatmentDTO> { scenarioTreatment });
+
+        var scenarioOverride = Assert.Single(
+            TestHelper.UnitOfWork.TreatmentRuleOverrideRepo.GetRuleOverridesBySimulationId(simulationId));
+        var scenarioCriterion = Assert.Single(scenarioOverride.Criteria);
+        Assert.Equal(scenarioTreatmentId, Assert.Single(scenarioCriterion.TreatmentIds));
+        Assert.Equal(scenarioTreatmentId, Assert.Single(scenarioCriterion.Treatments).Id);
+        Assert.DoesNotContain(libraryTreatmentId, scenarioCriterion.TreatmentIds);
     }
 
     [Fact]

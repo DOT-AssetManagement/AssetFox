@@ -26,6 +26,20 @@ namespace AssetFoxCore.Services.SimulationCloning
                 .ToList();
         }
 
+        internal static List<TreatmentRuleOverrideDTO> CloneListForNewLibrary(
+            IEnumerable<TreatmentRuleOverrideDTO> overrides,
+            IEnumerable<TreatmentDTO> clonedTreatments)
+        {
+            var clonedTreatmentsBySourceId = (clonedTreatments ?? new List<TreatmentDTO>())
+                .Where(treatment => treatment.SourceTreatmentId.HasValue)
+                .GroupBy(treatment => treatment.SourceTreatmentId.Value)
+                .ToDictionary(group => group.Key, group => group.First());
+
+            return (overrides ?? new List<TreatmentRuleOverrideDTO>())
+                .Select(ruleOverride => Clone(ruleOverride, clonedTreatmentsBySourceId))
+                .ToList();
+        }
+
         private static TreatmentRuleOverrideDTO Clone(
             TreatmentRuleOverrideDTO ruleOverride,
             Dictionary<Guid, TreatmentDTO> clonedTreatmentsBySourceId)

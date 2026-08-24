@@ -42,7 +42,7 @@ public static class TreatmentRuleOverrideTestSetup
         return ruleOverride;
     }
 
-    private static TreatmentRuleOverrideCriterionDTO CriterionDto(
+    public static TreatmentRuleOverrideCriterionDTO CriterionDto(
         Guid treatmentId,
         string criterionExpression)
     {

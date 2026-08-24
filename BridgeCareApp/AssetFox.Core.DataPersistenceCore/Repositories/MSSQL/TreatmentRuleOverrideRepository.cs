@@ -71,11 +71,11 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 var existing = existingOverrides.FirstOrDefault(e => e.Id == dto.Id);
                 if (existing != null)
                 {
-                    existing.Name = dto.Name;
+                    existing.Name = dto.Name.Trim();
                     existing.Description = dto.Description;
                     existing.IsEnabledByDefault = dto.IsEnabledByDefault;
 
-                    ReplaceLibraryCriteria(existing, dto.Criteria);
+                    SyncLibraryCriteria(existing, dto.Criteria);
                 }
                 else
                 {
@@ -83,7 +83,7 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                     {
                         Id = dto.Id != Guid.Empty ? dto.Id : Guid.NewGuid(),
                         TreatmentLibraryId = libraryId,
-                        Name = dto.Name,
+                        Name = dto.Name.Trim(),
                         Description = dto.Description,
                         IsEnabledByDefault = dto.IsEnabledByDefault,
                     };
@@ -106,6 +106,15 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
                 _unitOfWork.Context.TreatmentRuleOverride.Remove(entity);
                 _unitOfWork.Context.SaveChanges();
             }
+        }
+
+        public Guid? GetLibraryIdForRuleOverride(Guid overrideId)
+        {
+            return _unitOfWork.Context.TreatmentRuleOverride
+                .AsNoTracking()
+                .Where(ruleOverride => ruleOverride.Id == overrideId)
+                .Select(ruleOverride => (Guid?)ruleOverride.TreatmentLibraryId)
+                .SingleOrDefault();
         }
 
         public List<ScenarioTreatmentRuleOverrideSettingDTO> GetOverrideSettings(Guid simulationId)
@@ -316,6 +325,72 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
         private void ValidateLibraryRuleOverrides(Guid libraryId, List<TreatmentRuleOverrideDTO> overrides)
         {
+            if (overrides.Any(ruleOverride => ruleOverride == null))
+            {
+                throw new InvalidOperationException("Treatment rule overrides cannot contain empty entries.");
+            }
+
+            var duplicateOverrideIds = overrides
+                .Where(ruleOverride => ruleOverride.Id != Guid.Empty)
+                .GroupBy(ruleOverride => ruleOverride.Id)
+                .Any(group => group.Count() > 1);
+            if (duplicateOverrideIds)
+            {
+                throw new InvalidOperationException("Treatment rule override IDs must be unique.");
+            }
+
+            var duplicateNames = overrides
+                .Where(ruleOverride => !string.IsNullOrWhiteSpace(ruleOverride.Name))
+                .GroupBy(ruleOverride => ruleOverride.Name.Trim(), StringComparer.OrdinalIgnoreCase)
+                .Any(group => group.Count() > 1);
+            if (duplicateNames)
+            {
+                throw new InvalidOperationException("Treatment rule override names must be unique within a library.");
+            }
+
+            var incomingOverrideIds = overrides
+                .Where(ruleOverride => ruleOverride.Id != Guid.Empty)
+                .Select(ruleOverride => ruleOverride.Id)
+                .ToHashSet();
+            var overrideIdsFromOtherLibraries = _unitOfWork.Context.TreatmentRuleOverride
+                .AsNoTracking()
+                .Where(ruleOverride => incomingOverrideIds.Contains(ruleOverride.Id)
+                    && ruleOverride.TreatmentLibraryId != libraryId)
+                .Select(ruleOverride => ruleOverride.Id)
+                .ToHashSet();
+            if (overrideIdsFromOtherLibraries.Any())
+            {
+                throw new InvalidOperationException("Treatment rule overrides cannot reuse IDs from another library.");
+            }
+
+            var incomingCriteria = overrides
+                .SelectMany(ruleOverride => (ruleOverride.Criteria ?? new List<TreatmentRuleOverrideCriterionDTO>())
+                    .Select(criterion => new { RuleOverride = ruleOverride, Criterion = criterion }))
+                .ToList();
+            if (incomingCriteria.Any(item => item.Criterion == null))
+            {
+                throw new InvalidOperationException("Treatment rule overrides cannot contain empty criteria.");
+            }
+
+            var duplicateCriterionIds = incomingCriteria
+                .Where(item => item.Criterion.Id != Guid.Empty)
+                .GroupBy(item => item.Criterion.Id)
+                .Any(group => group.Count() > 1);
+            if (duplicateCriterionIds)
+            {
+                throw new InvalidOperationException("Treatment rule override criterion IDs must be unique.");
+            }
+
+            var incomingCriterionIds = incomingCriteria
+                .Where(item => item.Criterion.Id != Guid.Empty)
+                .Select(item => item.Criterion.Id)
+                .ToHashSet();
+            var persistedCriterionOwners = _unitOfWork.Context.TreatmentRuleOverrideCriterion
+                .AsNoTracking()
+                .Where(criterion => incomingCriterionIds.Contains(criterion.Id))
+                .Select(criterion => new { criterion.Id, criterion.TreatmentRuleOverrideId })
+                .ToDictionary(criterion => criterion.Id, criterion => criterion.TreatmentRuleOverrideId);
+
             var validTreatmentIds = _unitOfWork.Context.SelectableTreatment
                 .AsNoTracking()
                 .Where(t => t.TreatmentLibraryId == libraryId)
@@ -324,8 +399,30 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
 
             foreach (var ruleOverride in overrides)
             {
+                if (string.IsNullOrWhiteSpace(ruleOverride.Name))
+                {
+                    throw new InvalidOperationException("Each treatment rule override must have a name.");
+                }
+
+                if (ruleOverride.Name.Trim().Length > 256)
+                {
+                    throw new InvalidOperationException("Treatment rule override names cannot exceed 256 characters.");
+                }
+
+                if (ruleOverride.Criteria == null || !ruleOverride.Criteria.Any())
+                {
+                    throw new InvalidOperationException("Each treatment rule override must have at least one criterion.");
+                }
+
                 foreach (var criterion in ruleOverride.Criteria ?? new List<TreatmentRuleOverrideCriterionDTO>())
                 {
+                    if (criterion.Id != Guid.Empty
+                        && persistedCriterionOwners.TryGetValue(criterion.Id, out var persistedOverrideId)
+                        && persistedOverrideId != ruleOverride.Id)
+                    {
+                        throw new InvalidOperationException("Treatment rule override criteria cannot be moved between overrides.");
+                    }
+
                     NormalizeLogicalOperator(criterion.LogicalOperator);
 
                     if (string.IsNullOrWhiteSpace(criterion.CriterionExpression))
@@ -347,17 +444,75 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
             }
         }
 
-        private void ReplaceLibraryCriteria(TreatmentRuleOverrideEntity existing, List<TreatmentRuleOverrideCriterionDTO> criteria)
+        private void SyncLibraryCriteria(TreatmentRuleOverrideEntity existing, List<TreatmentRuleOverrideCriterionDTO> criteria)
         {
             var existingCriteria = existing.Criteria.ToList();
-            foreach (var criterion in existingCriteria)
+            var incomingCriteria = criteria ?? new List<TreatmentRuleOverrideCriterionDTO>();
+            var incomingIds = incomingCriteria
+                .Where(criterion => criterion.Id != Guid.Empty)
+                .Select(criterion => criterion.Id)
+                .ToHashSet();
+
+            var criteriaToDelete = existingCriteria
+                .Where(criterion => !incomingIds.Contains(criterion.Id))
+                .ToList();
+            foreach (var criterion in criteriaToDelete)
             {
                 _unitOfWork.Context.TreatmentRuleOverrideCriterionTreatment.RemoveRange(criterion.TreatmentJoins);
+                existing.Criteria.Remove(criterion);
+            }
+            _unitOfWork.Context.TreatmentRuleOverrideCriterion.RemoveRange(criteriaToDelete);
+
+            for (var index = 0; index < incomingCriteria.Count; index++)
+            {
+                var criterionDto = incomingCriteria[index];
+                var criterionEntity = existingCriteria.FirstOrDefault(criterion => criterion.Id == criterionDto.Id);
+                if (criterionEntity == null)
+                {
+                    criterionEntity = new TreatmentRuleOverrideCriterionEntity
+                    {
+                        Id = criterionDto.Id != Guid.Empty ? criterionDto.Id : Guid.NewGuid(),
+                        TreatmentRuleOverrideId = existing.Id,
+                    };
+                    existing.Criteria.Add(criterionEntity);
+                    _unitOfWork.Context.TreatmentRuleOverrideCriterion.Add(criterionEntity);
+                }
+
+                criterionEntity.LogicalOperator = NormalizeLogicalOperator(criterionDto.LogicalOperator);
+                criterionEntity.SortOrder = index;
+                criterionEntity.CriterionExpression = criterionDto.CriterionExpression;
+                SyncLibraryCriterionTreatments(criterionEntity, GetTreatmentIds(criterionDto));
+            }
+        }
+
+        private void SyncLibraryCriterionTreatments(
+            TreatmentRuleOverrideCriterionEntity criterion,
+            IEnumerable<Guid> treatmentIds)
+        {
+            var incomingTreatmentIds = treatmentIds.Where(id => id != Guid.Empty).Distinct().ToHashSet();
+            var joinsToDelete = criterion.TreatmentJoins
+                .Where(join => !incomingTreatmentIds.Contains(join.SelectableTreatmentId))
+                .ToList();
+
+            _unitOfWork.Context.TreatmentRuleOverrideCriterionTreatment.RemoveRange(joinsToDelete);
+            foreach (var join in joinsToDelete)
+            {
+                criterion.TreatmentJoins.Remove(join);
             }
 
-            _unitOfWork.Context.TreatmentRuleOverrideCriterion.RemoveRange(existingCriteria);
-            existing.Criteria.Clear();
-            AddLibraryCriteria(existing, criteria);
+            var existingTreatmentIds = criterion.TreatmentJoins
+                .Select(join => join.SelectableTreatmentId)
+                .ToHashSet();
+            foreach (var treatmentId in incomingTreatmentIds.Where(id => !existingTreatmentIds.Contains(id)))
+            {
+                var treatmentJoin = new TreatmentRuleOverrideCriterionTreatmentEntity
+                {
+                    TreatmentRuleOverrideCriterionId = criterion.Id,
+                    SelectableTreatmentId = treatmentId
+                };
+                criterion.TreatmentJoins.Add(treatmentJoin);
+                _unitOfWork.Context.TreatmentRuleOverrideCriterionTreatment.Add(treatmentJoin);
+            }
         }
 
         private static void AddLibraryCriteria(TreatmentRuleOverrideEntity entity, List<TreatmentRuleOverrideCriterionDTO> criteria)
@@ -388,12 +543,9 @@ namespace AssetFox.Core.DataPersistenceCore.Repositories.MSSQL
         }
 
         private static List<Guid> GetTreatmentIds(TreatmentRuleOverrideCriterionDTO criterion) =>
-            criterion.TreatmentIds != null && criterion.TreatmentIds.Any()
-                ? criterion.TreatmentIds.Where(id => id != Guid.Empty).ToList()
-                : criterion.Treatments?
-                    .Where(t => t.Id != Guid.Empty)
-                    .Select(t => t.Id)
-                    .ToList() ?? new List<Guid>();
+            criterion.TreatmentIds?
+                .Where(id => id != Guid.Empty)
+                .ToList() ?? new List<Guid>();
 
         private static string NormalizeLogicalOperator(string logicalOperator)
         {

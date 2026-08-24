@@ -16,6 +16,10 @@
             </v-btn>
         </div>
 
+        <div v-if="!overridesAreValid" class="rule-override-validation-message">
+            Every override needs a unique name and at least one criterion with an expression and a selected treatment.
+        </div>
+
         <v-card-text class="rule-override-body">
             <div v-if="localOverrides.length === 0" class="rule-override-empty">
                 <div class="rule-override-empty-title">No rule overrides yet</div>
@@ -67,7 +71,8 @@
                                     variant="outlined"
                                     density="compact"
                                     class="ghd-control-border ghd-control-text"
-                                    hide-details
+                                    hide-details="auto"
+                                    :error-messages="getOverrideNameErrors(override, oIndex)"
                                     v-model="override.name"
                                     @update:model-value="onChanged"
                                 />
@@ -144,9 +149,10 @@
                                                 variant="outlined"
                                                 density="compact"
                                                 class="ghd-control-border ghd-control-text rule-override-treatment-select"
-                                                v-model="criterion.treatmentIds"
-                                                hide-details
-                                                @update:model-value="onChanged"
+                                                :model-value="criterion.treatmentIds"
+                                                hide-details="auto"
+                                                :error-messages="getCriterionTreatmentErrors(criterion)"
+                                                @update:model-value="onCriterionTreatmentIdsChanged(criterion, $event)"
                                             />
                                         </td>
                                         <td class="rule-override-operator-cell">
@@ -179,6 +185,12 @@
                                                     <v-icon size="small">fas fa-edit</v-icon>
                                                 </v-btn>
                                             </div>
+                                            <div
+                                                v-if="getCriterionExpressionErrors(criterion).length > 0"
+                                                class="rule-override-inline-error"
+                                            >
+                                                {{ getCriterionExpressionErrors(criterion)[0] }}
+                                            </div>
                                         </td>
                                         <td class="rule-override-actions-cell">
                                             <v-btn
@@ -198,6 +210,7 @@
                         </div>
                         <div v-else class="rule-override-empty rule-override-empty--compact">
                             <div class="rule-override-empty-title">No criteria for this override</div>
+                            <div class="rule-override-inline-error">Add at least one criterion before saving.</div>
                         </div>
                     </v-expansion-panel-text>
                 </v-expansion-panel>
@@ -225,7 +238,7 @@ const props = defineProps<{
     treatmentSelectItems: SelectItem[];
 }>();
 
-const emit = defineEmits(['update:ruleOverrides']);
+const emit = defineEmits(['update:ruleOverrides', 'validity-changed']);
 
 const localOverrides = ref<TreatmentRuleOverride[]>([]);
 const expandedPanel = ref<number | undefined>(undefined);
@@ -235,14 +248,27 @@ let editingOverrideIndex = -1;
 let editingCriterionIndex = -1;
 
 const overrideSummary = computed(() => getOverrideCountLabel(localOverrides.value.length));
+const overridesAreValid = computed(() => localOverrides.value.every((ruleOverride, index) =>
+    getOverrideNameErrors(ruleOverride, index).length === 0
+    && ruleOverride.criteria.length > 0
+    && ruleOverride.criteria.every(criterion =>
+        getCriterionTreatmentErrors(criterion).length === 0
+        && getCriterionExpressionErrors(criterion).length === 0),
+));
 
 watch(() => props.ruleOverrides, (newVal) => {
     localOverrides.value = normalizeOverrides(clone(newVal));
+    emitValidity();
 }, { immediate: true, deep: true });
 
 function onChanged() {
     localOverrides.value = normalizeOverrides(localOverrides.value);
     emit('update:ruleOverrides', clone(localOverrides.value));
+    emitValidity();
+}
+
+function emitValidity() {
+    emit('validity-changed', overridesAreValid.value);
 }
 
 function addOverride() {
@@ -274,6 +300,43 @@ function addCriterion(overrideIndex: number) {
 function removeCriterion(overrideIndex: number, criterionIndex: number) {
     localOverrides.value[overrideIndex].criteria.splice(criterionIndex, 1);
     onChanged();
+}
+
+function onCriterionTreatmentIdsChanged(
+    criterion: TreatmentRuleOverrideCriterion,
+    treatmentIds: Array<string | number> | null,
+) {
+    const normalizedIds = (treatmentIds || []).map(id => id.toString());
+    criterion.treatmentIds = normalizedIds;
+    criterion.treatments = normalizedIds
+        .map(id => props.treatmentSelectItems.find(item => item.value.toString() === id))
+        .filter((item): item is SelectItem => item !== undefined)
+        .map(item => ({ id: item.value.toString(), name: item.text }));
+    criterion.treatmentName = undefined;
+    onChanged();
+}
+
+function getOverrideNameErrors(ruleOverride: TreatmentRuleOverride, index: number): string[] {
+    const normalizedName = ruleOverride.name?.trim().toLowerCase();
+    if (!normalizedName) {
+        return ['Name is required.'];
+    }
+    if (ruleOverride.name.trim().length > 256) {
+        return ['Name cannot exceed 256 characters.'];
+    }
+
+    const hasDuplicateName = localOverrides.value.some((candidate, candidateIndex) =>
+        candidateIndex !== index && candidate.name?.trim().toLowerCase() === normalizedName,
+    );
+    return hasDuplicateName ? ['Override names must be unique.'] : [];
+}
+
+function getCriterionTreatmentErrors(criterion: TreatmentRuleOverrideCriterion): string[] {
+    return criterion.treatmentIds?.length > 0 ? [] : ['Select at least one treatment.'];
+}
+
+function getCriterionExpressionErrors(criterion: TreatmentRuleOverrideCriterion): string[] {
+    return criterion.criterionExpression?.trim() ? [] : ['Expression is required.'];
 }
 
 function getOverrideName(ruleOverride: TreatmentRuleOverride): string {
@@ -391,6 +454,22 @@ function normalizeTreatmentIds(
 
 .rule-override-body {
     padding: 10px 12px 12px;
+}
+
+.rule-override-validation-message {
+    background: #fff4f2;
+    border-bottom: 1px solid #e2a69d;
+    color: #b3261e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    padding: 8px 12px;
+}
+
+.rule-override-inline-error {
+    color: #b3261e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    margin-top: 4px;
 }
 
 .rule-override-empty {

@@ -51,6 +51,7 @@ import { useUserStore } from '@/stores';
 import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import XButton from '@/shared/components/buttons/XButton.vue';
+import { clone } from 'ramda';
 
     const props = defineProps<{dialogData: CreateTreatmentLibraryDialogData}>()
     const { dialogData } = toRefs(props);
@@ -98,6 +99,7 @@ import XButton from '@/shared/components/buttons/XButton.vue';
                     ),
                 }),
             ),
+            ruleOverrides: clone(dialogData.value.selectedTreatmentLibraryRuleOverrides),
             owner: getOwnerId(currentUser),
         };
     });

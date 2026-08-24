@@ -55,7 +55,12 @@ namespace AssetFoxCore.Services.Paging.Generics
                 rows = SyncDataset(rows, upsertRequest.SyncModel);
             }
 
-            if (upsertRequest.IsNewLibrary)
+            // GetSyncedScenarioDataSet already gives rows fresh IDs when a library is selected
+            // as the scenario source. Cloning those rows again loses the original source IDs
+            // needed to remap relationships such as treatment rule override targets.
+            var scenarioRowsAlreadyHaveFreshIds = upsertRequest.ScenarioId != null
+                && upsertRequest.SyncModel.LibraryId != null;
+            if (upsertRequest.IsNewLibrary && !scenarioRowsAlreadyHaveFreshIds)
             {
                 rows = CreateAsNewDataset(rows);
             }
