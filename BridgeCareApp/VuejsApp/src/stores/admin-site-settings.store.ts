@@ -5,53 +5,18 @@ import { hasValue } from '@/shared/utils/has-value-util';
 import { useNotificationStore } from './notification.store';
 
 export interface AdminSiteSettingsStoreState {
-    productLogo: string;
-    implementationLogoVersion: number;
-    agencyLogoVersion: number;
     implementationName: string;
     adminContactEmail: string;
     isSuccessfulImport: boolean;
 }
 
-function convertFileToBase64(file: File): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const image = new Image();
-            image.onload = () => {
-                const targetHeight = 50;
-                const ratio = image.width / image.height;
-                const targetWidth = Math.round(targetHeight * ratio);
-
-                const canvas = document.createElement('canvas');
-                canvas.width = targetWidth;
-                canvas.height = targetHeight;
-
-                const context = canvas.getContext('2d');
-                context?.drawImage(image, 0, 0, targetWidth, targetHeight);
-
-                const resizedBase64 = canvas.toDataURL(file.type);
-                resolve(resizedBase64);
-            };
-            image.onerror = (error) => reject(error);
-            image.src = reader.result as string;
-        };
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(file);
-    });
-}
-
 export const useAdminSiteSettingsStore = defineStore('adminSiteSettings', {
     state: (): AdminSiteSettingsStoreState => ({
-        productLogo: '',
-        implementationLogoVersion: 0,
-        agencyLogoVersion: 0,
         implementationName: '',
         adminContactEmail: '',
         isSuccessfulImport: false,
     }),
     getters: {
-        productLogoGetter: (state) => state.productLogo,
         implementationNameGetter: (state) => state.implementationName,
         adminContactEmailGetter: (state) => state.adminContactEmail,
         getIsSuccessfulImport: (state) => state.isSuccessfulImport,
@@ -62,15 +27,6 @@ export const useAdminSiteSettingsStore = defineStore('adminSiteSettings', {
                 (response: AxiosResponse<string>) => {
                     if (hasValue(response, 'data')) {
                         this.implementationName = response.data;
-                    }
-                },
-            );
-        },
-        async getProductLogo() {
-            await AdminSiteSettingsService.getProductLogo().then(
-                (response: AxiosResponse<string>) => {
-                    if (hasValue(response, 'data')) {
-                        this.productLogo = response.data;
                     }
                 },
             );
@@ -90,38 +46,6 @@ export const useAdminSiteSettingsStore = defineStore('adminSiteSettings', {
                     }
                 },
             );
-        },
-        async importProductLogo(payload: File) {
-            const notificationStore = useNotificationStore();
-            await AdminSiteSettingsService.importProductLogo(payload).then(
-                (response: AxiosResponse) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        this.implementationLogoVersion = Date.now();
-                        this.isSuccessfulImport = true;
-                        notificationStore.addSuccessNotification({
-                            message: 'Implementation logo uploaded',
-                        });
-                    }
-                },
-            );
-        },
-        async importAgencyLogo(payload: File) {
-            const notificationStore = useNotificationStore();
-            await AdminSiteSettingsService.importAgencyLogo(payload).then(
-                (response: AxiosResponse) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        this.agencyLogoVersion = Date.now();
-                        this.isSuccessfulImport = true;
-                        notificationStore.addSuccessNotification({
-                            message: 'Agency logo uploaded',
-                        });
-                    }
-                },
-            );
-        },
-        async convertAndStoreProductLogo(productLogo: File) {
-            const base64 = await convertFileToBase64(productLogo);
-            this.productLogo = base64;
         },
         async getAdminContactEmail() {
             const response = await AdminSiteSettingsService.getAdminContactEmail();

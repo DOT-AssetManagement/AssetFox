@@ -396,23 +396,20 @@ import ConfirmDialog from 'primevue/confirmdialog';
 
     const agencyLogoFilename = computed(() => configStore.config?.logos?.agencyFilename);
     const implementationLogoFilename = computed(() => configStore.config?.logos?.implementationFilename);
-    const initialLogoVersion = Date.now();
 
     const agencyLogoError = ref(false);
     const implementationLogoError = ref(false);
 
     const agencyLogoUrl = computed(() => {
         if (agencyLogoFilename.value && !agencyLogoError.value) {
-            const version = adminSiteSettingsStore.agencyLogoVersion || initialLogoVersion;
-            return `/logos/${encodeURIComponent(agencyLogoFilename.value)}?v=${version}`;
+            return `/logos/${encodeURIComponent(agencyLogoFilename.value)}`;
         }
         return null; // Or a default fallback image path like '/logos/default-agency.png'
     });
 
     const implementationLogoUrl = computed(() => {
         if (implementationLogoFilename.value && !implementationLogoError.value) {
-            const version = adminSiteSettingsStore.implementationLogoVersion || initialLogoVersion;
-            return `/logos/${encodeURIComponent(implementationLogoFilename.value)}?v=${version}`;
+            return `/logos/${encodeURIComponent(implementationLogoFilename.value)}`;
         }
         return null; // Or a default fallback image path like '/logos/default-impl.png'
     });
@@ -428,14 +425,6 @@ import ConfirmDialog from 'primevue/confirmdialog';
     console.warn(`Failed to load implementation logo: ${implementationLogoUrl.value}`);
     implementationLogoError.value = true;
     };
-
-    watch(() => adminSiteSettingsStore.agencyLogoVersion, () => {
-        agencyLogoError.value = false;
-    });
-
-    watch(() => adminSiteSettingsStore.implementationLogoVersion, () => {
-        implementationLogoError.value = false;
-    });
 
     const $emitter = inject('emitter') as Emitter<Record<EventType, unknown>>
     provide('emitter', $emitter);

@@ -4,7 +4,6 @@ using AssetFox.Core.DTOs;
 using AssetFox.Core.UnitTestsCore.TestUtils;
 using AssetFoxCore.Controllers;
 using AssetFoxCore.StartupExtension;
-using AssetFoxCore.Services.Branding;
 using AssetFoxCore.Utils;
 using AssetFoxCore.Utils.Interfaces;
 using AssetFoxCoreTests.Tests.Report;
@@ -54,8 +53,6 @@ namespace AssetFoxCoreTests.Tests
             serviceCollection.AddScoped<IClaimHelper, ClaimHelper>();
             var doNotLog = new DoNotLog();
             serviceCollection.AddSingleton<ILog>(doNotLog);
-            serviceCollection.AddSingleton<IClientLogoService>(
-                _ => new ClientLogoService(AppContext.BaseDirectory));
             return serviceCollection;
         }
 

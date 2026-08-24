@@ -2,9 +2,6 @@ import {AxiosPromise} from 'axios';
 import {API, coreAxiosInstance} from '@/shared/utils/axios-instance';
 
 export default class AdminSiteSettingsService {
-    static getProductLogo(): AxiosPromise {
-        return coreAxiosInstance.get(`${API.AdminSettings}/GetImplementationLogo`);
-    }
     static getImplementationName(): AxiosPromise {
         return coreAxiosInstance.get(`${API.AdminSettings}/GetImplementationName`);
     }
@@ -13,24 +10,6 @@ export default class AdminSiteSettingsService {
             `${API.AdminSettings}/SetImplementationName/` + input,
             input,
             {headers: {'Content-Type': 'text/plain'}},
-        );
-    }
-    static importProductLogo(file: File): AxiosPromise {
-        let formData = new FormData();
-        formData.append('file', file);
-        return coreAxiosInstance.post(
-            `${API.AdminSettings}/SetImplementationLogo`,
-            formData,
-            {headers: {'Content-Type': 'multipart/form-data'}},
-        );
-    }
-    static importAgencyLogo(file: File): AxiosPromise {
-        let formData = new FormData();
-        formData.append('file', file);
-        return coreAxiosInstance.post(
-            `${API.AdminSettings}/SetAgencyLogo`,
-            formData,
-            {headers: {'Content-Type': 'multipart/form-data'}},
         );
     }
     static getAdminContactEmail(): AxiosPromise {

@@ -1,13 +1,10 @@
 using System;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using AssetFox.Core.DataPersistenceCore.UnitOfWork;
 using AssetFoxCore.Controllers.BaseController;
 using AssetFox.Core.Hubs;
 using AssetFox.Core.Hubs.Interfaces;
 using AssetFoxCore.Security.Interfaces;
-using AssetFoxCore.Services.Branding;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,18 +19,13 @@ namespace AssetFoxCore.Controllers
     public class AdminSiteSettingsController : AssetFoxCoreBaseController
     {
         public const string AdminSiteSettingsError = "Admin Site Settings Error";
-        private readonly IClientLogoService _clientLogoService;
-
         public AdminSiteSettingsController(
             IEsecSecurity esecSecurity,
             IUnitOfWork unitOfWork,
             IHubService hubService,
-            IHttpContextAccessor contextAccessor,
-            IClientLogoService clientLogoService) :
+            IHttpContextAccessor contextAccessor) :
             base(esecSecurity, unitOfWork, hubService, contextAccessor)
-        {
-            _clientLogoService = clientLogoService ?? throw new ArgumentNullException(nameof(clientLogoService));
-        }
+        { }
 
         [HttpGet]
         [Route("GetImplementationName")]
@@ -70,44 +62,6 @@ namespace AssetFoxCore.Controllers
                 HubService.SendRealTimeErrorMessage(UserInfo.Name, $"{AdminSiteSettingsError}::SetImplementationName - {e.Message}", e);
                 return Ok();
             }
-        }
-
-        [HttpGet]
-        [Route("GetImplementationLogo")]
-        public Task<IActionResult> GetImplementationLogo(CancellationToken cancellationToken)
-        {
-            return GetLogo(ClientLogoKind.Implementation, "GetImplementationLogo", cancellationToken);
-        }
-
-        [HttpGet]
-        [Route("GetAgencyLogo")]
-        public Task<IActionResult> GetAgencyLogo(CancellationToken cancellationToken)
-        {
-            return GetLogo(ClientLogoKind.Agency, "GetAgencyLogo", cancellationToken);
-        }
-
-        [HttpPost]
-        [Route("SetImplementationLogo")]
-        [Authorize(Policy = Policy.ModifyAdminSiteSettings)]
-        public Task<IActionResult> SetImplementationLogo(
-            [FromForm] IFormFile file,
-            CancellationToken cancellationToken)
-        {
-            return SetLogo(
-                ClientLogoKind.Implementation,
-                "Implementation",
-                file,
-                cancellationToken);
-        }
-
-        [HttpPost]
-        [Route("SetAgencyLogo")]
-        [Authorize(Policy = Policy.ModifyAdminSiteSettings)]
-        public Task<IActionResult> SetAgencyLogo(
-            [FromForm] IFormFile file,
-            CancellationToken cancellationToken)
-        {
-            return SetLogo(ClientLogoKind.Agency, "Agency", file, cancellationToken);
         }
 
         [HttpGet]
@@ -152,57 +106,5 @@ namespace AssetFoxCore.Controllers
             }
         }
 
-        private async Task<IActionResult> GetLogo(
-            ClientLogoKind logoKind,
-            string operationName,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                var result = await _clientLogoService.ReadAsDataUrlAsync(logoKind, cancellationToken);
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                HubService.SendRealTimeErrorMessage(
-                    UserInfo.Name,
-                    $"{AdminSiteSettingsError}::{operationName} - {e.Message}",
-                    e);
-                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
-            }
-        }
-
-        private async Task<IActionResult> SetLogo(
-            ClientLogoKind logoKind,
-            string logoName,
-            IFormFile file,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                var fileName = await _clientLogoService.SaveAsync(logoKind, file, cancellationToken);
-                HubService.SendRealTimeMessage(
-                    UserInfo.Name,
-                    HubConstant.BroadcastTaskCompleted,
-                    $"Successfully Updated {logoName} Logo");
-                return Ok(new { fileName });
-            }
-            catch (InvalidDataException e)
-            {
-                HubService.SendRealTimeErrorMessage(
-                    UserInfo.Name,
-                    $"{AdminSiteSettingsError}::Set{logoName}Logo - {e.Message}",
-                    e);
-                return BadRequest(e.Message);
-            }
-            catch (Exception e)
-            {
-                HubService.SendRealTimeErrorMessage(
-                    UserInfo.Name,
-                    $"{AdminSiteSettingsError}::Set{logoName}Logo - {e.Message}",
-                    e);
-                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
-            }
-        }
     }
 }

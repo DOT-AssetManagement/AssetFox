@@ -3,7 +3,6 @@ import AdminSiteSettingsService from '@/services/admin-site-settings.service';
 import {hasValue} from '@/shared/utils/has-value-util';
 
 const state = {
-    productLogo: '',
     implementationName: '',
     adminContactEmail: '',
     isSuccessfulImport: false as boolean,
@@ -12,9 +11,6 @@ const state = {
 const mutations = {
     implementationNameMutator(state: any, implementationName: String) {
         state.implementationName = implementationName;
-    },
-    productLogoMutator(state: any, productLogo: string) {
-        state.productLogo = productLogo;
     },
     setAdminContactEmailMutator(state: any, adminContactEmail: string) {
         state.adminContactEmail = adminContactEmail;
@@ -33,14 +29,6 @@ const actions = {
             }
         });
     },
-    async getProductLogo({commit}: any) {
-        await AdminSiteSettingsService.getProductLogo()
-        .then((response: AxiosResponse<string>) => {
-            if (hasValue(response, 'data')) {
-                commit('productLogoMutator', response.data);
-            }
-        });
-    },
     async importImplementationName({commit, dispatch}: any, payload: any) {
         await AdminSiteSettingsService.importImplementationName(payload)
         .then((response: AxiosResponse) => {
@@ -54,23 +42,6 @@ const actions = {
                 });
             }
         });
-    },
-    async importProductLogo({commit, dispatch}: any, payload: File) {
-        await AdminSiteSettingsService.importProductLogo(payload)
-        .then(async (response: AxiosResponse) => {
-            if (response.status >= 200 && response.status < 300) {
-                const base64 = await convertFileToBase64(payload);
-                commit('productLogoMutator', base64);
-                commit('isSuccessfulImportMutator', true);
-                dispatch('addSuccessNotification',{
-                    message: 'Product logo imported'
-                });
-            }
-        });
-    },
-    async convertAndStoreProductLogo({commit}: any, productLogo: File) {
-        const base64 = await convertFileToBase64(productLogo);
-        commit('productLogoMutator', base64);
     },
     async getAdminContactEmail({commit}: any) {
         const response = await AdminSiteSettingsService.getAdminContactEmail();
@@ -95,34 +66,6 @@ const actions = {
     }
 };
 
-function convertFileToBase64(file: File): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const image = new Image();
-        image.onload = () => {
-          const targetHeight = 50;
-          const ratio = image.width / image.height;
-          const targetWidth = Math.round(targetHeight * ratio);
-  
-          const canvas = document.createElement('canvas');
-          canvas.width = targetWidth;
-          canvas.height = targetHeight;
-  
-          const context = canvas.getContext('2d');
-          context?.drawImage(image, 0, 0, targetWidth, targetHeight);
-  
-          const resizedBase64 = canvas.toDataURL(file.type);
-          resolve(resizedBase64);
-        };
-        image.onerror = error => reject(error);
-        image.src = reader.result as string;
-      };
-      reader.onerror = error => reject(error);
-      reader.readAsDataURL(file);
-    });
-  }
-  
 const getters = {};
 
 export default {

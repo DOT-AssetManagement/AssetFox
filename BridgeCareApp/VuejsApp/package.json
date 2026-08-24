@@ -3,7 +3,7 @@
     "version": "v3.5.2",
     "port": "8080",
     "private": true,
-    "description": "BridgeCare",
+    "description": "AssetFox",
     "author": {
         "name": "Asset Fox"
     },

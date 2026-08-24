@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using AssetFox.Core.Common;
 using AssetFox.Core.DataPersistenceCore.Repositories.MSSQL;
@@ -33,7 +32,6 @@ using AssetFox.Core.UniversalReporting.Transforms;
 using AssetFox.Core.UniversalReporting.Viewer;
 using AssetFoxCore.Interfaces;
 using AssetFoxCore.Services.Reporting;
-using AssetFoxCore.Services.Branding;
 using static AssetFoxCore.Security.SecurityConstants;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
@@ -135,7 +133,6 @@ namespace AssetFoxCore
             services.AddScoped<UniversalReportRunner>();
 
             services.AddSingleton<IAnalysisEventLoggingService, AnalysisEventLoggingService>();
-            services.AddSingleton<IClientLogoService>(_ => new ClientLogoService(AppContext.BaseDirectory));
         }
 
         private void SetupReporting(IServiceCollection services)
