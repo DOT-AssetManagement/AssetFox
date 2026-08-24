@@ -1056,9 +1056,8 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
     }
 
     function getOwnerUserName(): string {
-
         if (!hasCreatedLibrary) {
-            //return getUserNameByIdGetter(selectedBudgetLibrary.owner);
+            return userStore.getUserNameById(selectedBudgetLibrary.value.owner ?? '') || '';
         }
 
         return getUserName();
