@@ -65,7 +65,10 @@ namespace AssetFox.Core.UnitTestsCore.Tests
             Assert.Single(resultList, r => r.Message == "GetSimulationAnalysisNetwork failed");
             Assert.Single(resultList, r => r.Message == "GetSimulationInNetwork failed");
             Assert.Contains(resultList, r => r.Message == dummyNullReferenceException.Message);
-            Assert.Single(resultList, r => r.Message == "GetSimulationAnalysisMethod failed");
+            Assert.DoesNotContain(resultList, r => r.Message == "GetSimulationAnalysisMethod failed");
+            analysisMethodRepository.Verify(
+                repository => repository.GetSimulationAnalysisMethod(It.IsAny<Simulation>(), It.IsAny<string>()),
+                Times.Never);
             Assert.Single(resultList, r => r.Message == "GetScenarioPerformanceCurves failed");
             Assert.Single(resultList, r => r.Message == "GetScenarioSelectableTreatments failed");
             Assert.Single(resultList, r => r.Message == "GetSimulationCommittedProjects failed");

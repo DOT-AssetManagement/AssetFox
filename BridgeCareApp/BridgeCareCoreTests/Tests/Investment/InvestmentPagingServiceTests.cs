@@ -290,7 +290,11 @@ namespace AssetFoxCoreTests.Tests
             var request = new InvestmentPagingSyncModel
             {
                 LibraryId = libraryId,
-                FirstYearAnalysisBudgetShift = 3,
+                FirstYearAnalysisBudgetShift = 100,
+                Investment = new InvestmentPlanDTO
+                {
+                    FirstYearOfAnalysisPeriod = 2023,
+                },
             };
 
             var result = pagingService.GetSyncedScenarioDataSet(simulationId, request);

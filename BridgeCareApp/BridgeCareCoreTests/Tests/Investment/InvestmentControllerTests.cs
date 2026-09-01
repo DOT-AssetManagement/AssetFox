@@ -210,6 +210,53 @@ namespace AssetFoxCoreTests.Tests
             Assert.Equal(simulationId, invocation.Arguments[1]);
         }
 
+        [Theory]
+        [InlineData(2027, 2028, 1, 1)]
+        [InlineData(2025, 2026, -1, 1)]
+        public async Task UpsertInvestment_ConsecutiveYearChanges_DerivesEachShiftFromPersistedPlan(
+            int firstSavedYear,
+            int secondSavedYear,
+            int expectedFirstShift,
+            int expectedSecondShift)
+        {
+            var unitOfWork = UnitOfWorkMocks.EveryoneExists();
+            var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var investmentPlanRepo = InvestmentPlanRepositoryMocks.NewMock(unitOfWork);
+            var simulationId = Guid.NewGuid();
+            var persistedFirstYear = 2026;
+            var capturedShifts = new List<int>();
+
+            investmentPlanRepo
+                .Setup(repository => repository.GetInvestmentPlan(simulationId))
+                .Returns(() => new InvestmentPlanDTO
+                {
+                    Id = Guid.NewGuid(),
+                    FirstYearOfAnalysisPeriod = persistedFirstYear,
+                });
+            budgetRepo
+                .Setup(repository => repository.SaveScenarioInvestments(
+                    It.IsAny<InvestmentUpsertAndDeleteModel>(), simulationId))
+                .Callback<InvestmentUpsertAndDeleteModel, Guid>((changes, _) =>
+                {
+                    capturedShifts.Add(changes.FirstYearAnalysisBudgetShift);
+                    persistedFirstYear = changes.Investment.FirstYearOfAnalysisPeriod;
+                });
+            var controller = CreateController(unitOfWork);
+
+            await controller.UpsertInvestment(simulationId, new InvestmentPagingSyncModel
+            {
+                Investment = new InvestmentPlanDTO { FirstYearOfAnalysisPeriod = firstSavedYear },
+                FirstYearAnalysisBudgetShift = 100,
+            });
+            await controller.UpsertInvestment(simulationId, new InvestmentPagingSyncModel
+            {
+                Investment = new InvestmentPlanDTO { FirstYearOfAnalysisPeriod = secondSavedYear },
+                FirstYearAnalysisBudgetShift = 100,
+            });
+
+            Assert.Equal(new[] { expectedFirstShift, expectedSecondShift }, capturedShifts);
+        }
+
         [Fact]
         public async Task ShouldReturnOkResultOnDelete()
         {

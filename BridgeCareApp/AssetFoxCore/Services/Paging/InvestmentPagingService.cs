@@ -181,6 +181,15 @@ namespace AssetFoxCore.Services.Paging
             FixNullAmounts(budgets);
             FillNewBudgets(budgets);
 
+            var sourceFirstYear = budgets
+                .SelectMany(budget => budget.BudgetAmounts)
+                .Select(amount => (int?)amount.Year)
+                .Min();
+            var targetFirstYear = request.Investment?.FirstYearOfAnalysisPeriod;
+            var firstYearAnalysisBudgetShift = sourceFirstYear.HasValue && targetFirstYear.HasValue
+                ? targetFirstYear.Value - sourceFirstYear.Value
+                : 0;
+
             if (request.LibraryId != null)
             {
                 budgets.ForEach(_ =>
@@ -190,7 +199,7 @@ namespace AssetFoxCore.Services.Paging
                 });
             }
 
-            budgets.ForEach(_ => _.BudgetAmounts.ForEach(__ => __.Year += request.FirstYearAnalysisBudgetShift));
+            budgets.ForEach(_ => _.BudgetAmounts.ForEach(__ => __.Year += firstYearAnalysisBudgetShift));
             return budgets;
         }
 

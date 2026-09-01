@@ -77,6 +77,8 @@ public static class AnalysisInputLoading
         Network network = null;
         Simulation simulation = null;
 
+        var investmentPlanLoaded = true;
+
         // load
         try
         {
@@ -156,6 +158,7 @@ public static class AnalysisInputLoading
         }
         catch (Exception ex)
         {
+            investmentPlanLoaded = false;
             if (allowLoadingOfAssets)
             {
                 throw;
@@ -168,19 +171,22 @@ public static class AnalysisInputLoading
             return null;
         }
 
-        // load
-        try
+        // Analysis Method loading depends on a valid Investment Plan.
+        if (investmentPlanLoaded)
         {
-            var userCriteria = unitOfWork.UserCriteriaRepo.GetUserCriteria(unitOfWork.CurrentUser.Id);
-            unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, userCriteria);
-        }
-        catch (Exception ex)
-        {
-            if (allowLoadingOfAssets)
+            try
             {
-                throw;
+                var userCriteria = unitOfWork.UserCriteriaRepo.GetUserCriteria(unitOfWork.CurrentUser.Id);
+                unitOfWork.AnalysisMethodRepo.GetSimulationAnalysisMethod(simulation, userCriteria);
             }
-            AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Analysis Method");
+            catch (Exception ex)
+            {
+                if (allowLoadingOfAssets)
+                {
+                    throw;
+                }
+                AddError(validationResultBag, ex.Message, ex is SimulationDataValidationException exception ? exception.Location : "Analysis Method");
+            }
         }
         // intermediate update/check
         if (!afterAnalysisMethod())

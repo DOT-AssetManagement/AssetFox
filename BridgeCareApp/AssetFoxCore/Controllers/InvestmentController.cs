@@ -151,7 +151,14 @@ namespace AssetFoxCore.Controllers
                     }
                     else
                     {
-                        
+                        var persistedInvestmentPlan = UnitOfWork.InvestmentPlanRepo.GetInvestmentPlan(simulationId);
+                        var firstYearAnalysisBudgetShift = persistedInvestmentPlan == null ||
+                            persistedInvestmentPlan.FirstYearOfAnalysisPeriod == 0 ||
+                            pagingSync.Investment == null
+                                ? 0
+                                : pagingSync.Investment.FirstYearOfAnalysisPeriod -
+                                  persistedInvestmentPlan.FirstYearOfAnalysisPeriod;
+
                         InvestmentUpsertAndDeleteModel changes = new InvestmentUpsertAndDeleteModel()
                         {
                             Investment = pagingSync.Investment,
@@ -161,7 +168,7 @@ namespace AssetFoxCore.Controllers
                             Deletionyears = pagingSync.Deletionyears,
                             UpdatedBudgetAmounts = pagingSync.UpdatedBudgetAmounts,
                             UpdatedBudgets = pagingSync.UpdatedBudgets,
-                            FirstYearAnalysisBudgetShift = pagingSync.FirstYearAnalysisBudgetShift
+                            FirstYearAnalysisBudgetShift = firstYearAnalysisBudgetShift
                         };
                         UnitOfWork.BudgetRepo.SaveScenarioInvestments(changes, simulationId);
                     } 

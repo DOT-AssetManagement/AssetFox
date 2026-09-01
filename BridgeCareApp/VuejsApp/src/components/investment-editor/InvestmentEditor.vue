@@ -498,7 +498,6 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
 
     let showSuccessPopup = ref(false);
 
-    let originalFirstYear: number = 0
     let firstYearOfAnalysisPeriodShift = shallowRef<number>(0);
 
     let unsavedDialogAllowed = ref<boolean>(true);
@@ -786,7 +785,7 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
         if(hasScenario.value){
             const localFirstYear = +investmentPlan.value.firstYearOfAnalysisPeriod;
             const stateFirstYear = +investmentStore.getInvestmentPlan.firstYearOfAnalysisPeriod;
-            firstYearOfAnalysisPeriodShift.value = (localFirstYear - originalFirstYear) - (firstYear === 0 ? 0 : (firstYear - originalFirstYear));
+            firstYearOfAnalysisPeriodShift.value = localFirstYear - stateFirstYear;
         }
             
         if(investmentPlan.value.id === uuidNIL)
@@ -1376,9 +1375,10 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
             notificationStore.addSuccessNotification({message: "Modified investment"});
 
             hasInvestmentJustBeenSaved = true;
+            librarySelectItemValue.value = null;
+            await initializePages(false);
             await emitInvestmentValidationStatus();
             unsavedChangesStore.setHasUnsavedChanges(false);
-            librarySelectItemValue.value = null;
         }
         // $emitter.emit('switchedToNewInvestmentLibrary', sync);
     }
@@ -1725,12 +1725,14 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
         });
     }
 
-    async function initializePages(){
+    async function initializePages(useSelectedLibrary = true){
         const request: InvestmentPagingRequestModel= {
             page: 1,
             rowsPerPage: 5,
             syncModel: {
-                libraryId: selectedBudgetLibrary.value.id === uuidNIL ? null : selectedBudgetLibrary.value.id,
+                libraryId: useSelectedLibrary && selectedBudgetLibrary.value.id !== uuidNIL
+                    ? selectedBudgetLibrary.value.id
+                    : null,
                 updatedBudgets: Array.from(updatedBudgetsMap.value.values()).map(r => r[1]),
                 budgetsForDeletion: deletionBudgetIds.value,
                 addedBudgets: addedBudgets.value,
@@ -1760,9 +1762,6 @@ const hasAdminAccess = computed<boolean>(() => authenticationStore.hasAdminAcces
                     syncInvestmentPlanWithBudgets();
                     lastYear = data.lastYear;
                     firstYear = data.firstYear;
-                    originalFirstYear = data.firstYear;
-                    if(data.firstYear === 0)
-                        originalFirstYear = moment().year()
                 }
                 setParentLibraryName(currentPage.value.length > 0 ? currentPage.value[0].libraryId : "None");
                 loadedParentId = currentPage.value.length > 0 ? currentPage.value[0].libraryId : "";

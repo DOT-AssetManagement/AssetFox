@@ -48,24 +48,38 @@ namespace AssetFoxCore.Services
             });
         }
 
-        private void AddDataCells(ExcelWorksheet worksheet, Dictionary<int, List<decimal>> budgetAmountsPerYear)
+        private void AddDataCells(ExcelWorksheet worksheet, IReadOnlyList<string> budgetNames,
+            IEnumerable<BudgetAmountDTO> budgetAmounts)
         {
             var startRow = worksheet.Cells.Start.Row;
             var startCol = worksheet.Cells.Start.Column;
 
-            budgetAmountsPerYear.Keys.ForEach(year =>
+            var amountsByBudgetAndYear = budgetAmounts
+                .GroupBy(budgetAmount => (budgetAmount.BudgetName, budgetAmount.Year))
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Single().Value);
+
+            var years = amountsByBudgetAndYear.Keys
+                .Select(key => key.Year)
+                .Distinct()
+                .OrderBy(year => year);
+
+            foreach (var year in years)
             {
                 worksheet.Cells[++startRow, startCol].Value = year;
 
-                var budgetAmounts = budgetAmountsPerYear[year];
-
                 var budgetCol = startCol + 1;
-                budgetAmounts.ForEach(amount =>
+                foreach (var budgetName in budgetNames)
                 {
-                    worksheet.Cells[startRow, budgetCol].Value = amount;
+                    if (amountsByBudgetAndYear.TryGetValue((budgetName, year), out var amount))
+                    {
+                        worksheet.Cells[startRow, budgetCol].Value = amount;
+                    }
+
                     budgetCol++;
-                });
-            });
+                }
+            }
 
             ExcelHelper.SetCustomFormat(
                 worksheet.Cells[2, 2, worksheet.Dimension.End.Row, worksheet.Dimension.End.Column],
@@ -94,18 +108,21 @@ namespace AssetFoxCore.Services
 
             AddHeaderCells(budgetWorksheet, budgetNames);
 
-            var sampleBudgetAmountsPerYear = new Dictionary<int, List<decimal>>();
-
-            var sampleBudgetAmounts = Enumerable.Repeat(decimal.Parse("5000000"), 4).ToList();
+            var sampleBudgetAmounts = new List<BudgetAmountDTO>();
             var currentYear = DateTime.Now.Year;
 
             for (var i = 0; i < 4; i++)
             {
-                sampleBudgetAmountsPerYear.Add(currentYear, sampleBudgetAmounts);
+                sampleBudgetAmounts.AddRange(budgetNames.Select(budgetName => new BudgetAmountDTO
+                {
+                    BudgetName = budgetName,
+                    Year = currentYear,
+                    Value = decimal.Parse("5000000")
+                }));
                 currentYear++;
             }
 
-            AddDataCells(budgetWorksheet, sampleBudgetAmountsPerYear);
+            AddDataCells(budgetWorksheet, budgetNames, sampleBudgetAmounts);
 
             criteriaWorksheet.Cells[1, 1].Value = "BUDGET_NAME";
             criteriaWorksheet.Cells[1, 2].Value = "CRITERIA";
@@ -152,13 +169,7 @@ namespace AssetFoxCore.Services
 
                 AddHeaderCells(budgetWorksheet, budgetNames);
 
-                var budgetAmountsPerYear = budgetAmounts
-                    .OrderBy(budgetAmount => budgetAmount.Year)
-                    .GroupBy(budgetAmount => budgetAmount.Year, dto => dto)
-                    .ToDictionary(group => group.Key, dtos => dtos
-                    .Select(budgetAmount => budgetAmount.Value).ToList());
-
-                AddDataCells(budgetWorksheet, budgetAmountsPerYear);
+                AddDataCells(budgetWorksheet, budgetNames, budgetAmounts);
 
                 if (criteriaPerBudgetName.Any())
                 {
@@ -209,13 +220,7 @@ namespace AssetFoxCore.Services
 
                 AddHeaderCells(budgetWorksheet, budgetNames);
 
-                var budgetAmountsPerYear = budgetAmounts
-                    .OrderBy(budgetAmount => budgetAmount.Year)
-                    .GroupBy(budgetAmount => budgetAmount.Year, dto => dto)
-                    .ToDictionary(group => group.Key, dtos => dtos
-                        .Select(budgetAmount => budgetAmount.Value).ToList());
-
-                AddDataCells(budgetWorksheet, budgetAmountsPerYear);
+                AddDataCells(budgetWorksheet, budgetNames, budgetAmounts);
 
                 if (criteriaPerBudgetName.Any())
                 {

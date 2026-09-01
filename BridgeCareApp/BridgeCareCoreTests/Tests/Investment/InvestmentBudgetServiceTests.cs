@@ -36,6 +36,36 @@ namespace AssetFoxCoreTests.Tests
             return service;
         }
 
+        private static List<BudgetAmountDTO> ScrambledBudgetAmounts()
+        {
+            return new List<BudgetAmountDTO>
+            {
+                BudgetAmountDtos.ForBudgetNameAndYear("Budget B", 2025, 200),
+                BudgetAmountDtos.ForBudgetNameAndYear("Budget A", 2026, 101),
+                BudgetAmountDtos.ForBudgetNameAndYear("Budget A", 2025, 100),
+                BudgetAmountDtos.ForBudgetNameAndYear("Budget B", 2026, 201),
+            };
+        }
+
+        private static void AssertScrambledBudgetAmountsWereMappedToTheirHeaders(string fileData)
+        {
+            using var stream = new MemoryStream(Convert.FromBase64String(fileData));
+            using var excelPackage = new ExcelPackage(stream);
+            var worksheet = excelPackage.Workbook.Worksheets[0];
+
+            var budgetColumns = worksheet.Cells[1, 2, 1, worksheet.Dimension.End.Column]
+                .ToDictionary(cell => cell.GetValue<string>(), cell => cell.Start.Column);
+            var yearRows = worksheet.Cells[2, 1, worksheet.Dimension.End.Row, 1]
+                .ToDictionary(cell => cell.GetValue<int>(), cell => cell.Start.Row);
+
+            Assert.Equal(2, budgetColumns.Count);
+            Assert.Equal(2, yearRows.Count);
+            Assert.Equal(100m, worksheet.Cells[yearRows[2025], budgetColumns["Budget A"]].GetValue<decimal>());
+            Assert.Equal(200m, worksheet.Cells[yearRows[2025], budgetColumns["Budget B"]].GetValue<decimal>());
+            Assert.Equal(101m, worksheet.Cells[yearRows[2026], budgetColumns["Budget A"]].GetValue<decimal>());
+            Assert.Equal(201m, worksheet.Cells[yearRows[2026], budgetColumns["Budget B"]].GetValue<decimal>());
+        }
+
         private ExcelPackage CreateRequestWithLibraryFormData(bool overwriteBudgets = false)
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "TestUtils\\Files",
@@ -382,6 +412,25 @@ namespace AssetFoxCoreTests.Tests
             Assert.Equal("500000", worksheetBudgetYearAndAmount[1]);
         }
 
+        [Fact]
+        public void ExportLibraryInvestmentBudgetsFile_RepositoryOrderVaries_MapsAmountsByBudgetAndYear()
+        {
+            var unitOfWork = UnitOfWorkMocks.New();
+            var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var budgetAmountRepo = BudgetAmountRepositoryMocks.New(unitOfWork);
+            var libraryId = Guid.NewGuid();
+            budgetAmountRepo.Setup(repo => repo.GetLibraryBudgetAmounts(libraryId))
+                .Returns(ScrambledBudgetAmounts());
+            budgetRepo.Setup(repo => repo.GetCriteriaPerBudgetNameForBudgetLibrary(libraryId))
+                .Returns(new Dictionary<string, string>());
+            budgetRepo.Setup(repo => repo.GetBudgetLibraryName(libraryId)).Returns("Test Library");
+            var service = CreateService(unitOfWork);
+
+            var fileInfo = service.ExportLibraryInvestmentBudgetsFile(libraryId);
+
+            AssertScrambledBudgetAmountsWereMappedToTheirHeaders(fileInfo.FileData);
+        }
+
 
         [Fact]
         public void ImportScenarioInvestmentBudgetsFile_Does()
@@ -667,6 +716,26 @@ namespace AssetFoxCoreTests.Tests
             var worksheetBudgetYearAndAmount = worksheet.Cells[2, 1, 2, worksheet.Dimension.End.Column]
                 .Select(cell => cell.GetValue<string>()).ToList();
             ObjectAssertions.Equivalent(new List<string> { "2022", "500000" }, worksheetBudgetYearAndAmount);
+        }
+
+        [Fact]
+        public void ExportScenarioInvestmentBudgetsFile_RepositoryOrderVaries_MapsAmountsByBudgetAndYear()
+        {
+            var unitOfWork = UnitOfWorkMocks.New();
+            var budgetRepo = BudgetRepositoryMocks.New(unitOfWork);
+            var budgetAmountRepo = BudgetAmountRepositoryMocks.New(unitOfWork);
+            var simulationRepo = SimulationRepositoryMocks.New(unitOfWork);
+            var simulationId = Guid.NewGuid();
+            budgetAmountRepo.Setup(repo => repo.GetScenarioBudgetAmounts(simulationId))
+                .Returns(ScrambledBudgetAmounts());
+            budgetRepo.Setup(repo => repo.GetCriteriaPerBudgetNameForSimulation(simulationId))
+                .Returns(new Dictionary<string, string>());
+            simulationRepo.Setup(repo => repo.GetSimulationName(simulationId)).Returns("Test Scenario");
+            var service = CreateService(unitOfWork);
+
+            var fileInfo = service.ExportScenarioInvestmentBudgetsFile(simulationId);
+
+            AssertScrambledBudgetAmountsWereMappedToTheirHeaders(fileInfo.FileData);
         }
 
         [Fact]
