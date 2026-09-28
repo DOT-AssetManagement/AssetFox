@@ -263,6 +263,21 @@ export interface ChartDisplayOptions {
     donut: boolean;
 }
 
+export type ChartValueOrder = 'listed' | 'alphabetical' | 'alphabeticalDesc' | 'valueDesc';
+
+export interface ChartValueStyle {
+    value: string;
+    color: string;
+}
+
+// Colors and order for the values of the chart's legend field: the series when one is bound, otherwise the category.
+export interface ChartValueStyling {
+    // `${source}:${field}` of the binding the values belong to; styling for a different binding is ignored.
+    bindingKey: string;
+    order: ChartValueOrder;
+    values: ChartValueStyle[];
+}
+
 export interface ChartConfig {
     chartKind: ChartKind;
     mode: string;
@@ -276,6 +291,7 @@ export interface ChartConfig {
     limit: ChartLimit;
     filters: ChartFilterOptions;
     display: ChartDisplayOptions;
+    valueStyling?: ChartValueStyling;
 }
 
 export type ComponentConfig =

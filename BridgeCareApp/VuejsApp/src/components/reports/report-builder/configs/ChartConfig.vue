@@ -29,8 +29,9 @@
         </v-alert>
 
         <v-tabs v-model="activeTab" density="compact" color="#2A578D" class="mb-3">
-            <v-tab value="data" class="text-none">Data</v-tab>
-            <v-tab value="shape" class="text-none">Shape</v-tab>
+            <v-tab value="data" class="text-none px-3" min-width="0">Data</v-tab>
+            <v-tab value="shape" class="text-none px-3" min-width="0">Shape</v-tab>
+            <v-tab value="colors" class="text-none px-3" min-width="0">Colors and order</v-tab>
         </v-tabs>
 
         <v-window v-model="activeTab" class="chart-config__window">
@@ -195,6 +196,14 @@
                     @update:model-value="emitUpdate"
                 />
             </v-window-item>
+
+            <v-window-item value="colors">
+                <ChartColorsOrderTab
+                    :config="localConfig"
+                    :calculated-fields="calculatedFields"
+                    @update:value-styling="onValueStylingChange"
+                />
+            </v-window-item>
         </v-window>
     </div>
 </template>
@@ -208,10 +217,12 @@ import {
     ChartConfig,
     ChartFieldBinding,
     ChartKind,
+    ChartValueStyling,
     ComponentType,
     ReportCalculatedField,
 } from '@/shared/models/iAM/report-schema';
 import { validateChartConfig } from '@/shared/utils/report-chart-validation';
+import ChartColorsOrderTab from './ChartColorsOrderTab.vue';
 
 interface FieldOption extends ChartFieldBinding {
     id: string;
@@ -440,6 +451,15 @@ function onModeChange() {
     localConfig.value.display.donut = localConfig.value.mode === 'donut';
     if (localConfig.value.mode === 'single') {
         localConfig.value.bindings.series = undefined;
+    }
+    emitUpdate();
+}
+
+function onValueStylingChange(styling: ChartValueStyling | undefined) {
+    if (styling) {
+        localConfig.value.valueStyling = styling;
+    } else {
+        delete localConfig.value.valueStyling;
     }
     emitUpdate();
 }

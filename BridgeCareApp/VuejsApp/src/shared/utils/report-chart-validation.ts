@@ -5,6 +5,12 @@ import {
     ReportPage,
     isChartComponentType,
 } from '@/shared/models/iAM/report-schema';
+import {
+    isValidChartColor,
+    maxStyledChartValues,
+    normalizeChartValue,
+    supportedChartValueOrders,
+} from '@/shared/utils/report-chart-styling';
 
 export interface ChartValidationIssue {
     componentId: string;
@@ -86,6 +92,35 @@ export function validateChartConfig(
         const numericTopN = Number(topN);
         if (!Number.isInteger(numericTopN) || numericTopN < 1 || numericTopN > 100) {
             add('Top N must be between 1 and 100.');
+        }
+    }
+
+    const styling = config?.valueStyling;
+    if (styling) {
+        const values = styling.values || [];
+        if (!supportedChartValueOrders.includes(styling.order)) {
+            add('Colors and order uses an unsupported order.');
+        }
+        if (values.length > maxStyledChartValues) {
+            add(`Colors and order can list at most ${maxStyledChartValues} values.`);
+        }
+        if (values.some(style => !style.value?.trim())) {
+            add('Colors and order has a blank value.');
+        }
+        const seen = new Set<string>();
+        const duplicate = values.find(style => {
+            const key = normalizeChartValue(style.value);
+            if (!key) return false;
+            if (seen.has(key)) return true;
+            seen.add(key);
+            return false;
+        });
+        if (duplicate) {
+            add(`Colors and order lists "${duplicate.value}" more than once.`);
+        }
+        const invalidColor = values.find(style => !isValidChartColor(style.color));
+        if (invalidColor) {
+            add(`"${invalidColor.value}" has an invalid color.`);
         }
     }
 

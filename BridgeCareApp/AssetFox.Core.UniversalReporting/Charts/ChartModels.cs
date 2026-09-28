@@ -11,6 +11,20 @@ public sealed class ChartConfigDefinition
     public ChartLimitDefinition Limit { get; set; } = new();
     public ChartFilterDefinition Filters { get; set; } = new();
     public ChartDisplayDefinition Display { get; set; } = new();
+    public ChartValueStylingDefinition? ValueStyling { get; set; }
+}
+
+public sealed class ChartValueStylingDefinition
+{
+    public string BindingKey { get; set; } = "";
+    public string Order { get; set; } = "listed";
+    public List<ChartValueStyleDefinition> Values { get; set; } = new();
+}
+
+public sealed class ChartValueStyleDefinition
+{
+    public string Value { get; set; } = "";
+    public string Color { get; set; } = "";
 }
 
 public sealed class ChartBindingsDefinition
@@ -84,6 +98,11 @@ public static class ChartConfigReader
         definition.Limit ??= new ChartLimitDefinition();
         definition.Filters ??= new ChartFilterDefinition();
         definition.Display ??= new ChartDisplayDefinition();
+        if (definition.ValueStyling != null)
+        {
+            definition.ValueStyling.Values ??= new List<ChartValueStyleDefinition>();
+        }
+
         return definition;
     }
 }

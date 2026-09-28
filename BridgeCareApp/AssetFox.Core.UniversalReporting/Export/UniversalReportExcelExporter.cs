@@ -805,6 +805,24 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        var styling = ChartValueStyler.ActiveStyling(config);
+        var styledRole = ChartValueStyler.StyledRole(config);
+        List<Color>? seriesColors = null;
+        if (styling != null && styledRole == "series" && hasSeries)
+        {
+            seriesNames = ChartValueStyler.Order(seriesNames, styling, name => chartRows
+                .Where(row => string.Equals(ResolveSeriesName(row.Series, hasSeries, valueLabel), name, StringComparison.OrdinalIgnoreCase))
+                .Sum(row => row.Value));
+            seriesColors = ChartValueStyler.ResolveColors(seriesNames, styling, StandardChartColors);
+        }
+        else if (styling != null && styledRole == "category")
+        {
+            // Per-category colors (pie slices, single-series bars) aren't exported yet; only the order is.
+            categories = ChartValueStyler.Order(categories, styling, category => chartRows
+                .Where(row => string.Equals(row.Category, category, StringComparison.OrdinalIgnoreCase))
+                .Sum(row => row.Value));
+        }
+
         worksheet.Cells[dataHeaderRow, 1].Value = categoryLabel;
         for (var s = 0; s < seriesNames.Count; s++)
         {
@@ -868,7 +886,14 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
             var valueRange = worksheet.Cells[dataStartRow, s + 2, dataStartRow + categories.Count - 1, s + 2];
             var serie = chart.Series.Add(valueRange, categoryRange);
             serie.Header = hasSeries ? seriesNames[s] : valueLabel;
-            TryApplySeriesColor(serie, s);
+            if (seriesColors != null)
+            {
+                TryApplySeriesColor(serie, seriesColors[s], applyLineColor: true);
+            }
+            else
+            {
+                TryApplySeriesColor(serie, StandardChartColors[s % StandardChartColors.Length]);
+            }
         }
 
         if (ShouldHideExcelLegend(component, config, hasSeries))
@@ -1200,13 +1225,20 @@ public class UniversalReportExcelExporter : IUniversalReportExporter
         return string.IsNullOrWhiteSpace(cleaned) ? "Chart" : $"{cleaned}Chart";
     }
 
-    private static void TryApplySeriesColor(ExcelChartSerie serie, int index)
+    private static void TryApplySeriesColor(ExcelChartSerie serie, Color color, bool applyLineColor = false)
     {
         try
         {
             var fill = serie.GetType().GetProperty("Fill")?.GetValue(serie);
             var colorProperty = fill?.GetType().GetProperty("Color");
-            colorProperty?.SetValue(fill, StandardChartColors[index % StandardChartColors.Length]);
+            colorProperty?.SetValue(fill, color);
+
+            // Line series draw with LineColor rather than Fill. Only set for user-chosen colors so existing
+            // unstyled line exports keep their current look.
+            if (applyLineColor)
+            {
+                serie.GetType().GetProperty("LineColor")?.SetValue(serie, color);
+            }
         }
         catch
         {

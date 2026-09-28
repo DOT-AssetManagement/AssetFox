@@ -76,6 +76,40 @@ public class ChartTemplateValidator
             Add("Top N must be between 1 and 100.");
         }
 
+        var styling = config.ValueStyling;
+        if (styling != null)
+        {
+            if (!ChartValueStyler.SupportedOrders.Contains(styling.Order ?? ""))
+            {
+                Add("Colors and order uses an unsupported order.");
+            }
+
+            if (styling.Values.Count > ChartValueStyler.MaxStyledValues)
+            {
+                Add($"Colors and order can list at most {ChartValueStyler.MaxStyledValues} values.");
+            }
+
+            if (styling.Values.Any(style => string.IsNullOrWhiteSpace(style.Value)))
+            {
+                Add("Colors and order has a blank value.");
+            }
+
+            var duplicate = styling.Values
+                .Where(style => !string.IsNullOrWhiteSpace(style.Value))
+                .GroupBy(style => ChartValueStyler.Normalize(style.Value))
+                .FirstOrDefault(group => group.Count() > 1);
+            if (duplicate != null)
+            {
+                Add($"Colors and order lists \"{duplicate.First().Value}\" more than once.");
+            }
+
+            var invalidColor = styling.Values.FirstOrDefault(style => !ChartValueStyler.IsValidColor(style.Color));
+            if (invalidColor != null)
+            {
+                Add($"\"{invalidColor.Value}\" has an invalid color.");
+            }
+        }
+
         if (value != null && category != null && !CompatibleWithValue(value, category))
         {
             Add($"{BindingLabel(category)} cannot be joined to {BindingLabel(value)}.");

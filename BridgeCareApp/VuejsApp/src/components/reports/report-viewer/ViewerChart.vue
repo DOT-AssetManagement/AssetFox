@@ -66,7 +66,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(row, index) in tableRows" :key="index">
+                        <tr v-for="(row, index) in displayRows" :key="index">
                             <td>{{ row.category }}</td>
                             <td v-if="hasExplicitSeries">{{ row.series }}</td>
                             <td>{{ formatValue(row.value) }}</td>
@@ -100,6 +100,12 @@ import {
     standardChartColors,
 } from '@/shared/models/iAM/report-schema';
 import { PagedViewerResult } from '@/shared/models/iAM/viewer';
+import {
+    activeChartValueStyling,
+    chartStyledRole,
+    chartValueColors,
+    orderChartValues,
+} from '@/shared/utils/report-chart-styling';
 import ViewerService from '@/services/viewer.service';
 import { hasValue } from '@/shared/utils/has-value-util';
 
@@ -144,6 +150,37 @@ const categoryHeader = computed(() => config.value.bindings?.category?.label || 
 const seriesHeader = computed(() => config.value.bindings?.series?.label || 'Series');
 const valueHeader = computed(() => config.value.bindings?.value?.label || 'Value');
 const hasExplicitSeries = computed(() => !!config.value.bindings?.series?.field);
+const valueStyling = computed(() => activeChartValueStyling(config.value));
+const styledRole = computed(() => chartStyledRole(config.value));
+
+// Server order unless the chart has colors and order set, in which case the styled field follows it.
+const orderedCategories = computed(() => {
+    const categories = Array.from(new Set(tableRows.value.map(row => row.category)));
+    return valueStyling.value && styledRole.value === 'category'
+        ? orderChartValues(categories, valueStyling.value, totalsBy(row => row.category))
+        : categories;
+});
+const fallbackSeriesName = computed(() => valueHeader.value || props.component.title || 'Value');
+const orderedSeries = computed(() => {
+    const seriesNames = Array.from(new Set(tableRows.value.map(row => row.series || fallbackSeriesName.value)));
+    return hasExplicitSeries.value && valueStyling.value && styledRole.value === 'series'
+        ? orderChartValues(seriesNames, valueStyling.value, totalsBy(row => row.series || fallbackSeriesName.value))
+        : seriesNames;
+});
+const displayRows = computed(() => {
+    if (!valueStyling.value) return tableRows.value;
+    const categoryRank = new Map(orderedCategories.value.map((category, index) => [category, index]));
+    const seriesRank = new Map(orderedSeries.value.map((series, index) => [series, index]));
+    return [...tableRows.value].sort((a, b) =>
+        (categoryRank.get(a.category) ?? 0) - (categoryRank.get(b.category) ?? 0)
+        || (seriesRank.get(a.series) ?? 0) - (seriesRank.get(b.series) ?? 0));
+});
+
+function totalsBy(key: (row: ChartRow) => string): Map<string, number> {
+    const totals = new Map<string, number>();
+    tableRows.value.forEach(row => totals.set(key(row), (totals.get(key(row)) ?? 0) + row.value));
+    return totals;
+}
 
 const chartOption = computed<EChartsOption>(() => {
     if (config.value.chartKind === 'pie') {
@@ -154,10 +191,17 @@ const chartOption = computed<EChartsOption>(() => {
 });
 
 function buildCartesianOption(): EChartsOption {
-    const categories = Array.from(new Set(tableRows.value.map(row => row.category)));
-    const fallbackSeriesName = valueHeader.value || props.component.title || 'Value';
-    const seriesNames = Array.from(new Set(tableRows.value.map(row => row.series || fallbackSeriesName)));
+    const categories = orderedCategories.value;
+    const fallbackSeries = fallbackSeriesName.value;
+    const seriesNames = orderedSeries.value;
     const isLine = config.value.chartKind === 'line';
+    const seriesColors = valueStyling.value && styledRole.value === 'series'
+        ? chartValueColors(seriesNames, valueStyling.value)
+        : null;
+    // Single-series bars take one color per category; a single line can only have one color.
+    const categoryColors = valueStyling.value && styledRole.value === 'category' && !isLine
+        ? chartValueColors(categories, valueStyling.value)
+        : null;
     const isStacked = hasExplicitSeries.value && (
         config.value.mode === 'stacked'
         || config.value.mode === 'stacked100'
@@ -184,26 +228,35 @@ function buildCartesianOption(): EChartsOption {
         nameGap: categories.length > 8 ? 72 : 42,
         data: categories,
         axisLabel: { rotate: categories.length > 8 ? 35 : 0 },
+        // Horizontal bars draw the first category at the bottom; flip so a custom order reads top to bottom.
+        inverse: horizontal && !!valueStyling.value && styledRole.value === 'category',
     };
 
-    const series = seriesNames.map((seriesName) => ({
-        name: seriesName,
-        type: isLine ? 'line' : 'bar',
-        stack: isStacked ? 'total' : undefined,
-        areaStyle: isLine && config.value.mode === 'area' ? {} : undefined,
-        showSymbol: isLine ? config.value.display.showMarkers : undefined,
-        label: {
-            show: config.value.display.showLabels,
-            position: horizontal ? 'right' : 'top',
-            formatter: (params: any) => formatValue(toNumber(params.value)),
-        },
-        data: categories.map((category) => {
-            const match = tableRows.value.find(row =>
-                row.category === category && (row.series || fallbackSeriesName) === seriesName
-            );
-            return match?.value ?? 0;
-        }),
-    }));
+    const series = seriesNames.map((seriesName) => {
+        const seriesColor = seriesColors?.get(seriesName);
+        return {
+            name: seriesName,
+            type: isLine ? 'line' : 'bar',
+            stack: isStacked ? 'total' : undefined,
+            areaStyle: isLine && config.value.mode === 'area' ? {} : undefined,
+            showSymbol: isLine ? config.value.display.showMarkers : undefined,
+            itemStyle: seriesColor ? { color: seriesColor } : undefined,
+            lineStyle: seriesColor && isLine ? { color: seriesColor } : undefined,
+            label: {
+                show: config.value.display.showLabels,
+                position: horizontal ? 'right' : 'top',
+                formatter: (params: any) => formatValue(toNumber(params.value)),
+            },
+            data: categories.map((category) => {
+                const match = tableRows.value.find(row =>
+                    row.category === category && (row.series || fallbackSeries) === seriesName
+                );
+                const value = match?.value ?? 0;
+                const categoryColor = categoryColors?.get(category);
+                return categoryColor ? { value, itemStyle: { color: categoryColor } } : value;
+            }),
+        };
+    });
 
     return {
         color: standardChartColors,
@@ -238,6 +291,9 @@ function buildCartesianOption(): EChartsOption {
 
 function buildPieOption(): EChartsOption {
     const legendTitle = categoryHeader.value;
+    const sliceColors = valueStyling.value
+        ? chartValueColors(orderedCategories.value, valueStyling.value)
+        : null;
     return {
         color: standardChartColors,
         tooltip: {
@@ -257,9 +313,10 @@ function buildPieOption(): EChartsOption {
                     show: config.value.display.showLabels,
                     formatter: (params: any) => `${params.name}: ${formatValue(toNumber(params.value))} (${params.percent}%)`,
                 },
-                data: tableRows.value.map(row => ({
+                data: displayRows.value.map(row => ({
                     name: row.category,
                     value: row.value,
+                    itemStyle: sliceColors ? { color: sliceColors.get(row.category) } : undefined,
                 })),
             },
         ],

@@ -376,6 +376,112 @@ namespace AssetFox.Core.UniversalReporting.Tests
             }
         }
 
+        [Fact]
+        public async Task ExportAsync_ChartWithValueStyling_OrdersAndColorsSeries()
+        {
+            var simulationId = Guid.NewGuid();
+            var reportFolder = Path.Combine("Reports", simulationId.ToString());
+            var schema = new ReportSchemaDefinition
+            {
+                Pages = new List<ReportPage>
+                {
+                    new()
+                    {
+                        Components = new List<ReportComponent>
+                        {
+                            new()
+                            {
+                                Type = "barChart",
+                                Title = "Condition by Year",
+                                Order = 0,
+                                Visible = true,
+                                Config = new Dictionary<string, object>
+                                {
+                                    ["chartKind"] = "bar",
+                                    ["mode"] = "stacked",
+                                    ["bindings"] = new Dictionary<string, object>
+                                    {
+                                        ["category"] = new Dictionary<string, object> { ["source"] = "simulationYear", ["field"] = "year", ["label"] = "Year", ["role"] = "dimension", ["format"] = "year" },
+                                        ["value"] = new Dictionary<string, object> { ["source"] = "assetDetail", ["field"] = "assetCount", ["label"] = "Asset Count", ["role"] = "measure", ["aggregate"] = "count", ["format"] = "number" },
+                                        ["series"] = new Dictionary<string, object> { ["source"] = "calculatedField", ["field"] = "condition-class", ["label"] = "Condition Class", ["role"] = "series", ["format"] = "text" },
+                                    },
+                                    ["display"] = new Dictionary<string, object> { ["stacked"] = true, ["showLegend"] = true },
+                                    ["valueStyling"] = new Dictionary<string, object>
+                                    {
+                                        ["bindingKey"] = "calculatedField:condition-class",
+                                        ["order"] = "listed",
+                                        ["values"] = new List<Dictionary<string, object>>
+                                        {
+                                            new() { ["value"] = "Good", ["color"] = "#2E7D32" },
+                                            new() { ["value"] = "Fair", ["color"] = "#F9A825" },
+                                            new() { ["value"] = "Poor", ["color"] = "#C62828" },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+
+            var columns = new List<ViewerColumn>
+            {
+                new() { Key = "category", Header = "Year", Format = "text" },
+                new() { Key = "series", Header = "Condition Class", Format = "text" },
+                new() { Key = "value", Header = "Asset Count", Format = "number" },
+            };
+
+            // The chart query returns series alphabetically.
+            var queryEngine = new Mock<IUniversalQueryEngine>();
+            queryEngine
+                .Setup(engine => engine.StreamAllAsync(
+                    It.IsAny<ReportExecutionContext>(),
+                    It.IsAny<ViewerDataRequest>(),
+                    12,
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ComponentResult(columns, Rows(
+                    new List<object> { "2026", "Fair", 3 },
+                    new List<object> { "2026", "Good", 5 },
+                    new List<object> { "2026", "Poor", 2 },
+                    new List<object> { "2027", "Fair", 4 },
+                    new List<object> { "2027", "Good", 4 },
+                    new List<object> { "2027", "Poor", 1 })));
+
+            try
+            {
+                var exporter = new UniversalReportExcelExporter(queryEngine.Object);
+                var filePath = await exporter.ExportAsync(schema, simulationId, 12, CancellationToken.None);
+
+                using var package = new ExcelPackage(new FileInfo(filePath));
+                var worksheet = package.Workbook.Worksheets.Single(sheet => sheet.Drawings.Count > 0);
+
+                Assert.Equal("Good", worksheet.Cells[20, 2].Value);
+                Assert.Equal("Fair", worksheet.Cells[20, 3].Value);
+                Assert.Equal("Poor", worksheet.Cells[20, 4].Value);
+                Assert.Equal(5d, Convert.ToDouble(worksheet.Cells[21, 2].Value));
+                Assert.Equal(3d, Convert.ToDouble(worksheet.Cells[21, 3].Value));
+
+                var chart = (OfficeOpenXml.Drawing.Chart.ExcelChart)worksheet.Drawings[0];
+                var namespaces = new System.Xml.XmlNamespaceManager(chart.ChartXml.NameTable);
+                namespaces.AddNamespace("c", "http://schemas.openxmlformats.org/drawingml/2006/chart");
+                namespaces.AddNamespace("a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+                var seriesColors = chart.ChartXml
+                    .SelectNodes("//c:ser/c:spPr/a:solidFill/a:srgbClr/@val", namespaces)!
+                    .Cast<System.Xml.XmlNode>()
+                    .Select(node => node.Value)
+                    .ToList();
+
+                Assert.Equal(new[] { "2E7D32", "F9A825", "C62828" }, seriesColors);
+            }
+            finally
+            {
+                if (Directory.Exists(reportFolder))
+                {
+                    Directory.Delete(reportFolder, recursive: true);
+                }
+            }
+        }
+
         private static async IAsyncEnumerable<List<object>> Rows(params List<object>[] rows)
         {
             await Task.Yield();
