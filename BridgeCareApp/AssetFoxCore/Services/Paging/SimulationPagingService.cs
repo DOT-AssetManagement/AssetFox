@@ -14,8 +14,8 @@ namespace AssetFoxCore.Services
 {
     public class SimulationPagingService : BasePagingService<SimulationDTO>,  ISimulationPagingService
     {
-        private static IUnitOfWork _unitOfWork;
-        private static ISimulationRepository _simulationRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISimulationRepository _simulationRepository;
 
         public SimulationPagingService(IUnitOfWork unitOfWork, ISimulationRepository simulationRepository)
         {

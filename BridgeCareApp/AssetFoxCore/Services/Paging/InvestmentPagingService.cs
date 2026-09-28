@@ -11,7 +11,7 @@ namespace AssetFoxCore.Services.Paging
 {
     public class InvestmentPagingService : IInvestmentPagingService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
         public readonly IInvestmentDefaultDataService _investmentDefaultDataService;
 
         private static void FixNullAmounts(BudgetDTO budget)

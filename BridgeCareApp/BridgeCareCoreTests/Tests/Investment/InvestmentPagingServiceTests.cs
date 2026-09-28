@@ -655,5 +655,38 @@ namespace AssetFoxCoreTests.Tests
 
             Assert.Throws<NullReferenceException>(() => pagingService.GetScenarioPage(simulationId, pageRequest));
         }
+
+        [Fact]
+        public void GetScenarioPage_UsesUnitOfWorkFromItsOwnRequestScope()
+        {
+            var simulationId = Guid.NewGuid();
+            var firstUnitOfWork = UnitOfWorkMocks.New();
+            var firstBudgetRepo = BudgetRepositoryMocks.New(firstUnitOfWork);
+            firstBudgetRepo.Setup(br => br.GetScenarioBudgets(simulationId)).Returns(new List<BudgetDTO>());
+            var secondUnitOfWork = UnitOfWorkMocks.New();
+            var secondBudgetRepo = BudgetRepositoryMocks.New(secondUnitOfWork);
+            secondBudgetRepo.Setup(br => br.GetScenarioBudgets(simulationId)).Returns(new List<BudgetDTO>());
+            var firstService = CreateInvestmentPagingService(firstUnitOfWork);
+
+            _ = CreateInvestmentPagingService(secondUnitOfWork);
+
+            var pageRequest = new InvestmentPagingRequestModel
+            {
+                SyncModel = new InvestmentPagingSyncModel
+                {
+                    Investment = new InvestmentPlanDTO
+                    {
+                        Id = Guid.NewGuid(),
+                        FirstYearOfAnalysisPeriod = 2026,
+                        NumberOfYearsInAnalysisPeriod = 1,
+                    }
+                },
+            };
+
+            firstService.GetScenarioPage(simulationId, pageRequest);
+
+            firstBudgetRepo.Verify(br => br.GetScenarioBudgets(simulationId), Times.Once);
+            secondBudgetRepo.Verify(br => br.GetScenarioBudgets(It.IsAny<Guid>()), Times.Never);
+        }
     }
 }

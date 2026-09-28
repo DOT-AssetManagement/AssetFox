@@ -6,7 +6,7 @@ namespace AssetFoxCore.Services
 {
     public class GetConditionAttributesService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         public GetConditionAttributesService(IUnitOfWork unitOfWork)
         {

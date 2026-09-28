@@ -11,7 +11,7 @@ namespace AssetFoxCore.Services
 {
     public class DeficientConditionGoalPagingService : PagingService<DeficientConditionGoalDTO, DeficientConditionGoalLibraryDTO>,  IDeficientConditionGoalPagingService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         public DeficientConditionGoalPagingService(IUnitOfWork unitOfWork)
         {

@@ -11,7 +11,7 @@ namespace AssetFoxCore.Services
 {
     public class BudgetPriorityPagingService : PagingService<BudgetPriorityDTO, BudgetPriorityLibraryDTO>,  IBudgetPriortyPagingService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         public BudgetPriorityPagingService(IUnitOfWork unitOfWork)
         {

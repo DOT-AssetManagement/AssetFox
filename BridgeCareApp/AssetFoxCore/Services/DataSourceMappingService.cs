@@ -10,7 +10,7 @@ namespace AssetFoxCore.Services
 {
     public class DataSourceMappingService : IDataSourceMappingService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         public DataSourceMappingService(IUnitOfWork unitOfWork)
         {

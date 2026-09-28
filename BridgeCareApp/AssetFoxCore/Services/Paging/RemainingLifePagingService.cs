@@ -9,7 +9,7 @@ namespace AssetFoxCore.Services
 {
     public class RemainingLifeLimitPagingService : PagingService<RemainingLifeLimitDTO, RemainingLifeLimitLibraryDTO>, IRemainingLifeLimitPagingService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         public RemainingLifeLimitPagingService(IUnitOfWork unitOfWork)
         {

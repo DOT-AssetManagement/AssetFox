@@ -11,7 +11,7 @@ namespace AssetFoxCore.Services
 {
     public class CashFlowPagingService : PagingService<CashFlowRuleDTO, CashFlowRuleLibraryDTO>,  ICashFlowPagingService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         public CashFlowPagingService(IUnitOfWork unitOfWork)
         {

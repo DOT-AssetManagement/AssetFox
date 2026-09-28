@@ -17,7 +17,7 @@ namespace AssetFoxCore.Services
 {
     public class PerformanceCurvesService : IPerformanceCurvesService
     {
-        private static IUnitOfWork _unitOfWork;        
+        private readonly IUnitOfWork _unitOfWork;        
         protected readonly IHubService _hubService;
         private readonly IExpressionValidationService _expressionValidationService;
         public const string ImportedWithoutCriterioDueToInvalidValues = "The following performace curves are imported without criteria due to invalid values:";

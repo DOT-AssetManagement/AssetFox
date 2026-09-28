@@ -9,7 +9,7 @@ namespace AssetFoxCore.Services
 {
     public class TargetConditionGoalPagingService : PagingService<TargetConditionGoalDTO, TargetConditionGoalLibraryDTO>,  ITargetConditionGoalPagingService
     {
-        private static IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         public TargetConditionGoalPagingService(IUnitOfWork unitOfWork)
         {

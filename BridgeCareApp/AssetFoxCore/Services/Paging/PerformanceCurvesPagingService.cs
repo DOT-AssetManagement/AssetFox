@@ -12,7 +12,7 @@ namespace AssetFoxCore.Services
 {
     public class PerformanceCurvesPagingService : PagingService<PerformanceCurveDTO, PerformanceCurveLibraryDTO> , IPerformanceCurvesPagingService
     {
-        private static IUnitOfWork _unitOfWork;        
+        private readonly IUnitOfWork _unitOfWork;        
 
         public PerformanceCurvesPagingService(IUnitOfWork unitOfWork)
         {
