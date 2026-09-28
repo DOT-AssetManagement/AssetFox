@@ -481,6 +481,7 @@ import { useAdminDataStore, useAuthenticationStore, useNotificationStore, useRep
         criterionEditorDialogData.value = clone(
             emptyGeneralCriterionEditorDialogData,
         );
+        if (isNil(criterionexpression)) return;
         currentPage.value = update(
             findIndex(
                 propEq('id', selectedReport.value.id), currentPage.value), { ...selectedReport.value, mergedExpression: criterionexpression}, currentPage.value,

@@ -35,6 +35,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { isNil } from 'ramda';
 import GeneralCriterionEditorDialog from '@/shared/modals/GeneralCriterionEditorDialog.vue';
 import { GeneralCriterionEditorDialogData } from '@/shared/models/modals/general-criterion-editor-dialog-data';
 
@@ -73,7 +74,9 @@ function onOpenFilter() {
 
 function onFilterSubmit(expression: string | null, resultsCount: number | null) {
     filterDialogData.value.showDialog = false;
-    emit('update:modelValue', expression ?? '');
+    // The dialog emits null on Cancel; keep the existing filter.
+    if (isNil(expression)) return;
+    emit('update:modelValue', expression);
 }
 
 function onClearFilter() {
