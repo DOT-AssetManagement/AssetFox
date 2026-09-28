@@ -982,6 +982,8 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
             treatmentStore.deleteScenarioSelectableTreatment(selectedTreatment.value, selectedScenarioId, treatments).then(() => {
                 addedRows = addedRows.filter(_ => _.id !== treatmentId.toString());
                 clearChanges();
+                // Reload so the scenario's overrides reflect the server removing the deleted treatment from them.
+                return treatmentStore.getTreatmentLibraryBySimulationId(selectedScenarioId);
             });
 
             //getAllScenarioTreatmentsAction({ scenarioId: selectedScenarioId});
@@ -990,9 +992,16 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
         {
             if (any(propEq('id', treatmentId.toString()), simpleTreatments.value)) {
                 const treatments : SimpleTreatment[] = reject(propEq('id', treatmentId.toString()), simpleTreatments.value);            
-                treatmentStore.deleteTreatment(treatments, selectedTreatment.value,selectedTreatmentLibrary.value.id).then(() => {
+                treatmentStore.deleteTreatment(treatments, selectedTreatment.value,selectedTreatmentLibrary.value.id).then((deleted: boolean) => {
                     addedRows = addedRows.filter(_ => _.id !== treatmentId.toString());
                     clearChanges();
+                    if (deleted) {
+                        // Take the refreshed overrides without discarding other unsaved library edits (e.g. description).
+                        const refreshedOverrides = treatmentStore.getSelectedTreatmentLibrary.ruleOverrides || [];
+                        selectedTreatmentLibrary.value.ruleOverrides = clone(refreshedOverrides);
+                        ruleOverrides.value = refreshedOverrides;
+                        checkHasUnsavedChanges();
+                    }
                 });
             }            
         }

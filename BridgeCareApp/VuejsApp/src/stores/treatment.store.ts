@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { AxiosResponse } from 'axios';
 import { any, append, clone, find, findIndex, isNil, propEq, reject, update } from 'ramda';
 import TreatmentService from '@/services/treatment.service';
+import TreatmentRuleOverrideService from '@/services/treatment-rule-override.service';
 import { hasValue } from '@/shared/utils/has-value-util';
 import { http2XX } from '@/shared/utils/http-utils';
 import { useAlertStore } from './alert.store';
@@ -13,6 +14,7 @@ import {
     Treatment,
     TreatmentLibrary,
 } from '@/shared/models/iAM/treatment';
+import { TreatmentRuleOverride } from '@/shared/models/iAM/treatment-rule-override';
 
 export interface TreatmentStoreState {
     treatmentLibraries: TreatmentLibrary[];
@@ -57,6 +59,16 @@ export const useTreatmentStore = defineStore('treatment', {
                 (response: AxiosResponse<TreatmentLibrary[]>) => {
                     if (hasValue(response, 'data')) {
                         this.treatmentLibraries = clone(response.data);
+                    }
+                },
+            );
+        },
+        async getLibraryRuleOverrides(libraryId: string) {
+            await TreatmentRuleOverrideService.getRuleOverrides(libraryId).then(
+                (response: AxiosResponse<TreatmentRuleOverride[]>) => {
+                    const library = find(propEq('id', libraryId), this.treatmentLibraries) as TreatmentLibrary | undefined;
+                    if (Array.isArray(response.data) && !isNil(library)) {
+                        library.ruleOverrides = clone(response.data);
                     }
                 },
             );
@@ -180,15 +192,19 @@ export const useTreatmentStore = defineStore('treatment', {
             treatments: SimpleTreatment[],
             treatment: Treatment,
             libraryId: string,
-        ) {
+        ): Promise<boolean> {
             const notificationStore = useNotificationStore();
+            let deleted = false;
             await TreatmentService.deleteTreatment(treatment, libraryId).then(
-                (response: AxiosResponse) => {
+                async (response: AxiosResponse) => {
                 if (
                     hasValue(response, 'status') &&
                     http2XX.test(response.status.toString())
                 ) {
+                    deleted = true;
                     this.simpleSelectableTreatments = clone(treatments);
+                    // The server removes the deleted treatment from this library's override criteria.
+                    await this.getLibraryRuleOverrides(libraryId);
                     this.selectedTreatmentLibraryMutator(libraryId);
                     notificationStore.addSuccessNotification({
                         message: 'Deleted treatment',
@@ -196,6 +212,7 @@ export const useTreatmentStore = defineStore('treatment', {
                 }
                 },
             );
+            return deleted;
         },
         async deleteScenarioSelectableTreatment(
             scenarioSelectableTreatment: Treatment,
