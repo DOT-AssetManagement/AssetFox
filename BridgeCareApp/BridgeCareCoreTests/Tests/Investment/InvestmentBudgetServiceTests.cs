@@ -128,6 +128,10 @@ namespace AssetFoxCoreTests.Tests
             var budgetDto = BudgetDtos.WithSingleAmount(budgetId, "Budget", year, 1234);
             var sampleBudget1Dto = BudgetDtos.WithSingleAmount(sampleBudget1Id, "Sample Budget 1", year, fiveMillion);
             var sampleBudget2Dto = BudgetDtos.WithSingleAmount(sampleBudget1Id, "Sample Budget 2", year, fiveMillion);
+            // Imported budgets are ordered after the existing ones.
+            budgetDto.BudgetOrder = 1;
+            sampleBudget1Dto.BudgetOrder = 2;
+            sampleBudget2Dto.BudgetOrder = 3;
             budgetRepo.Setup(b => b.GetLibraryBudgets(libraryId)).ReturnsList(budgetDto);
             var currentUserCriteriaFilter = new UserCriteriaDTO
             {
@@ -259,6 +263,7 @@ namespace AssetFoxCoreTests.Tests
                 Budget = new BudgetDTO
                 {
                     Name = "Sample Budget 1",
+                    BudgetOrder = 1,
                 },
                 BudgetLibraryId = libraryId,
             };
@@ -267,6 +272,7 @@ namespace AssetFoxCoreTests.Tests
                 Budget = new BudgetDTO
                 {
                     Name = "Sample Budget 2",
+                    BudgetOrder = 2,
                 },
                 BudgetLibraryId = libraryId,
             };
@@ -449,6 +455,7 @@ namespace AssetFoxCoreTests.Tests
             var sampleBudget2Id = Guid.NewGuid();
             decimal fiveMillion = 5000000;
             var budgetDto1 = BudgetDtos.WithSingleAmount(budgetId, "Budget", year, 1234);
+            budgetDto1.BudgetOrder = 1;
             var budgetDtoList1 = new List<BudgetDTO> { budgetDto1 };
 
             var budgetLibraryDto = new BudgetLibraryDTO
@@ -488,6 +495,9 @@ namespace AssetFoxCoreTests.Tests
             var addedScenarioBudgets = addScenarioBudgetsInvocation.Arguments[1] as List<BudgetDTO>;
             Assert.Equal("Sample Budget 1", addedScenarioBudgets[0].Name);
             Assert.Equal("Sample Budget 2", addedScenarioBudgets[1].Name);
+            // Imported budgets are ordered after the existing ones.
+            Assert.Equal(2, addedScenarioBudgets[0].BudgetOrder);
+            Assert.Equal(3, addedScenarioBudgets[1].BudgetOrder);
             var addScenarioBudgetAmountsInvocation = budgetRepo.SingleInvocationWithName(nameof(IBudgetRepository.AddScenarioBudgetAmounts));
             var addedScenarioBudgetAmounts = addScenarioBudgetAmountsInvocation.Arguments[0] as List<BudgetAmountDTOWithBudgetId>;
             var expectedAddedScenarioBudgetAmount0 = new BudgetAmountDTOWithBudgetId
@@ -739,7 +749,7 @@ namespace AssetFoxCoreTests.Tests
         }
 
         [Fact]
-        public void ImportScenarioBudgetsFromFileWithExtraCriterion_Throws()
+        public void ImportScenarioBudgetsFromFileWithExtraCriterion_WarnsAndSkipsThatCriterion()
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
@@ -784,13 +794,20 @@ namespace AssetFoxCoreTests.Tests
             };
 
             // Act
-            var exception = Assert.Throws<InvalidOperationException>(() => service.ImportScenarioInvestmentBudgetsFile(simulationId, excelPackage, currentUserCriteriaFilter, false));
-            var message = exception.Message;
-            Assert.Equal("Sequence contains no matching element", message);
+            var result = service.ImportScenarioInvestmentBudgetsFile(simulationId, excelPackage, currentUserCriteriaFilter, false);
+
+            // Assert
+            Assert.Equal("The following budget names are in criteria TAB but not in Budget TAB: Missing budget", result.WarningMessage);
+            var addLibrariesInvocation = criterionLibraryRepo.SingleInvocationWithName(nameof(ICriterionLibraryRepository.AddLibraries));
+            var addedCriterionLibraries = addLibrariesInvocation.Arguments[0] as List<CriterionLibraryDTO>;
+            Assert.Equal(new[] { "Sample Budget 1 Criterion Library", "Sample Budget 2 Criterion Library" }, addedCriterionLibraries.Select(c => c.Name));
+            var addJoinsInvocation = criterionLibraryRepo.SingleInvocationWithName(nameof(ICriterionLibraryRepository.AddLibraryScenarioBudgetJoins));
+            var addedJoins = addJoinsInvocation.Arguments[0] as List<CriterionLibraryScenarioBudgetDTO>;
+            Assert.Equal(addedCriterionLibraries.Select(c => c.Id), addedJoins.Select(j => j.CriterionLibraryId));
         }
 
         [Fact]
-        public void ImportLibraryBudgetsFromFileWithExtraCriterion_Throws()
+        public void ImportLibraryBudgetsFromFileWithExtraCriterion_WarnsAndSkipsThatCriterion()
         {
             // Arrange
             var unitOfWork = UnitOfWorkMocks.New();
@@ -826,9 +843,17 @@ namespace AssetFoxCoreTests.Tests
             };
             budgetRepo.Setup(b => b.GetBudgetLibrary(libraryId)).Returns(expectedBudgetLibraryAfter);
 
-            var exception = Assert.Throws<InvalidOperationException>(() => service.ImportLibraryInvestmentBudgetsFile(libraryId, excelPackage, currentUserCriteriaFilter, false));
-            var message = exception.Message;
-            Assert.Equal("Sequence contains no matching element", message);
+            // Act
+            var result = service.ImportLibraryInvestmentBudgetsFile(libraryId, excelPackage, currentUserCriteriaFilter, false);
+
+            // Assert
+            Assert.Equal("The following budget names are in criteria TAB but not in Budget TAB: Missing budget", result.WarningMessage);
+            var addLibrariesInvocation = criterionLibraryRepo.SingleInvocationWithName(nameof(ICriterionLibraryRepository.AddLibraries));
+            var addedCriterionLibraries = addLibrariesInvocation.Arguments[0] as List<CriterionLibraryDTO>;
+            Assert.Equal(new[] { "Sample Budget 1 Criterion Library", "Sample Budget 2 Criterion Library" }, addedCriterionLibraries.Select(c => c.Name));
+            var addJoinsInvocation = criterionLibraryRepo.SingleInvocationWithName(nameof(ICriterionLibraryRepository.AddLibraryBudgetJoins));
+            var addedJoins = addJoinsInvocation.Arguments[0] as List<CriterionLibraryBudgetDTO>;
+            Assert.Equal(addedCriterionLibraries.Select(c => c.Id), addedJoins.Select(j => j.CriterionLibraryId));
         }
     }
 }

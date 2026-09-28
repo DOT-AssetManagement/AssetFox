@@ -303,7 +303,8 @@ namespace AssetFoxCore.Services
             var existingBudgets = _unitOfWork.BudgetRepo.GetScenarioBudgets(simulationId);
 
             var existingBudgetNames = existingBudgets.Select(existingBudget => existingBudget.Name).ToList();
-            var budgetOrder = 1;
+            // New budgets go after any existing ones so order values stay unique when merging.
+            var budgetOrder = existingBudgets.Select(existingBudget => existingBudget.BudgetOrder).DefaultIfEmpty(0).Max() + 1;
             var newBudgets = worksheetBudgetNames.Where(budgetName => !existingBudgetNames.Contains(budgetName))
                 .Select(budgetName => new BudgetDTO
                 {
@@ -410,7 +411,6 @@ namespace AssetFoxCore.Services
                 var criteria = new List<CriterionLibraryDTO>();
                 var criteriaJoins = new List<CriterionLibraryScenarioBudgetDTO>();
                 var invalidOperationEx = false;
-                var exceptionMessage = "";
                 criteriaPerBudgetName.Where(_ => !string.IsNullOrEmpty(_.Value)).ToList().ForEach(criterionPerBudgetName =>
                 {
                     var budgetName = criterionPerBudgetName.Key;
@@ -421,29 +421,30 @@ namespace AssetFoxCore.Services
                         if (validationResult.IsValid)
                         {
                             var criterionId = Guid.NewGuid();
-                            criteria.Add(new CriterionLibraryDTO
-                            {
-                                Id = criterionId,
-                                IsSingleUse = true,
-                                Name = $"{budgetName} Criterion Library",
-                                MergedCriteriaExpression = criterion
-                            });
                             try
                             {
+                                // Find the budget before adding the criterion so a name that is only on the
+                                // Criteria tab doesn't leave an orphaned criterion library behind.
                                 criteriaJoins.Add(new CriterionLibraryScenarioBudgetDTO
                                 {
                                     CriterionLibraryId = criterionId,
                                     ScenarioBudgetId = allBudgets.Single(_ => _.Name.ToUpperInvariant() == budgetName.ToUpperInvariant()).Id
+                                });
+                                criteria.Add(new CriterionLibraryDTO
+                                {
+                                    Id = criterionId,
+                                    IsSingleUse = true,
+                                    Name = $"{budgetName} Criterion Library",
+                                    MergedCriteriaExpression = criterion
                                 });
                             }
                             catch (ArgumentNullException ex)
                             {
                                 throw new ArgumentNullException(ex.Message);
                             }
-                            catch (InvalidOperationException ex)
+                            catch (InvalidOperationException)
                             {
                                 invalidOperationEx = true;
-                                exceptionMessage = ex.Message;
                                 criteriaBudgetNamesNotPresentInBudgetTab.Add(budgetName);
                             }
                         }
@@ -455,7 +456,6 @@ namespace AssetFoxCore.Services
                 });
                 if (invalidOperationEx)
                 {
-                    var sb = new StringBuilder();
                     if (criteriaBudgetNamesNotPresentInBudgetTab.Count > 0)
                     {                        
                         warningSb.Append($"The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
@@ -559,7 +559,8 @@ namespace AssetFoxCore.Services
             var existingBudgets = _unitOfWork.BudgetRepo.GetLibraryBudgets(budgetLibraryId);
 
             var existingBudgetNames = existingBudgets.Select(existingBudget => existingBudget.Name).ToList();
-            var budgetOrder = 1;
+            // New budgets go after any existing ones so order values stay unique when merging.
+            var budgetOrder = existingBudgets.Select(existingBudget => existingBudget.BudgetOrder).DefaultIfEmpty(0).Max() + 1;
             var newBudgets = worksheetBudgetNames.Where(budgetName => !existingBudgetNames.Contains(budgetName))
                 .Select(budgetName => new BudgetDTOWithLibraryId
                 {
@@ -654,7 +655,6 @@ namespace AssetFoxCore.Services
                 var criteria = new List<CriterionLibraryDTO>();
                 var criteriaJoins = new List<CriterionLibraryBudgetDTO>();
                 var invalidOperationEx = false;
-                var exceptionMessage = "";
                 criteriaPerBudgetName.Where(_ => !string.IsNullOrEmpty(_.Value)).ToList().ForEach(criterionPerBudgetName =>
                 {
                     var budgetName = criterionPerBudgetName.Key;
@@ -665,30 +665,30 @@ namespace AssetFoxCore.Services
                         if (validationResult.IsValid)
                         {
                             var criterionId = Guid.NewGuid();
-                            criteria.Add(new CriterionLibraryDTO
-                            {
-                                Id = criterionId,
-                                IsSingleUse = true,
-                                Name = $"{budgetName} Criterion Library",
-                                MergedCriteriaExpression = criterion
-                            });
-                            
                             try
                             {
+                                // Find the budget before adding the criterion so a name that is only on the
+                                // Criteria tab doesn't leave an orphaned criterion library behind.
                                 criteriaJoins.Add(new CriterionLibraryBudgetDTO
                                 {
                                     CriterionLibraryId = criterionId,
                                     BudgetId = allBudgets.Single(_ => _.Name == budgetName).Id
+                                });
+                                criteria.Add(new CriterionLibraryDTO
+                                {
+                                    Id = criterionId,
+                                    IsSingleUse = true,
+                                    Name = $"{budgetName} Criterion Library",
+                                    MergedCriteriaExpression = criterion
                                 });
                             }
                             catch (ArgumentNullException ex)
                             {
                                 throw new ArgumentNullException(ex.Message);
                             }
-                            catch (InvalidOperationException ex)
+                            catch (InvalidOperationException)
                             {
                                 invalidOperationEx = true;
-                                exceptionMessage = ex.Message;
                                 criteriaBudgetNamesNotPresentInBudgetTab.Add(budgetName);
                             }
                         }
@@ -700,7 +700,6 @@ namespace AssetFoxCore.Services
                 });
                 if (invalidOperationEx)
                 {
-                    var sb = new StringBuilder();
                     if (criteriaBudgetNamesNotPresentInBudgetTab.Count > 0)
                     {                        
                         warningSb.Append($"The following budget names are in criteria TAB but not in Budget TAB: {string.Join(",", criteriaBudgetNamesNotPresentInBudgetTab)}");
