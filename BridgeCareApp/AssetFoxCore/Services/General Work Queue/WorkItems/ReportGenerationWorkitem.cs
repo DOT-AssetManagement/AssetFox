@@ -38,6 +38,11 @@ namespace AssetFoxCore.Services
             using var scope = serviceProvider.CreateScope();
 
             var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            // Reports send their status updates to the unit of work's current user; without it the hub drops them.
+            if (!string.IsNullOrEmpty(UserId))
+            {
+                _unitOfWork.SetUser(UserId);
+            }
             var _hubService = scope.ServiceProvider.GetRequiredService<IHubService>();
             var _log = scope.ServiceProvider.GetRequiredService<ILog>();
             var _generator = scope.ServiceProvider.GetRequiredService<IReportGenerator>();
