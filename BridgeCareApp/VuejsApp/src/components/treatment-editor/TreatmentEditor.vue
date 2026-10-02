@@ -283,7 +283,7 @@
             <v-row justify="center" v-show='hasSelectedLibrary && !hasScenario'>
                 <v-col>
                     <RuleOverrideEditor
-                        :ruleOverrides="selectedTreatmentLibrary.ruleOverrides"
+                        :ruleOverrides="ruleOverrides"
                         :treatmentSelectItems="treatmentSelectItems"
                         @update:ruleOverrides="onRuleOverridesChanged"
                         @validity-changed="onRuleOverrideValidityChanged"
@@ -997,9 +997,11 @@ import { useAlertStore, useAuthenticationStore, useInvestmentStore, useNotificat
                     clearChanges();
                     if (deleted) {
                         // Take the refreshed overrides without discarding other unsaved library edits (e.g. description).
+                        // selectedTreatmentLibrary is a shallowRef, so this assignment only updates the save payload;
+                        // the override editor re-renders from ruleOverrides.
                         const refreshedOverrides = treatmentStore.getSelectedTreatmentLibrary.ruleOverrides || [];
                         selectedTreatmentLibrary.value.ruleOverrides = clone(refreshedOverrides);
-                        ruleOverrides.value = refreshedOverrides;
+                        ruleOverrides.value = clone(refreshedOverrides);
                         checkHasUnsavedChanges();
                     }
                 });
