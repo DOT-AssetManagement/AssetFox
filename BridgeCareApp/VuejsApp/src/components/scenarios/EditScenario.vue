@@ -129,6 +129,7 @@ import CashFlowService from '@/services/cash-flow.service';
 import { useAuthenticationStore, useNetworkStore, useNotificationStore, usePerformanceCurveStore, useScenarioStore } from '@/stores';
 import { useTreatmentStore } from '@/stores/treatment.store';
 import { faL } from '@fortawesome/free-solid-svg-icons';
+import { canSeeExperimentalFeatures } from '@/shared/utils/experimental-features';
 
     const authenticationStore = useAuthenticationStore();
     const notificationStore = useNotificationStore();
@@ -323,10 +324,11 @@ import { faL } from '@fortawesome/free-solid-svg-icons';
                             },
                         };
 
-                        if (navigationTab.tabName === 'Remaining Life Limit' 
-                            || navigationTab.tabName === 'Target Condition Goal' 
-                            || navigationTab.tabName === 'Deficient Condition Goal' 
-                            || navigationTab.tabName === 'Calculated Attribute') {
+                        if (navigationTab.tabName === 'Remaining Life Limit'
+                            || navigationTab.tabName === 'Target Condition Goal'
+                            || navigationTab.tabName === 'Deficient Condition Goal') {
+                            navigationTab['visible'] = canSeeExperimentalFeatures();
+                        } else if (navigationTab.tabName === 'Calculated Attribute') {
                             navigationTab['visible'] = hasAdminAccess.value;
                         }
 

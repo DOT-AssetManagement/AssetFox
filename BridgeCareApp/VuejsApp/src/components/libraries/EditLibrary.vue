@@ -65,6 +65,7 @@ import TargetConditionGoalSvg from '@/shared/icons/TargetConditionGoalSvg.vue';
 import TreatmentSvg from '@/shared/icons/TreatmentSvg.vue';
 import CalculatedAttributeSvg from '@/shared/icons/CalculatedAttributeSvg.vue';
 import { useAuthenticationStore } from '@/stores';
+import { canSeeExperimentalFeatures } from '@/shared/utils/experimental-features';
 
     const authenticationStore = useAuthenticationStore();
 
@@ -153,10 +154,11 @@ import { useAuthenticationStore } from '@/stores';
                             },
                         };
 
-                        if (navigationTab.tabName === 'Remaining Life Limit' 
-                            || navigationTab.tabName === 'Target Condition Goal' 
-                            || navigationTab.tabName === 'Deficient Condition Goal' 
-                            || navigationTab.tabName === 'Calculated Attribute') {
+                        if (navigationTab.tabName === 'Remaining Life Limit'
+                            || navigationTab.tabName === 'Target Condition Goal'
+                            || navigationTab.tabName === 'Deficient Condition Goal') {
+                            navigationTab['visible'] = canSeeExperimentalFeatures();
+                        } else if (navigationTab.tabName === 'Calculated Attribute') {
                             navigationTab['visible'] = hasAdminAccess.value;
                         }
 

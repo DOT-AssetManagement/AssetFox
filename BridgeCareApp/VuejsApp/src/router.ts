@@ -6,6 +6,7 @@ import AuthenticationStart from '@/components/authentication/AuthenticationStart
 import { hasValue } from '@/shared/utils/has-value-util';
 import { UnsecuredRoutePathNames } from '@/shared/utils/route-paths';
 import { SecurityTypes } from '@/shared/utils/security-types';
+import { canSeeExperimentalFeatures } from '@/shared/utils/experimental-features';
 import {
     isAuthenticatedUser,
     onHandleLogout,
@@ -232,6 +233,17 @@ const beforeEnterFunc = (to: any, from: any, next: any) => {
     }
 };
 
+// Hidden experimental editors can't be opened by URL either; send the user to the first editor tab instead.
+const experimentalEditorBeforeEnter = (fallbackPath: string) => (to: any, from: any, next: any) => {
+    if (canSeeExperimentalFeatures()) {
+        next();
+    } else {
+        next({ path: fallbackPath, query: to.query });
+    }
+};
+const experimentalScenarioEditorBeforeEnter = experimentalEditorBeforeEnter('/EditAnalysisMethod/');
+const experimentalLibraryEditorBeforeEnter = experimentalEditorBeforeEnter('/InvestmentEditor/Library/');
+
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -291,19 +303,19 @@ const router = createRouter({
                     path: '/TargetConditionGoalEditor/Scenario/',
                     component: TargetConditionGoalEditor,
                     props: true,
-                    beforeEnter: beforeEnterFunc,
+                    beforeEnter: [beforeEnterFunc, experimentalScenarioEditorBeforeEnter],
                 },
                 {
                     path: '/DeficientConditionGoalEditor/Scenario/',
                     component: DeficientConditionGoalEditor,
                     props: true,
-                    beforeEnter: beforeEnterFunc,
+                    beforeEnter: [beforeEnterFunc, experimentalScenarioEditorBeforeEnter],
                 },
                 {
                     path: '/RemainingLifeLimitEditor/Scenario',
                     component: RemainingLifeLimitEditor,
                     props: true,
-                    beforeEnter: beforeEnterFunc,
+                    beforeEnter: [beforeEnterFunc, experimentalScenarioEditorBeforeEnter],
                 },
                 {
                     path: '/CashFlowEditor/Scenario',
@@ -360,14 +372,17 @@ const router = createRouter({
                 {
                     path: '/TargetConditionGoalEditor/Library/',
                     component: TargetConditionGoalEditor,
+                    beforeEnter: experimentalLibraryEditorBeforeEnter,
                 },
                 {
                     path: '/DeficientConditionGoalEditor/Library/',
                     component: DeficientConditionGoalEditor,
+                    beforeEnter: experimentalLibraryEditorBeforeEnter,
                 },
                 {
                     path: '/RemainingLifeLimitEditor/Library/',
                     component: RemainingLifeLimitEditor,
+                    beforeEnter: experimentalLibraryEditorBeforeEnter,
                 },
                 {
                     path: '/CashFlowEditor/Library/',
@@ -490,21 +505,21 @@ const router = createRouter({
             name: 'TargetConditionGoalEditor.vue',
             component: TargetConditionGoalEditor,
             props: true,
-            beforeEnter: beforeEnterFunc,
+            beforeEnter: [beforeEnterFunc, experimentalLibraryEditorBeforeEnter],
         },
         {
             path: '/DeficientConditionGoalEditor/Library/',
             name: 'DeficientConditionGoalEditor',
             component: DeficientConditionGoalEditor,
             props: true,
-            beforeEnter: beforeEnterFunc,
+            beforeEnter: [beforeEnterFunc, experimentalLibraryEditorBeforeEnter],
         },
         {
             path: '/RemainingLifeLimitEditor/Library/',
             name: 'RemainingLifeLimitEditor',
             component: RemainingLifeLimitEditor,
             props: true,
-            beforeEnter: beforeEnterFunc,
+            beforeEnter: [beforeEnterFunc, experimentalLibraryEditorBeforeEnter],
         },
         {
             path: '/CashFlowEditor/Library/',

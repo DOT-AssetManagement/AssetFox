@@ -242,6 +242,7 @@ import CancelButton from '@/shared/components/buttons/CancelButton.vue';
 import SaveButton from '@/shared/components/buttons/SaveButton.vue';
 import mitt, { Emitter, EventType } from 'mitt';
 import { useAnalysisMethodStore, useAttributeStore, useAuthenticationStore, useNotificationStore, useScenarioStore, useUnsavedChangesStore } from '@/stores';
+import { canSeeExperimentalFeatures } from '@/shared/utils/experimental-features';
     const authenticationStore = useAuthenticationStore();
     const analysisMethodStore = useAnalysisMethodStore();
     const notificationStore = useNotificationStore();
@@ -261,7 +262,7 @@ import { useAnalysisMethodStore, useAttributeStore, useAuthenticationStore, useN
     const analysisMethod = ref<AnalysisMethod>(clone(emptyAnalysisMethod));
     let benefit = computed<Benefit>(() => analysisMethod.value.benefit);
     let assetCountString = ref<string>("unknown asset count");
-    const optimizationStrategy: SelectItem[] = [
+    const optimizationStrategyOptions: SelectItem[] = [
         { text: 'Benefit', value: OptimizationStrategy.Benefit },
         {
             text: 'Lowest-Lifecycle-Cost (LLC)',
@@ -273,6 +274,17 @@ import { useAnalysisMethodStore, useAttributeStore, useAuthenticationStore, useN
             value: OptimizationStrategy.RemainingLifeToCostRatio,
         },
     ];
+    const experimentalOptimizationStrategies: OptimizationStrategy[] = [
+        OptimizationStrategy.RemainingLife,
+        OptimizationStrategy.RemainingLifeToCostRatio,
+    ];
+    const optimizationStrategy = computed<SelectItem[]>(() =>
+        withoutHiddenExperimentalOptions(
+            optimizationStrategyOptions,
+            experimentalOptimizationStrategies,
+            analysisMethod.value.optimizationStrategy,
+        ),
+    );
     const spendingStrategyOptions: SelectItem[] = [
         { text: 'No Spending', value: SpendingStrategy.NoSpending },
         {
@@ -293,20 +305,26 @@ import { useAnalysisMethodStore, useAttributeStore, useAuthenticationStore, useN
         },
         { text: 'As Budget Permits', value: SpendingStrategy.AsBudgetPermits },
     ];
-    const adminOnlySpendingStrategies: SpendingStrategy[] = [
+    const experimentalSpendingStrategies: SpendingStrategy[] = [
         SpendingStrategy.UntilTargetAndDeficientConditionGoalsMet,
         SpendingStrategy.UntilTargetConditionGoalsMet,
         SpendingStrategy.UntilDeficientConditionGoalsMet,
     ];
     const spendingStrategy = computed<SelectItem[]>(() =>
-        hasAdminAccess.value
-            ? spendingStrategyOptions
-            : spendingStrategyOptions.filter(
-                option => !adminOnlySpendingStrategies.includes(
-                    option.value as SpendingStrategy,
-                ),
-            ),
+        withoutHiddenExperimentalOptions(
+            spendingStrategyOptions,
+            experimentalSpendingStrategies,
+            analysisMethod.value.spendingStrategy,
+        ),
     );
+    // Keeps the scenario's current choice so it still displays, but a hidden experimental option can't be newly picked.
+    function withoutHiddenExperimentalOptions<T>(options: SelectItem[], experimentalValues: T[], currentValue: T): SelectItem[] {
+        return canSeeExperimentalFeatures()
+            ? options
+            : options.filter(option =>
+                !experimentalValues.includes(option.value as T) || option.value === currentValue,
+            );
+    }
     const benefitAttributes = ref<SelectItem[]>([]);
     const weightingAttributes = ref<SelectItem[]>([{ text: '', value: '' }]);
     const superAssetAttributes = ref<SelectItem[]>([]);

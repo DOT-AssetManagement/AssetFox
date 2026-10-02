@@ -16,6 +16,7 @@ export interface Config {
         agencyFilename: string;
         implementationFilename: string;
     };
+    experimentalFeaturesEnabled?: boolean;
 }
 
 export interface ConfigStoreState {
@@ -29,6 +30,10 @@ export const useConfigStore = defineStore('config', {
     getters: {
         getConfig(state): Config | null {
             return state.config;
+        },
+        // Off unless config.json explicitly sets "experimentalFeaturesEnabled": true.
+        experimentalFeaturesEnabled(state): boolean {
+            return state.config?.experimentalFeaturesEnabled === true;
         },
     },
     actions: {
