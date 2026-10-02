@@ -541,7 +541,8 @@ public sealed class SimulationRunner
 
                     var actualSpendingLimit = SpendingLimit;
                     SpendingLimit = SpendingLimit.NoLimit;
-                    costCoverage = TryToPayForTreatment(context, treatment, year, budgetContext => budgetContext.CurrentAmount);
+                    // A scheduled treatment must happen, even when no budget is usable for it.
+                    costCoverage = TryToPayForTreatment(context, treatment, year, budgetContext => budgetContext.CurrentAmount, requireUsableBudget: false);
                     SpendingLimit = actualSpendingLimit;
 
                     context.Detail.TreatmentFundingIgnoresSpendingLimit = true;
@@ -1219,7 +1220,8 @@ public sealed class SimulationRunner
         AssetContext assetContext,
         Treatment treatment,
         int year,
-        Func<BudgetContext, decimal> getAvailableAmount)
+        Func<BudgetContext, decimal> getAvailableAmount,
+        bool requireUsableBudget = true)
     {
         var treatmentConsideration = assetContext.Detail.TreatmentConsiderations.GetAdd(new(treatment.Name));
 
@@ -1331,6 +1333,27 @@ public sealed class SimulationRunner
                 else
                 {
                     allocationIsAllowedPerBudgetAndTreatment[b, t] = true;
+                }
+            }
+        }
+
+        // With no spending limit, the funding solver "funds" a treatment that no budget is usable for by allocating
+        // nothing, so the treatment would be selected at no cost (e.g. on an asset excluded by every budget's conditions).
+
+        if (requireUsableBudget)
+        {
+            for (var t = 0; t < treatmentsToFund.Count; ++t)
+            {
+                var anyBudgetIsUsable = false;
+
+                for (var b = 0; b < BudgetContexts.Length && !anyBudgetIsUsable; ++b)
+                {
+                    anyBudgetIsUsable = allocationIsAllowedPerBudgetAndTreatment[b, t];
+                }
+
+                if (!anyBudgetIsUsable)
+                {
+                    return CostCoverage.None;
                 }
             }
         }
